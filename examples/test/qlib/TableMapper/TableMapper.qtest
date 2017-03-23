@@ -536,7 +536,12 @@ public class TableMapperTest inherits QUnit::Test {
             on_exit table.rollback();
             InboundTableMapper mapper(table, MapRuntime,
                     ("runtime" : (
-                        "rstring" : "pass1")));
+                        "rstring" : "pass2")));
+            # side-track - make sure the runtime options can be set before first row
+            # is processed.
+            mapper.setRuntime("rstring", "pass3");
+            mapper.setRuntime(("rstring" : "pass4"));
+            mapper.replaceRuntime(("rstring" : "pass1"));
             # assuming insert_block > size of Input3
             # a bulk inserted
             *hash ret = mapper.queueData(InputRT1);
