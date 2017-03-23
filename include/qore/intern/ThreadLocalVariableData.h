@@ -56,13 +56,13 @@ public:
 
    DLLLOCAL LocalVarValue* instantiate() {
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new Block(curr);
-	    //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
+         if (curr->next)
+            curr = curr->next;
+         else {
+            curr->next = new Block(curr);
+            //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
+            curr = curr->next;
+         }
       }
       return &curr->var[curr->pos++];
    }
@@ -79,12 +79,12 @@ public:
 
    DLLLOCAL void uninstantiateIntern() {
       if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
+         if (curr->next) {
+            //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
+            delete curr->next;
+            curr->next = 0;
+         }
+         curr = curr->prev;
          assert(curr);
       }
       --curr->pos;
@@ -93,16 +93,16 @@ public:
    DLLLOCAL LocalVarValue* find(const char* id) {
       Block* w = curr;
       while (true) {
-	 int p = w->pos;
-	 while (p) {
+         int p = w->pos;
+         while (p) {
             --p;
             LocalVarValue* var = &w->var[p];
-	    if (var->id == id && !var->skip && !var->frame_boundary)
-	       return var;
-	 }
-	 w = w->prev;
+            if (var->id == id && !var->skip && !var->frame_boundary)
+               return var;
+         }
+         w = w->prev;
 #ifdef DEBUG
-	 if (!w) {
+         if (!w) {
             printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
             p = curr->pos - 1;
             while (p >= 0) {
@@ -111,7 +111,7 @@ public:
             }
          }
 #endif
-	 assert(w);
+         assert(w);
       }
       // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
       return 0;

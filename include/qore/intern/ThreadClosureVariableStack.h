@@ -38,13 +38,13 @@ private:
       //printd(5, "ThreadClosureVariableStack::instantiateIntern(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
 
       if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new Block(curr);
-	    //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
+         if (curr->next)
+            curr = curr->next;
+         else {
+            curr->next = new Block(curr);
+            //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
+            curr = curr->next;
+         }
       }
       curr->var[curr->pos++] = cvar;
    }
@@ -87,12 +87,12 @@ public:
          printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
 #endif
       if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
+         if (curr->next) {
+            //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
+            delete curr->next;
+            curr->next = 0;
+         }
+         curr = curr->prev;
          assert(curr);
       }
       --curr->pos;
@@ -112,16 +112,16 @@ public:
          while (p) {
             --p;
             ClosureVarValue* rv = w->var[p];
-	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, rv ? rv->id : nullptr, rv ? rv->id : "n/a", rv ? rv->skip : false);
-	    if (rv && rv->id == id && !rv->skip) {
-	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, rv);
-	       return rv;
-	    }
-	 }
-	 w = w->prev;
+            printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, rv ? rv->id : nullptr, rv ? rv->id : "n/a", rv ? rv->skip : false);
+            if (rv && rv->id == id && !rv->skip) {
+               printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, rv);
+               return rv;
+            }
+         }
+         w = w->prev;
 #ifdef DEBUG
-	 if (!w) {
-	    printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
+         if (!w) {
+            printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
             p = curr->pos - 1;
             while (p >= 0) {
                ClosureVarValue* cvv = w->var[p];
@@ -130,7 +130,7 @@ public:
             }
          }
 #endif
-	 assert(w);
+         assert(w);
       }
       // to avoid a warning on most compilers - note that this generates a warning on aCC!
       return 0;
@@ -150,8 +150,8 @@ public:
             if (!cv)
                cv = new cvv_vec_t;
             cv->push_back(cvv->refSelf());
-	 }
-	 w = w->prev;
+         }
+         w = w->prev;
       }
       //printd(5, "ThreadClosureVariableStack::getAll() this: %p cv: %p size: %d\n", this, cv, cv ? cv->size() : 0);
       return cv;
