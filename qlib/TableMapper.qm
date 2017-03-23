@@ -978,20 +978,14 @@ on_error table_mapper.rollback();
             if (!exists hbuf) {
                 return; # nothing to flush
             }
-            # FIXME simplify this complex condition
-            if (exists hbuf_size) {
-                if (hbuf_size == 0) {
-                    return; # empty input, all flushed in previous round
-                }
-                else if (!force_flush && hbuf_size < insert_block) {
-                    return; # too few data to flush
-                }
-                # else flush all or block full
+
+            if (force_flush) {
+                if (hbuf_size === 0) return; # empty input, all flushed in prev. round
             }
             else {
-                if (!force_flush) {
-                    return; # constant mapper flushes only in the end
-                }
+                # constant mapper flushes only in the end, or
+                # too few data to flush
+                if (!exists hbuf_size || hbuf_size < insert_block) return;
             }
 
             *hash rh;
