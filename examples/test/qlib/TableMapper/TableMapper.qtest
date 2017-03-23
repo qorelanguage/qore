@@ -379,7 +379,7 @@ public class TableMapperTest inherits QUnit::Test {
         list outputBulk2 = OutputBulk2;
         if (table.bindEmptyStringsAsNull()) {
             output1[2].string = NULL;
-            outputBulk2[2].string = NULL;
+            outputBulk2[2].string = NOTHING;
         }
         list output2 = Output1;
         output2[2].string = "str2_3";
@@ -540,7 +540,7 @@ public class TableMapperTest inherits QUnit::Test {
 
         # issue #1754: queueData(hash of lists) with identity on non-list input
         # in bulk context
-        # FIXME this test is identical to a test in non-bulk area but with different
+        # FIXME this test is identical to a test in bulk area but with different
         # result:
         # The issue is that with insert_block=1 we use contextIterator() to process
         # the rows, with bulk operation we try to not expand rows prematurely so that
