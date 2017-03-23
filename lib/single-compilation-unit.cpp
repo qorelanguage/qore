@@ -35,6 +35,7 @@
 #include "SelfVarrefNode.cpp"
 #include "StaticClassVarRefNode.cpp"
 #include "ReferenceNode.cpp"
+#include "lvalue_ref.cpp"
 #include "BackquoteNode.cpp"
 #include "ContextrefNode.cpp"
 #include "ComplexContextrefNode.cpp"

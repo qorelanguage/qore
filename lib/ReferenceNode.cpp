@@ -123,7 +123,6 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
       parse_error("the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
       return this;
    }
-
    // check lvalue, and convert "normal" local vars to thread-safe local vars
    AbstractQoreNode* n = lvexp;
    while (true) {
@@ -151,7 +150,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
 ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, self, lvalue_id)) {
 }
 
-ReferenceNode::ReferenceNode(lvalue_ref* p) : AbstractQoreNode(NT_REFERENCE, false, true), priv(p) {
+ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(*old.priv)) {
 }
 
 ReferenceNode::~ReferenceNode() {
@@ -184,7 +183,7 @@ QoreValue ReferenceNode::evalValue(bool& needs_deref, ExceptionSink* xsink) cons
 */
 
 AbstractQoreNode* ReferenceNode::realCopy() const {
-   return new ReferenceNode(new lvalue_ref(*priv));
+   return new ReferenceNode(*this);
 }
 
 // the type passed must always be equal to the current type

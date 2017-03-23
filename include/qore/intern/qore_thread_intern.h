@@ -551,46 +551,6 @@ public:
    DLLLOCAL const qore_class_private* getClass() const;
 };
 
-class lvalue_ref {
-public:
-   AbstractQoreNode* vexp;
-   QoreObject* self;
-   QoreProgram* pgm;
-   const void* lvalue_id;
-
-   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
-      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tRef();
-   }
-
-   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
-      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tRef();
-   }
-
-   DLLLOCAL ~lvalue_ref() {
-      //printd(5, "lvalue_ref::~lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tDeref();
-      if (vexp)
-         vexp->deref(0);
-   }
-
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      //printd(5, "lvalue_ref::del() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (vexp) {
-         vexp->deref(xsink);
-         vexp = 0;
-      }
-   }
-
-   static lvalue_ref* get(const ReferenceNode* r) {
-      return r->priv;
-   }
-};
-
 class CodeContextHelper {
 private:
    const char* old_code;
@@ -715,9 +675,6 @@ public:
    DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
    DLLLOCAL ~ProgramRuntimeParseAccessHelper();
 };
-
-//int thread_ref_set(const lvalue_ref* r);
-//void thread_ref_remove(const lvalue_ref* r);
 
 class RuntimeReferenceHelperBase {
 protected:
