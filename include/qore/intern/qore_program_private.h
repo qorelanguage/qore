@@ -1331,6 +1331,8 @@ public:
 
    DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);
 
+   DLLLOCAL int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
+
    // returns true if there was already a thread init closure set, false if not
    DLLLOCAL bool setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink);
 

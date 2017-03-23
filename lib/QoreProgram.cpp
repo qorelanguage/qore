@@ -697,6 +697,30 @@ QoreClass* qore_program_private::runtimeFindClass(const char* class_name, Except
    return qore_root_ns_private::runtimeFindClass(*RootNS, class_name);
 }
 
+int qore_program_private::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
+   ValueHolder holder(val, xsink);
+
+   const qore_ns_private* vns = 0;
+   Var* v;
+   {
+      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+      if (*xsink)
+         return -1;
+      v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, name, vns);
+   }
+
+   if (!v) {
+      xsink->raiseException("UNKNOWN-VARIABLE", "there is no global variable \"%s\"", name);
+      return -1;
+   }
+
+   LValueHelper lvh(xsink);
+   if (v->getLValue(lvh, false))
+      return -1;
+
+   return lvh.assign(holder.release(), "<API assignment>");
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -1291,6 +1315,10 @@ AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner)
 
 QoreHashNode* QoreProgram::getGlobalVars() const {
    return priv->getGlobalVars();
+}
+
+int QoreProgram::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
+   return priv->setGlobalVarValue(name, val, xsink);
 }
 
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {

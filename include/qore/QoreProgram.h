@@ -632,6 +632,17 @@ public:
     */
    DLLEXPORT QoreHashNode* getGlobalVars() const;
 
+   //! sets the value of the given global variable
+   /** @param name the name of the variable
+       @param val the value to assign; the value must be already referenced for the assignment and will be dereferenced if the assignment fails
+       @param xsink for Qore-language exceptions
+
+       @return 0 for OK, -1 if an exception was raised
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
+
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);

@@ -310,6 +310,28 @@ class ProgramTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            p.setGlobalVarValue("i", 2);
+            assertEq(("i": 2, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            assertThrows("RUNTIME-TYPE-ERROR", \p.setGlobalVarValue(), ("i", "hi"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            assertThrows("UNKNOWN-VARIABLE", \p.setGlobalVarValue(), ("x", "hi"));
+        }
+
+        {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
             p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
 

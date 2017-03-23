@@ -1580,11 +1580,12 @@ pgm.setGlobalVar("a", 1);
     @param name the name of the variable
     @param value the value to assign
 
-    @throw INVALID-VARIABLE the variable is not a global variable
+    @throw UNKNOWN-VARIABLE the variable is not a global variable
 
     @note other exceptions could be thrown if the value cannot be assigned to the given variable
 
     @since %Qore 0.8.13
  */
 nothing Program::setGlobalVarValue(string name, any value) {
+   p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
