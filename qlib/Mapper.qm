@@ -992,8 +992,7 @@ Mapper mapv(DataMap);
                 # actually runtime should not happen with do_list since
                 # do_list = True is only used from TableMapper that is handling
                 # runtime outside mapFieldIntern()
-                any rtv = m_runtime{m.runtime};
-                v = do_list ? (map rtv, xrange(0, list_size - 1)) : rtv;
+                v = m_runtime{m.runtime};
             }
             else if (m.struct) {
                 v = rec;
@@ -1028,8 +1027,8 @@ Mapper mapv(DataMap);
                     if (do_list) {
                         v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
                             xrange(0, list_size - 1);
-                        # here we make a list from 'v' again, since we simply don't
-                        # know what 'code' could do with 'v' and 'rec'
+                        # here we make a list from 'v' either way, since we simply
+                        # cannot predict what 'code' could do with 'v' and 'rec'
                         v_is_list = True;
                     }
                     else {
