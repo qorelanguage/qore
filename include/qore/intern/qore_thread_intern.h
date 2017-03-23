@@ -470,6 +470,10 @@ DLLLOCAL void thread_push_frame_boundary();
 DLLLOCAL void thread_pop_frame_boundary();
 
 DLLLOCAL QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);

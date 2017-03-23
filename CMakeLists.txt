@@ -437,6 +437,8 @@ set(LIBQORE_CPP_SRC
     lib/FindNode.cpp
     lib/charset.cpp
     lib/unicode-charmaps.cpp
+    lib/ThreadClosureVariableStack.cpp
+    lib/ThreadLocalVariableData.cpp
     lib/QoreProgram.cpp
     lib/QoreProgramHelper.cpp
     lib/QoreNamespace.cpp

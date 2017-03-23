@@ -168,6 +168,8 @@ libqore_la_SOURCES = \
 	FindNode.cpp \
 	charset.cpp \
 	unicode-charmaps.cpp \
+	ThreadClosureVariableStack.cpp \
+	ThreadLocalVariableData.cpp \
 	QoreProgram.cpp \
 	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \

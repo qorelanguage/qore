@@ -91,6 +91,8 @@
 #include "FindNode.cpp"
 #include "charset.cpp"
 #include "unicode-charmaps.cpp"
+#include "ThreadClosureVariableStack.cpp"
+#include "ThreadLocalVariableData.cpp"
 #include "QoreProgram.cpp"
 #include "QoreProgramHelper.cpp"
 #include "QoreNamespace.cpp"

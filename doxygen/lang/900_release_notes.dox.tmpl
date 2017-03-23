@@ -72,16 +72,14 @@
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
-      - @ref Qore::PO_ALLOW_DEBUGGING "ALLOW_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
+      - @ref Qore::PO_ALLOW_DEBUGGING "PO_ALLOW_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT"
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - new methods:
       - @ref Qore::Program::getGlobalVars()
-      - @ref Qore::Program::getLocalVars()
       - @ref Qore::Program::setGlobalVarValue()
-      - @ref Qore::Program::setLocalVarValue()
       - @ref Qore::Program::setThreadInit()
     - updated methods:
       - @ref TreeMap::get() new parameter to return also unmatched part suffix
@@ -94,6 +92,9 @@
       - <number>::toBase(int)
       - <float>::toBase(int)
     - new functions:
+      - @ref Qore::get_global_vars()
+      - @ref Qore::get_local_vars()
+      - @ref Qore::set_local_var_value()
       - @ref Qore::parse_int()
     - updated functions:
       - @ref Qore::ceil(int/float/number num, int prec = 0)

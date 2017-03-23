@@ -323,6 +323,40 @@ class ProgramTest inherits QUnit::Test {
             assertEq(vh, p.callFunction("test", 0));
             assertEq({}, p.callFunction("test", 1));
         }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value('i', 2); set_local_var_value('str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
+
+            hash vh = (
+                "frame": ("type": "local", "value": 0),
+                "i": ("type": "closure", "value": 2),
+                "str": ("type": "local", "value": "bye"),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            assertEq(vh, p.callFunction("test", 0));
+            assertEq({}, p.callFunction("test", 1));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); }", "");
+            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); sub () { i = 3; };}", "");
+            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value('i', 'hi'); sub () { i = 3; };}", "");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
+        }
+
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
             p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");

@@ -394,27 +394,29 @@ protected:
 
 public:
    AutoVLock vl;
-   AbstractQoreNode** v;     // ptr to ptr for lvalue expression
+   AbstractQoreNode** v = nullptr;     // ptr to ptr for lvalue expression
 private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
-   lvid_set_t* lvid_set;
+   lvid_set_t* lvid_set = nullptr;
    ocvec_t ocvec;
 
    // flag if the changed value was a container before the assignment
-   bool before;
+   bool before = false;
 
    // recursive delta: change to recursive reference count
-   int rdt;
+   int rdt = 0;
 
-   RObject* robj;
+   RObject* robj = nullptr;
 
 public:
-   QoreLValueGeneric* val;
-   const QoreTypeInfo* typeInfo;
+   QoreLValueGeneric* val = nullptr;
+   const QoreTypeInfo* typeInfo = nullptr;
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
    DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
+
+   DLLLOCAL LValueHelper(ExceptionSink* xsink);
 
    DLLLOCAL LValueHelper(LValueHelper&& o);
 
