@@ -545,16 +545,13 @@ public class TableMapperTest inherits QUnit::Test {
             # assuming insert_block > size of Input3
             # a bulk inserted
             *hash ret = mapper.queueData(InputRT1);
-            printf("RET1: %y\n", ret);
             # single row inserted
             *hash ret2 = mapper.queueData(InputRT2);
-            printf("RET2: %y\n", ret2);
             if (ret2) {
                 *int s1;
                 InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);
             }
             ret2 = mapper.flush();
-            printf("RET3: %y\n", ret2);
             if (ret2) {
                 *int s1;
                 InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);

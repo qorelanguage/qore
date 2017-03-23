@@ -1032,7 +1032,7 @@ on_error table_mapper.rollback();
             if (exists hbuf_size) {
                 # clear buffer but keep hash keys - non-const mapper
                 map hbuf.$1 = (), hbuf.keyIterator(), hbuf.$1.typeCode() == NT_LIST;
-                hbuf_size = (mapd.size() || identh.size()) ? 0 : NOTHING;
+                hbuf_size = 0;
             }
             else {
                 # const mapper - do not keep anything after flush()
