@@ -31,13 +31,16 @@
   information.
 */
 
-lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
+#include "qore/Qore.h"
+#include "qore/intern/lvalue_ref.h"
+
+lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid), cls(n_cls) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();
 }
 
-lvalue_ref::lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id) {
+lvalue_ref::lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id), cls(old.cls) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();
@@ -55,17 +58,15 @@ bool lvalue_ref::scanNode(RSetHelper& rsh, AbstractQoreNode* vexp) {
    }
    else if (ntype == NT_OPERATOR) {
       QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(vexp);
-      assert(op);
-      assert(op->getRight()->getType() == NT_INT);
-      // we scan the whole list here because we have a reference to the list
-      return scanNode(rsh, op->getLeft());
-   }
-   else if (ntype == NT_TREE) {
-      // it must be a tree
-      QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(vexp);
-      assert(tree->getOp() == OP_OBJECT_REF);
-      // we scan the whole hash here because we have a reference to the hash
-      return scanNode(rsh, tree->left);
+      if (op) {
+         assert(op->getRight()->getType() == NT_INT);
+         // we scan the whole list here because we have a reference to the list
+         return scanNode(rsh, op->getLeft());
+      }
+      else {
+         assert(dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(vexp));
+         return scanNode(rsh, reinterpret_cast<QoreHashObjectDereferenceOperatorNode*>(vexp)->getLeft());
+      }
    }
    else if (ntype == NT_REFERENCE) {
       return scanNode(rsh, reinterpret_cast<ReferenceNode*>(vexp)->priv->vexp);
