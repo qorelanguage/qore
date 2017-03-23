@@ -50,8 +50,6 @@ private:
    //! private implementation
    class lvalue_ref* priv;
 
-   DLLLOCAL ReferenceNode(lvalue_ref* p);
-
 protected:
    //! returns the value of the reference; caller owns any reference count returned for non-NULL return values
    DLLEXPORT virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
@@ -77,6 +75,11 @@ protected:
 public:
    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
    DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
+
+   //! creates a copy of the object
+   /** @since %Qore 0.8.12.9
+    */
+   DLLLOCAL ReferenceNode(const ReferenceNode& old);
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
@@ -108,6 +111,7 @@ public:
    //! returns the type name as a c string
    DLLEXPORT virtual const char* getTypeName() const;
 
+   //! called when the object is deleted
    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 };
 

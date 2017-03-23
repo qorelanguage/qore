@@ -16,6 +16,7 @@ class GcTest {
         any a;
         *GcTest b;
         *GcTest c;
+        any d;
     }
 
     private {
@@ -34,6 +35,10 @@ class GcTest {
 
     set(*GcTest obj) {
         o = obj;
+    }
+
+    reference getRef() {
+        return \a;
     }
 }
 
@@ -108,6 +113,7 @@ class DgcTest inherits QUnit::Test {
         addTestCase("ClosureTests", \closureTests());
         addTestCase("Destructor order", \dtorOrder());
         addTestCase("MiscGcTests", \miscGcTests());
+        addTestCase("refLeak", \refLeakTest());
 
         # Return for compatibility with test harness that checks the return value
         set_return_value(main());
@@ -304,5 +310,88 @@ class DgcTest inherits QUnit::Test {
             delete obj2;
         }
         assertEq(2, cnt);
+    }
+
+    refLeakTest() {
+        int cnt = 0;
+        code inc = sub () { ++cnt; };
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = \o2;
+        }
+        assertEq(2, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = o2.getRef();
+        }
+        assertEq(4, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            list l = (\o2,);
+            o1.a = \l[0];
+        }
+        assertEq(6, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            hash h = ("a": \o2,);
+            o1.a."a" = \h.a;
+        }
+        assertEq(8, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = ("a": \o2);
+        }
+        assertEq(10, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = \o2;
+            o1.d = ("a": \o2);
+        }
+        assertEq(12, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            o1.a = \o2;
+            o1.d = \o2;
+        }
+        assertEq(14, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            list l = (\o2, \o2);
+            o1.a = \l[0];
+        }
+        assertEq(16, cnt);
+
+        {
+            # issue #1774 leak in closure-bound/reference local var handling
+            GcTest o1(inc);
+            GcTest o2(inc, o1);
+            hash h = ("a": \o2, "b": \o2);
+            o1.a."a" = \h.a;
+        }
+        assertEq(18, cnt);
     }
 }

@@ -165,6 +165,7 @@
 
     @subsection qore_08129_bug_fixes Bug Fixes in Qore
 
+    - fixed a memory leak where references participate in recursive references (<a href="https://github.com/qorelanguage/qore/issues/1774">issue 1774</a>)
     - fixed a build issue with clang++ (<a href="https://github.com/qorelanguage/qore/issues/1768">issue 1768</a>)
     - fixed a memory leak in the @ref Qore::Thread::Queue "Queue" copy constructor when the @ref Qore::Thread::Queue "Queue" was used in other objects (such as an event queue, etc; <a href="https://github.com/qorelanguage/qore/issues/1749">issue 1749</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module fixes:
