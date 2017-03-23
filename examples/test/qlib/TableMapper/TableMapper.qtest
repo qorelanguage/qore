@@ -549,12 +549,16 @@ public class TableMapperTest inherits QUnit::Test {
             # single row inserted
             *hash ret2 = mapper.queueData(InputRT2);
             printf("RET2: %y\n", ret2);
-            if (ret2)
-                InboundTableMapper::addBatchToBatch(\ret, ret2);
+            if (ret2) {
+                *int s1;
+                InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);
+            }
             ret2 = mapper.flush();
             printf("RET3: %y\n", ret2);
-            if (ret2)
-                InboundTableMapper::addBatchToBatch(\ret, ret2);
+            if (ret2) {
+                *int s1;
+                InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);
+            }
             checkMap(table.selectRows(("orderby": "dte")), OutputRT);
             assertEq(4, mapper.getCount());
             assertEq(OutputRTHash, ret);
