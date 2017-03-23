@@ -33,6 +33,10 @@
 QoreReferenceCounter::QoreReferenceCounter() : references(1) {
 }
 
+// we ignore the old reference count and set the new reference count to 1 as with all new objects
+QoreReferenceCounter::QoreReferenceCounter(const QoreReferenceCounter& old) : references(1) {
+}
+
 QoreReferenceCounter::~QoreReferenceCounter() {
 }
 

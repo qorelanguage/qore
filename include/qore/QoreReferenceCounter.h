@@ -49,6 +49,11 @@ public:
    //! creates the reference counter object
    DLLEXPORT QoreReferenceCounter();
 
+   //! creates a new object with a reference count of 1
+   /** @since %Qore 0.8.12.9
+    */
+   DLLEXPORT QoreReferenceCounter(const QoreReferenceCounter& old);
+
    //! destroys the reference counter object
    DLLEXPORT ~QoreReferenceCounter();
 
