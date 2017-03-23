@@ -123,6 +123,7 @@ libqore_la_SOURCES = \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
 	ReferenceNode.cpp \
+	lvalue_ref.cpp \
 	ScopedRefNode.cpp \
 	ClassRefNode.cpp \
 	AbstractQoreNode.cpp \

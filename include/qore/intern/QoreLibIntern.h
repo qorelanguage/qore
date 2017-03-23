@@ -377,6 +377,7 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/ParseNode.h"
 #include "qore/intern/QoreThreadList.h"
+#include "qore/intern/lvalue_ref.h"
 #include "qore/intern/qore_thread_intern.h"
 #include "qore/intern/Function.h"
 #include "qore/intern/CallReferenceCallNode.h"
@@ -528,7 +529,7 @@ public:
       oflag(n_oflag),
       pflag(n_pflag),
       lvids(n_lvids),
-      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode* >(*n) : 0),
+      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : 0),
       finished(!l),
       pos(-1),
       singleTypeInfo(0) {

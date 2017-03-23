@@ -297,6 +297,7 @@ noinst_HEADERS = \
 	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
+	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
 	include/qore/intern/qore_value_list_private.h \

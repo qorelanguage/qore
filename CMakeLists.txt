@@ -7,7 +7,7 @@ option(ICONV_TRANSLIT
        OFF)
 
 option(QORE_RUNTIME_THREAD_STACK_TRACE
-       "enable runtime thread stack trace (performance penalty), only for debug builds"
+       "enable runtime thread stack trace (turning off breaks compatibility)"
        ON)
 
 set(VERSION_MAJOR 0)
@@ -376,11 +376,12 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 set(LIBQORE_CPP_SRC
-        ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
     lib/BarewordNode.cpp
     lib/SelfVarrefNode.cpp
     lib/StaticClassVarRefNode.cpp
+    lib/lvalue_ref.cpp
     lib/ReferenceNode.cpp
     lib/BackquoteNode.cpp
     lib/ContextrefNode.cpp
@@ -601,7 +602,7 @@ if (NOT HAVE_INET_PTON)
     set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_pton.cpp)
 endif ()
 if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
-    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
+    set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
 endif ()
 
 add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
