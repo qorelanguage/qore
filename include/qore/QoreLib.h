@@ -565,7 +565,7 @@ DLLEXPORT bool q_libqore_shutdown();
 
     @since %Qore 0.8.13
 */
-DLLEXPORT QoreHashNode* q_get_thread_local_vars(int level, ExceptionSink* xsink);
+DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink);
 
 //! sets the value of the given thread-local variable (which may be a closure-bound variable as well) in the current stack frame for the current thread's QoreProgram object
 /** @param name the name of the variable
