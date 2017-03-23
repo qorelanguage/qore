@@ -235,11 +235,11 @@ public class MapperTest inherits QUnit::Test {
         Mapper m(DataMap, m_opts);
         ListIterator it(MapInput);
         int ix = 0;
+        m.setRuntime("runtimetest", 0);
         while (it.next()) {
-            m.setRuntime("runtimetest", ix);
             hash rec = m.mapData(it.getValue());
-            hash orig = MapOutput[ix] + ("runtimetest" : ix);
-            testAssertion(sprintf("runtime item: %d", ix), \equals(), (rec, orig));
+            hash orig = MapOutput[ix] + ("runtimetest" : 0);
+            testAssertion(sprintf("runtime item: %d", 0), \equals(), (rec, orig));
             ix++;
         }
     }
