@@ -934,7 +934,11 @@ Mapper mapv(DataMap);
         /**
           * Performs the actual mapping
           *
-          * @param h the hash to be updated with the mapped key/value pair
+          * @param h the hash to be updated with the mapped key/value pair;
+          *          Depending on the mapper specification and the input, it can
+          *          contain a bulk record (hash of lists) or a hash of both list
+          *          and non-list keys (these are considered a "constants" in the
+          *          output record.
           * @param key the column name (hash key) to be mapped (target field)
           * @param rec input record - either single record of hash of lists (batch);
           *                           to increase performance, the input type
@@ -967,7 +971,9 @@ Mapper mapv(DataMap);
             # NOTE that we still need the NT_LIST check here since even with do_list
             # we can get constants in 'rec' (aka non-lists).
             code getrec = hash sub (hash rc, int offset) {
-                return map {$1.key: $1.value.typeCode() == NT_LIST ? $1.value[offset] : $1.value}, rc.pairIterator();
+                return map {$1.key : $1.value.typeCode() == NT_LIST ?
+                                        $1.value[offset] :
+                                        $1.value}, rc.pairIterator();
             };
 
             # get source field name

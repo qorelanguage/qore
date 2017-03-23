@@ -702,7 +702,21 @@ table_mapper.setRowCode(rowcode);
             if (rec_list_size > 0) {
                 hash dh;
 
-                rec += crec;
+                if (crec) {
+                    # expand crec to have the same number of rows as rec in any key
+                    # that has already got a list value in crec. This is to avoid
+                    # situations that crec changes the number of rows really inserted.
+                    foreach hash i in (crec.pairIterator()) {
+                        if (i.value.typeCode() != NT_LIST &&
+                            (exists rec{i.key} &&
+                             rec{i.key}.typeCode() == NT_LIST)) {
+                            rec{i.key} = map i.value, xrange(0, rec_list_size-1);
+                        }
+                        else {
+                            rec{i.key} = i.value;
+                        }
+                    }
+                }
 
                 # identl and rconsth entries are added to 'dh' and not in 'hbuf'
                 # directly since identl and rconsth may change at each call of
