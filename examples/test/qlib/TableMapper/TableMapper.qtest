@@ -283,6 +283,14 @@ public class TableMapperTest inherits QUnit::Test {
         const OutputHash5 =
                 ("id" : (10,11,12,13),
                  "dte" : date("2017-05-03"),);
+        const OutputHash6 =
+                ("id" : 1,
+                 "string" : "string_6",
+                 "dte" : date("2017-05-03"),);
+        const OutputHash7 =
+                ("id" : 1,
+                 "string" : ("string_1", "string_2", "str2"),
+                 "dte" : date("2017-05-03"),);
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -387,6 +395,26 @@ public class TableMapperTest inherits QUnit::Test {
                 assertEq(OutputBulk3 + ("string" : "ms"), ret);
                 checkMap(table.selectRows(("orderby": "string")), (("string" : "ms"),));
                 assertEq(3, mapper.getCount());
+            }
+
+            # issue #1754: queueData() followed by insertRow
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, Map2NoSequence);
+                # assuming insert_block > size of Input3
+                # a bulk inserted
+                *hash ret = mapper.queueData(Input3);
+                assertEq(NOTHING, ret);
+                # single row inserted
+                # FIXME mind that the single row will be inserted immediately,
+                # so it may precede the bulk rows inserted "previously", but
+                # not dumped into the table yet. It may affect sequence numbers...
+                # --PQ 23-Mar-2017
+                ret = mapper.insertRow(Input6);
+                assertEq(OutputHash6, ret);
+                ret = mapper.flush();
+                assertEq(4, mapper.getCount());
+                assertEq(OutputHash7, ret);
             }
 
         }
