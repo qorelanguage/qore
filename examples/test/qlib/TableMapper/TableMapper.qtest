@@ -125,6 +125,28 @@ public class TableMapperTest inherits QUnit::Test {
             "string" : ("name" : "string"),
             "dte" : ("constant" : date("2017-05-03")));
 
+        const MapRuntime = (
+            "id": ("index": 0),
+            "string": ("runtime" : "rstring"),
+            "dte" : True,
+            );
+
+        const InputRT1 = ("dte" : (date("2017-05-03"), date("2017-05-04")));
+        const InputRT2 = ("dte" : (date("2017-05-05"), date("2017-05-06")));
+
+        const OutputRT = (
+                ("id" : 0, "string" : "pass1", "dte" : date("2017-05-03")),
+                ("id" : 1, "string" : "pass1", "dte" : date("2017-05-04")),
+                ("id" : 2, "string" : "pass2", "dte" : date("2017-05-05")),
+                ("id" : 3, "string" : "pass2", "dte" : date("2017-05-06")));
+        const OutputRTHash =
+                ("id" : (0,1,0,1),
+                 "string" : ("pass1","pass1","pass2","pass2"),
+                 "dte" : (date("2017-05-03"),
+                          date("2017-05-04"),
+                          date("2017-05-05"),
+                          date("2017-05-06")));
+
         const Input1 = (("string": "string_1"),
                         ("string": "string_2"),
                         ("string": ""),
@@ -352,7 +374,9 @@ public class TableMapperTest inherits QUnit::Test {
             # issue #1754: queueData(hash of lists) with identity on non-list input
             # in bulk context
             # FIXME this test is identical to a test in non-bulk area but with different
-            # result.
+            # result. (see comment in non-bulk area) --PQ 23-Mar-2017
+            # Actually since mapper.getCount() == 3, but only 1 row is inserted,
+            # it can have also strange consequences in the "index" mappings.
             {
                 on_exit table.rollback();
 
@@ -505,6 +529,26 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap(table.selectRows(("orderby": "id")), Output5);
             assertEq(4, mapper.getCount());
             assertEq(OutputHash5, ret);
+        }
+
+        # issue #1754: two queueData() in sequence with 'runtime' in the mapper
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, MapRuntime,
+                    ("runtime" : (
+                        "rstring" : "pass1")));
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(InputRT1);
+            mapper.setRuntime("rstring", "pass2");
+            # single row inserted
+            *hash ret2 = mapper.queueData(InputRT2);
+            InboundTableMapper::addBatchToBatch(\ret, ret2);
+            ret2 = mapper.flush();
+            InboundTableMapper::addBatchToBatch(\ret, ret2);
+            checkMap(table.selectRows(("orderby": "dte")), OutputRT);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputRTHash, ret);
         }
 
         # issue #1754: queueData() test with False-convertible value in 1st value
