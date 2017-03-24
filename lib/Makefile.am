@@ -123,6 +123,7 @@ libqore_la_SOURCES = \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
 	ReferenceNode.cpp \
+	lvalue_ref.cpp \
 	ScopedRefNode.cpp \
 	ClassRefNode.cpp \
 	AbstractQoreNode.cpp \
@@ -162,11 +163,14 @@ libqore_la_SOURCES = \
 	ModuleManager.cpp \
 	QoreException.cpp \
 	ExceptionSink.cpp \
+	QoreStandardException.cpp \
 	QoreClass.cpp \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \
 	unicode-charmaps.cpp \
+	ThreadClosureVariableStack.cpp \
+	ThreadLocalVariableData.cpp \
 	QoreProgram.cpp \
 	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \

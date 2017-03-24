@@ -153,6 +153,14 @@ public:
    */
    DLLEXPORT AbstractQoreNode* raiseException(const char *err, QoreStringNode* desc);
 
+   //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
+   /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+       @param err the exception code string for the exception; the ExceptionSink object takes ownership of the reference count
+       @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
+       @return always returns 0
+   */
+   DLLEXPORT AbstractQoreNode* raiseException(QoreStringNode *err, QoreStringNode* desc);
+
    //! sets the "thread_exit" flag; will cause the current thread to terminate
    DLLEXPORT void raiseThreadExit();
 

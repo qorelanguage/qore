@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -213,6 +213,13 @@ public:
       if (!qc && class_handler)
 	 qc = class_handler(ns, cname);
       return qc;
+   }
+
+   DLLLOCAL void getGlobalVars(QoreHashNode& h) const {
+      std::string path;
+      getPath(path);
+      var_list.getGlobalVars(path, h);
+      nsl.getGlobalVars(h);
    }
 
    DLLLOCAL void clearConstants(QoreListNode& l);
@@ -1543,6 +1550,12 @@ public:
       return qoreNS->priv;
    }
 
+   DLLLOCAL QoreHashNode* getGlobalVars() const {
+      QoreHashNode* rv = new QoreHashNode;
+      qore_ns_private::getGlobalVars(*rv);
+      return rv;
+   }
+
    DLLLOCAL void commitModule(QoreModuleContext& qmc) {
       for (unsigned j = 0; j < qmc.mcnl.size(); ++j) {
          ModuleContextNamespaceCommit& mc = qmc.mcnl[j];
@@ -1589,6 +1602,10 @@ public:
 
    DLLLOCAL void runtimeRebuildFunctionIndexes(qore_ns_private* ns) {
       rebuildFunctionIndexes(fmap, ns->func_list, ns);
+   }
+
+   DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
+      return rns.rpriv->getGlobalVars();
    }
 
    DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {

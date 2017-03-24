@@ -377,6 +377,7 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/ParseNode.h"
 #include "qore/intern/QoreThreadList.h"
+#include "qore/intern/lvalue_ref.h"
 #include "qore/intern/qore_thread_intern.h"
 #include "qore/intern/Function.h"
 #include "qore/intern/CallReferenceCallNode.h"
@@ -528,7 +529,7 @@ public:
       oflag(n_oflag),
       pflag(n_pflag),
       lvids(n_lvids),
-      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode* >(*n) : 0),
+      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : 0),
       finished(!l),
       pos(-1),
       singleTypeInfo(0) {
@@ -654,7 +655,7 @@ public:
 DLLLOCAL void qore_machine_backtrace();
 
 #ifndef QORE_THREAD_STACK_BLOCK
-#define QORE_THREAD_STACK_BLOCK 256
+#define QORE_THREAD_STACK_BLOCK 1024
 #endif
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
@@ -672,6 +673,8 @@ public:
    DLLLOCAL T& get(int p) {
       return var[p];
    }
+
+   DLLLOCAL bool frameBoundary(int p);
 };
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
@@ -688,31 +691,36 @@ protected:
 public:
    DLLLOCAL ThreadLocalDataIterator(Block* n_orig) : orig(n_orig && n_orig->pos ? n_orig : 0), curr(0), pos(0) {
    }
+
    DLLLOCAL ThreadLocalDataIterator() : orig(0), curr(0), pos(0) {
    }
+
    DLLLOCAL bool next() {
       if (!orig)
          return false;
 
-      if (!curr) {
-         curr = orig;
-         pos = orig->pos - 1;
-         return true;
-      }
-
-      --pos;
-      if (pos < 0) {
-         if (!curr->prev) {
-            curr = 0;
-            pos = 0;
-            return false;
+      do {
+         if (!curr) {
+            curr = orig;
+            pos = orig->pos - 1;
          }
-         curr = curr->prev;
-         pos = curr->pos - 1;
-      }
+         else {
+            --pos;
+            if (pos < 0) {
+               if (!curr->prev) {
+                  curr = 0;
+                  pos = 0;
+                  return false;
+               }
+               curr = curr->prev;
+               pos = curr->pos - 1;
+            }
+         }
+      } while (!curr->frameBoundary(pos));
 
       return true;
    }
+
    DLLLOCAL T& get() {
       assert(curr);
       return curr->get(pos);

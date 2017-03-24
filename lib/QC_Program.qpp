@@ -453,6 +453,13 @@ const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
     @since %Qore 0.8.13
 */
 const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
+
+//! allows debugging actions that could be insecure such as reading the thread local variable stack
+/** @see @ref allow-debugging "%allow-debugging"
+
+    @since %Qore 0.8.13
+*/
+const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1546,4 +1553,41 @@ pgm.setThreadInit(sub () { var = 123; });
 */
 bool Program::setThreadInit(*code init) [dom=THREAD_CONTROL] {
    return qore_program_private::setThreadInit(*p, init, xsink);
+}
+
+//! returns a hash of global variables
+/** @par Example:
+    @code{.py}
+hash h = pgm.getGlobalVars();
+    @endcode
+
+    @return a hash of global variables and their values
+
+    @see @ref Qore::get_global_vars()
+
+    @since %Qore 0.8.13
+ */
+hash Program::getGlobalVars() [flags=CONSTANT] {
+   return p->getGlobalVars();
+}
+
+//! set the value of a global variable
+/** @par Example:
+    @code
+pgm.setGlobalVarValue("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the variable is not a global variable
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @see @ref Qore::set_global_var_value()
+
+    @since %Qore 0.8.13
+ */
+nothing Program::setGlobalVarValue(string name, any value) {
+   p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }

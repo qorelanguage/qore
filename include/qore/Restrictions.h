@@ -83,6 +83,7 @@
 #define PO_BROKEN_LOOP_STATEMENT            (1LL << 43)  //!< allow for old pre-%Qore 0.8.13 handling of break and continue
 #define PO_STRONG_ENCAPSULATION             (1LL << 44)  //!< disallow out-of-line class and namespace declarations
 #define PO_NO_UNCONTROLLED_APIS             (1LL << 45)  //!< disallow access to "uncontrolled APIs" like external language bindings or direct generic system call APIs that could bypass sandboxing controls
+#define PO_ALLOW_DEBUGGING                  (1LL << 46)  //!< allows debugging actions that could be insecure such as reading the thread local variable stack
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -114,7 +115,7 @@
 #define PO_NEW_STYLE                  (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of all options allowing for more freedom (instead of less)
-#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
+#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_DEBUGGING)
 
 //! mask of options that have no effect on code access or code safety
 #define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_LOOP_STATEMENT)
@@ -155,5 +156,6 @@
 #define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality
 #define QDOM_INJECTION          PO_ALLOW_INJECTION        //!< provides functionality related to code / dependency injection
 #define QDOM_UNCONTROLLED_API   PO_NO_UNCONTROLLED_APIS   //!< provides unchecked access to system functionality that could bypass Qore's sandboxing controls
+#define QDOM_DEBUG_INSECURE     PO_ALLOW_DEBUGGING        //!< debugging actions that could be insecure such as reading the thread local variable stack
 
 #endif //_QORE_DOMAIN_H

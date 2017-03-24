@@ -864,6 +864,40 @@ ClosureParseEnvironment* thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
 }
 
+void thread_push_frame_boundary() {
+   ThreadData* td = thread_data.get();
+   td->tlpd->lvstack.pushFrameBoundary();
+   td->tlpd->cvstack.pushFrameBoundary();
+}
+
+void thread_pop_frame_boundary() {
+   ThreadData* td = thread_data.get();
+   td->tlpd->lvstack.popFrameBoundary();
+   td->tlpd->cvstack.popFrameBoundary();
+}
+
+QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+   ThreadData* td = thread_data.get();
+   if (frame >= 0) {
+      td->tlpd->lvstack.getLocalVars(**rv, frame, xsink);
+      if (*xsink)
+         return nullptr;
+      td->tlpd->cvstack.getLocalVars(**rv, frame, xsink);
+      if (*xsink)
+         return nullptr;
+   }
+   return rv.release();
+}
+
+int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   return thread_data.get()->tlpd->lvstack.setVarValue(name, val, xsink);
+}
+
+int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   return thread_data.get()->tlpd->cvstack.setVarValue(name, val, xsink);
+}
+
 void parse_push_name(const char* name) {
    ThreadData* td = thread_data.get();
    td->pushName(name);

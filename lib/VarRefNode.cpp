@@ -199,7 +199,7 @@ int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
    return ref.var->getLValue(lvh, for_remove);
 }
 
-DLLLOCAL void VarRefNode::remove(LValueRemoveHelper& lvrh) {
+void VarRefNode::remove(LValueRemoveHelper& lvrh) {
    if (type == VT_LOCAL)
       return ref.id->remove(lvrh);
    if (type == VT_CLOSURE)
@@ -210,6 +210,19 @@ DLLLOCAL void VarRefNode::remove(LValueRemoveHelper& lvrh) {
       return ref.cvv->remove(lvrh);
    assert(type == VT_GLOBAL);
    return ref.var->remove(lvrh);
+}
+
+bool VarRefNode::scanMembers(RSetHelper& rsh) {
+   if (type == VT_CLOSURE)
+      return rsh.checkNode(*thread_get_runtime_closure_var(ref.id));
+   if (type == VT_LOCAL_TS)
+      return rsh.checkNode(*thread_find_closure_var(ref.id->getName()));
+   if (type == VT_IMMEDIATE)
+      return rsh.checkNode(*ref.cvv);
+   // never called with type == VT_LOCAL
+   // we don't scan global vars; they are deleted explicitly when the program goes out of scope
+   assert(type == VT_GLOBAL);
+   return false;
 }
 
 GlobalVarRefNode::GlobalVarRefNode(char *n, const QoreTypeInfo* typeInfo) : VarRefNode(n, 0, false, true) {

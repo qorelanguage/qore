@@ -748,6 +748,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
 ^%strong-encapsulation{WS}*$            getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION);
 ^%no-uncontrolled-apis{WS}*$            getProgram()->parseSetParseOptions(PO_NO_UNCONTROLLED_APIS);
+^%allow-debugging{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_DEBUGGING);
 ^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);

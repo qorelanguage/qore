@@ -49,6 +49,11 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    }
    rset = rs;
    rcount = rcnt;
+#ifdef DEBUG
+   if (rcount > references)
+      printd(0, "RObject::setRSet() this: %p '%s' cannot set rcount %d > references %d\n", this, getName(), rcount, references);
+   assert(rcount <= references);
+#endif
    if (rs) {
       rs->ref();
       // we make a weak reference from the rset to the object to ensure that it does not disappear while the rset is valid
@@ -279,6 +284,8 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
    if (!needs_scan(n))
       return false;
 
+   //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
+
    switch (get_node_type(n)) {
       case NT_OBJECT:
          return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
@@ -352,6 +359,9 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
          return false;
       }
+
+      case NT_REFERENCE:
+         return lvalue_ref::get(static_cast<ReferenceNode*>(n))->scanReference(*this);
 
       case NT_VALUE_LIST:
          assert(false);
@@ -496,6 +506,8 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
          if (i == (int)(ovec.size() - 1)) {
             printd(QRO_LVL, " + %p '%s': parent object %p '%s' was not in cycle (rcount: %d -> %d)\n", fi->first, fi->first->getName(), ovec[i]->first, ovec[i]->first->getName(), fi->second.rcount, fi->second.rcount + 1);
             ++fi->second.rcount;
+            // rcount can never be more than real references for the target object
+            assert(fi->first->references >= fi->second.rcount);
          }
       }
       else
@@ -547,12 +559,16 @@ bool RSetHelper::checkIntern(RObject& obj) {
          if (inCurrentSet(fi)) {
             printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
             ++fi->second.rcount;
+            // rcount can never be more than real references for the target object
+            assert(fi->first->references >= fi->second.rcount);
          }
          else if (!ovec.empty()) {
             // FIXME: use this optimization in the loop below
             if (ovec.back()->second.rset == fi->second.rset) {
                printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount, fi->second.rcount + 1);
                ++fi->second.rcount;
+               // rcount can never be more than real references for the target object
+               assert(fi->first->references >= fi->second.rcount);
                return false;
             }
 

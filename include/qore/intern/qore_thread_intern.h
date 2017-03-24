@@ -466,6 +466,15 @@ DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosure
 typedef std::vector<ClosureVarValue*> cvv_vec_t;
 DLLLOCAL cvv_vec_t* thread_get_all_closure_vars();
 
+DLLLOCAL void thread_push_frame_boundary();
+DLLLOCAL void thread_pop_frame_boundary();
+
+DLLLOCAL QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
@@ -515,47 +524,6 @@ DLLLOCAL const qore_class_private* runtime_get_class();
 DLLLOCAL void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& qc);
 // for methods that behave differently when called within the method itself (methodGate(), memberGate(), etc)
 DLLLOCAL bool runtime_in_object_method(const char* name, const QoreObject* o);
-
-class lvalue_ref {
-public:
-   AbstractQoreNode* vexp;
-   QoreObject* self;
-   QoreProgram* pgm;
-   const void* lvalue_id;
-   const qore_class_private* cls;
-
-   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid), cls(n_cls) {
-      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tRef();
-   }
-
-   DLLLOCAL lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id), cls(old.cls) {
-      //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tRef();
-   }
-
-   DLLLOCAL ~lvalue_ref() {
-      //printd(5, "lvalue_ref::~lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (self)
-         self->tDeref();
-      if (vexp)
-         vexp->deref(0);
-   }
-
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      //printd(5, "lvalue_ref::del() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
-      if (vexp) {
-         vexp->deref(xsink);
-         vexp = 0;
-      }
-   }
-
-   static lvalue_ref* get(const ReferenceNode* r) {
-      return r->priv;
-   }
-};
 
 class CodeContextHelperBase {
 private:
@@ -683,15 +651,16 @@ protected:
    const lvalue_ref* ref;
    ProgramThreadCountContextHelper pch;
    ObjectSubstitutionHelper osh;
-   ExceptionSink* xsink;
+   bool valid = true;
 
 public:
    DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
-      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls), xsink(n_xsink) {
+      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
       //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
       if (thread_ref_set(&r)) {
          ref = 0;
-         xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+         n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+         valid = false;
       }
    }
 
@@ -701,7 +670,7 @@ public:
    }
 
    DLLLOCAL operator bool() const {
-      return !(*xsink);
+      return valid;
    }
 };
 
@@ -947,6 +916,17 @@ public:
       if (ROdereference())
          delete this;
    }
+};
+
+class ThreadFrameBoundaryHelper {
+public:
+    DLLLOCAL ThreadFrameBoundaryHelper() {
+        thread_push_frame_boundary();
+    }
+
+    DLLLOCAL ~ThreadFrameBoundaryHelper() {
+        thread_pop_frame_boundary();
+    }
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;

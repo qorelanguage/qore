@@ -276,7 +276,8 @@ include_HEADERS = \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
 	include/qore/Transform.h \
-	include/qore/AbstractException.h
+	include/qore/AbstractException.h \
+	include/qore/QoreStandardException.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -296,6 +297,7 @@ noinst_HEADERS = \
 	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
+	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
 	include/qore/intern/qore_value_list_private.h \
@@ -389,6 +391,8 @@ noinst_HEADERS = \
 	include/qore/intern/qore_number_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
+	include/qore/intern/ThreadLocalVariableData.h \
+	include/qore/intern/ThreadClosureVariableStack.h \
 	include/qore/intern/qore_program_private.h \
 	include/qore/intern/qore_socket_private.h \
 	include/qore/intern/QoreDir.h \

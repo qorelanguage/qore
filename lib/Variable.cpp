@@ -190,12 +190,12 @@ int ObjCountRec::getDifference() {
    return before ? -1 : 0;
 }
 
-LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0), robj(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
    RuntimeReferenceHelper rh(ref, xsink);
    doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink), v(0), lvid_set(0), before(false), rdt(0), robj(0), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
    // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
    //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
    if (exp)
@@ -203,8 +203,11 @@ LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bo
 }
 
 // this constructor function is used to scan objects after initialization
-LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), v(0), lvid_set(0), before(true), rdt(0), robj(qore_object_private::get(self)), val(0), typeInfo(0) {
+LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), before(true), robj(qore_object_private::get(self)) {
    ocvec.push_back(ObjCountRec(&self));
+}
+
+LValueHelper::LValueHelper(ExceptionSink* xsink) : vl(xsink) {
 }
 
 LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), v(o.v), tvec(std::move(o.tvec)), lvid_set(o.lvid_set), ocvec(std::move(o.ocvec)), before(o.before), rdt(o.rdt), robj(o.robj), val(o.val), typeInfo(o.typeInfo) {
@@ -1241,6 +1244,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       return helper ? lvh.doLValue(ref, for_remove) : -1;
    }
 
+   // note: type info is not stored at runtime for local variables
    lvh.setValue((QoreLValueGeneric&)val);
    return 0;
 }
@@ -1367,5 +1371,6 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 }
 
 bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
+   //printd(5, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
    return scanCheck(rsh, val.getInternalNode());
 }

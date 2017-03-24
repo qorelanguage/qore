@@ -2600,4 +2600,83 @@ string get_ex_pos(hash ex) [flags=CONSTANT] {
 
    return str;
 }
+
+//! retrieves a hash of local variables for the given stack frame
+/** @par Example:
+    @code
+hash h = get_local_vars(0);
+    @endcode
+
+    @param frame the stack frame where 0 is the current stack frame
+
+    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned; hash keys are variable names; hash values are hashes with the following keys:
+    - \c "type": can be either "local" or "closure" for closure-bound local variables
+    - \c "value": the value of the variable
+
+    @throw CIRCULAR-REFERENCE-ERROR circular reference found when retrieving local variable values
+
+    @since %Qore 0.8.13
+ */
+hash get_local_vars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
+    return thread_get_local_vars(frame, xsink);
+}
+
+//! sets the value of the given local variable; if the variable cannot be found an exception is raised
+/** @par Example:
+    @code
+set_local_var_value("var", 1);
+    @endcode
+
+    @param var the name of the local variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the given local variable is not present in the current stack frame
+
+    @note
+    - other exceptions could be raised when making the assignment such as incompatible type exceptions
+    - pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+
+    @since %Qore 0.8.13
+*/
+nothing set_local_var_value(string var, any value) [dom=DEBUG_INSECURE] {
+   if (thread_set_local_var_value(var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(var->c_str(), value, xsink) == 1)
+      xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", var->c_str());
+}
+
+//! returns a hash of global variables
+/** @par Example:
+    @code{.py}
+hash h = get_global_vars();
+    @endcode
+
+    @return a hash of global variables and their values
+
+    @see @ref Qore::Program::getGlobalVars()
+
+    @since %Qore 0.8.13
+ */
+hash get_global_vars() [flags=CONSTANT] {
+   return getProgram()->getGlobalVars();
+}
+
+//! set the value of a global variable
+/** @par Example:
+    @code
+set_global_var_value("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the variable is not a global variable
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @see @ref Qore::Program::setGlobalVarValue()
+
+    @since %Qore 0.8.13
+ */
+nothing set_global_var_value(string name, any value) {
+   getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
 //@}

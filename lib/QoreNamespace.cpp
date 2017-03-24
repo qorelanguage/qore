@@ -717,6 +717,11 @@ void QoreNamespaceList::deleteData(ExceptionSink* xsink) {
       i->second->deleteData(xsink);
 }
 
+void QoreNamespaceList::getGlobalVars(QoreHashNode& h) const {
+   for (nsmap_t::const_iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
+      i->second->priv->getGlobalVars(h);
+}
+
 /*
 static void showNSL(QoreNamespaceList* nsl) {
    printd(5, "showNSL() dumping %p\n", nsl);
