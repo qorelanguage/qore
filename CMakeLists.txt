@@ -69,7 +69,6 @@ set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
 set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
 set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
 
-
 set(LIBQORE_QPP_SRC
     lib/QC_AbstractSmartLock.qpp
     lib/QC_AbstractThreadResource.qpp
@@ -620,6 +619,9 @@ endif (WIN32 AND MINGW AND MSYS)
 
 target_include_directories(libqore PUBLIC ${Backtrace_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
 
+# check if we need libatomic
+check_cxx_atomic()
+
 target_link_libraries(libqore ${Backtrace_LIBRARIES} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 if (WIN32 AND MINGW AND MSYS)
     target_link_libraries(libqore ${WINSOCKET_LIBRARIES})
@@ -718,7 +720,6 @@ endif (DOXYGEN_FOUND)
 set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # modules must go after docs target - it's depending on it
 qore_user_modules("${QMOD}")
-
 
 message(STATUS "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")

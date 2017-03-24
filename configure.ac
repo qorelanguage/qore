@@ -1643,6 +1643,32 @@ if test "$darwin" = "yes"; then
     LIBS="$SAVE_LIBS"
 fi
 
+# do we need -latomic on this platform
+AC_MSG_CHECKING([for pure compile-time atomic functionality])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <atomic>]],
+[[bool b = std::atomic_int{}.is_lock_free();]])],
+   [ATOMIC_COMPILE_ONLY=1
+    AC_MSG_RESULT([found])
+    AC_DEFINE([HAVE_ATOMIC_COMPILE_ONLY], 1, [define if there is no need to link with libatomic])],
+   [AC_MSG_RESULT([needs libatomic])])
+if test "$ATOMIC_COMPILE_ONLY" != "1"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -latomic"
+    AC_MSG_CHECKING([for libatomic])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <atomic>]],
+    [[bool b = std::atomic_int{}.is_lock_free();]])],
+       [LIBATOMIC_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_LIBATOMIC], 1, [define if libatomic])],
+       [AC_MSG_RESULT([not found])])
+    if test "$LIBATOMIC_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -latomic"
+    fi
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
