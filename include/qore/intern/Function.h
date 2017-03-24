@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -476,7 +476,7 @@ public:
    DLLLOCAL virtual void setRecheck() { recheck = true; }
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
-class UserVariantExecHelper : ProgramThreadCountContextHelper {
+class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {
 protected:
    const UserVariantBase* uvb;
    ReferenceHolder<QoreListNode> argv;

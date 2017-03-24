@@ -466,6 +466,15 @@ DLLLOCAL const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosure
 typedef std::vector<ClosureVarValue*> cvv_vec_t;
 DLLLOCAL cvv_vec_t* thread_get_all_closure_vars();
 
+DLLLOCAL void thread_push_frame_boundary();
+DLLLOCAL void thread_pop_frame_boundary();
+
+DLLLOCAL QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+// returns 0 = OK, 1 = no such variable, -1 exception setting variable
+DLLLOCAL int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
@@ -642,15 +651,16 @@ protected:
    const lvalue_ref* ref;
    ProgramThreadCountContextHelper pch;
    ObjectSubstitutionHelper osh;
-   ExceptionSink* xsink;
+   bool valid = true;
 
 public:
    DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
-      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls), xsink(n_xsink) {
+      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
       //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
       if (thread_ref_set(&r)) {
          ref = 0;
-         xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+         n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+         valid = false;
       }
    }
 
@@ -660,7 +670,7 @@ public:
    }
 
    DLLLOCAL operator bool() const {
-      return !(*xsink);
+      return valid;
    }
 };
 
@@ -906,6 +916,17 @@ public:
       if (ROdereference())
          delete this;
    }
+};
+
+class ThreadFrameBoundaryHelper {
+public:
+    DLLLOCAL ThreadFrameBoundaryHelper() {
+        thread_push_frame_boundary();
+    }
+
+    DLLLOCAL ~ThreadFrameBoundaryHelper() {
+        thread_pop_frame_boundary();
+    }
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;

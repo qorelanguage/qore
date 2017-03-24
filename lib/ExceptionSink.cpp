@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -157,6 +157,13 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
 // returns 0, takes ownership of the "desc" argument
 AbstractQoreNode *ExceptionSink::raiseException(const char *err, QoreStringNode *desc) {
    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
+   priv->insert(new QoreException(err, desc));
+   return 0;
+}
+
+// returns 0, takes ownership of the "desc" argument
+AbstractQoreNode *ExceptionSink::raiseException(QoreStringNode *err, QoreStringNode *desc) {
+   printd(5, "ExceptionSink::raiseException(%s, %s)\n", err->c_str(), desc->c_str());
    priv->insert(new QoreException(err, desc));
    return 0;
 }

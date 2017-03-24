@@ -163,11 +163,14 @@ libqore_la_SOURCES = \
 	ModuleManager.cpp \
 	QoreException.cpp \
 	ExceptionSink.cpp \
+	QoreStandardException.cpp \
 	QoreClass.cpp \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \
 	unicode-charmaps.cpp \
+	ThreadClosureVariableStack.cpp \
+	ThreadLocalVariableData.cpp \
 	QoreProgram.cpp \
 	QoreProgramHelper.cpp \
 	QoreNamespace.cpp \

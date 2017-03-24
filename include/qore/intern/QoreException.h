@@ -4,7 +4,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,9 @@ public:
 
    // called for runtime exceptions
    DLLLOCAL QoreException(const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   }
+
+   DLLLOCAL QoreException(QoreStringNode *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(n_err, n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
    }
 
    DLLLOCAL QoreException(const QoreException& old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {

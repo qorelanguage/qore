@@ -2428,3 +2428,32 @@ QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
 bool q_libqore_shutdown() {
    return qore_shutdown.load(std::memory_order_relaxed);
 }
+
+QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
+   return thread_get_local_vars(frame, xsink);
+}
+
+int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   int rc = thread_set_local_var_value(name, val, xsink);
+
+   if (rc == 1) {
+      rc = thread_set_closure_var_value(name, val, xsink);
+
+      if (rc == 1) {
+         xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", name);
+         rc = -1;
+      }
+   }
+
+   return rc;
+}
+
+template<>
+bool ThreadBlock<LocalVarValue>::frameBoundary(int p) {
+   return var[p].frame_boundary;
+}
+
+template<>
+bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
+   return (bool)var[p];
+}

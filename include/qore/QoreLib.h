@@ -555,4 +555,27 @@ DLLEXPORT double q_strtod(const char* str);
  */
 DLLEXPORT bool q_libqore_shutdown();
 
+//! retrieves a hash of all thread local variables and their values for the given stack frame in the current thread's QoreProgram object
+/** @param frame the stack frame starting from 0 (the current frame)
+    @param xsink for Qore-language exceptions
+
+    @return a hash of local variables and their values; if the frame does not exist, an empty hash is returned; if a Qore-language exception is thrown, then nullptr is returned
+
+    @note the current thread must be a valid Qore thread with a current QoreProgram context or the results are undefined (i.e. expect a crash)
+
+    @since %Qore 0.8.13
+*/
+DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink);
+
+//! sets the value of the given thread-local variable (which may be a closure-bound variable as well) in the current stack frame for the current thread's QoreProgram object
+/** @param name the name of the variable
+    @param val the value to assign; the value will be referenced for the assignment if one is made
+    @param xsink for Qore-language exceptions
+
+    @return 0 = OK or -1 a Qore-language exception occurred making the assignment (ex: incompatible types) or variable not found
+
+    @note pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+ */
+DLLEXPORT int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+
 #endif // _QORE_QORELIB_H

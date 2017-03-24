@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("broken-loop-statement",    PO_BROKEN_LOOP_STATEMENT);
    DO_MAP("strong-encapsulation",     PO_STRONG_ENCAPSULATION);
    DO_MAP("no-uncontrolled-apis",     PO_NO_UNCONTROLLED_APIS);
+   DO_MAP("allow-debugging",          PO_ALLOW_DEBUGGING);
 }
 
 int ParseOptionMap::find_code(const char *name) {

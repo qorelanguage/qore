@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -3911,6 +3911,7 @@ void init() {
    dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
    dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
+   dnmap["DEBUG_INSECURE"] = "PO_ALLOW_DEBUGGING";
 
    // initialize code flag set
    fset.insert("NO_FLAGS");
