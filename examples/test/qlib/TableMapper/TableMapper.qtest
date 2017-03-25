@@ -85,10 +85,81 @@ public class TableMapperTest inherits QUnit::Test {
             "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
             );
 
+        const Map2 = (
+            "id": ("sequence": "seq_table_mapper_test"),
+            "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
+            "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
+            );
+
+        const Map2NoSequence = (
+            "id": ("constant": 1),
+            "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
+        const Map2CodeFirstVal = (
+            "id": ("constant": 1),
+            "string": ("code": *string sub (any x, hash rec) { return x; }),
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
+        const Map2NoSequenceIdent = (
+            "id": ("constant": 1),
+            "string": True,
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
+        const Map2WithIndex = (
+            "id": ("index": 10),
+             "dte" : ("constant" : date("2017-05-03"),),
+            );
+
+        const ConstMap = (
+            "id": ("constant": 1),
+            "string": ("constant": "2"),
+            "dte" : ("constant" : date("2017-05-03"),),
+            );
+
+        const TrivMap = (
+            "id": ("constant" : 0),
+            "string" : ("name" : "string"),
+            "dte" : ("constant" : date("2017-05-03")));
+
+        const MapRuntime = (
+            "id": ("index": 0),
+            "string": ("runtime" : "rstring"),
+            "dte" : True,
+            );
+
+        const InputRT1 = ("dte" : (date("2017-05-03"), date("2017-05-04")));
+        const InputRT2 = ("dte" : (date("2017-05-05"), date("2017-05-06")));
+
+        const OutputRT = (
+                ("id" : 0, "string" : "pass1", "dte" : date("2017-05-03")),
+                ("id" : 1, "string" : "pass1", "dte" : date("2017-05-04")),
+                ("id" : 2, "string" : "pass1", "dte" : date("2017-05-05")),
+                ("id" : 3, "string" : "pass1", "dte" : date("2017-05-06")));
+        const OutputRTHash =
+                ("id" : (0,1,2,3),
+                 "string" : "pass1",
+                 "dte" : (date("2017-05-03"),
+                          date("2017-05-04"),
+                          date("2017-05-05"),
+                          date("2017-05-06")));
+
         const Input1 = (("string": "string_1"),
                         ("string": "string_2"),
                         ("string": ""),
                        );
+        const Input2 = (("string": "string_1", "str2" : "str2_1"),
+                        ("string": "string_2", "str2" : "str2_2"),
+                        ("string": NOTHING, "str2" : "str2_3"),
+                       );
+        const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
+        const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
+        const InputWithEmptyList = ("str2": list(), "string": list());
+        const Input5 = ("string" : ("string_1",));
+        const Input6 = ("string": "string_6", "str2": "str6");
         const Output1 = (("string" : "string_1"),
                          ("string" : "string_2"),
                          ("string" : ""),
@@ -105,17 +176,121 @@ public class TableMapperTest inherits QUnit::Test {
             "orderby": "id",
             );
 
-        const OutputBulk = (
-            ("id": 10, "code1": "code", "string": "string_1"),
-            ("id": 11, "code1": "code", "string": "string_2"),
-            ("id": 12, "code1": "code", "string": NOTHING),
+        const OutputBulk1 = (
+            ("id": 19, "code1": "code", "string": "string_1"),
+            ("id": 20, "code1": "code", "string": "string_2"),
+            ("id": 21, "code1": "code", "string": "str2"),
             );
 
-        const Output2 = (
-            ("seq": 13, "tstr": "13-string_1"),
-            ("seq": 14, "tstr": "14-string_2"),
-            ("seq": 15, "tstr": "15-"),
+        const OutputBulk2 = (
+            ("id": 22, "code1": "code", "string": "string_1"),
+            ("id": 23, "code1": "code", "string": "string_2"),
+            ("id": 24, "code1": "code", "string": ""),
             );
+
+        const OutputBulk3 =
+            ("id": 1,
+             "string": ("string_1", "string_2", "str2"),
+             "dte" :
+                 date("2017-05-03"),);
+
+        const OutputBulk3a =
+            ("id": 1,
+             "string": ("string_1", "string_2", NOTHING),
+             "dte" :
+                 date("2017-05-03"),);
+
+        const OutputBulk3b =
+            ("id": 1,
+             "string": ("string_6", "string_6", "string_6"),
+             "dte" :
+                 date("2017-05-03"),);
+
+        const Output2 = (
+            ("seq": 25, "tstr": "25-string_1"),
+            ("seq": 26, "tstr": "26-string_2"),
+            ("seq": 27, "tstr": "27-"),
+            );
+
+        const Output3 =
+            (("string": "string_1"),
+             ("string": "string_2"),
+             ("string": "str2"),
+            );
+
+        const Output3a =
+            (
+             ("string": "str2"),
+             ("string": "string_1"),
+             ("string": "string_2"),
+            );
+
+        const Output3b =
+            (
+             ("string": "string_1"),
+             ("string": "string_2"),
+             ("string": NOTHING),
+            );
+
+        const Output3c =
+            (
+             ("string": "string_6"),
+             ("string": "string_6"),
+             ("string": "string_6"),
+            );
+
+        const Output3aCrec =
+            (
+             ("string": "ms"),
+             ("string": "ms"),
+             ("string": "ms"),
+            );
+
+        const Output3bCrec =
+            (
+             ("string": "ms1"),
+             ("string": "ms1"),
+             ("string": "ms1"),
+             ("string": "ms2"),
+             ("string": "ms2"),
+             ("string": "ms2"),
+            );
+
+        const Output4 = (
+                ("string" : "str2"),
+                ("string" : "string_1"),
+                ("string" : "string_2"),
+                ("string" : "string_6"),);
+
+        const Output5 = (
+                ("id" : "10"),
+                ("id" : "11"),
+                ("id" : "12"),
+                ("id" : "13"),);
+
+        const ConstOutput =
+            (("id": 1, "string" : "2"),
+             ("id": 1, "string" : "2"),
+             ("id": 1, "string" : "2"),);
+        const ConstOutputHash =
+            ("id": 1,
+             "string" : "2",
+             "dte" : date("2017-05-03"));
+        const OutputHash4 =
+                ("id" : 1,
+                 "string" : ("string_1", "string_2", "str2", "string_6"),
+                 "dte" : date("2017-05-03"),);
+        const OutputHash5 =
+                ("id" : (10,11,12,13),
+                 "dte" : date("2017-05-03"),);
+        const OutputHash6 =
+                ("id" : 1,
+                 "string" : "string_6",
+                 "dte" : date("2017-05-03"),);
+        const OutputHash7 =
+                ("id" : 1,
+                 "string" : ("string_1", "string_2", "str2"),
+                 "dte" : date("2017-05-03"),);
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
@@ -139,6 +314,9 @@ public class TableMapperTest inherits QUnit::Test {
                 printf("%s: %s\n", ex.err, ex.desc);
         }
         # add test cases
+        addTestCase("BulkInboundTableMapper", \bulkInboundTableMapperTest());
+        # NOTE: inboundTableMapperTest must immediately precede outputTableMapperTest
+        # since the latter one uses the data generated by inboundTableMapperTest
         addTestCase("InboundTableMapper", \inboundTableMapperTest());
         addTestCase("OutputTableMapper", \outputTableMapperTest());
 
@@ -156,21 +334,128 @@ public class TableMapperTest inherits QUnit::Test {
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"driver:user/pass@db\")", OptionColumn);
     }
 
+    bulkInboundTableMapperTest() {
+        # FIXME this test is not deterministic, though - we should impose
+        # particular "input_block" values here. --PQ 21-Mar-2017
+        if (table.hasArrayBind()) {
+            # issue #1754: queueData() test with all constants with bulk ops
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, ConstMap);
+                *hash ret = mapper.queueData(Input3);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap((map $1, ret.contextIterator()), ConstOutput);
+                checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+                assertEq(3, mapper.getCount());
+                assertEq(ConstOutputHash, ret);
+            }
+
+            # issue #1754: two queueData() in sequence, first inserting a bulk and
+            # then a single row
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, Map2NoSequence);
+                # assuming insert_block > size of Input3
+                # a bulk inserted
+                *hash ret = mapper.queueData(Input3);
+                assertEq(NOTHING, ret);
+                # single row inserted
+                ret = mapper.queueData(Input6);
+                assertEq(NOTHING, ret);
+                if (!ret) { ret = mapper.flush(); }
+                #checkMap((map $1, ret.contextIterator()), Output4);
+                #checkMap(table.selectRows(("orderby": "string")), Output4);
+                assertEq(4, mapper.getCount());
+                assertEq(OutputHash4, ret);
+            }
+
+            # issue 1754: queueData() test with all constants with empty list (with bulk)
+            {
+                on_exit table.rollback();
+                InboundTableMapper mapper(table, ConstMap);
+                *hash ret = mapper.queueData(InputWithEmptyList);
+                if (!ret) { ret = mapper.flush(); }
+                checkMap(table.selectRows(("orderby": "id")), ());
+                assertEq(NOTHING, ret);
+            }
+
+            # issue #1754: queueData(hash of lists) with identity on non-list input
+            # in bulk context
+            # FIXME this test is identical to a test in non-bulk area but with different
+            # result. (see comment in non-bulk area) --PQ 23-Mar-2017
+            # Actually since mapper.getCount() == 3, but only 1 row is inserted,
+            # it can have also strange consequences in the "index" mappings.
+            {
+                on_exit table.rollback();
+
+                # prepare data for comparison
+                InboundTableMapper mapper(table, Map2NoSequenceIdent);
+                *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
+                if (!ret) { ret = mapper.flush(); }
+                assertEq(OutputBulk3 + ("string" : "ms"), ret);
+                checkMap(table.selectRows(("orderby": "string")), (("string" : "ms"),));
+                assertEq(3, mapper.getCount());
+            }
+
+            # issue #1754: queueData() followed by insertRow - produces an ORA error
+            # since 'stmt' in TableMapper is incorrectly prepared
+            {
+                try {
+                    on_exit table.rollback();
+                    InboundTableMapper mapper(table, Map2NoSequence);
+                    # assuming insert_block > size of Input3
+                    # a bulk inserted
+                    *hash ret = mapper.queueData(Input3);
+                    assertEq(NOTHING, ret);
+                    # single row inserted
+                    try {
+                        # FIXME mind that the single row will be inserted immediately,
+                        # so it may precede the bulk rows inserted "previously", but
+                        # not dumped into the table yet. It may affect sequence numbers...
+                        # --PQ 23-Mar-2017
+                        ret = mapper.insertRow(Input6);
+                        assertEq(OutputHash6, ret);
+                        ret = mapper.flush();
+                        assertEq(4, mapper.getCount());
+                        assertEq(OutputHash7, ret);
+                    }
+                    catch(hash ex) {
+                        assertEq("DBI:ORACLE:OCI-ERROR", ex.err);
+                    }
+                }
+                catch(hash ex1) {
+                    # NOTE: must accept exceptions from the TableMapper destructor
+                    # that there are still rows to process
+                    assertEq("BLOCK-ERROR", ex1.err);
+                }
+            }
+
+        }
+        else {
+            testSkip("no Bulk DB connection");
+        }
+    }
+
     inboundTableMapperTest() {
         if (!table)
             testSkip("no DB connection");
 
         list output1 = Output1;
-        if (table.bindEmptyStringsAsNull())
+        list outputBulk2 = OutputBulk2;
+        if (table.bindEmptyStringsAsNull()) {
             output1[2].string = NULL;
+            outputBulk2[2].string = NOTHING;
+        }
+        list output2 = Output1;
+        output2[2].string = "str2_3";
 
         # insertRow() test
         {
             on_exit table.rollback();
 
             InboundTableMapper mapper(table, Map1);
-            checkMap((map mapper.insertRow($1), Input1), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map mapper.insertRow($1), Input1), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
         }
 
@@ -181,7 +466,7 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map1);
             InboundTableMapperIterator i = mapper.iterator(Input1.iterator());
             map $1, i;
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, i.getCount());
             assertEq(3, mapper.getCount());
         }
@@ -192,9 +477,361 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             map mapper.queueData($1), Input1;
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
+        }
+
+        # queueData(list of hashes) test with code referring to the input
+        {
+            # prepare data
+            hash ih = map {$1: ()}, Input2[0].keyIterator();
+            map (map ih{$1.key} += $1.value, $1.pairIterator()), Input2;
+
+            on_exit table.rollback();
+
+            InboundTableMapper mapper(table, Map2);
+            mapper.queueData(ih);
+            checkMap((map $1, mapper.flush().contextIterator()), output2);
+            checkMap(table.selectRows(("orderby": "id")), output2);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) test with code referring to the input
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2);
+            mapper.queueData(Input3);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: two queueData() in sequence with 'index' in the mapper
+        # over an iterator
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2WithIndex);
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(Input3.contextIterator());
+            # single row inserted
+            *hash ret2 = mapper.queueData(Input6.contextIterator());
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            checkMap(table.selectRows(("orderby": "id")), Output5);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputHash5, ret);
+        }
+
+        # issue #1754: two queueData() in sequence with 'index' in the mapper
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2WithIndex);
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(Input3);
+            # single row inserted
+            *hash ret2 = mapper.queueData(Input6);
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            checkMap(table.selectRows(("orderby": "id")), Output5);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputHash5, ret);
+        }
+
+        # issue #1754: two queueData() in sequence with 'runtime' in the mapper
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, MapRuntime,
+                    ("runtime" : (
+                        "rstring" : "pass2")));
+            # side-track - make sure the runtime options can be set before first row
+            # is processed.
+            mapper.setRuntime("rstring", "pass3");
+            mapper.setRuntime(("rstring" : "pass4"));
+            mapper.replaceRuntime(("rstring" : "pass1"));
+            # assuming insert_block > size of Input3
+            # a bulk inserted
+            *hash ret = mapper.queueData(InputRT1);
+            # single row inserted
+            *hash ret2 = mapper.queueData(InputRT2);
+            if (ret2) {
+                *int s1;
+                InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);
+            }
+            ret2 = mapper.flush();
+            if (ret2) {
+                *int s1;
+                InboundTableMapper::addBatchToBatch(\ret, \s1, ret2, NOTHING);
+            }
+            checkMap(table.selectRows(("orderby": "dte")), OutputRT);
+            assertEq(4, mapper.getCount());
+            assertEq(OutputRTHash, ret);
+        }
+
+        # issue #1754: queueData() test with False-convertible value in 1st value
+        # that is mapped as constant
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            list input5 = map $1, Input5.contextIterator();
+            InboundTableMapper mapper(table, TrivMap);
+            *hash ret = mapper.queueData(Input5);
+            if (!ret ) { ret = mapper.flush(); }
+            assertEq(1, (map $1, ret.contextIterator()).size());
+            checkMap((map $1, ret.contextIterator()), (("id" : 0, "string" : "string_1"),));
+            *list rws = table.selectRows();
+            assertEq(1, rws.size());
+            checkMap(rws, input5);
+            assertEq(1, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with insert_block=1 and 'crec'
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3, ("string" : "ms"));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with identity on non-list input
+        # in bulk context
+        # FIXME this test is identical to a test in bulk area but with different
+        # result:
+        # The issue is that with insert_block=1 we use contextIterator() to process
+        # the rows, with bulk operation we try to not expand rows prematurely so that
+        # we don't insert multiple identical rows.
+        # Unfortunately this is not ALWAYS true - e.g. if the identical values
+        # are generated by "code" mapping, we still expand. --PQ 23-Mar-2017
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequenceIdent, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3 + ("string" : "ms", "zzz" : ("a", "b", "c")));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with code using 1st val
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2CodeFirstVal);
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3a, ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3b);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with code using 1st val with constant
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2CodeFirstVal);
+            *hash ret = mapper.queueData(Input6 + ("xxx" : (1,2,3)));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3b, ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3c);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with 'crec' and identity
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequenceIdent);
+            *hash ret = mapper.queueData(Input3, ("string" : "ms"));
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3 + ("string" : ("ms", "ms", "ms")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3aCrec);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: multiple queueData(hash of lists) and 'crec'
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequence);
+            *hash ret = mapper.queueData(Input3, ("string" : "ms1"));
+            *hash ret2 = mapper.queueData(Input3, ("string" : "ms2"));
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            ret2 = mapper.flush();
+            if (ret) {
+                if (ret2) {
+                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                }
+            }
+            else {
+                ret = ret2;
+            }
+            assertEq(OutputBulk3 + ("string" : ("ms1", "ms1", "ms1", "ms2", "ms2", "ms2")), ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3bCrec);
+            assertEq(6, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) with insert_block=1
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            assertEq(OutputBulk3, ret);
+            checkMap(table.selectRows(("orderby": "string")), Output3a);
+            assertEq(3, mapper.getCount());
+        }
+
+        # queueData() test with all constants with bulk input, but with non-bulk output
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
+            *hash ret = mapper.queueData(Input3);
+            if (!ret) { ret = mapper.flush(); }
+            checkMap((map $1, ret.contextIterator()), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+            assertEq(3, table.selectRows(("orderby": "id")).size());
+            assertEq(3, mapper.getCount());
+            # FIXME here we actually insert 3 rows into the DB, but we return only
+            # one row in 'ret'. --PQ 22-Mar-2017
+            assertEq(ConstOutputHash, ret);
+        }
+
+        # queueData() test with all constants with iterator
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap);
+            *hash ret = mapper.queueData(Input2.iterator());
+            if (!ret) { ret = mapper.flush(); }
+            checkMap((map $1, ret.contextIterator()), ConstOutput);
+            checkMap(table.selectRows(("orderby": "id")), ConstOutput);
+            int exprows = 3; # expected number of rows in the table
+            if (table.hasArrayBind()) {
+                # FIXME it is bad that the number of inserted rows differ
+                # dependent on insert_block(), but it would be basicly always
+                # the case with constant mappers - regardless on size of
+                # insert_block, with each block there will be one constant row
+                # inserted for a constant mapper. --PQ 22-Mar-2017
+                exprows = 1;
+            }
+            assertEq(exprows, table.selectRows(("orderby": "id")).size());
+            assertEq(3, mapper.getCount());
+            # FIXME here we actually insert 3 rows into the DB, but we return only
+            # one row in 'ret'. --PQ 22-Mar-2017
+            assertEq(ConstOutputHash, ret);
+        }
+
+        # queueData() test with some mapping with empty lists on input
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2NoSequence);
+            *hash ret = mapper.queueData(InputWithEmptyList);
+            if (!ret) { ret = mapper.flush(); }
+            # nothing is returned when we map InputWithEmptyList (hash of empty lists)
+            assertEq(NOTHING, ret);
+        }
+
+        # queueData() test with number of rows on the border of flush()
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, Map2NoSequence, ("insert_block" : 3));
+            *hash ret = mapper.queueData(Input3);
+            assertEq(3, ret.string.size());
+            ret = mapper.flush();
+            assertEq(NOTHING, ret);
+        }
+
+        # queueData() test with all constants with empty list with insert_block=1
+        {
+            on_exit table.rollback();
+            InboundTableMapper mapper(table, ConstMap, ("insert_block" : 1));
+            *hash ret = mapper.queueData(InputWithEmptyList);
+            if (!ret) { ret = mapper.flush(); }
+            checkMap(table.selectRows(("orderby": "id")), ());
+            assertEq(NOTHING, ret);
+        }
+
+        # issue #1754: queueData(hash of lists) test with mixing list and non-list
+        # with non-list in 1st place
+        {
+            on_exit table.rollback();
+
+            # prepare data for comparison
+            InboundTableMapper mapper(table, Map2);
+            mapper.queueData(Input4);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
+            assertEq(3, mapper.getCount());
+        }
+
+        # issue #1754: queueData(hash of lists) test with code, rowcode + a constant mapping
+        {
+            on_exit table.rollback();
+
+            list rl = ();
+            code rowcode = sub (hash h) { rl += h; };
+            InboundTableMapper mapper(table, Map2 + ("code1": ("constant": "code")), ("rowcode": rowcode));
+            mapper.queueData(Input3);
+            checkMap((map $1, mapper.flush().contextIterator()), Output3);
+            checkMap(table.selectRows(("orderby": "id")), Output3);
+            assertEq(3, mapper.getCount());
+            assertEq(Type::Date, rl[0].dte.type());
+            map remove rl[$#].dte, rl;
+            assertEq(OutputBulk1, rl);
         }
 
         # issue #1736: InboundTableMapper::queueData() error with hashes of lists
@@ -212,12 +849,12 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map1 + ("code1": ("constant": "code")), ("rowcode": rowcode));
             mapper.queueData(ih);
             # issue #1738 test iterating mapper.flush() output including constant mappings with <hash>::contextIterator()
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
             assertEq(Type::Date, rl[0].dte.type());
             map remove rl[$#].dte, rl;
-            assertEq(OutputBulk, rl);
+            assertEq(outputBulk2, rl);
         }
 
         # queueData(list) test
@@ -228,8 +865,8 @@ public class TableMapperTest inherits QUnit::Test {
 
             InboundTableMapper mapper(table, Map1);
             mapper.queueData(Input1.iterator());
-            checkMap((map $1, mapper.flush().contextIterator()), Input1, output1);
-            checkMap(table.selectRows(("orderby": "id")), Input1, output1);
+            checkMap((map $1, mapper.flush().contextIterator()), output1);
+            checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
         }
     }
@@ -249,7 +886,10 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(3, m.getCount());
     }
 
-    checkMap(list l, list il, list ol) {
+    # FIXME this is very ad-hoc checking - 'ol' used only
+    # when the actual value ('l') is present in mapped result.
+    # No check if 'l' is empty, for example.
+    checkMap(list l, list ol) {
         foreach hash h in (l) {
             assertEq(Type::Int, h.id.type(), "id type for row " + $#);
             any hval = h.string === NULL ? NOTHING : h.string;
