@@ -548,6 +548,8 @@ InboundTableMapper mapper(table, DbMapper);
 
             @return a hash of the row values inserted (row name: value)
 
+            @note on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
+
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
@@ -657,6 +659,7 @@ table_mapper.setRowCode(rowcode);
             - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that support Bulk DML
             - in case a hash of empty lists is passed, Qore::NOTHING is returned
             - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with \c C = "mystring" on the input.
+            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 
             @see
             - flush()
@@ -783,6 +786,8 @@ on_error table_mapper.rollback();
             - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
             - if the \c "insert_block" option is set to 1, then this method simply calls insertRow() to insert the data - nevertheless it still returns bulk output
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
+
 
             @see
             - flush()
