@@ -31,6 +31,9 @@
   information.
 */
 
+#include <qore/Qore.h>
+#include "qore/intern/lvalue_ref.h"
+
 lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
