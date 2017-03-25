@@ -33,10 +33,10 @@
 
 #define _QORE_LOCALVAR_H
 
-#include <qore/intern/qore_thread_intern.h>
-#include <qore/intern/QoreLValue.h>
-#include <qore/intern/RSection.h>
-#include <qore/intern/RSet.h>
+#include "qore/intern/qore_thread_intern.h"
+#include "qore/intern/QoreLValue.h"
+#include "qore/intern/RSection.h"
+#include "qore/intern/RSet.h"
 
 template <class T>
 class VarStackPointerHelper {
@@ -73,7 +73,7 @@ protected:
    LValueHelper* valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : 0) {
+   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
    }
 
    DLLLOCAL ~LValueRefHelper() {
@@ -104,14 +104,20 @@ public:
    const char* id;
    mutable bool skip : 1;
    bool finalized : 1;
+   bool frame_boundary : 1;
 
-   DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false) {
+   DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false) {
+   DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false) {
+   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false), frame_boundary(false) {
+   }
+
+   DLLLOCAL void setFrameBoundary() {
+      assert(!frame_boundary);
+      frame_boundary = true;
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
@@ -185,6 +191,20 @@ public:
 
       return val.getReferencedValue(needs_deref);
    }
+
+   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+         if (!helper)
+            return QoreValue();
+
+         ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+         return *xsink ? QoreValue() : erh.takeReferencedValue();
+      }
+
+      return val.getReferencedValue();
+   }
 };
 
 struct ClosureVarValue : public VarValueBase, public RObject {
@@ -236,13 +256,25 @@ public:
       return VarValueBase::finalize();
    }
 
-   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) {
+   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
       QoreSafeVarRWReadLocker sl(rml);
       if (val.getType() == NT_REFERENCE) {
          ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
          sl.unlock();
          LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
          return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : QoreValue();
+      }
+
+      return val.getReferencedValue();
+   }
+
+   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+      QoreSafeVarRWReadLocker sl(rml);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
+         sl.unlock();
+         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+         return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : QoreValue();
       }
 
       return val.getReferencedValue();

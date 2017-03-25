@@ -32,7 +32,7 @@
 #ifndef _QORE_VARREFNODE_H
 #define _QORE_VARREFNODE_H
 
-#include <qore/intern/FunctionCallNode.h>
+#include "qore/intern/FunctionCallNode.h"
 
 class VarRefNewObjectNode;
 class LocalVar;

@@ -5,15 +5,34 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class Test
 
 class Test inherits QUnit::Test {
+    public {
+        const Code = "
+%exec-class T
+
+class T {
+    constructor() { background $.method(); }
+    method() {}
+}
+";
+    }
+
     constructor() : QUnit::Test("background", "1.0", \ARGV) {
         addTestCase("background operator tests", \basicTests());
+        addTestCase("issue 1467", \issue1467());
         set_return_value(main());
+    }
+
+    issue1467() {
+        Program p();
+        p.parse(Code, "issue 1467");
+        assertEq(NOTHING, p.run());
     }
 
     basicTests() {

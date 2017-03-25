@@ -23,7 +23,7 @@
 */
 
 # this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -40,7 +40,7 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.1.3";
+    version = "1.2";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -145,7 +145,7 @@ while (*hash h = m.getData()) {
     @subsection tablemapper_bulk_insert_api_usage InboundTableMapper Bulk Insert API Usage
 
     To queue data for bulk insert, call @ref TableMapper::InboundTableMapper::queueData() instead of
-    @ref TableMapper::InboundTableMapper::insert().
+    @ref TableMapper::InboundTableMapper::insertRow().
     To perform per-row actions, the @ref TableMapper::InboundTableMapper::setRowCode() method should be called with a closure that accepts a hash
     representing a single row; whenever data is flushed to the database, this closure will be called with the row actually inserted
     (including sequence values used, etc).
@@ -187,8 +187,8 @@ on_error table1.rollback();
     @section tablemapperkeys TableMapper Specification Format
 
     The mapper hash is made up of target (ie output) column names as the key values assigned to field specifications as specified in @ref mapperkeys, plus the following hash options:
-    - \c "sequence": a name of a sequence to use to populate the column; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
-    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns; the output buffers for this option are bound as type @ref type_number "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings)
+    - \c "sequence": a name of a sequence to use to populate the column; the output buffers for this option are bound as type @ref number_type "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings; cannot be used with the upsert @ref TableMapper::InboundTableMapper "InboundTableMapper" option)
+    - \c "sequence_currval": a name of a sequence to use to return the current value of the sequence; this is useful when assigning the same sequence value to multiple columns; the output buffers for this option are bound as type @ref number_type "number", so the output type depends on the database driver's number option setting (for example, with \c "optimal-numbers", the values here are generally returned as strings; cannot be used with the upsert @ref TableMapper::InboundTableMapper "InboundTableMapper" option)
 
     In both cases, the actual value inserted in the table is available in the following APIs:
       - @ref TableMapper::InboundTableMapper::insertRow()
@@ -198,6 +198,12 @@ on_error table1.rollback();
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
 
     @section tablemapperrelnotes Release Notes
+
+    @subsection tablemapperv1_2 TableMapper v1.2
+    - added support for upserts in @ref TableMapper::InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
+    - added @ref TableMapper::InboundTableMapper::queueData(list, __7_ hash)
+    - fixed a bug with the @ref TableMapper::SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
+    - fixed a bug with @ref TableMapper::SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
 
     @subsection tablemapperv1_1_2 TableMapper v1.1.3
     - fixed bugs handling mapper fields with no input records in list mode (<a href="https://github.com/qorelanguage/qore/issues/1736">issue 1736</a>)
@@ -245,9 +251,11 @@ public namespace TableMapper {
         public {
             #! option keys for this object
             const OptionKeys = Mapper::OptionKeys + (
-                "unstable_input": sprintf("if this is set to True then a slower insert method will be used that verifies each input row; if False an optimized insert method is used (additionally bulk inserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
-                "insert_block": sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.insert_block),
-                "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted plus any output values generated in the insert (such as sequence values, for example)",
+                "unstable_input": sprintf("if this is set to True then a slower insert/upsert method will be used that verifies each input row; if False an optimized insert/upsert method is used (additionally bulk inserts/upserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
+                "insert_block": sprintf("the row block size used when bulk DML / batch inserts/upserts are used; default: %y", OptionDefaults.insert_block),
+                "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted/upserted plus any output values generated in inserts (such as sequence values, for example)",
+                "upsert": "if True then data will be upserted instead of inserted",
+                "upsert_strategy": "the upsert strategy code to use; implies 'upsert'",
                 );
 
             #! default option values
@@ -273,16 +281,16 @@ public namespace TableMapper {
             #! extra arguments for sequence output binds
             list out_args = ();
 
-            #! "unstable input" option for non-optimized inserts (~33% performance reduction in insert speed)
+            #! "unstable input" option for non-optimized inserts/upserts (~33% performance reduction in insert/upsert speed)
             bool unstable_input = False;
 
-            #! statement for inserts
-            SQLStatement stmt;
+            #! statement for inserts/upserts
+            Qore::SQL::SQLStatement stmt;
 
-            #! bulk insert block size
+            #! bulk DML block size (also valid for upserts despite the name)
             int insert_block;
 
-            #! buffer for bulk inserts
+            #! buffer for bulk DML
             hash hbuf;
             *int hbuf_size; # size of the batch in hbuf (like if returned from
                             # getRecListSize())
@@ -290,8 +298,17 @@ public namespace TableMapper {
                             # in a class, but there are performance considerations.
                             # --PQ 23-Mar-2017
 
-            #! per-row @ref closure or @ref call_reference for batch inserts
+            #! per-row @ref closure or @ref call_reference for batch inserts/upserts
             *code rowcode;
+
+            #! upsert flag
+            bool upsert = False;
+
+            #! upsert strategy option
+            *int upsert_strategy;
+
+            #! closure used for upserting
+            *code upsert_code;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -317,11 +334,14 @@ InboundTableMapper mapper(table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name in lower case of the output column in the target table; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
-            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert/upsert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted/upserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information; note that this is also applied when upserting despite the name
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable
+            - \c "upsert": if @ref Qore::True "True" then data will be upserted instead of inserted (default is to insert)
+            - \c "upsert_strategy": see @ref upsert_options for possible values for the upsert strategy; if this option is present, then \c "upsert" is also assumed to be @ref Qore::True "True"; if not present but \c "upsert" is @ref Qore::True "True", then @ref SqlUtil::AbstractTable::UpsertAuto is assumed
 
-            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key); insert-only options used with the \c "upsert" option
+            @throw TABLE-ERROR the table includes a column using an unknown native data type
 
             @see setRowCode()
         */
@@ -353,12 +373,13 @@ InboundTableMapper mapper(table, DbMapper);
             @param target the target table object
             @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref tablemapperkeys for detailed documentation for this option
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
-            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert approach is used which allows for better performance
-            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information
-            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts; this must take a single hash argument and will be called for every row after a bulk insert; the hash argument representing the row inserted will also contain any output values if applicable
+            - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert/upsert approach is used which allows for better performance
+            - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted/upserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information; note that this is also applied when upserting despite the name
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable
+            - \c "upsert": if @ref Qore::True "True" then data will be upserted instead of inserted (default is to insert)
+            - \c "upsert_strategy": see @ref upsert_options for possible values for the upsert strategy; if this option is present, then \c "upsert" is also assumed to be @ref Qore::True "True"; if not present but \c "upsert" is @ref Qore::True "True", then @ref SqlUtil::AbstractTable::UpsertAuto is assumed
 
-
-            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
+            @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key); insert-only options used with the \c "upsert" option
             @throw TABLE-ERROR the table includes a column using an unknown native data type
 
             @see setRowCode()
@@ -437,20 +458,35 @@ InboundTableMapper mapper(table, DbMapper);
             if (opts.rowcode)
                 rowcode = opts.rowcode;
 
+            # set the upsert flag if applicable
+            if (opts.hasKey("upsert") && parse_boolean(opts.upsert))
+                upsert = True;
+
+            # set upsert strategy option
+            if (opts.upsert_strategy) {
+                upsert_strategy = opts.upsert_strategy;
+                if (!upsert)
+                    upsert = True;
+            }
+
             # check map for logical errors
             checkMap();
+
+            if (upsert && ret_args)
+                throw "MAP-ERROR", sprintf("insert options used with %y cannot be used with the upsert option", ret_args);
         }
 
         #! performs type handling
         private mapFieldType(string key, hash m, reference v, hash rec) {
             if (m.sequence) {
                 if (!has_returning) {
-                    #try {
+                    try {
                         v = db.getNextSequenceValue(m.sequence);
-                    #}
-                    #catch (hash ex) {
-                        #throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
-                    #}
+                    }
+                    catch (hash ex) {
+                        # rethrow exception adding the sequence name to the description
+                        throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
+                    }
                 }
                 else
                     return;
@@ -461,6 +497,7 @@ InboundTableMapper mapper(table, DbMapper);
                         v = db.getCurrentSequenceValue(m.sequence_currval);
                     }
                     catch (hash ex) {
+                        # rethrow exception adding the sequence name to the description
                         throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence_currval), ex.arg;
                     }
                 }
@@ -543,10 +580,10 @@ InboundTableMapper mapper(table, DbMapper);
             return OptionKeys;
         }
 
-        #! inserts a row into the target table based on a mapped input record; does not commit the transaction
+        #! inserts or upserts a row into the target table based on a mapped input record; does not commit the transaction
         /** @param rec the input record
 
-            @return a hash of the row values inserted (row name: value)
+            @return a hash of the row values inserted/upserted (row name: value)
 
             @note on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 
@@ -556,35 +593,44 @@ InboundTableMapper mapper(table, DbMapper);
         */
         hash insertRow(hash rec) {
             hash h = mapDataIntern(rec);
-            *hash rh;
 
-            if (unstable_input || (insert_block == 1))
-                rh = table.insert(h, ("returning": getReturning()));
-            else {
-                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
-                if (!stmt) {
-                    string sql;
-                    out_args = map Type::Number, ret_args;
-                    rh = table.insert(h, \sql, ("returning": getReturning()));
-                    stmt = new SQLStatement(table.getDatasource());
-                    stmt.prepare(sql);
-                }
+            if (upsert) {
+                if (unstable_input)
+                    table.upsert(h);
                 else {
-                    # remove sequences
-                    map remove h.$1, ret_args;
-                    # execute the SQLStatement on the args
-                    stmt.execArgs(h.values() + out_args);
-                    rh = stmt.getOutput();
+                    if (!upsert_code)
+                        upsert_code = table.getUpsertClosure(h);
+                    upsert_code(h);
                 }
             }
-
-            if (rh)
-                h += rh;
+            else {
+                *hash rh;
+                if (unstable_input || (insert_block == 1))
+                    rh = table.insert(h, ("returning": getReturning()));
+                else {
+                    # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                    if (!stmt) {
+                        string sql;
+                        out_args = map Type::Number, ret_args;
+                        rh = table.insert(h, \sql, ("returning": getReturning()));
+                        stmt = new SQLStatement(table.getDatasource());
+                        stmt.prepare(sql);
+                    }
+                    else {
+                        # remove sequences
+                        map remove h.$1, ret_args;
+                        # execute the SQLStatement on the args
+                        stmt.execArgs(h.values() + out_args);
+                        rh = stmt.getOutput();
+                    }
+                }
+                if (rh)
+                    h += rh;
+            }
 
             Mapper::logOutput(h);
-            if (rowcode) {
+            if (rowcode)
                 rowcode(h);
-            }
             return h;
         }
 
@@ -605,8 +651,8 @@ table_mapper.setRowCode(rowcode);
             rowcode = rowc;
         }
 
-        #! inserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
-        /** @par Examples:
+        #! inserts/upserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+        /** @par Example:
             @code{.py}
 # Example 1:
 {
@@ -643,7 +689,7 @@ table_mapper.setRowCode(rowcode);
 }
             @endcode
 
-            Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+            Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param rec the input record or record set in case a hash of lists is passed
             @param crec an optional simple hash of data to be added to each input row before mapping
@@ -653,7 +699,7 @@ table_mapper.setRowCode(rowcode);
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
-            - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
+            - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
             - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please note that in this case the return value is a hash of single value lists corresponding to a batch data insert
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
             - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that support Bulk DML
@@ -738,7 +784,7 @@ table_mapper.setRowCode(rowcode);
                 # copy all runtime mappings to the output hash
                 map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), mapd.keyIterator();
+                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), keys mapd;
                 count += rec_list_size;
 
                 # map record data to get the keys for the buffer
@@ -760,7 +806,7 @@ table_mapper.setRowCode(rowcode);
             return flushIntern(False);
         }
 
-        #! inserts a set of rows (list of hashes) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+        #! inserts/upserts a set of rows (from an iterator that returns hashes as values where each hash value represents an input record) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
         /** @par Example:
             @code{.py}
 on_success table_mapper.commit();
@@ -773,7 +819,7 @@ on_error table_mapper.rollback();
 }
             @endcode
 
-            Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+            Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param iter iterator over the record set (list of hashes)
             @param crec an optional simple hash of data to be added to each input row before mapping
@@ -783,11 +829,10 @@ on_error table_mapper.rollback();
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
-            - this method and batched inserts in general cannot be used when the \c "unstable_input" option is given in the constructor
-            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow() to insert the data - nevertheless it still returns bulk output
+            - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow() to insert the data, nevertheless it still returns bulk output
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
             - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
-
 
             @see
             - flush()
@@ -798,7 +843,7 @@ on_error table_mapper.rollback();
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        *hash queueData(AbstractIterator iter, *hash crec) {
+        *hash queueData(Qore::AbstractIterator iter, *hash crec) {
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
@@ -818,8 +863,61 @@ on_error table_mapper.rollback();
             return h;
         }
 
-        #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
-        /** Data is only inserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted.  In case the mapped data is only inserted into the cache, no value is returned.
+        #! inserts/upserts a set of rows (list of hashes representing input records) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
+        /** @par Example:
+            @code{.py}
+on_success table_mapper.commit();
+on_error table_mapper.rollback();
+{
+    on_success table_mapper.flush();
+    on_error table_mapper.discard();
+
+    table_mapper.queueData(data.iterator());
+}
+            @endcode
+
+            Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
+
+            @param l a list of hashes representing the input records
+            @param crec an optional simple hash of data to be added to each row
+
+            @return if batch data was inserted/upserted then a hash (columns) of lists (row data) of all data inserted/upserted and potentially returned (in case of sequences) from the database server is returned
+
+            @note
+            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
+            - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
+            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+
+            @see
+            - flush()
+            - discard()
+
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        *hash queueData(list l, *hash crec) {
+            if (unstable_input)
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
+
+            hash h;
+            foreach hash row in (l) {
+                *hash th = queueDataIntern(row + crec);
+                if (th) {
+                    if (h)
+                        map h.$1 += th.$1, keys th;
+                    else
+                        h = th;
+                }
+            }
+            return h;
+        }
+
+#! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
+        /** Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted/upserted into the cache, no value is returned.
 
             @param rec a hash representing a single input record
 
@@ -1004,26 +1102,35 @@ on_error table_mapper.rollback();
             # OraBindNode::bindValue does not have any option how to bind the
             # list data type. --PQ 16-Mar-2017
 
+            *hash rh;
+
             try {
-                # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
-                if (!stmt) {
-                    string sql;
-                    # update sequences to a single value for the insert
-                    if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
-                        map hbuf.$1 = hbuf.$1[0], ret_args;
-                    out_args = map Type::Number, ret_args;
-                    rh = table.insert(hbuf, \sql, ("returning": getReturning()));
-                    # create the statement for future inserts
-                    stmt = new SQLStatement(table.getDatasource());
-                    stmt.prepare(sql);
+                if (upsert) {
+                    if (!upsert_code)
+                        upsert_code = table.getUpsertClosure(hbuf);
+                    upsert_code(hbuf);
                 }
                 else {
-                    # remove sequences
-                    map remove hbuf.$1, ret_args;
-                    # execute the SQLStatement on the args
-                    stmt.execArgs(hbuf.values() + out_args);
-                    # get sequence values
-                    rh = stmt.getOutput();
+                    # when executing for the first time on stable input data, get an SQLStatement for the SQL used to insert
+                    if (!stmt) {
+                        string sql;
+                        # update sequences to a single value for the insert
+                        if (ret_args && hbuf{ret_args[0]}.typeCode() == NT_LIST)
+                            map hbuf.$1 = hbuf.$1[0], ret_args;
+                        out_args = map Type::Number, ret_args;
+                        rh = table.insert(hbuf, \sql, ("returning": getReturning()));
+                        # create the statement for future inserts
+                        stmt = new SQLStatement(table.getDatasource());
+                        stmt.prepare(sql);
+                    }
+                    else {
+                        # remove sequences
+                        map remove hbuf.$1, ret_args;
+                        # execute the SQLStatement on the args
+                        stmt.execArgs(hbuf.values() + out_args);
+                        # get sequence values
+                        rh = stmt.getOutput();
+                    }
                 }
             }
             catch (hash ex) {
@@ -1038,7 +1145,7 @@ on_error table_mapper.rollback();
             hash rv = hbuf + rh;
             if (exists hbuf_size) {
                 # clear buffer but keep hash keys - non-const mapper
-                map hbuf.$1 = (), hbuf.keyIterator(), hbuf.$1.typeCode() == NT_LIST;
+                map hbuf.$1 = (), keys hbuf, hbuf.$1.typeCode() == NT_LIST;
                 hbuf_size = 0;
             }
             else {
@@ -1058,7 +1165,7 @@ on_error table_mapper.rollback();
             else if (rowcode)
                 map rowcode($1), rv.contextIterator();
 
-            # return all data inserted
+            # return all data inserted/upserted
             return rv;
         }
 
@@ -1749,13 +1856,13 @@ InboundTableMapperIterator i(input, mapper);
             }
         }
 
-        #! Retrieve mapped data as a hash of lists.
+        #! Retrieve mapped data as a list of hashes.
         /** @return *list with data or Qore::NOTHING in case there are no more data available.
 
-            Size of the batch is driven by \c select_block option passed in constructor.
+            Size of the batch is driven by the \c select_block option passed in the constructor.
 
             List is in Qore::SQL::AbstractDatasource::selectRows() form - meaning it is a list
-            with hashes, where every hashs has column names as keys with single values as
+            with hashes, where every hash has column names as keys with single values as
             hash values.
          */
         *list getDataRows() {

@@ -6,6 +6,8 @@
 %require-types
 %strict-args
 
+%disable-warning module-only
+
 %requires ../../../../qlib/FixedLengthUtil.qm
 
 %include ../../../../qlib/QUnit.qm
@@ -37,17 +39,24 @@ public class B inherits A {
     }
 }
 
-public class FileLineIteratorFake {
-    constructor(string file_unused, *string h, *string g) {
+public class InputStreamLineIteratorFake inherits Qore::AbstractLineIterator {
+    constructor(InputStream is, *string encoding, *string eol, bool trimEol = True) {
         throw "TEST-EXCEPTION", "this signifies that it actually works";
     }
-
     bool next() {
         return False;
     }
-
-    *string getValue() {
+    string getValue() {
         return "";
+    }
+    string getLine() {
+        return "";
+    }
+    int index() {
+        return 0;
+    }
+    bool valid() {
+        return False;
     }
 }
 
@@ -67,7 +76,7 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
 
     performInjections(Program p) {
         p.importClass("Aalt", "A", True);
-        p.importClass("FileLineIteratorFake", "Qore::FileLineIterator", True);
+        p.importClass("InputStreamLineIteratorFake", "Qore::InputStreamLineIterator", True);
     }
 
     testDirectlyInjectedClass() {
@@ -81,12 +90,12 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
     }
 
     bool createIterator() {
-        FixedLengthFileIterator it("", hash(), hash());
+        FixedLengthUtil::FixedLengthDataIterator it("", ("wrong": False), ("unknown": "????"));
         return True;
     }
 
     testModuleInjectedClass() {
-        # Since FileLineIterator tries to open a file in the constructor, this will succeed as soon as our constructor of FileLineIteratorFake is called
+        # Since FixedLengthAbstract validated options in the constructor, this will succeed as soon as our constructor of FixedLengthAbstractIteratorFake is called
         testAssertion("instantiate iterator", \createIterator(), list(), new QUnit::TestResultExceptionRegexp("TEST-EXCEPTION", "this signifies that it actually works"));
     }
 }
