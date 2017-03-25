@@ -426,7 +426,7 @@ public class TableMapperTest inherits QUnit::Test {
                 catch(hash ex1) {
                     # NOTE: must accept exceptions from the TableMapper destructor
                     # that there are still rows to process
-                    assertEq("BLOCK-ERROR", ex.err);
+                    assertEq("BLOCK-ERROR", ex1.err);
                 }
             }
 
