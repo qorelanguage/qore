@@ -1091,8 +1091,6 @@ on_error table_mapper.rollback();
                 if (!exists hbuf_size || hbuf_size < insert_block) return;
             }
 
-            *hash rh;
-
             if (info_log)
                 info_log("%s: flushing %d row(s)", table.getSqlName(), hbuf_size);
 
