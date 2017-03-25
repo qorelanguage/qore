@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreSpliceOperatorNode::splice_str("splice operator expression");
 
@@ -145,7 +145,11 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_splice() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
    }
-   else {
+   else if (vt == NT_STRING) {
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
+      printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
+   }
+   else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
       printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
    }

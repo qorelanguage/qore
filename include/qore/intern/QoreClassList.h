@@ -45,7 +45,7 @@
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, QoreClass*, qore_hash_str, eqstr> hm_qc_t;
 #else
