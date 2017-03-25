@@ -186,7 +186,7 @@ list: (2 elements)
 
     @section mapper_runtime_handling Mapper Runtime Options
 
-    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use values provided at runtime
+    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use constant values provided at runtime
     in the @ref Mapper::Mapper "Mapper" output.
 
     For example, runtime options can be useful in the following cases:
@@ -213,9 +213,9 @@ Mapper m(mapv, opts);        # runtime options are active now
 m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
     @endcode
 
-    The runtime options are basicly same as constants during the insertion to the database in terms of efficiency. As such, the runtime options can be changed only before the first row is processed in by a @ref Mapper::Mapper "Mapper".
+    The runtime options are basically the same as setting constants in the mapper before providing runtime data to the mapper. As such, the runtime options can be changed only before the first input hash is processed by a @ref Mapper::Mapper "Mapper".
 
-    Note that functions setRuntime() and replaceRuntime() are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set the runtime value. The functions are deprecated since they add confusion of the purpose of the runtime options.
+    Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
 
@@ -746,11 +746,10 @@ Mapper mapv(DataMap);
         }
 
         #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
-        /**
-             @param key a string with valid runtime key
-             @param value anything passed to the current runtime \c key
+        /** @param key a string with valid runtime key
+            @param value anything passed to the current runtime \c key
 
-             @note
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
 
             @see
             - @ref mapper_runtime_handling
@@ -759,13 +758,13 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor Mapper construction options to set
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        /*deprecated*/ setRuntime(string key, any value) {
+        setRuntime(string key, any value) {
             if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
                         "has changed %y -> %y while already %y input rows have been "
@@ -778,6 +777,8 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - replaceRuntime()
@@ -785,13 +786,13 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor Mapper construction options to set
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        /*deprecated*/ setRuntime(hash runtime) {
+        setRuntime(hash runtime) {
             if (count > 0 && m_runtime + runtime != m_runtime) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
                         "has changed %y -> %y while already %y input rows have been "
@@ -804,6 +805,8 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - getRuntime()
@@ -811,13 +814,13 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor Mapper construction options to set
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        /*deprecated*/ replaceRuntime(*hash runtime) {
+        replaceRuntime(*hash runtime) {
             if (count > 0 && runtime != m_runtime) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
                         "has changed %y -> %y while already %y input rows have been "
@@ -978,25 +981,21 @@ Mapper mapv(DataMap);
           * @param rec input record - either single record of hash of lists (batch);
           *                           to increase performance, the input type
           *                           (single record vs. batch) is determined by
-          *                           the @ref do_list parameter. In case of
+          *                           the \a do_list parameter. In case of
           *                           bulk input, all the lists are supposed to
-          *                           have the same length @ref list_size
-          * @param do_list - whether the input record @ref rec is single record or
+          *                           have the same length \a list_size
+          * @param do_list - whether the input record \a rec is single record or
           *                  bulk format (hash of lists)
           * @param list_size - size of the lists in case the input is in bulk
           *                    format (all lists must have the same length,
-          *                    asserted inside the function).
+          *                    asserted inside the method).
           *
           * @note it is assumed that list_size > 0 whenever do_list is Qore::True
           * @note if do_list == Qore::True, the 'rec' can contain a mix of lists
           *       and non-list values - the non-list values are used as constants
           *       in the mapping - as if expanded to lists with all values identical.
           */
-        private nothing mapFieldIntern(reference h,
-                                       string key,
-                                       hash rec,
-                                       bool do_list,
-                                       int list_size) {
+        private nothing mapFieldIntern(reference h, string key, hash rec, bool do_list, int list_size) {
             # FIXME: assert(!do_list || list_size > 0);
             # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
             hash m = mapc{key};
@@ -1299,7 +1298,6 @@ Mapper mapv(DataMap);
 
         #! creates the iterator from the arguments passed
         /** @param iter input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map the mapper to transform the data
         */
         constructor(Qore::AbstractIterator iter) {
             i = iter;
