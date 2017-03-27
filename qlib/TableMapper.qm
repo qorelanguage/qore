@@ -784,7 +784,7 @@ table_mapper.setRowCode(rowcode);
                 # copy all runtime mappings to the output hash
                 map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), mapd.keyIterator();
+                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), keys mapd;
                 count += rec_list_size;
 
                 # map record data to get the keys for the buffer
@@ -833,7 +833,6 @@ on_error table_mapper.rollback();
             - if the \c "insert_block" option is set to 1, then this method simply calls insertRow() to insert the data, nevertheless it still returns bulk output
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
             - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
-
 
             @see
             - flush()
@@ -1144,7 +1143,7 @@ on_error table_mapper.rollback();
             hash rv = hbuf + rh;
             if (exists hbuf_size) {
                 # clear buffer but keep hash keys - non-const mapper
-                map hbuf.$1 = (), hbuf.keyIterator(), hbuf.$1.typeCode() == NT_LIST;
+                map hbuf.$1 = (), keys hbuf, hbuf.$1.typeCode() == NT_LIST;
                 hbuf_size = 0;
             }
             else {
