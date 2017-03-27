@@ -186,13 +186,12 @@ list: (2 elements)
 
     @section mapper_runtime_handling Mapper Runtime Options
 
-    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use values provided at runtime
+    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use constant values provided at runtime
     in the @ref Mapper::Mapper "Mapper" output.
 
     For example, runtime options can be useful in the following cases:
         - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
         - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
-        - grouping of the output data
 
     @par Example:
     @code{.py}
@@ -212,10 +211,11 @@ hash opts = (
 );
 Mapper m(mapv, opts);        # runtime options are active now
 m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
-m.setRuntime("group_id", 1); # runtime group_id changed. From now it will use 1
-m.mapData(input2);           # date_begin is still the same as from beginning of processing, but group is 1 now
     @endcode
 
+    The runtime options are basically the same as setting constants in the mapper before providing runtime data to the mapper. As such, the runtime options can be changed only before the first input hash is processed by a @ref Mapper::Mapper "Mapper".
+
+    Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
 
@@ -719,9 +719,10 @@ Mapper mapv(DataMap);
             }
             else {
                 # add to consth if a constant value is included
-                if (fh.constant)
+                # refs #1754 if constant is 0, we cannot simply check with if(fh.constant)
+                if (exists fh.constant)
                     consth{k} = fh.constant;
-                if (fh.runtime)
+                if (exists fh.runtime)
                     rconsth{k} = fh.runtime;
                 mapo{k} = NOTHING;
             }
@@ -745,9 +746,10 @@ Mapper mapv(DataMap);
         }
 
         #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
-        /**
-             @param key a string with valid runtime key
-             @param value anything passed to the current runtime \c key
+        /** @param key a string with valid runtime key
+            @param value anything passed to the current runtime \c key
+
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
 
             @see
             - @ref mapper_runtime_handling
@@ -755,8 +757,19 @@ Mapper mapv(DataMap);
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
         setRuntime(string key, any value) {
+            if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", key, m_runtime{key}, value, count);
+            }
             m_runtime{key} = value;
         }
 
@@ -764,14 +777,27 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - replaceRuntime()
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
         setRuntime(hash runtime) {
+            if (count > 0 && m_runtime + runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, m_runtime + runtime, count);
+            }
             m_runtime += runtime;
         }
 
@@ -779,14 +805,27 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - getRuntime()
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
         replaceRuntime(*hash runtime) {
+            if (count > 0 && runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, runtime, count);
+            }
             m_runtime = runtime;
         }
 
@@ -921,7 +960,7 @@ Mapper mapv(DataMap);
             map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
             # iterate through dynamic target fields
-            map mapFieldIntern(\h, $1, rec), keys mapd;
+            map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
 
             # increment record count
             ++count;
@@ -930,13 +969,45 @@ Mapper mapv(DataMap);
         }
 
         #! maps a single field to the target
-        private nothing mapFieldIntern(reference h, string key, hash rec, *int do_list) {
+        /**
+          * Performs the actual mapping
+          *
+          * @param h the hash to be updated with the mapped key/value pair;
+          *          Depending on the mapper specification and the input, it can
+          *          contain a bulk record (hash of lists) or a hash of both list
+          *          and non-list keys (these are considered a "constants" in the
+          *          output record.
+          * @param key the column name (hash key) to be mapped (target field)
+          * @param rec input record - either single record of hash of lists (batch);
+          *                           to increase performance, the input type
+          *                           (single record vs. batch) is determined by
+          *                           the \a do_list parameter. In case of
+          *                           bulk input, all the lists are supposed to
+          *                           have the same length \a list_size
+          * @param do_list - whether the input record \a rec is single record or
+          *                  bulk format (hash of lists)
+          * @param list_size - size of the lists in case the input is in bulk
+          *                    format (all lists must have the same length,
+          *                    asserted inside the method).
+          *
+          * @note it is assumed that list_size > 0 whenever do_list is Qore::True
+          * @note if do_list == Qore::True, the 'rec' can contain a mix of lists
+          *       and non-list values - the non-list values are used as constants
+          *       in the mapping - as if expanded to lists with all values identical.
+          */
+        private nothing mapFieldIntern(reference h, string key, hash rec, bool do_list, int list_size) {
+            # FIXME: assert(!do_list || list_size > 0);
+            # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
             hash m = mapc{key};
 
-            # closure to get the current record hash from a hash of lists
-            # rec is not bound here for performance reasons (so it will remain unlocked)
+            # closure to get the current record hash from a hash of lists;
+            # rec is not bound here for performance reasons (so it will remain unlocked);
+            # NOTE that we still need the NT_LIST check here since even with do_list
+            # we can get constants in 'rec' (aka non-lists).
             code getrec = hash sub (hash rc, int offset) {
-                return map {$1.key: $1.value[offset] ?? $1.value}, rc.pairIterator();
+                return map {$1.key : $1.value.typeCode() == NT_LIST ?
+                                        $1.value[offset] :
+                                        $1.value}, rc.pairIterator();
             };
 
             # get source field name
@@ -947,41 +1018,56 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ? (map m.index + count + $#, v) : m.index + count;
+                v = do_list ?
+                    (map m.index + count + $#, xrange(0, list_size - 1)) :
+                    m.index + count;
             }
             else if (exists m.runtime) {
-                any rtv = m_runtime{m.runtime};
-                v = do_list ? (map rtv, v) : rtv;
+                # actually runtime should not happen with do_list since
+                # do_list = True is only used from TableMapper that is handling
+                # runtime outside mapFieldIntern()
+                v = m_runtime{m.runtime};
             }
             else if (m.struct) {
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
             }
             else
-                v = rec{name} ?? NOTHING;
+                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
 
-            if (do_list) {
-                if (!exists v)
-                    v = map NOTHING, xrange(do_list - 1);
-                else if (v.typeCode() != NT_LIST)
-                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is %y in list mode; expecting \"list\"", key, v.type());
+            bool v_is_list = v.typeCode() == NT_LIST;
+            if (v_is_list) {
+                if (do_list) {
+                    if (list_size != v.size())
+                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the input batch length expected is %d", key, v, v.size(), list_size);
+                }
+                else {
+                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y in non-list mode", key, v);
+                }
             }
 
             # move any XML CDATA into the field value
-            # NOTE: cdata not supported with hashes of lists
+            # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
             if (v."^cdata^")
                 v = v."^cdata^";
 
             # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
             if (m.subclass)
-                v = do_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
+                v = v_is_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
 
             # execute any field filter if necessary
             if (m.code) {
                 try {
-                    v = do_list
-                        ? (map m.code($1, getrec(rec, $#)), v)
-                        : m.code(v, rec);
+                    if (do_list) {
+                        v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
+                            xrange(0, list_size - 1);
+                        # here we make a list from 'v' either way, since we simply
+                        # cannot predict what 'code' could do with 'v' and 'rec'
+                        v_is_list = True;
+                    }
+                    else {
+                        v = m.code(v, rec);
+                    }
                 }
                 catch (hash ex) {
                     ex.desc = sprintf("field %y closure: %s", key, ex.desc);
@@ -989,7 +1075,7 @@ Mapper mapv(DataMap);
                 }
             }
 
-            if (do_list) {
+            if (v_is_list) {
                 map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
             }
             else {
@@ -998,14 +1084,15 @@ Mapper mapv(DataMap);
             }
 
             if (m.type) {
-                if (do_list)
+                # note: v_is_list implies do_list
+                if (v_is_list)
                     map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
                 else
                     mapFieldType(key, m, \v, rec);
             }
 
             if (exists m."default") {
-                if (do_list) {
+                if (v_is_list) {
                     map v[$#] = m."default", v, !exists $1;
                 }
                 else if (!exists v)
@@ -1014,7 +1101,7 @@ Mapper mapv(DataMap);
 
             # check maximum length
             if (m.maxlen) {
-                if (do_list) {
+                if (v_is_list) {
                     if (m.trunc)
                         map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
                     else
@@ -1024,18 +1111,16 @@ Mapper mapv(DataMap);
                     if (v.size() > m.maxlen) {
                         # truncate the string if necessary
                         if (m.trunc) {
-                            if (info_log)
-                                info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                            v = trunc_str(v, m.maxlen, encoding);
+                            v = truncateField(key, v, 0, 0, m.maxlen);
                         }
                         else
-                            error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
+                            fieldLengthError(key, $1, 0, 0, m.maxlen, rec);
                     }
                 }
             }
 
             if (m.mand) {
-                if (do_list) {
+                if (v_is_list) {
                     map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
                 }
                 else if (!exists v)
@@ -1073,13 +1158,15 @@ Mapper mapv(DataMap);
         #! called to truncate fields when processing hashes of lists
         private string truncateField(string k, string val, int ix, int sze, int maxlen) {
             if (info_log)
-                info_log("field %y = %y element %d/%d input length %d truncating to %d bytes", getFieldName(k), val, ix + 1, sze, val.size(), maxlen);
+                info_log("field %y = %y%s input length %d truncating to %d bytes",
+                        getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
             return trunc_str(val, maxlen, encoding);
         }
 
         #! called when a field exceeds its maximum length when processing hashes of lists
         private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash rc) {
-            error2("STRING-TOO-LONG", "field %y = %y element %d/%d, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(k), val, ix + 1, val.size(), maxlen, rc);
+            error2("STRING-TOO-LONG", "field %y = %y%s, input length %d exceeds maximum byte length %d for input row: %y",
+                    getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen, rc);
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
@@ -1211,7 +1298,6 @@ Mapper mapv(DataMap);
 
         #! creates the iterator from the arguments passed
         /** @param iter input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map the mapper to transform the data
         */
         constructor(Qore::AbstractIterator iter) {
             i = iter;

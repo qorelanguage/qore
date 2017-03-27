@@ -292,6 +292,11 @@ public namespace TableMapper {
 
             #! buffer for bulk DML
             hash hbuf;
+            *int hbuf_size; # size of the batch in hbuf (like if returned from
+                            # getRecListSize())
+                            # FIXME would be nice to have hbuf with hbuf_size
+                            # in a class, but there are performance considerations.
+                            # --PQ 23-Mar-2017
 
             #! per-row @ref closure or @ref call_reference for batch inserts/upserts
             *code rowcode;
@@ -388,8 +393,10 @@ InboundTableMapper mapper(table, DbMapper);
         /** @throw BLOCK-ERROR there is unflushed data in the block cache; make sure to call flush() or discard() before destroying the object
         */
         destructor() {
-            if (hbuf.firstValue())
-                throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
+            if (exists hbuf) {
+                if (!exists hbuf_size || hbuf_size > 0)
+                    throw "BLOCK-ERROR", sprintf("there is still %d row(s) of data in the block cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database",  (hbuf_size ?? 1), self.className(), self.className());
+            }
         }
 
         #! returns a description of the output record based on the @ref SqlUtil::AbstractTable "AbstractTable" target
@@ -578,6 +585,8 @@ InboundTableMapper mapper(table, DbMapper);
 
             @return a hash of the row values inserted/upserted (row name: value)
 
+            @note on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
+
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
@@ -645,30 +654,58 @@ table_mapper.setRowCode(rowcode);
         #! inserts/upserts a row (or a set of rows, in case a hash of lists is passed) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
         /** @par Example:
             @code{.py}
-on_success table_mapper.commit();
-on_error table_mapper.rollback();
+# Example 1:
 {
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    map table_mapper.queueData($1), data.iterator();
+    while (*hash h = stmt.fetchColumns(1000)) {
+        table_mapper.queueData(h);
+    }
+}
+
+# Example 2:
+{
+    const Map1 = (
+        "num": ("a"),
+        "str": ("b"),
+    );
+
+    Table table(someDataSource, "some_table");
+    InboundTableMapper table_mapper(table, DataMap. ("insert_block" : 3));
+
+    on_error table_mapper.discard();
+
+    list data = (("a" : 1, "b" : "bar"), ("a" : 2, "b" : "foo"));
+
+    list mapped_data = (map table_mapper.queueData($1), data.iterator()) ?? ();
+    # mapped_data = () - no insertion done yet since to insert_block=3
+
+    list flushed_data = table_mapper.flush() ?? ();
+
+    mapped_data += flushed_data;
+    # mapped_data = ("num" : (1,2), "str" : ("bar","foo"));
+    # the table is updated too
 }
             @endcode
 
             Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param rec the input record or record set in case a hash of lists is passed
-            @param crec an optional simple hash of data to be added to each row
+            @param crec an optional simple hash of data to be added to each input row before mapping
 
-            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; always returns a batch (hash of lists)
 
             @note
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
-            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please note that in this case the return value is a hash of single value lists corresponding to a batch data insert
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
-            - in case a hash of lists is passed in \a rec, then the the underlying @ref Mapper::Mapper "Mapper" object does not support structured input or output or XML CDATA in the input (input data in this format is assumed to come from an SQL query); note that this provides very high performance with SQL drivers that support Bulk DML
+            - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that support Bulk DML
+            - in case a hash of empty lists is passed, Qore::NOTHING is returned
+            - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with \c C = "mystring" on the input.
+            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 
             @see
             - flush()
@@ -683,65 +720,90 @@ on_error table_mapper.rollback();
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
-            if (rec.firstValue().typeCode() != NT_LIST)
+            if (crec) {
+                if (exists getRecListSize(crec)) {
+                    throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not "
+                          "accept a batch as its 2nd argument, got %y",
+                          self.className(), crec);
+                }
+            }
+
+            # NOTE: we cannot add 'crec' into 'rec' here since it could affect the number
+            # of processed rows, actually, by overriding a column in 'rec' that
+            # contains a list.
+            *int rec_list_size = getRecListSize(rec);
+            if (!exists rec_list_size) {
                 return queueDataIntern(rec + crec);
+            }
 
             if (insert_block == 1) {
-                hash h;
+                *hash h;
+                *int h_size;
                 foreach hash row in (rec.contextIterator()) {
-                    *hash th = insertRow(row);
+                    # FIXME --PQ 21-Mar-2017
+                    # for constant mappers, we have a problem here, since
+                    # the row is actually inserted multiple times into the table,
+                    # but appears only once on the output!
+                    *hash th = insertRow(row + crec);
                     if (th) {
-                        if (h)
-                            map h.$1 += th.$1, keys th;
-                        else
-                            h = th;
+                        *int batchth_size;
+                        hash batchth = record2Batch(th, \batchth_size);
+                        addBatchToBatch(\h, \h_size, batchth, NOTHING); # h_size ignored
                     }
                 }
                 return h;
             }
 
-            hash dh;
+            if (rec_list_size > 0) {
+                hash dh;
 
-            # first copy all 1:1 mappings to the output hash
-            if (identl)
-                dh = rec{identl};
+                if (crec) {
+                    # expand crec to have the same number of rows as rec in any key
+                    # that has already got a list value in crec. This is to avoid
+                    # situations that crec changes the number of rows really inserted.
+                    foreach hash i in (crec.pairIterator()) {
+                        if (i.value.typeCode() != NT_LIST &&
+                            (exists rec{i.key} &&
+                             rec{i.key}.typeCode() == NT_LIST)) {
+                            rec{i.key} = map i.value, xrange(0, rec_list_size-1);
+                        }
+                        else {
+                            rec{i.key} = i.value;
+                        }
+                    }
+                }
 
-            # copy all runtime mappings to the output hash
-            map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
+                # identl and rconsth entries are added to 'dh' and not in 'hbuf'
+                # directly since identl and rconsth may change at each call of
+                # queueData() (unlike consth).
 
-            int size = rec.firstValue().size();
-            map mapFieldIntern(\dh, $1, rec, size), keys mapd;
-            count += size;
+                # first copy all 1:1 mappings to the output hash
+                if (identl)
+                    dh = rec{identl};
 
-            # map record data to get the keys for the buffer
-            if (!hbuf) {
-                # copy all constant mappings to the output hash
-                if (consth)
-                    hbuf += consth;
-                if (crec)
-                    hbuf += crec;
+                # copy all runtime mappings to the output hash
+                map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-                # add mapped data
-                hbuf += dh;
-            }
-            else
-                map hbuf{$1.key} += $1.value, dh.pairIterator();
+                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), keys mapd;
+                count += rec_list_size;
 
-            # return nothing if nothing needs to be flushed
-            if (hbuf.firstValue().size() < insert_block)
-                return;
+                # map record data to get the keys for the buffer
+                if (!hbuf) {
+                    # copy all constant mappings to the output hash
+                    # consth, rconsth, identh and crec are removed from mapd,
+                    # so they must be re-added explicitly
+                    dh += consth;
 
-            hash h;
-            # return all target data
-            *hash th = flushIntern();
+                    # FIXME what is not nice is that "constant" and "runtime"
+                    # has also their if-then branches in mapFieldIntern(),
+                    # but this is necessary to accomodate Mapper::mapData()
+                    # --PQ 21-Mar-2017
+                }
+                addBatchToBatch(\hbuf, \hbuf_size,
+                                dh, isMapperConstant() ? NOTHING : rec_list_size);
+            } # else no input, no work, not even for constant mappers
 
-            if (th) {
-                if (h)
-                    map h.$1 += th.$1, keys th;
-                else
-                    h = th;
-            }
-            return h;
+            return flushIntern(False);
         }
 
         #! inserts/upserts a set of rows (from an iterator that returns hashes as values where each hash value represents an input record) into the block buffer based on a mapped input record; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c "insert_block" option; does not commit the transaction
@@ -760,7 +822,7 @@ on_error table_mapper.rollback();
             Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
 
             @param iter iterator over the record set (list of hashes)
-            @param crec an optional simple hash of data to be added to each row
+            @param crec an optional simple hash of data to be added to each input row before mapping
 
             @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys
 
@@ -768,8 +830,9 @@ on_error table_mapper.rollback();
             - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
             - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
             - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
-            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow()
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow() to insert the data, nevertheless it still returns bulk output
             - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 
             @see
             - flush()
@@ -785,13 +848,16 @@ on_error table_mapper.rollback();
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
             hash h;
+            *int h_size; # actually ignored
             foreach hash row in (iter) {
+                # FIXME --PQ 21-Mar-2017
+                # for constant mappers (those containing only "constant" or
+                # "runtime" entired), we have a problem here, since
+                # the row is actually inserted multiple times into the table,
+                # but appears only once on the output!
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
-                    if (h)
-                        map h.$1 += th.$1, keys th;
-                    else
-                        h = th;
+                    addBatchToBatch(\h, \h_size, th, NOTHING); # 'th' size unused
                 }
             }
             return h;
@@ -855,32 +921,92 @@ on_error table_mapper.rollback();
 
             @param rec a hash representing a single input record
 
-            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys
+            @return if batch data was inserted (flushed) then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; if nothing was flushed to the database in the call, Qore::NOTHING is returned
 
-            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @note this function does not process hashes of lists (bulk format), it expects always single input record on the input; it returns a batch, though.
+
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         private *hash queueDataIntern(hash rec) {
             if (insert_block == 1) {
-                return insertRow(rec);
+                hash ret = insertRow(rec);
+                # NOTE: this may be overkill, but we simply cannot make the return value
+                # structure dependent on the input parameters. --PQ 21-Mar-2017
+                *int ret_size;
+                return record2Batch(ret, \ret_size);
             }
 
             hash h = mapDataIntern(rec);
 
             # map record data to get the keys for the buffer
-            if (!hbuf)
-                map hbuf{$1.key} = ($1.value,), h.pairIterator();
-            else
-                map hbuf{$1.key} += $1.value, h.pairIterator();
+            *int bh_size;
+            hash bh = record2Batch(h, \bh_size);
+            addBatchToBatch(\hbuf, \hbuf_size, bh, bh_size);
 
-            # return nothing if nothing needs to be flushed
-            if (hbuf.firstValue().size() < insert_block)
-                return;
+            return flushIntern(False);
+        }
 
-            # return all target data
-            return flushIntern();
+        /** For a possible hash of lists (bulk data) returns the size of
+         * the first list found within the hash. If no list if found, returns
+         * NOTHING.
+         * @param rec a hash representing (possiblee) bulk data
+         * @return NOTHING if the hash represents single input record, or the number
+         *         of records represented (may also be 0)
+         */
+        private *int getRecListSize(hash rec) {
+            foreach any v in (rec.iterator()) {
+                if (v.typeCode() == NT_LIST) {
+                    return v.size();
+                }
+            }
+            return NOTHING;
+        }
+
+        /**
+         * transforms single record to a batch - i.e. all non-constant elements
+         * are transformed to lists (with single elements)
+         */
+        private hash record2Batch(hash h, reference batch_size) {
+            hash ret = h;
+            map ret{$1.key} = ($1.value,),
+                h.pairIterator(),
+                (exists mapd{$1.key} || exists identh{$1.key});
+            batch_size = isMapperConstant() ? 1 : NOTHING;
+            # the rest is consth and rconsth elements which are kept as is
+            return ret;
+        }
+
+        /** returns true when the mapper is all "constant", i.e. if it always
+          * provide the same output regardless on the input
+          */
+        private bool isMapperConstant() {
+            return !(mapd.size() || identh.size());
+        }
+
+        /**
+         * adds a batch (hash of lists) to another batch (in-place)
+         * @param hb reference to a batch that will be enriched
+         * @param batch the batch to be added to 'hb'
+         */
+        static nothing addBatchToBatch(reference hb, reference hb_size,
+                                       hash batch, *int batch_size) {
+            if (!hb) {
+                hb = batch;
+                hb_size = batch_size;
+            }
+            else {
+                # we add only lists - the constants remain untouched
+                # FIXME could assert that the constants remain the same? --PQ 21-Mar-2017
+                map hb{$1.key} += $1.value,
+                    batch.pairIterator(),
+                    $1.value.typeCode() == NT_LIST;
+                if (exists hb_size) {
+                    hb_size += batch_size ?? 1;
+                }
+                # else FIXME can assert that batch_size == NOTHING? --PQ 23-Mar-2017
+            }
         }
 
         #! flushes any remaining batched data to the database; this method should always be called before committing the transaction or destroying the object
@@ -908,9 +1034,9 @@ on_error table_mapper.rollback();
             - discard()
         */
         *hash flush() {
-            if (hbuf.firstValue())
-                return flushIntern();
+            *hash ret = flushIntern(True);
             remove rowcode;
+            return ret;
         }
 
         #! discards any buffered batched data; this method should be called after using the batch APIs (queueData()) and an error occurs
@@ -937,13 +1063,42 @@ on_error table_mapper.rollback();
         */
         discard() {
             delete hbuf;
+            hbuf_size = NOTHING;
             remove rowcode;
         }
 
-        #! flushes queued data to the database
-        private hash flushIntern() {
+        /**
+         * flushes queued data to the database
+         * @param force_flush to flush even if there is not enough data to fill a block,
+         *                    e.g. on explicit flush() call
+         * @return Qore::NOTHING when nothing was flushed, otherwise returns
+         *         a batch (hash of lists) with the data that were flushed into the DB,
+         *         updated by the 'ret_args' from the DB.
+         */
+
+        # return nothing if nothing needs to be flushed
+        private *hash flushIntern(bool force_flush) {
+            if (!exists hbuf) {
+                return; # nothing to flush
+            }
+
+            if (force_flush) {
+                if (hbuf_size === 0) return; # empty input, all flushed in prev. round
+            }
+            else {
+                # constant mapper flushes only in the end, or
+                # too few data to flush
+                if (!exists hbuf_size || hbuf_size < insert_block) return;
+            }
+
             if (info_log)
-                info_log("%s: flushing %d row%s", table.getSqlName(), hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s");
+                info_log("%s: flushing %d row(s)", table.getSqlName(), hbuf_size);
+
+            # if we have a batch (hash of list) AND the list is empty, do not attempt
+            # to insert into DB, since at least Oracle module then throws an exception
+            # since QoreOracleStatement::isArray() returns false and then
+            # OraBindNode::bindValue does not have any option how to bind the
+            # list data type. --PQ 16-Mar-2017
 
             *hash rh;
 
@@ -986,8 +1141,17 @@ on_error table_mapper.rollback();
 
             # get return value
             hash rv = hbuf + rh;
-            # clear buffer but keep hash keys
-            map hbuf.$1 = (), keys hbuf;
+            if (exists hbuf_size) {
+                # clear buffer but keep hash keys - non-const mapper
+                map hbuf.$1 = (), keys hbuf, hbuf.$1.typeCode() == NT_LIST;
+                hbuf_size = 0;
+            }
+            else {
+                # const mapper - do not keep anything after flush()
+                # assert(force_flush);
+                delete hbuf;
+                hbuf_size = NOTHING;
+            }
 
             # issue #1736: we need to iterate hash of lists with possible single constants in the hash as well
             if (output_log) {
