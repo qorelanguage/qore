@@ -165,7 +165,6 @@ public class TableMapperTest inherits QUnit::Test {
                         ("string": "string_2"),
                         ("string": ""),
                        );
-
         const Input2 = (("string": "string_1", "str2" : "str2_1"),
                         ("string": "string_2", "str2" : "str2_2"),
                         ("string": NOTHING, "str2" : "str2_3"),
