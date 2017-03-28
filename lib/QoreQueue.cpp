@@ -3,7 +3,7 @@
 
    Qore Programming Language
 
-   Copyright (C) 2003 - 2016 David Nichols
+   Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -372,7 +372,7 @@ void qore_queue_private::clearError() {
 QoreQueue::QoreQueue(int n_max) : priv(new qore_queue_private(n_max)) {
 }
 
-QoreQueue::QoreQueue(const QoreQueue &orig) : priv(new qore_queue_private(*orig.priv)) {
+QoreQueue::QoreQueue(const QoreQueue& orig) : priv(new qore_queue_private(*orig.priv)) {
 }
 
 // queues should not be deleted when other threads might
@@ -467,6 +467,9 @@ void QoreQueue::clearError() {
 }
 
 Queue::Queue(int max) : QoreQueue(max) {
+}
+
+Queue::Queue(const Queue& old) : QoreQueue(old) {
 }
 
 Queue::~Queue() {

@@ -624,13 +624,13 @@ AbstractPrivateData* qore_object_private::tryGetReferencedPrivateData(qore_class
 
 void qore_object_private::setRealReference() {
    AutoLocker al(rlck);
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::setRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, rrefs, rrefs + 1);
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::setRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(), rrefs, rrefs + 1);
    ++rrefs;
 }
 
 void qore_object_private::unsetRealReference() {
    AutoLocker al(rlck);
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::unsetRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, rrefs, rrefs - 1);
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::unsetRealReference() this: %p '%s': references %d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(), rrefs, rrefs - 1);
    derefRealIntern();
 }
 
@@ -639,7 +639,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
    {
       //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), references, references - 1, tRefs.reference_count(), status, theclass->has_delete_blocker(), delete_blocker_run);
 
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references, references - 1, rrefs, rrefs - (real ? 1 : 0));
+      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(), references.load() - 1, rrefs, rrefs - (real ? 1 : 0));
 
       robject_dereference_helper qodh(this, real);
       int ref_copy = qodh.getRefs();
@@ -661,7 +661,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                // rset can be changed unless the rsection is acquired
                sl.acquireRSection();
 
-               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references, rrefs, deferred_scan, qodh.doScan());
+               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references.load(), rrefs, deferred_scan, qodh.doScan());
 
                int rc;
                RSet* rs = rset;
@@ -669,7 +669,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                if (!rs) {
                   if (rcount == ref_copy) {
                      // this must be true if we really are dealing with an object with no more valid (non-recursive) references
-                     assert(references == ref_copy);
+                     assert(references.load() == ref_copy);
                      rc = 1;
                   }
                   else {
@@ -1052,9 +1052,9 @@ void QoreObject::doDelete(ExceptionSink* xsink) {
 }
 
 void qore_object_private::customRefIntern(bool real) {
-   if (!references)
+   if (!references.load())
       tRef();
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customRefIntern() this: %p obj: %p '%s' references %d->%d rrefs: %d->%d\n", this, obj, getClassName(), references, references + 1, rrefs, rrefs + (real ? 1 : 0));
+   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customRefIntern() this: %p obj: %p '%s' references %d->%d rrefs: %d->%d\n", this, obj, getClassName(), references.load(), references.load() + 1, rrefs, rrefs + (real ? 1 : 0));
    ++references;
    if (real)
       ++rrefs;
@@ -1067,7 +1067,7 @@ void QoreObject::customRef() const {
 
 void QoreObject::deleteBlockerRef() const {
 #ifdef QORE_DEBUG_OBJ_REFS
-   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this: %p '%s' references %d->%d\n", this, getClassName(), references, references + 1);
+   printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this: %p '%s' references %d->%d\n", this, getClassName(), references.load(), references.load() + 1);
 #endif
    AutoLocker al(priv->rlck);
    ++references;

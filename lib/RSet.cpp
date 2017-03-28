@@ -51,7 +51,7 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    rcount = rcnt;
 #ifdef DEBUG
    if (rcount > references)
-      printd(0, "RObject::setRSet() this: %p '%s' cannot set rcount %d > references %d\n", this, getName(), rcount, references);
+      printd(0, "RObject::setRSet() this: %p '%s' cannot set rcount %d > references %d\n", this, getName(), rcount, references.load());
    assert(rcount <= references);
 #endif
    if (rs) {

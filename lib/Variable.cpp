@@ -1311,7 +1311,7 @@ void ClosureVarValue::ref() const {
 }
 
 void ClosureVarValue::deref(ExceptionSink* xsink) {
-   printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p val: %s\n", this, references, references - 1, rcount, rset, val.getTypeName());
+   printd(QORE_DEBUG_OBJ_REFS, "ClosureVarValue::deref() this: %p refs: %d -> %d rcount: %d rset: %p val: %s\n", this, references.load(), references.load() - 1, rcount, rset, val.getTypeName());
 
    int ref_copy;
    bool do_del = false;

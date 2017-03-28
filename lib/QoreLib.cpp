@@ -41,6 +41,7 @@
 
 #include <sstream>
 #include <locale>
+#include <atomic>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -140,11 +141,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
      "HAVE_ATOMIC_OPERATIONS",
      QO_OPTION,
-#ifdef HAVE_ATOMIC_MACROS
-     true
-#else
-     false
-#endif
+     std::atomic_int{}.is_lock_free(),
    },
    { QORE_OPT_STACK_GUARD,
      "HAVE_STACK_GUARD",

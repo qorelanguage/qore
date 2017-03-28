@@ -36,6 +36,7 @@
 #include "qore/intern/RSection.h"
 
 #include <set>
+#include <atomic>
 
 class RSet;
 class RSetHelper;
@@ -67,13 +68,13 @@ public:
    RSet* rset;
 
    // reference count
-   int& references;
+   std::atomic_int& references;
 
    bool deferred_scan : 1, // do we need to make a scan when the object is eligible for it?
       needs_is_valid : 1,  // do we need to call isValidImpl()
       rref_wait : 1;       // rset invalidation in progress
 
-   DLLLOCAL RObject(int& n_refs, bool niv = false) :
+   DLLLOCAL RObject(std::atomic_int& n_refs, bool niv = false) :
       rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0),
       ref_waiting(0), rref_waiting(0), rrefs(0),
       rset(0), references(n_refs),
