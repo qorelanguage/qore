@@ -35,6 +35,8 @@
 
 #define _QORE_QOREFILE_H
 
+#include <qore/AbstractPrivateData.h>
+
 #include <fcntl.h>
 
 #include <sys/file.h>
@@ -592,6 +594,20 @@ public:
 
    //! internal API, must be called before deleting the object if an event queue is set
    DLLLOCAL void cleanup(ExceptionSink *xsink);
+};
+
+DLLEXPORT extern qore_classid_t CID_FILE;
+DLLEXPORT extern QoreClass* QC_FILE;
+DLLEXPORT extern QoreClass* QC_READONLYFILE;
+
+class File : public AbstractPrivateData, public QoreFile {
+protected:
+   DLLLOCAL virtual ~File();
+
+public:
+   DLLLOCAL File(const QoreEncoding *cs);
+   DLLLOCAL virtual void deref(ExceptionSink *xsink);
+   DLLLOCAL virtual void deref();
 };
 
 class QoreFileHelper : QorePrivateObjectAccessHelper {

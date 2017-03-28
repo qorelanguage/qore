@@ -129,6 +129,9 @@
       - added the \c TelnetClient::getTarget() method
     - <a href="../../modules/Qorize/html/index.html">Qorize</a> module:
       - Qorize module: qorize_named() added support for objects
+    - the following classes can be used from binary modules:
+      - @ref Qore::File "File"
+      - @ref Qore::ReadOnlyFile "ReadOnlyFile"
     - added internal API support to make it easier for DBI drivers to handle lost connections; due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
     - relative time stamp is logged in trace and debug logs
 
