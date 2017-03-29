@@ -798,3 +798,24 @@ QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
 bool QoreFile::isTty() const {
    return priv->isTty();
 }
+
+File::File(const QoreEncoding *cs) : QoreFile(cs) {
+}
+
+File::~File() {
+}
+
+void File::deref(ExceptionSink *xsink) {
+   if (ROdereference()) {
+      cleanup(xsink);
+      delete this;
+   }
+}
+
+void File::deref() {
+   if (ROdereference()) {
+      ExceptionSink xsink;
+      cleanup(&xsink);
+      delete this;
+   }
+}
