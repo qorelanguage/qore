@@ -182,7 +182,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 	 // process default argument with accepting type's filter if necessary
 	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
 	 if (QoreTypeInfo::mayRequireFilter(paramTypeInfo, p)) {
-	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
+	    QoreTypeInfo::acceptInputParam(paramTypeInfo, i, sig->getName(i), p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }
@@ -202,7 +202,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 	 // test for change or incompatibility
 	 if (check_args || QoreTypeInfo::mayRequireFilter(paramTypeInfo, n)) {
 	    QoreValue& p = tmp.getEntryReference(i);
-	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
+	    QoreTypeInfo::acceptInputParam(paramTypeInfo, i, sig->getName(i), p, xsink);
 	    if (*xsink)
 	       return -1;
 	 }
@@ -624,7 +624,7 @@ const AbstractQoreFunctionVariant* QoreFunction::findVariant(const QoreValueList
 	       if (n.isNothing() && sig->hasDefaultArg(pi))
 		  rc = QTI_IGNORE;
 	       else {
-		  rc = t->runtimeAcceptsValue(n);
+		  rc = QoreTypeInfo::runtimeAcceptsValue(t, n);
 		  //printd(5, "QoreFunction::findVariant() this: %p %s(%s) i: %d param: %s arg: %s rc: %d\n", this, getName(), sig->getSignatureText(), pi, t->getName(), n.getTypeName(), rc);
 		  if (rc == QTI_NOT_EQUAL) {
 		     ok = false;
@@ -1333,7 +1333,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
       const QoreTypeInfo* rt = signature.getReturnTypeInfo();
 
       // check return type
-      rt->acceptAssignment("<block return>", val, xsink);
+      QoreTypeInfo::acceptAssignment(rt, "<block return>", val, xsink);
    }
 
    return val;

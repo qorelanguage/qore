@@ -2482,7 +2482,7 @@ public:
          if (*xsink)
             return -1;
 
-         val = vi.getTypeInfo()->acceptInputMember(vname, val.release(), xsink);
+         val = QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, val.release(), xsink);
          if (*xsink)
             return -1;
 

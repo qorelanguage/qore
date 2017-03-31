@@ -40,7 +40,7 @@ int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
    if (!*xsink) {
       const QoreTypeInfo* returnTypeInfo = getReturnTypeInfo();
-      returnTypeInfo->acceptAssignment("<return statement>", return_value, xsink);
+      QoreTypeInfo::acceptAssignment(returnTypeInfo, "<return statement>", return_value, xsink);
    }
 
    if (*xsink) {

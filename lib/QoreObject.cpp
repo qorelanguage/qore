@@ -137,7 +137,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
             return;
 
          // check type compatibility and perform type translations, if any
-         ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+         ReferenceHolder<AbstractQoreNode> val(QoreTypeInfo::acceptInputMember(ti, hi.getKey(), hi.getReferencedValue(), xsink), xsink);
          if (*xsink)
             return;
 

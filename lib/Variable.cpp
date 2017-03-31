@@ -546,7 +546,7 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
       n.v.n = 0;
 
    // check type for assignment
-   typeInfo->acceptAssignment(desc, n, vl.xsink);
+   QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
    if (*vl.xsink) {
       //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
       saveTemp(n);

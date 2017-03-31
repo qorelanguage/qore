@@ -587,6 +587,11 @@ public:
       return parseAcceptsType(t, t == NT_INT);
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
+      return ti ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
+   }
+
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo) const {
       // set to true because value is ignored and can short-circuit logic in parseAcceptsMult() if called
       bool may_not_match = true;
@@ -703,9 +708,20 @@ public:
       return v.takeNode();
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static AbstractQoreNode* acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) {
+      return ti ? ti->acceptInputParam(param_num, param_name, n, xsink) : n;
+   }
+
    DLLLOCAL void acceptInputParam(int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
       if (hasType())
          acceptInputIntern(false, param_num, param_name, n, xsink);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
+      if (ti)
+         ti->acceptInputParam(param_num, param_name, n, xsink);
    }
 
    DLLLOCAL AbstractQoreNode* acceptInputMember(const char* member_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
@@ -716,15 +732,32 @@ public:
       return v.takeNode();
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static AbstractQoreNode* acceptInputMember(const QoreTypeInfo* ti, const char* member_name, AbstractQoreNode* n, ExceptionSink* xsink) {
+      return ti ? ti->acceptInputMember(member_name, n, xsink) : n;
+   }
+
    DLLLOCAL void acceptInputMember(const char* member_name, QoreValue& n, ExceptionSink* xsink) const {
       if (hasType())
          acceptInputIntern(true, -1, member_name, n, xsink);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+      if (ti)
+         ti->acceptInputMember(member_name, n, xsink);
    }
 
    DLLLOCAL void acceptAssignment(const char* text, QoreValue& n, ExceptionSink* xsink) const {
       assert(text && text[0] == '<');
       if (hasType())
          acceptInputIntern(false, -1, text, n, xsink);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
+      if (ti)
+         ti->acceptAssignment(text, n, xsink);
    }
 
 /*

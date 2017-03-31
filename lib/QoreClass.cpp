@@ -902,7 +902,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 	    if (*xsink)
 	       return -1;
 	    // check types
-	    AbstractQoreNode* nv = i->second->getTypeInfo()->acceptInputMember(i->first, *val, xsink);
+	    AbstractQoreNode* nv = QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
 	    if (*xsink)
 	       return -1;
 	    *v = nv;
