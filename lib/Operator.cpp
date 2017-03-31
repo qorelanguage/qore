@@ -1923,26 +1923,26 @@ static AbstractQoreNode* check_op_minus(QoreTreeNode* tree, LocalVar* oflag, int
       return tree->evalSubst(returnTypeInfo);
 
    // if either side is a date, then the return type is date (highest priority)
-   if (leftTypeInfo->isType(NT_DATE)
-       || rightTypeInfo->isType(NT_DATE))
+   if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
+       || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
       returnTypeInfo = dateTypeInfo;
    // otherwise we have to make sure types are known on both sides of the expression
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_NUMBER)
-            || rightTypeInfo->isType(NT_NUMBER))
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
          returnTypeInfo = numberTypeInfo;
-      else if (leftTypeInfo->isType(NT_FLOAT)
-            || rightTypeInfo->isType(NT_FLOAT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
          returnTypeInfo = floatTypeInfo;
-      else if (leftTypeInfo->isType(NT_INT)
-            || rightTypeInfo->isType(NT_INT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
          returnTypeInfo = bigIntTypeInfo;
-      else if ((leftTypeInfo->isType(NT_HASH)
-               || leftTypeInfo->isType(NT_OBJECT))
-            && (rightTypeInfo->isType(NT_STRING)
-               || rightTypeInfo->isType(NT_LIST)))
+      else if ((QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
+               || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
+            && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
+               || QoreTypeInfo::isType(rightTypeInfo, NT_LIST)))
          returnTypeInfo = hashTypeInfo;
-      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
+      else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
          // only return type nothing if both types are available and return a single type
          returnTypeInfo = nothingTypeInfo;
    }
@@ -1964,45 +1964,45 @@ static AbstractQoreNode* check_op_plus(QoreTreeNode* tree, LocalVar* oflag, int 
       return tree->evalSubst(returnTypeInfo);
 
    // if either side is a list, then the return type is list (highest priority)
-   if (leftTypeInfo->isType(NT_LIST)
-       || rightTypeInfo->isType(NT_LIST))
+   if (QoreTypeInfo::isType(leftTypeInfo, NT_LIST)
+       || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))
 	 returnTypeInfo = listTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
 
-      if (leftTypeInfo->isType(NT_STRING)
-	       || rightTypeInfo->isType(NT_STRING))
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING)
+	       || QoreTypeInfo::isType(rightTypeInfo, NT_STRING))
 	 returnTypeInfo = stringTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_DATE)
-	       || rightTypeInfo->isType(NT_DATE))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
+	       || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
 	 returnTypeInfo = dateTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_NUMBER)
-               || rightTypeInfo->isType(NT_NUMBER))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
+               || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
          returnTypeInfo = numberTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_FLOAT)
-	       || rightTypeInfo->isType(NT_FLOAT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
+	       || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
 	 returnTypeInfo = floatTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_INT)
-	       || rightTypeInfo->isType(NT_INT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
+	       || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_HASH)
-	       || leftTypeInfo->isType(NT_OBJECT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
+	       || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
 	 returnTypeInfo = hashTypeInfo;
 
-      else if (rightTypeInfo->isType(NT_OBJECT))
+      else if (QoreTypeInfo::isType(rightTypeInfo, NT_OBJECT))
 	 returnTypeInfo = objectTypeInfo;
 
-      else if (leftTypeInfo->isType(NT_BINARY)
-	       || rightTypeInfo->isType(NT_BINARY))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_BINARY)
+	       || QoreTypeInfo::isType(rightTypeInfo, NT_BINARY))
 	 returnTypeInfo = binaryTypeInfo;
 
-      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
+      else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
 	 // only return type nothing if both types are available and return a single type
 	 returnTypeInfo = nothingTypeInfo;
    }
@@ -2024,12 +2024,12 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
       return tree->evalSubst(returnTypeInfo);
 
    // if either side is a float, then the return type is float (highest priority)
-   if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
+   if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
    else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) && QoreTypeInfo::isType(rightTypeInfo, NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
    }
    else
@@ -2055,8 +2055,8 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       bool can_be_obj = objectTypeInfo->parseAccepts(leftTypeInfo);
       bool can_be_hash = hashTypeInfo->parseAccepts(leftTypeInfo);
 
-      bool is_obj = can_be_obj ? leftTypeInfo->isType(NT_OBJECT) : false;
-      bool is_hash = can_be_hash ? leftTypeInfo->isType(NT_HASH) : false;
+      bool is_obj = can_be_obj ? QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT) : false;
+      bool is_hash = can_be_hash ? QoreTypeInfo::isType(leftTypeInfo, NT_HASH) : false;
 
       const QoreClass *qc = leftTypeInfo->getUniqueReturnClass();
       // see if we can check for legal access
@@ -2078,7 +2078,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       }
 
       // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (rightTypeInfo->hasType() && rightTypeInfo->isType(NT_LIST) && (is_obj || is_hash))
+      if (rightTypeInfo->hasType() && QoreTypeInfo::isType(rightTypeInfo, NT_LIST) && (is_obj || is_hash))
 	 returnTypeInfo = hashTypeInfo;
 
       // if we are trying to convert to a hash
@@ -2102,12 +2102,12 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       }
    }
 
-   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo->getName(), rightTypeInfo->nonStringValue(), !listTypeInfo->parseAccepts(rightTypeInfo));
+   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo ? rightTypeInfo->getName() : NO_TYPE_INFO, rightTypeInfo ? rightTypeInfo->nonStringValue() : NO_TYPE_INFO, !listTypeInfo->parseAccepts(rightTypeInfo));
 
    // issue a warning if the right side of the expression cannot be converted to a string
    // and can not be a list (for a slice)
-   if (rightTypeInfo->nonStringValue() && !listTypeInfo->parseAccepts(rightTypeInfo))
-      rightTypeInfo->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
+   if (QoreTypeInfo::nonStringValue(rightTypeInfo) && !listTypeInfo->parseAccepts(rightTypeInfo))
+      QoreTypeInfo::doNonStringWarning(rightTypeInfo, loc, "the right side of the expression with the '.' or '{}' operator is ");
 
    return tree;
 }
@@ -2146,7 +2146,7 @@ static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int 
    assert(!tree->right);
 
    if (leftTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_HASH) || leftTypeInfo->isType(NT_OBJECT))
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
 	 returnTypeInfo = listTypeInfo;
       else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
 	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {

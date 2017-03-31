@@ -101,16 +101,16 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
       }
 
       if (typeInfo->hasType()) {
-	 if (typeInfo->isType(NT_FLOAT))
+	 if (QoreTypeInfo::isType(typeInfo, NT_FLOAT))
 	    typeInfo = floatTypeInfo;
-	 else if (typeInfo->isType(NT_NUMBER))
+	 else if (QoreTypeInfo::isType(typeInfo, NT_NUMBER))
             typeInfo = numberTypeInfo;
-	 else if (typeInfo->isType(NT_DATE))
+	 else if (QoreTypeInfo::isType(typeInfo, NT_DATE))
 	    typeInfo = dateTypeInfo;
-	 else if (typeInfo->isType(NT_INT))
+	 else if (QoreTypeInfo::isType(typeInfo, NT_INT))
 	    typeInfo = bigIntTypeInfo;
 	 else {
-	    if (typeInfo->returnsSingle())
+	    if (QoreTypeInfo::returnsSingle(typeInfo))
 	       typeInfo = bigIntTypeInfo;
 	    else
 	       typeInfo = 0;

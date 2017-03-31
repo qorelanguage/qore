@@ -57,10 +57,10 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	 }
       }
       else {
-	 if (lti->isType(NT_STRING)) {
+	 if (QoreTypeInfo::isType(lti, NT_STRING)) {
 	    returnTypeInfo = stringOrNothingTypeInfo;
 	 }
-	 else if (lti->isType(NT_BINARY)) {
+	 else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
 	    returnTypeInfo = bigIntOrNothingTypeInfo;
 	 }
 	 else if (!listTypeInfo->parseAccepts(lti)

@@ -71,15 +71,15 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    // check offset expression
    expTypeInfo = 0;
    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-   if (expTypeInfo->nonNumericValue())
-      expTypeInfo->doNonNumericWarning("the offset expression (2nd position) with the 'extract' operator is ");
+   if (QoreTypeInfo::nonNumericValue(expTypeInfo))
+      QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the offset expression (2nd position) with the 'extract' operator is ");
 
    // check length expression, if any
    if (length_exp) {
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-      if (expTypeInfo->nonNumericValue())
-	 expTypeInfo->doNonNumericWarning("the length expression (3nd position) with the 'extract' operator is ");
+      if (QoreTypeInfo::nonNumericValue(expTypeInfo))
+	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'extract' operator is ");
    }
 
    // check new value expression, if any
