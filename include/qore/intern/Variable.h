@@ -154,7 +154,7 @@ public:
             finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-         h = val.assign(typeInfo->getDefaultQoreValue());
+         h = val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo));
 #else
          h = val.removeNode(true);
 #endif
@@ -250,7 +250,7 @@ public:
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       if (!val.hasValue())
-         discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
+         discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
 #endif
    }
 
@@ -658,7 +658,7 @@ public:
 
    DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      rv.assignSetInitialSwap(qv, ti->getDefaultQoreValue());
+      rv.assignSetInitialSwap(qv, QoreTypeInfo::getDefaultQoreValue(ti));
 #else
       rv.assignSetTakeInitial(qv);
 #endif

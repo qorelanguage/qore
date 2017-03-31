@@ -292,7 +292,7 @@ public:
 
    DLLLOCAL void instantiate() {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      instantiate(typeInfo->getDefaultQoreValue());
+      instantiate(QoreTypeInfo::getDefaultQoreValue(typeInfo));
 #else
       instantiate(QoreValue());
 #endif

@@ -182,7 +182,7 @@ AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const ch
    }
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   return data->swapKeyValue(key, mti->getDefaultValue());
+   return data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
    return data->swapKeyValue(key, 0);
 #endif
@@ -204,7 +204,7 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
 
    AbstractQoreNode* rv;
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   rv = data->swapKeyValue(key, mti->getDefaultValue());
+   rv = data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
    rv = data->swapKeyValue(key, 0);
 #endif
@@ -245,7 +245,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
          return;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      AbstractQoreNode* n = data->swapKeyValue(key, mti->getDefaultValue());
+      AbstractQoreNode* n = data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
       AbstractQoreNode* n = data->swapKeyValue(key, 0);
 #endif

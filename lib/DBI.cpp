@@ -251,7 +251,7 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    const QoreTypeInfo* ti = i->second.typeInfo;
 
-   if (!ti->mayRequireFilter(v))
+   if (!QoreTypeInfo::mayRequireFilter(ti, v))
       return;
 
    tmp = true;

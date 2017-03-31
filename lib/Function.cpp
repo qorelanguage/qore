@@ -181,7 +181,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 
 	 // process default argument with accepting type's filter if necessary
 	 const QoreTypeInfo* paramTypeInfo = sig->getParamTypeInfo(i);
-	 if (paramTypeInfo->mayRequireFilter(p)) {
+	 if (QoreTypeInfo::mayRequireFilter(paramTypeInfo, p)) {
 	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
 	    if (*xsink)
 	       return -1;
@@ -200,7 +200,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 	    continue;
 
 	 // test for change or incompatibility
-	 if (check_args || paramTypeInfo->mayRequireFilter(n)) {
+	 if (check_args || QoreTypeInfo::mayRequireFilter(paramTypeInfo, n)) {
 	    QoreValue& p = tmp.getEntryReference(i);
 	    paramTypeInfo->acceptInputParam(i, sig->getName(i), p, xsink);
 	    if (*xsink)
@@ -413,9 +413,9 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
 
       // add type name to signature
       if (pti)
-	 pti->concatName(str);
+	 QoreParseTypeInfo::concatName(pti, str);
       else
-	 ti->concatName(str);
+	 QoreTypeInfo::concatName(ti, str);
    }
    else {
       parseTypeList.push_back(0);
@@ -507,9 +507,9 @@ void UserSignature::resolve() {
 	 if (!typeList[i]->parseAccepts(argTypeInfo)) {
 	    QoreStringNode* desc = new QoreStringNode;
 	    desc->sprintf("parameter '%s' expects ", names[i].c_str());
-	    typeList[i]->getThisType(*desc);
+	    QoreTypeInfo::getThisType(typeList[i], *desc);
 	    desc->concat(", but the default value is ");
-	    argTypeInfo->getThisType(*desc);
+	    QoreTypeInfo::getThisType(argTypeInfo, *desc);
 	    desc->concat(" instead");
 	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
 	 }
@@ -548,7 +548,7 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
    if (rti->hasType() && !variant->numParams()) {
       desc->concat(" and always returns ");
       if (rti->getUniqueReturnClass() || func->className()) {
-	 rti->getThisType(*desc);
+	 QoreTypeInfo::getThisType(rti, *desc);
       }
       else {
 	 // get actual value and include in warning
@@ -561,7 +561,7 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
 	 else {
 	    QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
 	    desc->sprintf("the following value: %s (", vs->getBuffer());
-	    rti->getThisType(*desc);
+	    QoreTypeInfo::getThisType(rti, *desc);
 	    desc->concat(')');
 	 }
       }
@@ -714,9 +714,9 @@ static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgr
    if (class_name)
       desc->sprintf("%s::", class_name);
    desc->sprintf("%s(%s)' expects ", name, sig);
-   proto->getThisType(*desc);
+   QoreTypeInfo::getThisType(proto, *desc);
    desc->concat(", but call supplies ");
-   arg->getThisType(*desc);
+   QoreTypeInfo::getThisType(arg, *desc);
    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
    return 0;
 }

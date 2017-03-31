@@ -808,9 +808,9 @@ static AbstractQoreNode* op_unshift(const AbstractQoreNode* left, const Abstract
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
    if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(listTypeInfo)))
          return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(softListTypeInfo)))
          return 0;
    }
 
@@ -912,9 +912,9 @@ static AbstractQoreNode* op_push(const AbstractQoreNode* left, const AbstractQor
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list or softlist
    if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(listTypeInfo)))
          return 0;
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(softListTypeInfo)))
          return 0;
    }
 
@@ -1806,9 +1806,9 @@ static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* 
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator in position ");
 	       edesc->sprintf("%d of list assignment expects ", li.index() + 1);
-	       prototypeInfo->getThisType(*edesc);
+	       QoreTypeInfo::getThisType(prototypeInfo, *edesc);
 	       edesc->concat(", but right-hand side is ");
-	       argInfo->getThisType(*edesc);
+	       QoreTypeInfo::getThisType(argInfo, *edesc);
 	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
 	    }
 	 }
@@ -1839,7 +1839,7 @@ int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
    if (!typeInfo->parseAcceptsReturns(NT_INT)) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-	 typeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(typeInfo, *desc);
 	 desc->sprintf(", but the %s will assign it an integer value", name);
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -1853,7 +1853,7 @@ int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
    // raise a parse exception only if parse exceptions are not suppressed
    if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-      typeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a float value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       return -1;
@@ -1869,7 +1869,7 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
          && !typeInfo->parseAcceptsReturns(NT_NUMBER)) {
       if (getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-         typeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
          qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -1903,7 +1903,7 @@ int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
    // raise a parse exception only if parse exceptions are not suppressed
    if (!typeInfo->parseAcceptsReturns(NT_NUMBER) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-      typeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a number value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       return -1;
@@ -2088,14 +2088,14 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
 	     && !can_be_obj
 	     && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-	    leftTypeInfo->getThisType(*edesc);
+	    QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
 	    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
 	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else if (!can_be_hash && !can_be_obj) {
 	 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
+	 QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
 	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
@@ -2128,7 +2128,7 @@ static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, 
          && !binaryTypeInfo->parseAccepts(leftTypeInfo)
          && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
          QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
-         leftTypeInfo->getThisType(*edesc);
+         QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
          edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
          qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
@@ -2151,7 +2151,7 @@ static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int 
       else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
 	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
 	 QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
-	 leftTypeInfo->getThisType(*edesc);
+	 QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
 	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	 returnTypeInfo = nothingTypeInfo;
@@ -2177,7 +2177,7 @@ static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, i
    if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
       QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
       edesc->sprintf("'%s' operator is ", name);
-      leftTypeInfo->getThisType(*edesc);
+      QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
       edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", name);
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
       returnTypeInfo = nothingTypeInfo;
@@ -2199,7 +2199,7 @@ static AbstractQoreNode* check_op_unshift(QoreTreeNode* tree, LocalVar* oflag, i
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
 	 edesc->sprintf("'%s' operator is ", name);
-	 leftTypeInfo->getThisType(*edesc);
+	 QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
 	 edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", name);
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
       }
@@ -2220,7 +2220,7 @@ static AbstractQoreNode* check_op_lvalue_string(QoreTreeNode* tree, LocalVar* of
    if (!leftTypeInfo->parseAcceptsReturns(NT_STRING)) {
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("%s operator is ", descr);
-      leftTypeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(leftTypeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;

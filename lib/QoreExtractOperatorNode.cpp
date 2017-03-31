@@ -60,7 +60,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
             && !expTypeInfo->parseAcceptsReturns(NT_BINARY)
             && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
-	 expTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -123,7 +123,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
-         if (val.assign(typeInfo->getDefaultValue()))
+         if (val.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
             return QoreValue();
          vt = val.getType();
       }

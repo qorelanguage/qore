@@ -1205,7 +1205,7 @@ public:
       val.set(getTypeInfo());
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       // try to set an optimized value type for the value holder if possible
-      discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
+      discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
 #endif
    }
 

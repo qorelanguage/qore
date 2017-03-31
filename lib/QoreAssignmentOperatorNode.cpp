@@ -66,9 +66,9 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-	 ti->getThisType(*edesc);
+	 QoreTypeInfo::getThisType(ti, *edesc);
 	 edesc->concat(", but right-hand side is ");
-	 r->getThisType(*edesc);
+	 QoreTypeInfo::getThisType(r, *edesc);
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
       }
    }

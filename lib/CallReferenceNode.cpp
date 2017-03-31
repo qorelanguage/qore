@@ -98,7 +98,7 @@ AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar* oflag, int pfla
       if (expTypeInfo && codeTypeInfo && expTypeInfo->hasType() && !codeTypeInfo->parseAccepts(expTypeInfo)) {
 	 // raise parse exception
 	 QoreStringNode* desc = new QoreStringNode("invalid call; expression gives ");
-	 expTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->concat(", but a call reference or closure is required to make a call");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -279,7 +279,7 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
 	 if (objectTypeInfo && argTypeInfo && !objectTypeInfo->parseAccepts(argTypeInfo)) {
 	    // raise parse exception
 	    QoreStringNode* desc = new QoreStringNode("invalid call; object expression gives ");
-	    argTypeInfo->getThisType(*desc);
+	    QoreTypeInfo::getThisType(argTypeInfo, *desc);
 	    desc->concat(", but should resolve to an object to make a call with this syntax");
 	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	 }

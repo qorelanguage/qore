@@ -424,7 +424,7 @@ void StatementBlock::parseCheckReturn() {
       // make sure the last statement is a return statement if the block has a return type
       if (statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
 	 QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
-	 returnTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(returnTypeInfo, *desc);
 	 desc->concat(" but does not have a return statement as the last statement in the block");
 	 qore_program_private::makeParseException(getProgram(), loc, "MISSING-RETURN", desc);
       }

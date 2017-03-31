@@ -75,7 +75,7 @@ void qore_method_private::parseInit() {
 	    if (!stringTypeInfo->parseAccepts(t)) {
 	       QoreStringNode* desc = new QoreStringNode;
 	       desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
-	       t->getThisType(*desc);
+	       QoreTypeInfo::getThisType(t, *desc);
 	       desc->concat(" is not compatible with 'string'");
 	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	    }
@@ -917,7 +917,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 	 }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
 	 else
-	    *v = i->second->getTypeInfo()->getDefaultValue();
+	    *v = QoreTypeInfo::getDefaultValue(i->second->getTypeInfo());
 #endif
       }
    }
@@ -4055,7 +4055,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 	       QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
 	       parent_class.getTypeInfo()->getThisType(*desc);
 	       desc->concat(", but the object's parameter was defined expecting ");
-	       typeInfo->getThisType(*desc);
+	       QoreTypeInfo::getThisType(typeInfo, *desc);
 	       desc->concat(" instead");
 	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	    }
@@ -4273,9 +4273,9 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
       if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode("initialization expression for ");
 	 desc->sprintf("%s member '$.%s' returns ", priv ? "private" : "public", name);
-	 argTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(argTypeInfo, *desc);
 	 desc->concat(", but the member was declared as ");
-	 typeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(typeInfo, *desc);
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
@@ -4305,9 +4305,9 @@ void QoreVarInfo::parseInit(const char* name, bool priv) {
       if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode("initialization expression for ");
 	 desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
-	 argTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(argTypeInfo, *desc);
 	 desc->concat(", but the variable was declared as ");
-	 typeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(typeInfo, *desc);
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }

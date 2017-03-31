@@ -50,7 +50,7 @@ public:
                ++min_param_types;
          }
 
-	 typeList[i]->concatName(str);
+	 QoreTypeInfo::concatName(typeList[i], str);
          if (names.size() > i && !names[i].empty()) {
             str.append(" ");
             str.append(names[i]);

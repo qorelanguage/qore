@@ -511,7 +511,7 @@ public:
       return qt;
    }
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
       return ti ? ti->getSingleType() : NT_ALL;
    }
@@ -549,7 +549,7 @@ public:
    }
 
    // returns true if type "a"" only returns the value given
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool isType(const QoreTypeInfo* ti, qore_type_t t) {
       return ti ? ti->isType(t) : false;
    }
@@ -627,7 +627,7 @@ public:
       return returnsSingleIntern() && qt >= 0;
    }
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool returnsSingle(const QoreTypeInfo* ti) {
       return ti ? ti->returnsSingle() : false;
    }
@@ -672,6 +672,14 @@ public:
 	 return;
       }
       str.sprintf("type '%s'", getName());
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void getThisType(const QoreTypeInfo* ti, QoreString& str) {
+      if (ti)
+         ti->getThisType(str);
+      else
+         str.sprintf("no value");
    }
 
    // must be reimplemented in subclasses if returns_mult is true
@@ -736,6 +744,11 @@ public:
       return (!returns_mult && qt >= 0 && qt < NT_OBJECT) || has_defval;
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool hasDefaultValue(const QoreTypeInfo* ti) {
+      return ti ? ti->hasDefaultValue() : false;
+   }
+
    DLLLOCAL AbstractQoreNode* getDefaultValue() const {
       if (!hasType())
          return 0;
@@ -747,6 +760,11 @@ public:
          return getDefaultValueForBuiltinValueType(qt);
 
       return 0;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static AbstractQoreNode* getDefaultValue(const QoreTypeInfo* ti) {
+      return ti ? ti->getDefaultValue() : 0;
    }
 
    DLLLOCAL QoreValue getDefaultQoreValue() const {
@@ -771,6 +789,11 @@ public:
       return QoreValue();
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static QoreValue getDefaultQoreValue(const QoreTypeInfo* ti) {
+      return ti ? ti->getDefaultQoreValue() : QoreValue();
+   }
+
    // quick function to tell if the argument may be subject to an input filter for this type
    DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
       if (!hasType() || !input_filter)
@@ -787,6 +810,11 @@ public:
          return qt == nt ? false : true;
 
       return matchTypeIntern(nt, false) == QTI_IDENT ? false : true;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
+      return ti ? ti->mayRequireFilter(n) : false;
    }
 
    // quick function to tell if the argument may be subject to an input filter for this type
@@ -807,10 +835,15 @@ public:
       return matchTypeIntern(nt, false) == QTI_IDENT ? false : true;
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const AbstractQoreNode* n) {
+      return ti ? ti->mayRequireFilter(n) : false;
+   }
+
    // used when parsing user code to find duplicate signatures after types are resolved
    DLLLOCAL bool isInputIdentical(const QoreTypeInfo* typeInfo) const;
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
       if (a && b)
          return a->isInputIdentical(b);
@@ -824,7 +857,7 @@ public:
 
    DLLLOCAL bool isOutputIdentical(const QoreTypeInfo* typeInfo) const;
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
       if (a && b)
          return a->isOutputIdentical(b);
@@ -840,7 +873,7 @@ public:
    DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const;
 
    // if second's return type is compatible with first's return type
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
       if (!first || !first->hasType())
          return true;
@@ -868,7 +901,7 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool nonNumericValue(const QoreTypeInfo* ti) {
       return ti ? ti->nonNumericValue() : false;
    }
@@ -876,9 +909,9 @@ public:
    DLLLOCAL void doNonNumericWarning(const char* preface) const;
    DLLLOCAL void doNonBooleanWarning(const char* preface) const;
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static void doNonNumericWarning(const QoreTypeInfo* ti, const char* preface);
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static void doNonBooleanWarning(const QoreTypeInfo* ti, const char* preface);
 
    // returns false if there is no type or if the type can be converted to a string value, true if otherwise
@@ -900,14 +933,14 @@ public:
       return is_int || qt == NT_FLOAT || qt == NT_STRING || qt == NT_BOOLEAN || qt == NT_DATE ? false : true;
    }
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static bool nonStringValue(const QoreTypeInfo* ti) {
       return ti ? ti->nonStringValue() : false;
    }
 
    DLLLOCAL void doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const;
 
-   // static version of method checking for null pointer
+   // static version of method, checking for null pointer
    DLLLOCAL static void doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface);
 
    DLLLOCAL void concatName(std::string& str) const {
@@ -920,6 +953,14 @@ public:
          str.append(getName());
       else
          concatClass(str, qc->getName());
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
+      if (ti)
+         ti->concatName(str);
+      else
+         str.append(NO_TYPE_INFO);
    }
 
    DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
@@ -1096,12 +1137,15 @@ public:
    }
 
    DLLLOCAL void concatName(std::string& str) const {
-      if (!qore_check_this(this)) {
-	 str.append(NO_TYPE_INFO);
-	 return;
-      }
-
       concatClass(str, cscope->getIdentifier());
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static void concatName(const QoreParseTypeInfo* pti, std::string& str) {
+      if (pti)
+         pti->concatName(str);
+      else
+         str.append(NO_TYPE_INFO);
    }
 };
 
