@@ -1,3 +1,4 @@
+#!/data/data/com.termux/files/usr/bin/sh
 #!/bin/sh
 
 #  Permission is hereby granted, free of charge, to any person obtaining a

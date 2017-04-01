@@ -47,7 +47,6 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
@@ -58,6 +57,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <sstream>
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n" \
    " -d, --dox-output=arg   doxygen output file name\n" \
@@ -165,6 +165,17 @@ typedef std::vector<Param> paramlist_t;
 #define QCA_ABSTRACT        (1 << 5)
 
 #define BUFSIZE 1024
+
+#ifndef HAVE_STD_TO_STRING
+namespace std {
+  template <typename T>
+  std::string to_string(T value) {
+    std::ostringstream os;
+    os << value;
+    return os.str();
+  }
+}
+#endif
 
 static bool idchar(const char c) {
    return isalnum(c) || c == '_';
