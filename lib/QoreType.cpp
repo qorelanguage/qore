@@ -136,7 +136,7 @@ bool QoreTypeInfoHelper::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) con
 }
 
 int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink *xsink) const {
-   return typeInfo->doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
+   return QoreTypeInfo::doAcceptError(typeInfo, priv_error, obj, param_num, param_name, n, xsink);
 }
 
 AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char* name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
@@ -163,7 +163,7 @@ int testObjectClassAccess(const QoreObject* obj, const QoreClass* shouldbeclass)
 }
 
 const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo) {
-   return typeInfo->getUniqueReturnClass();
+   return QoreTypeInfo::getUniqueReturnClass(typeInfo);
 }
 
 qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {

@@ -72,7 +72,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    const QoreTypeInfo* typeInfo = 0;
    left = left->parseInit(oflag, pflag, lvids, typeInfo);
 
-   QoreClass* qc = const_cast<QoreClass*>(typeInfo->getUniqueReturnClass());
+   QoreClass* qc = const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(typeInfo));
 
    const QoreMethod* meth = 0;
 

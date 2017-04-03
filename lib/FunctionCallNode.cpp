@@ -236,7 +236,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
 	 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
 	 is_copy = true;
 	 if (args)
-	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", oflag->getTypeInfo()->getUniqueReturnClass()->getName());
+	    parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())->getName());
       }
       else
          method = qore_class_private::parseResolveSelfMethod(*(getParseClass()), ns.ostr);
@@ -321,7 +321,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
 
    // try to resolve a method call if we are parsing in an object context
    if (oflag) {
-      const QoreClass* qc = oflag->getTypeInfo()->getUniqueReturnClass();
+      const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
 
       AbstractQoreNode* n = 0;
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
@@ -513,7 +513,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    // current class parse context
    bool m_priv = false;
    if (qc)
-      method = (oflag && abr && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc))
+      method = (oflag && abr && QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())->parseCheckHierarchy(qc))
 	 ? qore_class_private::parseFindAnyMethodIntern(qc, scope->getIdentifier(), m_priv)
 	 : qore_class_private::parseFindStaticMethodTree(*qc, scope->getIdentifier(), m_priv);
 

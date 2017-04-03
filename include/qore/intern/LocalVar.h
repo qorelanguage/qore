@@ -217,7 +217,7 @@ public:
 
    // returns true if the value could contain an object or a closure
    DLLLOCAL virtual bool needsScan(bool scan_now) {
-      return typeInfo->needsScan();
+      return QoreTypeInfo::needsScan(typeInfo);
    }
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
@@ -349,7 +349,7 @@ public:
 
    // returns true if the value could contain an object or a closure
    DLLLOCAL bool needsScan() const {
-      return typeInfo->needsScan();
+      return QoreTypeInfo::needsScan(typeInfo);
    }
 
    DLLLOCAL const char* getName() const {

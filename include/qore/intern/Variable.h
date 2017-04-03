@@ -293,8 +293,8 @@ public:
          return val.v.getPtr()->getClassName();
 
       if (typeInfo) {
-         assert(typeInfo->getUniqueReturnClass());
-         return typeInfo->getUniqueReturnClass()->getName();
+         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+         return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
       }
       assert(parseTypeInfo);
       assert(parseTypeInfo->cscope);
@@ -363,7 +363,7 @@ protected:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
+            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -601,7 +601,7 @@ public:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
             return 0;
          }
 

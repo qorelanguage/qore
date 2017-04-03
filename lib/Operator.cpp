@@ -2049,7 +2049,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, QoreTypeInfo::getName(leftTypeInfo), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, QoreTypeInfo::getName(rightTypeInfo));
+   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, QoreTypeInfo::getName(leftTypeInfo), QoreTypeInfo::getUniqueReturnClass(leftTypeInfo) ? QoreTypeInfo::getUniqueReturnClass(leftTypeInfo)->getName() : "n/a", rightTypeInfo, QoreTypeInfo::getName(rightTypeInfo));
 
    if (leftTypeInfo->hasType()) {
       bool can_be_obj = QoreTypeInfo::parseAccepts(objectTypeInfo, leftTypeInfo);
@@ -2058,7 +2058,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       bool is_obj = can_be_obj ? QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT) : false;
       bool is_hash = can_be_hash ? QoreTypeInfo::isType(leftTypeInfo, NT_HASH) : false;
 
-      const QoreClass *qc = leftTypeInfo->getUniqueReturnClass();
+      const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(leftTypeInfo);
       // see if we can check for legal access
       if (qc && tree->right) {
 	 qore_type_t rt = tree->right->getType();

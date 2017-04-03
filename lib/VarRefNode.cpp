@@ -314,7 +314,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
 AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, true);
 
-   const QoreClass *qc = typeInfo->getUniqueReturnClass();
+   const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
    if (!qc)
       parse_error(loc, "cannot instantiate type '%s' as a class", QoreTypeInfo::getName(typeInfo));
 
@@ -324,8 +324,8 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
 }
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(typeInfo->getUniqueReturnClass());
-   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*typeInfo->getUniqueReturnClass(), variant, args, xsink), xsink);
+   assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*QoreTypeInfo::getUniqueReturnClass(typeInfo), variant, args, xsink), xsink);
    if (*xsink)
       return QoreValue();
 

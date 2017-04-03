@@ -1258,7 +1258,7 @@ const void* ClosureVarValue::getLValueId() const {
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
 
-   if (typeInfo->needsScan())
+   if (QoreTypeInfo::needsScan(typeInfo))
       lvh.setClosure(const_cast<ClosureVarValue*>(this));
 
    QoreSafeVarRWWriteLocker sl(rml);

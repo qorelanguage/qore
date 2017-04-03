@@ -2425,7 +2425,7 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
       priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
    else {
-      if (!typeInfo->hasInputFilter()) {
+      if (!QoreTypeInfo::hasInputFilter(typeInfo)) {
 	 priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo, nme);
 	 priv->owns_ornothingtypeinfo = true;
       }
@@ -4053,7 +4053,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 	    // raise parse exception if parse exceptions have not been suppressed
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
-	       parent_class.getTypeInfo()->getThisType(*desc);
+	       QoreTypeInfo::getThisType(parent_class.getTypeInfo(), *desc);
 	       desc->concat(", but the object's parameter was defined expecting ");
 	       QoreTypeInfo::getThisType(typeInfo, *desc);
 	       desc->concat(" instead");

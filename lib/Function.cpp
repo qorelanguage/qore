@@ -547,7 +547,7 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
    const QoreTypeInfo* rti = variant->getReturnTypeInfo();
    if (rti->hasType() && !variant->numParams()) {
       desc->concat(" and always returns ");
-      if (rti->getUniqueReturnClass() || func->className()) {
+      if (QoreTypeInfo::getUniqueReturnClass(rti) || func->className()) {
 	 QoreTypeInfo::getThisType(rti, *desc);
       }
       else {
