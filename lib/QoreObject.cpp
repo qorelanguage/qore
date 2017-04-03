@@ -275,7 +275,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 
    qolhm.stay_locked();
 
-   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d\n", this, theclass->getName(), key, mti->getName(), for_remove);
+   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d\n", this, theclass->getName(), key, QoreTypeInfo::getName(mti), for_remove);
    // save lvalue type info
    lvh.setTypeInfo(mti);
 

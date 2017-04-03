@@ -896,7 +896,7 @@ public:
 
    DLLLOCAL ParserTypeStruct(char* id) {
       const QoreTypeInfo* t = getBuiltinUserTypeInfo(id);
-      //printd(0, "ParserTypeStruct::ParserTypeStruct('%s') t: %p %s\n", id, t, t->getName());
+      //printd(0, "ParserTypeStruct::ParserTypeStruct('%s') t: %p %s\n", id, t, QoreTypeInfo::getName(t));
       if (t) {
          free(id);
          typeInfo = t;
@@ -2090,7 +2090,7 @@ try_statement:
                  param = varRefNode->takeName();
                  if (varRefNode->isDecl()) {
                     VarRefDeclNode *varRefDeclNode = static_cast<VarRefDeclNode*>(varRefNode);
-                    if (varRefDeclNode->getParseTypeInfo() || varRefDeclNode->getTypeInfo()->parseAccepts(hashTypeInfo) == QTI_NOT_EQUAL) {
+                    if (varRefDeclNode->getParseTypeInfo() || QoreTypeInfo::parseAccepts(varRefDeclNode->getTypeInfo(), hashTypeInfo) == QTI_NOT_EQUAL) {
                        parse_error("the type of catch parameter '%s' must be 'hash'", param);
                     }
                     else
@@ -2291,7 +2291,7 @@ classvardecl:
            ScopedObjectCallNode* new_call = 0;
 
            if (t)
-              parse_error("cannot call constructor for non-class base type '%s'", t->getName());
+              parse_error("cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
            else
               new_call = new ScopedObjectCallNode(new NamedScope(strdup($2->getClassName())), make_args($5));
 
@@ -2323,7 +2323,7 @@ member2:
            if (!$1)
               parse_error("cannot call constructor without declaring the class");
            else if (t)
-              parse_error("cannot call constructor for non-class base type '%s'", t->getName());
+              parse_error("cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
            else
               new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), make_args($4));
 
@@ -2355,7 +2355,7 @@ member2:
            if (!$1)
               parse_error("cannot call constructor without declaring the class");
            else if (t)
-              parse_error("cannot call constructor for non-class base type '%s'", t->getName());
+              parse_error("cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
            else
               new_call = new ScopedObjectCallNode(new NamedScope(strdup($1->getClassName())), make_args($4));
 

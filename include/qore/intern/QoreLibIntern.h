@@ -543,8 +543,8 @@ public:
          *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
          // set type info to 0 if the expression can return a list
          // FIXME: set list element type here when list elements can have types
-         //printd(0, "singleTypeInfo=%s la=%d\n", singleTypeInfo->getName(), listTypeInfo->parseAccepts(singleTypeInfo));
-         if (listTypeInfo->parseAccepts(singleTypeInfo))
+         //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
+         if (QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo))
             singleTypeInfo = 0;
       }
    }

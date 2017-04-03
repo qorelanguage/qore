@@ -1801,7 +1801,7 @@ static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* 
       ri.parseInit(argInfo);
 
       if (prototypeInfo->hasType()) {
-	 if (!prototypeInfo->parseAccepts(argInfo)) {
+	 if (!QoreTypeInfo::parseAccepts(prototypeInfo, argInfo)) {
 	    // raise an exception only if parse exceptions are not disabled
 	    if (getProgram()->getParseExceptionSink()) {
 	       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator in position ");
@@ -1836,7 +1836,7 @@ static AbstractQoreNode* check_op_returns_integer(QoreTreeNode* tree, LocalVar* 
 int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode("lvalue has type ");
 	 QoreTypeInfo::getThisType(typeInfo, *desc);
@@ -1851,7 +1851,7 @@ int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
 int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a float value", name);
@@ -1864,9 +1864,9 @@ int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
 int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT)
-         && !typeInfo->parseAcceptsReturns(NT_FLOAT)
-         && !typeInfo->parseAcceptsReturns(NT_NUMBER)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER)) {
       if (getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
@@ -1875,9 +1875,9 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
       }
       return -1;
    }
-   if (typeInfo->parseReturnsType(NT_INT)) {
-      if (typeInfo->parseReturnsType(NT_FLOAT)) {
-         if (typeInfo->parseReturnsType(NT_NUMBER))
+   if (QoreTypeInfo::parseReturnsType(typeInfo, NT_INT)) {
+      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT)) {
+         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
             typeInfo = bigIntFloatOrNumberTypeInfo;
          else
             typeInfo = bigIntOrFloatTypeInfo;
@@ -1886,8 +1886,8 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
          typeInfo = bigIntTypeInfo;
    }
    else {
-      if (typeInfo->parseReturnsType(NT_FLOAT))
-         if (typeInfo->parseReturnsType(NT_NUMBER))
+      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT))
+         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
             typeInfo = floatOrNumberTypeInfo;
          else
             typeInfo = floatTypeInfo;
@@ -1901,7 +1901,7 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
 int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_NUMBER) && getProgram()->getParseExceptionSink()) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a number value", name);
@@ -2035,7 +2035,7 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
    else
       returnTypeInfo = 0;
 
-   //printd(5, "check_op_multiply() %s %s = %s\n", leftTypeInfo->getName(), rightTypeInfo->getName(), returnTypeInfo->getName());
+   //printd(5, "check_op_multiply() %s %s = %s\n", QoreTypeInfo::getName(leftTypeInfo), QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(returnTypeInfo));
 
    return tree;
 }
@@ -2049,11 +2049,11 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, leftTypeInfo->getName(), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, rightTypeInfo->getName());
+   printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, QoreTypeInfo::getName(leftTypeInfo), leftTypeInfo->getUniqueReturnClass() ? leftTypeInfo->getUniqueReturnClass()->getName() : "n/a", rightTypeInfo, QoreTypeInfo::getName(rightTypeInfo));
 
    if (leftTypeInfo->hasType()) {
-      bool can_be_obj = objectTypeInfo->parseAccepts(leftTypeInfo);
-      bool can_be_hash = hashTypeInfo->parseAccepts(leftTypeInfo);
+      bool can_be_obj = QoreTypeInfo::parseAccepts(objectTypeInfo, leftTypeInfo);
+      bool can_be_hash = QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo);
 
       bool is_obj = can_be_obj ? QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT) : false;
       bool is_hash = can_be_hash ? QoreTypeInfo::isType(leftTypeInfo, NT_HASH) : false;
@@ -2102,11 +2102,11 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       }
    }
 
-   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", rightTypeInfo ? rightTypeInfo->getName() : NO_TYPE_INFO, rightTypeInfo ? rightTypeInfo->nonStringValue() : NO_TYPE_INFO, !listTypeInfo->parseAccepts(rightTypeInfo));
+   //printd(5, "check_op_object_ref() rightTypeInfo=%s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::nonStringValue(rightTypeInfo), !QoreTypeInfo::parseAccepts(listTypeInfo, rightTypeInfo));
 
    // issue a warning if the right side of the expression cannot be converted to a string
    // and can not be a list (for a slice)
-   if (QoreTypeInfo::nonStringValue(rightTypeInfo) && !listTypeInfo->parseAccepts(rightTypeInfo))
+   if (QoreTypeInfo::nonStringValue(rightTypeInfo) && !QoreTypeInfo::parseAccepts(listTypeInfo, rightTypeInfo))
       QoreTypeInfo::doNonStringWarning(rightTypeInfo, loc, "the right side of the expression with the '.' or '{}' operator is ");
 
    return tree;
@@ -2122,11 +2122,11 @@ static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, 
    assert(!tree->right);
 
    if (leftTypeInfo->hasType()
-         && !listTypeInfo->parseAccepts(leftTypeInfo)
-         && !hashTypeInfo->parseAccepts(leftTypeInfo)
-         && !stringTypeInfo->parseAccepts(leftTypeInfo)
-         && !binaryTypeInfo->parseAccepts(leftTypeInfo)
-         && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
+         && !QoreTypeInfo::parseAccepts(listTypeInfo, leftTypeInfo)
+         && !QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo)
+         && !QoreTypeInfo::parseAccepts(stringTypeInfo, leftTypeInfo)
+         && !QoreTypeInfo::parseAccepts(binaryTypeInfo, leftTypeInfo)
+         && !QoreTypeInfo::parseAccepts(objectTypeInfo, leftTypeInfo)) {
          QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
          QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
          edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
@@ -2148,8 +2148,8 @@ static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int 
    if (leftTypeInfo->hasType()) {
       if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
 	 returnTypeInfo = listTypeInfo;
-      else if (!hashTypeInfo->parseAccepts(leftTypeInfo)
-	       && !objectTypeInfo->parseAccepts(leftTypeInfo)) {
+      else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo)
+	       && !QoreTypeInfo::parseAccepts(objectTypeInfo, leftTypeInfo)) {
 	 QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
 	 QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
 	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
@@ -2174,7 +2174,7 @@ static AbstractQoreNode* check_op_list_op(QoreTreeNode* tree, LocalVar* oflag, i
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_LIST)) {
       QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
       edesc->sprintf("'%s' operator is ", name);
       QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
@@ -2194,7 +2194,7 @@ static AbstractQoreNode* check_op_unshift(QoreTreeNode* tree, LocalVar* oflag, i
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_LIST)) {
       // only raise a parse exception if parse exceptions are enabled
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
@@ -2217,7 +2217,7 @@ static AbstractQoreNode* check_op_lvalue_string(QoreTreeNode* tree, LocalVar* of
    const QoreTypeInfo *rightTypeInfo = 0;
    tree->rightParseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!leftTypeInfo->parseAcceptsReturns(NT_STRING)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_STRING)) {
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("%s operator is ", descr);
       QoreTypeInfo::getThisType(leftTypeInfo, *desc);

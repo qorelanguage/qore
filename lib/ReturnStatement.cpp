@@ -65,7 +65,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
    //printd(5, "ReturnStatement::parseInitImpl() arg=%s rt=%s\n", argTypeInfo->getTypeName(), returnTypeInfo->getTypeName());
 
    // check return type and throw a parse exception or warning
-   if (!returnTypeInfo->parseAccepts(argTypeInfo)) {
+   if (!QoreTypeInfo::parseAccepts(returnTypeInfo, argTypeInfo)) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
       const QoreClass *qc = getParseClass();
       const char* fname = get_parse_code();

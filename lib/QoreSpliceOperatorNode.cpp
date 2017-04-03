@@ -57,9 +57,9 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    //   parse_error("the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
 
    if (expTypeInfo->hasType()) {
-      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)
-            && !expTypeInfo->parseAcceptsReturns(NT_BINARY)
-            && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
+      if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
+            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
+            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
 	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");

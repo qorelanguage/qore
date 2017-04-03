@@ -103,9 +103,9 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
       checkLValue(exp, pflag);
 
    if (typeInfo->hasType()
-       && !typeInfo->parseAcceptsReturns(NT_STRING)
-       && !typeInfo->parseAcceptsReturns(NT_LIST)
-       && !typeInfo->parseAcceptsReturns(NT_HASH)) {
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");

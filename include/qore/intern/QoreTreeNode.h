@@ -95,7 +95,7 @@ public:
       if (right) {
          typeInfo = 0;
          right = right->parseInit(oflag, pflag & ~PF_FOR_ASSIGNMENT, lvids, typeInfo);
-         //printd(0, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s, type: %s)\n", this, right, get_type_name(right), typeInfo->getName());
+         //printd(0, "QoreTreeNode::rightParseInit() this=%p new right=%p (%s, type: %s)\n", this, right, get_type_name(right), QoreTypeInfo::getName(typeInfo));
       }
    }
 

@@ -108,7 +108,7 @@ public:
 
    DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
       for (unsigned i = 0; i < typeList.size(); ++i) {
-         str.append(typeList[i]->getName());
+         str.append(QoreTypeInfo::getName(typeList[i]));
          if (i != typeList.size() - 1)
             str.append(",");
       }
@@ -220,9 +220,9 @@ public:
 
       for (unsigned i = 0; i < parseTypeList.size(); ++i) {
          if (!parseTypeList[i] && typeList.size() > i && typeList[i])
-            str.append(typeList[i]->getName());
+            str.append(QoreTypeInfo::getName(typeList[i]));
          else
-            str.append(parseTypeList[i]->getName());
+            str.append(QoreParseTypeInfo::getName(parseTypeList[i]));
          if (i != parseTypeList.size() - 1)
             str.append(",");
       }

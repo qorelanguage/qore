@@ -167,11 +167,11 @@ const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo) {
 }
 
 qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
-   return typeInfo->parseAccepts(otherTypeInfo);
+   return QoreTypeInfo::parseAccepts(typeInfo, otherTypeInfo);
 }
 
 qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
-   return otherTypeInfo->parseAccepts(typeInfo);
+   return QoreTypeInfo::parseAccepts(otherTypeInfo, typeInfo);
 }
 
 bool typeInfoHasType(const QoreTypeInfo* typeInfo) {
@@ -179,5 +179,5 @@ bool typeInfoHasType(const QoreTypeInfo* typeInfo) {
 }
 
 const char* typeInfoGetName(const QoreTypeInfo* typeInfo) {
-   return typeInfo->getName();
+   return QoreTypeInfo::getName(typeInfo);
 }

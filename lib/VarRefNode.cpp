@@ -125,7 +125,7 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
       return 0;
    }
 
-   //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, typeInfo->getName());
+   //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, QoreTypeInfo::getName(typeInfo));
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
@@ -316,7 +316,7 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
 
    const QoreClass *qc = typeInfo->getUniqueReturnClass();
    if (!qc)
-      parse_error(loc, "cannot instantiate type '%s' as a class", typeInfo->getName());
+      parse_error(loc, "cannot instantiate type '%s' as a class", QoreTypeInfo::getName(typeInfo));
 
    parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;

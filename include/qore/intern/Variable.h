@@ -181,11 +181,11 @@ public:
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), parseTypeInfo->getName());
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
          assert(!typeInfo);
       }
       if (typeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), typeInfo->getName());
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
          assert(!parseTypeInfo);
       }
    }
@@ -362,8 +362,8 @@ protected:
          }
       }
       else {
-         if (!typeInfo->parseAccepts(typeTypeInfo)) {
-            typeInfo->doTypeException(0, desc, typeTypeInfo->getName(), vl.xsink);
+         if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -600,8 +600,8 @@ public:
          }
       }
       else {
-         if (!typeInfo->parseAccepts(numberTypeInfo)) {
-            typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+         if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
             return 0;
          }
 

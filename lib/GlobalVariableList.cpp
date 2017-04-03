@@ -103,7 +103,7 @@ Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* 
    Var* var = new Var(name, typeInfo);
    vmap[var->getName()] = var;
 
-   printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
+   printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, QoreTypeInfo::getName(typeInfo));
    return var;
 }
 
@@ -113,7 +113,7 @@ Var* GlobalVariableList::parseCreatePendingVar(const char* name, const QoreTypeI
    Var* var = new Var(name, typeInfo);
    pending_vmap[var->getName()] = var;
 
-   //printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, typeInfo->getName());
+   //printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, QoreTypeInfo::getName(typeInfo));
    return var;
 }
 

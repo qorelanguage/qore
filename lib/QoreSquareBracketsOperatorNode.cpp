@@ -49,7 +49,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
       // if we are trying to convert to a list
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
-	 if (!lti->parseAcceptsReturns(NT_LIST) && getProgram()->getParseExceptionSink()) {
+	 if (!QoreTypeInfo::parseAcceptsReturns(lti, NT_LIST) && getProgram()->getParseExceptionSink()) {
 	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
 	    QoreTypeInfo::getThisType(lti, *edesc);
 	    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
@@ -63,9 +63,9 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	 else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
 	    returnTypeInfo = bigIntOrNothingTypeInfo;
 	 }
-	 else if (!listTypeInfo->parseAccepts(lti)
-	     && !stringTypeInfo->parseAccepts(lti)
-	     && !binaryTypeInfo->parseAccepts(lti)) {
+	 else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
+	     && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
+	     && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)) {
 	    QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(lti, *edesc);
 	    edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
@@ -77,12 +77,12 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 
    // see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
    if (rti->hasType()
-       && !bigIntTypeInfo->parseAccepts(rti)
-       && !floatTypeInfo->parseAccepts(rti)
-       && !numberTypeInfo->parseAccepts(rti)
-       && !boolTypeInfo->parseAccepts(rti)
-       && !stringTypeInfo->parseAccepts(rti)
-       && !dateTypeInfo->parseAccepts(rti)) {
+       && !QoreTypeInfo::parseAccepts(bigIntTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(floatTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(numberTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(boolTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(stringTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(dateTypeInfo, rti)) {
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");

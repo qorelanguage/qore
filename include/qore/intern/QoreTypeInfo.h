@@ -529,6 +529,11 @@ public:
       return parseReturnsType(t, n_is_int) ? true : false;
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool parseAcceptsReturns(const QoreTypeInfo* ti, qore_type_t t) {
+      return ti ? ti->parseAcceptsReturns(t) : true;
+   }
+
    DLLLOCAL qore_type_result_e parseReturnsType(qore_type_t t) const {
       if (!hasType())
          return QTI_AMBIGUOUS;
@@ -538,6 +543,11 @@ public:
 	 return parseReturnsTypeMult(t, n_is_int);
 
       return matchTypeIntern(t, n_is_int);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e parseReturnsType(const QoreTypeInfo* ti, qore_type_t t) {
+      return ti ? ti->parseReturnsType(t) : QTI_AMBIGUOUS;
    }
 
    // returns true if this type only returns the value given
@@ -598,6 +608,11 @@ public:
       return parseAccepts(typeInfo, may_not_match);
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+      return (!first || !second) ? QTI_AMBIGUOUS : first->parseAccepts(second);
+   }
+
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
       //printd(5, "QoreTypeInfo::parseAccepts() this: %p (%s) ti: %p (%s) ti->returnsSingleIntern(): %d\n", this, getName(), typeInfo, typeInfo->getName(), typeInfo->returnsSingleIntern());
       if (!hasType() || !typeInfo->hasType() || accepts_all)
@@ -614,6 +629,11 @@ public:
       return parseAcceptsBasic(typeInfo, may_not_match);
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
+      return (!first || !second) ? QTI_AMBIGUOUS : first->parseAccepts(second, may_not_match);
+   }
+
    DLLLOCAL qore_type_result_e parseReturnsClass(const QoreClass* n_qc) const {
       if (!hasType())
          return QTI_AMBIGUOUS;
@@ -622,6 +642,11 @@ public:
 	 return parseReturnsClassMult(n_qc);
 
       return matchClassIntern(n_qc);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e parseReturnsClass(const QoreTypeInfo* ti, const QoreClass* n_qc) {
+      return ti ? ti->parseReturnsClass(n_qc) : QTI_AMBIGUOUS;
    }
 
    DLLLOCAL const QoreClass* getUniqueReturnClass() const {
@@ -665,6 +690,11 @@ public:
          return getNameImpl();
 
       return qc ? qc->getName() : getBuiltinTypeName(qt);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const char* getName(const QoreTypeInfo* ti) {
+      return ti ? ti->getName() : NO_TYPE_INFO;
    }
 
    DLLLOCAL void getThisType(QoreString& str) const {
@@ -1167,6 +1197,11 @@ public:
 	 return NO_TYPE_INFO;
 
       return tname.c_str();
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const char* getName(const QoreParseTypeInfo* pti) {
+      return pti ? pti->getName() : NO_TYPE_INFO;
    }
 
    DLLLOCAL void concatName(std::string& str) const {

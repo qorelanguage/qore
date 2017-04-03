@@ -270,7 +270,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
 
    QoreString ls;
    loc.toString(ls);
-   //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, typeInfo->getName(), ls.getBuffer());
+   //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, QoreTypeInfo::getName(typeInfo), ls.getBuffer());
 
    bool found_block = false;
    // check stack for duplicate entries
@@ -420,7 +420,7 @@ void StatementBlock::parseInit(UserVariantBase* uvb) {
 
 void StatementBlock::parseCheckReturn() {
    const QoreTypeInfo* returnTypeInfo = getReturnTypeInfo();
-   if (returnTypeInfo->hasType() && !returnTypeInfo->parseAccepts(nothingTypeInfo)) {
+   if (returnTypeInfo->hasType() && !QoreTypeInfo::parseAccepts(returnTypeInfo, nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
       if (statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
 	 QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
