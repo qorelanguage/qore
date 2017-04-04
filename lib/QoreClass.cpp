@@ -4253,7 +4253,7 @@ const QoreMethod* QoreStaticMethodIterator::getMethod() const {
 
 void QoreMemberInfo::parseInit(const char* name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -4283,7 +4283,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
 
 void QoreVarInfo::parseInit(const char* name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG

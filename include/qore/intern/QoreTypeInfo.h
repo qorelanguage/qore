@@ -1209,14 +1209,8 @@ public:
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo* typeInfo, bool& recheck) const {
-      bool thisnt = !qore_check_this(this);
-      bool typent = !typeInfo->hasType();
-
-      if (thisnt && typent)
-	 return true;
-
-      if (thisnt || typent)
-	 return false;
+      if (!typeInfo->hasType())
+         return false;
 
       const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
       if (!qc)
@@ -1229,38 +1223,51 @@ public:
          return false;
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool parseStageOneIdenticalWithParsed(const QoreParseTypeInfo* pti, const QoreTypeInfo* typeInfo, bool& recheck) {
+      if (pti && typeInfo)
+         return pti->parseStageOneIdenticalWithParsed(typeInfo, recheck);
+      else if (pti)
+         return false;
+      else if (typeInfo)
+         return !typeInfo->hasType();
+      else
+         return true;
+   }
+
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
-      bool thisnt = !qore_check_this(this);
-      bool typent = !typeInfo;
-
-      if (thisnt && typent)
-	 return true;
-
-      if (thisnt || typent)
-	 return false;
+      if (!typeInfo)
+         return false;
 
       return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo) {
+      if (pti && typeInfo)
+         return pti->parseStageOneIdentical(typeInfo);
+      else
+         return !(pti || typeInfo);
+   }
+
    // resolves the current type to a QoreTypeInfo pointer and deletes itself
    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+      return pti ? pti->resolveAndDelete(loc) : 0;
+   }
 
 #ifdef DEBUG
    DLLLOCAL const char* getCID() const { return qore_check_this(this) && cscope ? cscope->getIdentifier() : "n/a"; }
 #endif
 
    DLLLOCAL QoreParseTypeInfo* copy() const {
-      if (!qore_check_this(this))
-	 return 0;
-
       return new QoreParseTypeInfo(cscope);
    }
 
    DLLLOCAL const char* getName() const {
-      if (!qore_check_this(this))
-	 return NO_TYPE_INFO;
-
       return tname.c_str();
    }
 

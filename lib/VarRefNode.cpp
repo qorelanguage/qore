@@ -237,7 +237,7 @@ GlobalVarRefNode::GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo) : 
 
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG

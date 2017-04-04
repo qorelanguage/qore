@@ -480,7 +480,7 @@ void UserSignature::resolve() {
    resolved = true;
 
    if (!returnTypeInfo) {
-      returnTypeInfo = parseReturnTypeInfo->resolveAndDelete(loc);
+      returnTypeInfo = QoreParseTypeInfo::resolveAndDelete(parseReturnTypeInfo, loc);
       parseReturnTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -490,7 +490,7 @@ void UserSignature::resolve() {
    for (unsigned i = 0; i < parseTypeList.size(); ++i) {
       if (parseTypeList[i]) {
 	 assert(!typeList[i]);
-	 typeList[i] = parseTypeList[i]->resolveAndDelete(loc);
+	 typeList[i] = QoreParseTypeInfo::resolveAndDelete(parseTypeList[i], loc);
       }
 
       // initialize default arguments
@@ -1483,19 +1483,19 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 			break;
 		     }
 		  }
-		  else if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+		  else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
 		     dup = false;
 		     break;
 		  }
 	       }
 	       else {
 		  if (variantTypeInfo) {
-		     if (!parseTypeInfo->parseStageOneIdenticalWithParsed(variantTypeInfo, recheck)) {
+		     if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(parseTypeInfo, variantTypeInfo, recheck)) {
 			dup = false;
 			break;
 		     }
 		  }
-		  else if (!parseTypeInfo->parseStageOneIdentical(variantParseTypeInfo)) {
+		  else if (!QoreParseTypeInfo::parseStageOneIdentical(parseTypeInfo, variantParseTypeInfo)) {
 		     dup = false;
 		     break;
 		  }
@@ -1511,7 +1511,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 		  break;
 	       }
 	    }
-	    else if (!variantParseTypeInfo->parseStageOneIdenticalWithParsed(typeInfo, recheck)) {
+	    else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
 	       dup = false;
 	       break;
 	    }
@@ -1566,7 +1566,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 	    if (!variantTypeInfo && thisHasDefaultArg) {
 	       ambiguous = true;
 	    }
-	    else if (!parseTypeInfo->parseStageOneIdenticalWithParsed(variantTypeInfo, recheck)) {
+	    else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(parseTypeInfo, variantTypeInfo, recheck)) {
 	       recheck = false;
 	       dup = false;
 	       break;

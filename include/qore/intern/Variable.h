@@ -242,7 +242,7 @@ public:
          return;
 
       if (parseTypeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete(loc);
+         typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
          parseTypeInfo = 0;
 
          val.set(typeInfo);
