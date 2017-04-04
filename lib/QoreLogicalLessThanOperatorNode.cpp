@@ -69,7 +69,7 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
    if (!QoreTypeInfo::isType(lti, NT_NUMBER) && !QoreTypeInfo::isType(rti, NT_NUMBER)) {
       if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT))
          pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
-      else if (lti->hasType() && rti->hasType()) {
+      else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
          if (QoreTypeInfo::isType(lti, NT_INT)) {
             if (QoreTypeInfo::isType(rti, NT_INT))
                pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;

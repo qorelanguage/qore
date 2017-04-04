@@ -80,7 +80,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
    if (!qc) {
       // if the left side has a type and it's not an object, then we try to match pseudo-methods
-      if (typeInfo->hasType()
+      if (QoreTypeInfo::hasType(typeInfo)
 	  && !QoreTypeInfo::parseAccepts(objectTypeInfo, typeInfo)) {
 	 // check for pseudo-methods
 	 bool possible_match;

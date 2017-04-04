@@ -100,7 +100,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 	 th.release();
       }
 
-      if (typeInfo->hasType()) {
+      if (QoreTypeInfo::hasType(typeInfo)) {
 	 if (QoreTypeInfo::isType(typeInfo, NT_FLOAT))
 	    typeInfo = floatTypeInfo;
 	 else if (QoreTypeInfo::isType(typeInfo, NT_NUMBER))

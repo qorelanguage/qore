@@ -1800,7 +1800,7 @@ static AbstractQoreNode* check_op_list_assignment(QoreTreeNode* tree, LocalVar* 
 
       ri.parseInit(argInfo);
 
-      if (prototypeInfo->hasType()) {
+      if (QoreTypeInfo::hasType(prototypeInfo)) {
 	 if (!QoreTypeInfo::parseAccepts(prototypeInfo, argInfo)) {
 	    // raise an exception only if parse exceptions are not disabled
 	    if (getProgram()->getParseExceptionSink()) {
@@ -1927,7 +1927,7 @@ static AbstractQoreNode* check_op_minus(QoreTreeNode* tree, LocalVar* oflag, int
        || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
       returnTypeInfo = dateTypeInfo;
    // otherwise we have to make sure types are known on both sides of the expression
-   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
       if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
             || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
          returnTypeInfo = numberTypeInfo;
@@ -1969,7 +1969,7 @@ static AbstractQoreNode* check_op_plus(QoreTreeNode* tree, LocalVar* oflag, int 
 	 returnTypeInfo = listTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
-   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
 
       if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING)
 	       || QoreTypeInfo::isType(rightTypeInfo, NT_STRING))
@@ -2028,7 +2028,7 @@ static AbstractQoreNode* check_op_multiply(QoreTreeNode* tree, LocalVar* oflag, 
       returnTypeInfo = floatTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
-   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
+   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
       if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) && QoreTypeInfo::isType(rightTypeInfo, NT_INT))
 	 returnTypeInfo = bigIntTypeInfo;
    }
@@ -2051,7 +2051,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
 
    printd(5, "check_op_object_object_ref() l=%p %s (%s) r=%p %s\n", leftTypeInfo, QoreTypeInfo::getName(leftTypeInfo), QoreTypeInfo::getUniqueReturnClass(leftTypeInfo) ? QoreTypeInfo::getUniqueReturnClass(leftTypeInfo)->getName() : "n/a", rightTypeInfo, QoreTypeInfo::getName(rightTypeInfo));
 
-   if (leftTypeInfo->hasType()) {
+   if (QoreTypeInfo::hasType(leftTypeInfo)) {
       bool can_be_obj = QoreTypeInfo::parseAccepts(objectTypeInfo, leftTypeInfo);
       bool can_be_hash = QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo);
 
@@ -2078,7 +2078,7 @@ static AbstractQoreNode* check_op_object_ref(QoreTreeNode* tree, LocalVar* oflag
       }
 
       // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (rightTypeInfo->hasType() && QoreTypeInfo::isType(rightTypeInfo, NT_LIST) && (is_obj || is_hash))
+      if (QoreTypeInfo::hasType(rightTypeInfo) && QoreTypeInfo::isType(rightTypeInfo, NT_LIST) && (is_obj || is_hash))
 	 returnTypeInfo = hashTypeInfo;
 
       // if we are trying to convert to a hash
@@ -2121,7 +2121,7 @@ static AbstractQoreNode* check_op_elements(QoreTreeNode* tree, LocalVar* oflag, 
 
    assert(!tree->right);
 
-   if (leftTypeInfo->hasType()
+   if (QoreTypeInfo::hasType(leftTypeInfo)
          && !QoreTypeInfo::parseAccepts(listTypeInfo, leftTypeInfo)
          && !QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo)
          && !QoreTypeInfo::parseAccepts(stringTypeInfo, leftTypeInfo)
@@ -2145,7 +2145,7 @@ static AbstractQoreNode* check_op_keys(QoreTreeNode* tree, LocalVar* oflag, int 
 
    assert(!tree->right);
 
-   if (leftTypeInfo->hasType()) {
+   if (QoreTypeInfo::hasType(leftTypeInfo)) {
       if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
 	 returnTypeInfo = listTypeInfo;
       else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, leftTypeInfo)

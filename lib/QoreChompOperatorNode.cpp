@@ -102,7 +102,7 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
    if (exp)
       checkLValue(exp, pflag);
 
-   if (typeInfo->hasType()
+   if (QoreTypeInfo::hasType(typeInfo)
        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {

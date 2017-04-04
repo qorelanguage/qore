@@ -404,7 +404,7 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
 
       assert(!(pti && ti));
 
-      if (pti || ti->hasType()) {
+      if (pti || QoreTypeInfo::hasType(ti)) {
 	 ++num_param_types;
 	 // only increment min_param_types if there is no default argument
 	 if (!defArg)
@@ -413,9 +413,9 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
 
       // add type name to signature
       if (pti)
-	 QoreParseTypeInfo::concatName(pti, str);
+         QoreParseTypeInfo::concatName(pti, str);
       else
-	 QoreTypeInfo::concatName(ti, str);
+         QoreTypeInfo::concatName(ti, str);
    }
    else {
       parseTypeList.push_back(0);
@@ -545,10 +545,10 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
    do_call_name(*desc, aqf);
    desc->sprintf("%s) is a variant that returns a constant value when incorrect data types are passed to the function", variant->getSignature()->getSignatureText());
    const QoreTypeInfo* rti = variant->getReturnTypeInfo();
-   if (rti->hasType() && !variant->numParams()) {
+   if (QoreTypeInfo::hasType(rti) && !variant->numParams()) {
       desc->concat(" and always returns ");
       if (QoreTypeInfo::getUniqueReturnClass(rti) || func->className()) {
-	 QoreTypeInfo::getThisType(rti, *desc);
+         QoreTypeInfo::getThisType(rti, *desc);
       }
       else {
 	 // get actual value and include in warning
@@ -769,7 +769,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(const type_v
 	    //printd(5, "QoreFunction::runtimeFindVariant() %s(%s) pi: %d t: %s (has type: %d) a: %s (%p) t->parseEqual(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), t->hasType(), QoreTypeInfo::getName(a), a, t->parseEqual(a));
 
 	    int rc;
-	    if (t->hasType() && !a->hasType() && sig->hasDefaultArg(pi))
+	    if (QoreTypeInfo::hasType(t) && !QoreTypeInfo::hasType(a) && sig->hasDefaultArg(pi))
 	       rc = QTI_IGNORE;
 	    else {
 	       rc = QoreTypeInfo::parseAccepts(t, a);
@@ -897,11 +897,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
-	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), t->hasType(), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
+	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
 
 	       int rc = QTI_UNASSIGNED;
-	       if (t->hasType()) {
-		  if (!a->hasType()) {
+	       if (QoreTypeInfo::hasType(t)) {
+		  if (!QoreTypeInfo::hasType(a)) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
 			count += QTI_AMBIGUOUS;
@@ -1024,11 +1024,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
-	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), t->hasType(), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(a, t));
+	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(a, t));
 
 	       int rc = QTI_UNASSIGNED;
-	       if (t->hasType()) {
-		  if (!a->hasType()) {
+	       if (QoreTypeInfo::hasType(t)) {
+		  if (!QoreTypeInfo::hasType(a)) {
 		     if (pi < num_args) {
 			variant_missing_types = true;
 			count += QTI_AMBIGUOUS;
@@ -1402,7 +1402,7 @@ int QoreFunction::parseCompareResolvedSignature(const VList& vlist, const Abstra
 
 	 // check for ambiguous matches
 	 if (typeInfo) {
-	    if (!variantTypeInfo->hasType() && thisHasDefaultArg)
+	    if (!QoreTypeInfo::hasType(variantTypeInfo) && thisHasDefaultArg)
 	       ambiguous = true;
 	    else if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {
 	       dup = false;
@@ -1410,7 +1410,7 @@ int QoreFunction::parseCompareResolvedSignature(const VList& vlist, const Abstra
 	    }
 	 }
 	 else {
-	    if (variantTypeInfo->hasType() && variantHasDefaultArg)
+	    if (QoreTypeInfo::hasType(variantTypeInfo) && variantHasDefaultArg)
 	       ambiguous = true;
 	    else if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {
 	       dup = false;
@@ -1472,7 +1472,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 
 	 // check for ambiguous matches
 	 if (typeInfo || parseTypeInfo) {
-	    if (!variantTypeInfo->hasType() && !variantParseTypeInfo && thisHasDefaultArg)
+	    if (!QoreTypeInfo::hasType(variantTypeInfo) && !variantParseTypeInfo && thisHasDefaultArg)
 	       ambiguous = true;
 	    else {
 	       // check for real matches
@@ -1503,7 +1503,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 	    }
 	 }
 	 else {
-	    if ((variantTypeInfo->hasType() || variantParseTypeInfo) && variantHasDefaultArg)
+	    if ((QoreTypeInfo::hasType(variantTypeInfo) || variantParseTypeInfo) && variantHasDefaultArg)
 	       ambiguous = true;
 	    else if (variantTypeInfo) {
 	       if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {

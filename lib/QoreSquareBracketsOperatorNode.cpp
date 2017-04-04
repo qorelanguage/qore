@@ -45,7 +45,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
 
-   if (lti->hasType()) {
+   if (QoreTypeInfo::hasType(lti)) {
       // if we are trying to convert to a list
       if (pflag & PF_FOR_ASSIGNMENT) {
 	 // only throw a parse exception if parse exceptions are enabled
@@ -76,7 +76,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
    }
 
    // see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
-   if (rti->hasType()
+   if (QoreTypeInfo::hasType(rti)
        && !QoreTypeInfo::parseAccepts(bigIntTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(floatTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(numberTypeInfo, rti)

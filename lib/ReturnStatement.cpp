@@ -85,7 +85,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
 	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
-   else if (QoreTypeInfo::isType(returnTypeInfo, NT_NOTHING) && exp && (!argTypeInfo->hasType() || !QoreTypeInfo::isType(argTypeInfo, NT_NOTHING))) {
+   else if (QoreTypeInfo::isType(returnTypeInfo, NT_NOTHING) && exp && (!QoreTypeInfo::hasType(argTypeInfo) || !QoreTypeInfo::isType(argTypeInfo, NT_NOTHING))) {
       const QoreClass* qc = getParseClass();
       const char* fname = get_parse_code();
       QoreStringNode* desc = new QoreStringNode;

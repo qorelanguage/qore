@@ -98,7 +98,7 @@ protected:
          return QTI_AMBIGUOUS;
 
       if (returns_mult)
-	 return parseReturnsTypeMult(t, n_is_int);
+         return parseReturnsTypeMult(t, n_is_int);
 
       return matchTypeIntern(t, n_is_int);
    }
@@ -116,7 +116,7 @@ protected:
          return QTI_AMBIGUOUS;
 
       if (accepts_mult)
-	 return parseAcceptsTypeMult(t, n_is_int, may_not_match);
+         return parseAcceptsTypeMult(t, n_is_int, may_not_match);
 
       qore_type_result_e rc = matchTypeIntern(t, n_is_int);
       if (rc == QTI_IDENT && qc) {
@@ -135,7 +135,7 @@ protected:
          return QTI_AMBIGUOUS;
 
       if (accepts_mult)
-	 return runtimeAcceptsClassMult(n_qc);
+         return runtimeAcceptsClassMult(n_qc);
 
       return runtimeMatchClassIntern(n_qc);
    }
@@ -154,8 +154,8 @@ protected:
       const type_vec_t &rt = getReturnTypeList();
 
       for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
-	 if ((*i)->parseReturnsType(t, n_is_int))
-	    return QTI_AMBIGUOUS;
+         if ((*i)->parseReturnsType(t, n_is_int))
+            return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
@@ -166,8 +166,8 @@ protected:
       const type_vec_t &rt = getReturnTypeList();
 
       for (type_vec_t::const_iterator i = rt.begin(), e = rt.end(); i != e; ++i) {
-	 if ((*i)->parseReturnsClass(n_qc))
-	    return QTI_AMBIGUOUS;
+         if ((*i)->parseReturnsClass(n_qc))
+            return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
@@ -190,8 +190,8 @@ protected:
       const type_vec_t &at = getAcceptTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 if ((*i)->parseAcceptsType(t, n_is_int, may_not_match))
-	    return QTI_AMBIGUOUS;
+         if ((*i)->parseAcceptsType(t, n_is_int, may_not_match))
+            return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
@@ -211,8 +211,8 @@ protected:
       const type_vec_t &at = getAcceptTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 if ((*i)->parseAcceptsClass(n_qc))
-	    return QTI_AMBIGUOUS;
+         if ((*i)->parseAcceptsClass(n_qc))
+            return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
@@ -226,8 +226,8 @@ protected:
       const type_vec_t &at = getAcceptTypeList();
 
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 if ((*i)->runtimeAcceptsClass(n_qc))
-	    return QTI_AMBIGUOUS;
+         if ((*i)->runtimeAcceptsClass(n_qc))
+            return QTI_AMBIGUOUS;
       }
 
       // now check fundamental type
@@ -258,12 +258,12 @@ protected:
 
       qore_type_result_e rc = QTI_NOT_EQUAL;
       for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-	 for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
+         for (type_vec_t::const_iterator j = rt.begin(), je = rt.end(); j != je; ++j) {
             //printd(5, "QoreTypeInfo::parseAcceptsMult() this=%p (%s) accepts %p (%s) testing if %p (%s) may_not_match=%d rc=%d accepts %p (%s) = %d\n", this, getName(), typeInfo, typeInfo->getName(), *i, (*i)->getName(), may_not_match, rc, *j, (*j)->getName(), (*i)->parseAccepts(*j));
 
             if (parseAcceptsMultHelper((*i)->parseAccepts(*j), rc, may_not_match))
                return rc;
-	 }
+         }
          // now check basic return type
          if (parseAcceptsMultHelper((*i)->parseAcceptsBasic(typeInfo, may_not_match), rc, may_not_match))
             return rc;
@@ -425,16 +425,16 @@ protected:
 
    DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo* typeInfo) const {
       if (qt != typeInfo->qt)
-	 return false;
+         return false;
 
       // both types are identical
       if (qt != NT_OBJECT)
-	 return true;
+         return true;
 
       if (qc) {
-	 if (!typeInfo->qc)
-	    return false;
-	 return qc->getID() == typeInfo->qc->getID();
+         if (!typeInfo->qc)
+            return false;
+         return qc->getID() == typeInfo->qc->getID();
       }
       return !typeInfo->qc;
    }
@@ -491,7 +491,7 @@ protected:
    }
 
    DLLLOCAL bool returnsSingleIntern() const {
-      return qore_check_this(this) && !returns_mult && qt != NT_ALL;
+      return (!returns_mult && qt != NT_ALL);
    }
 
    DLLLOCAL QoreTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
@@ -560,7 +560,7 @@ public:
 
       bool n_is_int = t == NT_INT;
       if (returns_mult)
-	 return parseReturnsTypeMult(t, n_is_int);
+         return parseReturnsTypeMult(t, n_is_int);
 
       return matchTypeIntern(t, n_is_int);
    }
@@ -644,11 +644,11 @@ public:
          return QTI_AMBIGUOUS;
 
       if (!typeInfo->returnsSingleIntern()) {
-	 if (!accepts_mult) {
+         if (!accepts_mult) {
             may_not_match = true;
-	    return qc ? typeInfo->parseReturnsClass(qc) : typeInfo->parseReturnsType(qt, is_int);
+            return qc ? typeInfo->parseReturnsClass(qc) : typeInfo->parseReturnsType(qt, is_int);
          }
-	 return parseAcceptsMult(typeInfo, may_not_match);
+         return parseAcceptsMult(typeInfo, may_not_match);
       }
 
       return parseAcceptsBasic(typeInfo, may_not_match);
@@ -664,7 +664,7 @@ public:
          return QTI_AMBIGUOUS;
 
       if (returns_mult)
-	 return parseReturnsClassMult(n_qc);
+         return parseReturnsClassMult(n_qc);
 
       return matchClassIntern(n_qc);
    }
@@ -697,7 +697,12 @@ public:
    }
 
    DLLLOCAL bool hasType() const {
-      return qore_check_this(this) && (accepts_mult || returns_mult || qt != NT_ALL);
+      return (accepts_mult || returns_mult || qt != NT_ALL);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
+      return ti ? ti->hasType() : false;
    }
 
    // returns true if this type could contain an object or a closure
@@ -1260,7 +1265,10 @@ public:
    }
 
 #ifdef DEBUG
-   DLLLOCAL const char* getCID() const { return qore_check_this(this) && cscope ? cscope->getIdentifier() : "n/a"; }
+   DLLLOCAL const char* getCID() const { return cscope ? cscope->getIdentifier() : "n/a"; }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const char* getCID(const QoreParseTypeInfo* pti) { return pti ? pti->getCID() : "n/a"; }
 #endif
 
    DLLLOCAL QoreParseTypeInfo* copy() const {

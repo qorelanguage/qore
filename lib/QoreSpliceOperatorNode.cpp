@@ -56,7 +56,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    //if (lvalue_exp && check_lvalue(lvalue_exp))
    //   parse_error("the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
 
-   if (expTypeInfo->hasType()) {
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {

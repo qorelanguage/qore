@@ -55,7 +55,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    //   parse_error("the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
    checkLValue(lvalue_exp, pflag);
 
-   if (expTypeInfo->hasType()) {
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
@@ -79,7 +79,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
       if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'extract' operator is ");
+         QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'extract' operator is ");
    }
 
    // check new value expression, if any

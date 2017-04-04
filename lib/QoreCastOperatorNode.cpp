@@ -89,13 +89,13 @@ AbstractQoreNode* QoreCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
    if (exp)
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
 
-   if (typeInfo->hasType()) {
+   if (QoreTypeInfo::hasType(typeInfo)) {
       if (!QoreTypeInfo::parseAccepts(objectTypeInfo, typeInfo)) {
-	 parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s", qc ? qc->getName() : "object", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo), qc ? qc->getName() : "object");
+         parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s", qc ? qc->getName() : "object", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo), qc ? qc->getName() : "object");
       }
 #ifdef _QORE_STRICT_CAST
       else if (qc && (QoreTypeInfo::parseAccepts(qc->getTypeInfo(), typeInfo) == QTI_NOT_EQUAL) && QoreTypeInfo::parseAccepts(typeInfo, qc->getTypeInfo()) == QTI_NOT_EQUAL) {
-	 parse_error(loc, "cannot cast from %s to %s; the classes are not compatible", QoreTypeInfo::getName(typeInfo), path->ostr);
+         parse_error(loc, "cannot cast from %s to %s; the classes are not compatible", QoreTypeInfo::getName(typeInfo), path->ostr);
       }
 #endif
    }

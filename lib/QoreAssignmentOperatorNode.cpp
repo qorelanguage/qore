@@ -63,13 +63,13 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
        && !strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName()))
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode *>(left)->getName()));
 
-   if (ti->hasType() && r->hasType() && !QoreTypeInfo::parseAccepts(ti, r)) {
+   if (QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && !QoreTypeInfo::parseAccepts(ti, r)) {
       if (getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-	 QoreTypeInfo::getThisType(ti, *edesc);
-	 edesc->concat(", but right-hand side is ");
-	 QoreTypeInfo::getThisType(r, *edesc);
-	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+         QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+         QoreTypeInfo::getThisType(ti, *edesc);
+         edesc->concat(", but right-hand side is ");
+         QoreTypeInfo::getThisType(r, *edesc);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
       }
    }
 

@@ -126,7 +126,7 @@ const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, Q
 }
 
 const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass* &qc, bool &possible_match) {
-   assert(typeInfo && typeInfo->hasType());
+   assert(typeInfo && QoreTypeInfo::hasType(typeInfo));
 
    const QoreMethod* m;
    if (QoreTypeInfo::returnsSingle(typeInfo)) {

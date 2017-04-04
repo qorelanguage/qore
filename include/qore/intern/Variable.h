@@ -194,7 +194,6 @@ public:
       std::auto_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
 
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-      // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_parseTypeInfo)
          return;
 
@@ -216,8 +215,7 @@ public:
 
    DLLLOCAL void checkAssignType(const QoreTypeInfo *n_typeInfo) {
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-      // it is safe to call QoreTypeInfo::hasType() when this is 0
-      if (!n_typeInfo->hasType())
+      if (!QoreTypeInfo::hasType(n_typeInfo))
          return;
 
       if (val.type == QV_Ref) {
