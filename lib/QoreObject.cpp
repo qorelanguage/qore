@@ -363,7 +363,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                // rset can be changed unless the rsection is acquired
                sl.acquireRSection();
 
-               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references, rrefs, deferred_scan, qodh.doScan());
+               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, RSet::isValid(rset), rcount, ref_copy, references, rrefs, deferred_scan, qodh.doScan());
 
                int rc;
                RSet* rs = rset;
