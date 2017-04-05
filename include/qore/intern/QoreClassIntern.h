@@ -1085,11 +1085,11 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return qore_check_this(this) ? typeInfo : 0;
+      return typeInfo;
    }
 
    DLLLOCAL bool parseHasTypeInfo() const {
-      return qore_check_this(this) && (typeInfo || parseTypeInfo);
+      return (typeInfo || parseTypeInfo);
    }
 };
 
@@ -1123,9 +1123,6 @@ public:
    }
 
    DLLLOCAL QoreMemberInfo* copy(const qore_class_private* n_qc, bool set_priv = false) const {
-      if (!qore_check_this(this))
-         return 0;
-
       QoreMemberInfo* mi = new QoreMemberInfo(*this, n_qc);
       if (set_priv)
          mi->priv = true;
@@ -1181,9 +1178,6 @@ public:
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
-      if (!qore_check_this(this))
-         return 0;
-
       return new QoreVarInfo(*this);
    }
 
@@ -2015,7 +2009,7 @@ public:
 
       const qore_class_private* qc = 0;
       const QoreMemberInfo* omi = parseFindMember(mem, qc);
-      memberTypeInfo = omi->getTypeInfo();
+      memberTypeInfo = omi ? omi->getTypeInfo() : 0;
 
       if (!omi) {
 	 int rc = 0;
@@ -3059,10 +3053,10 @@ public:
       return qc.priv->runtimeCheckPrivateClassAccess();
    }
 
-   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
-      if (!qore_check_this(&oc))
+   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass* qc, const QoreClass* oc) {
+      if (!oc)
          return QTI_NOT_EQUAL;
-      return qc.priv->parseCheckCompatibleClass(*oc.priv);
+      return qc->priv->parseCheckCompatibleClass(*(oc->priv));
    }
 
    DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {

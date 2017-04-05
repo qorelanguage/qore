@@ -607,7 +607,7 @@ qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass* n_qc) const {
    if (!qc)
       return QTI_AMBIGUOUS;
 
-   qore_type_result_e rc = qore_class_private::parseCheckCompatibleClass(*qc, *n_qc);
+   qore_type_result_e rc = qore_class_private::parseCheckCompatibleClass(qc, n_qc);
    if (rc == QTI_IDENT && !exact_return)
       return QTI_AMBIGUOUS;
    return rc;

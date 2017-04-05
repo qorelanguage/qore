@@ -622,11 +622,11 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
 
    // copy member list
    for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
-      members.addNoCheck(strdup(i->first), i->second->copy(this));
+      members.addNoCheck(strdup(i->first), i->second ? i->second->copy(this) : 0);
 
    // copy static var list
    for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
-      vars.addNoCheck(strdup(i->first), i->second->copy());
+      vars.addNoCheck(strdup(i->first), i->second ? i->second->copy() : 0);
 }
 
 qore_class_private::~qore_class_private() {
@@ -3556,7 +3556,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
       }
       return -1;
    }
-   else if (mi->parseHasTypeInfo() || omi->parseHasTypeInfo()) {
+   else if ((mi && mi->parseHasTypeInfo()) || (omi && omi->parseHasTypeInfo())) {
       if (getProgram()->getParseExceptionSink()) {
 	 QoreStringNode* desc = new QoreStringNode;
 	 desc->sprintf("%s %s ", privpub(mi->priv), var ? "static variable" : "member");
@@ -3565,7 +3565,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
 	    desc->concat("this class");
 	 else
 	    desc->sprintf("base class '%s'", qc->name.c_str());
-	 if (mi->parseHasTypeInfo())
+	 if (mi && mi->parseHasTypeInfo())
 	    desc->sprintf(" with a type definition");
 	 desc->concat(" and cannot be declared again");
 	 desc->sprintf(" in class '%s'", name.c_str());
