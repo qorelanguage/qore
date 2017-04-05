@@ -253,7 +253,7 @@ public:
    DLLLOCAL void dbg();
 
    DLLLOCAL static bool isValid(const RSet* rs) {
-      return rs ? rs->isValid() : false;
+      return rs ? rs->valid : false;
    }
 #endif
 
