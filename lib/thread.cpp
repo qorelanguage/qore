@@ -241,6 +241,89 @@ struct ParseConditionalStack {
    }
 };
 
+#define CNT_INIT_STEP 20
+#define CNT_INIT_TRIGGER 10
+
+struct ObjCount {
+    long long int count; /* the actual count */
+    long long int step; /* the next step, zeroed on each deletion */
+    long long int trigger; /* when to trigger next time */
+
+    ObjCount() : count(0), step(CNT_INIT_STEP), trigger(CNT_INIT_TRIGGER) { }
+};
+
+class ObjCounter {
+    private:
+        QoreRWLock rwl;
+        std::map<std::string, ObjCount> counter;
+
+    public:
+        void inc(const std::string &s)
+        {
+           ObjCount cnt;
+           std::string sl;
+           bool report = false;
+           {
+               QoreAutoRWWriteLocker al(rwl);
+               std::map<std::string, ObjCount>::iterator i =
+                   counter.insert(counter.end(),
+                                  std::pair<std::string, ObjCount>(s, ObjCount()));
+               i->second.count++;
+               if ((i->second).count >= (i->second).trigger)
+               {
+                   (i->second).trigger += (i->second).step;
+                   (i->second).step <<= 1;
+                   report = true;
+               }
+               sl = i->first;
+               cnt = i->second;
+           }
+           if (report)
+           {
+               printf("-> class %s count %lld next %lld step %lld\n", sl.c_str(), cnt.count, cnt.trigger, cnt.step);
+           }
+        }
+
+        void dec(const std::string &s)
+        {
+           ObjCount cnt;
+           bool report = false;
+           std::string sl;
+           {
+               QoreAutoRWWriteLocker al(rwl);
+               std::map<std::string, ObjCount>::iterator i = counter.find(s);
+               if (i != counter.end())
+               {
+                   (i->second).count--;
+                   (i->second).trigger = (i->second).count + CNT_INIT_TRIGGER;
+                   if ((i->second).step != CNT_INIT_STEP)
+                   {
+                       report = true;
+                       (i->second).step = CNT_INIT_STEP; /* reducing the step again to base */
+                   }
+               }
+               sl = i->first;
+               cnt = i->second;
+           }
+           if (report)
+           {
+               printf("<- class %s count %lld\n", sl.c_str(), cnt.count);
+           }
+        }
+};
+
+ObjCounter theCounter;
+
+void obj_counter_inc(const QoreClass *qc)
+{
+    theCounter.inc(qc->getName());
+}
+
+void obj_counter_dec(const QoreClass *qc)
+{
+    theCounter.dec(qc->getName());
+}
+
 // for detecting circular references at runtime
 typedef std::set<const lvalue_ref*> ref_set_t;
 

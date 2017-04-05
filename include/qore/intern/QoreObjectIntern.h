@@ -359,6 +359,10 @@ public:
    }
 };
 
+
+void obj_counter_inc(const QoreClass *qc);
+void obj_counter_dec(const QoreClass *qc);
+
 class qore_object_private {
 public:
    const QoreClass* theclass;
@@ -403,6 +407,8 @@ public:
 	 //p->depRef();
          p->ref();
       }
+
+      obj_counter_inc(oc);
    }
 
    DLLLOCAL ~qore_object_private() {
@@ -412,6 +418,7 @@ public:
 #ifdef DO_OBJ_RECURSIVE_CHECK
       assert(!rset);
 #endif
+      obj_counter_dec(theclass);
    }
 
    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
