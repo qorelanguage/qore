@@ -641,6 +641,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 }
 
 QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
    const QoreStringNode* p;
 
@@ -674,6 +675,7 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
 }
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    const QoreStringNode* fmt;
 
    if (!(fmt = test_string_param(params, offset)))
@@ -722,6 +724,7 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
 
    QoreValue pv = get_param_value(params, offset);
@@ -757,6 +760,7 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    QoreValue pv = get_param_value(params, offset);
    if (pv.getType() != NT_STRING)
       return new QoreStringNode;

@@ -598,6 +598,7 @@ public:
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
       : callobj((thread_data.get())->current_classobj), obj(0),
         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
+      assert(xsink);
       //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p callobj: %p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
 
       // first try to preregister the new thread

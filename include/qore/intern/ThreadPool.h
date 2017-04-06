@@ -222,6 +222,7 @@ protected:
    }
 
    DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
+      assert(xsink);
       std::auto_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
       if (!tpth->valid()) {
 	 assert(*xsink);
@@ -238,6 +239,7 @@ protected:
    }
 
    DLLLOCAL ThreadPoolThread* getThreadUnlocked(ExceptionSink* xsink) {
+      assert(xsink);
       while (!stopflag && fh.empty() && max && (int)ah.size() == max) {
 	 waiting = true;
 	 cond.wait(m);

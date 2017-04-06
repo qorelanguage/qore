@@ -50,6 +50,7 @@ public:
    DLLLOCAL ~HTTPInfoRefHelper() {
       // we have to create a temporary ExceptionSink if there is
       // an active exception, otherwise writing back the reference will fail
+      assert(xsink);
       ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
 
       // write info hash to reference

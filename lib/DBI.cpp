@@ -573,6 +573,7 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
 }
 
 int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink) {
+   assert(xsink);
    if (is_nothing(v) || is_null(v))
       return 0;
 

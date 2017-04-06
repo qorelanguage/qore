@@ -886,6 +886,7 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
 }
 
 int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
+   assert(xsink);
    if (members.empty())
       return 0;
 

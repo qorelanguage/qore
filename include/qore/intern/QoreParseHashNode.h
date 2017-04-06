@@ -115,16 +115,16 @@ protected:
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       for (size_t i = 0; i < keys.size(); ++i) {
          QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
 
          QoreNodeEvalOptionalRefHolder v(values[i], xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
 
          QoreStringValueHelper key(*k);
          h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
       }
       return h.release();

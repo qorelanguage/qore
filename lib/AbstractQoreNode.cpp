@@ -421,6 +421,7 @@ int64 getMicroSecZeroInt64(const AbstractQoreNode* a) {
 }
 
 static inline QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink* xsink) {
+   assert(xsink);
    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
@@ -431,6 +432,7 @@ static inline QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink*
 }
 
 static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
+   assert(xsink);
    ReferenceHolder<QoreValueList> l(new QoreValueList, xsink);
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
@@ -441,6 +443,7 @@ static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSin
 }
 
 static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
+   assert(xsink);
    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
    ConstHashIterator hi(n);
    while (hi.next()) {
@@ -473,6 +476,7 @@ static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, Excep
 }
 
 static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
+   assert(xsink);
    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
    //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
    if (args) {
@@ -487,6 +491,7 @@ static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, Excepti
 }
 
 static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, ExceptionSink* xsink) {
+   assert(xsink);
    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
    //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
    if (args) {
@@ -501,6 +506,7 @@ static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, 
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
+   assert(xsink);
    ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
    if (*xsink)
       return 0;
@@ -518,6 +524,7 @@ static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, Exce
 }
 
 static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {
+   assert(xsink);
    ReferenceHolder<AbstractQoreNode> exp(n->eval(xsink), xsink);
    if (*xsink)
       return 0;

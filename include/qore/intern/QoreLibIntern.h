@@ -134,11 +134,6 @@ extern char* strcasestr(const char* s1, const char* s2);
 
 typedef std::set<QoreObject*> obj_set_t;
 
-// check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
-DLLLOCAL inline bool qore_check_this(const void* p) {
-   return p;
-}
-
 // returns true if the node needs to be scanned for recursive references or not
 DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)

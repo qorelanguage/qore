@@ -62,6 +62,7 @@ Operator *OP_BIN_AND, *OP_BIN_OR, *OP_BIN_NOT, *OP_BIN_XOR, *OP_MINUS, *OP_PLUS,
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
+   assert(xsink);
    assert(*v);
    if (!(*v)->is_unique()) {
       AbstractQoreNode* old = *v;

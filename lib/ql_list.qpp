@@ -42,6 +42,7 @@ ResolvedCallReferenceNode* getCallReference(const QoreString* str, ExceptionSink
 }
 
 bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink) {
+   assert(xsink);
    ConstListIterator li(l);
    while (li.next()) {
       bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);

@@ -2470,6 +2470,7 @@ public:
    DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
    DLLLOCAL int initVar(const char* vname, QoreVarInfo& vi, ExceptionSink* xsink) const {
+      assert(xsink);
       if (vi.exp) {
          // evaluate expression
          ReferenceHolder<AbstractQoreNode> val(vi.exp->eval(xsink), xsink);

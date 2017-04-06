@@ -233,6 +233,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
+      assert(xsink);
       QoreSafeVarRWReadLocker sl(rml);
 
       if (status == OS_DELETED) {

@@ -140,6 +140,7 @@ struct OptInputHelper {
    }
 
    DLLLOCAL operator bool() const {
+      assert(xsink);
       return !*xsink;
    }
 };
@@ -157,6 +158,7 @@ struct qore_dbi_private {
    }
 
    DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
+      assert(xsink);
       int rc = f.open(ds, xsink);
       assert((!rc && !*xsink) || (rc && *xsink));
       // set option if init was successful
