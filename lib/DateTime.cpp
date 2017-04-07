@@ -377,9 +377,9 @@ const AbstractQoreZoneInfo* DateTime::getZone() const {
 }
 
 int qore_tm::secsEast() const {
-   return zone->getUTCOffset();
+   return AbstractQoreZoneInfo::getUTCOffset(zone);
 }
 
 const char* qore_tm::regionName() const {
-   return zone->getRegionName();
+   return AbstractQoreZoneInfo::getRegionName(zone);
 }

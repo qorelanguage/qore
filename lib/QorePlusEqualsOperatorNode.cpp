@@ -42,20 +42,20 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
    const QoreTypeInfo *rightTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!ti->isType(NT_LIST)
-       && !ti->isType(NT_HASH)
-       && !ti->isType(NT_OBJECT)
-       && !ti->isType(NT_STRING)
-       && !ti->isType(NT_FLOAT)
-       && !ti->isType(NT_NUMBER)
-       && !ti->isType(NT_DATE)
-       && !ti->isType(NT_BINARY)) {
+   if (!QoreTypeInfo::isType(ti, NT_LIST)
+       && !QoreTypeInfo::isType(ti, NT_HASH)
+       && !QoreTypeInfo::isType(ti, NT_OBJECT)
+       && !QoreTypeInfo::isType(ti, NT_STRING)
+       && !QoreTypeInfo::isType(ti, NT_FLOAT)
+       && !QoreTypeInfo::isType(ti, NT_NUMBER)
+       && !QoreTypeInfo::isType(ti, NT_DATE)
+       && !QoreTypeInfo::isType(ti, NT_BINARY)) {
       // if the lhs type is not one of the above types,
       // there are 2 possibilities: the lvalue has no value, in which
       // case it takes the value of the right side, or if it's anything else it's
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
-      if (ti->returnsSingle()) {
+      if (QoreTypeInfo::returnsSingle(ti)) {
 	 check_lvalue_int(ti, "+=");
 	 ti = bigIntTypeInfo;
 	 return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
@@ -91,8 +91,8 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
-      if (typeInfo->hasDefaultValue()) {
-         if (v.assign(typeInfo->getDefaultValue()))
+      if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
+         if (v.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
             return QoreValue();
          vtype = v.getType();
       }

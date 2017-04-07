@@ -95,10 +95,10 @@ AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar* oflag, int pfla
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-      if (expTypeInfo && codeTypeInfo && expTypeInfo->hasType() && !codeTypeInfo->parseAccepts(expTypeInfo)) {
+      if (expTypeInfo && codeTypeInfo && QoreTypeInfo::hasType(expTypeInfo) && !QoreTypeInfo::parseAccepts(codeTypeInfo, expTypeInfo)) {
 	 // raise parse exception
 	 QoreStringNode* desc = new QoreStringNode("invalid call; expression gives ");
-	 expTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->concat(", but a call reference or closure is required to make a call");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -275,16 +275,16 @@ AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag,
       const QoreTypeInfo* argTypeInfo = 0;
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
 
-      if (argTypeInfo->hasType()) {
-	 if (objectTypeInfo && argTypeInfo && !objectTypeInfo->parseAccepts(argTypeInfo)) {
+      if (QoreTypeInfo::hasType(argTypeInfo)) {
+	 if (objectTypeInfo && argTypeInfo && !QoreTypeInfo::parseAccepts(objectTypeInfo, argTypeInfo)) {
 	    // raise parse exception
 	    QoreStringNode* desc = new QoreStringNode("invalid call; object expression gives ");
-	    argTypeInfo->getThisType(*desc);
+	    QoreTypeInfo::getThisType(argTypeInfo, *desc);
 	    desc->concat(", but should resolve to an object to make a call with this syntax");
 	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
 	 }
 	 else {
-	    const QoreClass* n_qc = argTypeInfo->getUniqueReturnClass();
+	    const QoreClass* n_qc = QoreTypeInfo::getUniqueReturnClass(argTypeInfo);
 	    if (n_qc) {
 	       bool m_priv = false;
 	       m = qore_class_private::parseFindMethodTree(*const_cast<QoreClass*>(n_qc), method.c_str(), m_priv);
@@ -418,7 +418,7 @@ AbstractQoreNode* UnresolvedCallReferenceNode::parseInit(LocalVar* oflag, int pf
    // try to resolve a method call if bare references are allowed
    // and we are parsing in an object context
    if (parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag) {
-      const QoreClass* qc = oflag->getTypeInfo()->getUniqueReturnClass();
+      const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
       const QoreMethod* m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), str);
       if (m) {
 	 ParseSelfMethodReferenceNode* rv = new ParseSelfMethodReferenceNode(m);
@@ -536,7 +536,7 @@ AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* o
    const QoreMethod* qm = 0;
    // try to find a pointer to a non-static method if parsing in the class' context
    // and bare references are enabled
-   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && oflag->getTypeInfo()->getUniqueReturnClass()->parseCheckHierarchy(qc)) {
+   if (oflag && parse_check_parse_option(PO_ALLOW_BARE_REFS) && QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())->parseCheckHierarchy(qc)) {
       bool m_priv = false;
       qm = qore_class_private::parseFindMethodTree(*qc, scope->getIdentifier(), m_priv);
       assert(!qm || !qm->isStatic());

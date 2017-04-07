@@ -143,7 +143,7 @@ QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsin
    TempString str(getEncoding());
    str->concat('"');
    str->concatEscape(this, '\"', '\\', xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return 0;
    str->concat('"');
    return str.release();
@@ -152,7 +152,7 @@ QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsin
 int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat('"');
    str.concatEscape(this, '\"', '\\', xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return -1;
    str.concat('"');
    return 0;
@@ -288,6 +288,7 @@ void QoreStringNode::getDateTimeRepresentation(DateTime &dt) const {
 }
 
 bool QoreStringNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+   assert(xsink);
    if (get_node_type(v) == NT_STRING)
       return equalSoft(*reinterpret_cast<const QoreStringNode*>(v), xsink);
    QoreStringValueHelper str(v, getEncoding(), xsink);

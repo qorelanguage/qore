@@ -87,6 +87,7 @@ static void tp_start_thread(ExceptionSink* xsink, ThreadPool* tp) {
 
 ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle, int n_release_ms) :
    max(n_max), minidle(n_minidle), maxidle(n_maxidle), release_ms(n_release_ms), quit(false), waiting(false), stopflag(false), stopped(false), confirm(false) {
+   assert(xsink);
    if (max < 0)
       max = 0;
    if (minidle < 0)

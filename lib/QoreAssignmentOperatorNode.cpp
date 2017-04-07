@@ -39,7 +39,7 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, ti->getName());
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, QoreTypeInfo::getName(ti));
    checkLValue(left, pflag);
 
    // return type info is the same as the lvalue's typeinfo
@@ -57,19 +57,19 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    if (oflag)
       check_self_assignment(left, oflag);
 
-   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, ti->getName(), get_type_name(right), r->getName());
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, QoreTypeInfo::getName(ti), get_type_name(right), QoreTypeInfo::getName(r));
 
    if (left->getType() == NT_VARREF && right->getType() == NT_VARREF
        && !strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName()))
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode *>(left)->getName()));
 
-   if (ti->hasType() && r->hasType() && !ti->parseAccepts(r)) {
+   if (QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && !QoreTypeInfo::parseAccepts(ti, r)) {
       if (getProgram()->getParseExceptionSink()) {
-	 QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-	 ti->getThisType(*edesc);
-	 edesc->concat(", but right-hand side is ");
-	 r->getThisType(*edesc);
-	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+         QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+         QoreTypeInfo::getThisType(ti, *edesc);
+         edesc->concat(", but right-hand side is ");
+         QoreTypeInfo::getThisType(r, *edesc);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
       }
    }
 

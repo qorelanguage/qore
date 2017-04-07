@@ -369,7 +369,7 @@ bool b = d.isDst();
 bool <date>::isDst() [flags=CONSTANT] {
    bool is_dst;
 
-   dt->getZone()->getUTCOffset(dt->getEpochSecondsUTC(), is_dst);
+   AbstractQoreZoneInfo::getUTCOffset(dt->getZone(), dt->getEpochSecondsUTC(), is_dst);
    return is_dst;
 }
 
@@ -402,7 +402,7 @@ bool <date>::isDst() [flags=CONSTANT] {
    bool is_dst;
    const char *zone_name;
 
-   dt->getZone()->getUTCOffset(dt->getEpochSecondsUTC(), is_dst, zone_name);
+   AbstractQoreZoneInfo::getUTCOffset(dt->getZone(), dt->getEpochSecondsUTC(), is_dst, zone_name);
    return new QoreStringNode(zone_name);
 }
 
@@ -416,7 +416,7 @@ int utcoffset = d.getUtcOffset();
     @endcode
  */
 int <date>::getUtcOffset() [flags=CONSTANT] {
-   return dt->getZone()->getUTCOffset();
+   return AbstractQoreZoneInfo::getUTCOffset(dt->getZone());
 }
 
 //! Returns @ref False if the date value is all zeros, @ref True if not

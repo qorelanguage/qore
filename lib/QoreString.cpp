@@ -1203,7 +1203,7 @@ bool QoreString::equalSoft(const QoreString& str, ExceptionSink* xsink) const {
       return false;
 
    TempEncodingHelper t(str, priv->getEncoding(), xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return false;
 
    return !strcmp(priv->buf, t->getBuffer());
@@ -1224,7 +1224,7 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
       return false;
 
    TempEncodingHelper t(str, priv->getEncoding(), xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return false;
 
    return !strncmp(priv->buf, t->getBuffer(), t->size());
@@ -1245,7 +1245,7 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
       return false;
 
    TempEncodingHelper t(str, priv->getEncoding(), xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return false;
 
    int rc = !strncmp(priv->buf, t->getBuffer(), t->size());
@@ -1829,6 +1829,7 @@ void QoreString::concatDecodeUrl(const char* url) {
 
 // assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
 int QoreString::concatDecodeUrl(const QoreString& url_str, ExceptionSink* xsink) {
+   assert(xsink);
    TempEncodingHelper str(url_str, priv->getEncoding(), xsink);
    if (*xsink)
       return -1;
@@ -1838,6 +1839,7 @@ int QoreString::concatDecodeUrl(const QoreString& url_str, ExceptionSink* xsink)
 
 // assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
 int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all) {
+   assert(xsink);
    if (!url.size())
       return 0;
 
@@ -1876,6 +1878,7 @@ int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, boo
 }
 
 int QoreString::concatEncodeUriRequest(ExceptionSink* xsink, const QoreString& url) {
+   assert(xsink);
    if (!url.size())
       return 0;
 
@@ -1887,6 +1890,7 @@ int QoreString::concatEncodeUriRequest(ExceptionSink* xsink, const QoreString& u
 }
 
 int QoreString::concatDecodeUriRequest(const QoreString& url_str, ExceptionSink* xsink) {
+   assert(xsink);
    TempEncodingHelper str(url_str, priv->getEncoding(), xsink);
    if (*xsink)
       return -1;
@@ -1941,6 +1945,7 @@ void QoreString::concat(const QoreString* str, ExceptionSink* xsink) {
 }
 
 void QoreString::concat(const QoreString* str, qore_size_t size, ExceptionSink* xsink) {
+   assert(xsink);
    // if it's not a null string
    if (str && str->priv->len) {
       TempEncodingHelper cstr(str, priv->getEncoding(), xsink);
@@ -1964,6 +1969,7 @@ void QoreString::concat(const QoreString* str, qore_size_t size, ExceptionSink* 
 }
 
 int QoreString::concat(const QoreString& str, qore_offset_t pos, ExceptionSink* xsink) {
+   assert(xsink);
    if (str.empty())
       return 0;
 
@@ -1975,6 +1981,7 @@ int QoreString::concat(const QoreString& str, qore_offset_t pos, ExceptionSink* 
 }
 
 int QoreString::concat(const QoreString& str, qore_offset_t pos, qore_offset_t len, ExceptionSink* xsink) {
+   assert(xsink);
    if (str.empty() || !len)
       return 0;
 
@@ -2070,6 +2077,7 @@ int QoreString::substr_simple(QoreString* ns, qore_offset_t offset) const {
 }
 
 int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const {
+   assert(xsink);
    QORE_TRACE("QoreString::substr_complex(offset, length)");
    printd(5, "QoreString::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
 	  offset, length, priv->buf, this, priv->len);
@@ -2110,6 +2118,7 @@ int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset
 }
 
 int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, ExceptionSink* xsink) const {
+   assert(xsink);
    //printd(5, "QoreString::substr_complex(offset="QSD") string=\"%s\" (this=%p priv->len="QSD")\n", offset, priv->buf, this, priv->len);
    char* pend = priv->buf + priv->len;
    if (offset < 0) {
@@ -2199,6 +2208,7 @@ void QoreString::splice_simple(qore_size_t offset, qore_size_t num, const char* 
 }
 
 void QoreString::splice_complex(qore_offset_t offset, ExceptionSink* xsink, QoreString* extract) {
+   assert(xsink);
    // get length in chars
    qore_size_t clen = priv->getEncoding()->getLength(priv->buf, priv->buf + priv->len, xsink);
    if (*xsink)
@@ -2228,6 +2238,7 @@ void QoreString::splice_complex(qore_offset_t offset, ExceptionSink* xsink, Qore
 }
 
 void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, ExceptionSink* xsink, QoreString* extract) {
+   assert(xsink);
    //printd(5, "splice_complex(offset="QSD", num="QSD", priv->len="QSD")\n", offset, num, priv->len);
 
    // get length in chars
@@ -2286,6 +2297,7 @@ void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, Excepti
 }
 
 void QoreString::splice_complex(qore_offset_t offset, qore_offset_t num, const QoreString* str, ExceptionSink* xsink, QoreString* extract) {
+   assert(xsink);
    // get length in chars
    qore_size_t clen = priv->getEncoding()->getLength(priv->buf, priv->buf + priv->len, xsink);
    if (*xsink)
@@ -2366,7 +2378,7 @@ int QoreString::compareSoft(const QoreString* str, ExceptionSink* xsink) const {
    }
 
    TempEncodingHelper t(str, priv->getEncoding(), xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return 1;
 
    return strcmp(priv->buf, t->priv->buf);
@@ -2399,7 +2411,7 @@ void QoreString::concatEscape(const QoreString* str, char c, char esc_char, Exce
    // if it's not a null string
    if (str && str->priv->len) {
       TempEncodingHelper cstr(str, priv->getEncoding(), xsink);
-      if (*xsink)
+      if (xsink && *xsink)
 	 return;
 
       // if priv->buffer needs to be resized

@@ -55,12 +55,12 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    //   parse_error("the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
    checkLValue(lvalue_exp, pflag);
 
-   if (expTypeInfo->hasType()) {
-      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)
-            && !expTypeInfo->parseAcceptsReturns(NT_BINARY)
-            && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
+      if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
+            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
+            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
-	 expTypeInfo->getThisType(*desc);
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
 	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
@@ -71,15 +71,15 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    // check offset expression
    expTypeInfo = 0;
    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-   if (expTypeInfo->nonNumericValue())
-      expTypeInfo->doNonNumericWarning("the offset expression (2nd position) with the 'extract' operator is ");
+   if (QoreTypeInfo::nonNumericValue(expTypeInfo))
+      QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the offset expression (2nd position) with the 'extract' operator is ");
 
    // check length expression, if any
    if (length_exp) {
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-      if (expTypeInfo->nonNumericValue())
-	 expTypeInfo->doNonNumericWarning("the length expression (3nd position) with the 'extract' operator is ");
+      if (QoreTypeInfo::nonNumericValue(expTypeInfo))
+         QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'extract' operator is ");
    }
 
    // check new value expression, if any
@@ -123,7 +123,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
-         if (val.assign(typeInfo->getDefaultValue()))
+         if (val.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
             return QoreValue();
          vt = val.getType();
       }

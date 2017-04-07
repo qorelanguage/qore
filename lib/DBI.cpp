@@ -251,12 +251,12 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    const QoreTypeInfo* ti = i->second.typeInfo;
 
-   if (!ti->mayRequireFilter(v))
+   if (!QoreTypeInfo::mayRequireFilter(ti, v))
       return;
 
    tmp = true;
    val->ref();
-   val = ti->acceptInputParam(-1, "<dbi driver option>", val, xsink);
+   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
@@ -573,6 +573,7 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
 }
 
 int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink) {
+   assert(xsink);
    if (is_nothing(v) || is_null(v))
       return 0;
 

@@ -108,7 +108,7 @@ public:
 
    DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
       for (unsigned i = 0; i < typeList.size(); ++i) {
-         str.append(typeList[i]->getName());
+         str.append(QoreTypeInfo::getName(typeList[i]));
          if (i != typeList.size() - 1)
             str.append(",");
       }
@@ -220,9 +220,9 @@ public:
 
       for (unsigned i = 0; i < parseTypeList.size(); ++i) {
          if (!parseTypeList[i] && typeList.size() > i && typeList[i])
-            str.append(typeList[i]->getName());
+            str.append(QoreTypeInfo::getName(typeList[i]));
          else
-            str.append(parseTypeList[i]->getName());
+            str.append(QoreParseTypeInfo::getName(parseTypeList[i]));
          if (i != parseTypeList.size() - 1)
             str.append(",");
       }
@@ -474,6 +474,7 @@ protected:
 
 public:
    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+      assert(xsink);
       if (*xsink || uvb->setupCall(ceh, argv, xsink))
 	 uvb = 0;
    }
@@ -588,7 +589,7 @@ protected:
 
          if (i == pending_vlist.begin()) {
             if (!vlist.empty()) {
-               if (!rti->isOutputIdentical(first()->getReturnTypeInfo())) {
+               if (!QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo())) {
                   parse_same_return_type = false;
                   break;
                }
@@ -596,7 +597,7 @@ protected:
             continue;
          }
 
-         if (!rti->isOutputIdentical(pending_first()->getReturnTypeInfo())) {
+         if (!QoreTypeInfo::isOutputIdentical(rti, pending_first()->getReturnTypeInfo())) {
             parse_same_return_type = false;
             break;
          }
@@ -630,7 +631,7 @@ protected:
    // FIXME: does not check unparsed types properly
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant* variant) {
       const QoreTypeInfo* rti = variant->getReturnTypeInfo();
-      if (same_return_type && !vlist.empty() && !rti->isOutputIdentical(first()->getReturnTypeInfo()))
+      if (same_return_type && !vlist.empty() && !QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo()))
 	 same_return_type = false;
 
       int64 vf = variant->getFunctionality();
@@ -657,7 +658,7 @@ protected:
          else {
             nn_unique_functionality &= vf;
             nn_unique_flags &= vflags;
-            if (nn_uniqueReturnType && !rti->isOutputIdentical(nn_uniqueReturnType))
+            if (nn_uniqueReturnType && !QoreTypeInfo::isOutputIdentical(rti, nn_uniqueReturnType))
                nn_uniqueReturnType = 0;
             ++nn_count;
          }

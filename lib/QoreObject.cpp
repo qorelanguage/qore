@@ -137,7 +137,7 @@ void qore_object_private::merge(const QoreHashNode* h, AutoVLock& vl, ExceptionS
             return;
 
          // check type compatibility and perform type translations, if any
-         ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+         ReferenceHolder<AbstractQoreNode> val(QoreTypeInfo::acceptInputMember(ti, hi.getKey(), hi.getReferencedValue(), xsink), xsink);
          if (*xsink)
             return;
 
@@ -182,7 +182,7 @@ AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const ch
    }
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   return data->swapKeyValue(key, mti->getDefaultValue());
+   return data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
    return data->swapKeyValue(key, 0);
 #endif
@@ -204,7 +204,7 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
 
    AbstractQoreNode* rv;
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   rv = data->swapKeyValue(key, mti->getDefaultValue());
+   rv = data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
    rv = data->swapKeyValue(key, 0);
 #endif
@@ -245,7 +245,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
          return;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      AbstractQoreNode* n = data->swapKeyValue(key, mti->getDefaultValue());
+      AbstractQoreNode* n = data->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti));
 #else
       AbstractQoreNode* n = data->swapKeyValue(key, 0);
 #endif
@@ -275,7 +275,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, bool inte
 
    qolhm.stay_locked();
 
-   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d\n", this, theclass->getName(), key, mti->getName(), for_remove);
+   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d\n", this, theclass->getName(), key, QoreTypeInfo::getName(mti), for_remove);
    // save lvalue type info
    lvh.setTypeInfo(mti);
 
@@ -363,7 +363,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                // rset can be changed unless the rsection is acquired
                sl.acquireRSection();
 
-               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references, rrefs, deferred_scan, qodh.doScan());
+               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, RSet::isValid(rset), rcount, ref_copy, references, rrefs, deferred_scan, qodh.doScan());
 
                int rc;
                RSet* rs = rset;

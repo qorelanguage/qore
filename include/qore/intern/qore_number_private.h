@@ -380,7 +380,7 @@ struct qore_number_private : public qore_number_private_intern {
       if (xsink)
          checkFlags(xsink);
 
-      return *xsink ? 0 : p.release();
+      return (xsink && *xsink) ? 0 : p.release();
    }
 
    DLLLOCAL qore_number_private* doPlus(const qore_number_private& r) const {

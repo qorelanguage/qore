@@ -66,13 +66,13 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
 
    // check for optimizations based on type, but only assign if neither side is a string or number (highest priority)
    // and types are known for both operands (if not, QoreTypeInfo::parseReturnsType(NT_STRING) will return QTI_AMBIGUOUS
-   if (!lti->parseReturnsType(NT_STRING) && !rti->parseReturnsType(NT_STRING)
-      && !lti->parseReturnsType(NT_NUMBER) && !rti->parseReturnsType(NT_NUMBER)) {
-      if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
+   if (!QoreTypeInfo::parseReturnsType(lti, NT_STRING) && !QoreTypeInfo::parseReturnsType(rti, NT_STRING)
+      && !QoreTypeInfo::parseReturnsType(lti, NT_NUMBER) && !QoreTypeInfo::parseReturnsType(rti, NT_NUMBER)) {
+      if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT))
          pfunc = &QoreLogicalEqualsOperatorNode::floatSoftEqual;
-      else if (lti->isType(NT_INT) || rti->isType(NT_INT))
+      else if (QoreTypeInfo::isType(lti, NT_INT) || QoreTypeInfo::isType(rti, NT_INT))
          pfunc = &QoreLogicalEqualsOperatorNode::bigIntSoftEqual;
-      else if (lti->isType(NT_BOOLEAN) || rti->isType(NT_BOOLEAN))
+      else if (QoreTypeInfo::isType(lti, NT_BOOLEAN) || QoreTypeInfo::isType(rti, NT_BOOLEAN))
          pfunc = &QoreLogicalEqualsOperatorNode::boolSoftEqual;
    }
 

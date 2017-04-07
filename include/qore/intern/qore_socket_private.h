@@ -912,6 +912,7 @@ struct qore_socket_private {
 #endif
 
    DLLLOCAL bool tryReadSocketData(const char* mname, ExceptionSink* xsink) {
+      assert(xsink);
       assert(!buflen);
       bool b = asyncIoWait(0, true, false, "Socket", mname, xsink);
       if (b || !ssl)
@@ -1696,6 +1697,7 @@ struct qore_socket_private {
 
       th.finalize(str->size());
 
+      assert(xsink);
       return *xsink ? 0 : str.release();
    }
 
@@ -1753,6 +1755,7 @@ struct qore_socket_private {
 
       th.finalize(str->size());
 
+      assert(xsink);
       if (*xsink)
 	 return 0;
 
@@ -1804,6 +1807,7 @@ struct qore_socket_private {
 
       th.finalize(b->size());
 
+      assert(xsink);
       if (*xsink)
 	 return 0;
 
@@ -1870,6 +1874,7 @@ struct qore_socket_private {
 
       th.finalize(b->size());
 
+      assert(xsink);
       if (*xsink)
 	 return 0;
 
@@ -1882,7 +1887,7 @@ struct qore_socket_private {
       qore_offset_t rc;
       QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeaderString", timeout, rc));
       if (!hdr) {
-	 assert(*xsink);
+	 assert(xsink && *xsink);
 	 return 0;
       }
       assert(rc > 0);
@@ -1892,7 +1897,7 @@ struct qore_socket_private {
    DLLLOCAL AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout, qore_offset_t& rc, int source) {
       QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeader", timeout, rc));
       if (!hdr) {
-	 assert(*xsink);
+	 assert(xsink && *xsink);
 	 return 0;
       }
       assert(rc > 0);
@@ -2025,6 +2030,7 @@ struct qore_socket_private {
       }
 
       // check exception and socket status
+      assert(xsink);
       if (*xsink)
          return -1;
 
@@ -2061,6 +2067,7 @@ struct qore_socket_private {
       bool nb = (timeout_ms >= 0);
       // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
       OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      assert(xsink);
       if (*xsink)
          return -1;
 
@@ -2285,6 +2292,7 @@ struct qore_socket_private {
       bool nb = (timeout_ms >= 0);
       // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
       OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+      assert(xsink);
       if (*xsink)
          return -1;
 
