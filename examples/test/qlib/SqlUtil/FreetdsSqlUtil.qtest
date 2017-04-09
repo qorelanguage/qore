@@ -140,6 +140,12 @@ class FreetdsTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new FreetdsTestSchema(ds);
 

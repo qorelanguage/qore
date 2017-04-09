@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -145,7 +145,7 @@ protected:
          return QTI_AMBIGUOUS;
 
       if (accepts_mult)
-	 return parseAcceptsClassMult(n_qc);
+         return parseAcceptsClassMult(n_qc);
 
       return matchClassIntern(n_qc);
    }
@@ -284,7 +284,7 @@ protected:
 
    DLLLOCAL qore_type_result_e matchTypeIntern(qore_type_t t, bool n_is_int) const {
       if (qt == NT_ALL || t == NT_ALL)
-	 return QTI_AMBIGUOUS;
+         return QTI_AMBIGUOUS;
 
       if (qt == t)
          return exact_return ? QTI_IDENT : QTI_AMBIGUOUS;
@@ -395,34 +395,6 @@ protected:
          doAcceptError(false, obj, param_num, param_name, n, xsink);
    }
 
-   /*
-   // returns -1 for error encountered, 0 for OK
-   // can only be called with accepts_mult is false
-   DLLLOCAL int runtimeAcceptInputIntern(bool& priv_error, AbstractQoreNode* n) const;
-
-   // returns -1 for error encountered, 0 for OK
-   DLLLOCAL int acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const;
-
-   DLLLOCAL AbstractQoreNode* acceptInputIntern(bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const {
-      if (!input_filter) {
-         bool priv_error = false;
-         if (acceptInputDefault(priv_error, n))
-            doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
-         return n;
-      }
-
-      // first check if input matches default type
-      bool priv_error = false;
-      if (!runtimeAcceptInputIntern(priv_error, n))
-         return n;
-
-      if (!acceptInputImpl(n, xsink) && !*xsink)
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-
-      return n;
-   }
-   */
-
    DLLLOCAL bool isTypeIdenticalIntern(const QoreTypeInfo* typeInfo) const {
       if (qt != typeInfo->qt)
          return false;
@@ -460,12 +432,12 @@ protected:
    DLLLOCAL static void getNodeType(QoreString& str, const QoreValue n) {
       qore_type_t nt = n.getType();
       if (nt == NT_NOTHING) {
-	 str.concat("no value");
-	 return;
+         str.concat("no value");
+         return;
       }
       if (nt != NT_OBJECT) {
-	 str.sprintf("type '%s'", n.getTypeName());
-	 return;
+         str.sprintf("type '%s'", n.getTypeName());
+         return;
       }
       str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
    }
@@ -595,20 +567,6 @@ public:
    DLLLOCAL static bool isClass(const QoreTypeInfo* ti, const QoreClass* n_qc) {
       return ti ? ti->isClass(n_qc) : false;
    }
-
-   /*
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const AbstractQoreNode* n) const {
-      if (!hasType() || accepts_all)
-         return QTI_AMBIGUOUS;
-
-      qore_type_t t = get_node_type(n);
-
-      if (t == NT_OBJECT)
-         return runtimeAcceptsClass(reinterpret_cast<const QoreObject*>(n)->getClass());
-
-      return parseAcceptsType(t, t == NT_INT);
-   }
-   */
 
    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue n) const {
       if (!hasType() || accepts_all)
@@ -834,16 +792,6 @@ public:
       if (ti)
          ti->acceptAssignment(text, n, xsink);
    }
-
-/*
-   DLLLOCAL AbstractQoreNode* acceptAssignment(const char* text, AbstractQoreNode* n, ExceptionSink* xsink) const {
-      if (!hasType())
-         return n;
-      QoreValue v(n);
-      acceptAssignment(text, v, xsink);
-      return v.takeNode();
-   }
-*/
 
    DLLLOCAL bool hasDefaultValue() const {
       if (!hasType())
@@ -2157,7 +2105,7 @@ protected:
       }
 
       if (t == NT_FLOAT) {
-         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
          return true;
       }
 
@@ -2211,7 +2159,7 @@ protected:
       }
 
       if (t == NT_FLOAT) {
-         discard(n.assign(new QoreStringNodeMaker("%.9g", n.getAsFloat())), xsink);
+         discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
          return true;
       }
 

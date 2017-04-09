@@ -29,12 +29,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/OnBlockExitStatement.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/OnBlockExitStatement.h"
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -157,7 +157,7 @@ VariableBlockHelper::VariableBlockHelper() {
 }
 
 VariableBlockHelper::~VariableBlockHelper() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    updateVStack(vnode->next);
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
@@ -314,7 +314,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
 }
 
 int pop_local_var_get_id() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    int refs = vnode->refCount();
    printd(5, "pop_local_var_get_id(): popping var %s (refs=%d)\n", vnode->lvar->getName(), refs);
@@ -323,7 +323,7 @@ int pop_local_var_get_id() {
 }
 
 LocalVar* pop_local_var(bool set_unassigned) {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    LocalVar* rc = vnode->lvar;
    if (set_unassigned)
