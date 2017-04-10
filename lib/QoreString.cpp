@@ -590,7 +590,7 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
    //printd(5, "qore_string_private::convert_encoding_intern() %s -> %s len: " QSD " src='%s'\n", from->getCode(), nccs->getCode(), src_len, src);
 
    IconvHelper c(nccs, from, xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return -1;
 
    // now convert value

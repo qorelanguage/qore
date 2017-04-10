@@ -93,7 +93,7 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
 QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    FunctionalValueType value_type;
    std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
-   if (*xsink || value_type != list || !ref_rv)
+   if ((xsink && *xsink) || value_type != list || !ref_rv)
       return QoreValue();
 
    ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
@@ -103,7 +103,7 @@ QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       if (f->getNext(iv, xsink))
          break;
 
-      if (*xsink)
+      if (xsink && *xsink)
          return QoreValue();
 
       rv->push(iv.getReferencedValue());
@@ -114,7 +114,7 @@ QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
 FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
    ValueEvalRefHolder marg(exp, xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return 0;
 
    qore_type_t t = marg->getType();
