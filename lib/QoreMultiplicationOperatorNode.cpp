@@ -80,13 +80,13 @@ AbstractQoreNode* QoreMultiplicationOperatorNode::parseInitImpl(LocalVar* oflag,
    }
 
    // if either side is a float, then the return type is float (highest priority)
-   if (leftTypeInfo->isType(NT_FLOAT) || rightTypeInfo->isType(NT_FLOAT))
+   if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
       returnTypeInfo = floatTypeInfo;
 
    // otherwise only set return type if return types on both sides are known at parse time
-   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_INT) && rightTypeInfo->isType(NT_INT))
-	 returnTypeInfo = bigIntTypeInfo;
+   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) && QoreTypeInfo::isType(rightTypeInfo, NT_INT))
+         returnTypeInfo = bigIntTypeInfo;
    }
 
    return this;

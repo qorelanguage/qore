@@ -52,30 +52,30 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
       AbstractQoreNode* v = li.parseInit(prototypeInfo);
 
       if (v) {
-	 if (check_lvalue(v))
-	    parse_error("expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
-	 else if ((pflag & PF_BACKGROUND) && v->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(v)->getType() == VT_LOCAL)
+         if (check_lvalue(v))
+            parse_error("expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
+         else if ((pflag & PF_BACKGROUND) && v->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(v)->getType() == VT_LOCAL)
             parse_error("illegal local variable modification with the background operator in position %d of left-hand-side list in list assignment", li.index() + 1);
       }
 
       // check for illegal assignment to $self
       if (oflag)
-	 check_self_assignment(v, oflag);
+         check_self_assignment(v, oflag);
 
       ri.parseInit(argInfo);
 
-      if (prototypeInfo->hasType()) {
-	 if (!prototypeInfo->parseAccepts(argInfo)) {
-	    // raise an exception only if parse exceptions are not disabled
-	    if (getProgram()->getParseExceptionSink()) {
-	       QoreStringNode* edesc = new QoreStringNode("lvalue for ListAssignment operator in position ");
-	       edesc->sprintf("%d of list ListAssignment expects ", li.index() + 1);
-	       prototypeInfo->getThisType(*edesc);
-	       edesc->concat(", but right-hand side is ");
-	       argInfo->getThisType(*edesc);
-	       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-	    }
-	 }
+      if (QoreTypeInfo::hasType(prototypeInfo)) {
+         if (!QoreTypeInfo::parseAccepts(prototypeInfo, argInfo)) {
+            // raise an exception only if parse exceptions are not disabled
+            if (getProgram()->getParseExceptionSink()) {
+               QoreStringNode* edesc = new QoreStringNode("lvalue for ListAssignment operator in position ");
+               edesc->sprintf("%d of list ListAssignment expects ", li.index() + 1);
+               QoreTypeInfo::getThisType(prototypeInfo, *edesc);
+               edesc->concat(", but right-hand side is ");
+               QoreTypeInfo::getThisType(argInfo, *edesc);
+               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+            }
+         }
       }
    }
 
@@ -107,20 +107,20 @@ QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Excep
       // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
       LValueHelper v(lv, xsink);
       if (!v)
-	 return QoreValue();
+         return QoreValue();
 
       // if there's only one value, then save it
       if (nv) { // assign to list position
-	 v.assign(nv->get_referenced_entry(i));
+         v.assign(nv->get_referenced_entry(i));
       }
       else {
-	 if (!i)
-	    v.assign(new_value.getReferencedValue());
-	 else
-	    v.assign(QoreValue());
+         if (!i)
+            v.assign(new_value.getReferencedValue());
+         else
+            v.assign(QoreValue());
       }
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
 
    return ref_rv ? new_value.getReferencedValue() : QoreValue();

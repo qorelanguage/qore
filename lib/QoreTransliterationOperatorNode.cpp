@@ -70,10 +70,10 @@ AbstractQoreNode *QoreTransliterationOperatorNode::parseInitImpl(LocalVar *oflag
    const QoreTypeInfo *leftTypeInfo = 0;
    exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
-   if (!leftTypeInfo->parseAcceptsReturns(NT_STRING)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_STRING)) {
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
       desc->sprintf("%s operator is ", op_str.c_str());
-      leftTypeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(leftTypeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;

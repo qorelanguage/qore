@@ -53,19 +53,19 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
    const QoreTypeInfo *expTypeInfo = 0;
    exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-   if (expTypeInfo->hasType()) {
-      if (expTypeInfo->isType(NT_HASH) || expTypeInfo->isType(NT_OBJECT))
-	 returnTypeInfo = listTypeInfo;
-      else if (!hashTypeInfo->parseAccepts(expTypeInfo)
-	       && !objectTypeInfo->parseAccepts(expTypeInfo)) {
-	 QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
-	 expTypeInfo->getThisType(*edesc);
-	 edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
+      if (QoreTypeInfo::isType(expTypeInfo, NT_HASH) || QoreTypeInfo::isType(expTypeInfo, NT_OBJECT))
+         returnTypeInfo = listTypeInfo;
+      else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, expTypeInfo)
+         && !QoreTypeInfo::parseAccepts(objectTypeInfo, expTypeInfo)) {
+         QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
+         QoreTypeInfo::getThisType(expTypeInfo, *edesc);
+         edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         returnTypeInfo = nothingTypeInfo;
       }
       else
-	 returnTypeInfo = listOrNothingTypeInfo;
+         returnTypeInfo = listOrNothingTypeInfo;
    }
    else
       returnTypeInfo = listOrNothingTypeInfo;
@@ -74,14 +74,14 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
       ReferenceHolder<> holder(this, 0);
       qore_type_t t = get_node_type(exp);
       if (t == NT_HASH || t == NT_OBJECT) {
-	 ValueEvalRefHolder rv(this, 0);
-	 AbstractQoreNode* v = rv->isNothing() ? &Nothing : rv.getReferencedValue();
-	 typeInfo = getTypeInfoForValue(v);
-	 return v;
+         ValueEvalRefHolder rv(this, 0);
+         AbstractQoreNode* v = rv->isNothing() ? &Nothing : rv.getReferencedValue();
+         typeInfo = getTypeInfoForValue(v);
+         return v;
       }
       else {
-	 typeInfo = nothingTypeInfo;
-	 return &Nothing;
+         typeInfo = nothingTypeInfo;
+         return &Nothing;
       }
    }
 
@@ -101,10 +101,10 @@ QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
    while (true) {
       ValueOptionalRefHolder iv(xsink);
       if (f->getNext(iv, xsink))
-	 break;
+         break;
 
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       rv->push(iv.getReferencedValue());
    }

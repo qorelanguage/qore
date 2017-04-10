@@ -52,9 +52,9 @@ AbstractQoreNode *QoreRegexMatchOperatorNode::parseInitIntern(const char *name, 
 
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
-   if (lti->nonStringValue()) {
+   if (QoreTypeInfo::nonStringValue(lti)) {
       QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
-      lti->doNonStringWarning(loc, desc.c_str());
+      QoreTypeInfo::doNonStringWarning(lti, loc, desc.c_str());
    }
 
    // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result

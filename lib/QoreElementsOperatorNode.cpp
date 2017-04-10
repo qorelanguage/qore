@@ -73,14 +73,14 @@ AbstractQoreNode* QoreElementsOperatorNode::parseInitImpl(LocalVar* oflag, int p
    const QoreTypeInfo* lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
-   if (lti->hasType()
-       && !listTypeInfo->parseAccepts(lti)
-       && !hashTypeInfo->parseAccepts(lti)
-       && !stringTypeInfo->parseAccepts(lti)
-       && !binaryTypeInfo->parseAccepts(lti)
-       && !objectTypeInfo->parseAccepts(lti)) {
+   if (QoreTypeInfo::hasType(lti)
+       && !QoreTypeInfo::parseAccepts(listTypeInfo, lti)
+       && !QoreTypeInfo::parseAccepts(hashTypeInfo, lti)
+       && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
+       && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)
+       && !QoreTypeInfo::parseAccepts(objectTypeInfo, lti)) {
       QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
-      lti->getThisType(*edesc);
+      QoreTypeInfo::getThisType(lti, *edesc);
       edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
