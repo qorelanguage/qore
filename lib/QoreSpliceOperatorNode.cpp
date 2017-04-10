@@ -60,13 +60,13 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
-	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
-	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
-	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+         QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
+         QoreTypeInfo::getThisType(expTypeInfo, *desc);
+         desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
+         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
-	 returnTypeInfo = typeInfo = expTypeInfo;
+         returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression
@@ -80,7 +80,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
       if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'splice' operator is ");
+         QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'splice' operator is ");
    }
 
    // check new value expression, if any

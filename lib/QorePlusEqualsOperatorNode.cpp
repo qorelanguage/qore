@@ -57,12 +57,12 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
       if (QoreTypeInfo::returnsSingle(ti)) {
-	 check_lvalue_int(ti, "+=");
-	 ti = bigIntTypeInfo;
-	 return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+         check_lvalue_int(ti, "+=");
+         ti = bigIntTypeInfo;
+         return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
       }
       else
-	 ti = 0;
+         ti = 0;
    }
    typeInfo = ti;
 
@@ -113,18 +113,18 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       v.ensureUnique(); // no exception possible here
       QoreListNode *l = reinterpret_cast<QoreListNode*>(v.getValue());
       if (new_right->getType() == NT_LIST)
-	 l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
+         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
       else
-	 l->push(new_right.getReferencedValue());
+         l->push(new_right.getReferencedValue());
    } // do hash plus-equals if left side is a hash
    else if (vtype == NT_HASH) {
       if (new_right->getType() == NT_HASH) {
-	 v.ensureUnique();
-	 reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
+         v.ensureUnique();
+         reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
       }
       else if (new_right->getType() == NT_OBJECT) {
-	 v.ensureUnique();
-	 qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
+         v.ensureUnique();
+         qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
       }
    }
    // do hash/object plus-equals if left side is an object
@@ -135,11 +135,11 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    // do string plus-equals if left-hand side is a string
    else if (vtype == NT_STRING) {
       if (!new_right->isNullOrNothing()) {
-	 QoreStringValueHelper str(*new_right);
+         QoreStringValueHelper str(*new_right);
 
-	 v.ensureUnique();
-	 QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
-	 vs->concat(*str, xsink);
+         v.ensureUnique();
+         QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
+         vs->concat(*str, xsink);
       }
    }
    else if (vtype == NT_NUMBER) {
@@ -152,24 +152,24 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    }
    else if (vtype == NT_DATE) {
       if (!new_right->isNullOrNothing()) {
-	 // gets a relative date/time value from the value
-	 DateTime date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
+         // gets a relative date/time value from the value
+         DateTime date(*new_right);
+         v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
       }
    }
    else if (vtype == NT_BINARY) {
       if (!new_right->isNullOrNothing()) {
-	 v.ensureUnique();
-	 BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
-	 if (new_right->getType() == NT_BINARY) {
-	    const BinaryNode *arg = new_right->get<const BinaryNode>();
-	    b->append(arg);
-	 }
-	 else {
-	    QoreStringNodeValueHelper str(*new_right);
-	    if (str->strlen())
-	       b->append(str->getBuffer(), str->strlen());
-	 }
+         v.ensureUnique();
+         BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
+         if (new_right->getType() == NT_BINARY) {
+            const BinaryNode *arg = new_right->get<const BinaryNode>();
+            b->append(arg);
+         }
+         else {
+            QoreStringNodeValueHelper str(*new_right);
+            if (str->strlen())
+               b->append(str->getBuffer(), str->strlen());
+         }
       }
    }
    else { // do integer plus-equals

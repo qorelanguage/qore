@@ -1001,8 +1001,8 @@ public:
 
    DLLLOCAL void concatName(std::string& str) const {
       if (!hasType()) {
-	 str.append(NO_TYPE_INFO);
-	 return;
+         str.append(NO_TYPE_INFO);
+         return;
       }
 
       if (returns_mult || accepts_mult || has_name || !qc)

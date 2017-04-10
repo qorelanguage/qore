@@ -44,13 +44,13 @@ public:
    DLLLOCAL BuiltinSignature(bool extra_args, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
       for (unsigned i = 0; i < typeList.size(); ++i) {
          bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
-	 if (typeList[i]) {
-	    ++num_param_types;
+         if (typeList[i]) {
+            ++num_param_types;
             if (!hasDefaultArg)
                ++min_param_types;
          }
 
-	 QoreTypeInfo::concatName(typeList[i], str);
+         QoreTypeInfo::concatName(typeList[i], str);
          if (names.size() > i && !names[i].empty()) {
             str.append(" ");
             str.append(names[i]);
@@ -59,9 +59,9 @@ public:
          if (hasDefaultArg)
             addDefaultArgument(defaultArgList[i]);
 
-	 // add a comma to the signature string if it's not the last parameter
-	 if (i != (typeList.size() - 1))
-	    str.append(", ");
+         // add a comma to the signature string if it's not the last parameter
+         if (i != (typeList.size() - 1))
+            str.append(", ");
       }
       if (extra_args) {
          if (!typeList.empty())

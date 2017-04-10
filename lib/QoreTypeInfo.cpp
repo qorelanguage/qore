@@ -396,12 +396,12 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const
    bool priv;
    if (reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
       if (!priv)
-	 return 0;
+         return 0;
 
       // check private access if required class is privately
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
-	 return 0;
+         return 0;
 
       priv_error = true;
    }
@@ -424,7 +424,7 @@ int QoreTypeInfo::acceptInputDefault(bool& priv_error, QoreValue& n) const {
    for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
       assert((*i)->acceptsSingle());
       if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
-	 return 0;
+         return 0;
    }
 
    return runtimeAcceptInputIntern(priv_error, n);

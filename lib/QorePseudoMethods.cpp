@@ -140,15 +140,15 @@ const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const
    QoreClass* nqc;
    for (type_vec_t::const_iterator i = tv.begin(), e = tv.end(); i != e; ++i) {
       if (!QoreTypeInfo::returnsSingle(*i)) {
-	 pseudo_classes_find_method(*i, mname, nqc, possible_match);
-	 if (possible_match)
-	    return 0;
+         pseudo_classes_find_method(*i, mname, nqc, possible_match);
+         if (possible_match)
+            return 0;
       }
       else {
-	 if (pseudo_classes_find_method(QoreTypeInfo::getSingleType(*i), mname, nqc)) {
-	    possible_match = true;
-	    return 0;
-	 }
+         if (pseudo_classes_find_method(QoreTypeInfo::getSingleType(*i), mname, nqc)) {
+            possible_match = true;
+            return 0;
+         }
       }
    }
 
