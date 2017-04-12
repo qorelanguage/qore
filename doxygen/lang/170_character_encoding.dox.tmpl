@@ -37,9 +37,10 @@
     |\c KOI7|n/a|Russian: Kod Obmena Informatsiey, 7 bit characters
     |\c KOI8-R|\c KOI8R|Russian: Kod Obmena Informatsiey, 8 bit
     |\c KOI8-U|\c KOI8U|Ukrainian: Kod Obmena Informatsiey, 8 bit
-    |\c US-ASCII|\c ASCII, \c USASCII|7-bit ASCII character set    
+    |\c US-ASCII|\c ASCII, \c USASCII|7-bit ASCII character set
     |\c UTF-8|\c UTF8|variable-width universal character set
     |\c UTF-16|\c UTF16|variable-width universal character set based on a fundamental 2-byte character encoding; not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16 as the default character encoding in %Qore
+    |\c UTF-16BE|\c UTF16BE|variable-width universal character set based on a fundamental 2-byte character encoding with big-endian encoding; not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16BE as the default character encoding in %Qore
     |\c UTF-16LE|\c UTF16LE|variable-width universal character set based on a fundamental 2-byte character encoding with little-endian encoding; not backwards-compatible with ASCII and therefore not supported universally in %Qore; it's recommended to convert these strings to UTF-8 in %Qore; do not use UTF-16LE as the default character encoding in %Qore
 
     @subsection utf16_in_qore UTF-16 Support in Qore
@@ -52,9 +53,14 @@
     - @ref Qore::DataLineIterator
     - @ref Qore::FileLineIterator
 
-    Most string operations on UTF-16 data will provide invalid results due to the embedded nulls.
+    The following classes support processing UTF-16 data natively:
+    - @ref Qore::BufferedStreamReader
+    - @ref Qore::InputStreamLineIterator
+    - @ref Qore::StreamReader
 
-    @bug BOMs are ignored and all UTF-16 data is assumed to be big-endian; little-endian UTF-16-encoded data, even with a correct BOM, will not be processed correctly in %Qore (in this case use the \c UTF-16LE encodign specifically)
+    Many string operations on UTF-16 data will provide invalid results due to the embedded nulls.
+
+    @bug With the exception of the classes above that explicitly support UTF-16 data, BOMs are ignored and all UTF-16 data is assumed to be big-endian; little-endian UTF-16-encoded data, even with a correct BOM, will not be processed correctly in %Qore (in this case use the \c UTF-16LE encoding specifically)
 
     @section default_encoding Default Character Encoding
 
