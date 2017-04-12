@@ -556,7 +556,7 @@ string connstr = get_connection(str);
 
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
         - \c "timeout": transfer timeout to use in milliseconds
@@ -609,7 +609,7 @@ string connstr = get_connection(str);
 
         #! gets options
         /** @return returns a hash with the following supported options:
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
             - \c "timeout": transfer timeout to use in milliseconds
@@ -638,8 +638,8 @@ string connstr = get_connection(str);
     }
 
     #! class for filesystem connections; returns an object of type @ref Qore::Dir; this can be used to monitor filesystem free space or to ensure a network filesystem is mounted, for example
-/** supports the following option:
-    - \c "readonly": does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable
+    /** supports the following option:
+        - \c "readonly": does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable
     */
     public class FilesystemConnection inherits AbstractConnection {
         public {
