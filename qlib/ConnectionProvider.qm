@@ -638,9 +638,20 @@ string connstr = get_connection(str);
     }
 
     #! class for filesystem connections; returns an object of type @ref Qore::Dir; this can be used to monitor filesystem free space or to ensure a network filesystem is mounted, for example
-    /** this class does not support any connection options
+/** supports the following option:
+    - \c "readonly": does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable
     */
     public class FilesystemConnection inherits AbstractConnection {
+        public {
+            #! FilesystemConnection object connection options
+            const Options = (
+                "readonly": True,
+                );
+
+            #! FilesystemConnection object connection option list
+            const OptionList = Options.keys();
+        }
+
         #! creates the FilesystemConnection object
         /** @param name the name of the connection
             @param desc connection description
@@ -684,10 +695,18 @@ string connstr = get_connection(str);
             Dir dir();
             dir.chdir(urlh.path);
             if (connect) {
-                if (!is_writeable(urlh.path) || !dir.exists())
+                if (!opts.readonly && (!is_writeable(urlh.path) || !dir.exists()))
                     throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) points to non-existent, inaccessible, or read-only directory %y", name, urlh.protocol, url, urlh.path);
             }
             return dir;
+        }
+
+        #! gets options
+        /** @return returns a hash with the following supported option:
+        - \c "readonly": if @ref Qore::True "True", does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable (default: @ref Qore::False "False")
+         */
+        hash getOptions() {
+            return Options;
         }
 
         #! static constructor
