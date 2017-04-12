@@ -57,15 +57,15 @@ QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, Exception
       }
 
       case NT_FLOAT: {
-	 return -(v->getAsFloat());
+         return -(v->getAsFloat());
       }
 
       case NT_DATE: {
-	 return v->get<const DateTimeNode>()->unaryMinus();
+         return v->get<const DateTimeNode>()->unaryMinus();
       }
 
       case NT_INT: {
-	 return -(v->getAsBigInt());
+         return -(v->getAsBigInt());
       }
    }
 
@@ -79,38 +79,38 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
       const QoreTypeInfo* eti = 0;
       exp = exp->parseInit(oflag, pflag, lvids, eti);
 
-      if (eti->hasType()) {
-	 int tcnt = 0;
-	 if (bigIntTypeInfo->parseAccepts(eti)) {
-	    typeInfo = bigIntTypeInfo;
-	    ++tcnt;
-	 }
+      if (QoreTypeInfo::hasType(eti)) {
+         int tcnt = 0;
+         if (QoreTypeInfo::parseAccepts(bigIntTypeInfo, eti)) {
+            typeInfo = bigIntTypeInfo;
+            ++tcnt;
+         }
 
-	 if (floatTypeInfo->parseAccepts(eti)) {
-	    typeInfo = floatTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(floatTypeInfo, eti)) {
+            typeInfo = floatTypeInfo;
+            ++tcnt;
+         }
 
-	 if (numberTypeInfo->parseAccepts(eti)) {
-	    typeInfo = numberTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(numberTypeInfo, eti)) {
+            typeInfo = numberTypeInfo;
+            ++tcnt;
+         }
 
-	 if (dateTypeInfo->parseAccepts(eti)) {
-	    typeInfo = dateTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(dateTypeInfo, eti)) {
+            typeInfo = dateTypeInfo;
+            ++tcnt;
+         }
 
-	 // if multiple types match, then set to no type (FIXME: can't currently handle multiple possible types)
-	 if (tcnt > 0)
-	    typeInfo = 0;
-	 else if (!tcnt) {
-	    typeInfo = bigIntTypeInfo;
-	    QoreStringNode* edesc = new QoreStringNode("the expression with the unary minus '-' operator is ");
-            eti->getThisType(*edesc);
+         // if multiple types match, then set to no type (FIXME: can't currently handle multiple possible types)
+         if (tcnt > 0)
+            typeInfo = 0;
+         else if (!tcnt) {
+            typeInfo = bigIntTypeInfo;
+            QoreStringNode* edesc = new QoreStringNode("the expression with the unary minus '-' operator is ");
+            QoreTypeInfo::getThisType(eti, *edesc);
             edesc->concat(" and so this expression will always return 0; the unary minus '-' operator only returns a value with integers, floats, numbers, and relative date/time values");
             qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 }
+         }
       }
    }
 

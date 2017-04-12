@@ -73,9 +73,9 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
    // ClassRefNode::parseInit() always returns "this"
    r->parseInit(oflag, pflag, lvids, rti);
 
-   if (lti->hasType() && !objectTypeInfo->parseAccepts(lti)) {
+   if (QoreTypeInfo::hasType(lti) && !QoreTypeInfo::parseAccepts(objectTypeInfo, lti)) {
       QoreStringNode* edesc = new QoreStringNode("the left hand argument given to the 'instanceof' operator is ");
-      lti->getThisType(*edesc);
+      QoreTypeInfo::getThisType(lti, *edesc);
       edesc->concat(", so this expression will always return False; the 'instanceof' operator can only return True with objects of the class on the right hand side");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }

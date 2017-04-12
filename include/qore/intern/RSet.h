@@ -258,8 +258,8 @@ public:
 #ifdef DEBUG
    DLLLOCAL void dbg();
 
-   DLLLOCAL bool isValid() const {
-      return qore_check_this(this) ? valid : false;
+   DLLLOCAL static bool isValid(const RSet* rs) {
+      return rs ? rs->valid : false;
    }
 #endif
 

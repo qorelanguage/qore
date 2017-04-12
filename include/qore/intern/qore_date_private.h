@@ -495,19 +495,19 @@ protected:
       us = n_us;
 
       // get standard time UTC offset
-      int off = zone->getUTCOffset();
+      int off = AbstractQoreZoneInfo::getUTCOffset(zone);
 
       printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (std off: %d)\n", epoch, epoch - off, off);
       epoch -= off;
 
       // now get actual UTC offset
-      int aoff = zone->getUTCOffset(epoch);
+      int aoff = AbstractQoreZoneInfo::getUTCOffset(zone, epoch);
       if (aoff != off) {
          printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld -> %lld (aoff: %d diff: %d)\n", epoch, epoch - (aoff - off), aoff, aoff - off);
          epoch -= (aoff - off);
       }
 
-      printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld zone: %s\n", epoch, zone->getRegionName());
+      printd(5, "qore_absolute_time::setLocalIntern() epoch: %lld zone: %s\n", epoch, AbstractQoreZoneInfo::getRegionName(zone));
    }
 
    DLLLOCAL void setTM(qore_simple_tm2& tm, struct tm& tms, bool dst = false) const {
@@ -556,7 +556,7 @@ public:
 
       setLocalIntern(n_us);
 
-      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
+      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, AbstractQoreZoneInfo::getRegionName(zone), year, month, day, hour, minute, second, n_us, epoch);
    }
 
    DLLLOCAL void set(const AbstractQoreZoneInfo* n_zone, int year, int month, int day, int hour, int minute, int second, int n_us, ExceptionSink* xsink) {
@@ -599,7 +599,7 @@ public:
          return;
       }
 
-      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, zone->getRegionName(), year, month, day, hour, minute, second, n_us, epoch);
+      //printd(5, "qore_absolute_time::set(zone: %p (%s) %04d-%02d-%02d %02d:%02d:%02d.%06d) epoch: %lld\n", zone, AbstractQoreZoneInfo::getRegionName(zone), year, month, day, hour, minute, second, n_us, epoch);
    }
 
    DLLLOCAL void set(const qore_absolute_time& p) {
@@ -615,7 +615,7 @@ public:
    }
 
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       //printd(5, "qore_absolute_time::setTime(h: %d, m: %d, s: %d, usecs: %d) %04d-%02d-%02d\n", h, m, s, usecs, tm.year, tm.month, tm.day);
 
       normalize_units2<int, int>(s, usecs, 1000000);
@@ -657,14 +657,14 @@ public:
    }
 
    DLLLOCAL void getISOWeek(int& yr, int& week, int& wday) const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       tm.getISOWeek(yr, week, wday);
    }
 
    DLLLOCAL void get(qore_time_info& info) const {
       const char* zname;
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(zone, epoch, isdst, zname);
       //printf("qore_absolute_time::get() epoch: %lld UTC offset: %d isdst: %d zname: %s\n", epoch, offset, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
@@ -672,62 +672,62 @@ public:
    DLLLOCAL void get(const AbstractQoreZoneInfo* z, qore_time_info& info) const {
       const char* zname;
       bool isdst;
-      int offset = z->getUTCOffset(epoch, isdst, zname);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(z, epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
    }
 
    DLLLOCAL void getDate(qore_simple_tm& tm) const {
-      int off = zone->getUTCOffset(epoch);
+      int off = AbstractQoreZoneInfo::getUTCOffset(zone, epoch);
       tm.set(epoch + off, us);
    }
 
    DLLLOCAL short getYear() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       return tm.year;
    }
 
    DLLLOCAL int getMonth() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       return tm.month;
    }
 
    DLLLOCAL int getDay() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       return tm.day;
    }
 
    DLLLOCAL int getHour() const {
       if (epoch >= 0)
-         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
+         return (int)(((epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch)) % SECS_PER_DAY) / SECS_PER_HOUR);
 
       qore_time_info info;
       const char* zname;
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(zone, epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
       return info.hour;
    }
 
    DLLLOCAL int getMinute() const {
       if (epoch >= 0)
-         return (int)(((epoch + zone->getUTCOffset(epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
+         return (int)(((epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch)) % SECS_PER_HOUR) / SECS_PER_MINUTE);
 
       qore_time_info info;
       const char* zname;
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(zone, epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
       return info.minute;
    }
 
    DLLLOCAL int getSecond() const {
       if (epoch >= 0)
-         return ((epoch + zone->getUTCOffset(epoch)) % SECS_PER_MINUTE);
+         return ((epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch)) % SECS_PER_MINUTE);
 
       qore_time_info info;
       const char* zname;
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst, zname);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(zone, epoch, isdst, zname);
       info.set(epoch, us, offset, isdst, zname, zone);
       return info.second;
    }
@@ -756,7 +756,7 @@ public:
 
    DLLLOCAL void localtime(struct tm& tms) const {
       bool isdst;
-      int offset = zone->getUTCOffset(epoch, isdst);
+      int offset = AbstractQoreZoneInfo::getUTCOffset(zone, epoch, isdst);
       qore_simple_tm2 tm(epoch + offset, us);
 
       setTM(tm, tms, isdst);
@@ -780,12 +780,12 @@ public:
    }
 
    DLLLOCAL int getDayOfWeek() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       return qore_date_info::getDayOfWeek(tm.year, tm.month, tm.day);
    }
 
    DLLLOCAL int getDayNumber() const {
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
       return qore_date_info::getDayNumber(tm.year, tm.month, tm.day);
    }
 
@@ -794,7 +794,7 @@ public:
    }
 
    DLLLOCAL int64 getEpochSeconds() const {
-      return epoch + zone->getUTCOffset(epoch);
+      return epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch);
    }
 
    DLLLOCAL int64 getEpochMilliseconds() const {

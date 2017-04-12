@@ -76,10 +76,10 @@ void qore_method_private::parseInit() {
             // has a type, it must be a string
             UserSignature* sig = UMV(func->pending_first())->getUserSignature();
             const QoreTypeInfo* t = sig->getParamTypeInfo(0);
-            if (!stringTypeInfo->parseAccepts(t)) {
+            if (!QoreTypeInfo::parseAccepts(stringTypeInfo, t)) {
                QoreStringNode* desc = new QoreStringNode;
                desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
-               t->getThisType(*desc);
+               QoreTypeInfo::getThisType(t, *desc);
                desc->concat(" is not compatible with 'string'");
                qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
             }
@@ -323,7 +323,7 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
          desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
       for (auto& vi : vlist) {
          MethodVariantBase* v = vi.second;
-         desc->sprintf("\n * abstract %s %s::%s(%s);", v->getReturnTypeInfo()->getName(), cname, mname, v->getSignature()->getSignatureText());
+         desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname, v->getSignature()->getSignatureText());
       }
    }
 }
@@ -630,11 +630,11 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
 
    // copy member list
    for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
-      members.addNoCheck(strdup(i->first), i->second->copy(this));
+      members.addNoCheck(strdup(i->first), i->second ? i->second->copy(this) : 0);
 
    // copy static var list
    for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
-      vars.addNoCheck(strdup(i->first), i->second->copy());
+      vars.addNoCheck(strdup(i->first), i->second ? i->second->copy() : 0);
 }
 
 qore_class_private::~qore_class_private() {
@@ -703,7 +703,7 @@ static void do_sig(QoreString& csig, BCNode& n) {
 // process signature entries for class members
 static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
    if (i->second)
-      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->access), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
    else
       csig.sprintf("%s mem %s\n", privpub(i->second->access), i->first);
 }
@@ -711,7 +711,7 @@ static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
 // process signature entries for class static vars
 static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
    if (i->second)
-      csig.sprintf("%s var %s %s %s\n", privpub(i->second->access), i->second->getTypeInfo()->getName(), i->first, get_type_name(i->second->exp));
+      csig.sprintf("%s var %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
    else
       csig.sprintf("%s var %s\n", privpub(i->second->access), i->first);
 }
@@ -961,6 +961,7 @@ const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char*
 }
 
 int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
+   assert(xsink);
    if (members.empty() && !scl)
       return 0;
 
@@ -984,7 +985,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
             if (*xsink)
                return -1;
             // check types
-            AbstractQoreNode* nv = i->second->getTypeInfo()->acceptInputMember(i->first, *val, xsink);
+            AbstractQoreNode* nv = QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
             if (*xsink)
                return -1;
             *v = nv;
@@ -999,7 +1000,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
          }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
          else
-            *v = i->second->getTypeInfo()->getDefaultValue();
+            *v = QoreTypeInfo::getDefaultValue(i->second->getTypeInfo());
 #endif
       }
    }
@@ -2909,10 +2910,10 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
 
    // see if typeinfo already accepts NOTHING
-   if (typeInfo->parseAcceptsReturns(NT_NOTHING))
+   if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
       priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
    else {
-      if (!typeInfo->hasInputFilter()) {
+      if (!QoreTypeInfo::hasInputFilter(typeInfo)) {
          priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo, nme);
          priv->owns_ornothingtypeinfo = true;
       }
@@ -4073,7 +4074,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
       }
       return -1;
    }
-   else if (mi->parseHasTypeInfo() || omi->parseHasTypeInfo()) {
+   else if ((mi && mi->parseHasTypeInfo()) || (omi && omi->parseHasTypeInfo())) {
       if (getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode;
          desc->sprintf("%s %s ", privpub(mi->access), var ? "static variable" : "member");
@@ -4082,7 +4083,7 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
             desc->concat("this class");
          else
             desc->sprintf("base class '%s'", qc->name.c_str());
-         if (mi->parseHasTypeInfo())
+         if (mi && mi->parseHasTypeInfo())
             desc->sprintf(" with a type definition");
          desc->concat(" and cannot be declared again");
          desc->sprintf(" in class '%s'", name.c_str());
@@ -4683,7 +4684,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
             // raise parse exception if parse exceptions have not been suppressed
             if (getProgram()->getParseExceptionSink()) {
                QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
-               parent_class.getTypeInfo()->getThisType(*desc);
+               QoreTypeInfo::getThisType(parent_class.getTypeInfo(), *desc);
                desc->concat(", but the object's parameter was defined expecting ");
                typeInfo->getThisType(*desc);
                desc->concat(" instead");
@@ -4868,7 +4869,7 @@ const QoreMethod* QoreStaticMethodIterator::getMethod() const {
 
 void QoreMemberInfo::parseInit(const char* name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -4885,12 +4886,12 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
             pop_local_var();
       }
       // throw a type exception only if parse exceptions are enabled
-      if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+      if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("initialization expression for ");
          desc->sprintf("%s member '%s' returns ", priv ? "private" : "public", name);
-         argTypeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(argTypeInfo, *desc);
          desc->concat(", but the member was declared as ");
-         typeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(typeInfo, *desc);
          qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
@@ -4898,7 +4899,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
 
 void QoreVarInfo::parseInit(const char* name, bool priv) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -4917,12 +4918,12 @@ void QoreVarInfo::parseInit(const char* name, bool priv) {
             pop_local_var();
       }
       // throw a type exception only if parse exceptions are enabled
-      if (!typeInfo->parseAccepts(argTypeInfo) && getProgram()->getParseExceptionSink()) {
+      if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("initialization expression for ");
          desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
-         argTypeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(argTypeInfo, *desc);
          desc->concat(", but the variable was declared as ");
-         typeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(typeInfo, *desc);
          qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }

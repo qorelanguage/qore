@@ -55,6 +55,7 @@
 #endif
 
 static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
+   assert(xsink);
    qore_offset_t off = fmt.getByteOffset(1, xsink);
    //printd(5, "fix_num tmp: '%s' fmt: '%s' off: %lld\n", tmp.getBuffer(), fmt.getBuffer(), off);
    if (*xsink)
@@ -249,6 +250,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 }
 
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {
@@ -268,6 +270,7 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, in
 }
 
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
    for (unsigned i = offset; i < l->size(); i++) {

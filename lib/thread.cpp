@@ -593,6 +593,7 @@ public:
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
       : obj(0),
         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
+      assert(xsink);
       {
          ThreadData* td = thread_data.get();
          call_obj = td->current_obj;
@@ -617,17 +618,17 @@ public:
                class_ctx = qore_class_private::get(*qc);
          }
 
-	 // must have a current object if an in-object method call is being executed
-	 // (i.e. $.method())
-	 // we reference the object so it won't go out of scope while the thread is running
-	 obj = call_obj;
+         // must have a current object if an in-object method call is being executed
+         // (i.e. $.method())
+         // we reference the object so it won't go out of scope while the thread is running
+         obj = call_obj;
          assert(obj);
-	 obj->realRef();
+         obj->realRef();
          call_obj = 0;
       }
 
       if (call_obj)
-	 call_obj->tRef();
+         call_obj->tRef();
    }
 
    DLLLOCAL void del() {
@@ -668,7 +669,7 @@ public:
    DLLLOCAL void derefCallObj() {
       // dereference call object if present
       if (call_obj) {
-	 call_obj->tDeref();
+         call_obj->tDeref();
          call_obj = 0;
       }
    }

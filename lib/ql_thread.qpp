@@ -43,6 +43,7 @@
 extern QoreClass* QC_TIMEZONE;
 
 static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -62,6 +63,7 @@ static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* 
 }
 
 static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -84,6 +86,7 @@ static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, Except
 }
 
 static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -103,6 +106,7 @@ static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* x
 }
 
 static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 

@@ -71,38 +71,38 @@ AbstractQoreNode *QoreUnaryPlusOperatorNode::parseInitImpl(LocalVar *oflag, int 
       const QoreTypeInfo* eti = 0;
       exp = exp->parseInit(oflag, pflag, lvids, eti);
 
-      if (eti->hasType()) {
-	 int tcnt = 0;
-	 if (bigIntTypeInfo->parseAccepts(eti)) {
-	    typeInfo = bigIntTypeInfo;
-	    ++tcnt;
-	 }
+      if (QoreTypeInfo::hasType(eti)) {
+         int tcnt = 0;
+         if (QoreTypeInfo::parseAccepts(bigIntTypeInfo, eti)) {
+            typeInfo = bigIntTypeInfo;
+            ++tcnt;
+         }
 
-	 if (floatTypeInfo->parseAccepts(eti)) {
-	    typeInfo = floatTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(floatTypeInfo, eti)) {
+            typeInfo = floatTypeInfo;
+            ++tcnt;
+         }
 
-	 if (numberTypeInfo->parseAccepts(eti)) {
-	    typeInfo = numberTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(numberTypeInfo, eti)) {
+            typeInfo = numberTypeInfo;
+            ++tcnt;
+         }
 
-	 if (dateTypeInfo->parseAccepts(eti)) {
-	    typeInfo = dateTypeInfo;
-	    ++tcnt;
-	 }
+         if (QoreTypeInfo::parseAccepts(dateTypeInfo, eti)) {
+            typeInfo = dateTypeInfo;
+            ++tcnt;
+         }
 
-	 // if multiple types match, then set to no type (FIXME: can't currently handle multiple possible types)
-	 if (tcnt > 0)
-	    typeInfo = 0;
-	 else if (!tcnt) {
-	    typeInfo = bigIntTypeInfo;
-	    QoreStringNode* edesc = new QoreStringNode("the expression with the unary plus '+' operator is ");
-            eti->getThisType(*edesc);
+         // if multiple types match, then set to no type (FIXME: can't currently handle multiple possible types)
+         if (tcnt > 0)
+            typeInfo = 0;
+         else if (!tcnt) {
+            typeInfo = bigIntTypeInfo;
+            QoreStringNode* edesc = new QoreStringNode("the expression with the unary plus '+' operator is ");
+            QoreTypeInfo::getThisType(eti, *edesc);
             edesc->concat(" and so this expression will always return 0; the unary plus '+' operator only returns a value with integers, floats, numbers, and relative date/time values");
             qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 }
+         }
       }
    }
 

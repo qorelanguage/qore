@@ -151,7 +151,7 @@ public:
             finalized = true;
          printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-         h = val.assign(typeInfo->getDefaultQoreValue());
+         h = val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo));
 #else
          h = val.removeNode(true);
 #endif
@@ -178,11 +178,11 @@ public:
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), parseTypeInfo->getName());
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
          assert(!typeInfo);
       }
       if (typeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), typeInfo->getName());
+         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
          assert(!parseTypeInfo);
       }
    }
@@ -191,7 +191,6 @@ public:
       std::unique_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
 
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-      // it is safe to call QoreTypeInfo::hasType() when this is 0
       if (!n_parseTypeInfo)
          return;
 
@@ -213,8 +212,7 @@ public:
 
    DLLLOCAL void checkAssignType(const QoreTypeInfo *n_typeInfo) {
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-      // it is safe to call QoreTypeInfo::hasType() when this is 0
-      if (!n_typeInfo->hasType())
+      if (!QoreTypeInfo::hasType(n_typeInfo))
          return;
 
       if (val.type == QV_Ref) {
@@ -239,7 +237,7 @@ public:
          return;
 
       if (parseTypeInfo) {
-         typeInfo = parseTypeInfo->resolveAndDelete(loc);
+         typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
          parseTypeInfo = 0;
 
          val.set(typeInfo);
@@ -247,7 +245,7 @@ public:
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       if (!val.hasValue())
-         discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
+         discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
 #endif
    }
 
@@ -290,8 +288,8 @@ public:
          return val.v.getPtr()->getClassName();
 
       if (typeInfo) {
-         assert(typeInfo->getUniqueReturnClass());
-         return typeInfo->getUniqueReturnClass()->getName();
+         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+         return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
       }
       assert(parseTypeInfo);
       assert(parseTypeInfo->cscope);
@@ -357,8 +355,8 @@ protected:
          }
       }
       else {
-         if (!typeInfo->parseAccepts(typeTypeInfo)) {
-            typeInfo->doTypeException(0, desc, typeTypeInfo->getName(), vl.xsink);
+         if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
+            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -599,8 +597,8 @@ public:
          }
       }
       else {
-         if (!typeInfo->parseAccepts(numberTypeInfo)) {
-            typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+         if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
+            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
             return 0;
          }
 
@@ -657,7 +655,7 @@ public:
 
    DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      rv.assignSetInitialSwap(qv, ti->getDefaultQoreValue());
+      rv.assignSetInitialSwap(qv, QoreTypeInfo::getDefaultQoreValue(ti));
 #else
       rv.assignSetTakeInitial(qv);
 #endif

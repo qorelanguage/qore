@@ -100,7 +100,7 @@ public:
    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
       keymap_t::const_iterator i = keymap.find(key);
       if (i == keymap.end())
-	 return 0;
+         return 0;
 
       AbstractPrivateData* apd = i->second.first;
       apd->ref();
@@ -109,19 +109,19 @@ public:
 
    DLLLOCAL void addToString(QoreString* str) const {
       for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	 str->sprintf("%d=<%p>, ", i->first, i->second.first);
+         str->sprintf("%d=<%p>, ", i->first, i->second.first);
    }
 
    DLLLOCAL void derefAll(ExceptionSink* xsink) const {
       for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-	 if (!i->second.second)
-	    i->second.first->deref(xsink);
+         if (!i->second.second)
+            i->second.first->deref(xsink);
    }
 
    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
       if (i == keymap.end() || i->second.second)
-	 return 0;
+         return 0;
 
       return i->second.first;
    }
@@ -129,7 +129,7 @@ public:
    DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
       if (i == keymap.end() || i->second.second)
-	 return 0;
+         return 0;
 
       AbstractPrivateData* rv = i->second.first;
       i->second.first = 0;
@@ -145,7 +145,7 @@ public:
    DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
       if (keymap.find(key) == keymap.end())
-	 keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
+         keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
    }
 };
 
@@ -261,6 +261,7 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
+      assert(xsink);
       // get the current class context
       const qore_class_private* class_ctx = runtime_get_class();
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
@@ -270,8 +271,8 @@ public:
       QoreSafeVarRWReadLocker sl(rml);
 
       if (status == OS_DELETED) {
-	 makeAccessDeletedObjectException(xsink, theclass->getName());
-	 return 0;
+         makeAccessDeletedObjectException(xsink, theclass->getName());
+         return 0;
       }
 
 
@@ -423,19 +424,19 @@ public:
       ClassAccess access;
       const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
       if (mi) {
-	 if (access > Public && !class_ctx) {
-	    doPrivateException(mem, xsink);
-	    return -1;
-	 }
+         if (access > Public && !class_ctx) {
+            doPrivateException(mem, xsink);
+            return -1;
+         }
 
          typeInfo = mi->getTypeInfo();
-	 return 0;
+         return 0;
       }
 
       // member is not declared
       if (theclass->runtimeHasPublicMembersInHierarchy()) {
-	 doPublicException(mem, xsink);
-	 return -1;
+         doPublicException(mem, xsink);
+         return -1;
       }
       return 0;
    }
@@ -454,8 +455,8 @@ public:
 
       // increment reference count temporarily for destructor
       {
-	 AutoLocker slr(rlck);
-	 ++obj->references;
+         AutoLocker slr(rlck);
+         ++obj->references;
       }
 
       theclass->execDestructor(obj, xsink);
@@ -464,15 +465,15 @@ public:
       QoreHashNode* td;
       {
          QoreAutoVarRWWriteLocker al(rml);
-	 assert(status != OS_DELETED);
-	 assert(data);
-	 status = OS_DELETED;
+         assert(status != OS_DELETED);
+         assert(data);
+         status = OS_DELETED;
 
          cdm = cdmap;
          cdmap = 0;
 
-	 td = data;
-	 data = 0;
+         td = data;
+         data = 0;
 
          removeInvalidateRSetIntern();
       }
@@ -485,9 +486,9 @@ public:
    DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
       if (privateData) {
          printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
-	 delete privateData;
+         delete privateData;
 #ifdef DEBUG
-	 privateData = 0;
+         privateData = 0;
 #endif
       }
 
@@ -512,40 +513,40 @@ public:
 #endif
 
       {
-	 AutoLocker slr(rlck);
-	 if (--obj->references)
-	    return;
+         AutoLocker slr(rlck);
+         if (--obj->references)
+            return;
       }
 
       {
          QoreSafeVarRWWriteLocker sl(rml);
 
-	 if (in_destructor || status != OS_OK) {
-	    printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
-	    //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-	    sl.unlock();
-	    tDeref();
-	    return;
-	 }
+         if (in_destructor || status != OS_OK) {
+            printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
+            //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+            sl.unlock();
+            tDeref();
+            return;
+         }
 
-	 //printd(5, "Object lock %p locked   (safe)\n", &rml);
-	 printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
+         //printd(5, "Object lock %p locked   (safe)\n", &rml);
+         printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
 
-	 status = OS_DELETED;
+         status = OS_DELETED;
          cdmap_t* cdm = cdmap;
          cdmap = 0;
-	 QoreHashNode* td = data;
-	 data = 0;
+         QoreHashNode* td = data;
+         data = 0;
 
          removeInvalidateRSetIntern();
 
-	 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-	 sl.unlock();
+         //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+         sl.unlock();
 
-	 if (privateData)
-	    privateData->derefAll(xsink);
+         if (privateData)
+            privateData->derefAll(xsink);
 
-	 cleanup(xsink, td, cdm);
+         cleanup(xsink, td, cdm);
       }
       tDeref();
    }
@@ -635,12 +636,12 @@ public:
       BCSMList* sml = qc->getBCSMList();
       //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
       if (!sml)
-	 return;
+         return;
 
       for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
          //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' key: %d virt: %s\n", this, i->first, i->first->getName(), i->first->getID(), i->second ? "true" : "false");
-	 if (i->second)
-	    privateData->insertVirtual(i->first->getID(), apd);
+         if (i->second)
+            privateData->insertVirtual(i->first->getID(), apd);
       }
    }
 
@@ -782,9 +783,9 @@ private:
 public:
    DLLLOCAL qore_object_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj), vl(n_vl) {
       if (pobj->obj == vl.getObject()) {
-	 assert(vl.getRWL() == &pobj->rml);
-	 vl.clear();
-	 return;
+         assert(vl.getRWL() == &pobj->rml);
+         vl.clear();
+         return;
       }
 
       // reference current object
@@ -800,9 +801,9 @@ public:
    DLLLOCAL ~qore_object_lock_handoff_helper() {
       // unlock if lock not saved in AutoVLock structure
       if (pobj) {
-	 //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rml);
-	 pobj->rml.unlock();
-	 pobj->obj->tDeref();
+         //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rml);
+         pobj->rml.unlock();
+         pobj->obj->tDeref();
       }
    }
 

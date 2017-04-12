@@ -668,6 +668,7 @@ public:
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on: %d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      assert(xsink);
       if (*xsink)
          return -1;
 
@@ -686,6 +687,7 @@ public:
 
    DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
       ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
+      assert(xsink);
       if (*xsink)
          return -1;
 
@@ -704,6 +706,7 @@ public:
 
    DLLLOCAL int parseRollback(ExceptionSink* xsink) {
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      assert(xsink);
       if (*xsink)
          return -1;
 
@@ -713,6 +716,7 @@ public:
    }
 
    DLLLOCAL void parse(FILE *fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+      assert(xsink);
       printd(5, "QoreProgram::parse(fp: %p, name: %s, xsink: %p, wS: %p, wm: %d)\n", fp, name, xsink, wS, wm);
 
       // if already at the end of file, then return
@@ -765,6 +769,7 @@ public:
    }
 
    DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
+      assert(xsink);
       if (!str->strlen())
 	 return;
 
@@ -789,6 +794,7 @@ public:
       //printd(5, "qore_program_private::parse(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
 
       assert(code && code[0]);
+      assert(xsink);
 
       ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
       if (*xsink)
@@ -831,6 +837,7 @@ public:
 
    DLLLOCAL void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
       assert(!str->empty());
+      assert(xsink);
 
       // ensure code string has correct character set encoding
       TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
@@ -1255,6 +1262,7 @@ public:
    }
 
    DLLLOCAL ResolvedCallReferenceNode* runtimeGetCallReference(const char* name, ExceptionSink* xsink) {
+      assert(xsink);
       ProgramRuntimeParseAccessHelper pah(xsink, pgm);
       if (*xsink)
          return 0;
@@ -1618,6 +1626,7 @@ public:
    }
 
    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = 0) {
+      assert(xsink);
       pgm->priv->addParseException(*xsink, loc);
       delete xsink;
    }
