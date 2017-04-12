@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,10 +30,10 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreRWLock.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/qore_program_private.h"
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
@@ -384,54 +384,6 @@ const char* getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
-/*
-int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, AbstractQoreNode* n) const {
-   qore_type_t nt = get_node_type(n);
-
-   if (qt != nt)
-      return is_int && nt > QORE_NUM_TYPES && dynamic_cast<QoreBigIntNode* >(n) ? 0 : -1;
-
-   if (qt != NT_OBJECT || !qc)
-      return 0;
-
-   bool priv;
-   if (reinterpret_cast<const QoreObject*>(n)->getClass()->getClass(*qc, priv)) {
-      if (!priv)
-	 return 0;
-
-      // check private access if required class is privately
-      // inherited in the input argument's class
-      if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
-	 return 0;
-
-      priv_error = true;
-   }
-
-   return -1;
-}
-
-int QoreTypeInfo::acceptInputDefault(bool& priv_error, AbstractQoreNode* n) const {
-   //printd(5, "QoreTypeInfo::acceptInputDefault() this=%p hasType=%d (%s) n=%p (%s)\n", this, hasType(), getName(), n, get_type_name(n));
-   if (!hasType())
-      return 0;
-
-   if (!accepts_mult)
-      return runtimeAcceptInputIntern(priv_error, n);
-
-   const type_vec_t &at = getAcceptTypeList();
-
-   // check all types until one accepts the input
-   // priv_error can be set to false more than once; this is OK for error reporting
-   for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-      assert((*i)->acceptsSingle());
-      if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
-	 return 0;
-   }
-
-   return runtimeAcceptInputIntern(priv_error, n);
-}
-*/
-
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const {
    qore_type_t nt = n.getType();
 
@@ -444,12 +396,12 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const
    bool priv;
    if (reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
       if (!priv)
-	 return 0;
+         return 0;
 
       // check private access if required class is privately
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
-	 return 0;
+         return 0;
 
       priv_error = true;
    }
@@ -472,7 +424,7 @@ int QoreTypeInfo::acceptInputDefault(bool& priv_error, QoreValue& n) const {
    for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
       assert((*i)->acceptsSingle());
       if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
-	 return 0;
+         return 0;
    }
 
    return runtimeAcceptInputIntern(priv_error, n);

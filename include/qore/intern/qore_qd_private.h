@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -265,10 +265,10 @@ public:
 	 return 0;
       }
 
-      SimpleRefHolder<QoreRegexNode> re(0);
+      SimpleRefHolder<QoreRegex> re(0);
 
       if (regex) {
-	 re = new QoreRegexNode(*regex, regex_options, xsink);
+	 re = new QoreRegex(*regex, regex_options, xsink);
 	 if (*xsink)
 	    return 0;
       }
