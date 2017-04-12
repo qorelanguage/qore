@@ -610,6 +610,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 	 addModule(mi);
       }
       else {
+         assert(umset.find(mi->getName()) == umset.end());
 	 nmi->setLink(mi);
 	 trySetUserModuleDependency(mi);
       }
@@ -940,6 +941,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
       assert(load_opt & QMLO_REINJECT);
       reinjectModule(omi);
       name = mi->getName();
+      assert(umset.find(omi->getName()) == umset.end());
       mi->setLink(omi);
    }
    else if (mi->isPrivate()) {
@@ -1272,12 +1274,7 @@ void QoreModuleManager::delOrig(QoreAbstractModule* mi) {
       assert(i != map.end());
       assert(i->second == mi);
 
-      //if (i == map.end())
-      //return;
-
       QoreAbstractModule* next = mi->getNext();
-      if (next)
-	 delOrig(next);
       map.erase(i);
       delete mi;
       mi = next;
@@ -1286,6 +1283,9 @@ void QoreModuleManager::delOrig(QoreAbstractModule* mi) {
 
 // deletes only user modules
 void QoreModuleManager::delUser() {
+   //md_map.show("md_map");
+   //rmd_map.show("rmd_map");
+
    // first delete user modules in dependency order
    while (!umset.empty()) {
       strset_t::iterator ui = umset.begin();
@@ -1318,7 +1318,7 @@ void QoreModuleManager::delUser() {
 	    printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
 	 }
 
-	 rmd_map.show();
+	 rmd_map.show("rmd_map");
 
 	 assert(false);
       }
