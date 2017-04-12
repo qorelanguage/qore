@@ -1269,8 +1269,6 @@ void QoreModuleManager::delOrig(QoreAbstractModule* mi) {
       //return;
 
       QoreAbstractModule* next = mi->getNext();
-      if (next)
-	 delOrig(next);
       map.erase(i);
       delete mi;
       mi = next;
