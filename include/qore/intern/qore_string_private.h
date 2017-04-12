@@ -184,6 +184,7 @@ public:
    }
 
    DLLLOCAL qore_offset_t index(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {
+      assert(xsink);
       TempEncodingHelper needle(orig_needle, getEncoding(), xsink);
       if (!needle)
          return -1;
@@ -265,6 +266,7 @@ public:
 
    // start is a byte offset that has to point to the start of a valid character
    DLLLOCAL int findByteOffset(qore_offset_t& pos, ExceptionSink* xsink, qore_size_t start = 0) const {
+      assert(xsink);
       assert(getEncoding()->isMultiByte());
       if (!pos)
          return 0;
@@ -282,6 +284,7 @@ public:
    }
 
    DLLLOCAL qore_offset_t rindex(const QoreString &orig_needle, qore_offset_t pos, ExceptionSink *xsink) const {
+      assert(xsink);
       TempEncodingHelper needle(orig_needle, getEncoding(), xsink);
       if (!needle)
          return -1;
@@ -447,6 +450,7 @@ public:
    }
 
    DLLLOCAL qore_offset_t getByteOffset(qore_size_t i, ExceptionSink* xsink) const {
+      assert(xsink);
       qore_size_t rc;
       if (i) {
          rc = getEncoding()->getByteLen(buf, buf + len, i, xsink);
@@ -562,6 +566,7 @@ public:
    DLLLOCAL void concatUTF8FromUnicode(unsigned code);
 
    DLLLOCAL int concatUnicode(unsigned code, ExceptionSink *xsink) {
+      assert(xsink);
       if (getEncoding() == QCS_UTF8) {
          concatUTF8FromUnicode(code);
          return 0;

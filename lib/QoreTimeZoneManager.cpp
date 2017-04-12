@@ -527,7 +527,8 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi
    localtzname = fname;
    ++tzsize;
 
-   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(), tzi->getRegionName(), tzi->hasDST(), tzi->getUTCOffset());
+   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(),
+      AbstractQoreZoneInfo::getRegionName(tzi), AbstractQoreZoneInfo::hasDST(tzi), AbstractQoreZoneInfo::getUTCOffset(tzi));
 
    return 0;
 }
@@ -1534,13 +1535,13 @@ const AbstractQoreZoneInfo* find_create_timezone(const char* name, ExceptionSink
 }
 
 int tz_get_utc_offset(const AbstractQoreZoneInfo* tz, int64 epoch_offset, bool &is_dst, const char *&zone_name) {
-   return tz->getUTCOffset(epoch_offset, is_dst, zone_name);
+   return AbstractQoreZoneInfo::getUTCOffset(tz, epoch_offset, is_dst, zone_name);
 }
 
 bool tz_has_dst(const AbstractQoreZoneInfo* tz) {
-   return tz->hasDST();
+   return AbstractQoreZoneInfo::hasDST(tz);
 }
 
 const char* tz_get_region_name(const AbstractQoreZoneInfo* tz) {
-   return tz->getRegionName();
+   return AbstractQoreZoneInfo::getRegionName(tz);
 }

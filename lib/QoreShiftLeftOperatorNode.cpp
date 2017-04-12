@@ -55,11 +55,11 @@ AbstractQoreNode* QoreShiftLeftOperatorNode::parseInitImpl(LocalVar* oflag, int 
    right = right->parseInit(oflag, pflag, lvids, rti);
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
-   if (lti->nonNumericValue())
-      lti->doNonNumericWarning("the left hand expression of the 'shift left' operator (<<) expression is ");
-   if (rti->nonNumericValue()) {
+   if (QoreTypeInfo::nonNumericValue(lti))
+      QoreTypeInfo::doNonNumericWarning(lti, "the left hand expression of the 'shift left' operator (<<) expression is ");
+   if (QoreTypeInfo::nonNumericValue(rti)) {
       QoreStringNode* desc = new QoreStringNode("the right hand side of the 'shift left' (<<) expression is ");
-      rti->getThisType(*desc);
+      QoreTypeInfo::getThisType(rti, *desc);
       desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }

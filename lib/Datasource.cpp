@@ -113,6 +113,7 @@ void Datasource::setAutoCommit(bool ac) {
 }
 
 AbstractQoreNode* Datasource::select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    AbstractQoreNode* rv = qore_dbi_private::get(*priv->dsl)->select(this, query_str, args, xsink);
    autoCommit(xsink);
 
@@ -125,6 +126,7 @@ AbstractQoreNode* Datasource::select(const QoreString* query_str, const QoreList
 }
 
 AbstractQoreNode* Datasource::selectRows(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    AbstractQoreNode* rv = qore_dbi_private::get(*priv->dsl)->selectRows(this, query_str, args, xsink);
    autoCommit(xsink);
 
@@ -137,6 +139,7 @@ AbstractQoreNode* Datasource::selectRows(const QoreString* query_str, const Qore
 }
 
 QoreHashNode* Datasource::selectRow(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    QoreHashNode* rv = qore_dbi_private::get(*priv->dsl)->selectRow(this, query_str, args, xsink);
    autoCommit(xsink);
 
@@ -149,6 +152,7 @@ QoreHashNode* Datasource::selectRow(const QoreString* query_str, const QoreListN
 }
 
 AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
       return 0;
 
@@ -193,6 +197,7 @@ AbstractQoreNode* Datasource::execRaw(const QoreString* query_str, ExceptionSink
 }
 
 QoreHashNode* Datasource::describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    QoreHashNode* rv = qore_dbi_private::get(*priv->dsl)->describe(this, query_str, args, xsink);
    autoCommit(xsink);
 
@@ -237,6 +242,7 @@ int Datasource::rollback(ExceptionSink* xsink) {
 }
 
 int Datasource::open(ExceptionSink* xsink) {
+   assert(xsink);
    int rc;
 
    if (!priv->isopen) {

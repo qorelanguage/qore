@@ -51,13 +51,13 @@ AbstractQoreNode* QoreShiftOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
    if (exp) {
       checkLValue(exp, pflag);
 
-      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)) {
-	 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
-	 edesc->sprintf("'%s' operator is ", getTypeName());
-	 expTypeInfo->getThisType(*edesc);
-	 edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", getTypeName());
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-	 returnTypeInfo = nothingTypeInfo;
+      if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)) {
+         QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
+         edesc->sprintf("'%s' operator is ", getTypeName());
+         QoreTypeInfo::getThisType(expTypeInfo, *edesc);
+         edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", getTypeName());
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         returnTypeInfo = nothingTypeInfo;
       }
    }
 

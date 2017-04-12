@@ -393,8 +393,8 @@ public:
    // will only be called on *VarRefNewObjectNode objects, but this is their common class
    DLLLOCAL virtual const char* getNewObjectClassName() const {
       if (typeInfo) {
-         assert(typeInfo->getUniqueReturnClass());
-         return typeInfo->getUniqueReturnClass()->getName();
+         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+         return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
       }
       return parseTypeInfo->cscope->getIdentifier();
    }

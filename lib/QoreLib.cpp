@@ -647,6 +647,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 }
 
 QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
    const QoreStringNode* p;
 
@@ -680,6 +681,7 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
 }
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    const QoreStringNode* fmt;
 
    if (!(fmt = test_string_param(params, offset)))
@@ -728,6 +730,7 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
 
    QoreValue pv = get_param_value(params, offset);
@@ -763,6 +766,7 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    QoreValue pv = get_param_value(params, offset);
    if (pv.getType() != NT_STRING)
       return new QoreStringNode;
@@ -2143,12 +2147,12 @@ void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
 int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)) {
       if (getProgram()->getParseExceptionSink()) {
-	 QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-	 typeInfo->getThisType(*desc);
-	 desc->sprintf(", but the %s will assign it an integer value", name);
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+         QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+         QoreTypeInfo::getThisType(typeInfo, *desc);
+         desc->sprintf(", but the %s will assign it an integer value", name);
+         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
@@ -2158,9 +2162,9 @@ int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
 int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_NUMBER) && getProgram()->getParseExceptionSink()) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-      typeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a number value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       return -1;
@@ -2171,9 +2175,9 @@ int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
 int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_FLOAT) && getProgram()->getParseExceptionSink()) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-      typeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a float value", name);
       qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       return -1;
@@ -2184,20 +2188,20 @@ int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
 int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
-   if (!typeInfo->parseAcceptsReturns(NT_INT)
-         && !typeInfo->parseAcceptsReturns(NT_FLOAT)
-         && !typeInfo->parseAcceptsReturns(NT_NUMBER)) {
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER)) {
       if (getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-         typeInfo->getThisType(*desc);
+         QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
          qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
-   if (typeInfo->parseReturnsType(NT_INT)) {
-      if (typeInfo->parseReturnsType(NT_FLOAT)) {
-         if (typeInfo->parseReturnsType(NT_NUMBER))
+   if (QoreTypeInfo::parseReturnsType(typeInfo, NT_INT)) {
+      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT)) {
+         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
             typeInfo = bigIntFloatOrNumberTypeInfo;
          else
             typeInfo = bigIntOrFloatTypeInfo;
@@ -2206,8 +2210,8 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
          typeInfo = bigIntTypeInfo;
    }
    else {
-      if (typeInfo->parseReturnsType(NT_FLOAT))
-         if (typeInfo->parseReturnsType(NT_NUMBER))
+      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT))
+         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
             typeInfo = floatOrNumberTypeInfo;
          else
             typeInfo = floatTypeInfo;

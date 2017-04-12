@@ -108,26 +108,26 @@ AbstractQoreNode* QoreMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
    }
 
    // if either side is a date, then the return type is date (highest priority)
-   if (leftTypeInfo->isType(NT_DATE)
-       || rightTypeInfo->isType(NT_DATE))
+   if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
+       || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
       returnTypeInfo = dateTypeInfo;
    // otherwise we have to make sure types are known on both sides of the expression
-   else if (leftTypeInfo->hasType() && rightTypeInfo->hasType()) {
-      if (leftTypeInfo->isType(NT_NUMBER)
-            || rightTypeInfo->isType(NT_NUMBER))
+   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+      if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
          returnTypeInfo = numberTypeInfo;
-      else if (leftTypeInfo->isType(NT_FLOAT)
-            || rightTypeInfo->isType(NT_FLOAT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
          returnTypeInfo = floatTypeInfo;
-      else if (leftTypeInfo->isType(NT_INT)
-            || rightTypeInfo->isType(NT_INT))
+      else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
          returnTypeInfo = bigIntTypeInfo;
-      else if ((leftTypeInfo->isType(NT_HASH)
-               || leftTypeInfo->isType(NT_OBJECT))
-            && (rightTypeInfo->isType(NT_STRING)
-               || rightTypeInfo->isType(NT_LIST)))
+      else if ((QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
+               || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
+            && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
+               || QoreTypeInfo::isType(rightTypeInfo, NT_LIST)))
          returnTypeInfo = hashTypeInfo;
-      else if (leftTypeInfo->returnsSingle() && rightTypeInfo->returnsSingle())
+      else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
          // only return type nothing if both types are available and return a single type
          returnTypeInfo = nothingTypeInfo;
    }

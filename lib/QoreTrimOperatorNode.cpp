@@ -105,12 +105,12 @@ AbstractQoreNode* QoreTrimOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
    if (exp)
       checkLValue(exp, pflag);
 
-   if (typeInfo->hasType()
-       && !typeInfo->parseAcceptsReturns(NT_STRING)
-       && !typeInfo->parseAcceptsReturns(NT_LIST)
-       && !typeInfo->parseAcceptsReturns(NT_HASH)) {
+   if (QoreTypeInfo::hasType(typeInfo)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the trim operator is ");
-      typeInfo->getThisType(*desc);
+      QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }

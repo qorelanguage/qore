@@ -55,25 +55,25 @@ AbstractQoreNode* QoreBinaryOrOperatorNode::parseInitImpl(LocalVar* oflag, int p
    right = right->parseInit(oflag, pflag, lvids, rti);
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
-   if (lti->nonNumericValue()) {
-      if (rti->nonNumericValue()) {
-	 QoreStringNode* desc = new QoreStringNode("neither side of the binary or (|) expression can be converted to an integer (left hand side is ");
-	 lti->getThisType(*desc);
-	 desc->concat("; right hand side is ");
-	 rti->getThisType(*desc);
-	 desc->concat("), therefore the entire expression will always return a constant 0");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   if (QoreTypeInfo::nonNumericValue(lti)) {
+      if (QoreTypeInfo::nonNumericValue(rti)) {
+         QoreStringNode* desc = new QoreStringNode("neither side of the binary or (|) expression can be converted to an integer (left hand side is ");
+         QoreTypeInfo::getThisType(lti, *desc);
+         desc->concat("; right hand side is ");
+         QoreTypeInfo::getThisType(rti, *desc);
+         desc->concat("), therefore the entire expression will always return a constant 0");
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
       else {
-	 QoreStringNode* desc = new QoreStringNode("the left hand side of the binary or (|) expression is ");
-	 lti->getThisType(*desc);
-	 desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the right hand side");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+         QoreStringNode* desc = new QoreStringNode("the left hand side of the binary or (|) expression is ");
+         QoreTypeInfo::getThisType(lti, *desc);
+         desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the right hand side");
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
    }
-   else if (rti->nonNumericValue()) {
+   else if (QoreTypeInfo::nonNumericValue(rti)) {
       QoreStringNode* desc = new QoreStringNode("the right hand side of the binary or (|) expression is ");
-      rti->getThisType(*desc);
+      QoreTypeInfo::getThisType(rti, *desc);
       desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
       qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }

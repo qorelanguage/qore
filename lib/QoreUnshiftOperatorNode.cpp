@@ -45,18 +45,18 @@ AbstractQoreNode* QoreUnshiftOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (left) {
       checkLValue(left, pflag);
 
-      if (!leftTypeInfo->parseAcceptsReturns(NT_LIST)) {
-	 // only raise a parse exception if parse exceptions are enabled
-	 if (getProgram()->getParseExceptionSink()) {
-	    QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
-	    edesc->sprintf("'%s' operator is ", getTypeName());
-	    leftTypeInfo->getThisType(*edesc);
-	    edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", getTypeName());
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
-	 }
+      if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_LIST)) {
+         // only raise a parse exception if parse exceptions are enabled
+         if (getProgram()->getParseExceptionSink()) {
+            QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
+            edesc->sprintf("'%s' operator is ", getTypeName());
+            QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
+            edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", getTypeName());
+            qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+         }
       }
       else
-	 returnTypeInfo = listTypeInfo;
+         returnTypeInfo = listTypeInfo;
    }
 
    return this;
@@ -74,9 +74,9 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
    if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(listTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(listTypeInfo)))
          return QoreValue();
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(softListTypeInfo->getDefaultValue()))
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(softListTypeInfo)))
          return QoreValue();
    }
 

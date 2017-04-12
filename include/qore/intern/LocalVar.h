@@ -156,7 +156,7 @@ struct SkipHelper {
 class LocalVarValue : public VarValueBase {
 public:
    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue nval, bool static_assignment = false) {
-      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, typeInfo->getName(), nval.getType(), static_assignment);
+      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
       assert(!finalized);
       skip = false;
       id = n_id;
@@ -239,7 +239,7 @@ public:
 
    // returns true if the value could contain an object or a closure
    DLLLOCAL virtual bool needsScan(bool scan_now) {
-      return typeInfo->needsScan();
+      return QoreTypeInfo::needsScan(typeInfo);
    }
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
@@ -326,7 +326,7 @@ public:
 
    DLLLOCAL void instantiate() {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      instantiate(typeInfo->getDefaultQoreValue());
+      instantiate(QoreTypeInfo::getDefaultQoreValue(typeInfo));
 #else
       instantiate(QoreValue());
 #endif
@@ -383,7 +383,7 @@ public:
 
    // returns true if the value could contain an object or a closure
    DLLLOCAL bool needsScan() const {
-      return typeInfo->needsScan();
+      return QoreTypeInfo::needsScan(typeInfo);
    }
 
    DLLLOCAL const char* getName() const {

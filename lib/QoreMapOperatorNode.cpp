@@ -66,21 +66,21 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
 
    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
-   if (iteratorTypeInfo->hasType()) {
-      if (iteratorTypeInfo->isType(NT_NOTHING)) {
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
-	 typeInfo = nothingTypeInfo;
+   if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
+      if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+         typeInfo = nothingTypeInfo;
       }
-      else if (iteratorTypeInfo->isType(NT_LIST)) {
-	 typeInfo = listTypeInfo;
+      else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
+         typeInfo = listTypeInfo;
       }
       else {
-	 const QoreClass* qc = iteratorTypeInfo->getUniqueReturnClass();
-	 if (qc && qore_class_private::parseCheckCompatibleClass(*qc, *QC_ABSTRACTITERATOR))
-	    typeInfo = listTypeInfo;
-	 else if ((iteratorTypeInfo->parseReturnsType(NT_LIST) == QTI_NOT_EQUAL)
-		  && (iteratorTypeInfo->parseReturnsClass(QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
-	    typeInfo = iteratorTypeInfo;
+         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
+         if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+            typeInfo = listTypeInfo;
+         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+            typeInfo = iteratorTypeInfo;
       }
    }
 
@@ -98,16 +98,16 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    while (true) {
       ValueOptionalRefHolder iv(xsink);
       if (f->getNext(iv, xsink))
-	 break;
+         break;
 
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       if (value_type == single)
-	 return ref_rv ? iv.takeReferencedValue() : QoreValue();
+         return ref_rv ? iv.takeReferencedValue() : QoreValue();
 
       if (ref_rv)
-	 rv->push(iv.getReferencedValue());
+         rv->push(iv.getReferencedValue());
    }
 
    return rv.release();
@@ -117,7 +117,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
    if (iterator_func) {
       std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
       if (*xsink || value_type == nothing)
-	 return 0;
+         return 0;
       return new QoreFunctionalMapOperator(this, f.release());
    }
 
@@ -128,19 +128,19 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
    qore_type_t t = marg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-	 AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
-	 if (*xsink)
-	    return 0;
-	 if (h) {
-	    bool temp = marg.isTemp();
-	    marg.clearTemp();
-	    value_type = list;
-	    return new QoreFunctionalMapIteratorOperator(this, temp, h, xsink);
-	 }
+         AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
+         if (*xsink)
+            return 0;
+         if (h) {
+            bool temp = marg.isTemp();
+            marg.clearTemp();
+            value_type = list;
+            return new QoreFunctionalMapIteratorOperator(this, temp, h, xsink);
+         }
       }
       if (t == NT_NOTHING) {
-	 value_type = nothing;
-	 return 0;
+         value_type = nothing;
+         return 0;
       }
 
       value_type = single;
