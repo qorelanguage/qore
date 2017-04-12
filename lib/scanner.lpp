@@ -671,7 +671,7 @@ static bool is_identifier(const char *str) {
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
-         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);  \
+         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner); \
       } else yyterminate();  \
    }
 %}
