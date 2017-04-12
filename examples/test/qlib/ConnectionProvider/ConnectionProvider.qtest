@@ -59,9 +59,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     filesystemConnectionTest() {
-        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
-
         Program p();
         p.loadModule("ConnectionProvider");
         p.loadModule("Util");
