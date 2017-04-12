@@ -252,6 +252,7 @@ public:
    }
 
    DLLLOCAL void setLink(QoreAbstractModule* n) {
+      //printd(5, "AbstractQoreModule::setLink() n: %p '%s'\n", n, n->getName());
       assert(!next);
       assert(!n->prev);
       next = n;
@@ -398,14 +399,15 @@ public:
    }
 
 #ifdef DEBUG
-   DLLLOCAL void show() {
+   DLLLOCAL void show(const char* name) {
+      printf("ModMap '%s':\n", name);
       for (md_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          QoreString str("[");
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
             str.sprintf("'%s',", (*si).c_str());
          str.concat("]");
 
-         printd(0, " + rmd_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+         printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.getBuffer());
       }
    }
 #endif
@@ -479,6 +481,7 @@ public:
    DLLLOCAL void issueParseCmd(const char* mname, QoreProgram* pgm, QoreString &cmd);
 
    DLLLOCAL void addModule(QoreAbstractModule* m) {
+      assert(map.find(m->getName()) == map.end());
       map.insert(module_map_t::value_type(m->getName(), m));
    }
 
