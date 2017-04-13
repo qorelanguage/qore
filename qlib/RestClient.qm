@@ -108,6 +108,10 @@ printf("%N\n", ans.body);
     @see \c "rest" in the bin directory for a user-friendly command-line interface to REST
     functionality and a more detailed example of code using this module.
 
+    @note The @ref RestClient::RestClient "RestClient" class allows for HTTP \c GET requests to be made
+    with a message body, but this is bad practice and not compliant with HTTP 1.1 RFCs and therefore
+    could lead to compatibility problems; see @ref httpclient_get_with_body for more information
+
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_3_1 RestClient v1.3.1
@@ -529,7 +533,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
-            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+            @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"; note that sending a message body with an HTTP \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information; for maximum compatibility, use @ref nothing for this argument when calling this method
             @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
             - \c headers: a hash of outgoing HTTP request headers
             - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
@@ -556,6 +560,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             @see
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+            - @ref httpclient_get_with_body
          */
         hash get(string path, any body, *reference info, *hash hdr) {
             return doRequest("GET", path, body, \info, NOTHING, hdr);
@@ -752,6 +757,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             @see
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+            - @ref httpclient_get_with_body
          */
         hash doRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
             prepareMsg(\body, \hdr);
