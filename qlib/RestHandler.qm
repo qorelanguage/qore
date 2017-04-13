@@ -264,7 +264,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
 
     <b>Request With URI Argument</b>
     @verbatim
-GET /files/info.txt?action=info;option=verbose HTTP/1.1
+PUT /files/info.txt?action=chmod;mode=420 HTTP/1.1
 Accept: application/x-yaml
 User-Agent: Qore-RestClient/1.0
 Accept-Encoding: deflate,gzip,bzip2
@@ -274,7 +274,7 @@ Host: localhost:8001
 
     <b>Request With Arguments in the Message Body</b>
     @verbatim
-GET /files/info.txt HTTP/1.1
+PUT /files/info.txt HTTP/1.1
 Accept: application/x-yaml
 User-Agent: Qore-RestClient/1.0
 Accept-Encoding: deflate,gzip,bzip2
@@ -283,7 +283,7 @@ Host: localhost:8001
 Content-Type: application/json;charset=utf-8
 Content-Length: 36
 
-{ "action" : "info", "verbose" : 1 }
+{ "action" : "chmod", "mode" : 420 }
     @endverbatim
 
     @par REST URI Arguments
@@ -294,6 +294,10 @@ Content-Length: 36
     The REST request message body is automatically deserialized and made available as \a "cx.body" in REST action methods.\n\n
     If no message body was included in the client request, then any parsed URI parameters are copied to \a "cx.body".\n\n
     For requests with long or complex arguments should send arguments as message bodies and not as serialized URI query arguments.
+
+    @note The @ref RestHandler::RestHandler "RestHandler" class allows for HTTP \c GET requests to be served
+    with a message body, but this is not compliant with HTTP 1.1 RFCs and therefore could lead to compatibility
+    problems should this technique be used with other servers; see @ref httpclient_get_with_body for more information
 
     @section restexceptions Exception Handling in REST Calls
 
