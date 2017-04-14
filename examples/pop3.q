@@ -38,6 +38,7 @@
 %requires MailMessage >= 1.0
 %requires Mime >= 1.0
 %requires Util
+%requires ConnectionProvider
 
 class pop3 {
     private {
@@ -68,21 +69,30 @@ class pop3 {
         opt = g.parse3(\ARGV);
         if (opt.help)
             usage();
-        if (opt.user.empty()) {
-            stderr.print("missing user argument\n");
-            usage();
-        }
-        if (opt.pass.empty()) {
-            stderr.print("missing password argument\n");
-            usage();
-        }
         if (opt.svr.empty()) {
             stderr.print("missing POP3 server address\n");
             usage();
         }
 
+        string url;
+        {
+            url = get_connection_url(opt.svr);
+            if (url != opt.svr)
+                printf("using connection: %y url: %y\n", opt.svr, url);
+            else {
+                if (opt.user.empty()) {
+                    stderr.print("missing user argument\n");
+                    usage();
+                }
+                if (opt.pass.empty()) {
+                    stderr.print("missing password argument\n");
+                    usage();
+                }
+                url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
+            }
+        }
+
         try {
-            string url = sprintf("pop3%s://%s:%s@%s", opt.ssl ? "s" : "", opt.user, opt.pass, opt.svr);
             Pop3Client pop3(url, \log(), opt.verbose ? \log() : NOTHING);
             if (opt.noquit)
                 pop3.noquit(True);
@@ -159,7 +169,7 @@ class pop3 {
 
     static usage() {
         printf("usage: %s [options]\n"
-               "  -u, -p, and -s are required arguments\n"
+               "  -u, -p, and -s are required unless -s gives a connection name\n"
                "options:\n"
                " -d,--delete       remove messages on the server (none are deleted by default)\n"
                " -h,--help         this help text\n"
