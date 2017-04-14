@@ -1,10 +1,10 @@
 %{
 /*
-  AstScanner.lpp
+  ast_scanner.lpp
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -24,10 +24,6 @@
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
-
   requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
   so a thread-safe scanner can be generated
 
@@ -45,7 +41,7 @@
 #include <unistd.h>
 
 #include "AstParserSupport.h"
-#include "AstParser.hpp"
+#include "ast_parser.hpp"
 
 #define AST_USER_ACTION {                                                         \
    /*fprintf(stderr, "YUA token: '%s' (%lu b) line: %d\nbegin: %d:%d %d:%d\n",*/    \
