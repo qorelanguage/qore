@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  BinaryInputStream.h
+  ASTOnBlockExitStatement.h
 
-  Qore Programming Language
+  Qore AST Parser
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,35 +29,43 @@
   information.
 */
 
-#ifndef _QLS_AST_AST_H
-#define _QLS_AST_AST_H
+#ifndef _QLS_AST_STATEMENTS_ASTONBLOCKEXITSTATEMENT_H
+#define _QLS_AST_STATEMENTS_ASTONBLOCKEXITSTATEMENT_H
 
-#include "ast/ASTDeclaration.h"
-#include "ast/ASTExpression.h"
-#include "ast/ASTModifiers.h"
-#include "ast/ASTName.h"
-#include "ast/ASTNode.h"
-#include "ast/ASTOperator.h"
+#include <memory>
+
 #include "ast/ASTStatement.h"
 
-#include "ast/statements/ASTBreakStatement.h"
-#include "ast/statements/ASTCallStatement.h"
-#include "ast/statements/ASTContextStatement.h"
-#include "ast/statements/ASTContinueStatement.h"
-#include "ast/statements/ASTDoWhileStatement.h"
-#include "ast/statements/ASTExpressionStatement.h"
-#include "ast/statements/ASTForeachStatement.h"
-#include "ast/statements/ASTForStatement.h"
-#include "ast/statements/ASTIfStatement.h"
-#include "ast/statements/ASTOnBlockExitStatement.h"
-#include "ast/statements/ASTRethrowStatement.h"
-#include "ast/statements/ASTReturnStatement.h"
-#include "ast/statements/ASTStatementBlock.h"
-#include "ast/statements/ASTSummarizeStatement.h"
-#include "ast/statements/ASTSwitchStatement.h"
-#include "ast/statements/ASTThreadExitStatement.h"
-#include "ast/statements/ASTThrowStatement.h"
-#include "ast/statements/ASTTryStatement.h"
-#include "ast/statements/ASTWhileStatement.h"
+class ASTOnBlockExitStatement : public ASTStatement {
+public:
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTOnBlockExitStatement>;
 
-#endif // _QLS_AST_AST_H
+public:
+    enum Condition {
+        AOBEC_Exit,
+        AOBEC_Success,
+        AOBEC_Error,
+    };
+
+public:
+    //! Condition on when to execute.
+    Condition condition;
+
+    //! Code to execute if condition met.
+    ASTStatement::Ptr statement;
+
+public:
+    ASTOnBlockExitStatement(ASTStatement* stmt, Condition cond) :
+        ASTStatement(),
+        condition(cond),
+        statement(stmt) {}
+
+    virtual ~ASTOnBlockExitStatement() {}
+
+    virtual Kind getKind() const override {
+        return Kind::ASK_OnBlockExit;
+    }
+};
+
+#endif // _QLS_AST_STATEMENTS_ASTONBLOCKEXITSTATEMENT_H

@@ -37,9 +37,11 @@
 #include <string>
 #include <vector>
 
+#include "ASTDeclaration.h"
 #include "ASTName.h"
 #include "ASTNode.h"
 #include "ASTOperator.h"
+#include "ASTStatement.h"
 
 class ASTExpression : public ASTNode {
 public:
@@ -73,6 +75,8 @@ public:
       AEK_Closure,            //!< Identifies an instance of \ref ASTClosureExpression.
       AEK_Backquote,          //!< Identifies an instance of \ref ASTBackquoteExpression.
       AEK_Regex,              //!< Identifies an instance of \ref ASTRegexExpression.
+      AEK_RegexSubst,         //!< Identifies an instance of \ref ASTRegexSubstExpression.
+      AEK_RegexTrans,         //!< Identifies an instance of \ref ASTRegexTransExpression.
       AEK_ConstrInit,         //!< Identifies an instance of \ref ASTConstrInitExpression.
    };
 
@@ -252,15 +256,15 @@ public:
    ASTExpression::Ptr args;
 
 public:
-   ASTCallExpression(ASTExpression* targ, ASTExpression* argList) :
+   ASTCallExpression(ASTExpression* targ, ASTExpression* arglist) :
       ASTExpression(),
       target(targ),
-      args(argList)
+      args(arglist)
    {
-      loc.firstLine = varExpr->loc.firstLine;
-      loc.firstCol = varExpr->loc.firstCol;
-      loc.lastLine = argsExpr->loc.lastLine;
-      loc.lastCol = argsExpr->loc.lastCol;
+      loc.firstLine = targ->loc.firstLine;
+      loc.firstCol = targ->loc.firstCol;
+      loc.lastLine = arglist->loc.lastLine;
+      loc.lastCol = arglist->loc.lastCol;
    }
 
    virtual Kind getKind() const override {
@@ -323,16 +327,16 @@ public:
    ASTExpression::Ptr right;
 
 public:
-   ASTBinaryExpression(ASTExpression* leftExpr, ASTOperator o, ASTExpression* rightExpr) :
+   ASTBinaryExpression(ASTExpression* le, ASTOperator o, ASTExpression* re) :
       ASTExpression(),
-      left(leftExpr),
+      left(le),
       op(o),
-      right(rightExpr)
+      right(re)
    {
-      loc.firstLine = left->loc.firstLine;
-      loc.firstCol = left->loc.firstCol;
-      loc.lastLine = right->loc.lastLine;
-      loc.lastCol = right->loc.lastCol;
+      loc.firstLine = le->loc.firstLine;
+      loc.firstCol = le->loc.firstCol;
+      loc.lastLine = re->loc.lastLine;
+      loc.lastCol = re->loc.lastCol;
    }
 
    virtual Kind getKind() const override {
@@ -384,12 +388,12 @@ public:
    bool defaultCase;
 
 public:
-   ASTCaseExpression(ASTExpression* ce, ASTStatementBlock* sb, bool def = False) :
+   ASTCaseExpression(ASTExpression* ce, ASTStatementBlock* sb, bool def = false) :
       ASTExpression(),
       caseExpr(ce),
       statements(sb),
       defaultCase(def) {}
-   ASTCaseExpression(ASTOperator o, ASTExpression* ce, ASTStatementBlock* sb, bool def = False) :
+   ASTCaseExpression(ASTOperator o, ASTExpression* ce, ASTStatementBlock* sb, bool def = false) :
       ASTExpression(),
       op(o),
       caseExpr(ce),
@@ -665,7 +669,7 @@ public:
    bool global = false;
 
 public:
-   ASTRegexExpression(bool extract = False) : ASTExpression(), extractRegex(extract) {}
+   ASTRegexExpression(bool extract = false) : ASTExpression(), extractRegex(extract) {}
 
    virtual Kind getKind() const override {
       return Kind::AEK_Regex;

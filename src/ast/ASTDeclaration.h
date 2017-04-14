@@ -80,7 +80,7 @@ public:
       modifiers(mods)
    {
       if (decls)
-         declarations.swap(decls);
+         declarations.swap(*decls);
    }
 
    virtual ~ASTNamespaceDeclaration() {
@@ -215,7 +215,6 @@ public:
                           ASTConstrInitExpression* ci = nullptr,
                           ASTStatementBlock* stmts = nullptr) :
       ASTDeclaration(),
-      modifiers(mods),
       name(n),
       afdKind(k),
       returnType(rt),
@@ -283,12 +282,12 @@ public:
 
 public:
    ASTConstantDeclaration(ASTModifiers mods, const ASTName& n, ASTExpression* v) :
-      ASTDeclaration(l),
+      ASTDeclaration(),
       modifiers(mods),
       name(n),
       value(v) {}
    ASTConstantDeclaration(const ASTName& n, ASTExpression* v) :
-      ASTDeclaration(l),
+      ASTDeclaration(),
       name(n),
       value(v) {}
 

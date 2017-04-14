@@ -61,13 +61,13 @@
    while (0)
 
 
-static int check_strong_encapsulation(const char* type, const char* name) {
+/*static int check_strong_encapsulation(const char* type, const char* name) {
    if (parse_check_parse_option(PO_STRONG_ENCAPSULATION)) {
       parse_error("illegal out of line %s definition \"%s\" (conflicts with parse option PO_STRONG_ENCAPSULATION)", type, name);
       return -1;
    }
    return 0;
-}
+}*/
 
 %}
 
