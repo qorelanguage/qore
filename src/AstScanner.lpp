@@ -1,0 +1,1321 @@
+%{
+/*
+  AstScanner.lpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+
+  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
+  so a thread-safe scanner can be generated
+
+  see: http://flex.sourceforge.net/
+*/
+
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "AstParserSupport.h"
+#include "AstParser.hpp"
+
+#define AST_USER_ACTION {                                                         \
+   /*fprintf(stderr, "YUA token: '%s' (%lu b) line: %d\nbegin: %d:%d %d:%d\n",*/    \
+      /* asttext, astleng, astlineno, astlloc->firstLine, astlloc->firstCol, */          \
+      /* astlloc->lastLine, astlloc->lastCol);              */                        \
+   astlloc->firstLine = astlloc->lastLine;                                        \
+   astlloc->firstCol = astlloc->lastCol;                                          \
+   if (astlloc->firstLine == astlineno)                                           \
+      astlloc->lastCol += astleng;                                               \
+   else {                                                                       \
+      unsigned int col = 1;                                                    \
+      for (; (col <= astleng) && (asttext[astleng - col] != '\n'); ++col) {}      \
+      astlloc->lastCol = col;                                                   \
+      astlloc->lastLine = astlineno;                                             \
+   }                                                                            \
+   /*fprintf(stderr, "end: %d:%d %d:%d\n",       */                                 \
+       /*astlloc->firstLine, astlloc->firstCol, astlloc->lastLine, astlloc->lastCol);*/ \
+
+int ast_parse(yyscan_t astscanner);
+
+#define isoctaldigit(x) (x >= '0' && x <= '7')
+
+static int ascii_to_octal(char c) {
+   assert(isoctaldigit(c));
+   return c - '0';
+}
+
+static char* make_scoped_vref(const char* str) {
+   size_t len = strlen(str);
+   char* rv = (char*)malloc(sizeof(char) * len);
+   size_t i = 0;
+   while (*str) {
+      if (*str != '$')
+         rv[i++] = *str;
+      ++str;
+   }
+   rv[i] = '\0';
+   return rv;
+}
+
+// the return value of this function must be freed if non-0
+static char* trim(const char* str) {
+   while ((*str) == ' ' || (*str) == '\t')
+      str++;
+   // duplicate string
+   char* n = strdup(str);
+   // find end of string
+   unsigned l = (unsigned)strlen(n);
+   if (l) {
+      char* e = n + l - 1;
+      while ((*e) == ' ' || (*e) == '\t')
+         *(e--) = '\0';
+   }
+   if (!n[0]) {
+      free(n);
+      n = 0;
+   }
+   return n;
+}
+
+// edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing whitespace removed
+static char* trim_inplace(const char* str) {
+   while ((*str) == ' ' || (*str) == '\t')
+      str++;
+   // find end of string
+   unsigned l = (unsigned)strlen(str);
+   if (l) {
+      const char* e = str + l - 1;
+      while ((*e) == ' ' || (*e) == '\t')
+         *((char*)(e--)) = '\0';
+   }
+   return str[0] ? (char*)str : 0;
+}
+
+#if 0
+// everybody likes to get the last word - now there's a function for it
+static const char* get_last_word(const char* str) {
+   unsigned l = (unsigned)strlen(str);
+   assert(l);
+
+   const char* e = str + l - 2;
+
+   while (e != str && *e != ' ' && *e != '\t' && *e != '\r' && *e != '\n')
+      --e;
+
+   //printd(0, "get_last_word() '%s' -> '%s'\n", str, e + 1);
+   return e == str ? e : e + 1;
+}
+#endif
+
+// sets the time zone at parse time - this function is exported in the library
+/*void parse_set_time_zone(const char* zone) {
+   zone = trim_inplace(zone);
+   if (!zone) {
+      parse_error("empty argument to %set-time-zone");
+      return;
+   }
+
+   getProgram()->parseSetTimeZone(zone);
+}*/
+
+/*static void scanner_process_path(QoreString& npath, char* ip) {
+   // scan through paths and:
+   // 1: do environment variable substitution
+   // 2: remove the paths that don't exist
+   char* lp, *p;
+   p = lp = ip;
+
+   while (true) {
+#ifdef _Q_WINDOWS
+      // do not assume ':' separates paths on windows if it's the second character in a path
+      if ((*p == ':' && p != lp + 1) || !*p)
+#else
+      if (*p == ':' || !*p)
+#endif
+      {
+         // skip if at beginning of new path
+         if (p != lp) {
+            QoreString tpath;
+            tpath.concat(lp, p - lp);
+            const char* sp = tpath.getBuffer();
+            //printd(5, "got path string: '%s'\n", sp);
+
+            const char* i, *spt;
+            spt = sp;
+
+            while ((i = strchr(spt, '$'))) {
+               // find end of environment variable
+               char* ep = (char*)++i;
+               while (*ep && (*ep == '_' || isalnum(*ep)))
+                  ++ep;
+               spt = i + 1;
+               // perform variable substitution
+               if (ep != i) {
+                  char save = *ep;
+                  *ep = '\0';
+                  TempString val(SystemEnvironment::get(i));
+                  //printd(5, "set_include_path() found variable '$%s' = %s\n", i, val->getBuffer());
+                  *ep = save;
+                  if (val && val->strlen()) {
+                     // see if environment value ends in the directory separator char, if so, and the
+                     // rest of the string starts with the directory separator char, then make sure the
+                     // character is not doubled (can cause problems on windows)
+                     if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
+                           && *ep == QORE_DIR_SEP)
+                        ++ep;
+
+                     // replace with value
+                     int pos = (int)(i - sp);
+                     //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
+                     tpath.replace(pos - 1, ep - i + 1, *val);
+                     // re-assign sp in case it's changed
+                     int diff = (int)(pos + val->strlen());
+                     sp = tpath.getBuffer();
+                     spt = sp + diff;
+                     //printd(5, "new string = '%s' ('%s')\n", sp, spt);
+                  }
+               }
+            }
+            struct stat sb;
+
+            if (tpath[0] == '.' && tpath[1] == '.') {
+               // substitue program path if available
+               const char* sp = getProgram()->parseGetScriptDir();
+               if (sp) {
+                  size_t l = strlen(sp);
+                  if (tpath[0] != '/' && tpath[0] != '\\' && sp[l-1] != '/' && sp[l-1] != '\\')
+                     tpath.replace(0, 0, QORE_DIR_SEP_STR);
+                  tpath.replace(0, 0, sp);
+               }
+            }
+
+            //printd(5, "set_include_path() trying '%s'\n", sp);
+            // add to path list if the directory exists
+            if (!stat(sp, &sb)) {
+               //printd(5, "OK: adding '%s' to path list\n", sp);
+               if (npath.strlen())
+                  npath.concat(':');
+               npath.concat(&tpath);
+            }
+
+            if (!*p)
+               break;
+         }
+         lp = ++p;
+         continue;
+      }
+#ifdef _Q_WINDOWS
+      // transform '/ characters to '\' characters
+      if (*p == '/')
+         *p = '\\';
+#endif
+
+      ++p;
+   }
+   //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.getBuffer());
+}*/
+
+/*static QoreString* get_include_file_name(char* file) {
+#ifdef _Q_WINDOWS
+   // convert UNIX-style '/' character to '\'
+   for (char* p = file; *p; ++p)
+      if (*p == '/')
+         *p = '\\';
+#endif
+
+   // if the filename begins with an environment variable, then try to do environment variable substitution
+   if (file[0] == '$') {
+      QoreString* rv = new QoreString;
+
+      QoreString var;
+      char* p = file + 1;
+      while (*p && (*p == '_' || isalnum(*p))) {
+         var.concat(*p);
+         ++p;
+      }
+
+      QoreString val;
+      if (SystemEnvironment::get(var.getBuffer(), val))
+         rv->concat(file);
+      else {
+         rv->concat(&val);
+         rv->concat(file + var.size() + 1);
+      }
+
+      return rv;
+   }
+
+   //printd(5, "get_include_file_name(%s)\n", file);
+   // FIXME: UNIX-specific - need to check for drive name on windows
+   if (file[0] == QORE_DIR_SEP)
+      return new QoreString(file);
+
+   QoreString *rv;
+
+   // check in current directory of script first
+   const char* sp = getProgram()->parseGetScriptDir();
+   if (sp) {
+      rv = findFileInPath(file, sp);
+      if (rv)
+         return rv;
+   }
+
+   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+   if (!rv) {
+      const char* pp = getProgram()->parseGetIncludePath();
+      if (pp)
+         rv = findFileInPath(file, pp);
+      if (!rv)
+         rv = new QoreString(file);
+   }
+
+   return rv;
+}*/
+
+/*static void append_module_path(const char* path) {
+   char* ip = trim(path);
+   if (!ip)
+      return;
+   ON_BLOCK_EXIT(free, ip);
+
+   QoreString npath; // for new path
+
+   scanner_process_path(npath, ip);
+
+   //printd(5, "appending module path: '%s'\n", npath.getBuffer());
+   QMM.addModuleDirList(npath.getBuffer());
+   //getProgram()->parseSetIncludePath(npath.getBuffer());
+}
+
+static void set_include_path(const char* path) {
+   char* ip = trim(path);
+   if (!ip)
+      return;
+   ON_BLOCK_EXIT(free, ip);
+
+   QoreString npath; // for new path
+
+   scanner_process_path(npath, ip);
+
+   //printd(5, "setting include path: '%s'\n", npath.getBuffer());
+   getProgram()->parseSetIncludePath(npath.getBuffer());
+}*/
+
+static char* remove_quotes(char* str) {
+   str[strlen(str) - 1] = '\0';
+   return str + 1;
+}
+
+static int64 parse_get_integer(const char* str) {
+   errno = 0;
+   int64 rv = strtoll(str, 0, 10);
+   if (errno == ERANGE)
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+   return rv;
+}
+
+static inline int get_int_2(const char* &p) {
+   int rv = (*p - '0') * 10;
+   ++p;
+   rv += (*p - '0');
+   ++p;
+   return rv;
+}
+
+static inline int get_int_4(const char* &p) {
+   int rv = (*p - '0') * 1000;
+   ++p;
+   rv += (*p - '0') * 100;
+   ++p;
+   rv += (*p - '0') * 10;
+   ++p;
+   rv += (*p - '0');
+   ++p;
+   return rv;
+}
+
+static bool isRegexModifier(ASTRegexExpression *re, int c) {
+   if (c == 'i')
+      re->caseSensitive = false;
+   else if (c == 's')
+      re->dotAll = true;
+   else if (c == 'x')
+      re->extended = true;
+   else if (c == 'm')
+      re->multiline = true;
+   else
+      return false;
+   return true;
+}
+
+static bool isRegexExtractModifier(ASTRegexExpression *re, int c) {
+   if (isRegexModifier(re, c))
+      return true;
+   if (c == 'g')
+      re->global = true;
+   else
+      return false;
+   return true;
+}
+
+static bool isRegexSubstModifier(ASTRegexSubstExpression *rs, int c) {
+   if (c == 'g')
+      rs->global = true;
+   else if (c == 'i')
+      rs->caseSensitive = false;
+   else if (c == 's')
+      rs->dotAll = true;
+   else if (c == 'x')
+      rs->extended = true;
+   else if (c == 'm')
+      rs->multiline = true;
+   else
+      return false;
+   return true;
+}
+
+static char* make_cast(const char* s) {
+   size_t size = strlen(s+5);
+   char* str = strndup(s+5, --size); // copy and cut off the trailing '>'
+   while (size > 0 && str[--size] == ' ') str[size] = '\0'; // trim
+   return str;
+}
+
+/*static void qore_parse_define(const char* pstr) {
+   QoreString str(pstr);
+   // trim trailing and leading whitespace
+   str.trim();
+   const char* p = strchr(str.getBuffer(), ' ');
+   QoreString arg;
+   if (p) {
+      // copy arg to arg string
+      arg.set(p + 1);
+      // trim leading whitespace, if any
+      arg.trim_leading();
+      // remove argument from define string
+      str.terminate(p - str.getBuffer());
+   }
+   // check define string
+   if (str.empty()) {
+      parse_error("missing argument to %%define");
+      return;
+   }
+
+   AbstractQoreNode *v = 0;
+   if (!arg.empty()) {
+      bool ok;
+      v = qore_parse_get_define_value(str.getBuffer(), arg, ok);
+      if (!ok)
+         return;
+   }
+
+   qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
+}*/
+
+/*static bool parse_is_defined(const char* pstr, bool def = true) {
+   QoreString str(pstr);
+   str.trim();
+   if (str.empty()) {
+      parse_error("missing argument to %%if%sdef", def ? "" : "n");
+      return false;
+   }
+   return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
+}*/
+
+#define AST_DOT_KW_IDENTIFIER(kw) { astlval->String = new std::string(kw); qore_size_t pos = astlval->String->size() + 1; if (asttext[pos]) unput(asttext[pos]); return DOT_KW_IDENTIFIER; }
+
+#define AST_FLEX_DO_EOF { /* delete current buffer */ ast_delete_buffer(AST_CURRENT_BUFFER, astscanner); \
+      /* get last parse state */ AST_BUFFER_STATE astbs = (AST_BUFFER_STATE)endParsing(); \
+      if (astbs) { /* need to close file and switch to previous buffer */ \
+         fclose(astin); if (astbs) ast_switch_to_buffer(astbs, astscanner);  \
+      } else astterminate();  \
+   }
+
+// Global parse options.
+bool PO_BROKEN_LOGIC_PRECEDENCE = false;
+bool PO_BROKEN_OPERATORS = false;
+%}
+
+%option noyywrap nomain noyy_top_state warn
+%option reentrant bison-bridge bison-locations
+%option stack
+%option yylineno
+%option noyy_push_state
+%option noyy_pop_state
+%option prefix="ast"
+
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module
+
+HEX_DIGIT       [0-9A-Fa-f]
+HEX_CONST       0x{HEX_DIGIT}+
+OCTAL_CONST     \\[0-7]{1,3}
+DIGIT           [0-9]
+WORD            [a-zA-Z_][a-zA-Z0-9_]*
+WS              [ \t\r]
+WSNL            [ \t\r\n]
+YEAR            [0-9]{4}
+MONTH           (0[1-9])|(1[012])
+DAY             ((0[1-9])|([12][0-9])|(3[01]))
+HOUR            ([01][0-9])|(2[0-3])
+MSEC            [0-5][0-9]
+US              [0-9]{1,6}
+D2              [0-9]{2}
+BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
+TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
+RDATE           P(-?[0-9]+[YMDHSu])+
+RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
+RTIME           PT(-?[0-9]+[HMSu])+
+
+%%
+^%no-global-vars{WS}*$                 {} //getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
+^%no-subroutine-defs{WS}*$             {} //getProgram()->parseSetParseOptions(PO_NO_SUBROUTINE_DEFS);
+^%no-threads{WS}*$                     {} //getProgram()->parseSetParseOptions(PO_NO_THREADS);
+^%no-thread-classes{WS}*$              {} //getProgram()->parseSetParseOptions(PO_NO_THREAD_CLASSES);
+^%no-thread-control{WS}*$              {} //getProgram()->parseSetParseOptions(PO_NO_THREAD_CONTROL);
+^%no-thread-info{WS}*$                 {} //getProgram()->parseSetParseOptions(PO_NO_THREAD_INFO);
+^%no-top-level{WS}*$                   {} //getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+^%no-class-defs{WS}*$                  {} //getProgram()->parseSetParseOptions(PO_NO_CLASS_DEFS);
+^%no-namespace-defs{WS}*$              {} //getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);
+^%no-external-process{WS}*$            {} //getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS);
+^%no-external-info{WS}*$               {} //getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_INFO);
+^%no-external-access{WS}*$             {} //getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_ACCESS);
+^%no-filesystem{WS}*$                  {} //getProgram()->parseSetParseOptions(PO_NO_FILESYSTEM);
+^%no-io{WS}*$                          {} //getProgram()->parseSetParseOptions(PO_NO_IO);
+^%lockdown{WS}*$                       {} //getProgram()->parseSetParseOptions(PO_LOCKDOWN);
+^%lock-options{WS}*$                   {} //getProgram()->lockOptions();
+^%lock-warnings{WS}*$                  {} //getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS);
+^%no-locale-control{WS}*$              {} //getProgram()->parseSetParseOptions(PO_NO_LOCALE_CONTROL);
+^%no-process-control{WS}*$             {} //getProgram()->parseSetParseOptions(PO_NO_PROCESS_CONTROL);
+^%no-constant-defs{WS}*$               {} //getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS);
+^%no-new{WS}*$                         {} //getProgram()->parseSetParseOptions(PO_NO_NEW);
+^%no-network{WS}*$                     {} //getProgram()->parseSetParseOptions(PO_NO_NETWORK);
+^%no-child-restrictions{WS}*$          {} //getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
+^%allow-injection{WS}*$                {} //getProgram()->parseSetParseOptions(PO_ALLOW_INJECTION);
+^%no-database{WS}*$                    {} //getProgram()->parseSetParseOptions(PO_NO_DATABASE);
+^%no-gui{WS}*$                         {} //getProgram()->parseSetParseOptions(PO_NO_GUI);
+^%no-terminal-io{WS}*$                 {} //getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
+^%no-modules{WS}*$                     {} //getProgram()->parseSetParseOptions(PO_NO_MODULES);
+^%require-our{WS}*$                    {} //getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
+^%require-types{WS}*$                  {} //getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES);
+^%require-prototypes{WS}*$             {} //getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);
+^%strict-args{WS}*$                    {} //getProgram()->parseSetParseOptions(PO_STRICT_ARGS);
+^%allow-bare-refs{WS}*$                {} //getProgram()->parseSetParseOptions(PO_ALLOW_BARE_REFS);
+^%require-dollar{WS}*$                 {} //getProgram()->parseDisableParseOptions(PO_ALLOW_BARE_REFS);
+^%assume-local{WS}*$                   {} //getProgram()->parseSetParseOptions(PO_ASSUME_LOCAL);
+^%assume-global{WS}*$                  {} //getProgram()->parseDisableParseOptions(PO_ASSUME_LOCAL);
+^%new-style{WS}*$                      {} //getProgram()->parseSetParseOptions(PO_NEW_STYLE);
+^%old-style{WS}*$                      {} //getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
+^%perl-bool-eval{WS}*$                 {} //getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%strict-bool-eval{WS}*$               {} //getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
+^%strong-encapsulation{WS}*$           {} //getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION);
+^%no-uncontrolled-apis{WS}*$           {} //getProgram()->parseSetParseOptions(PO_NO_UNCONTROLLED_APIS);
+^%allow-debugging{WS}*$                {} //getProgram()->parseSetParseOptions(PO_ALLOW_DEBUGGING);
+^%broken-list-parsing{WS}*$            {} //getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
+^%broken-logic-precedence{WS}*$        { PO_BROKEN_LOGIC_PRECEDENCE = true; }
+^%broken-loop-statement{WS}*$          {} //getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
+^%broken-int-assignments{WS}*$         {} //getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
+^%broken-operators{WS}*$               { PO_BROKEN_OPERATORS = true; }
+^%push-parse-options{WS}*$             {} //push_parse_options();
+^%append-include-path{WS}*$            { /*parse_error("missing argument to %%append-include-path");*/ }
+^%append-include-path{WS}+             BEGIN(append_path_state);
+<append_path_state>[^\n\r]+            {
+                                          //set_include_path(asttext);
+                                          BEGIN(INITIAL);
+                                       }
+^%append-module-path{WS}*$             {}
+^%append-module-path{WS}+              BEGIN(append_module_state);
+<append_module_state>[^\n\r]+          {
+                                          //append_module_path(asttext);
+                                          BEGIN(INITIAL);
+                                       }
+^%set-time-zone{WS}*$                  { /*arse_error("missing argument to %%set-time-zone");*/ }
+^%set-time-zone{WS}+                   BEGIN(set_zone);
+<set_zone>[^\n\r]+                     {
+                                          //parse_set_time_zone(asttext);
+                                          BEGIN(INITIAL);
+                                       }
+^%enable-all-warnings{WS}*$            {
+                                          //if (getProgram()->setWarningMask(-1))
+                                          //   qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
+                                       }
+^%disable-all-warnings{WS}*$           {
+                                          //if (getProgram()->setWarningMask(0))
+                                          //   qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
+                                       }
+^%disable-warning{WS}*$                { /*parse_error("missing argument to %%disable-warning");*/ }
+^%disable-warning{WS}+                 BEGIN(disable_warning);
+<disable_warning>[^\n\r]+              {
+                                          /*char* cn = trim(asttext);
+                                          //printd(5, "scanner: disable warning '%s'\n", cn);
+                                          int code = get_warning_code(cn);
+                                          if (!code)
+                                             qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
+                                          else if (getProgram()->disableWarning(code))
+                                             qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+                                          //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
+                                          free(cn);*/
+                                          BEGIN(INITIAL);
+                                       }
+^%enable-warning{WS}*$                 { /*parse_error("missing argument to %%enable-warning");*/ }
+^%enable-warning{WS}+                  BEGIN(enable_warning);
+<enable_warning>[^\n\r]+               {
+                                          /*char* cn = trim(asttext);
+                                          //printd(5, "scanner: enable warning '%s'\n", cn);
+                                          int code = get_warning_code(cn);
+                                          if (!code)
+                                             qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
+                                          else if (getProgram()->enableWarning(code))
+                                             qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
+                                          free(cn);*/
+                                          BEGIN(INITIAL);
+                                       }
+^%exec-class{WS}*$                     { /*parse_error("missing argument to %%exec-class");*/ }
+^%exec-class{WS}+                      BEGIN(exec_class_state);
+^%try-module{WS}*$                     { /*parse_error("missing argument to %%try-module");*/ }
+^%try-module{WS}+                      BEGIN(try_module);
+<try_module>[^\n\r]+                   {
+                                          BEGIN(INITIAL);
+                                       }
+^%endtry{WS}*$                         {}
+^%requires{WS}*$                       { /*parse_error("missing argument to %%requires");*/ }
+^%requires                             BEGIN(requires);
+<requires>[^\n\r]+                     {
+                                          /*char* cn = trim_inplace(asttext);
+                                          if (cn) {
+                                             BEGIN(INITIAL);
+                                             yylval->string = strdup(cn);
+                                             return REQUIRES;
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+^%module-cmd{WS}*$                     { /*parse_error("missing argument to %%module-cmd");*/ }
+^%module-cmd                           BEGIN(module_cmd);
+<module_cmd>{WS}*                      // ignore white space
+<module_cmd>[^\n\r]+                   {
+                                          /*QoreString str(asttext);
+                                          str.trim();
+                                          const char* p = str.getBuffer();
+                                          const char* op = strchr(p, '(');
+                                          if (!op)
+                                             parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
+                                          else {
+                                             p = op + 1;
+                                             const char* cp = strchr(p, ')');
+                                             if (!cp)
+                                                parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
+                                             else {
+                                                // get module name
+                                                QoreString module(p, cp - p);
+                                                module.trim();
+
+                                                // remove preface from string leaving only command
+                                                str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                str.trim();
+                                                if (str.empty())
+                                                   parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
+                                                else {
+                                                   QMM.issueParseCmd(module.getBuffer(), 0, str);
+                                                }
+                                             }
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+^%define{WS}*$                         { /*parse_error("missing argument to %%define");*/ }
+^%define{WS}+                          BEGIN(p_def);
+<p_def>{WS}*                           // ignore white space
+<p_def>[^\n\r]+                        {
+                                          //qore_parse_define(asttext);
+                                          BEGIN(INITIAL);
+                                       }
+^%ifdef{WS}*$                          { /*parse_error("missing argument to %%ifdef");*/ }
+^%ifdef{WS}+                           BEGIN(p_ifdef);
+<p_ifdef>{
+   [^\n\r]+$                           {
+                                          /*parse_cond_push(true);
+                                          if (parse_is_defined(asttext)) {
+                                             //printd(5, "ifdef: '%s' is defined\n", asttext);
+                                             BEGIN(INITIAL);
+                                          }
+                                          else {
+                                             //printd(5, "ifdef: '%s' is not defined\n", asttext);
+                                             // skip to the next %else or %endif
+                                             BEGIN(p_skip_to_endif_or_else);
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+}
+^%ifndef{WS}*$                         { /*parse_error("missing argument to %%ifndef");*/ }
+^%ifndef{WS}+                          BEGIN(p_ifndef);
+<p_ifndef>{
+   [^\n\r]+$                           {
+                                          /*parse_cond_push(true);
+                                          if (!parse_is_defined(asttext)) {
+                                             //printd(5, "ifndef: '%s' is not defined\n", asttext);
+                                             BEGIN(INITIAL);
+                                          }
+                                          else {
+                                             //printd(5, "ifndef: '%s' is defined\n", asttext);
+                                             // skip to the next %else or %endif
+                                             BEGIN(p_skip_to_endif_or_else);
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+}
+^%else{WS}*$                           {
+                                          /*if (!parse_cond_else()) {
+                                             parse_error("%%else found without %%if");
+                                          }
+                                          else {
+                                             BEGIN(p_skip_to_endif);
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+<p_skip_to_endif>{
+   ^%endif{WS}*$                       {
+                                          /*if (parse_cond_pop()) {
+                                             printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", asttext);
+                                             BEGIN(INITIAL);
+                                          }*/
+                                          BEGIN(INITIAL);
+#ifdef DEBUG
+                                          //else
+                                          //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", asttext);
+#endif
+                                       }
+   ^.*                                 {
+                                          /*if (!strncmp("%ifdef", asttext, 6)) {
+                                             //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", asttext);
+                                             parse_cond_push();
+                                          }*/
+                                          BEGIN(INITIAL);
+#ifdef DEBUG
+                                          // ignore other text
+                                          //printd(5, "p_skip_to_endif: %s\n", asttext);
+#endif
+                                       }
+   \n                                  // ignore
+}
+<p_skip_to_endif_or_else>{
+   ^%else{WS}*$                        {
+                                          //printd(5, "p_skip_to_endif_or_else: found %else\n");
+                                          /*if (parse_cond_test()) {
+                                             BEGIN(INITIAL);
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+   ^%endif{WS}*$                       {
+                                          /*if (parse_cond_pop()) {
+                                             //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", asttext);
+                                             BEGIN(INITIAL);
+                                          }*/
+                                          BEGIN(INITIAL);
+#ifdef DEBUG
+                                          //else
+                                          //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", asttext);
+#endif
+                                       }
+   ^.*                                 {
+                                          /*if (!strncmp("%ifdef", asttext, 6)) {
+                                             //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", asttext);
+                                             parse_cond_push();
+                                          }*/
+                                          BEGIN(INITIAL);
+#ifdef DEBUG
+                                          // ignore other text
+                                          //printd(5, "p_skip_to_endif_or_else: %s\n", asttext);
+#endif
+                                       }
+   \n                                  // ignore
+}
+^%endif{WS}*$                          {} //parse_cond_pop();
+^%include{WS}*$                        { /*parse_error("missing argument to %%include");*/ }
+^%include{WS}+                         BEGIN(incl);
+<exec_class_state>{
+   [^\n\r]+                            {
+                                          /*char* cn = trim(asttext);
+                                          //printf("setting class name to: '%s'\n", cn);
+                                          getProgram()->setExecClass(cn);
+                                          getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+                                          free(cn);*/
+                                          BEGIN(INITIAL);
+                                       }
+}
+<incl>{WS}*                            // ignore white space
+<incl>[^\n\r]+                         {
+                                          /*TempString fname(get_include_file_name(asttext));
+                                          const char* fn = fname->getBuffer();
+                                          // remove enclosing quotes if any
+                                          if (fname->strlen()
+                                              && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
+                                                  || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
+                                             fname->trim(fn[0]);
+                                          }
+
+                                          QoreProgram* pgm = getProgram();
+
+                                          if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
+                                             parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
+                                             BEGIN(INITIAL);
+                                          }
+                                          else if (fname->empty()) {
+                                             parse_error("missing argument to %%include", asttext);
+                                             BEGIN(INITIAL);
+                                          }
+                                          else {
+                                             // re-get the buffer pointer
+                                             fn = fname->getBuffer();
+                                             // check if regular file
+                                             struct stat sbuf;
+                                             int rc = stat(fn, &sbuf);
+                                             if (rc) {
+                                                ExceptionSink* xsink = pgm->getParseExceptionSink();
+                                                if (xsink)
+                                                   xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
+                                                BEGIN(INITIAL);
+                                             }
+                                             else {
+                                                //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
+                                                if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
+                                                   parse_error("cannot include \"%s\"; is not a regular file", fn);
+                                                   BEGIN(INITIAL);
+                                                }
+                                                else {
+                                                   FILE *save_astin = astin;
+                                                   astin = fopen(fn, "r");
+
+                                                   if (!astin) {
+                                                      parse_error("cannot open include file \"%s\"", fn);
+                                                      astin = save_astin;
+                                                      BEGIN(INITIAL);
+                                                   }
+                                                   else {
+                                                      // take string from buffer
+                                                      char* str = fname->giveBuffer();
+                                                      // save file name string in QoreProgram's list - the list now owns the string memory
+                                                      qore_program_private::addFile(*pgm, str);
+                                                      beginParsing(str, (void*)AST_CURRENT_BUFFER);
+                                                      ast_switch_to_buffer(ast_create_buffer(astin, AST_BUF_SIZE, astscanner), astscanner);
+                                                      BEGIN(INITIAL);
+                                                   }
+                                                }
+                                             }
+                                          }*/
+                                          BEGIN(INITIAL);
+                                       }
+<<EOF>>                                {
+                                          AST_FLEX_DO_EOF
+                                       }
+\"                                     astlval->String = new std::string; BEGIN(str_state);
+<str_state>{
+      \"                               BEGIN(INITIAL); return QUOTED_WORD;
+      \n                               astlval->String->push_back('\n');
+      {OCTAL_CONST}                    {
+                                          int token_lenght = strlen(asttext);
+                                          int val;
+                                          if (token_lenght == 4) {
+                                             val = ascii_to_octal(*(asttext + 3))
+                                                + (8 * ascii_to_octal(*(asttext + 2)))
+                                                + (64 * ascii_to_octal(*(asttext + 1)));
+                                          }
+                                          else if (token_lenght == 3) {
+                                             val = ascii_to_octal(*(asttext + 2))
+                                                + (8 * ascii_to_octal(*(asttext + 1)));
+                                          }
+                                          else { // here token_lenght == 2
+                                             val = ascii_to_octal(*(asttext + 1));
+                                          }
+                                          astlval->String->push_back((char)val);
+                                       }
+      \\n                              astlval->String->push_back('\n');
+      \\t                              astlval->String->push_back('\t');
+      \\r                              astlval->String->push_back('\r');
+      \\b                              astlval->String->push_back('\b');
+      \\f                              astlval->String->push_back('\f');
+      \\v                              astlval->String->push_back('\v');
+      \\.                              astlval->String->push_back(asttext[1]);
+      \\\n                             astlval->String->push_back('\n');
+      [^\\\n\"]+                       {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->String->push_back(*(yptr++));
+                                       }
+}
+<regex_subst2>{
+      \/                               {
+                                          // get regex modifiers
+                                          int c;
+                                          do {
+                                             c = astinput(astscanner);
+                                          } while (isRegexSubstModifier(astlval->RegexSubst, c));
+                                          unput(c);
+                                          BEGIN(INITIAL);
+                                          return REGEX_SUBST;
+                                       }
+      \n                               astlval->RegexSubst->target += '\n';
+      \\\/                             astlval->RegexSubst->target += '/';
+      \\\.                             astlval->RegexSubst->target += '.';
+      \\.                              { astlval->RegexSubst->target += '\\'; astlval->RegexSubst->target += asttext[1]; }
+      [^\n\\/]+                        {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->RegexSubst->target += (*(yptr++));
+                                       }
+}
+<regex_subst1>{
+      \/                               BEGIN(regex_subst2);
+      \n                               astlval->RegexSubst->source += '\n';
+      \\\/                             astlval->RegexSubst->source += '/';
+      \\.                              { astlval->RegexSubst->source += '\\'; astlval->RegexSubst->source += asttext[1]; }
+      [^\n\\/]+                        {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->RegexSubst->source += (*(yptr++));
+                                       }
+}
+<regex_trans2>{
+      -                                astlval->Trans->target += '-';
+      \/                               { BEGIN(INITIAL); return REGEX_TRANS; }
+      \n                               astlval->Trans->target += '\n';
+      \\n                              astlval->Trans->target += '\n';
+      \\t                              astlval->Trans->target += '\t';
+      \\r                              astlval->Trans->target += '\r';
+      \\b                              astlval->Trans->target += '\b';
+      \\f                              astlval->Trans->target += '\f';
+      \\\n                             astlval->Trans->target += '\n';
+      \\\/                             astlval->Trans->target += '/';
+      \\.                              astlval->Trans->target += asttext[1];
+      [^\n\\/\-]+                      {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->Trans->target += (*(yptr++));
+                                       }
+}
+<regex_trans1>{
+      -                                astlval->Trans->source += '-';
+      \/                               BEGIN(regex_trans2);
+      \n                               astlval->Trans->source += '\n';
+      \\n                              astlval->Trans->source += '\n';
+      \\t                              astlval->Trans->source += '\t';
+      \\r                              astlval->Trans->source += '\r';
+      \\b                              astlval->Trans->source += '\b';
+      \\f                              astlval->Trans->source += '\f';
+      \\\n                             astlval->Trans->source += '\n';
+      \\\/                             astlval->Trans->source += '/';
+      \\.                              astlval->Trans->source += asttext[1];
+      [^\n\\/\-]+                      {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->Trans->source += (*(yptr++));
+                                       }
+}
+<regex_state>{
+      \/                               { // get regex modifiers
+                                          int c;
+                                          do {
+                                             c = astinput(astscanner);
+                                          } while (isRegexModifier(astlval->Regex, c));
+                                          unput(c);
+                                          BEGIN(INITIAL);
+                                          return REGEX;
+                                       }
+      \n                               astlval->Regex->str += '\n';
+      \\\/                             astlval->Regex->str += '/';
+      \\.                              { astlval->Regex->str += '\\'; astlval->Regex->str += asttext[1]; }
+      [^\n\\/]+                        {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->Regex->str += (*(yptr++));
+                                       }
+}
+<regex_extract_state>{
+      \/                               { // get regex modifiers
+                                          int c;
+                                          do {
+                                             c = astinput(astscanner);
+                                          } while (isRegexExtractModifier(astlval->Regex, c));
+                                          unput(c);
+                                          BEGIN(INITIAL);
+                                          return REGEX_EXTRACT;
+                                       }
+      \n                               astlval->Regex->str += '\n';
+      \\\/                             astlval->Regex->str += '/';
+      \\.                              { astlval->Regex->str += '\\'; astlval->Regex->str += asttext[1]; }
+      [^\n\\/]+                        {
+                                          char* yptr = asttext;
+                                          while (*yptr)
+                                             astlval->Regex->str += (*(yptr++));
+                                       }
+}
+\#                                     {
+                                          int c;
+                                          while ((c = astinput(astscanner))) {
+                                             if (c == '\n')
+                                                break;
+                                             else if (c == EOF) {
+                                                AST_FLEX_DO_EOF
+                                                break;
+                                             }
+                                          }
+                                       }
+where                                  return TOK_WHERE;
+private                                return TOK_PRIVATE;
+private:internal                       return TOK_PRIVATEINTERNAL;
+private:hierarchy                      return TOK_PRIVATEHIERARCHY;
+public                                 return TOK_PUBLIC;
+abstract                               return TOK_ABSTRACT;
+unreference                            return TOK_UNREFERENCE;
+new                                    return TOK_NEW;
+shift                                  return TOK_SHIFT;
+unshift                                return TOK_UNSHIFT;
+do                                     return TOK_DO;
+while                                  return TOK_WHILE;
+if                                     return TOK_IF;
+else                                   return TOK_ELSE;
+for                                    return TOK_FOR;
+foreach                                return TOK_FOREACH;
+in                                     return TOK_IN;
+elements                               return TOK_ELEMENTS;
+keys                                   return TOK_KEYS;
+sub                                    return TOK_SUB;
+const                                  return TOK_CONST;
+return                                 return TOK_RETURN;
+returns                                return TOK_RETURNS;
+my                                     return TOK_MY;
+our                                    return TOK_OUR;
+break                                  return TOK_BREAK;
+continue                               return TOK_CONTINUE;
+try                                    return TOK_TRY;
+throw                                  return TOK_THROW;
+rethrow                                return TOK_RETHROW;
+catch                                  return TOK_CATCH;
+final                                  return TOK_FINAL;
+find                                   return TOK_FIND;
+delete                                 return TOK_DELETE;
+remove                                 return TOK_REMOVE;
+background                             return TOK_BACKGROUND;
+synchronized                           return TOK_SYNCHRONIZED;
+deprecated                             return TOK_DEPRECATED;
+thread_exit                            return TOK_THREAD_EXIT;
+exists                                 return TOK_EXISTS;
+context                                return TOK_CONTEXT;
+summarize                              return TOK_SUMMARIZE;
+subcontext                             return TOK_SUB_CONTEXT;
+sortBy                                 return TOK_SORT_BY;
+sortDescendingBy                       return TOK_SORT_DESCENDING_BY;
+by                                     return TOK_BY;
+switch                                 return TOK_SWITCH;
+case                                   BEGIN(case_state); return TOK_CASE;
+<case_state>{
+   \/                                  astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
+   {WS}+                               /* ignore */
+   [^\/]                               astless(0); BEGIN(INITIAL);
+}
+default                                return TOK_DEFAULT;
+inherits                               return TOK_INHERITS;
+push                                   return TOK_PUSH;
+pop                                    return TOK_POP;
+splice                                 return TOK_SPLICE;
+extract                                return TOK_EXTRACT;
+instanceof                             return TOK_INSTANCEOF;
+chomp                                  return TOK_CHOMP;
+trim                                   return TOK_TRIM;
+on_exit                                return TOK_ON_EXIT;
+on_success                             return TOK_ON_SUCCESS;
+on_error                               return TOK_ON_ERROR;
+map                                    return TOK_MAP;
+foldr                                  return TOK_FOLDR;
+foldl                                  return TOK_FOLDL;
+select                                 return TOK_SELECT;
+static                                 return TOK_STATIC;
+class\(                                astlval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
+private\(                              astlval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
+new\(                                  astlval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
+delete\(                               astlval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN;
+case\(                                 astlval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
+chomp\(                                astlval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
+final\(                                astlval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN;
+find\(                                 astlval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
+trim\(                                 astlval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
+push\(                                 astlval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
+pop\(                                  astlval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
+splice\(                               astlval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
+shift\(                                astlval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
+unshift\(                              astlval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
+background\(                           astlval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
+exists\(                               astlval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
+map\(                                  astlval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN;
+foldr\(                                astlval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
+foldl\(                                astlval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
+select\(                               astlval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
+inherits\(                             astlval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN;
+default{WS}*\(                         astlval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
+static{WS}*\(                          astlval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
+returns{WS}*\(                         astlval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
+public{WS}*\(                          astlval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
+deprecated{WS}*\(                      astlval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN;
+module{WS}*\(                          astlval->string = strdup("module"); return KW_IDENTIFIER_OPENPAREN;
+\.returns[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("returns")
+\.new[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("new")
+\.private[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("private")
+\.public[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("public")
+\.class[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("class")
+\.elements[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("elements")
+\.delete[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("delete")
+\.case[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("case")
+\.default[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("default")
+\.map[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("map")
+\.select[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("select")
+\.keys[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("keys")
+\.chomp[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("chomp")
+\.trim[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("trim")
+\.push[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("push")
+\.pop[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("pop")
+\.splice[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("splice")
+\.shift[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("shift")
+\.unshift[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("unshift")
+\.background[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("background")
+\.find[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("find")
+\.exists[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("exists")
+\.foldr[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("foldr")
+\.foldl[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("foldl")
+\.static[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("static")
+\.abstract[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("abstract")
+\.deprecated[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("deprecated")
+\.summarize[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("summarize")
+\.sub[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("sub")
+\.subcontext[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("subcontext")
+\.sortBy[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("sortBy")
+\.sortDescendingBy[^A-Za-z_0-9]        AST_DOT_KW_IDENTIFIER("sortDescendingBy")
+\.by[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("by")
+\.switch[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("switch")
+\.return[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("return")
+\.rethrow[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("rethrow")
+\.break[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("break")
+\.catch[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("catch")
+\.const[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("const")
+\.context[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("context")
+\.continue[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("continue")
+\.do[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("do")
+\.else[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("else")
+\.final[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("final")
+\.for[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("for")
+\.foreach[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("foreach")
+\.if[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("if")
+\.in[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("in")
+\.inherits[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("inherits")
+\.instanceof[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("instanceof")
+\.namespace[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("namespace")
+\.my[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("my")
+\.on_error[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("on_error")
+\.on_exit[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("on_exit")
+\.on_success[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("on_success")
+\.our[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("our")
+\.synchronized[^A-Za-z_0-9]            AST_DOT_KW_IDENTIFIER("synchronized")
+\.thread_exit[^A-Za-z_0-9]             AST_DOT_KW_IDENTIFIER("thread_exit")
+\.throw[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("throw")
+\.try[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("try")
+\.where[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("where")
+\.while[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("while")
+\.module[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("module")
+
+{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   astlval->string = strdup(asttext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      astlval->string = strdup(asttext); return DATETIME;
+{YEAR}-{MONTH}-{DAY}?{TZ}?                                   astlval->string = strdup(asttext); return DATETIME;
+{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?                        astlval->string = strdup(asttext); return DATETIME;
+P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?              astlval->string = strdup(asttext); return DATETIME;
+PT{D2}:{D2}(:{D2}(\.{US})?)?           astlval->string = strdup(asttext); return DATETIME;
+P{D2}:{D2}(:{D2}(\.{US})?)?            astlval->string = strdup(asttext); return DATETIME;
+{RDATETIME}                            astlval->string = strdup(asttext); return DATETIME;
+{RDATE}                                astlval->string = strdup(asttext); return DATETIME;
+{RTIME}                                astlval->string = strdup(asttext); return DATETIME;
+({WORD}::)+{WORD}                      astlval->string = strdup(asttext); return SCOPED_REF;
+(::{WORD})+                            astlval->string = strdup(asttext); return SCOPED_REF;
+({WORD}::)+\${WORD}                    astlval->string = make_scoped_vref(asttext); return SCOPED_VREF;
+(::{WORD})?::\${WORD}                  astlval->string = make_scoped_vref(asttext); return SCOPED_VREF;
+cast\<{WS}*({WORD}::)+{WORD}{WS}*\>    astlval->string = make_cast(asttext); return QORE_CAST;
+cast\<{WS}*{WORD}{WS}*\>               astlval->string = make_cast(asttext); return QORE_CAST;
+({WORD}::)+\$\.{WORD}                  astlval->string = new strdup(asttext); return BASE_CLASS_CALL;
+@[Nn][Aa][Nn]@                         {
+#ifdef NAN
+                                          astlval->decimal = NAN;
+#else
+                                          astlval->decimal = q_strtod("NAN");
+#endif
+                                          return QFLOAT;
+                                       }
+@[Ii][Nn][Ff]@                         {
+#ifdef INFINITY
+                                          astlval->decimal = INFINITY;
+#else
+                                          astlval->decimal = q_strtod("INFINITY");
+#endif
+                                          return QFLOAT;
+                                       }
+{DIGIT}+"."{DIGIT}+                    astlval->decimal = q_strtod(asttext); return QFLOAT;
+{DIGIT}+[eE][+-]?{DIGIT}+              astlval->decimal = q_strtod(asttext); return QFLOAT;
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+   astlval->decimal = q_strtod(asttext); return QFLOAT;
+@[Nn][Aa][Nn]@n                        astlval->string = strdup("@nan@"); return NUMBER;
+@[Ii][Nn][Ff]@n                        astlval->string = strdup("@inf@"); return NUMBER;
+{DIGIT}+n                              astlval->string = strdup(asttext); return NUMBER;
+{DIGIT}+"."{DIGIT}+n                   astlval->string = strdup(asttext); return NUMBER;
+{DIGIT}+[eE][+-]?{DIGIT}+n             astlval->string = strdup(asttext); return NUMBER;
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n  astlval->string = strdup(asttext); return NUMBER;
+0[0-7]+                                astlval->integer = strtoll(asttext+1, 0, 8); return INTEGER;
+{DIGIT}+                               astlval->integer = parse_get_integer(asttext); return INTEGER;
+{DIGIT}+Y                              astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+M                              astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+D                              astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+h                              astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+ms                             astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+us                             astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+m                              astlval->string = strdup(asttext); return DATETIME;
+{DIGIT}+s                              astlval->string = strdup(asttext); return DATETIME;
+{HEX_CONST}                            astlval->integer = strtoll(asttext, 0, 16); return INTEGER;
+{BINARY}                               astlval->string = strdup(asttext); return BINARY;
+\$\.{WORD}                             astlval->string = strdup(asttext + 2); return SELF_REF;
+\${WORD}                               astlval->string = strdup(asttext + 1); return VAR_REF;
+class{WS}+({WORD}::)+{WORD}            { astlval->string = trim(asttext + 6); return CLASS_SCOPED_REF; }
+class{WS}+(::{WORD})+                  { astlval->string = trim(asttext + 6); return CLASS_SCOPED_REF; }
+class{WS}+{WORD}                       { astlval->string = trim(asttext + 6); return CLASS_STRING; }
+namespace{WS}+{WORD}                   { const char* ns = trim_inplace(asttext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
+module{WS}+{WORD}                      { const char* mod = trim_inplace(asttext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
+{WORD}                                 astlval->string = strdup(asttext); return IDENTIFIER;
+\%{WORD}                               astlval->string = strdup(asttext + 1); return CONTEXT_REF;
+\%{WORD}\:{WORD}                       astlval->string = strdup(asttext + 1); return COMPLEX_CONTEXT_REF;
+\%\%                                   return TOK_CONTEXT_ROW;
+\`[^`]*\`                              astlval->string = strdup(remove_quotes(asttext)); return BACKQUOTE;
+\'[^\']*\'                             astlval->String = new std::string(remove_quotes(asttext)); return QUOTED_WORD;
+\$\$                                   astlval->i4 = -1; return IMPLICIT_ARG_REF;
+\$[0-9][0-9]*                          astlval->i4 = strtol(asttext + 1, 0, 0); return IMPLICIT_ARG_REF;
+\$#                                    return IMPLICIT_ELEMENT;
+\?\?                                   return NULL_COALESCING;
+\?\*                                   return VALUE_COALESCING;
+\<=                                    return LOGICAL_LE;
+\>=                                    return LOGICAL_GE;
+\!=                                    return LOGICAL_NE;
+\<\>                                   return LOGICAL_NE;
+===                                    return ABSOLUTE_EQ;
+\!==                                   return ABSOLUTE_NE;
+==                                     return LOGICAL_EQ;
+\<=\>                                  return LOGICAL_CMP;
+&&                                     return LOGICAL_AND;
+\|\|                                   return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\|                                     return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_BINARY_OR : '|';
+\^                                     return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_BINARY_XOR : '^';
+\>\>                                   return SHIFT_RIGHT;
+\<\<                                   return SHIFT_LEFT;
+\+\+                                   return P_INCREMENT;
+--                                     return P_DECREMENT;
+\+=                                    return PLUS_EQUALS;
+-=                                     return MINUS_EQUALS;
+&=                                     return AND_EQUALS;
+\|=                                    return OR_EQUALS;
+\%=                                    return MODULO_EQUALS;
+\*=                                    return MULTIPLY_EQUALS;
+\/=                                    return DIVIDE_EQUALS;
+\^=                                    return XOR_EQUALS;
+\>\>=                                  return SHIFT_RIGHT_EQUALS;
+\<\<=                                  return SHIFT_LEFT_EQUALS;
+
+\<{WS}+=                               return PO_BROKEN_OPERATORS ? LOGICAL_LE : WS_LOGICAL_LE;
+\>{WS}+=                               return PO_BROKEN_OPERATORS ? LOGICAL_GE : WS_LOGICAL_GE;
+\!{WS}+=                               return PO_BROKEN_OPERATORS ? LOGICAL_NE : WS_LOGICAL_NE;
+\<{WS}+\>                              return PO_BROKEN_OPERATORS ? LOGICAL_NE : WS_LOGICAL_NE;
+={WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_EQ : WS_LOGICAL_EQ;
+
+={WS}+={WS}*=                          return PO_BROKEN_OPERATORS ? ABSOLUTE_EQ : WS_ABSOLUTE_EQ;
+={WS}*={WS}+=                          return PO_BROKEN_OPERATORS ? ABSOLUTE_EQ : WS_ABSOLUTE_EQ;
+\!{WS}+={WS}*=                         return PO_BROKEN_OPERATORS ? ABSOLUTE_NE : WS_ABSOLUTE_NE;
+\!{WS}*={WS}+=                         return PO_BROKEN_OPERATORS ? ABSOLUTE_NE : WS_ABSOLUTE_NE;
+\<{WS}+={WS}*\>                        return PO_BROKEN_OPERATORS ? LOGICAL_CMP : WS_LOGICAL_CMP;
+\<{WS}*={WS}+\>                        return PO_BROKEN_OPERATORS ? LOGICAL_CMP : WS_LOGICAL_CMP;
+
+&{WS}+&                                return PO_BROKEN_OPERATORS ? LOGICAL_AND : WS_LOGICAL_AND;
+\|{WS}+\|                              {
+                                          if (PO_BROKEN_OPERATORS)
+                                             return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+                                          else
+                                             return PO_BROKEN_LOGIC_PRECEDENCE ? WS_BROKEN_LOGICAL_OR : WS_LOGICAL_OR;
+                                       }
+\>{WS}+\>                              return PO_BROKEN_OPERATORS ? SHIFT_RIGHT : WS_SHIFT_RIGHT;
+\<{WS}+\<                              return PO_BROKEN_OPERATORS ? SHIFT_LEFT : WS_SHIFT_LEFT;
+\+{WS}+=                               return PO_BROKEN_OPERATORS ? PLUS_EQUALS : WS_PLUS_EQUALS;
+-{WS}+=                                return PO_BROKEN_OPERATORS ? MINUS_EQUALS : WS_MINUS_EQUALS;
+&{WS}+=                                return PO_BROKEN_OPERATORS ? AND_EQUALS : WS_AND_EQUALS;
+\|{WS}+=                               return PO_BROKEN_OPERATORS ? OR_EQUALS : WS_OR_EQUALS;
+\%{WS}+=                               return PO_BROKEN_OPERATORS ? MODULO_EQUALS : WS_MODULO_EQUALS;
+\*{WS}+=                               return PO_BROKEN_OPERATORS ? MULTIPLY_EQUALS : WS_MULTIPLY_EQUALS;
+\/{WS}+=                               return PO_BROKEN_OPERATORS ? DIVIDE_EQUALS : WS_DIVIDE_EQUALS;
+\^{WS}+=                               return PO_BROKEN_OPERATORS ? XOR_EQUALS : WS_XOR_EQUALS;
+\>{WS}+\>{WS}*=                        return PO_BROKEN_OPERATORS ? SHIFT_RIGHT_EQUALS : WS_SHIFT_RIGHT_EQUALS;
+\>{WS}*\>{WS}+=                        return PO_BROKEN_OPERATORS ? SHIFT_RIGHT_EQUALS : WS_SHIFT_RIGHT_EQUALS;
+\<{WS}+\<{WS}*=                        return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
+\<{WS}*\<{WS}+=                        return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
+
+\/\*                                   {
+                                          int c;
+                                          while ((c = astinput(astscanner))) {
+                                             if (c == '*') {
+                                                do {
+                                                   c = astinput(astscanner);
+                                                }
+                                                while (c == '*');
+                                                if (c == '/')
+                                                   break;
+                                             }
+                                             if (c == EOF) {
+                                                parse_error("open block comment at EOF");
+                                                AST_FLEX_DO_EOF;
+                                                break;
+                                             }
+                                          }
+                                       }
+<regex_googleplex>{
+   s\/                                 astlval->RegexSubst = ASTRegexSubstExpression; BEGIN(regex_subst1);
+   x\/                                 astlval->Regex = new ASTRegexExpression(true); BEGIN(regex_extract_state);
+   tr\/                                astlval->Trans = new ASTRegexTransExpression; BEGIN(regex_trans1);
+   m\/                                 astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
+   \/                                  astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
+   {WSNL}+                             /* ignore whitespace */
+   [^sxmt\/]                           parse_error("missing regular expression after =~"); BEGIN(INITIAL);
+}
+<regex_negative_universe>{
+   m\/                                 astlval->Regex = ASTRegexExpression; BEGIN(regex_state);
+   \/                                  astlval->Regex = ASTRegexExpression; BEGIN(regex_state);
+   {WSNL}+                             /* ignore whitespace */
+   [^m\/]                              parse_error("missing regular expression after !~"); BEGIN(INITIAL);
+}
+=\~                                    BEGIN(regex_googleplex); return REGEX_MATCH;
+\!\~                                   BEGIN(regex_negative_universe); return REGEX_NMATCH;
+{WSNL}+                                /* ignore whitespace */
+.                                      return asttext[0];
+%%
