@@ -31,12 +31,9 @@
 %new-style
 %strict-args
 
-# require qore >= 0.8.5 for the JsonRpcHandler user module
-%requires qore >= 0.8.5
+%requires qore >= 0.8.12
 
 %requires json
-
-%requires JsonRpcHandler
 %requires Mime
 
 %requires ./TextDocument.qm
@@ -217,6 +214,11 @@ class QLS {
         return exitCode;
     }
 
+
+    #=================
+    # Message I/O
+    #=================
+
     #! Receive JSON-RPC request from stdin.
     *string receiveMessage() {
         debugLog("reading message");
@@ -238,8 +240,8 @@ class QLS {
             else if (txt == "") {
                 if (contentLength == -1)
                     error("Content-Length header is missing");
-                txt = stdin.read(contentLength);
-                debugLog("read JSON message: '%s'", txt);
+                txt = stdin.readBinary(contentLength).toString("UTF-8");
+                debugLog("read JSON message (%d bytes): '%s'", txt.size(), txt);
                 return txt;
             }
         }

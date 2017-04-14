@@ -35,6 +35,7 @@ module TextDocument {
     url     = "http://qore.org";
 }
 
+#! Represents one open document (source file).
 public class TextDocument {
     private {
         #! The text document's URI.
@@ -48,6 +49,14 @@ public class TextDocument {
 
         #! The content of the opened text document.
         string text;
+
+        #! Program parsing the document. Used for getting all the important info.
+        *Program pgm;
+
+        #! Whether the document has been parsed successfully by the program.
+        bool parseOk;
+
+        *string parseError;
     }
 
     constructor(string n_uri, string n_text, string n_languageId, int n_version) {
@@ -55,6 +64,28 @@ public class TextDocument {
         text = n_text;
         languageId = n_languageId;
         version = n_version;
+
+        parse();
+    }
+
+    #! Parse the text of the document.
+    private parse() {
+        parseOk = False;
+        pgm = new Program();
+        try {
+            pgm.parse(text, uri);
+            parseOk = True;
+            parseError = NOTHING;
+        }
+        catch (hash ex) {
+            stderr.printf("error parsing the text document '%s':\n%N\n", uri, ex);
+            if (ex.code == "PROGRAM-PARSE-ERROR") {
+                stderr.printf("PROGRAM-PARSE-ERROR\n");
+            }
+            pgm = NOTHING;
+            parseError = ex.code + ": " + ex.desc;
+        }
+        stderr.printf("parse finished\n");
     }
 
     string getUri() { return uri; }
@@ -62,11 +93,15 @@ public class TextDocument {
     int getVersion() { return version; }
     string getText() { return text; }
 
+    #! The document has changed.
     didChange(hash changes) {
+        # Modify document text.
         if (!changes.range && !changes.rangeLength) {
+            # Whole new version of document was sent.
             text = changes.text;
         }
         else {
+            # Only changes were sent.
             int startLine = changes.range.start.line;
             int startChar = changes.range.start.character;
             int endLine = changes.range.end.line;
@@ -79,14 +114,53 @@ public class TextDocument {
                 # TODO
             }
         }
+
+        # Re-parse the document.
+        parse();
     }
     
     changeVersion(int n_version) {
         version = n_version;
     }
 
+    #! Return info about symbol(s) at the passed document position.
     hash hover(hash Position) {
         int line = Position.line;
+        int char = Position.character;
+        if (!parseOk) {
+            return {
+                "contents": parseError,
+                "range": {
+                    "start": {
+                        "line": line,
+                        "character": char
+                    },
+                    "end": {
+                        "line": line,
+                        "character": char+1
+                    }
+                }
+            };
+        }
+
+        *hash results = pgm.hover(Position.line, Position.character);
+        if (!results)
+            return {
+                "contents": "no results",
+                "range": {
+                    "start": {
+                        "line": line,
+                        "character": char
+                    },
+                    "end": {
+                        "line": line,
+                        "character": char+1
+                    }
+                }
+            };
+        return results;
+
+        /*int line = Position.line;
         int char = Position.character;
 
         return {
@@ -101,6 +175,6 @@ public class TextDocument {
                     "character": (char+3)
                 }
             }
-        };
+        };*/
     }
 }
