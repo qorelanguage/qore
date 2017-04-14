@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QLS_AST_H
-#define _QLS_AST_H
+#ifndef _QLS_AST_AST_H
+#define _QLS_AST_AST_H
 
 #include "ASTDeclaration.h"
 #include "ASTExpression.h"
@@ -40,4 +40,4 @@
 #include "ASTOperator.h"
 #include "ASTStatement.h"
 
-#endif // _QLS_AST_H
+#endif // _QLS_AST_AST_H

@@ -29,11 +29,15 @@
   information.
 */
 
-#ifndef _QLS_ASTEXPRESSION_H
-#define _QLS_ASTEXPRESSION_H
+#ifndef _QLS_AST_ASTEXPRESSION_H
+#define _QLS_AST_ASTEXPRESSION_H
 
+#include <cstdint>
+#include <memory>
 #include <string>
+#include <vector>
 
+#include "ASTName.h"
 #include "ASTNode.h"
 #include "ASTOperator.h"
 
@@ -67,7 +71,7 @@ public:
       AEK_ContextMod,         //!< Identifies an instance of \ref ASTContextModExpression.
       AEK_Returns,            //!< Identifies an instance of \ref ASTReturnsExpression.
       AEK_Closure,            //!< Identifies an instance of \ref ASTClosureExpression.
-      AEK_Backquote           //!< Identifies an instance of \ref ASTBackquoteExpression.
+      AEK_Backquote,          //!< Identifies an instance of \ref ASTBackquoteExpression.
       AEK_Regex,              //!< Identifies an instance of \ref ASTRegexExpression.
       AEK_ConstrInit,         //!< Identifies an instance of \ref ASTConstrInitExpression.
    };
@@ -91,8 +95,8 @@ public:
    };
 
    union ASTLiteralExpressionData {
-      int64 i;
-      double f;
+      int64_t i;
+      double d;
       char* str;
       std::string* stdstr;
    };
@@ -105,22 +109,33 @@ public:
    ASTLiteralExpressionData value;
 
 public:
-   ASTLiteralExpression(ASTLiteralExpressionKind k, int64 val) :
+   ASTLiteralExpression(ASTLiteralExpressionKind k, int64_t val) :
       ASTExpression(),
-      kind(k),
-      value(val) {}
+      kind(k)
+   {
+      value.i = val;
+   }
+
    ASTLiteralExpression(ASTLiteralExpressionKind k, double val) :
       ASTExpression(),
-      kind(k),
-      value(val) {}
+      kind(k)
+   {
+      value.d = val;
+   }
+
    ASTLiteralExpression(ASTLiteralExpressionKind k, char* val) :
       ASTExpression(),
-      kind(k),
-      value(val) {}
+      kind(k)
+   {
+      value.str = val;
+   }
+
    ASTLiteralExpression(ASTLiteralExpressionKind k, std::string* val) :
       ASTExpression(),
-      kind(k),
-      value(val) {}
+      kind(k)
+   {
+      value.stdstr = val;
+   }
    
    virtual ~ASTLiteralExpression() {
       if (kind == ALEK_Binary || kind == ALEK_Date || kind == ALEK_Number)
@@ -144,9 +159,6 @@ public:
    ASTName name;
 
 public:
-   ASTNameExpression(const char* nameStr) : ASTExpression(), name(nameStr) {}
-   ASTNameExpression(const std::string& nameStr) : ASTExpression(), name(nameStr) {}
-   ASTNameExpression(const std::string* nameStr) : ASTExpression(), name(nameStr) {}
    ASTNameExpression(const ASTName& n) : ASTExpression(n.loc), name(n) {}
 
    virtual Kind getKind() const override {
@@ -731,4 +743,4 @@ public:
    }
 };
 
-#endif // _QLS_ASTEXPRESSION_H
+#endif // _QLS_AST_ASTEXPRESSION_H

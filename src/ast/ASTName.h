@@ -29,12 +29,12 @@
   information.
 */
 
-#ifndef _QLS_ASTNAME_H
-#define _QLS_ASTNAME_H
+#ifndef _QLS_AST_ASTNAME_H
+#define _QLS_AST_ASTNAME_H
 
 #include <string>
 
-#include "qore/intern/ast/ASTNode.h"
+#include "ASTNode.h"
 
 enum class ASTNameKind {
    ANK_Identifier,
@@ -63,10 +63,10 @@ public:
 
    ASTName() : ASTNode() {}
    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
-   ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n), kind(k) {}
+   ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
    ASTName(const char* str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
    ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
    ASTName(const std::string* str, ASTNameKind k) : ASTNode(), name(*str), kind(k) {}
 };
 
-#endif // _QLS_ASTNAME_H
+#endif // _QLS_AST_ASTNAME_H

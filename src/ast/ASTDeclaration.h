@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QLS_ASTDECLARATION_H
-#define _QLS_ASTDECLARATION_H
+#ifndef _QLS_AST_ASTDECLARATION_H
+#define _QLS_AST_ASTDECLARATION_H
 
 #include <memory>
 #include <utility>
@@ -75,7 +75,10 @@ public:
    std::vector<ASTDeclaration*> declarations;
 
 public:
-   ASTNamespaceDeclaration(ASTModifiers mods, std::vector<ASTDeclaration*>* decls) : ASTDeclaration(), modifiers(mods) {
+   ASTNamespaceDeclaration(ASTModifiers mods, std::vector<ASTDeclaration*>* decls = nullptr) :
+      ASTDeclaration(),
+      modifiers(mods)
+   {
       if (decls)
          declarations.swap(decls);
    }
@@ -390,4 +393,4 @@ public:
    }
 };
 
-#endif // _QLS_ASTDECLARATION_H
+#endif // _QLS_AST_ASTDECLARATION_H

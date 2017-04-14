@@ -871,66 +871,66 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                           int c;
                                           do {
                                              c = astinput(astscanner);
-                                          } while (isRegexSubstModifier(astlval->RegexSubst, c));
+                                          } while (isRegexSubstModifier(astlval->regexsubst, c));
                                           unput(c);
                                           BEGIN(INITIAL);
                                           return REGEX_SUBST;
                                        }
-      \n                               astlval->RegexSubst->target += '\n';
-      \\\/                             astlval->RegexSubst->target += '/';
-      \\\.                             astlval->RegexSubst->target += '.';
-      \\.                              { astlval->RegexSubst->target += '\\'; astlval->RegexSubst->target += asttext[1]; }
+      \n                               astlval->regexsubst->target += '\n';
+      \\\/                             astlval->regexsubst->target += '/';
+      \\\.                             astlval->regexsubst->target += '.';
+      \\.                              { astlval->regexsubst->target += '\\'; astlval->regexsubst->target += asttext[1]; }
       [^\n\\/]+                        {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->RegexSubst->target += (*(yptr++));
+                                             astlval->regexsubst->target += (*(yptr++));
                                        }
 }
 <regex_subst1>{
       \/                               BEGIN(regex_subst2);
-      \n                               astlval->RegexSubst->source += '\n';
-      \\\/                             astlval->RegexSubst->source += '/';
-      \\.                              { astlval->RegexSubst->source += '\\'; astlval->RegexSubst->source += asttext[1]; }
+      \n                               astlval->regexsubst->source += '\n';
+      \\\/                             astlval->regexsubst->source += '/';
+      \\.                              { astlval->regexsubst->source += '\\'; astlval->regexsubst->source += asttext[1]; }
       [^\n\\/]+                        {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->RegexSubst->source += (*(yptr++));
+                                             astlval->regexsubst->source += (*(yptr++));
                                        }
 }
 <regex_trans2>{
-      -                                astlval->Trans->target += '-';
+      -                                astlval->regextrans->target += '-';
       \/                               { BEGIN(INITIAL); return REGEX_TRANS; }
-      \n                               astlval->Trans->target += '\n';
-      \\n                              astlval->Trans->target += '\n';
-      \\t                              astlval->Trans->target += '\t';
-      \\r                              astlval->Trans->target += '\r';
-      \\b                              astlval->Trans->target += '\b';
-      \\f                              astlval->Trans->target += '\f';
-      \\\n                             astlval->Trans->target += '\n';
-      \\\/                             astlval->Trans->target += '/';
-      \\.                              astlval->Trans->target += asttext[1];
+      \n                               astlval->regextrans->target += '\n';
+      \\n                              astlval->regextrans->target += '\n';
+      \\t                              astlval->regextrans->target += '\t';
+      \\r                              astlval->regextrans->target += '\r';
+      \\b                              astlval->regextrans->target += '\b';
+      \\f                              astlval->regextrans->target += '\f';
+      \\\n                             astlval->regextrans->target += '\n';
+      \\\/                             astlval->regextrans->target += '/';
+      \\.                              astlval->regextrans->target += asttext[1];
       [^\n\\/\-]+                      {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->Trans->target += (*(yptr++));
+                                             astlval->regextrans->target += (*(yptr++));
                                        }
 }
 <regex_trans1>{
-      -                                astlval->Trans->source += '-';
+      -                                astlval->regextrans->source += '-';
       \/                               BEGIN(regex_trans2);
-      \n                               astlval->Trans->source += '\n';
-      \\n                              astlval->Trans->source += '\n';
-      \\t                              astlval->Trans->source += '\t';
-      \\r                              astlval->Trans->source += '\r';
-      \\b                              astlval->Trans->source += '\b';
-      \\f                              astlval->Trans->source += '\f';
-      \\\n                             astlval->Trans->source += '\n';
-      \\\/                             astlval->Trans->source += '/';
-      \\.                              astlval->Trans->source += asttext[1];
+      \n                               astlval->regextrans->source += '\n';
+      \\n                              astlval->regextrans->source += '\n';
+      \\t                              astlval->regextrans->source += '\t';
+      \\r                              astlval->regextrans->source += '\r';
+      \\b                              astlval->regextrans->source += '\b';
+      \\f                              astlval->regextrans->source += '\f';
+      \\\n                             astlval->regextrans->source += '\n';
+      \\\/                             astlval->regextrans->source += '/';
+      \\.                              astlval->regextrans->source += asttext[1];
       [^\n\\/\-]+                      {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->Trans->source += (*(yptr++));
+                                             astlval->regextrans->source += (*(yptr++));
                                        }
 }
 <regex_state>{
@@ -938,18 +938,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                           int c;
                                           do {
                                              c = astinput(astscanner);
-                                          } while (isRegexModifier(astlval->Regex, c));
+                                          } while (isRegexModifier(astlval->regex, c));
                                           unput(c);
                                           BEGIN(INITIAL);
                                           return REGEX;
                                        }
-      \n                               astlval->Regex->str += '\n';
-      \\\/                             astlval->Regex->str += '/';
-      \\.                              { astlval->Regex->str += '\\'; astlval->Regex->str += asttext[1]; }
+      \n                               astlval->regex->str += '\n';
+      \\\/                             astlval->regex->str += '/';
+      \\.                              { astlval->regex->str += '\\'; astlval->regex->str += asttext[1]; }
       [^\n\\/]+                        {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->Regex->str += (*(yptr++));
+                                             astlval->regex->str += (*(yptr++));
                                        }
 }
 <regex_extract_state>{
@@ -957,18 +957,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                           int c;
                                           do {
                                              c = astinput(astscanner);
-                                          } while (isRegexExtractModifier(astlval->Regex, c));
+                                          } while (isRegexExtractModifier(astlval->regex, c));
                                           unput(c);
                                           BEGIN(INITIAL);
                                           return REGEX_EXTRACT;
                                        }
-      \n                               astlval->Regex->str += '\n';
-      \\\/                             astlval->Regex->str += '/';
-      \\.                              { astlval->Regex->str += '\\'; astlval->Regex->str += asttext[1]; }
+      \n                               astlval->regex->str += '\n';
+      \\\/                             astlval->regex->str += '/';
+      \\.                              { astlval->regex->str += '\\'; astlval->regex->str += asttext[1]; }
       [^\n\\/]+                        {
                                           char* yptr = asttext;
                                           while (*yptr)
-                                             astlval->Regex->str += (*(yptr++));
+                                             astlval->regex->str += (*(yptr++));
                                        }
 }
 \#                                     {
@@ -1031,7 +1031,7 @@ by                                     return TOK_BY;
 switch                                 return TOK_SWITCH;
 case                                   BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                  astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
+   \/                                  astlval->regex = new ASTRegexExpression; BEGIN(regex_state);
    {WS}+                               /* ignore */
    [^\/]                               astless(0); BEGIN(INITIAL);
 }
@@ -1296,17 +1296,17 @@ module{WS}+{WORD}                      { const char* mod = trim_inplace(asttext 
                                           }
                                        }
 <regex_googleplex>{
-   s\/                                 astlval->RegexSubst = ASTRegexSubstExpression; BEGIN(regex_subst1);
-   x\/                                 astlval->Regex = new ASTRegexExpression(true); BEGIN(regex_extract_state);
-   tr\/                                astlval->Trans = new ASTRegexTransExpression; BEGIN(regex_trans1);
-   m\/                                 astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
-   \/                                  astlval->Regex = new ASTRegexExpression; BEGIN(regex_state);
+   s\/                                 astlval->regexsubst = ASTRegexSubstExpression; BEGIN(regex_subst1);
+   x\/                                 astlval->regex = new ASTRegexExpression(true); BEGIN(regex_extract_state);
+   tr\/                                astlval->regextrans = new ASTRegexTransExpression; BEGIN(regex_trans1);
+   m\/                                 astlval->regex = new ASTRegexExpression; BEGIN(regex_state);
+   \/                                  astlval->regex = new ASTRegexExpression; BEGIN(regex_state);
    {WSNL}+                             /* ignore whitespace */
    [^sxmt\/]                           parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                 astlval->Regex = ASTRegexExpression; BEGIN(regex_state);
-   \/                                  astlval->Regex = ASTRegexExpression; BEGIN(regex_state);
+   m\/                                 astlval->regex = ASTRegexExpression; BEGIN(regex_state);
+   \/                                  astlval->regex = ASTRegexExpression; BEGIN(regex_state);
    {WSNL}+                             /* ignore whitespace */
    [^m\/]                              parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }

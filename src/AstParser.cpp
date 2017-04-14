@@ -1,8 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  AstParser.cpp
 
-  Qore Programming Language
+  AstParser C++ class
+
+  Qore AST Parser
 
   Copyright (C) 2017 Qore Technologies, s.r.o.
 
@@ -23,48 +25,25 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#include "AstParser.h"
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include "AstParserSupport.h"
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
+int AstParser::parse(const char* filename) {
+    yyscan_t lexer;
+    astlex_init(&lexer);
 
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
+    //ast_scan_string(code, lexer);
+    astset_lineno(1, lexer);
+    // yyparse() will call endParsing() and restore old pgm position
+    astparse(lexer);
 
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
+    astlex_destroy(lexer);
+    return 0;
+}
 
-//! Represents one node in the AST tree.
-class ASTNode {
-public:
-   ASTParseLocation loc;
-
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
-};
-
-#endif // _QLS_AST_ASTNODE_H
+int AstParser::parse(std::string& filename) {
+    return parse(filename.c_str());
+}

@@ -1,0 +1,95 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AstParser.qpp AstParser class definition */
+/*
+  Qore AST Parser
+
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+*/
+
+#include <qore/Qore.h>
+
+#include "AstParser.h"
+#include "ast/AST.h"
+
+//! AstParser class
+/** Lorem ipsum dolor sit amet.
+
+    @since %Qore 0.8.13
+ */
+qclass AstParser [arg=AstParser* ap; ns=astparser; flags=final];
+
+//! Creates the AstParser.
+/**
+    @param src lorem ipsum
+ */
+AstParser::constructor(binary src) {
+   SimpleRefHolder<AstParser> astp(new AstParser);
+   self->setPrivate(CID_ASTPARSER, astp.release());
+}
+
+//! Lorem ipsum dolor sit amet.
+/**
+    @param limit the maximum number of bytes to read
+    @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+
+    @par Example:
+    @code{.py}
+    binary src = <2AFF04>;
+    BinaryInputStream is(src);
+    *binary b;
+    while (b = is.read(2)) {
+        printf("read %s\n", make_hex_string(b));
+    }
+
+    read 2aff
+    read 04
+    @endcode
+
+    @throw LOREM-ERROR \a limit is not positive
+    @throw IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+*binary AstParser::read(int limit) {
+   //return ap->readHelper(limit, xsink);
+   return 0;
+}
+
+//! Lorem ipsum dolor sit amet.
+/** Consecteteur adipiscing elit.
+    @return the next byte available from the input stream or -1 if no more data is available
+
+    @par Example:
+    @code{.py}
+    binary src = <2AFF04>;
+    BinaryInputStream is(src);
+    printf("peek: %d\n", is.peek());
+    *binary b = is.read(3);
+    printf("peek: %d\n", is.peek());
+
+    peek 42
+    peek -1
+    @endcode
+
+    @throw LOREM-IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+ */
+int AstParser::peek() {
+   //return ap->peekHelper(xsink);
+   return 0;
+}

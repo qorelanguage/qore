@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QLS_ASTMODIFIER_H
-#define _QLS_ASTMODIFIER_H
+#ifndef _QLS_AST_ASTMODIFIERS_H
+#define _QLS_AST_ASTMODIFIERS_H
 
 #include "ASTNode.h"
 
@@ -72,4 +72,4 @@ private:
    unsigned int value;
 };
 
-#endif // _QLS_ASTMODIFIER_H
+#endif // _QLS_AST_ASTMODIFIERS_H

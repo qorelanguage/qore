@@ -29,12 +29,13 @@
   information.
 */
 
-#ifndef _QLS_ASTSTATEMENT_H
-#define _QLS_ASTSTATEMENT_H
+#ifndef _QLS_AST_ASTSTATEMENT_H
+#define _QLS_AST_ASTSTATEMENT_H
 
 #include <memory>
 #include <vector>
 
+#include "ASTName.h"
 #include "ASTNode.h"
 
 class ASTStatement : public ASTNode {
@@ -544,4 +545,4 @@ public:
    }
 };
 
-#endif // _QLS_ASTSTATEMENT_H
+#endif // _QLS_AST_ASTSTATEMENT_H

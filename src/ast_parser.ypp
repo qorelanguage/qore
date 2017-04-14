@@ -26,6 +26,7 @@
 */
 
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -80,11 +81,11 @@ static int check_strong_encapsulation(const char* type, const char* name) {
    bool b;
    int i4;
    unsigned int ui4;
-   int64 integer;
+   int64_t integer;
    double decimal;
    std::string* String;
    char* string;
-   BinaryNode* binary;
+   ASTDeclaration* astdecl;
    std::vector<ASTCallExpression*>* bclist;
    ASTCallExpression* callexpr;
    ASTCaseExpression* caseexpr;
@@ -103,15 +104,14 @@ static int check_strong_encapsulation(const char* type, const char* name) {
    ASTMemberGroupDeclaration* membergroup;
    ASTNameExpression* nameexpr;
    ASTNamespaceDeclaration* nsdecl;
-   ASTDeclaration* astdecl;
+   ASTRegexExpression* regex;
+   ASTRegexSubstExpression* regexsubst;
+   ASTRegexTransExpression* regextrans;
    ASTStatementBlock *sblock;
    ASTSuperclassDeclaration* sclassdecl;
    std::vector<ASTSuperclassDeclaration*> sclist;
    ASTStatement* statement;
    ASTSwitchBodyExpression* switchexpr;
-   QoreRegexSubst* RegexSubst;
-   QoreTransliteration* Trans;
-   QoreRegex* Regex;
 }
 
 %{
@@ -279,11 +279,11 @@ DLLLOCAL void asterror(ASTLTYPE *loc, yyscan_t scanner, const char* str) {
 %token <string> DATETIME "date/time value"
 %token <String> QUOTED_WORD "quoted string"
 %token <string> BINARY "binary constant value"
-%token <RegexSubst> REGEX_SUBST "regular expression substitution expression"
-%token <Trans> REGEX_TRANS "transliteration expression"
+%token <regexsubst> REGEX_SUBST "regular expression substitution expression"
+%token <regextrans> REGEX_TRANS "transliteration expression"
 %token <string> CLASS_SCOPED_REF "scoped class declaration"
-%token <Regex> REGEX "regular expression"
-%token <Regex> REGEX_EXTRACT "regular expression extraction expression"
+%token <regex> REGEX "regular expression"
+%token <regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <i4> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
 %token <string> REQUIRES "%requires value"
@@ -390,54 +390,54 @@ top_level_commands:
 
 top_level_command:
       sub_def {
-         $1->add(*(qore_ns_private::get(*(getRootNS()))));
+         //$1->add(*(qore_ns_private::get(*(getRootNS()))));
       }
       | scoped_sub_def {
-         // see if strong encapsulation is enabled
+         /*// see if strong encapsulation is enabled
          check_strong_encapsulation("function", $1->name.ostr);
-         $1->add(*(qore_ns_private::get(*(getRootNS()))));
+         $1->add(*(qore_ns_private::get(*(getRootNS()))));*/
       }
       | class_def {
-         qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
+         /*qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
 
          // see if class definitions are allowed
          if (parse_check_parse_option(PO_NO_CLASS_DEFS))
             parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
-         delete $1;
+         delete $1;*/
       }
       | scoped_const_decl {
-         // see if strong encapsulation is enabled
+         /*// see if strong encapsulation is enabled
          check_strong_encapsulation("constant", $1->name.ostr);
          qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
-         delete $1;
+         delete $1;*/
       }
       | unscoped_const_decl {
-         qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
-         delete $1;
+         /*qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
+         delete $1;*/
       }
       | outofline_methoddef {
-         // see if strong encapsulation is enabled
+         /*// see if strong encapsulation is enabled
          check_strong_encapsulation("method", $1->name.ostr);
-         $1->parseAddToClassAndDel();
+         $1->parseAddToClassAndDel();*/
       }
       | statement {
-         getProgram()->priv.astStatements.push_back($1);
+         //getProgram()->priv.astStatements.push_back($1);
       }
       | '{' '}'
       | '{' statements '}' {
-         // set line range
+         /*// set line range
          $2->loc.firstLine = @1.firstLine;
          $2->loc.firstCol = @1.firstCol;
          $2->loc.lastLine = @3.firstLine;
          $2->loc.lastCol = @3.firstCol;
          // TODO
-         // getProgram()->priv.astStatements.push_back($2);
+         // getProgram()->priv.astStatements.push_back($2);*/
       }
       | top_namespace_decl {
-         qore_root_ns_private::parseAddNamespace($1);
+         /*qore_root_ns_private::parseAddNamespace($1);
          // see if ns declaration is legal
          if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-            parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
+            parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());*/
       }
       | TOK_MODULE '{' module_decls '}' {}
       | REQUIRES {
@@ -644,14 +644,14 @@ top_namespace_decl:
          delete $4;
       }
       | nsc_modifiers TOK_NAMESPACE ';' {
-         $$ = new ASTNamespaceDeclaration($1, 0);
+         $$ = new ASTNamespaceDeclaration($1);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
          $$->loc.lastLine = @3.firstLine;
          $$->loc.lastCol = @3.firstCol;
       }
       | nsc_modifiers TOK_NAMESPACE '{' '}' {
-         $$ = new ASTNamespaceDeclaration($1, $0);
+         $$ = new ASTNamespaceDeclaration($1);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
          $$->loc.lastLine = @4.firstLine;
@@ -1134,7 +1134,7 @@ case_code:
          $$->loc.lastLine = @4.firstLine;
          $$->loc.lastCol = @4.firstCol;
       }
-      | TOK_CASE '<' exp ':' { statements {
+      | TOK_CASE '<' exp ':' statements {
          $$ = new ASTCaseExpression(ASTOperatorKind::AOK_LessThan, $3, $5);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
@@ -2323,11 +2323,11 @@ scoped_sub_def:
          name.loc.lastLine = @2.lastLine;
          name.loc.lastCol = @2.lastCol;
          free($2);
-         $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, $5, $3, nullptr, $6);
+         $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, $6, $4, nullptr, $7);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
-         $$->loc.lastLine = @6.lastLine;
-         $$->loc.lastCol = @6.lastCol;
+         $$->loc.lastLine = @7.lastLine;
+         $$->loc.lastCol = @7.lastCol;
       }
       | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
          ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);

@@ -44,11 +44,11 @@ public:
 
 // private interface to bison/flex parser/scanner
 typedef void *yyscan_t;
-DLLLOCAL extern int astparse(yyscan_t astscanner);
-DLLLOCAL extern struct yy_buffer_state *ast_scan_string(const char *, yyscan_t scanner);
-DLLLOCAL int astlex_init(yyscan_t *scanner);
-DLLLOCAL void astset_in(FILE *in_str, yyscan_t astscanner);
-DLLLOCAL int astlex_destroy(yyscan_t astscanner);
-DLLLOCAL void astset_lineno(int line_number, yyscan_t astscanner);
+extern int astparse(yyscan_t astscanner);
+extern struct yy_buffer_state *ast_scan_string(const char *, yyscan_t scanner);
+int astlex_init(yyscan_t *scanner);
+void astset_in(FILE *in_str, yyscan_t astscanner);
+int astlex_destroy(yyscan_t astscanner);
+void astset_lineno(int line_number, yyscan_t astscanner);
 
 #endif // _QLS_AST_PARSER_SUPPORT_H
