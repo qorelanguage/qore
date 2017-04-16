@@ -301,12 +301,12 @@ int QoreSocketObject::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, 
 
 int QoreSocketObject::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
    AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, source, timeout_ms, &priv->m);
+   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m);
 }
 
 int QoreSocketObject::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted) {
    AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, source, timeout_ms, &priv->m, aborted);
+   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m, aborted);
 }
 
 // send HTTP response
@@ -326,9 +326,9 @@ int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, int cod
 }
 
 // send data in HTTP chunked format
-void QoreSocketObject::sendHTTPChunkedBodyFromInputStream(InputStream *is, size_t max_chunked_size, int timeout_ms, ExceptionSink* xsink) {
+void QoreSocketObject::sendHTTPChunkedBodyFromInputStream(InputStream *is, size_t max_chunked_size, const int timeout_ms, const ResolvedCallReferenceNode* trailer_callback, ExceptionSink* xsink) {
    AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpChunkedBodyFromInputStream(is, max_chunked_size, timeout_ms, xsink, &priv->m);
+   return priv->socket->priv->sendHttpChunkedBodyFromInputStream(is, max_chunked_size, timeout_ms, xsink, &priv->m, trailer_callback);
 }
 
 void QoreSocketObject::sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink) {

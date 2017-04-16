@@ -253,7 +253,7 @@ public:
    //! send a chunked HTTP message through an InputStream and receive the response to an OutputStream
    /** @since %Qore 0.8.13
     */
-   DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, ExceptionSink* xsink);
+   DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, ExceptionSink* xsink);
 
    //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
    /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead

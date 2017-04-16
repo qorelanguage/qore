@@ -51,17 +51,46 @@ class HttpTestServer {
     }
 }
 
+class TestStreamRequest inherits AbstractStreamRequest {
+    private:internal {
+        hash strhdr;
+        string data;
+
+        list l = ();
+    }
+
+    # setup the object and the headers for the response
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+        strhdr."Content-Type" = hdr."content-type";
+        if (hdr."transfer-encoding" == "chunked")
+            strhdr."X-Was-Chunked" = "yes";
+    }
+
+    recvImpl(hash v) {
+        if (v.data)
+            data += v.data;
+        else if (v.hdr)
+            strhdr += v.hdr;
+        l += v;
+    }
+
+    hash getResponseHeaderMessageImpl() {
+        #printf("l: %N\n", l);
+        return AbstractHttpRequestHandler::makeResponse(strhdr + ("X-Got-Chunks": l.size() - 1), 200, data);
+    }
+}
+
 class EchoHandler inherits AbstractHttpRequestHandler {
     private:internal {
     }
 
-    hash handleRequest(hash cx, hash hdr, *data body) {
-        hash nhdr = (
-            "Content-Type": hdr."content-type",
-            );
-        if (hdr."transfer-encoding" == "chunked")
-            nhdr."X-Was-Chunked" = "yes";
-        return makeResponse(nhdr, 200, body);
+    # handle all requests as stream requests
+    constructor() : AbstractHttpRequestHandler(NOTHING, True) {
+    }
+
+    # return the stream request handler
+    TestStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+        return new TestStreamRequest(listener, self, s, cx, hdr, body);
     }
 }
 
@@ -322,6 +351,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq(200, h.hdr.status_code);
             assertEq("OK", h.hdr.status_message);
             assertEq(NOTHING, h.hdr."x-was-chunked");
+            assertEq("1", h.hdr."x-got-chunks");
             assertEq("text/plain", h.hdr."content-type");
             assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
             assertEq(hc, h.obj);
@@ -331,7 +361,10 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             TestInputStream is(TestList);
             strstr = new TestOutputStream();
             l = ();
-            hc.sendChunked(strstr, is, "POST", NOTHING, "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb);
+            code tcb = *hash sub () {
+                return ("X-Content-Done": "true");
+            };
+            hc.sendChunked(strstr, is, "POST", NOTHING, "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb, tcb);
             assertEq(TestMessage, strstr.getData());
             assertEq(1, l.size());
             ml = strstr.getList();
@@ -343,6 +376,8 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq(200, h.hdr.status_code);
             assertEq("OK", h.hdr.status_message);
             assertEq("yes", h.hdr."x-was-chunked");
+            assertEq("3", h.hdr."x-got-chunks");
+            assertEq("true", h.hdr."x-content-done");
             assertEq("text/plain", h.hdr."content-type");
             assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
             assertEq(hc, h.obj);

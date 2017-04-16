@@ -126,20 +126,20 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-    - \c url: A string giving the URL to connect to
-    - \c default_port: The default port number to connect to if none is given in the URL
-    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
-    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
+    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method requires sending a message body; for example:
+    @code{.py}
+    # add two new HTTP methods for WebDAV; both require message bodies
+    HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
+    @endcode
+    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+    - \c default_port: The default port number to connect to if none is given in the URL
+    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
-    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
-    - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash uses method name as a key and value is a boolean \c True or \c False indicating if the HTTPClient should post the message body as well. Example:
-    @code{.py}
-    # add new HTTP methods for WebDAV. Both of them require body posting to the server
-    ("additional_methods" : ( "PROPFIND" : True, "MKCOL": True ) );
-    @endcode
+    - \c url: A string giving the URL to connect to
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
@@ -495,12 +495,20 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, 
 
     @par Example:
     @code{.py}
-httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+# save the HTTP response body directly to a file with a random file name
+string fn = tmp_location() + DirSep + get_random_string() + ".tmp"
+FileOutputString output_stream(fn);
+# log the "X-Logme" header
+code rcb = sub (hash h) {
+    if (h.hdr."x-logme")
+        log("X-Logme: %y", h.hdr."x-logme");
+};
+httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb);
     @endcode
 
     @param os The @ref OutputStream to write the response body to
     @param body The message body to send; pass @ref nothing (no value) to send no body
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added in the constructor as a \c additional_methods option.
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
@@ -547,12 +555,24 @@ nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string
 
     @par Example:
     @code{.py}
-httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-Type":"application/x-yaml"));
+# save the HTTP response body directly to a file with a random file name
+string fn = tmp_location() + DirSep + get_random_string() + ".tmp"
+FileOutputString output_stream(fn);
+# log the "X-Logme" header
+code rcb = sub (hash h) {
+    if (h.hdr."x-logme")
+        log("X-Logme: %y", h.hdr."x-logme");
+};
+# write the "X-Content-Done" header when done
+code tcb = *hash sub () {
+    return ("X-Content-Done": "true");
+};
+httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb, tcb);
     @endcode
 
     @param os The @ref OutputStream to write the response body to
     @param is The @ref InputStream to read the request body from; each read will be sent as a separate chunk
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added in the constructor as a \c additional_methods option.
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
     @param max_chunk_size the maximum chunk size as the read block size for the @ref InputStream read block size; the actual size of the data read will determine the size of each HTTP chunk
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
@@ -562,12 +582,14 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    @param tcb An optional trailer callback for message trailers to write in the outgoing chunked message; the callback takes no arguments and must return either @ref nothing or @ref hash_type "hash" giving a hash of trailers for the final chunk
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
     @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server); status errors are not thrown in case a receive callback is used
     @throw HTTP-CHUNK-ERROR the chunk size given is not greater than 0
+    @throw HTTP-TRAILER-ERROR the trailer callback must return either @ref nothing or @ref hash_type "hash"; this exception is thrown is another type is returned
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -580,7 +602,7 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
 
     @since %Qore 0.8.13
  */
-nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb) {
+nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb, *code tcb) {
    SimpleRefHolder<OutputStream> osHolder(os);
    SimpleRefHolder<InputStream> isHolder(is);
    if (max_chunk_size < 1) {
@@ -588,7 +610,7 @@ nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::Input
       return QoreValue();
    }
    OptHashRefHelper ohrh(info, xsink);
-   client->sendChunked(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, getbody, *ohrh, timeout_ms, rcb, self, os, is, (size_t)max_chunk_size, xsink);
+   client->sendChunked(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, getbody, *ohrh, timeout_ms, rcb, self, os, is, (size_t)max_chunk_size, tcb, xsink);
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
@@ -609,8 +631,7 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
-     methods can be added in the constructor as a \c additional_methods option.
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value

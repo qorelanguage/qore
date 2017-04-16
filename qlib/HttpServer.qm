@@ -112,11 +112,11 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
-    @subsection http0311 HttpServer 0.3.12
+    @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
 
-    @subsection http0311 HttpServer 0.3.11.1
+    @subsection http03111 HttpServer 0.3.11.1
     - fixed a bug where @ref HttpServer::HttpServer::addListener() would not accept port 0 meaning bind on any random open port (<a href="https://github.com/qorelanguage/qore/issues/1284">bug 1284</a>)
 
     @subsection http0311 HttpServer 0.3.11
