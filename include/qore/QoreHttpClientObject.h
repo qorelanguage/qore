@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -245,7 +245,15 @@ public:
 
    DLLEXPORT void sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
 
+   //! make an HTTP request and receive the response to an OutputStream
+   /** @since %Qore 0.8.13
+    */
    DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
+
+   //! send a chunked HTTP message through an InputStream and receive the response to an OutputStream
+   /** @since %Qore 0.8.13
+    */
+   DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, ExceptionSink* xsink);
 
    //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
    /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead

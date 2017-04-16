@@ -8,6 +8,8 @@
 
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/Mime.qm
+%requires ../../../../../qlib/HttpServer.qm
 
 %exec-class Main
 
@@ -49,6 +51,79 @@ class HttpTestServer {
     }
 }
 
+class EchoHandler inherits AbstractHttpRequestHandler {
+    private:internal {
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        return makeResponse(("Content-Type": hdr."content-type"), 200, body);
+    }
+}
+
+class RealTestHttpServer inherits HttpServer {
+    private:internal {
+        EchoHandler eh();
+        int port;
+    }
+
+    constructor() : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
+        setDefaultHandler("echo-handler", eh);
+        port = addListener(0).port;
+    }
+
+    int getPort() {
+        return port;
+    }
+
+    static log(string fmt) {
+        #vprintf("HTTP: " + fmt + "\n", argv);
+        delete argv;
+    }
+}
+
+class TestOutputStream inherits OutputStream {
+    private:internal {
+        list l = ();
+        string str;
+    }
+
+    close() {
+    }
+
+    write(binary data) {
+        string tstr = binary_to_string(data);
+        l += tstr;
+        str += tstr;
+    }
+
+    string getData() {
+        return str;
+    }
+
+    list getList() {
+        return l;
+    }
+}
+
+class TestInputStream inherits InputStream {
+    private:internal {
+        list l;
+    }
+
+    constructor(list l) {
+        self.l = l;
+    }
+
+    int peek() {
+        return ord(l[0][0]);
+    }
+
+    *binary read(int limit) {
+        if (!l)
+            return;
+        return binary(shift l);
+    }
+}
 
 public class Main inherits QUnit::Test {
     public {
@@ -58,6 +133,11 @@ public class Main inherits QUnit::Test {
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
         const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
                                       gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
+        const NormalReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nContent-Length: 13\r\nDate: %s GMT\r\n\r\nTest Message.",
+                                      gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
+
+        const TestMessage = "Test Message.";
+        const TestList = ("Test", " Mess", "age.");
 
         const TestCert = "-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQDLa47sQHENJhycRfO20lgWdhSSNQKVUFsaHLtAo2N9j+xIlmIf
@@ -125,8 +205,69 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             on_exit serv.done();
             HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
-            assertEq("Test Message.", str);
+            assertEq(TestMessage, str);
         }
+
+        {
+            # test receiving a chunked HTTP message with an output stream
+            HttpTestServer serv(ChunkedReply1);
+            on_exit serv.done();
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
+
+            list l = ();
+            code rcb = sub (hash h) { l += h; };
+            TestOutputStream strstr();
+            hc.send(strstr, NOTHING, "GET", "/something", NOTHING, 5s, False, NOTHING, rcb);
+            assertEq(TestMessage, strstr.getData());
+            assertEq(2, l.size());
+            list ml = strstr.getList();
+            assertEq(3, ml.size());
+            assertEq(TestList, ml);
+
+            hash h = l[0];
+            assertEq("1.1", h.hdr.http_version);
+            assertEq(200, h.hdr.status_code);
+            assertEq("OK", h.hdr.status_message);
+            assertEq("Test/1.0", h.hdr.server);
+            assertEq("text/plain", h.hdr."content-type");
+            assertEq("chunked", h.hdr."transfer-encoding");
+            assertEq("text/plain", h.hdr._qore_orig_content_type);
+            assertEq(hc, h.obj);
+            assertEq(False, h.send_aborted);
+
+            h = l[1];
+            assertEq(NOTHING, h.hdr);
+            assertEq(hc, h.obj);
+            assertEq(False, h.send_aborted);
+        }
+
+        {
+            # test receiving a normal HTTP message with an output stream
+            HttpTestServer serv(NormalReply1);
+            on_exit serv.done();
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
+
+            list l = ();
+            code rcb = sub (hash h) { l += h; };
+            TestOutputStream strstr();
+            hc.send(strstr, NOTHING, "GET", "/something", NOTHING, 5s, False, NOTHING, rcb);
+            assertEq(TestMessage, strstr.getData());
+            assertEq(1, l.size());
+            list ml = strstr.getList();
+            assertEq(TestMessage, ml[0]);
+            assertEq(1, ml.size());
+
+            hash h = l[0];
+            assertEq("1.1", h.hdr.http_version);
+            assertEq(200, h.hdr.status_code);
+            assertEq("OK", h.hdr.status_message);
+            assertEq("Test/1.0", h.hdr.server);
+            assertEq("text/plain", h.hdr."content-type");
+            assertEq("text/plain", h.hdr._qore_orig_content_type);
+            assertEq(hc, h.obj);
+            assertEq(False, h.send_aborted);
+        }
+
         {
             HTTPClient hc(("url": "http://localhost"));
             hash info;
@@ -152,6 +293,54 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             string bad_url = "http://localhost:1234\"";
             assertThrows("HTTP-CLIENT-URL-ERROR", sub () { HTTPClient hc(("url": bad_url)); });
         }
+
+        {
+            RealTestHttpServer hs();
+            on_exit
+                delete hs;
+
+            HTTPClient hc(("url": "http://localhost:" + hs.getPort()));
+
+            # send monolithic message and get back single message in a stream
+            list l = ();
+            code rcb = sub (hash h) { l += h; };
+            TestOutputStream strstr();
+            hc.send(strstr, TestMessage, "POST", "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb);
+            assertEq(TestMessage, strstr.getData());
+            assertEq(1, l.size());
+            list ml = strstr.getList();
+            assertEq(1, ml.size());
+            assertEq((TestMessage,), ml);
+
+            hash h = l[0];
+            assertEq("1.1", h.hdr.http_version);
+            assertEq(200, h.hdr.status_code);
+            assertEq("OK", h.hdr.status_message);
+            assertEq("text/plain", h.hdr."content-type");
+            assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
+            assertEq(hc, h.obj);
+            assertEq(False, h.send_aborted);
+
+            # send a streamed/chunked message and get back a single message in a stream
+            TestInputStream is(TestList);
+            strstr = new TestOutputStream();
+            l = ();
+            hc.sendChunked(strstr, is, "POST", NOTHING, "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb);
+            assertEq(TestMessage, strstr.getData());
+            assertEq(1, l.size());
+            ml = strstr.getList();
+            assertEq(1, ml.size());
+            assertEq((TestMessage,), ml);
+
+            h = l[0];
+            assertEq("1.1", h.hdr.http_version);
+            assertEq(200, h.hdr.status_code);
+            assertEq("OK", h.hdr.status_message);
+            assertEq("text/plain", h.hdr."content-type");
+            assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
+            assertEq(hc, h.obj);
+            assertEq(False, h.send_aborted);
+        }
     }
 
     sslReadTest() {
@@ -164,10 +353,11 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         HTTPClient hc(("url": "https://localhost:" + port));
         assertThrows("SOCKET-CLOSED", \hc.get(), ("/"));
 
+        # test is not reliable
         # issue 1488: currently only reproducible with the following URL
-        hc.setURL("https://group.three.com/qcbin/rest/is-authenticated");
-        hc.setTimeout(15s);
-        assertThrows("SOCKET-SSL-ERROR", "Connection reset", \hc.get(), ("", ("Host": "group.three.com:443")));
+        #hc.setURL("https://group.three.com/qcbin/rest/is-authenticated");
+        #hc.setTimeout(15s);
+        #assertThrows("SOCKET-SSL-ERROR", "Connection reset", \hc.get(), ("", ("Host": "group.three.com:443")));
     }
 
     sslReadError(Queue q) {

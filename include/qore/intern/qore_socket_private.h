@@ -2418,7 +2418,7 @@ struct qore_socket_private {
       th.finalize(total);
    }
 
-   DLLLOCAL void sendHttpChunkedBodyFromInputStream(InputStream *is, int timeout, ExceptionSink* xsink, QoreThreadLock *l) {
+   DLLLOCAL void sendHttpChunkedBodyFromInputStream(InputStream* is, size_t max_chunk_size, int timeout, ExceptionSink* xsink, QoreThreadLock* l) {
       if (sock == QORE_INVALID_SOCKET) {
          se_not_open("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
          return;
@@ -2443,7 +2443,7 @@ struct qore_socket_private {
       if (*xsink)
          return;
 
-      char buf[DEFAULT_SOCKET_BUFSIZE];
+      char buf[max_chunk_size];
       int64 total = 0;
       while (true) {
          int64 r;
@@ -2456,11 +2456,10 @@ struct qore_socket_private {
          }
 
          QoreString str;
-         str.sprintf("%x\r\n", (int) r);
-         if (r > 0) {
+         str.sprintf("%x\r\n", (int)r);
+         if (r > 0)
             str.concat(buf, r);
-            str.concat("\r\n");
-         }
+         str.concat("\r\n");
 
          int rc = sendIntern(xsink, "Socket", "sendHttpChunkedBodyFromInputStream", str.getBuffer(), str.size(), timeout, total, true);
          if (rc < 0) {
@@ -2511,8 +2510,11 @@ struct qore_socket_private {
       sendIntern(xsink, "Socket", "sendHttpChunkedBodyTrailer", buf.getBuffer(), buf.size(), timeout, total, true);
    }
 
-   DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {
+   DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {
       assert(!(data && send_callback));
+      assert(!(data && is));
+      assert(!(send_callback && is));
+
       // prepare header string
       QoreString hdr(enc);
 
@@ -2540,6 +2542,13 @@ struct qore_socket_private {
          assert(l);
          assert(!aborted || !(*aborted));
          return sendHttpChunkedWithCallback(xsink, cname, mname, *send_callback, *l, source, timeout_ms, aborted);
+      }
+      else if (is) {
+         assert(l);
+         assert(!aborted || !(*aborted));
+
+         sendHttpChunkedBodyFromInputStream(is, max_chunk_size, timeout_ms, xsink, l);
+         return *xsink ? -1 : 0;
       }
 
       return 0;
@@ -2575,7 +2584,7 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = 0, QoreThreadLock* l = 0, QoreObject* obj = 0, OutputStream *os = 0) {
+   DLLLOCAL QoreHashNode* readHttpChunkedBodyBinary(int timeout, ExceptionSink* xsink, const char* cname, int source, const ResolvedCallReferenceNode* recv_callback = nullptr, QoreThreadLock* l = nullptr, QoreObject* obj = nullptr, OutputStream* os = nullptr) {
       assert(xsink);
 
       if (sock == QORE_INVALID_SOCKET) {
@@ -2597,7 +2606,7 @@ struct qore_socket_private {
 
       qore_socket_op_helper oh(this);
 
-      SimpleRefHolder<BinaryNode> b(os ? 0 : new BinaryNode);
+      SimpleRefHolder<BinaryNode> b(os ? nullptr : new BinaryNode);
       QoreString str; // for reading the size of each chunk
 
       qore_offset_t rc;
@@ -2669,9 +2678,8 @@ struct qore_socket_private {
             if (os) {
                AutoUnlocker al(l);
                os->write(buf, rc, xsink);
-               if (*xsink) {
-                  return 0;
-               }
+               if (*xsink)
+                  return nullptr;
             } else {
                b->append(buf, rc);
             }
@@ -2704,10 +2712,11 @@ struct qore_socket_private {
 
          do_chunked_read(QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED, size, size + 2, source);
 
-         if (recv_callback) {
+         if (recv_callback && !os) {
             if (runDataCallback(xsink, cname, "readHTTPChunkedBodyBinary", *recv_callback, l, *b, true))
                return 0;
-            b->clear();
+            if (b)
+               b->clear();
          }
 
          // ensure string is blanked for next read
