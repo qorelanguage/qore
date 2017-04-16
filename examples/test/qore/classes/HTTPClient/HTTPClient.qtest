@@ -56,7 +56,12 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     }
 
     hash handleRequest(hash cx, hash hdr, *data body) {
-        return makeResponse(("Content-Type": hdr."content-type"), 200, body);
+        hash nhdr = (
+            "Content-Type": hdr."content-type",
+            );
+        if (hdr."transfer-encoding" == "chunked")
+            nhdr."X-Was-Chunked" = "yes";
+        return makeResponse(nhdr, 200, body);
     }
 }
 
@@ -316,6 +321,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq("1.1", h.hdr.http_version);
             assertEq(200, h.hdr.status_code);
             assertEq("OK", h.hdr.status_message);
+            assertEq(NOTHING, h.hdr."x-was-chunked");
             assertEq("text/plain", h.hdr."content-type");
             assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
             assertEq(hc, h.obj);
@@ -336,6 +342,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq("1.1", h.hdr.http_version);
             assertEq(200, h.hdr.status_code);
             assertEq("OK", h.hdr.status_message);
+            assertEq("yes", h.hdr."x-was-chunked");
             assertEq("text/plain", h.hdr."content-type");
             assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
             assertEq(hc, h.obj);
