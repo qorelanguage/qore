@@ -515,7 +515,9 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
    // init param ids and push local parameter vars on stack
    for (unsigned i = 0; i < typeList.size(); ++i) {
       // check for dups but do not check if the variables are referenced in the block
-      lv.push_back(push_local_var(names[i].c_str(), loc, typeList[i], true, 1));
+      // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
+      // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
+      lv.push_back(push_local_var(names[i].c_str(), loc, typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
       printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
    }
 }
@@ -972,7 +974,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
                const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
                bool pos_has_arg = num_args && num_args > pi;
-               const QoreTypeInfo* a = pos_has_arg ? argTypeInfo[pi] : 0;
+               const QoreTypeInfo* a = pos_has_arg ? argTypeInfo[pi] : nullptr;
                if (pos_has_arg)
                   pos_has_arg = (bool)a;
 
@@ -1384,6 +1386,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
       //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
       signature.lv[i]->instantiate(np.refSelf());
 
+      /*
       // the above if block will only instantiate the local variable if no
       // exceptions have occured. therefore here we cleanup the rest
       // of any already instantiated local variables if an exception does occur
@@ -1391,6 +1394,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
          while (i) signature.lv[--i]->uninstantiate(xsink);
          return -1;
       }
+      */
    }
 
    // if there are more arguments than parameters

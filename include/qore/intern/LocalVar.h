@@ -214,8 +214,9 @@ public:
    // reference count; access serialized with rlck from RObject
    mutable std::atomic_int references;
    const QoreTypeInfo* typeInfo; // type restriction for lvalue
+   bool ref_type;
 
-   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), RObject(references), references(1), typeInfo(varTypeInfo) {
+   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval) : VarValueBase(n_id, varTypeInfo), RObject(references), references(1), typeInfo(varTypeInfo), ref_type(varTypeInfo == referenceTypeInfo || varTypeInfo == referenceOrNothingTypeInfo) {
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
       val.setClosure();
 
@@ -297,7 +298,9 @@ public:
 class LocalVar {
 private:
    std::string name;
-   bool closure_use, parse_assigned;
+   bool closure_use = false,
+      parse_assigned = false,
+      ref_type;
    const QoreTypeInfo* typeInfo;
 
    DLLLOCAL LocalVarValue* get_var() const {
@@ -305,10 +308,10 @@ private:
    }
 
 public:
-   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), closure_use(false), parse_assigned(false), typeInfo(ti) {
+   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), ref_type(ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo), typeInfo(ti) {
    }
 
-   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo) {
+   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), ref_type(old.ref_type), typeInfo(old.typeInfo) {
    }
 
    DLLLOCAL ~LocalVar() {
@@ -406,10 +409,10 @@ public:
       return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
    }
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const {
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, bool initial_assignment) const {
       //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d\n", this, getName(), for_remove, closure_use);
       if (!closure_use) {
-         lvh.setTypeInfo(typeInfo);
+         lvh.setTypeInfo(ref_type && !initial_assignment ? anyTypeInfo : typeInfo);
          return get_var()->getLValue(lvh, for_remove);
       }
 
@@ -424,11 +427,17 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+      //return ref_type ? anyTypeInfo : typeInfo;
       return typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
-      return parse_assigned && (typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo) ? anyTypeInfo : typeInfo;
+      return parse_assigned && ref_type ? anyTypeInfo : typeInfo;
+      //return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
+      return typeInfo;
    }
 
    DLLLOCAL qore_type_t getValueType() const {

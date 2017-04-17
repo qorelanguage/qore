@@ -1005,7 +1005,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
       LocalVar* id = find_local_var(bword, in_closure);
       if (id) {
          //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() %s is an lvar: %p\n", bword, id);
-         typeInfo = id->getTypeInfo();
+         typeInfo = id->parseGetTypeInfo();
          return new VarRefNode(strdup(bword), id, in_closure);
       }
    }

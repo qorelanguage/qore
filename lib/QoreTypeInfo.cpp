@@ -54,6 +54,8 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
 
+//static ReferenceValueTypeInfo staticReferenceValueTypeInfo;
+
 // const pointers to static reference types
 const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -67,17 +69,18 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
+   //*referenceValueTypeInfo = &staticReferenceValueTypeInfo,
 
    // assigned in init_qore_types()
-   *bigIntOrNothingTypeInfo = 0,
-   *stringOrNothingTypeInfo = 0,
-   *boolOrNothingTypeInfo = 0,
-   *binaryOrNothingTypeInfo = 0,
-   *objectOrNothingTypeInfo = 0,
-   *dateOrNothingTypeInfo = 0,
-   *hashOrNothingTypeInfo = 0,
-   *listOrNothingTypeInfo = 0,
-   *nullOrNothingTypeInfo = 0
+   *bigIntOrNothingTypeInfo = nullptr,
+   *stringOrNothingTypeInfo = nullptr,
+   *boolOrNothingTypeInfo = nullptr,
+   *binaryOrNothingTypeInfo = nullptr,
+   *objectOrNothingTypeInfo = nullptr,
+   *dateOrNothingTypeInfo = nullptr,
+   *hashOrNothingTypeInfo = nullptr,
+   *listOrNothingTypeInfo = nullptr,
+   *nullOrNothingTypeInfo = nullptr
    ;
 
 // reference types
@@ -385,6 +388,9 @@ const char* getBuiltinTypeName(qore_type_t type) {
 }
 
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const {
+   if (qt == NT_ALL)
+      return 0;
+
    qore_type_t nt = n.getType();
 
    if (qt != nt)
@@ -422,7 +428,6 @@ int QoreTypeInfo::acceptInputDefault(bool& priv_error, QoreValue& n) const {
    // check all types until one accepts the input
    // priv_error can be set to false more than once; this is OK for error reporting
    for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-      assert((*i)->acceptsSingle());
       if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
          return 0;
    }
@@ -654,8 +659,21 @@ bool OrNothingTypeInfo::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) cons
    if (t == NT_NOTHING)
       return true;
    if (t == NT_NULL) {
-      discard(n.assign((AbstractQoreNode*)0), xsink);
+      discard(n.assign((AbstractQoreNode*)nullptr), xsink);
       return true;
+   }
+
+   if (accepts_mult) {
+      const type_vec_t& at = getAcceptTypeList();
+
+      bool priv_error = false;
+      // check all types until one accepts the input
+      for (auto& i : at) {
+         if (&*i == anyTypeInfo)
+            return true;
+         if (!(*i).runtimeAcceptInputIntern(priv_error, n))
+            return true;
+      }
    }
 
    if (qc) {

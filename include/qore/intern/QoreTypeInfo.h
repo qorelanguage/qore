@@ -612,6 +612,12 @@ public:
       return parseAcceptsBasic(typeInfo, may_not_match);
    }
 
+   /*
+   xxx
+   DLLLOCAL qore_type_result_e parseAcceptsInitialAssignment(const QoreTypeInfo* typeInfo) const {
+   }
+   */
+
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
       return (!first || !second) ? QTI_AMBIGUOUS : first->parseAccepts(second, may_not_match);
@@ -2328,17 +2334,26 @@ public:
    }
 };
 
-class ReferenceTypeInfo : public QoreTypeInfo {
-protected:
-   type_vec_t rt;
-
-   DLLLOCAL virtual const type_vec_t& getReturnTypeList() const {
-      return rt;
+/*
+class ReferenceTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
+public:
+   DLLLOCAL ReferenceTypeInfo() : AcceptsReturnsSameMultiTypeInfo(nullptr, NT_REFERENCE, false, false, false) {
+      at.push_back(anyTypeInfo);
    }
 
+   DLLLOCAL virtual const char* getNameImpl() const {
+      return "reference";
+   }
+};
+*/
+
+class ReferenceTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL ReferenceTypeInfo() : QoreTypeInfo(0, NT_REFERENCE, true, false, false, false, false, false, false, false, false) {
-      rt.push_back(anyTypeInfo);
+   DLLLOCAL ReferenceTypeInfo() : QoreTypeInfo(nullptr, NT_REFERENCE, false, false, false, false, true, false, false, false, false) {
+   }
+
+   DLLLOCAL virtual const char* getNameImpl() const {
+      return "reference";
    }
 };
 

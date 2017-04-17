@@ -365,11 +365,6 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
    if (doLValue(op->getLeft(), for_remove))
       return -1;
 
-   /*
-   if (!isNode())
-      return for_remove ? -1 : var_type_err(typeInfo, "hash", vl.xsink);
-   */
-
    qore_type_t t = getType();
    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(getValue()) : 0;
    QoreHashNode* h = 0;
@@ -466,7 +461,6 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
-      // true is for "internal"
       if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
          return -1;
 
@@ -1284,6 +1278,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    lvh.setTypeInfo(typeInfo);
+
    lvh.set(rml);
    sl.stay_locked();
    lvh.setValue((QoreLValueGeneric&)val);

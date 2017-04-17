@@ -476,9 +476,6 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
 
    qolhm.stay_locked();
 
-   // save lvalue type info
-   lvh.setTypeInfo(mti);
-
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
    //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d int: %d odata: %p\n", this, theclass->getName(), key, QoreTypeInfo::getName(mti), for_remove, internal_member, odata);
@@ -492,6 +489,14 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
    else
       m = odata->priv->findCreateMember(key);
    lvh.setPtr(m->node);
+
+   // if it's an assigned reference, then return anyTypeInfo
+   if (get_node_type(m->node) != NT_NOTHING && (mti == referenceTypeInfo || mti == referenceOrNothingTypeInfo))
+      mti = anyTypeInfo;
+
+   // save lvalue type info
+   lvh.setTypeInfo(mti);
+
    return 0;
 }
 

@@ -1413,6 +1413,8 @@ public:
       return qore_root_ns_private::getGlobalVars(*RootNS);
    }
 
+   DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
+
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
    }
