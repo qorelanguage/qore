@@ -53,10 +53,10 @@ class ReferenceTest inherits QUnit::Test {
         reference r4 = \r3;
         assertThrows("REFERENCE-ERROR", sub () { r2 = \r4; });
 
-	{
-	    Program p(PO_NEW_STYLE);
-	    p.parse("sub t(*reference r) {}", "");
-	    assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
-	}
-   }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t(*reference r) {}", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
+        }
+    }
 }
