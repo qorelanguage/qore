@@ -38,10 +38,10 @@
 
 #include "AstParserSupport.h"
 
-#define ASTINITDEPTH 300
+#define YYINITDEPTH 300
 //#define YYDEBUG 1
 
-#define ASTLTYPE AstParserLocation
+#define YYLTYPE AstParserLocation
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                          \
    do                                                            \
@@ -71,8 +71,8 @@
 %}
 
 %pure-parser
-%lex-param {yyscan_t astscanner}
-%parse-param {yyscan_t astscanner}
+%lex-param {yyscan_t yyscanner}
+%parse-param {yyscan_t yyscanner}
 %locations
 %error-verbose
 
@@ -115,18 +115,16 @@
 
 %{
 
-#define AST_LEX_PARAMETERS ASTSTYPE *lvalp, ASTLTYPE *loc, yyscan_t scanner
+#define YY_LEX_PARAMETERS YYSTYPE *lvalp, YYLTYPE *loc, yyscan_t yyscanner
 
-int astlex(AST_LEX_PARAMETERS);
+int yylex(YY_LEX_PARAMETERS);
 
-void asterror(ASTLTYPE *loc, yyscan_t scanner, const char* str) {
-   //printd(5, "asterror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
+void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
+   //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
    //parse_error("%s", str);
 }
 
 %}
-
-%define api.prefix {ast}
 
 // define string aliases for token names for more user-friendly error reporting
 %token TOK_RETURN "return"

@@ -33,14 +33,14 @@
 
 int AstParser::parse(const char* filename) {
     yyscan_t lexer;
-    astlex_init(&lexer);
+    yylex_init(&lexer);
 
-    //ast_scan_string(code, lexer);
-    astset_lineno(1, lexer);
-    // yyparse() will call endParsing() and restore old pgm position
-    astparse(lexer);
+    //yy_scan_string(code, lexer);
+    yyset_lineno(1, lexer);
 
-    astlex_destroy(lexer);
+    yyparse(lexer);
+
+    yylex_destroy(lexer);
     return 0;
 }
 
