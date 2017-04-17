@@ -33,12 +33,17 @@
 #include <cctype>
 #include <climits>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <vector>
+
+#include "ast/AST.h"
 
 #include "AstParserSupport.h"
 #include "ast_parser.hpp"
@@ -60,12 +65,11 @@
    /*fprintf(stderr, "end: %d:%d %d:%d\n",       */                                 \
        /*astlloc->firstLine, astlloc->firstCol, astlloc->lastLine, astlloc->lastCol);*/ \
 
-int ast_parse(yyscan_t astscanner);
+//int ast_parse(yyscan_t astscanner);
 
 #define isoctaldigit(x) (x >= '0' && x <= '7')
 
 static int ascii_to_octal(char c) {
-   assert(isoctaldigit(c));
    return c - '0';
 }
 
@@ -331,11 +335,12 @@ static char* remove_quotes(char* str) {
    return str + 1;
 }
 
-static int64 parse_get_integer(const char* str) {
+static int64_t parse_get_integer(const char* str) {
    errno = 0;
-   int64 rv = strtoll(str, 0, 10);
-   if (errno == ERANGE)
-      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+   int64_t rv = strtoll(str, 0, 10);
+   // TODO
+   /*if (errno == ERANGE)
+      parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);*/
    return rv;
 }
 
@@ -359,7 +364,7 @@ static inline int get_int_4(const char* &p) {
    return rv;
 }
 
-static bool isRegexModifier(ASTRegexExpression *re, int c) {
+static bool isRegexModifier(ASTRegexExpression* re, int c) {
    if (c == 'i')
       re->caseSensitive = false;
    else if (c == 's')
@@ -373,7 +378,7 @@ static bool isRegexModifier(ASTRegexExpression *re, int c) {
    return true;
 }
 
-static bool isRegexExtractModifier(ASTRegexExpression *re, int c) {
+static bool isRegexExtractModifier(ASTRegexExpression* re, int c) {
    if (isRegexModifier(re, c))
       return true;
    if (c == 'g')
@@ -383,7 +388,7 @@ static bool isRegexExtractModifier(ASTRegexExpression *re, int c) {
    return true;
 }
 
-static bool isRegexSubstModifier(ASTRegexSubstExpression *rs, int c) {
+static bool isRegexSubstModifier(ASTRegexSubstExpression* rs, int c) {
    if (c == 'g')
       rs->global = true;
    else if (c == 'i')
