@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTDeclaration.h
+  ASTVarListDeclaration.h
 
   Qore AST Parser
 
@@ -29,35 +29,36 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTDECLARATION_H
-#define _QLS_AST_ASTDECLARATION_H
+#ifndef _QLS_AST_DECLARATIONS_ASTVARLISTDECLARATION_H
+#define _QLS_AST_DECLARATIONS_ASTVARLISTDECLARATION_H
 
 #include <memory>
 
-#include "ASTNode.h"
+#include "ast/ASTDeclaration.h"
+#include "ast/ASTModifiers.h"
+#include "ast/expressions/ASTListExpression.h"
 
-class ASTDeclaration : public ASTNode {
+class ASTVarListDeclaration : public ASTDeclaration {
 public:
     //! Pointer type.
-    using Ptr = std::unique_ptr<ASTDeclaration>;
+    using Ptr = std::unique_ptr<ASTVarListDeclaration>;
 
 public:
-    enum class Kind { // ADK == (A)st (D)eclaration (K)ind
-        ADK_Class,              //!< Identifies instances of \ref ASTClassDeclaration.
-        ADK_Constant,           //!< Identifies instances of \ref ASTConstantDeclaration.
-        ADK_Function,           //!< Identifies instances of \ref ASTFunctionDeclaration.
-        ADK_MemberGroup,        //!< Identifies instances of \ref ASTMemberGroupDeclaration.
-        ADK_Namespace,          //!< Identifies instances of \ref ASTNamespaceDeclaration.
-        ADK_Superclass,         //!< Identifies instances of \ref ASTSuperclassDeclaration.
-        ADK_Variable,           //!< Identifies instances of \ref ASTVariableDeclaration.
-        ADK_VarList,            //!< Identifies instances of \ref ASTVarListDeclaration.
-    };
+    //! Variable list modifiers like \c our or \c my.
+    ASTModifiers modifiers;
+
+    //! Variable list.
+    ASTListExpression::Ptr variables;
 
 public:
-    ASTDeclaration() : ASTNode() {}
-    ASTDeclaration(const ASTParseLocation& l) : ASTNode(l) {}
+    ASTVarListDeclaration(ASTModifiers mods, ASTListExpression* vars) :
+        ASTDeclaration(),
+        modifiers(mods),
+        variables(vars) {}
 
-    virtual Kind getKind() const = 0;
+    virtual Kind getKind() const override {
+        return Kind::ADK_VarList;
+    }
 };
 
-#endif // _QLS_AST_ASTDECLARATION_H
+#endif // _QLS_AST_DECLARATIONS_ASTVARLISTDECLARATION_H
