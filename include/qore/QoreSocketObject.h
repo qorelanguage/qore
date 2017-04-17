@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   provides a thread-safe interface to the QoreSocket object
 
@@ -146,7 +146,7 @@ public:
    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted);
 
    // send data in HTTP chunked format
-   DLLEXPORT void sendHTTPChunkedBodyFromInputStream(InputStream *is, int timeout_ms, ExceptionSink* xsink);
+   DLLEXPORT void sendHTTPChunkedBodyFromInputStream(InputStream *is, size_t max_chunked_size, const int timeout_ms, const ResolvedCallReferenceNode* trailer_callback, ExceptionSink* xsink);
    DLLEXPORT void sendHTTPChunkedBodyTrailer(const QoreHashNode *headers, int timeout_ms, ExceptionSink* xsink);
 
    // read and parse HTTP header

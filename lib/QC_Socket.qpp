@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1937,17 +1937,25 @@ sock.sendHTTPChunkedBodyFromInputStream(inputStream);
     @ref EVENT_PACKET_SENT
 
     @param is The input stream to read data from
+    @param max_chunk_size the maximum chunk size as the read block size for the @ref InputStream read block size; the actual size of the data read will determine the size of each HTTP chunk
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+    @param tcb An optional trailer callback for message trailers to write in the outgoing chunked message; the callback takes no arguments and must return either @ref nothing or @ref hash_type "hash" giving a hash of trailers for the final chunk
 
     @throw SOCKET-NOT-OPEN the socket is not connected
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
+    @throw HTTP-CHUNK-ERROR the chunk size given is not greater than 0
+    @throw HTTP-TRAILER-ERROR the trailer callback must return either @ref nothing or @ref hash_type "hash"; this exception is thrown is another type is returned
 
     @since %Qore 0.8.13
  */
-nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] is, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] is, int max_chunk_size = 4096, timeout timeout_ms = -1, *code tcb) {
    SimpleRefHolder<InputStream> isHolder(is);
-   s->sendHTTPChunkedBodyFromInputStream(is, timeout_ms, xsink);
+   if (max_chunk_size < 1) {
+      xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD, max_chunk_size);
+      return QoreValue();
+   }
+   s->sendHTTPChunkedBodyFromInputStream(is, max_chunk_size, timeout_ms, tcb, xsink);
 }
 
 //! Sends the trialer of an HTTP message body in chunked transfer encoding
