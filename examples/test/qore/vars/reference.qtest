@@ -158,5 +158,11 @@ class ReferenceTest inherits QUnit::Test {
             p.parse("our *reference r = {}; int sub tb_0(){return r.size();}", "");
             assertEq(0, p.callFunction("tb_0"));
         }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t(*reference r) {}", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
+        }
     }
 }

@@ -285,7 +285,19 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -325,7 +337,19 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -365,7 +389,19 @@ hash msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -418,7 +454,19 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -466,7 +514,19 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -636,7 +696,19 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -678,7 +750,19 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
 
@@ -715,7 +799,19 @@ hash msg = httpclient.head("/path");
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the headers received from the HTTP server with all key names converted to lower-case
 
@@ -753,7 +849,19 @@ httpclient.post("/path", body);
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the string to use as the message body
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
@@ -795,7 +903,19 @@ httpclient.post("/path", body);
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the optional data to use as the message body
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
