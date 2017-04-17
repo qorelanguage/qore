@@ -34,36 +34,6 @@
 // only have support for 32-bit ppc for now
 #ifndef __ppc64
 
-#define HAVE_ATOMIC_MACROS
-
-static inline int atomic_inc(int *v) {
-   int t;
-
-   asm volatile(
-                "1:     lwarx   %0,0,%1\n"
-                "	addic   %0,%0,1\n"
-                "	stwcx.  %0,0,%1\n"
-                "	bne-    1b"
-                : "=&r" (t)
-                : "r" (v)
-                : "cc", "memory");
-   return t;
-}
-
-static inline int atomic_dec(int *v) {
-   int t;
-
-   asm volatile(
-                "1:     lwarx   %0,0,%1\n"
-                "	addic   %0,%0,-1\n"
-                "	stwcx.  %0,0,%1\n"
-                "	bne-    1b"
-                : "=&r" (t)
-                : "r" (v)
-                : "cc", "memory");
-   return !t;
-}
-
 #define HAVE_CHECK_STACK_POS
 #define STACK_DIRECTION_DOWN 1
 

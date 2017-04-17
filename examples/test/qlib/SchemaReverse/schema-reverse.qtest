@@ -14,10 +14,9 @@
 
 %exec-class Main
 
-
 #
 # NOTE: the SchemaReverse is automatic hash/string creator. So the reference
-#       (REF...) constants must be more strict than in user code.
+#       (REF_...) constants must be more strict than in user code.
 #       Example: if there is something like string or list, list should be used:
 #       ("columns" : ("id",), "unique" : True))...
 #
