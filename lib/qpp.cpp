@@ -3881,7 +3881,7 @@ void init() {
    tmap["reference"] = "referenceTypeInfo";
    mtmap["reference"] = "Vr";
 
-   tmap["*reference"] = "anyTypeInfo";
+   tmap["*reference"] = "referenceOrNothingTypeInfo";
    mtmap["*reference"] = "Nr";
 
    tmap["data"] = "dataTypeInfo";
