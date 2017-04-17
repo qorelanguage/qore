@@ -13,7 +13,7 @@
 
 class ReferenceTest inherits QUnit::Test {
     constructor () : Test("Reference Test", "1.0") {
-        #addTestCase("Reference test", \testReference());
+        addTestCase("Reference test", \testReference());
         addTestCase("Assignment test", \testReferenceAssignments());
 
         # Return for compatibility with test harness that checks return value.
