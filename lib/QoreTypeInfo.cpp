@@ -354,12 +354,27 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
 
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
-   return i != str_typeinfo_map.end() ? i->second : 0;
+   if (i == str_typeinfo_map.end())
+      return nullptr;
+
+   const QoreTypeInfo* rv = i->second;
+   // return type "any" for reference types if PO_BROKEN_REFERENCES is set
+   if (rv == referenceTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
+      rv = anyTypeInfo;
+   return rv;
 }
 
 const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str) {
    str_typeinfo_map_t::iterator i = str_ornothingtypeinfo_map.find(str);
-   return i != str_ornothingtypeinfo_map.end() ? i->second : 0;
+   if (i == str_ornothingtypeinfo_map.end())
+      return nullptr;
+
+   const QoreTypeInfo* rv = i->second;
+   // return type "any" for reference types if PO_BROKEN_REFERENCES is set
+   if (rv == referenceOrNothingTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
+      rv = anyTypeInfo;
+
+   return rv;
 }
 
 const char* getBuiltinTypeName(qore_type_t type) {

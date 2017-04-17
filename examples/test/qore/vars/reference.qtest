@@ -131,5 +131,32 @@ class ReferenceTest inherits QUnit::Test {
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t7");
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t8");
         }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_BROKEN_REFERENCES);
+            p.parse("our int i; *int sub get() {return i;}", "");
+            p.parse("int sub tb_0() {reference r = {}; return r.size();}", "");
+            p.parse("int sub tb_1() {*reference r = {}; return r.size();}", "");
+            p.parse("our reference r = {}; int sub tb_2(){return r.size();}", "");
+            p.parse("class TB_0 { public {reference r = 1;}} int sub tb_3(){TB_0 t(); return t.r.size();}", "");
+            p.parse("class TB_1 { public {*reference r = 1;}} int sub tb_4(){TB_1 t(); return t.r.size();}", "");
+            p.parse("class TB_2 { public {static reference r = 1;}} int sub tb_5(){TB_2::r.size();}", "");
+            p.parse("class TB_3 { public {static *reference r = 1;}} int sub tb_6(){TB_3::r.size();}", "");
+            p.parse("int sub tb_7(reference r) {r = {}; return r.size();}", "");
+            p.parse("int sub tb_8(*reference r) {r = {}; return r.size();}", "");
+            assertEq(0, p.callFunction("tb_0"));
+            assertEq(0, p.callFunction("tb_1"));
+            assertEq(0, p.callFunction("tb_2"));
+            assertEq(0, p.callFunction("tb_3"));
+            assertEq(0, p.callFunction("tb_4"));
+            assertEq(0, p.callFunction("tb_7"));
+            assertEq(0, p.callFunction("tb_8"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_BROKEN_REFERENCES);
+            p.parse("our *reference r = {}; int sub tb_0(){return r.size();}", "");
+            assertEq(0, p.callFunction("tb_0"));
+        }
     }
 }

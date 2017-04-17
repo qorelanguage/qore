@@ -24,8 +24,9 @@
     |@ref broken-int-assignments "%broken-int-assignments"|Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime
     |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
     |@ref broken-logic-precedence "%broken-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
-    |@ref broken-loop-statement "%broken-loop-statement"|Accept break and continue outside of loops as with pre-0.8.13
+    |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
+    |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -293,7 +294,7 @@
 
     @par Description:
     Use old pre-0.8.13 handling of break/continue: continue statements in a switch behave like a break statement,
-    both break and continue behave like return when used outside of a loop.
+    both @ref break "break" and @ref continue "continue" behave like @ref return "return" when used outside of a loop.
 
     @since %Qore 0.8.13
 
@@ -340,6 +341,23 @@ i+ =4;
     When this parse directive is set; the above code is accepted.
 
     @since %Qore 0.8.12
+
+    <hr>
+    @section broken-references %broken-references
+
+    @par Parse Directive:
+    <tt>%%broken-references</tt>
+
+@par Command Line:
+    <tt>-</tt><tt>-pbroken-references</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_REFERENCES
+
+    @par Description:
+    Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13; when this option is in effect, the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions are ignored and have no type restrictions.
+
+    @since %Qore 0.8.3
 
     <hr>
     @section define %define

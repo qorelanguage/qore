@@ -129,6 +129,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
       doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
+      doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {

@@ -84,6 +84,7 @@
 #define PO_STRONG_ENCAPSULATION             (1LL << 44)  //!< disallow out-of-line class and namespace declarations
 #define PO_NO_UNCONTROLLED_APIS             (1LL << 45)  //!< disallow access to "uncontrolled APIs" like external language bindings or direct generic system call APIs that could bypass sandboxing controls
 #define PO_ALLOW_DEBUGGING                  (1LL << 46)  //!< allows debugging actions that could be insecure such as reading the thread local variable stack
+#define PO_BROKEN_REFERENCES                (1LL << 47)  //!< allow for old pre-%Qore 0.8.13 "reference" and "*reference" type restriction behavior where they accepted any type
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -118,7 +119,7 @@
 #define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_DEBUGGING)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_LOOP_STATEMENT)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_OPERATORS|PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
 #define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS)
