@@ -36,18 +36,18 @@
 
 #include "ast/ASTExpression.h"
 
+enum ALEKind {
+    ALEK_Binary,
+    ALEK_Date,
+    ALEK_Float,
+    ALEK_Int,
+    ALEK_Number,
+    ALEK_String,
+};
+
 class ASTLiteralExpression : public ASTExpression {
 public:
-    enum ASTLiteralExpressionKind {
-        ALEK_Binary,
-        ALEK_Date,
-        ALEK_Float,
-        ALEK_Int,
-        ALEK_Number,
-        ALEK_String,
-    };
-
-    union ASTLiteralExpressionData {
+    union ALEData {
         int64_t i;
         double d;
         char* str;
@@ -56,34 +56,34 @@ public:
 
 public:
     //! Kind of value.
-    ASTLiteralExpressionKind kind;
+    ALEKind kind;
 
     //! Literal value.
-    ASTLiteralExpressionData value;
+    ALEData value;
 
 public:
-    ASTLiteralExpression(ASTLiteralExpressionKind k, int64_t val) :
+    ASTLiteralExpression(ALEKind k, int64_t val) :
         ASTExpression(),
         kind(k)
     {
         value.i = val;
     }
 
-    ASTLiteralExpression(ASTLiteralExpressionKind k, double val) :
+    ASTLiteralExpression(ALEKind k, double val) :
         ASTExpression(),
         kind(k)
     {
         value.d = val;
     }
 
-    ASTLiteralExpression(ASTLiteralExpressionKind k, char* val) :
+    ASTLiteralExpression(ALEKind k, char* val) :
         ASTExpression(),
         kind(k)
     {
         value.str = val;
     }
 
-    ASTLiteralExpression(ASTLiteralExpressionKind k, std::string* val) :
+    ASTLiteralExpression(ALEKind k, std::string* val) :
         ASTExpression(),
         kind(k)
     {

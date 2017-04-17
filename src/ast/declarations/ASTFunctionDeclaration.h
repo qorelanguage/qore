@@ -39,15 +39,14 @@
 #include "ast/expressions/ASTConstrInitExpression.h"
 #include "ast/statements/ASTStatementBlock.h"
 
-class ASTFunctionDeclaration : public ASTDeclaration {
-public:
-    enum AFDKind {
-        AFDK_Inline,
-        AFDK_Outofline,
-        AFDK_ScopedSub,
-        AFDK_Sub,
-    };
+enum AFDKind {
+    AFDK_Inline,
+    AFDK_Outofline,
+    AFDK_ScopedSub,
+    AFDK_Sub,
+};
 
+class ASTFunctionDeclaration : public ASTDeclaration {
 public:
     //! Function modifiers.
     ASTModifiers modifiers;

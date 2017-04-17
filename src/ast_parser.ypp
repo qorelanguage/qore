@@ -34,10 +34,10 @@
 #include <utility>
 #include <vector>
 
+#include "ast/AST.h"
+
 #include "AstParserSupport.h"
 #include "ast_parser.hpp"
-
-#include "ast/AST.h"
 
 #define ASTINITDEPTH 300
 //#define YYDEBUG 1
@@ -109,7 +109,7 @@
    ASTRegexTransExpression* regextrans;
    ASTStatementBlock *sblock;
    ASTSuperclassDeclaration* sclassdecl;
-   std::vector<ASTSuperclassDeclaration*> sclist;
+   std::vector<ASTSuperclassDeclaration*>* sclist;
    ASTStatement* statement;
    ASTSwitchBodyExpression* switchexpr;
 }
@@ -118,11 +118,11 @@
 
 #define AST_LEX_PARAMETERS ASTSTYPE *lvalp, ASTLTYPE *loc, yyscan_t scanner
 
-DLLLOCAL int astlex(AST_LEX_PARAMETERS);
+int astlex(AST_LEX_PARAMETERS);
 
-DLLLOCAL void asterror(ASTLTYPE *loc, yyscan_t scanner, const char* str) {
+void asterror(ASTLTYPE *loc, yyscan_t scanner, const char* str) {
    //printd(5, "asterror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
-   parse_error("%s", str);
+   //parse_error("%s", str);
 }
 
 %}
@@ -824,7 +824,7 @@ statement:
          $$->loc.lastCol = @1.lastCol;
       }
       | exp_n ';' {
-         $$ = ASTExpressionStatement($1);
+         $$ = new ASTExpressionStatement($1);
          $$->loc.lastLine = @2.firstLine;
          $$->loc.lastCol = @2.firstCol;
       }
@@ -2387,8 +2387,8 @@ scoped_sub_def:
 list:
       exp ',' exp {
          $$ = new ASTListExpression;
-         $$->elems.push_back($1);
-         $$->elems.push_back($3);
+         $$->elements.push_back($1);
+         $$->elements.push_back($3);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
          $$->loc.lastLine = @3.lastLine;
@@ -2396,11 +2396,11 @@ list:
       }
       | exp ',' {
          if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
-            $$ = $1;
+            $$ = static_cast<ASTListExpression*>($1);
          }
          else {
             $$ = new ASTListExpression;
-            $$->elems.push_back($1);
+            $$->elements.push_back($1);
             $$->loc.firstLine = @1.firstLine;
             $$->loc.firstCol = @1.firstCol;
             $$->loc.lastLine = @1.lastLine;
@@ -2412,8 +2412,8 @@ list:
 list_n:
       exp_n ',' exp {
          $$ = new ASTListExpression;
-         $$->elems.push_back($1);
-         $$->elems.push_back($3);
+         $$->elements.push_back($1);
+         $$->elements.push_back($3);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
          $$->loc.lastLine = @3.lastLine;
@@ -2421,11 +2421,11 @@ list_n:
       }
       | exp_n ',' {
          if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
-            $$ = $1;
+            $$ = static_cast<ASTListExpression*>($1);
          }
          else {
             $$ = new ASTListExpression;
-            $$->elems.push_back($1);
+            $$->elements.push_back($1);
             $$->loc.firstLine = @1.firstLine;
             $$->loc.firstCol = @1.firstCol;
             $$->loc.lastLine = @1.lastLine;
@@ -2437,7 +2437,7 @@ list_n:
 hash:
       hash_element {
          $$ = new ASTHashExpression;
-         $$->elems.push_back($1);
+         $$->elements.push_back($1);
          $$->loc.firstLine = @1.firstLine;
          $$->loc.firstCol = @1.firstCol;
          $$->loc.lastLine = @1.lastLine;
@@ -2445,7 +2445,7 @@ hash:
       }
       | hash ',' hash_element {
          $$ = $1;
-         $$->elems.push_back($3);
+         $$->elements.push_back($3);
          $$->loc.lastLine = @3.lastLine;
          $$->loc.lastCol = @3.lastCol;
       }
@@ -2467,7 +2467,7 @@ exp_c:
       scalar
       { $$ = $1; }
       | BINARY
-      { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_Binary, $1); }
+      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Binary, $1); }
       | '(' hash ')'
       { $$ = $2; }
       | SCOPED_REF {
@@ -3210,11 +3210,11 @@ string:
       ;
 
 scalar:
-      QFLOAT        { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_Float, $1); }
-      | INTEGER     { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_Int, $1); }
-      | string      { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_String, $1); }
-      | DATETIME    { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_Date, $1); }
-      | NUMBER      { $$ = new ASTLiteralExpression(ASTLiteralExpressionKind::ALEK_Number, $1); }
+      QFLOAT        { $$ = new ASTLiteralExpression(ALEKind::ALEK_Float, $1); }
+      | INTEGER     { $$ = new ASTLiteralExpression(ALEKind::ALEK_Int, $1); }
+      | string      { $$ = new ASTLiteralExpression(ALEKind::ALEK_String, $1); }
+      | DATETIME    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Date, $1); }
+      | NUMBER      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Number, $1); }
       ;
 
 %%

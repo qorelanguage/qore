@@ -34,14 +34,14 @@
 
 #include "ast/ASTExpression.h"
 
+enum ACMEKind {
+    ACMEK_SortBy,
+    ACMEK_SortDescBy,
+    ACMEK_Where,
+};
+
 class ASTContextModExpression : public ASTExpression {
 public:
-    enum ACMEKind {
-        ACMEK_SortBy,
-        ACMEK_SortDescBy,
-        ACMEK_Where, 
-    };
-
     //! Context mod kind.
     ACMEKind acmeKind;
 

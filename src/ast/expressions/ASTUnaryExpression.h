@@ -44,7 +44,7 @@ public:
 
 public:
     ASTUnaryExpression(ASTExpression* expr, ASTOperator o) :
-        ASTExpression(expr->loc)
+        ASTExpression(expr->loc),
         expression(expr),
         op(o) {}
 
