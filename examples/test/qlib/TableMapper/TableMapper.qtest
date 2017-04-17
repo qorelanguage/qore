@@ -335,6 +335,9 @@ public class TableMapperTest inherits QUnit::Test {
     }
 
     bulkInboundTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
         # FIXME this test is not deterministic, though - we should impose
         # particular "input_block" values here. --PQ 21-Mar-2017
         if (table.hasArrayBind()) {
