@@ -1577,6 +1577,14 @@ protected:
                fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
             continue;
          }
+         if (p.type == "*data") {
+            if (use_value)
+               fprintf(fp, "   const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
+            else
+               fprintf(fp, "   const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
+            continue;
+         }
+
          // skip "..." arg which is just for documentation
          if (p.type == "...")
             continue;
@@ -3877,10 +3885,10 @@ void init() {
    mtmap["*reference"] = "Nr";
 
    tmap["data"] = "dataTypeInfo";
-   mtmap["data"] = "Vt";
+   mtmap["data"] = "VD";
 
    tmap["*data"] = "dataOrNothingTypeInfo";
-   mtmap["*data"] = "Nt";
+   mtmap["*data"] = "ND";
 
    mtmap["..."] = "VV";
 
