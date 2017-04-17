@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTRegexTransExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,27 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTREGEXTRANSEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTREGEXTRANSEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include <string>
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
+#include "ast/ASTExpression.h"
 
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTRegexTransExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Regex source string.
+    std::string source;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+    //! Regex target string.
+    std::string target;
+
+public:
+    ASTRegexTransExpression() : ASTExpression() {}
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_RegexTrans;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTREGEXTRANSEXPRESSION_H

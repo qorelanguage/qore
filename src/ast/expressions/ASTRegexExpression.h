@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTRegexExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,41 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTREGEXEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTREGEXEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include <string>
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
+#include "ast/ASTExpression.h"
 
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTRegexExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Regex string.
+    std::string str;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+    //! Whether this is an extract regex.
+    bool extractRegex;
+
+    //! Whether the regex is case sensitive.
+    bool caseSensitive = true;
+
+    //! Whether the regex is of extended type.
+    bool extended = false;
+
+    bool dotAll = false;
+
+    //! Whether the regex is multi-line.
+    bool multiline = false;
+
+    // only valid for extract regex
+    bool global = false;
+
+public:
+    ASTRegexExpression(bool extract = false) : ASTExpression(), extractRegex(extract) {}
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_Regex;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTREGEXEXPRESSION_H

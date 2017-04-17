@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTListExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,38 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTLISTEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTLISTEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include <memory>
+#include <vector>
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
+#include "ast/ASTExpression.h"
 
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTListExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTListExpression>;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+public:
+    //! List elements.
+    std::vector<ASTExpression*> elements;
+
+public:
+    ASTListExpression(std::vector<ASTExpression*>* elems = nullptr) : ASTExpression() {
+        if (elems)
+            elements.swap(*elems);
+    }
+
+    virtual ~ASTListExpression() {
+        for (unsigned int i = 0, count = elements.size(); i < count; i++)
+            delete elements[i];
+        elements.clear();
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_List;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTLISTEXPRESSION_H

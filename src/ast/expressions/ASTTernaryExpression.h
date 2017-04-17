@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTTernaryExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,38 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTTERNARYEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTTERNARYEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include "ast/ASTExpression.h"
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
-
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTTernaryExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Condition expression.
+    ASTExpression::Ptr condition;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+    //! Expression to return in case condition is true.
+    ASTExpression::Ptr exprTrue;
+
+    //! Expression to return in case condition is false.
+    ASTExpression::Ptr exprFalse;
+
+public:
+    ASTTernaryExpression(ASTExpression* cond, ASTExpression* ifTrue, ASTExpression* ifFalse) :
+        ASTExpression(),
+        condition(cond),
+        exprTrue(ifTrue),
+        exprFalse(ifFalse)
+    {
+        loc.firstLine = cond->loc.firstLine;
+        loc.firstCol = cond->loc.firstCol;
+        loc.lastLine = ifFalse->loc.lastLine;
+        loc.lastCol = ifFalse->loc.lastCol;
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_Ternary;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTTERNARYEXPRESSION_H

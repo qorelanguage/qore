@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTSwitchBodyExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,36 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include <memory>
+#include <vector>
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
+#include "ast/ASTExpression.h"
+#include "ast/expressions/ASTCaseExpression.h"
 
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTSwitchBodyExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTSwitchBodyExpression>;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+public:
+    //! Cases of the switch statement.
+    std::vector<ASTCaseExpression*> cases;
+
+public:
+    ASTSwitchBodyExpression() : ASTExpression() {}
+
+    virtual ~ASTSwitchBodyExpression() {
+        for (int i = 0, count = cases.size(); i < count; i++)
+            delete cases[i];
+        cases.clear();
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_SwitchBody;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H

@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTBinaryExpression.h
 
   Qore AST Parser
 
@@ -29,42 +29,39 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTBINARYEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTBINARYEXPRESSION_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include "ast/ASTExpression.h"
+#include "ast/ASTOperator.h"
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
-
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
-};
-
-//! Represents one node in the AST tree.
-class ASTNode {
+class ASTBinaryExpression : public ASTExpression {
 public:
-   ASTParseLocation loc;
+    //! Left-side expression.
+    ASTExpression::Ptr left;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+    //! Operator to apply.
+    ASTOperator op;
+
+    //! Right-side expression.
+    ASTExpression::Ptr right;
+
+public:
+    ASTBinaryExpression(ASTExpression* le, ASTOperator o, ASTExpression* re) :
+        ASTExpression(),
+        left(le),
+        op(o),
+        right(re)
+    {
+        loc.firstLine = le->loc.firstLine;
+        loc.firstCol = le->loc.firstCol;
+        loc.lastLine = re->loc.lastLine;
+        loc.lastCol = re->loc.lastCol;
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_Binary;
+    }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_EXPRESSIONS_ASTBINARYEXPRESSION_H

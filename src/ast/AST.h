@@ -1,8 +1,8 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  BinaryInputStream.h
+  AST.h
 
-  Qore Programming Language
+  Qore AST Parser
 
   Copyright (C) 2016 Qore Technologies, sro
 
