@@ -102,8 +102,8 @@ private:
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
    mutable QoreVarRWLock rwl;
-   QoreParseTypeInfo *parseTypeInfo;
-   const QoreTypeInfo *typeInfo;
+   QoreParseTypeInfo* parseTypeInfo;
+   const QoreTypeInfo* typeInfo;
    bool pub,                          // is this global var public (valid and set for modules only)
       finalized;                      // has this var already been cleared during Program destruction?
 
@@ -249,11 +249,20 @@ public:
 #endif
    }
 
-   DLLLOCAL QoreParseTypeInfo *copyParseTypeInfo() const {
+   DLLLOCAL QoreParseTypeInfo* copyParseTypeInfo() const {
       return parseTypeInfo ? parseTypeInfo->copy() : 0;
    }
 
-   DLLLOCAL const QoreTypeInfo *parseGetTypeInfo() {
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() {
+      // imported variables have already been initialized
+      if (val.type == QV_Ref)
+         return val.v.getPtr()->getTypeInfo();
+
+      parseInit();
+      return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() {
       // imported variables have already been initialized
       if (val.type == QV_Ref)
          return val.v.getPtr()->getTypeInfo();
@@ -263,7 +272,7 @@ public:
       return typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo ? anyTypeInfo : typeInfo;
    }
 
-   DLLLOCAL const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       assert(!parseTypeInfo);
       if (val.type == QV_Ref)
          return val.v.getPtr()->getTypeInfo();
@@ -448,7 +457,8 @@ public:
    }
 
    DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
-      typeInfo = ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo ? 0 : ti;
+      //typeInfo = ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo ? 0 : ti;
+      typeInfo = ti;
    }
 
    DLLLOCAL void setPtr(AbstractQoreNode*& ptr) {

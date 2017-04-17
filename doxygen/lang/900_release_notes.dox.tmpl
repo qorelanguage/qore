@@ -9,6 +9,7 @@
 
     @subsection qore_0813_compatibility Changes That Can Affect Backwards-Compatibility
     - fixed broken @ref continue "continue" and @ref break "break" statements that were accepted anywhere in the source and behaved like a @ref return "return" statement; now such statements outside a loop context will result in a parse exception; to get the old behavior, use @ref broken-loop-statement "%broken-loop-statement" in your source code
+    - fixed broken @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions which had no effect prior to this release; to get the old behavior, use @ref broken-references "%broken-references" in your source code
     - the random number generator is always seeded with a random number when the Qore library is initialized; to get a predictable sequence from @ref Qore::rand() "rand()", you must explicitly seed the random number generator by calling @ref Qore::srand() "srand()" with a predefined seed number
     - the @ref synchronized "synchronized" keyword now operates differently depending on the context; <tt><b>synchronized</b></tt> functions have a global reentrant lock associated with the function (as in previous versions of %Qore), whereas now <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.  This aligns %Qore's @ref synchronized "synchronized" behavior with that of Java and <tt>[MethodImpl(MethodImplOptions.Synchronized)]</tt> .NET/CLR (<a href="https://github.com/qorelanguage/qore/issues/894">issue 894</a>).
 
@@ -68,12 +69,14 @@
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options:
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
+      - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref no-uncontrolled-apis "%no-uncontrolled-apis": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
       - @ref Qore::PO_ALLOW_DEBUGGING "PO_ALLOW_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
-      - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT"
+      - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
+      - @ref Qore::PO_BROKEN_REFERENCES "PO_BROKEN_REFERENCES": reverts @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to pre-%Qore-0.8.13 behavior where they would have no effect
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
@@ -170,6 +173,7 @@
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
     - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>
 
     @section qore_081210 Qore 0.8.12.10
 

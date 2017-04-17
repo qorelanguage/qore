@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -266,7 +266,7 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
 LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg, int n_refs, bool top_level) {
    QoreProgram* pgm = getProgram();
 
-   LocalVar* lv = pgm->createLocalVar(name, typeInfo);
+   LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
    QoreString ls;
    loc.toString(ls);

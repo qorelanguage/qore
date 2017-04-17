@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1048,6 +1048,12 @@ public:
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
+      // we cannot tell of the member has been initialized, so we return anyTypeInfo here for potential references
+      return (typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo) ? anyTypeInfo : typeInfo;
+      //return typeInfo;
    }
 
    DLLLOCAL bool parseHasTypeInfo() const {
@@ -2104,7 +2110,7 @@ public:
       ClassAccess access;
       const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
       if (omi)
-         memberTypeInfo = omi->getTypeInfo();
+         memberTypeInfo = omi->parseGetTypeInfo();
 
       int rc = 0;
       if (!omi) {
