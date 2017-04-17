@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTDeclaration.h
+  ASTClosureDeclaration.h
 
   Qore AST Parser
 
@@ -29,36 +29,56 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTDECLARATION_H
-#define _QLS_AST_ASTDECLARATION_H
+#ifndef _QLS_AST_DECLARATIONS_ASTCLOSUREDECLARATION_H
+#define _QLS_AST_DECLARATIONS_ASTCLOSUREDECLARATION_H
 
 #include <memory>
 
-#include "ASTNode.h"
+#include "ast/ASTDeclaration.h"
+#include "ast/ASTExpression.h"
+#include "ast/ASTModifiers.h"
+#include "ast/statements/ASTStatementBlock.h"
 
-class ASTDeclaration : public ASTNode {
+class ASTClosureDeclaration : public ASTDeclaration {
 public:
     //! Pointer type.
-    using Ptr = std::unique_ptr<ASTDeclaration>;
+    using Ptr = std::unique_ptr<ASTClosureDeclaration>;
 
 public:
-    enum class Kind { // ADK == (A)st (D)eclaration (K)ind
-        ADK_Class,              //!< Identifies instances of \ref ASTClassDeclaration.
-        ADK_Closure,            //!< Identifies instances of \ref ASTClosureDeclaration.
-        ADK_Constant,           //!< Identifies instances of \ref ASTConstantDeclaration.
-        ADK_Function,           //!< Identifies instances of \ref ASTFunctionDeclaration.
-        ADK_MemberGroup,        //!< Identifies instances of \ref ASTMemberGroupDeclaration.
-        ADK_Namespace,          //!< Identifies instances of \ref ASTNamespaceDeclaration.
-        ADK_Superclass,         //!< Identifies instances of \ref ASTSuperclassDeclaration.
-        ADK_Variable,           //!< Identifies instances of \ref ASTVariableDeclaration.
-        ADK_VarList,            //!< Identifies instances of \ref ASTVarListDeclaration.
-    };
+    //! Closure modifiers.
+    ASTModifiers modifiers;
+
+    //! Return type.
+    ASTExpression::Ptr returnType;
+
+    //! Closure parameters.
+    ASTExpression::Ptr params;
+
+    //! Body.
+    ASTStatementBlock::Ptr body;
 
 public:
-    ASTDeclaration() : ASTNode() {}
-    ASTDeclaration(const ASTParseLocation& l) : ASTNode(l) {}
+    ASTClosureDeclaration(ASTModifiers mods,
+                          ASTExpression* rt = nullptr,
+                          ASTExpression* par = nullptr,
+                          ASTStatementBlock* stmts = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        returnType(rt),
+        params(par),
+        body(stmts) {}
 
-    virtual Kind getKind() const = 0;
+    ASTClosureDeclaration(ASTExpression* rt = nullptr,
+                          ASTExpression* par = nullptr,
+                          ASTStatementBlock* stmts = nullptr) :
+        ASTDeclaration(),
+        returnType(rt),
+        params(par),
+        body(stmts) {}
+
+    virtual Kind getKind() const override {
+        return Kind::ADK_Closure;
+    }
 };
 
-#endif // _QLS_AST_ASTDECLARATION_H
+#endif // _QLS_AST_DECLARATIONS_ASTCLOSUREDECLARATION_H

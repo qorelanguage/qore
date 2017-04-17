@@ -35,7 +35,7 @@
 #include <memory>
 #include <vector>
 
-#include "ASTStatement.h"
+#include "ast/ASTStatement.h"
 
 class ASTThreadExitStatement : public ASTStatement {
 public:

@@ -59,14 +59,11 @@ set(QORE_DOX_TMPL_SRC
 
 add_library(${module_name} SHARED ${CPP_SRC} ${QPP_SOURCES})
 add_dependencies(${module_name} QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
-include_directories(${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${module_name} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(${module_name} PUBLIC BUILDING_DLL)
 endif (WIN32 AND MINGW AND MSYS)
-
-#target_include_directories(${module_name} PUBLIC ${ODBC_INCLUDE_DIR})
-#target_link_libraries(${module_name} ${ODBC_LIBRARIES})
 
 qore_binary_module(${module_name} ${PROJECT_VERSION})
 
