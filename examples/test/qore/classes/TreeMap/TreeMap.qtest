@@ -27,6 +27,7 @@ public class TreeMapTest inherits QUnit::Test {
         addTestCase("correct reference counting", \testRefCount());
         addTestCase("take", \testTake());
         addTestCase("getAll", \testGetAll());
+        addTestCase("unmatched", \testUnmatched());
 
         set_return_value(main());
     }
@@ -118,6 +119,26 @@ public class TreeMapTest inherits QUnit::Test {
         tm.put("a", 1);
         tm.put("b", 2);
         testAssertionValue("getAll", tm.getAll(), ("a": 1, "b": 2));
+    }
+
+    testUnmatched() {
+        *string unmatched;
+        any val;
+        hash h;
+        val = tm.get("def/g/hi", \unmatched);
+        testAssertion("unmatched-1", \equals(), (("5", ""), (val, unmatched)));
+        val = tm.get("def/g/hi/lo/tide", \unmatched);
+        testAssertion("unmatched-2", \equals(), (("5", "lo/tide"), (val, unmatched)));
+        val = tm.get("abcd", \unmatched);
+        testAssertion("unmatched-3", \equals(), ((NOTHING, NOTHING), (val, unmatched)));
+        val = tm.get("abc/", \unmatched);
+        testAssertion("unmatched-4", \equals(), (("1", ""), (val, unmatched)));
+        val = tm.get("abc/s/u/", \h.unmatched);
+        testAssertion("unmatched-5", \equals(), (("1", "s/u/"), (val, h.unmatched)));
+        val = tm.get("abc/s/u/", NOTHING);
+        testAssertion("unmatched-6", \equals(), (("1"), (val)));
+        int i;
+        assertThrows("RUNTIME-TYPE-ERROR", \tm.get(), ("abc/s/u/", \i), "throw exception");
     }
 }
 
