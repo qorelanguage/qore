@@ -26,22 +26,21 @@
 
 #include <qore/Qore.h>
 
-#include "AstParser.h"
-#include "ast/AST.h"
+#include "AstParserHolder.h"
 
 //! AstParser class
 /** Lorem ipsum dolor sit amet.
 
     @since %Qore 0.8.13
  */
-qclass AstParser [arg=AstParser* ap; ns=astparser; flags=final];
+qclass AstParser [arg=AstParserHolder* aph; ns=astparser; flags=final];
 
 //! Creates the AstParser.
 /**
     @param src lorem ipsum
  */
 AstParser::constructor(binary src) {
-   SimpleRefHolder<AstParser> astp(new AstParser);
+   SimpleRefHolder<AstParserHolder> astp(new AstParserHolder);
    self->setPrivate(CID_ASTPARSER, astp.release());
 }
 
@@ -67,7 +66,7 @@ AstParser::constructor(binary src) {
     @throw IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 *binary AstParser::read(int limit) {
-   //return ap->readHelper(limit, xsink);
+   //return aph->readHelper(limit, xsink);
    return 0;
 }
 
@@ -90,6 +89,6 @@ AstParser::constructor(binary src) {
     @throw LOREM-IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 int AstParser::peek() {
-   //return ap->peekHelper(xsink);
+   //return aph->peekHelper(xsink);
    return 0;
 }
