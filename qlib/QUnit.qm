@@ -638,9 +638,11 @@ public class QUnit::TestReporter {
         @param p_argv an optional reference to a list of command-line arguments
         @param opts the option hash to be passed to @ref Qore::GetOpt::constructor()
     */
-    constructor(string name, string version, reference p_argv = \ARGV, hash opts = Opts) {
+    constructor(string name, string version, *reference p_argv, hash opts = Opts) {
         m_name = name;
         m_version = version;
+        if (!p_argv)
+            p_argv = ARGV;
         m_options = new GetOpt(opts).parse2(\p_argv);
         processOptions(\p_argv);
 
