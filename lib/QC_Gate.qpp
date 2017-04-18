@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Gate.h>
+#include "qore/intern/QC_Gate.h"
 
 //! The Gate class implements a reentrant thread lock
 /** @par Overview

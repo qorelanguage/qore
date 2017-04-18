@@ -922,6 +922,20 @@ public:
       normalize();
    }
 
+   DLLLOCAL void setSeconds(int64 s, int usecs = 0) {
+      year = 0;
+      month = 0;
+      day = 0;
+      hour = s / 3600;
+      if (hour)
+         s -= hour * 3600;
+      minute = s / 60;
+      if (minute)
+         s -= minute * 60;
+      second = s;
+      us = usecs;
+   }
+
    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
       hour = h;
       minute = m;
@@ -1379,6 +1393,11 @@ public:
       d.rel.setLiteral(date, us);
    }
 
+   DLLLOCAL void setRelativeDateSeconds(int64 s, int us = 0) {
+      relative = true;
+      d.rel.setSeconds(s, us);
+   }
+
    DLLLOCAL int64 getRelativeSeconds() const {
       return relative ? d.rel.getRelativeSeconds() : d.abs.getRelativeSeconds();
    }
@@ -1471,7 +1490,7 @@ public:
       }
 
       if (day < 1 || day > 7) {
-         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %f)", day);
+         xsink->raiseException("ISO-8601-INVALID-DAY", "calendar week days must be between 1 and 7 for Mon - Sun (day value passed: %d)", day);
          return 0;
       }
 
