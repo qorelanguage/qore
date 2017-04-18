@@ -50,26 +50,26 @@ enum ASTModifier {
 
 class ASTModifiers : public ASTNode {
 public:
-   ASTModifiers() : ASTNode() {}
-   ASTModifiers(unsigned int val) : ASTNode(), value(val) {}
+    ASTModifiers() : ASTNode() {}
+    ASTModifiers(unsigned int val) : ASTNode(), value(val) {}
 
-   void set(unsigned int newVal) {
-      value = newVal;
-   }
+    void set(unsigned int newVal) {
+        value = newVal;
+    }
 
-   void add(ASTModifier mod) {
-      value |= mod;
-   }
+    void add(ASTModifier mod) {
+        value |= mod;
+    }
 
-   void remove(ASTModifier mod) {
-      value &= ~mod;
-   }
+    void remove(ASTModifier mod) {
+        value &= ~mod;
+    }
 
-   bool contains(ASTModifier mod) {
-      return value & mod;
-   }
+    bool contains(ASTModifier mod) {
+        return value & mod;
+    }
 private:
-   unsigned int value;
+    unsigned int value;
 };
 
 #endif // _QLS_AST_ASTMODIFIERS_H
