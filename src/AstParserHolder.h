@@ -42,8 +42,11 @@ public:
     AstParserHolder() {}
     ~AstParserHolder() {}
 
-    int parse(const char* filename);
-    int parse(std::string& filename);
+    int parseFile(const char* filename);
+    int parseFile(std::string& filename);
+
+    int parseString(const char* str);
+    int parseString(std::string& str);
 };
 
 #endif // _QLS_ASTPARSERHOLDER_H

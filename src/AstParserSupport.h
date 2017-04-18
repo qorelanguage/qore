@@ -42,10 +42,14 @@ public:
    int lastCol;
 };
 
+class ASTTree;
+
 // private interface to bison/flex parser/scanner
 typedef void *yyscan_t;
-extern int yyparse(yyscan_t yyscanner);
-extern struct yy_buffer_state *yy_scan_string(const char *, yyscan_t scanner);
+extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
+extern struct yy_buffer_state* yy_scan_string(const char *, yyscan_t scanner);
+extern struct yy_buffer_state* yy_create_buffer(FILE* file, int size, yyscan_t scanner);
+extern void yy_delete_buffer(struct yy_buffer_state*, yyscan_t scanner);
 int yylex_init(yyscan_t *scanner);
 void yyset_in(FILE *in_str, yyscan_t yyscanner);
 int yylex_destroy(yyscan_t yyscanner);

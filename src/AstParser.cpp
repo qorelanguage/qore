@@ -29,21 +29,78 @@
 
 #include "AstParser.h"
 
-#include "AstParserSupport.h"
+#include <memory>
 
-int AstParser::parse(const char* filename) {
+#include "AstParserSupport.h"
+#include "ast/AST.h"
+
+//! Copied over from YY_BUF_SIZE from the generated flex scanner.
+#define AST_BUF_SIZE 16384
+
+int AstParser::parseFile(const char* filename) {
+    // Prepare scanner.
     yyscan_t lexer;
     yylex_init(&lexer);
 
-    //yy_scan_string(code, lexer);
+    // Open a file for reading.
+    FILE* f = fopen(filename, "r");
+
+    // Set up flex to scan the file.
+    yy_buffer_state* buf = yy_create_buffer(f, AST_BUF_SIZE, lexer);
     yyset_lineno(1, lexer);
 
-    yyparse(lexer);
+    // Prepare an empty AST tree for holding the parsed tree.
+    std::unique_ptr<ASTTree> parseTree(new ASTTree);
 
+    // Parse.
+    int rc = yyparse(lexer, parseTree.get());
+    if (rc) {
+        // ???
+        return 1;
+    }
+
+    // Destroy buffer.
+    yy_delete_buffer(buf, lexer);
+
+    // Close the file.
+    fclose(f);
+
+    // Destroy scanner.
     yylex_destroy(lexer);
     return 0;
 }
 
-int AstParser::parse(std::string& filename) {
-    return parse(filename.c_str());
+int AstParser::parseFile(std::string& filename) {
+    return parseFile(filename.c_str());
+}
+
+int AstParser::parseString(const char* str) {
+    // Prepare scanner.
+    yyscan_t lexer;
+    yylex_init(&lexer);
+
+    // Set up flex to scan an in-memory string.
+    yy_buffer_state* buf = yy_scan_string(str, lexer);
+    yyset_lineno(1, lexer);
+
+    // Prepare an empty AST tree for holding the parsed tree.
+    std::unique_ptr<ASTTree> parseTree(new ASTTree);
+
+    // Parse.
+    int rc = yyparse(lexer, parseTree.get());
+    if (rc) {
+        // ???
+        return 1;
+    }
+
+    // Destroy buffer.
+    yy_delete_buffer(buf, lexer);
+
+    // Destroy scanner.
+    yylex_destroy(lexer);
+    return 0;
+}
+
+int AstParser::parseString(std::string& str) {
+    return parseString(str.c_str());
 }

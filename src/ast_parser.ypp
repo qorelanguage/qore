@@ -72,7 +72,7 @@
 
 %pure-parser
 %lex-param {yyscan_t yyscanner}
-%parse-param {yyscan_t yyscanner}
+%parse-param {yyscan_t yyscanner} {ASTTree* parseTree}
 %locations
 %error-verbose
 
@@ -85,6 +85,7 @@
    std::string* String;
    char* string;
    ASTDeclaration* astdecl;
+   ASTNode* astnode;
    std::vector<ASTCallExpression*>* bclist;
    ASTCallExpression* callexpr;
    ASTCaseExpression* caseexpr;
@@ -119,7 +120,7 @@
 
 int yylex(YY_LEX_PARAMETERS);
 
-void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
+void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str) {
    //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
    //parse_error("%s", str);
 }
@@ -369,30 +370,39 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <sclassdecl>     superclass
 %type <sclist>         superclass_list
 %type <statement>      switch_statement
+%type <astnode>        top_level_command
 %type <nsdecl>         top_namespace_decl
 %type <statement>      try_statement
 %type <String>         uncqtypedef
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } DOT_KW_IDENTIFIER QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { delete $$; } DOT_KW_IDENTIFIER QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
 %destructor { free($$); } BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NUMBER REQUIRES QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
 %destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } } base_constructors class_attributes context_mods inheritance_list member_list member_list2 namespace_decls superclass_list
 
 %%
 top_level_commands:
-      top_level_command
-      | top_level_commands top_level_command
-      ;
+        top_level_command {
+            if ($1)
+                parseTree->addNode($1);
+        }
+        | top_level_commands top_level_command {
+            if ($2)
+                parseTree->addNode($2);
+        }
+        ;
 
 top_level_command:
       sub_def {
          //$1->add(*(qore_ns_private::get(*(getRootNS()))));
+         $$ = $1;
       }
       | scoped_sub_def {
          /*// see if strong encapsulation is enabled
          check_strong_encapsulation("function", $1->name.ostr);
          $1->add(*(qore_ns_private::get(*(getRootNS()))));*/
+         $$ = $1;
       }
       | class_def {
          /*qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
@@ -401,44 +411,45 @@ top_level_command:
          if (parse_check_parse_option(PO_NO_CLASS_DEFS))
             parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
          delete $1;*/
+         $$ = $1;
       }
       | scoped_const_decl {
          /*// see if strong encapsulation is enabled
          check_strong_encapsulation("constant", $1->name.ostr);
          qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
          delete $1;*/
+         $$ = $1;
       }
       | unscoped_const_decl {
          /*qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
          delete $1;*/
+         $$ = $1;
       }
       | outofline_methoddef {
          /*// see if strong encapsulation is enabled
          check_strong_encapsulation("method", $1->name.ostr);
          $1->parseAddToClassAndDel();*/
+         $$ = $1;
       }
       | statement {
-         //getProgram()->priv.astStatements.push_back($1);
+         $$ = $1;
       }
-      | '{' '}'
+      | '{' '}' {
+          $$ = nullptr;
+      }
       | '{' statements '}' {
-         /*// set line range
-         $2->loc.firstLine = @1.firstLine;
-         $2->loc.firstCol = @1.firstCol;
-         $2->loc.lastLine = @3.firstLine;
-         $2->loc.lastCol = @3.firstCol;
-         // TODO
-         // getProgram()->priv.astStatements.push_back($2);*/
+         $$ = $2;
       }
       | top_namespace_decl {
          /*qore_root_ns_private::parseAddNamespace($1);
          // see if ns declaration is legal
          if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
             parse_error("illegal namespace definition '%s' (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());*/
+         $$ = $1;
       }
-      | TOK_MODULE '{' module_decls '}' {}
+      | TOK_MODULE '{' module_decls '}' { $$ = nullptr; }
       | REQUIRES {
-         // TODO
+         $$ = nullptr;
       }
       ;
 
