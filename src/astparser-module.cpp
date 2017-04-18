@@ -25,15 +25,12 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include <memory>
-
 #include "qore/Qore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-void init_astparser_functions(QoreNamespace& ns);
-void init_astparser_constants(QoreNamespace& ns);
+#include "QC_AstParser.h"
 
 QoreStringNode *astparser_module_init();
 void astparser_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
@@ -50,22 +47,20 @@ DLLEXPORT int qore_module_api_minor = QORE_MODULE_API_MINOR;
 DLLEXPORT qore_module_init_t qore_module_init = astparser_module_init;
 DLLEXPORT qore_module_ns_init_t qore_module_ns_init = astparser_module_ns_init;
 DLLEXPORT qore_module_delete_t qore_module_delete = astparser_module_delete;
-
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
 
-QoreNamespace ASTParserNS("astparser");
+QoreNamespace AstParserNS("astparser");
 
-QoreStringNode *astparser_module_init() {
-    init_astparser_functions(ASTParserNS);
-    init_astparser_constants(ASTParserNS);
+QoreStringNode* astparser_module_init() {
+    AstParserNS.addSystemClass(initAstParserClass(AstParserNS));
 
     return nullptr;
 }
 
-void astparser_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
-    qns->addNamespace(ASTParserNS.copy());
+void astparser_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
+    qns->addNamespace(AstParserNS.copy());
 }
 
 void astparser_module_delete() {

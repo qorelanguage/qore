@@ -44,6 +44,24 @@ AstParser::constructor(binary src) {
    self->setPrivate(CID_ASTPARSER, astp.release());
 }
 
+//! Parse file.
+/**
+    @param filename file's name including path
+    @return return value
+ */
+int AstParser::parseFile(string filename) {
+   return aph->parseFile(filename->getBuffer());
+}
+
+//! Parse string.
+/**
+    @param str string with code
+    @return return value
+ */
+int AstParser::parseString(string str) {
+   return aph->parseString(str->getBuffer());
+}
+
 //! Lorem ipsum dolor sit amet.
 /**
     @param limit the maximum number of bytes to read
