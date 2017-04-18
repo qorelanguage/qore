@@ -52,21 +52,22 @@
 #define YYLTYPE AstParserLocation
 
 #define YY_USER_ACTION {                                                         \
-   /*fprintf(stderr, "YUA token: '%s' (%lu b) line: %d\nbegin: %d:%d %d:%d\n",*/    \
-      /* yytext, yyleng, yylineno, yylloc->firstLine, yylloc->firstCol, */          \
-      /* yylloc->lastLine, yylloc->lastCol);              */                        \
-   yylloc->firstLine = yylloc->lastLine;                                        \
-   yylloc->firstCol = yylloc->lastCol;                                          \
-   if (yylloc->firstLine == yylineno)                                           \
-      yylloc->lastCol += yyleng;                                               \
-   else {                                                                       \
-      unsigned int col = 1;                                                    \
-      for (; (col <= yyleng) && (yytext[yyleng - col] != '\n'); ++col) {}      \
-      yylloc->lastCol = col;                                                   \
-      yylloc->lastLine = yylineno;                                             \
-   }                                                                            \
-   /*fprintf(stderr, "end: %d:%d %d:%d\n",       */                                 \
-       /*yylloc->firstLine, yylloc->firstCol, yylloc->lastLine, yylloc->lastCol);*/ \
+        /*fprintf(stderr, "YUA token: '%s' (%lu b) line: %d\nbegin: %d:%d %d:%d\n",*/    \
+            /* yytext, yyleng, yylineno, yylloc->firstLine, yylloc->firstCol, */          \
+            /* yylloc->lastLine, yylloc->lastCol);              */                        \
+        yylloc->firstLine = yylloc->lastLine;                                        \
+        yylloc->firstCol = yylloc->lastCol;                                          \
+        if (yylloc->firstLine == yylineno)                                           \
+            yylloc->lastCol += yyleng;                                               \
+        else {                                                                       \
+            unsigned int col = 1;                                                    \
+            for (; (col <= yyleng) && (yytext[yyleng - col] != '\n'); ++col) {}      \
+            yylloc->lastCol = col;                                                   \
+            yylloc->lastLine = yylineno;                                             \
+        }                                                                            \
+        /*fprintf(stderr, "end: %d:%d %d:%d\n",       */                                 \
+            /*yylloc->firstLine, yylloc->firstCol, yylloc->lastLine, yylloc->lastCol);*/ \
+    }
 
 //int ast_parse(yyscan_t yyscanner);
 
