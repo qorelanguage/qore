@@ -39,6 +39,7 @@
 #include "ast/ASTNode.h"
 #include "ast/ASTOperator.h"
 #include "ast/ASTStatement.h"
+#include "ast/ASTTree.h"
 
 #include "ast/declarations/ASTClassDeclaration.h"
 #include "ast/declarations/ASTConstantDeclaration.h"
