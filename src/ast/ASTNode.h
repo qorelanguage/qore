@@ -32,39 +32,31 @@
 #ifndef _QLS_AST_ASTNODE_H
 #define _QLS_AST_ASTNODE_H
 
-struct ASTParseLocation {
-   typedef int ast_loc_t;
-   ast_loc_t firstLine;
-   ast_loc_t firstCol;
-   ast_loc_t lastLine;
-   ast_loc_t lastCol;
+#include "ASTParseLocation.h"
 
-   ASTParseLocation() :
-      firstLine(0),
-      firstCol(0),
-      lastLine(0),
-      lastCol(0) {}
-
-   ASTParseLocation(const ASTParseLocation& loc) :
-      firstLine(loc.firstLine),
-      firstCol(loc.firstCol),
-      lastLine(loc.lastLine),
-      lastCol(loc.lastCol) {}
-
-   ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
-      firstLine(fline),
-      firstCol(fcol),
-      lastLine(lline),
-      lastCol(lcol) {}
+enum ASTNodeType {
+    ANT_None,
+    ANT_Declaration,
+    ANT_Expression,
+    ANT_Name,
+    ANT_Statement,
 };
 
 //! Represents one node in the AST tree.
 class ASTNode {
 public:
-   ASTParseLocation loc;
+    // Source location.
+    ASTParseLocation loc;
 
-   ASTNode() {}
-   ASTNode(const ASTParseLocation& l) : loc(l) {}
+    ASTNode() {}
+    ASTNode(const ASTParseLocation& l) : loc(l) {}
+
+    virtual ~ASTNode() {}
+
+    //! Return AST node type.
+    virtual ASTNodeType getNodeType() {
+        return ANT_None;
+    }
 };
 
 #endif // _QLS_AST_ASTNODE_H

@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTName.h
+  ASTParseLocation.h
 
   Qore AST Parser
 
@@ -29,49 +29,34 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNAME_H
-#define _QLS_AST_ASTNAME_H
+#ifndef _QLS_AST_ASTPARSELOCATION_H
+#define _QLS_AST_ASTPARSELOCATION_H
 
-#include <string>
+struct ASTParseLocation {
+    typedef int ast_loc_t;
 
-#include "ASTNode.h"
+    ast_loc_t firstLine;
+    ast_loc_t firstCol;
+    ast_loc_t lastLine;
+    ast_loc_t lastCol;
 
-enum class ASTNameKind {
-    ANK_Identifier,
-    ANK_KWIdentifier,
-    ANK_IdentOpenParen,
-    ANK_ScopedRef,
-    ANK_ScopedVref,
-    ANK_SelfRef,
-    ANK_SelfAndScopedRef,
-    ANK_VarRef,
-    ANK_QTypedef,
-    ANK_UncQTypedef,
-    ANK_ContextRef,
-    ANK_ComplexContextRef,
-    ANK_BaseClassCall,
-    ANK_CastType,
-    ANK_ClassString,
-    ANK_ClassScopedRef
+    ASTParseLocation() :
+        firstLine(0),
+        firstCol(0),
+        lastLine(0),
+        lastCol(0) {}
+
+    ASTParseLocation(const ASTParseLocation& loc) :
+        firstLine(loc.firstLine),
+        firstCol(loc.firstCol),
+        lastLine(loc.lastLine),
+        lastCol(loc.lastCol) {}
+
+    ASTParseLocation(ast_loc_t fline, ast_loc_t fcol, ast_loc_t lline, ast_loc_t lcol) :
+        firstLine(fline),
+        firstCol(fcol),
+        lastLine(lline),
+        lastCol(lcol) {}
 };
 
-//! Represents a name.
-class ASTName : public ASTNode {
-public:
-    std::string name;
-    ASTNameKind kind;
-
-public:
-    ASTName() : ASTNode() {}
-    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
-    ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
-    ASTName(const char* str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
-    ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
-    ASTName(const std::string* str, ASTNameKind k) : ASTNode(), name(*str), kind(k) {}
-
-    virtual ASTNodeType getNodeType() {
-        return ANT_Name;
-    }
-};
-
-#endif // _QLS_AST_ASTNAME_H
+#endif // _QLS_AST_ASTPARSELOCATION_H

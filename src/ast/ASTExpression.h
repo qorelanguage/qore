@@ -78,6 +78,10 @@ public:
     ASTExpression(const ASTParseLocation& l) : ASTNode(l) {}
 
     virtual Kind getKind() const = 0;
+
+    virtual ASTNodeType getNodeType() {
+        return ANT_Expression;
+    }
 };
 
 #endif // _QLS_AST_ASTEXPRESSION_H

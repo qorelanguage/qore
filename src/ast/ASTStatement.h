@@ -70,6 +70,10 @@ public:
     virtual ~ASTStatement() {}
 
     virtual Kind getKind() const = 0;
+
+    virtual ASTNodeType getNodeType() {
+        return ANT_Statement;
+    }
 };
 
 #endif // _QLS_AST_ASTSTATEMENT_H

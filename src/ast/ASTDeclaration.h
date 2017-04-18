@@ -59,6 +59,10 @@ public:
     ASTDeclaration(const ASTParseLocation& l) : ASTNode(l) {}
 
     virtual Kind getKind() const = 0;
+
+    virtual ASTNodeType getNodeType() {
+        return ANT_Declaration;
+    }
 };
 
 #endif // _QLS_AST_ASTDECLARATION_H
