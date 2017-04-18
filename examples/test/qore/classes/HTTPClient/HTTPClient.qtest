@@ -9,7 +9,6 @@
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/Mime.qm
 %requires ../../../../../qlib/QUnit.qm
-%requires ../../../../../qlib/Mime.qm
 %requires ../../../../../qlib/HttpServer.qm
 
 %exec-class Main
