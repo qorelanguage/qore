@@ -173,6 +173,7 @@
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
     - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
     - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>
 
     @section qore_081210 Qore 0.8.12.10
@@ -183,7 +184,6 @@
     @subsection qore_081210_bug_fixes Bug Fixes in Qore
 
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
-    - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
     - fixed a crash when the %Qore library exits caused by an error in handling module dependencies with injected modules  (<a href="https://github.com/qorelanguage/qore/issues/1805">issue 1805</a>)
     - fixed a crash caused by calling object methods with null pointers (<a href="https://github.com/qorelanguage/qore/issues/1791">issue 1791</a>)
 
