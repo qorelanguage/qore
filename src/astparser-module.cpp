@@ -1,4 +1,4 @@
-/* indent-tabs-mode: nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   astparser-module.cpp
 

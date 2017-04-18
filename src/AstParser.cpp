@@ -2,8 +2,6 @@
 /*
   AstParser.cpp
 
-  AstParser C++ class
-
   Qore AST Parser
 
   Copyright (C) 2017 Qore Technologies, s.r.o.
