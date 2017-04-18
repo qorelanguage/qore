@@ -7,6 +7,7 @@
 %strict-args
 
 %requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/Mime.qm
 %requires ../../../../../qlib/QUnit.qm
 
 %exec-class Main
@@ -14,6 +15,7 @@
 class HttpTestServer {
     public {
         int port;
+        string body;
     }
 
     private {
@@ -42,16 +44,27 @@ class HttpTestServer {
 
     private startListener(Socket s) {
         Socket s1 = s.accept();
+        hash h = s1.readHTTPHeader();
+        if (h."content-length")
+            body = s1.recv(h."content-length");
+        else if (h."transfer-encoding" == "chunked")
+            body = s1.readHTTPChunkedBody().body;
         s1.send(resp);
         end.waitForZero();
         s.close();
         s.shutdown();
     }
-}
 
+    string getBody() {
+        return body;
+    }
+}
 
 public class Main inherits QUnit::Test {
     public {
+        const Utf8Str = "Hät";
+        const Iso88591Str = convert_encoding(Utf8Str, "iso-8859-1");
+
         const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
         const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
@@ -151,6 +164,16 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             # issue 1728: check URL handling
             string bad_url = "http://localhost:1234\"";
             assertThrows("HTTP-CLIENT-URL-ERROR", sub () { HTTPClient hc(("url": bad_url)); });
+        }
+
+        {
+            # issue 1813: check message body conversion
+            HttpTestServer serv(ErrorReply1);
+            on_exit serv.done();
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
+            hc.setEncoding("iso-8859-1");
+            hc.post("/something", Utf8Str, ("Content-Type": MimeTypeText));
+            assertEq(Iso88591Str, serv.getBody());
         }
     }
 

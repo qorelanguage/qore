@@ -114,6 +114,8 @@ reject the request.@endverbatim
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
     - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    - HTTP headers should accept data in ISO-8859-1 (LATIN-1) encoding, but in practice for maximum compatibility US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format according to <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs character encoding conversion on strings used as the message body.
+    - The default character encoding for this class is the same as the @ref default_encoding "default character encoding" for %Qore (normally \c UTF-8); this class does not include a \c ";charset=utf-8" in the \c "Content-Type" header by default; this must be set explicitly by users of this class if necessary.
  */
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
@@ -319,7 +321,12 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
  */
 hash HTTPClient::send(string body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->strlen(), getbody, *ohrh, xsink), xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
 }
 
@@ -488,7 +495,11 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -760,7 +771,11 @@ httpclient.post("/path", body);
  */
 *string HTTPClient::post(string path, string body, *hash headers, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body->getBuffer(), body->size(), *ohrh, xsink), xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, btmp->c_str(), btmp->size(), *ohrh, xsink), xsink);
 #ifdef DEBUG
    assert(!rv || rv->getType() == NT_STRING);
 #endif
