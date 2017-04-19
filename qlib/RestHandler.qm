@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
+/* RestHandler.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1012,6 +1012,7 @@ public namespace RestHandler {
                         ds = MimeDataTypes{a}.serialize;
                         if (ds) {
                             rv.body = ds(rv.body);
+                            checkEncoding(rv.body, \a, s);
                             rv.hdr += ("Content-Type": a);
                             break;
                         }
@@ -1023,6 +1024,7 @@ public namespace RestHandler {
                             ds = MimeDataTypes{k}.serialize;
                             if (ds) {
                                 rv.body = ds(rv.body);
+                                checkEncoding(rv.body, \k, s);
                                 rv.hdr += ("Content-Type": k);
                                 break;
                             }
@@ -1041,6 +1043,14 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return rv;
+        }
+
+        # issue #1824 add charset to Content-Type when sending string data
+        private:internal checkEncoding(string body, reference ct, Socket s) {
+            string enc = body.encoding();
+            if (enc != s.getEncoding())
+                s.setEncoding(enc);
+            ct += ";charset=" + enc.lwr();
         }
 
         #! default implementation is empty
