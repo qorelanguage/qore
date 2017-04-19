@@ -30,7 +30,7 @@
 %new-style
 
 module HttpServerUtil {
-    version = "0.3.11.2';
+    version = "0.3.11.2";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
