@@ -29,8 +29,18 @@
 
 #include <memory>
 
-#include "AstParserSupport.h"
 #include "ast/AST.h"
+
+typedef void *yyscan_t;
+extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
+extern struct yy_buffer_state* yy_scan_string(const char *, yyscan_t yyscanner);
+extern struct yy_buffer_state* yy_create_buffer(FILE* file, int size, yyscan_t yyscanner);
+extern void yy_delete_buffer(struct yy_buffer_state* buffer, yyscan_t yyscanner);
+extern void yy_switch_to_buffer(struct yy_buffer_state* new_buffer, yyscan_t yyscanner);
+extern int yylex_init(yyscan_t *yyscanner);
+extern void yyset_in(FILE *in_str, yyscan_t yyscanner);
+extern int yylex_destroy(yyscan_t yyscanner);
+extern void yyset_lineno(int line_number, yyscan_t yyscanner);
 
 //! Copied over from YY_BUF_SIZE from the generated flex scanner.
 #define AST_BUF_SIZE 16384
@@ -45,6 +55,7 @@ int AstParser::parseFile(const char* filename) {
 
     // Set up flex to scan the file.
     yy_buffer_state* buf = yy_create_buffer(f, AST_BUF_SIZE, lexer);
+    yy_switch_to_buffer(buf, lexer);
     yyset_lineno(1, lexer);
 
     // Prepare an empty AST tree for holding the parsed tree.

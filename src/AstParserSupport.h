@@ -1,10 +1,8 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstParserSupport.h
+  AstParserLocation.h
 
-  parsing support functions and objects
-
-  Qore Programming language
+  Qore AST Parser
 
   Copyright (C) 2017 Qore Technologies, s.r.o.
 
@@ -31,8 +29,8 @@
   information.
 */
 
-#ifndef _QLS_AST_PARSER_SUPPORT_H
-#define _QLS_AST_PARSER_SUPPORT_H
+#ifndef _QLS_ASTPARSERLOCATION_H
+#define _QLS_ASTPARSERLOCATION_H
 
 struct AstParserLocation {
 public:
@@ -42,17 +40,4 @@ public:
    int lastCol;
 };
 
-class ASTTree;
-
-// private interface to bison/flex parser/scanner
-typedef void *yyscan_t;
-extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
-extern struct yy_buffer_state* yy_scan_string(const char *, yyscan_t scanner);
-extern struct yy_buffer_state* yy_create_buffer(FILE* file, int size, yyscan_t scanner);
-extern void yy_delete_buffer(struct yy_buffer_state*, yyscan_t scanner);
-int yylex_init(yyscan_t *scanner);
-void yyset_in(FILE *in_str, yyscan_t yyscanner);
-int yylex_destroy(yyscan_t yyscanner);
-void yyset_lineno(int line_number, yyscan_t yyscanner);
-
-#endif // _QLS_AST_PARSER_SUPPORT_H
+#endif // _QLS_ASTPARSERLOCATION_H

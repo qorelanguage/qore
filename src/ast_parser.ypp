@@ -68,6 +68,8 @@
    return 0;
 }*/
 
+// Needed for the lex-param and parse-param Bison options.
+typedef void* yyscan_t;
 %}
 
 %pure-parser

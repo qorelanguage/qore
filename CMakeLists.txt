@@ -38,6 +38,7 @@ set(QPP_SRC src/QC_AstParser.qpp)
 set(CPP_SRC
     src/astparser-module.cpp
     src/AstParser.cpp
+    src/AstParserHolder.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp
 )

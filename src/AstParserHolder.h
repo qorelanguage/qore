@@ -37,8 +37,8 @@ private:
     AstParser* parser;
 
 public:
-    AstParserHolder() {}
-    ~AstParserHolder() {}
+    AstParserHolder();
+    ~AstParserHolder();
 
     int parseFile(const char* filename);
     int parseFile(std::string& filename);

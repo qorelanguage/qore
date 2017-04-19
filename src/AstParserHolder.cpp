@@ -40,7 +40,7 @@ int AstParserHolder::parseFile(const char* filename) {
     return parser->parseFile(filename);
 }
 
-int AstParser::parseFile(std::string& filename) {
+int AstParserHolder::parseFile(std::string& filename) {
     return parser->parseFile(filename);
 }
 
@@ -48,6 +48,6 @@ int AstParserHolder::parseString(const char* filename) {
     return parser->parseString(filename);
 }
 
-int AstParser::parseString(std::string& filename) {
+int AstParserHolder::parseString(std::string& filename) {
     return parser->parseString(filename);
 }

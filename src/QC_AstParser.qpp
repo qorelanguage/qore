@@ -39,7 +39,7 @@ qclass AstParser [arg=AstParserHolder* aph; ns=astparser; flags=final];
 /**
     @param src lorem ipsum
  */
-AstParser::constructor(binary src) {
+AstParser::constructor() {
     SimpleRefHolder<AstParserHolder> astp(new AstParserHolder);
     self->setPrivate(CID_ASTPARSER, astp.release());
 }
