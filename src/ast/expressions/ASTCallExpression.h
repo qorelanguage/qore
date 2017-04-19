@@ -56,8 +56,14 @@ public:
     {
         loc.firstLine = targ->loc.firstLine;
         loc.firstCol = targ->loc.firstCol;
-        loc.lastLine = arglist->loc.lastLine;
-        loc.lastCol = arglist->loc.lastCol;
+        if (arglist) {
+            loc.lastLine = arglist->loc.lastLine;
+            loc.lastCol = arglist->loc.lastCol;
+        }
+        else {
+            loc.lastLine = targ->loc.lastLine;
+            loc.lastCol = targ->loc.lastCol;
+        }
     }
 
     virtual Kind getKind() const override {

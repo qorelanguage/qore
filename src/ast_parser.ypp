@@ -3006,10 +3006,6 @@ exp:
          $$->loc.lastCol = @2.lastCol;
       }
       | exp '(' myexp ')'                 {
-         $3->loc.firstLine = @2.firstLine;
-         $3->loc.firstCol = @2.firstCol;
-         $3->loc.lastLine = @4.lastLine;
-         $3->loc.lastCol = @4.lastCol;
          $$ = new ASTCallExpression($1, $3);
       }
       | exp LOGICAL_AND exp               { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_LogicalAnd, $3); }
@@ -3135,10 +3131,6 @@ exp_n:
          $$->loc.lastCol = @2.lastCol;
       }
       | exp_n '(' myexp ')'               {
-         $3->loc.firstLine = @2.firstLine;
-         $3->loc.firstCol = @2.firstCol;
-         $3->loc.lastLine = @4.lastLine;
-         $3->loc.lastCol = @4.lastCol;
          $$ = new ASTCallExpression($1, $3);
       }
       | exp_n LOGICAL_AND exp             { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_LogicalAnd, $3); }
