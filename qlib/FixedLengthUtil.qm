@@ -30,11 +30,7 @@
 %new-style
 
 module FixedLengthUtil {
-<<<<<<< HEAD
-    version = "1.0.1";
-=======
     version = "1.1";
->>>>>>> develop
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
