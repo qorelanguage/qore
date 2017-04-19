@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -30,7 +30,7 @@
 %new-style
 
 module HttpServerUtil {
-    version = "0.3.11.2";
+    version = "0.3.12";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -69,6 +69,9 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil0311 HttpServerUtil 0.3.12
+    - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
 
     @subsection httputil0312 HttpServerUtil 0.3.11.2
     - eliminated excess logging of each HTTP chunk sent or received
@@ -415,7 +418,7 @@ public class HttpServer::AbstractAuthenticator {
     private hash do401(string msg = "Authentication is required to access this server") {
         return (
             "code": 401,
-            "body": "Authentication is required to access this server",
+            "body": msg,
             "hdr": getAuthHeader(),
             );
     }
@@ -762,8 +765,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called externally when a persistent connection is closed
     nothing persistentClosed() {
         *code c = get_thread_data(NotificationThreadKey);
-        if (c)
-            c();
+        if (c) {
+            try {
+                c();
+            }
+            catch (hash ex) {
+                if (ex.err != "OBJECT-ALREADY-DELETED")
+                    rethrow;
+            }
+        }
     }
 
     #! this method will throw an exception if a persistent connection cannot be granted

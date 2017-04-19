@@ -29,10 +29,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/qore_program_private.h"
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -129,7 +129,7 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
-	 ref.id = push_local_var(name.ostr, loc, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
+	 ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
@@ -143,7 +143,7 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    return this;
 }
 
-AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
    parseInitIntern(oflag, pflag, lvids, 0);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -156,7 +156,7 @@ AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
       outTypeInfo = nothingTypeInfo;
    }
    else
-      outTypeInfo = parseGetTypeInfo();
+      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 
    return this;
 }
@@ -188,7 +188,7 @@ void VarRefNode::makeGlobal() {
 
 int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (type == VT_LOCAL)
-      return ref.id->getLValue(lvh, for_remove);
+      return ref.id->getLValue(lvh, for_remove, new_decl);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
    if (type == VT_LOCAL_TS)
@@ -258,7 +258,7 @@ AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
    if (!is_assignment && new_decl)
       outTypeInfo = nothingTypeInfo;
    else
-      outTypeInfo = parseGetTypeInfo();
+      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 
    return this;
 }
@@ -297,7 +297,7 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
 
       //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
-      if (((constructor && constructor->parseIsPrivate()) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
+      if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
 	 if (variant)
 	    parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
 	 else
