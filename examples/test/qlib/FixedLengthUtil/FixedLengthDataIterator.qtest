@@ -66,5 +66,12 @@ class Test inherits QUnit::Test {
         testAssertionValue("line 3 is there", i.next(), True);
         testAssertionValue("line 3 content check", i.getValue(), ("type": "type1", "record": ("col1": 22222, "col2": "gg")));
         testAssertionValue("line 4 is not there", i.next(), False);
+
+        i = new FixedLengthDataIterator("a", Specs, GlobalOptions);
+        i.next();
+        assertThrows("FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", "unexpected length.*known lengths.*12", \i.getValue());
+        i = new FixedLengthDataIterator("XXXX00002017", Specs, GlobalOptions);
+        i.next();
+        assertThrows("INVALID-DATE", \i.getValue());
     }
 }
