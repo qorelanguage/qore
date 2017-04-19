@@ -184,6 +184,7 @@
 
     @subsection qore_081210_bug_fixes Bug Fixes in Qore
 
+    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>: fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
     - fixed a crash when the %Qore library exits caused by an error in handling module dependencies with injected modules  (<a href="https://github.com/qorelanguage/qore/issues/1805">issue 1805</a>)
     - fixed a crash caused by calling object methods with null pointers (<a href="https://github.com/qorelanguage/qore/issues/1791">issue 1791</a>)
@@ -562,7 +563,7 @@
       - \c quote_escape option implemented in \c AbstractCsvWriter
       - implemented the \c "datamap" and \c "info_log" options for CSV generation
       - implemented alternative options with underscores instead of dashes for all constructors
-      - extended multi-type support for \c FixedLengthUtil, record type rules and default value in field specification
+      - extended multi-type support, record type rules and default value in field specification
       - implemented multi-type record support in \c AbstractCsvWriter and \c AbstractCsvIterator using \c resolve_type and \c headers options
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
