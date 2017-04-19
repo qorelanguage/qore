@@ -263,7 +263,7 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg, int n_refs, bool top_level) {
+LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, bool top_level) {
    QoreProgram* pgm = getProgram();
 
    LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
@@ -275,8 +275,10 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
    bool found_block = false;
    // check stack for duplicate entries
    bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
-   if (is_arg) {
+   if (is_auto) {
       lv->parseAssigned();
+   }
+   else {
       if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
          VNode* vnode = getVStack();
          while (vnode) {
