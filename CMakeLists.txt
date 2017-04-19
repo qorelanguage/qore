@@ -39,6 +39,7 @@ set(CPP_SRC
     src/astparser-module.cpp
     src/AstParser.cpp
     src/AstParserHolder.cpp
+    src/AstTreePrinter.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp
 )

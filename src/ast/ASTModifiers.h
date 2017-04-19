@@ -68,8 +68,12 @@ public:
     bool contains(ASTModifier mod) {
         return value & mod;
     }
+
+    bool empty() {
+        return !value;
+    }
 private:
-    unsigned int value;
+    unsigned int value = 0;
 };
 
 #endif // _QLS_AST_ASTMODIFIERS_H

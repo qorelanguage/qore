@@ -27,9 +27,10 @@
 
 #include "AstParser.h"
 
-#include <memory>
+#include <iostream>
 
 #include "ast/AST.h"
+#include "AstTreePrinter.h"
 
 typedef void *yyscan_t;
 extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
@@ -59,14 +60,19 @@ int AstParser::parseFile(const char* filename) {
     yyset_lineno(1, lexer);
 
     // Prepare an empty AST tree for holding the parsed tree.
-    std::unique_ptr<ASTTree> parseTree(new ASTTree);
+    std::unique_ptr<ASTTree> tree(new ASTTree);
 
     // Parse.
-    int rc = yyparse(lexer, parseTree.get());
+    int rc = yyparse(lexer, tree.get());
     if (rc) {
         // ???
         return 1;
     }
+
+    // Store the created tree;
+    parsedTree = std::move(tree);
+
+    AstTreePrinter::printTree(std::cout, parsedTree.get());
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
@@ -93,14 +99,17 @@ int AstParser::parseString(const char* str) {
     yyset_lineno(1, lexer);
 
     // Prepare an empty AST tree for holding the parsed tree.
-    std::unique_ptr<ASTTree> parseTree(new ASTTree);
+    std::unique_ptr<ASTTree> tree(new ASTTree);
 
     // Parse.
-    int rc = yyparse(lexer, parseTree.get());
+    int rc = yyparse(lexer, tree.get());
     if (rc) {
         // ???
         return 1;
     }
+
+    // Store the created tree;
+    parsedTree = std::move(tree);
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);

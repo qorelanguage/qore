@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstParser.h
+  AstTreePrinter.h
 
   Qore AST Parser
 
@@ -25,27 +25,33 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTPARSER_H
-#define _QLS_ASTPARSER_H
+#ifndef _QLS_ASTTREEPRINTER_H
+#define _QLS_ASTTREEPRINTER_H
 
-#include <memory>
-#include <string>
+#include <ostream>
 
-#include "ast/ASTTree.h"
+#include "ast/ASTModifiers.h"
+#include "ast/ASTName.h"
+#include "ast/ASTOperator.h"
 
-class AstParser {
-private:
-    std::unique_ptr<ASTTree> parsedTree;
+class ASTDeclaration;
+class ASTExpression;
+class ASTNode;
+class ASTStatement;
+class ASTTree;
 
+class AstTreePrinter {
 public:
-    AstParser() {}
-    ~AstParser() {}
+    static void printTree(std::ostream& os, ASTTree* tree);
 
-    int parseFile(const char* filename);
-    int parseFile(std::string& filename);
-
-    int parseString(const char* str);
-    int parseString(std::string& str);
+private:
+    static void printModifiers(std::ostream& os, ASTModifiers mods, int indent);
+    static void printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent);
+    static void printExpression(std::ostream& os, ASTExpression* expr, int indent);
+    static void printName(std::ostream& os, ASTName& name, int indent, bool newline = true, const char* prefix = "name: ");
+    static void printOperator(std::ostream& os, ASTOperator op, int indent, bool newline);
+    static void printStatement(std::ostream& os, ASTStatement* stmt, int indent);
+    static void printNode(std::ostream& os, ASTNode* node, int indent);
 };
 
-#endif // _QLS_ASTPARSER_H
+#endif // _QLS_ASTTREEPRINTER_H
