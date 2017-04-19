@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,8 @@
 #include <qore/QoreString.h>
 #include <qore/AbstractThreadResource.h>
 
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/QoreSQLStatement.h"
 
 #include <map>
 #include <deque>
@@ -198,7 +198,7 @@ protected:
    DLLLOCAL Datasource* getAllocatedDS();
    DLLLOCAL Datasource* getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink);
    DLLLOCAL Datasource* getDS(bool& new_ds, ExceptionSink* xsink);
-   DLLLOCAL void freeDS();
+   DLLLOCAL void freeDS(ExceptionSink* xsink);
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);
    DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
@@ -278,7 +278,7 @@ public:
    DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
       //printd(5, "DatasourcePool::helperEndAction() cmd: %d '%s', nt: %d\n", cmd, DAH_TEXT(cmd), new_transaction);
       if (cmd == DAH_RELEASE) {
-         freeDS();
+         freeDS(xsink);
          return 0;
       }
 
@@ -333,7 +333,7 @@ public:
       if (cmd == DAH_RELEASE
           || ds->wasConnectionAborted()
           || (new_ds && (cmd == DAH_NOCHANGE)))
-	 dsp.freeDS();
+	 dsp.freeDS(xsink);
    }
 
 #if 0
