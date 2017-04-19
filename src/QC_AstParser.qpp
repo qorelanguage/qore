@@ -40,8 +40,8 @@ qclass AstParser [arg=AstParserHolder* aph; ns=astparser; flags=final];
     @param src lorem ipsum
  */
 AstParser::constructor(binary src) {
-   SimpleRefHolder<AstParserHolder> astp(new AstParserHolder);
-   self->setPrivate(CID_ASTPARSER, astp.release());
+    SimpleRefHolder<AstParserHolder> astp(new AstParserHolder);
+    self->setPrivate(CID_ASTPARSER, astp.release());
 }
 
 //! Parse file.
@@ -50,7 +50,7 @@ AstParser::constructor(binary src) {
     @return return value
  */
 int AstParser::parseFile(string filename) {
-   return aph->parseFile(filename->getBuffer());
+    return aph->parseFile(filename->getBuffer());
 }
 
 //! Parse string.
@@ -59,54 +59,5 @@ int AstParser::parseFile(string filename) {
     @return return value
  */
 int AstParser::parseString(string str) {
-   return aph->parseString(str->getBuffer());
-}
-
-//! Lorem ipsum dolor sit amet.
-/**
-    @param limit the maximum number of bytes to read
-    @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
-
-    @par Example:
-    @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream is(src);
-    *binary b;
-    while (b = is.read(2)) {
-        printf("read %s\n", make_hex_string(b));
-    }
-
-    read 2aff
-    read 04
-    @endcode
-
-    @throw LOREM-ERROR \a limit is not positive
-    @throw IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-*binary AstParser::read(int limit) {
-   //return aph->readHelper(limit, xsink);
-   return 0;
-}
-
-//! Lorem ipsum dolor sit amet.
-/** Consecteteur adipiscing elit.
-    @return the next byte available from the input stream or -1 if no more data is available
-
-    @par Example:
-    @code{.py}
-    binary src = <2AFF04>;
-    BinaryInputStream is(src);
-    printf("peek: %d\n", is.peek());
-    *binary b = is.read(3);
-    printf("peek: %d\n", is.peek());
-
-    peek 42
-    peek -1
-    @endcode
-
-    @throw LOREM-IPSUM-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
- */
-int AstParser::peek() {
-   //return aph->peekHelper(xsink);
-   return 0;
+    return aph->parseString(str->getBuffer());
 }
