@@ -46,6 +46,7 @@
       - @ref Qore::FtpClient::put()
       - @ref Qore::FtpClient::get()
       - @ref Qore::HTTPClient::send()
+      - @ref Qore::HTTPClient::sendChunked()
       - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
       - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
       .
@@ -85,7 +86,7 @@
       - @ref Qore::Program::setGlobalVarValue()
       - @ref Qore::Program::setThreadInit()
     - updated methods:
-      - @ref TreeMap::get() new parameter to return also unmatched part suffix
+      - @ref Qore::TreeMap::get() new parameter to return also unmatched part suffix
     - new pseudo-methods:
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)
@@ -173,6 +174,7 @@
     - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
     - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+    - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
     - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>
 
     @section qore_081210 Qore 0.8.12.10

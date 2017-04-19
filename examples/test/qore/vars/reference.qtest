@@ -12,7 +12,7 @@
 %exec-class ReferenceTest
 
 class ReferenceTest inherits QUnit::Test {
-    constructor () : Test("Reference Test", "1.0") {
+    constructor() : Test("Reference Test", "1.0") {
         addTestCase("Reference test", \testReference());
         addTestCase("Assignment test", \testReferenceAssignments());
 
@@ -163,6 +163,18 @@ class ReferenceTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE);
             p.parse("sub t(*reference r) {}", "");
             assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("our int i = 1; sub t(reference r = \\i) { r = 3; } int sub get() { return i;}", "");
+            p.run();
+            int i = 2;
+            p.callFunction("t", \i);
+            assertEq(3, i);
+            assertEq(1, p.callFunction("get"));
+            p.callFunction("t");
+            assertEq(3, p.callFunction("get"));
         }
     }
 }
