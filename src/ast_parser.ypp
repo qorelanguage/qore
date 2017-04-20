@@ -36,12 +36,10 @@
 
 #include "ast/AST.h"
 
-#include "AstParserSupport.h"
-
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
 
-#define YYLTYPE AstParserLocation
+#define YYLTYPE ASTParseLocation
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                          \
    do                                                            \

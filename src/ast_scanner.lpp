@@ -46,10 +46,9 @@
 
 #include "ast/AST.h"
 
-#include "AstParserSupport.h"
 #include "ast_parser.hpp"
 
-#define YYLTYPE AstParserLocation
+#define YYLTYPE ASTParseLocation
 
 #define YY_USER_ACTION {                                                         \
         /*fprintf(stderr, "YUA token: '%s' (%lu b) line: %d\nbegin: %d:%d %d:%d\n",*/    \
