@@ -9,6 +9,8 @@
 
     @subsection qore_081210_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug where connections were not immediately released back to the @ref Qore::SQL::DatasourcePool "DatasourcePool" in case of an \c SQLSTATEMENT-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/1836">issue 1836</a>)
+    - eliminated a spurious exception in the @ref Qore::SQL::SQLStatement "SQLStatement" class in case of a @ref Qore::SQL::DatasourcePool "DatasourcePool" timeout (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>: eliminated excess logging of all HTTP chunks sent and received (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>: fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
