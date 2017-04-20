@@ -479,190 +479,106 @@ gvardecl:
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName typeName($3, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @3.firstLine;
-            typeName.loc.firstCol = @3.firstCol;
-            typeName.loc.lastLine = @3.lastLine;
-            typeName.loc.lastCol = @3.lastCol;
+            typeName.loc = @3;
             delete $3;
             ASTName name($4, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTVariableDeclaration(mods, typeName, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTVariableDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName typeName($3, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @3.firstLine;
-            typeName.loc.firstCol = @3.firstCol;
-            typeName.loc.lastLine = @3.lastLine;
-            typeName.loc.lastCol = @3.lastCol;
+            typeName.loc = @3;
             delete $3;
             ASTName name($4, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTVariableDeclaration(mods, typeName, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTVariableDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
         }
         | ppub TOK_OUR qtypedef SCOPED_VREF {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName typeName(ASTNameKind::ANK_QTypedef);
             if ($3) {
                 typeName.name = *($3);
-                typeName.loc.firstLine = @3.firstLine;
-                typeName.loc.firstCol = @3.firstCol;
-                typeName.loc.lastLine = @3.lastLine;
-                typeName.loc.lastCol = @3.lastCol;
+                typeName.loc = @3;
                 delete $3;
             }
             ASTName name($4, ASTNameKind::ANK_ScopedVref);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTVariableDeclaration(mods, typeName, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR qtypedef VAR_REF {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
-            mods.loc.firstLine = @1.firstLine;
-            mods.loc.firstCol = @1.firstCol;
-            mods.loc.lastLine = @2.lastLine;
-            mods.loc.lastCol = @2.lastCol;
-
+            mods.loc.set(@1, @2);
             ASTName typeName(ASTNameKind::ANK_QTypedef);
             if ($3) {
                 typeName.name = *($3);
-                typeName.loc.firstLine = @3.firstLine;
-                typeName.loc.firstCol = @3.firstCol;
-                typeName.loc.lastLine = @3.lastLine;
-                typeName.loc.lastCol = @3.lastCol;
+                typeName.loc = @3;
                 delete $3;
             }
             ASTName name($4, ASTNameKind::ANK_VarRef);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTVariableDeclaration(mods, typeName, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR '(' list ')' {
             ASTModifiers mods(ASTModifier::AM_Our);
             $$ = new ASTVarListDeclaration(mods, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
         }
         ;
 
 top_namespace_decl:
         nsc_modifiers TOK_NAMESPACE '{' namespace_decls '}' {
             $$ = new ASTNamespaceDeclaration($1, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
             delete $4;
         }
         | nsc_modifiers TOK_NAMESPACE ';' {
             $$ = new ASTNamespaceDeclaration($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         | nsc_modifiers TOK_NAMESPACE '{' '}' {
             $$ = new ASTNamespaceDeclaration($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         ;
 
@@ -693,60 +609,36 @@ namespace_decl:
 unscoped_const_decl:
         TOK_CONST IDENTIFIER '=' exp ';' {
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTConstantDeclaration(name, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' {
             ASTModifiers mods(ASTModifier::AM_Public);
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTConstantDeclaration(mods, name, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.set(@1, @6);
         }
         ;
 
 scoped_const_decl:
         TOK_CONST SCOPED_REF '=' exp ';' {
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTConstantDeclaration(name, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_PUBLIC TOK_CONST SCOPED_REF '=' exp ';' {
             ASTModifiers mods(ASTModifier::AM_Public);
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTConstantDeclaration(mods, name, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.set(@1, @6);
         }
         ;
 
@@ -756,20 +648,14 @@ block:
         |
         '{' /* NOTHING */ '}' {
             $$ = new ASTStatementBlock;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         ;
 
 statement_or_block:
         statement {
             $$ = new ASTStatementBlock;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
             $$->add($1);
         }
         |
@@ -780,30 +666,22 @@ statement_or_block:
 statements:
         statement {
             $$ = new ASTStatementBlock;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
             $$->add($1);
         }
         | block {
             $$ = new ASTStatementBlock;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
             $$->add($1);
         }
         | statements block {
             $1->add($2);
-            $1->loc.lastLine = @2.lastLine;
-            $1->loc.lastCol = @2.lastCol;
+            $1->loc.setLast(@2);
             $$ = $1;
         }
         | statements statement {
             $1->add($2);
-            $1->loc.lastLine = @2.lastLine;
-            $1->loc.lastCol = @2.lastCol;
+            $1->loc.setLast(@2);
             $$ = $1;
         }
         ;
@@ -813,10 +691,7 @@ optname:
         { $$ = 0; }
         | IDENTIFIER {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
@@ -825,157 +700,95 @@ optname:
 statement:
         ';' {
             $$ = new ASTStatementBlock;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | exp_n ';' {
             $$ = new ASTExpressionStatement($1);
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.setLast(@2);
         }
         // this should be covered as an expression, but for some reason it isn't...
         | SCOPED_REF '(' myexp ')' ';' {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTCallStatement(new ASTCallExpression(new ASTNameExpression(name), $3));
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
         }
         | try_statement { $$ = $1; }
         | TOK_RETHROW ';' {
             $$ = new ASTRethrowStatement;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_THROW exp ';' {
             $$ = new ASTThrowStatement($2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         | TOK_ON_EXIT statement_or_block {
             $$ = new ASTOnBlockExitStatement($2, ASTOnBlockExitStatement::Condition::AOBEC_Exit);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_ON_SUCCESS statement_or_block {
             $$ = new ASTOnBlockExitStatement($2, ASTOnBlockExitStatement::Condition::AOBEC_Success);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_ON_ERROR statement_or_block {
             $$ = new ASTOnBlockExitStatement($2, ASTOnBlockExitStatement::Condition::AOBEC_Error);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_SUB_CONTEXT context_mods statement_or_block {
             $$ = new ASTContextStatement(nullptr, nullptr, $2, $3, true);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
             delete $2;
         }
         | TOK_SUMMARIZE optname '(' exp ')' TOK_BY '(' exp ')' context_mods statement_or_block {
             $$ = new ASTSummarizeStatement($2, $4, $8, $10, $11);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @11.lastLine;
-            $$->loc.lastCol = @11.lastCol;
+            $$->loc.set(@1, @11);
             delete $10;
         }
         | TOK_CONTEXT optname '(' exp ')' context_mods statement_or_block {
             $$ = new ASTContextStatement($2, $4, $6, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
             delete $6;
         }
         | TOK_IF '(' exp ')' statement_or_block %prec IFX {
             $$ = new ASTIfStatement($3, $5, nullptr);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_IF '(' exp ')' statement_or_block TOK_ELSE statement_or_block {
             $$ = new ASTIfStatement($3, $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | TOK_WHILE '(' exp ')' statement_or_block {
             $$ = new ASTWhileStatement($3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_DO statement_or_block TOK_WHILE '(' exp ')' ';' {
             $$ = new ASTDoWhileStatement($5, $2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.firstLine;
-            $$->loc.lastCol = @7.firstCol;
+            $$->loc.set(@1, @7);
         }
         | TOK_FOR '(' myexp ';' myexp ';' myexp ')' statement_or_block {
             $$ = new ASTForStatement($3, $5, $7, $9);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @9.lastLine;
-            $$->loc.lastCol = @9.lastCol;
+            $$->loc.set(@1, @9);
         }
         | TOK_FOREACH exp TOK_IN '(' exp ')' statement_or_block {
             $$ = new ASTForeachStatement($2, $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | return_statement ';' {
             $$ = $1;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.setLast(@2);
         }
         | TOK_THREAD_EXIT ';' {
             $$ = new ASTThreadExitStatement;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_BREAK ';' {
             $$ = new ASTBreakStatement;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         | TOK_CONTINUE ';' {
             $$ = new ASTContinueStatement;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         | switch_statement { $$ = $1; }
         | error ';'        { $$ = 0; }
@@ -996,46 +809,34 @@ context_mods:
 context_mod:
         TOK_WHERE '(' exp ')' {
             $$ = new ASTContextModExpression(ACMEKind::ACMEK_Where, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_SORT_BY '(' exp ')' {
             $$ = new ASTContextModExpression(ACMEKind::ACMEK_SortBy, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_SORT_DESCENDING_BY '(' exp ')' {
             $$ = new ASTContextModExpression(ACMEKind::ACMEK_SortDescBy, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         ;
 
 return_statement:
         TOK_RETURN {
             $$ = new ASTReturnStatement;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         |
         TOK_RETURN exp {
             $$ = new ASTReturnStatement($2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.set(@1, @2);
         }
         ;
 
 switch_statement:
         TOK_SWITCH '(' exp ')' '{' case_block '}' {
             $$ = new ASTSwitchStatement($3, $6);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.firstLine;
-            $$->loc.lastCol = @7.firstCol;
+            $$->loc.set(@1, @7);
         }
         ;
 
@@ -1043,15 +844,11 @@ case_block:
         case_code {
             $$ = new ASTSwitchBodyExpression;
             $$->cases.push_back($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | case_block case_code {
             $1->cases.push_back($2);
-            $1->loc.lastLine = @2.lastLine;
-            $1->loc.lastCol = @2.lastCol;
+            $1->loc.setLast(@2);
             $$ = $1;
         }
         ;
@@ -1059,195 +856,114 @@ case_block:
 case_code:
         TOK_CASE LOGICAL_GE exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_GreaterThanOrEquals, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE WS_LOGICAL_GE exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_GE, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE LOGICAL_GE exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_GreaterThanOrEquals, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE WS_LOGICAL_GE exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_GE, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE LOGICAL_LE exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_LessThanOrEquals, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE WS_LOGICAL_LE exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_LE, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE LOGICAL_LE exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_LessThanOrEquals, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE WS_LOGICAL_LE exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_LE, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE LOGICAL_EQ exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_Equals, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE WS_LOGICAL_EQ exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_EQ, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE LOGICAL_EQ exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_Equals, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE WS_LOGICAL_EQ exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_WS_LOGICAL_EQ, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE '<' exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_LessThan, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE '<' exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_LessThan, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE '>' exp ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_GreaterThan, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE '>' exp ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_GreaterThan, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE REGEX_MATCH REGEX ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexMatch, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE REGEX_MATCH REGEX ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexMatch, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE REGEX_NMATCH REGEX ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexNotMatch, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.lastLine;
-            $$->loc.lastCol = @5.lastCol;
+            $$->loc.set(@1, @5);
         }
         | TOK_CASE REGEX_NMATCH REGEX ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexNotMatch, $3, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE REGEX ':' statements {
             $$ = new ASTCaseExpression($2, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE REGEX ':' { // nothing
             $$ = new ASTCaseExpression($2, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         | TOK_CASE exp ':' statements {
             $$ = new ASTCaseExpression($2, $4);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.lastLine;
-            $$->loc.lastCol = @4.lastCol;
+            $$->loc.set(@1, @4);
         }
         | TOK_CASE exp ':' { // nothing
             $$ = new ASTCaseExpression($2, 0);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         | TOK_DEFAULT ':' statements {
             $$ = new ASTCaseExpression(0, $3, true);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
         }
         | TOK_DEFAULT ':' { // nothing
             $$ = new ASTCaseExpression(0, 0, true);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.firstLine;
-            $$->loc.lastCol = @2.firstCol;
+            $$->loc.set(@1, @2);
         }
         ;
 
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
             $$ = new ASTTryStatement($2, $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         ;
 
@@ -1261,93 +977,57 @@ class_def:
         nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassString);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.set(@1, @6);
             delete $3;
             delete $5;
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.set(@1, @6);
             delete $3;
             delete $5;
         }
         | nsc_modifiers CLASS_STRING inheritance_list ';' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassString);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassString);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
             delete $3;
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTClassDeclaration(mods, name, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @5.firstLine;
-            $$->loc.lastCol = @5.firstCol;
+            $$->loc.set(@1, @5);
             delete $3;
         }
         ;
@@ -1375,117 +1055,79 @@ superclass_list:
 superclass:
         IDENTIFIER {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTSuperclassDeclaration(name);
         }
         | SCOPED_REF {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTSuperclassDeclaration(name);
         }
         | TOK_PUBLIC IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_Public);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PUBLIC SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_Public);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATE IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_Private);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATE SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_Private);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEHIERARCHY IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_PrivateHierarchy);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEHIERARCHY SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_PrivateHierarchy);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEINTERNAL IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_PrivateInternal);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEINTERNAL SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_PrivateInternal);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTSuperclassDeclaration(mods, name);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         ;
 
@@ -1565,28 +1207,19 @@ internal_member_list:
         TOK_PRIVATEINTERNAL member_list ';' {
             ASTModifiers mods(ASTModifier::AM_PrivateInternal);
             $$ = new ASTMemberGroupDeclaration(mods, $2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
             delete $2;
         }
         | TOK_PRIVATEINTERNAL '{' member_list2 '}' {
             ASTModifiers mods(ASTModifier::AM_PrivateInternal);
             $$ = new ASTMemberGroupDeclaration(mods, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | TOK_PRIVATEINTERNAL '{' '}' {
             ASTModifiers mods(ASTModifier::AM_PrivateInternal);
             $$ = new ASTMemberGroupDeclaration(mods);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         ;
 
@@ -1594,54 +1227,36 @@ private_member_list:
         TOK_PRIVATE member_list ';' {
             ASTModifiers mods(ASTModifier::AM_Private);
             $$ = new ASTMemberGroupDeclaration(mods, $2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
             delete $2;
         }
         | TOK_PRIVATE '{' member_list2 '}' {
             ASTModifiers mods(ASTModifier::AM_Private);
             $$ = new ASTMemberGroupDeclaration(mods, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | TOK_PRIVATE '{' '}' {
             ASTModifiers mods(ASTModifier::AM_Private);
             $$ = new ASTMemberGroupDeclaration(mods);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         | TOK_PRIVATEHIERARCHY member_list ';' {
             ASTModifiers mods(ASTModifier::AM_PrivateHierarchy);
             $$ = new ASTMemberGroupDeclaration(mods, $2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
             delete $2;
         }
         | TOK_PRIVATEHIERARCHY '{' member_list2 '}' {
             ASTModifiers mods(ASTModifier::AM_PrivateHierarchy);
             $$ = new ASTMemberGroupDeclaration(mods, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | TOK_PRIVATEHIERARCHY '{' '}' {
             ASTModifiers mods(ASTModifier::AM_PrivateHierarchy);
             $$ = new ASTMemberGroupDeclaration(mods);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         ;
 
@@ -1649,28 +1264,19 @@ public_member_list:
         TOK_PUBLIC member_list ';' {
             ASTModifiers mods(ASTModifier::AM_Public);
             $$ = new ASTMemberGroupDeclaration(mods, $2);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
             delete $2;
         }
         | TOK_PUBLIC '{' member_list2 '}' {
             ASTModifiers mods(ASTModifier::AM_Public);
             $$ = new ASTMemberGroupDeclaration(mods, $3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.set(@1, @4);
             delete $3;
         }
         | TOK_PUBLIC '{' '}' {
             ASTModifiers mods(ASTModifier::AM_Public);
             $$ = new ASTMemberGroupDeclaration(mods);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.firstLine;
-            $$->loc.lastCol = @3.firstCol;
+            $$->loc.set(@1, @3);
         }
         ;
 
@@ -1678,162 +1284,97 @@ classvardecl:
         TOK_STATIC uncqtypedef IDENTIFIER ';' {
             ASTModifiers mods(ASTModifier::AM_Static);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @3.lastLine;
-            vd->loc.lastCol = @3.lastCol;
+            vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_STATIC IDENTIFIER ';' {
             ASTModifiers mods(ASTModifier::AM_Static);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
             ASTModifiers mods(ASTModifier::AM_Static);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @3.lastLine;
-            vd->loc.lastCol = @3.lastCol;
+            vd->loc.set(@1, @3);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $5);
         }
         | TOK_STATIC IDENTIFIER '=' exp ';' {
             ASTModifiers mods(ASTModifier::AM_Static);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
         }
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
             ASTModifiers mods(ASTModifier::AM_Static);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @3.lastLine;
-            vd->loc.lastCol = @3.lastCol;
+            vd->loc.set(@1, @3);
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $5);
-            $$->loc.lastLine = @7.firstLine;
-            $$->loc.lastCol = @7.firstCol;
+            $$->loc.setLast(@7);
         }
         ;
 
 member2:
         qtypedef SELF_REF ';' {
             ASTName typeName($1, ASTNameKind::ANK_QTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_SelfRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);*/
         }
         | qtypedef SELF_REF '=' exp ';' {
             ASTName typeName($1, ASTNameKind::ANK_QTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_SelfRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);*/
         }
         | qtypedef SELF_REF '(' myexp ')' ';' {
             ASTName typeName($1, ASTNameKind::ANK_QTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_SelfRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $4);
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.setLast(@6);
             /*if (!$1)
                 parse_error("cannot call constructor without declaring the class");*/
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1841,16 +1382,10 @@ member2:
         }
         | uncqtypedef IDENTIFIER ';' {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
             $$ = new ASTDeclExpression(vd.release());
@@ -1859,16 +1394,10 @@ member2:
         }
         | uncqtypedef IDENTIFIER '=' exp ';' {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
@@ -1877,21 +1406,14 @@ member2:
         }
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $4);
-            $$->loc.lastLine = @6.firstLine;
-            $$->loc.lastCol = @6.firstCol;
+            $$->loc.setLast(@6);
             /*if (!$1)
                 parse_error("cannot call constructor without declaring the class");
             if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1899,10 +1421,7 @@ member2:
         }
         | IDENTIFIER ';' {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1910,10 +1429,7 @@ member2:
         }
         | IDENTIFIER '=' exp ';' {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTAssignmentExpression(new ASTNameExpression(name), $3);
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1930,20 +1446,14 @@ member2:
 member:
         SELF_REF {
             ASTName name($1, ASTNameKind::ANK_SelfRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
         | SELF_REF SCOPED_REF {
             ASTName name($1, ASTNameKind::ANK_SelfAndScopedRef);
             name.name += $2;
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc.set(@1, @2);
             free($1);
             free($2);
             $$ = new ASTNameExpression(name);
@@ -1988,70 +1498,40 @@ inline_methoddef:
         nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, $6, $3, $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, new ASTNameExpression(typeName), $4, $6, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value ';' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, $6, $3, $5);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.firstLine;
-            $$->loc.lastCol = @7.firstCol;
+            $$->loc.set(@1, @7);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, new ASTNameExpression(typeName), $4, $6);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.firstLine;
-            $$->loc.lastCol = @7.firstCol;
+            $$->loc.set(@1, @7);
         }
         ;
 
@@ -2059,112 +1539,64 @@ outofline_methoddef:
         method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, $7, $4, $6, $8);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.lastLine;
-            $$->loc.lastCol = @8.lastCol;
+            $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, new ASTNameExpression(typeName), $5, $7, $8);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.lastLine;
-            $$->loc.lastCol = @8.lastCol;
+            $$->loc.set(@1, @8);
         }
         | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
             ASTModifiers mods($1);
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, $7, $4, $6);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.firstLine;
-            $$->loc.lastCol = @8.firstCol;
+            $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, new ASTNameExpression(typeName), $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.firstLine;
-            $$->loc.lastCol = @8.firstCol;
+            $$->loc.set(@1, @8);
         }
         | SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Outofline, $6, $3, $5, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Outofline, new ASTNameExpression(typeName), $4, $6, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         ;
 
 base_constructor_list:
         ':' base_constructors {
             $$ = new ASTConstrInitExpression($2);
-            $$->loc.firstLine = @2.firstLine;
-            $$->loc.firstCol = @2.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc = @2;
             delete $2;
         }
         | { // nothing
@@ -2186,19 +1618,13 @@ base_constructors:
 base_constructor:
         IDENTIFIER '(' myexp ')' {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTCallExpression(new ASTNameExpression(name), $3);
         }
         | SCOPED_REF '(' myexp ')' {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTCallExpression(new ASTNameExpression(name), $3);
         }
@@ -2236,20 +1662,14 @@ return_value:
         TOK_RETURNS qtypedef {
             if ($2) {
                 ASTName typeName($2, ASTNameKind::ANK_QTypedef);
-                typeName.loc.firstLine = @2.firstLine;
-                typeName.loc.firstCol = @2.firstCol;
-                typeName.loc.lastLine = @2.lastLine;
-                typeName.loc.lastCol = @2.lastCol;
+                typeName.loc = @2;
                 delete $2;
                 $$ = new ASTReturnsExpression(new ASTNameExpression(typeName));
             }
             else {
                 $$ = new ASTReturnsExpression();
             }
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.set(@1, @2);
         }
         | /* nothing */
         { $$ = 0; }
@@ -2257,137 +1677,77 @@ return_value:
 sub_def:
         TOK_SUB ident_openparen myexp ')' return_value block {
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Sub, $5, $3, nullptr, $6);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.lastLine;
-            $$->loc.lastCol = @6.lastCol;
+            $$->loc.set(@1, @6);
         }
         | uncqtypedef TOK_SUB ident_openparen myexp ')' block {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Sub, new ASTNameExpression(typeName), $4, nullptr, $6);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @6.lastLine;
-            $$->loc.lastCol = @6.lastCol;
+            $$->loc.set(@1, @6);
         }
         | method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
             ASTModifiers mods($1);
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Sub, $6, $4, nullptr, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | method_modifiers uncqtypedef TOK_SUB ident_openparen myexp ')' block {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($4, ASTNameKind::ANK_IdentOpenParen);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Sub, new ASTNameExpression(typeName), $5, nullptr, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
 
 scoped_sub_def:
         TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, $6, $4, nullptr, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, new ASTNameExpression(typeName), $5, nullptr, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @7.lastLine;
-            $$->loc.lastCol = @7.lastCol;
+            $$->loc.set(@1, @7);
         }
         | method_modifiers TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
             ASTModifiers mods($1);
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_ScopedSub, $7, $5, nullptr, $8);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.lastLine;
-            $$->loc.lastCol = @8.lastCol;
+            $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($4, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @4.firstLine;
-            name.loc.firstCol = @4.firstCol;
-            name.loc.lastLine = @4.lastLine;
-            name.loc.lastCol = @4.lastCol;
+            name.loc = @4;
             free($4);
             $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_ScopedSub, new ASTNameExpression(typeName), $6, nullptr, $8);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.lastLine;
-            $$->loc.lastCol = @8.lastCol;
+            $$->loc.set(@1, @8);
         }
         ;
 
@@ -2396,10 +1756,7 @@ list:
             $$ = new ASTListExpression;
             $$->elements.push_back($1);
             $$->elements.push_back($3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
         }
         | exp ',' {
             if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
@@ -2408,10 +1765,7 @@ list:
             else {
                 $$ = new ASTListExpression;
                 $$->elements.push_back($1);
-                $$->loc.firstLine = @1.firstLine;
-                $$->loc.firstCol = @1.firstCol;
-                $$->loc.lastLine = @1.lastLine;
-                $$->loc.lastCol = @1.lastCol;
+                $$->loc = @1;
             }
         }
         ;
@@ -2421,10 +1775,7 @@ list_n:
             $$ = new ASTListExpression;
             $$->elements.push_back($1);
             $$->elements.push_back($3);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.set(@1, @3);
         }
         | exp_n ',' {
             if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
@@ -2433,10 +1784,7 @@ list_n:
             else {
                 $$ = new ASTListExpression;
                 $$->elements.push_back($1);
-                $$->loc.firstLine = @1.firstLine;
-                $$->loc.firstCol = @1.firstCol;
-                $$->loc.lastLine = @1.lastLine;
-                $$->loc.lastCol = @1.lastCol;
+                $$->loc = @1;
             }
         }
         ;
@@ -2445,16 +1793,12 @@ hash:
         hash_element {
             $$ = new ASTHashExpression;
             $$->elements.push_back($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | hash ',' hash_element {
             $$ = $1;
             $$->elements.push_back($3);
-            $$->loc.lastLine = @3.lastLine;
-            $$->loc.lastCol = @3.lastCol;
+            $$->loc.setLast(@3);
         }
         | hash ','
         { /* empty ',' on end of hash */ $$ = $1; }
@@ -2479,40 +1823,25 @@ exp_c:
         { $$ = $2; }
         | SCOPED_REF {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
         | qtypedef VAR_REF {
             if ($1) {
                 ASTName typeName($1, ASTNameKind::ANK_QTypedef);
-                typeName.loc.firstLine = @1.firstLine;
-                typeName.loc.firstCol = @1.firstCol;
-                typeName.loc.lastLine = @1.lastLine;
-                typeName.loc.lastCol = @1.lastCol;
+                typeName.loc = @1;
                 delete $1;
                 ASTName name($2, ASTNameKind::ANK_VarRef);
-                name.loc.firstLine = @2.firstLine;
-                name.loc.firstCol = @2.firstCol;
-                name.loc.lastLine = @2.lastLine;
-                name.loc.lastCol = @2.lastCol;
+                name.loc = @2;
                 free($2);
                 ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
-                vd->loc.firstLine = @1.firstLine;
-                vd->loc.firstCol = @1.firstCol;
-                vd->loc.lastLine = @2.lastLine;
-                vd->loc.lastCol = @2.lastCol;
+                vd->loc.set(@1, @2);
                 $$ = new ASTDeclExpression(vd.release());
             }
             else {
                 ASTName name($2, ASTNameKind::ANK_VarRef);
-                name.loc.firstLine = @2.firstLine;
-                name.loc.firstCol = @2.firstCol;
-                name.loc.lastLine = @2.lastLine;
-                name.loc.lastCol = @2.lastCol;
+                name.loc = @2;
                 free($2);
                 $$ = new ASTNameExpression(name);
             }
@@ -2520,88 +1849,52 @@ exp_c:
         | qtypedef SCOPED_VREF {
             if ($1) {
                 ASTName typeName($1, ASTNameKind::ANK_QTypedef);
-                typeName.loc.firstLine = @1.firstLine;
-                typeName.loc.firstCol = @1.firstCol;
-                typeName.loc.lastLine = @1.lastLine;
-                typeName.loc.lastCol = @1.lastCol;
+                typeName.loc = @1;
                 delete $1;
                 ASTName name($2, ASTNameKind::ANK_ScopedVref);
-                name.loc.firstLine = @2.firstLine;
-                name.loc.firstCol = @2.firstCol;
-                name.loc.lastLine = @2.lastLine;
-                name.loc.lastCol = @2.lastCol;
+                name.loc = @2;
                 free($2);
                 ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
-                vd->loc.firstLine = @1.firstLine;
-                vd->loc.firstCol = @1.firstCol;
-                vd->loc.lastLine = @2.lastLine;
-                vd->loc.lastCol = @2.lastCol;
+                vd->loc.set(@1, @2);
                 $$ = new ASTDeclExpression(vd.release());
             }
             else {
                 ASTName name($2, ASTNameKind::ANK_ScopedVref);
-                name.loc.firstLine = @2.firstLine;
-                name.loc.firstCol = @2.firstCol;
-                name.loc.lastLine = @2.lastLine;
-                name.loc.lastCol = @2.lastCol;
+                name.loc = @2;
                 free($2);
                 $$ = new ASTNameExpression(name);
             }
         }
         | uncqtypedef IDENTIFIER {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_MY uncqtypedef IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_My);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @3.lastLine;
-            vd->loc.lastCol = @3.lastCol;
+            vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_MY IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_My);
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @2.lastLine;
-            vd->loc.lastCol = @2.lastCol;
+            vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_MY qtypedef VAR_REF {
@@ -2609,32 +1902,20 @@ exp_c:
             ASTName typeName(ASTNameKind::ANK_QTypedef);
             if ($2) {
                 typeName.name = *($2);
-                typeName.loc.firstLine = @2.firstLine;
-                typeName.loc.firstCol = @2.firstCol;
-                typeName.loc.lastLine = @2.lastLine;
-                typeName.loc.lastCol = @2.lastCol;
+                typeName.loc = @2;
                 delete $2;
             }
             ASTName name($3, ASTNameKind::ANK_VarRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
-            vd->loc.firstLine = @1.firstLine;
-            vd->loc.firstCol = @1.firstCol;
-            vd->loc.lastLine = @3.lastLine;
-            vd->loc.lastCol = @3.lastCol;
+            vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
         | TOK_MY '(' list ')' {
             ASTModifiers mods(ASTModifier::AM_My);
             ASTVarListDeclaration::Ptr vld(new ASTVarListDeclaration(mods, $3));
-            vld->loc.firstLine = @1.firstLine;
-            vld->loc.firstCol = @1.firstCol;
-            vld->loc.lastLine = @4.firstLine;
-            vld->loc.lastCol = @4.firstCol;
+            vld->loc.set(@1, @4);
             $$ = new ASTDeclExpression(vld.release());
         }
         | gvardecl {
@@ -2642,143 +1923,107 @@ exp_c:
         }
         | IDENTIFIER {
             ASTName name($1, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
         | CONTEXT_REF {
             ASTName name($1, ASTNameKind::ANK_ContextRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
         | TOK_CONTEXT_ROW {
             $$ = new ASTContextRowExpression;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | COMPLEX_CONTEXT_REF {
             ASTName name($1, ASTNameKind::ANK_ComplexContextRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
         }
         | TOK_FIND exp TOK_IN exp TOK_WHERE '(' exp ')' {
             $$ = new ASTFindExpression($2, $4, $7);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @8.firstLine;
-            $$->loc.lastCol = @8.firstCol;
+            $$->loc.set(@1, @8);
         }
         | TOK_EXISTS exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Exists);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_ELEMENTS exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Elements);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_KEYS exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Keys);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_UNSHIFT exp {  // unshift list, element
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Unshift);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_SHIFT exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Shift);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_PUSH exp {  // push lvalue-list, element
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Push);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_POP exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Pop);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_CHOMP exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Chomp);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_TRIM exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Trim);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_SPLICE exp {  // splice lvalue-list, offset, [length, list]
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Splice);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_EXTRACT exp {  // extract lvalue-list, offset, [length, list]
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Extract);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_MAP exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Map);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_FOLDR exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Foldr);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_FOLDL exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Foldl);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_SELECT exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Select);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | P_INCREMENT exp {  // pre-increment
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_PreIncrement);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | P_DECREMENT exp {  // pre-decrement
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_PreDecrement);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | BASE_CLASS_CALL '(' myexp ')' {
             ASTName name($1, ASTNameKind::ANK_BaseClassCall);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTCallExpression(new ASTNameExpression(name), $3);
         }
         | KW_IDENTIFIER_OPENPAREN myexp ')' {
             ASTName name($1, ASTNameKind::ANK_KWIdentifier);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
+            name.loc.setFirst(@1);
             name.loc.lastLine = @1.lastLine - 1;
             name.loc.lastCol = @1.lastCol - 1;
             free($1);
@@ -2786,10 +2031,7 @@ exp_c:
         }
         | SELF_REF {
             ASTName name($1, ASTNameKind::ANK_SelfRef);
-            name.loc.firstLine = @1.firstLine;
-            name.loc.firstCol = @1.firstCol;
-            name.loc.lastLine = @1.lastLine;
-            name.loc.lastCol = @1.lastCol;
+            name.loc = @1;
             free($1);
             $$ = new ASTNameExpression(name);
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -2800,62 +2042,46 @@ exp_c:
             //        if the expression can throw an exception at run-time
             // first check for constant expressions
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_UnaryMinus);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | '+' exp %prec UPLUS {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_UnaryPlus);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | '~' exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_BinaryNot);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | '!' exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_LogicalNot);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | '\\' exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Reference);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_NEW IDENTIFIER '(' myexp ')' {
             ASTName name($2, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTCallExpression::Ptr ce(new ASTCallExpression(new ASTNameExpression(name), $4));
             $$ = new ASTUnaryExpression(ce.release(), ASTOperatorKind::AOK_New);
         }
         | TOK_NEW SCOPED_REF '(' myexp ')' {
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             free($2);
             ASTCallExpression::Ptr ce(new ASTCallExpression(new ASTNameExpression(name), $4));
             $$ = new ASTUnaryExpression(ce.release(), ASTOperatorKind::AOK_New);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_BACKGROUND exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Background);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | BACKQUOTE {
             $$ = new ASTBackquoteExpression($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
             free($1);
         }
         | '(' exp ')' {
@@ -2864,84 +2090,54 @@ exp_c:
         | '(' ')' { $$ = new ASTListExpression; }
         | TOK_SUB '(' myexp ')' return_value block {
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration($5, $3, $6));
-            cd->loc.firstLine = @1.firstLine;
-            cd->loc.firstCol = @1.firstCol;
-            cd->loc.lastLine = @6.lastLine;
-            cd->loc.lastCol = @6.lastCol;
+            cd->loc.set(@1, @6);
             $$ = new ASTClosureExpression(cd.release());
         }
         | uncqtypedef TOK_SUB '(' myexp ')' block {
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @1.firstLine;
-            typeName.loc.firstCol = @1.firstCol;
-            typeName.loc.lastLine = @1.lastLine;
-            typeName.loc.lastCol = @1.lastCol;
+            typeName.loc = @1;
             delete $1;
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration(new ASTNameExpression(typeName), $4, $6));
-            cd->loc.firstLine = @1.firstLine;
-            cd->loc.firstCol = @1.firstCol;
-            cd->loc.lastLine = @6.lastLine;
-            cd->loc.lastCol = @6.lastCol;
+            cd->loc.set(@1, @6);
             $$ = new ASTClosureExpression(cd.release());
         }
         | method_modifiers TOK_SUB '(' myexp ')' return_value block {
             ASTModifiers mods($1);
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration(mods, $6, $4, $7));
-            cd->loc.firstLine = @1.firstLine;
-            cd->loc.firstCol = @1.firstCol;
-            cd->loc.lastLine = @7.lastLine;
-            cd->loc.lastCol = @7.lastCol;
+            cd->loc.set(@1, @7);
             $$ = new ASTClosureExpression(cd.release());
         }
         | method_modifiers uncqtypedef TOK_SUB '(' myexp ')' block {
             ASTModifiers mods($1);
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
-            typeName.loc.firstLine = @2.firstLine;
-            typeName.loc.firstCol = @2.firstCol;
-            typeName.loc.lastLine = @2.lastLine;
-            typeName.loc.lastCol = @2.lastCol;
+            typeName.loc = @2;
             delete $2;
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration(mods, new ASTNameExpression(typeName), $5, $7));
-            cd->loc.firstLine = @1.firstLine;
-            cd->loc.firstCol = @1.firstCol;
-            cd->loc.lastLine = @7.lastLine;
-            cd->loc.lastCol = @7.lastCol;
+            cd->loc.set(@1, @7);
             $$ = new ASTClosureExpression(cd.release());
         }
         | IMPLICIT_ARG_REF {
             $$ = new ASTImplicitArgExpression($1);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | IMPLICIT_ELEMENT {
             $$ = new ASTImplicitElemExpression;
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
-            $$->loc.lastLine = @1.lastLine;
-            $$->loc.lastCol = @1.lastCol;
+            $$->loc = @1;
         }
         | TOK_DELETE exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Delete);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | TOK_REMOVE exp {
             $$ = new ASTUnaryExpression($2, ASTOperatorKind::AOK_Remove);
-            $$->loc.firstLine = @1.firstLine;
-            $$->loc.firstCol = @1.firstCol;
+            $$->loc.setFirst(@1);
         }
         | QORE_CAST '(' exp ')' {
             ASTName castType($1, ASTNameKind::ANK_CastType);
-            castType.loc.firstLine = @1.firstLine;
-            castType.loc.firstCol = @1.firstCol;
-            castType.loc.lastLine = @1.lastLine;
-            castType.loc.lastCol = @1.lastCol;
+            castType.loc = @1;
             free($1);
             $$ = new ASTCastExpression(castType, $3);
-            $$->loc.lastLine = @4.firstLine;
-            $$->loc.lastCol = @4.firstCol;
+            $$->loc.setLast(@4);
         }
         ;
 
@@ -2973,19 +2169,13 @@ exp:
         | exp '=' exp                       { $$ = new ASTAssignmentExpression($1, $3); }
         | exp TOK_INSTANCEOF IDENTIFIER   {
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Instanceof, new ASTNameExpression(name));
         }
         | exp TOK_INSTANCEOF SCOPED_REF   {
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Instanceof, new ASTNameExpression(name));
         }
@@ -2994,13 +2184,11 @@ exp:
         | exp '?' exp ':' exp               { $$ = new ASTTernaryExpression($1, $3, $5); }
         | exp P_INCREMENT                   { // post-increment
             $$ = new ASTUnaryExpression($1, ASTOperatorKind::AOK_PostIncrement);
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.setLast(@2);
         }
         | exp P_DECREMENT                   { // post-decrement
             $$ = new ASTUnaryExpression($1, ASTOperatorKind::AOK_PostDecrement);
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.setLast(@2);
         }
         | exp '(' myexp ')'                 {
             $$ = new ASTCallExpression($1, $3);
@@ -3047,26 +2235,17 @@ exp:
         | exp '/' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp '*' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
         | exp '[' exp ']'                   {
-            $3->loc.firstLine = @2.firstLine;
-            $3->loc.firstCol = @2.firstCol;
-            $3->loc.lastLine = @4.lastLine;
-            $3->loc.lastCol = @4.lastCol;
+            $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
         }
         | exp '{' exp '}'                   {
-            $3->loc.firstLine = @2.firstLine;
-            $3->loc.firstCol = @2.firstCol;
-            $3->loc.lastLine = @4.lastLine;
-            $3->loc.lastCol = @4.lastCol;
+            $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
         | exp '.' exp                       { $$ = new ASTAccessExpression($1, $3); }
         | exp DOT_KW_IDENTIFIER             {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             delete $2;
             $$ = new ASTAccessExpression($1, new ASTNameExpression(name));
         }
@@ -3098,19 +2277,13 @@ exp_n:
         | exp_n '=' exp                     { $$ = new ASTAssignmentExpression($1, $3); }
         | exp_n TOK_INSTANCEOF IDENTIFIER   {
             ASTName name($3, ASTNameKind::ANK_Identifier);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Instanceof, new ASTNameExpression(name));
         }
         | exp_n TOK_INSTANCEOF SCOPED_REF   {
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
-            name.loc.firstLine = @3.firstLine;
-            name.loc.firstCol = @3.firstCol;
-            name.loc.lastLine = @3.lastLine;
-            name.loc.lastCol = @3.lastCol;
+            name.loc = @3;
             free($3);
             $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Instanceof, new ASTNameExpression(name));
         }
@@ -3119,13 +2292,11 @@ exp_n:
         | exp_n '?' exp ':' exp             { $$ = new ASTTernaryExpression($1, $3, $5); }
         | exp_n P_INCREMENT                 { // post-increment
             $$ = new ASTUnaryExpression($1, ASTOperatorKind::AOK_PostIncrement);
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.setLast(@2);
         }
         | exp_n P_DECREMENT                 { // post-decrement
             $$ = new ASTUnaryExpression($1, ASTOperatorKind::AOK_PostDecrement);
-            $$->loc.lastLine = @2.lastLine;
-            $$->loc.lastCol = @2.lastCol;
+            $$->loc.setLast(@2);
         }
         | exp_n '(' myexp ')'               {
             $$ = new ASTCallExpression($1, $3);
@@ -3172,26 +2343,17 @@ exp_n:
         | exp_n '/' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp_n '*' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
         | exp_n '[' exp ']'                 {
-            $3->loc.firstLine = @2.firstLine;
-            $3->loc.firstCol = @2.firstCol;
-            $3->loc.lastLine = @4.lastLine;
-            $3->loc.lastCol = @4.lastCol;
+            $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
         }
         | exp_n '{' exp '}'                 {
-            $3->loc.firstLine = @2.firstLine;
-            $3->loc.firstCol = @2.firstCol;
-            $3->loc.lastLine = @4.lastLine;
-            $3->loc.lastCol = @4.lastCol;
+            $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
         | exp_n '.' exp                     { $$ = new ASTAccessExpression($1, $3); }
         | exp_n DOT_KW_IDENTIFIER           {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);
-            name.loc.firstLine = @2.firstLine;
-            name.loc.firstCol = @2.firstCol;
-            name.loc.lastLine = @2.lastLine;
-            name.loc.lastCol = @2.lastCol;
+            name.loc = @2;
             delete $2;
             $$ = new ASTAccessExpression($1, new ASTNameExpression(name));
         }

@@ -57,6 +57,23 @@ struct ASTParseLocation {
         firstCol(fcol),
         lastLine(lline),
         lastCol(lcol) {}
+
+    void set(const ASTParseLocation& first, const ASTParseLocation& last) {
+        firstLine = first.firstLine;
+        firstCol  = first.firstCol;
+        lastLine  = last.lastLine;
+        lastCol   = last.lastCol;
+    }
+
+    void setFirst(const ASTParseLocation& first) {
+        firstLine = first.firstLine;
+        firstCol  = first.firstCol;
+    }
+
+    void setLast(const ASTParseLocation& last) {
+        lastLine  = last.lastLine;
+        lastCol   = last.lastCol;
+    }
 };
 
 #endif // _QLS_AST_ASTPARSELOCATION_H
