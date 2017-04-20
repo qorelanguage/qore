@@ -106,7 +106,8 @@ class SQLStatementTest inherits QUnit::Test {
             SQLStatement stmt(dsp);
             on_error dsp.rollback();
 
-            stmt.prepare("insert into test (string) values (%v)");
+            stmt.prepare("select * from test");
+            stmt.exec();
             dsp.commit();
 
             # test that an exception is thrown when we try to execute a stmt prepared on another connection
