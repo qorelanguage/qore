@@ -3210,11 +3210,11 @@ string:
       ;
 
 scalar:
-      QFLOAT        { $$ = new ASTLiteralExpression(ALEKind::ALEK_Float, $1); }
-      | INTEGER     { $$ = new ASTLiteralExpression(ALEKind::ALEK_Int, $1); }
-      | string      { $$ = new ASTLiteralExpression(ALEKind::ALEK_String, $1); }
-      | DATETIME    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Date, $1); }
-      | NUMBER      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Number, $1); }
+      QFLOAT        { $$ = new ASTLiteralExpression(ALEKind::ALEK_Float, $1); $$->loc = @1; }
+      | INTEGER     { $$ = new ASTLiteralExpression(ALEKind::ALEK_Int, $1); $$->loc = @1; }
+      | string      { $$ = new ASTLiteralExpression(ALEKind::ALEK_String, $1); $$->loc = @1; }
+      | DATETIME    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Date, $1); $$->loc = @1; }
+      | NUMBER      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Number, $1); $$->loc = @1; }
       ;
 
 %%
