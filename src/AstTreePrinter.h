@@ -42,9 +42,6 @@ class ASTTree;
 
 class AstTreePrinter {
 public:
-    static void printTree(std::ostream& os, ASTTree* tree);
-
-private:
     static void printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent);
     static void printExpression(std::ostream& os, ASTExpression* expr, int indent);
     static void printModifiers(std::ostream& os, ASTModifiers mods, int indent);
@@ -52,6 +49,8 @@ private:
     static void printOperator(std::ostream& os, ASTOperator op, int indent, bool newline);
     static void printStatement(std::ostream& os, ASTStatement* stmt, int indent);
     static void printNode(std::ostream& os, ASTNode* node, int indent);
+
+    static void printTree(std::ostream& os, ASTTree* tree);
 };
 
 #endif // _QLS_ASTTREEPRINTER_H
