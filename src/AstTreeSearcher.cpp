@@ -485,6 +485,7 @@ ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col)
             case ANT_Declaration: {
                 ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
                 result = findNodeInDeclaration(decl, line, col);
+                break;
             }
             case ANT_Expression: {
                 ASTExpression* expr = static_cast<ASTExpression*>(node);

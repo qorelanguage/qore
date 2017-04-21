@@ -73,7 +73,7 @@ int AstParser::parseString(string str) {
     @return return value
  */
 *hash AstParser::hover(int line, int col) {
-    ASTNode* node = aph->findNode(line, col);
+    ASTNode* node = aph->findNode(line+1, col+1);
     if (!node)
         return nullptr;
 
@@ -85,12 +85,12 @@ int AstParser::parseString(string str) {
         return nullptr;
     if (!start || !end || !range || !result)
         return nullptr;
-    start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine), xsink);
-    start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol), xsink);
+    start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
-    end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine), xsink);
-    end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol), xsink);
+    end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
     range->setKeyValue("start", start.release(), xsink);
