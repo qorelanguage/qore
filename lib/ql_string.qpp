@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_string.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/ql_string.h"
+#include "qore/intern/qore_number_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -291,9 +291,16 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
    if (fmt.empty())
-      return new QoreStringNodeMaker("%.9g", num);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+      return q_fix_decimal(new QoreStringNodeMaker("%.9g", num));
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
    if (qore_number_private::formatNumberString(**str, fmt, xsink))
+      return 0;
+   return str.release();
+}
+
+QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
+   if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
       return 0;
    return str.release();
 }
@@ -792,12 +799,12 @@ int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
+//! Gives the positive numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
 /**
     @param str the string containing the byte to be retrieved
     @param offset the byte offset of the byte to be retrieved
 
-    @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
+    @return the positive numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
     @code{.py}
@@ -810,7 +817,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (qore_size_t)offset >= str->strlen())
       return -1;
 
-   return str->getBuffer()[offset];
+   return (unsigned char)str->getBuffer()[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1023,7 +1030,7 @@ bool b = regex("hello", "^hel"); # returns True
     @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1082,7 +1089,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
    else
       global = false;
 
-   RegexSubstNode qrs(regex, (int)options, xsink);
+   QoreRegexSubst qrs(regex, (int)options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1122,7 +1129,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
 *list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1544,12 +1551,12 @@ string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QLLD, offset);
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: " QLLD, offset);
 
    if (smul < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: "QLLD, smul);
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: " QLLD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode());
+   QoreStringNodeHolder ret(new QoreStringNode);
    while (smul > 0) {
       ret->concat(str);
       --smul;
@@ -1912,6 +1919,10 @@ number n = parse_number("1.150.200,55", ".,");
 
     @return the number value represented by the string
 
+    @see
+    - @ref parse_int()
+    - @ref parse_float()
+
     @since %Qore 0.8.11.1
 */
 number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
@@ -1926,16 +1937,20 @@ number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
    return new QoreNumberNode(tmp.getBuffer());
 }
 
-//! returns a number corresponding to the string and the argument, giving the format
+//! returns a floating-point value corresponding to a string representing the number and an argument giving the format
 /** @par Example:
     @code{.py}
-number n = parse_number("1.150.200,55", ".,");
+float f = parse_float("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
     @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
-    @return the number value represented by the string
+    @return the floating-point value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_int()
 
     @since %Qore 0.8.11.1
 */
@@ -1948,6 +1963,35 @@ float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
    if (fix_num(tmp, **tfmt, xsink))
       return QoreValue();
 
-   return strtod(tmp.getBuffer(), 0);
+   return q_strtod(tmp.getBuffer());
+}
+
+//! returns an integer corresponding to a string representing the number and an argument giving the format
+/** @par Example:
+    @code{.py}
+int i = parse_int("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_float()
+
+    @since %Qore 0.8.13
+*/
+int parse_int(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return strtoll(tmp.getBuffer(), 0, 10);
 }
 //@}

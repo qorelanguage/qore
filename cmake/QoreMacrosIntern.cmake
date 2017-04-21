@@ -100,7 +100,7 @@ int main(void) {
 const unsigned char *p;
 d2i_X509(0, &p, 0l);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_CONST)
 
 # check for const required with SSL_CTX_new
@@ -110,7 +110,7 @@ int main(void) {
 const SSL_METHOD *meth;
 SSL_CTX_new(meth);
 return 0;
-}" 
+}"
 NEED_SSL_CTX_NEW_CONST)
 
 # check for return value with HMAC_Update and friends
@@ -119,7 +119,7 @@ check_cxx_source_compiles("
 int main(void) {
 int rc = HMAC_Update(0, 0, 0);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_HMAC_RV)
 
 unset(CMAKE_REQUIRED_INCLUDES)
@@ -282,7 +282,7 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")
    endif()
-   
+
 endif()
 
 endmacro()
@@ -300,7 +300,7 @@ check_cxx_source_compiles("
 int main(void){
 unordered_map<int, int> t;
 const unordered_map<int, int> &tr = t;
-tr.find(1); 
+tr.find(1);
 return 0;
 }" UNORDERED_MAP_FOUND)
 
@@ -340,7 +340,7 @@ check_cxx_source_compiles("
 #include <tr1/unordered_map>
 int main(void){
 std::tr1::unordered_map<int, int> t;
-const std::tr1::unordered_map<int, int> &tr = t; 
+const std::tr1::unordered_map<int, int> &tr = t;
 tr.find(1);
 return 0;
 }" TR1_UNORDERED_MAP_FOUND)
@@ -446,7 +446,7 @@ message(WARNING "Couldn't find an STL unordered_map")
 endif()
 
 #write the file.
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in
                ${CMAKE_BINARY_DIR}/${_hash_map_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
@@ -545,7 +545,7 @@ else()
 message(WARNING "couldn't find an STL slist")
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in
                ${CMAKE_BINARY_DIR}/${_stl_slist_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
@@ -649,7 +649,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "HP-UX")
 endif()
 
 add_definitions(${QORE_CPPFLAGS})
-set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPP_FLAGS})
+set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPPFLAGS})
 endmacro()
 
 # make sure dlfcn.h header file can be parsed without 'extern "C" {}'
@@ -699,3 +699,49 @@ if(DEFINED LIBQORE_ASM_SRC)
 endif()
 endmacro()
 
+# Check for explicit link against libatomic
+# Helper for checking for atomics
+function(check_working_cxx_atomics varname additional_lib)
+  include(CheckCXXSourceCompiles)
+  include(CMakePushCheckState)
+  cmake_push_check_state()
+  #set(CMAKE_REQUIRED_FLAGS "-std=c++11")
+  set(CMAKE_REQUIRED_LIBRARIES "${additional_lib}")
+  set(CMAKE_REQUIRED_QUIET 1)
+  CHECK_CXX_SOURCE_COMPILES("
+#include <atomic>
+std::atomic<int> x;
+int main() {
+  bool b = std::atomic_int{}.is_lock_free();
+  return std::atomic_fetch_add_explicit(&x, 1, std::memory_order_seq_cst);
+}
+" ${varname})
+  cmake_pop_check_state()
+endfunction(check_working_cxx_atomics)
+
+# First check if atomics work without the library.
+# If not, check if the library exists, and atomics work with it.
+function(check_cxx_atomic)
+  check_working_cxx_atomics(HAVE_CXX_ATOMICS_WITHOUT_LIB "")
+  if(HAVE_CXX_ATOMICS_WITHOUT_LIB)
+    message(STATUS "C++ atomics provided at compile time")
+  else()
+    message(STATUS "C++ atomics require a library")
+    find_library(LIBATOMIC_LIBRARY NAMES atomic PATH_SUFFIXES lib)
+    if(LIBATOMIC_LIBRARY)
+      check_working_cxx_atomics(HAVE_CXX_ATOMICS_WITH_LIB "${LIBATOMIC_LIBRARY}")
+      if (HAVE_CXX_ATOMICS_WITH_LIB)
+        set(LIBQORE_LIBS "${LIBQORE_LIBS};${LIBATOMIC_LIBRARY}" PARENT_SCOPE)
+        message(STATUS "Atomics provided by libatomic")
+      else()
+        message(STATUS "no libatomic library found")
+        message(FATAL_ERROR "Compiler must support std::atomic!")
+      endif()
+    else()
+      # find_library() fails for libatomic on fedora, no clue why - so here we hardcode it anyway
+      #message(FATAL_ERROR "Compiler appears to require libatomic, but cannot find it.")
+      message(STATUS "no libatomic library found; trying to link with it anyway")
+      set(LIBQORE_LIBS "${LIBQORE_LIBS};atomic" PARENT_SCOPE)
+    endif()
+  endif()
+endfunction(check_cxx_atomic)

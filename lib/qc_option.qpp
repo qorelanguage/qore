@@ -33,11 +33,9 @@
 
 #include <openssl/evp.h>
 
-#ifdef HAVE_ATOMIC_MACROS
-#define QORE_CONST_HAVE_ATOMIC_MACROS 1
-#else
-#define QORE_CONST_HAVE_ATOMIC_MACROS 0
-#endif
+#include <atomic>
+
+#define QORE_CONST_HAVE_ATOMIC_MACROS std::atomic_int{}.is_lock_free()
 
 #ifdef HAVE_CHECK_STACK_POS
 #define QORE_CONST_HAVE_CHECK_STACK_POS 1
