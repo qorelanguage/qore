@@ -109,6 +109,7 @@ class SQLStatementTest inherits QUnit::Test {
             on_error dsp.rollback();
 
             stmt.prepare("insert into test (string) values (%v)");
+            stmt.exec();
             dsp.commit();
 
             # no exception is thrown because the stmt is re-prepared & executed automatically on the new connection

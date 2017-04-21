@@ -345,6 +345,7 @@ public:
       assert(!pendingParseSink);
       assert(pgm_data_map.empty());
       assert(!exec_class_rv);
+      assert(!dc.reference_count());
    }
 
    DLLLOCAL void depRef() {
