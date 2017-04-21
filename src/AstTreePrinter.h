@@ -45,9 +45,9 @@ public:
     static void printTree(std::ostream& os, ASTTree* tree);
 
 private:
-    static void printModifiers(std::ostream& os, ASTModifiers mods, int indent);
     static void printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent);
     static void printExpression(std::ostream& os, ASTExpression* expr, int indent);
+    static void printModifiers(std::ostream& os, ASTModifiers mods, int indent);
     static void printName(std::ostream& os, ASTName& name, int indent, bool location = true, bool newline = true, const char* prefix = "name: ");
     static void printOperator(std::ostream& os, ASTOperator op, int indent, bool newline);
     static void printStatement(std::ostream& os, ASTStatement* stmt, int indent);
