@@ -6,7 +6,7 @@
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # copies of this file or files derived from it .
 #
@@ -31,14 +31,41 @@ include(FindPackageHandleStandardArgs)
 cmake_push_check_state(RESET)
 set(CMAKE_REQUIRED_QUIET true)
 
-find_path(ICONV_INCLUDE_DIR iconv.h)
-find_library(ICONV_LIBRARY NAMES iconv libiconv libiconv-2)
-if(ICONV_LIBRARY)
+if (DEFINED ENV{ICONV_DIR})
+    find_path(ICONV_INCLUDE_DIR iconv.h
+        PATHS $ENV{ICONV_DIR}/include
+        NO_DEFAULT_PATH
+    )
+    find_library(ICONV_LIBRARY NAMES iconv libiconv libiconv-2
+        PATHS $ENV{ICONV_DIR}/lib
+        NO_DEFAULT_PATH
+    )
+else()
+    if (DEFINED ENV{ICONV_INCLUDE_DIR})
+        set(ICONV_INCLUDE_DIR $ENV{ICONV_INCLUDE_DIR})
+    else()
+        find_path(ICONV_INCLUDE_DIR iconv.h)
+    endif()
+    if (DEFINED ENV{ICONV_LIBRARY})
+        set(ICONV_LIBRARY $ENV{ICONV_LIBRARY})
+    else()
+        find_library(ICONV_LIBRARY NAMES iconv libiconv libiconv-2)
+    endif()
+endif()
+
+if (ICONV_LIBRARY AND ICONV_INCLUDE_DIR)
     set(CMAKE_REQUIRED_INCLUDES ${ICONV_INCLUDE_DIR})
     set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARY})
-    check_symbol_exists(libiconv iconv.h ICONV_FOUND_IN_LIBICONV)
-    if(ICONV_FOUND_IN_LIBICONV)
-        set(ICONV_LIBRARY_TYPE "GNU libiconv")
+    if (DEFINED ENV{ICONV_LIBRARY_TYPE})
+        set(ICONV_LIBRARY_TYPE $ENV{ICONV_LIBRARY_TYPE})
+    else()
+        check_library_exists(iconv libiconv_open "" ICONV_FOUND_IN_LIBICONV)
+        if(ICONV_FOUND_IN_LIBICONV)
+            set(ICONV_LIBRARY_TYPE "GNU libiconv")
+        else()
+            set(ICONV_LIBRARY_TYPE "libc")
+            message("-- libiconv not found: inc: ${ICONV_INCLUDE_DIR} lib: ${ICONV_LIBRARY}")
+        endif()
     endif()
 endif()
 
@@ -51,7 +78,11 @@ if(NOT ICONV_LIBRARY OR NOT ICONV_FOUND_IN_LIBICONV)
     check_function_exists(iconv ICONV_FOUND_IN_LIBC)
     if(ICONV_FOUND_IN_LIBC AND ICONV_INCLUDE_IN_LIBC)
         set(ICONV_LIBRARY_TYPE "libc")
-    endif()  
+    endif()
+endif()
+
+if (DEFINED ICONV_LIBRARY_TYPE)
+    message("-- ICONV_LIBRARY_TYPE is ${ICONV_LIBRARY_TYPE}")
 endif()
 
 cmake_pop_check_state()

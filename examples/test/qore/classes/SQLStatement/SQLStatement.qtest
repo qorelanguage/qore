@@ -98,8 +98,10 @@ class SQLStatementTest inherits QUnit::Test {
             assertEq(1, rc);
             dsp.commit();
 
-            # test that an exception is thrown when we try to execute a stmt prepared on another connection
-            assertThrows("SQLSTATEMENT-ERROR", sub () {stmt.exec("hi2");});
+            # no exception is thrown because the stmt is re-prepared & executed automatically on the new connection
+            stmt.exec("hi2");
+            assertEq(1, stmt.affectedRows());
+            stmt.commit();
         }
 
         {
@@ -110,8 +112,10 @@ class SQLStatementTest inherits QUnit::Test {
             stmt.exec();
             dsp.commit();
 
-            # test that an exception is thrown when we try to execute a stmt prepared on another connection
-            assertThrows("SQLSTATEMENT-ERROR", sub () {stmt.exec("hi2");});
+            # no exception is thrown because the stmt is re-prepared & executed automatically on the new connection
+            stmt.exec("hi2");
+            assertEq(1, stmt.affectedRows());
+            stmt.rollback();
         }
         {
             SQLStatement stmt(ds);

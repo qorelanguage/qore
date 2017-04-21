@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -31,7 +31,7 @@
 %new-style
 
 module HttpServer {
-    version = "0.3.11.1";
+    version = "0.3.12";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -112,7 +112,11 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
-    @subsection http0311 HttpServer 0.3.11.1
+    @subsection http0312 HttpServer 0.3.12
+    - added a minimal substring of string bodies received to the log message when logging HTTP requests
+    - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+
+    @subsection http03111 HttpServer 0.3.11.1
     - fixed a bug where @ref HttpServer::HttpServer::addListener() would not accept port 0 meaning bind on any random open port (<a href="https://github.com/qorelanguage/qore/issues/1284">bug 1284</a>)
 
     @subsection http0311 HttpServer 0.3.11
@@ -1733,6 +1737,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
         const PollInterval = 1s;
         const ListenQueue = 100;
+        const BodyLogLimit = 40;
     }
 
     public {
@@ -2187,9 +2192,22 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log("cid %d: RECV BODY: %y", cx.id, body);
 
                 {
+                    # attempt to mask any password in the URI path
+                    orig_path =~ s/(pass(?:word)?)=.*/$1=<masked>/g; #/;
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
-                    if (body)
-                        lstr += sprintf(" body: %db", body.size());
+                    if (body) {
+                        if (body.typeCode() == NT_STRING) {
+                            string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                            # attempt to mask any password in the message body
+                            bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
+                            bstr = replace(bstr, "\n", "\\n");
+                            bstr = replace(bstr, "\r", "\\r");
+                            bstr = replace(bstr, "\t", "\\t");
+                            lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
+                        }
+                        else
+                            lstr += sprintf(" body: <bin> %db", body.size());
+                    }
                     else if (hdr."transfer-encoding" == "chunked")
                         lstr += " body: chunked";
                     if (hdr."_qore_orig_content_type")
