@@ -32,8 +32,10 @@ module TextDocument {
     version = "0.1";
     desc    = "TextDocument class";
     author  = "Ondrej Musil <ondrej.musil@qoretechnologies.com>";
-    url     = "http://qore.org";
+    url     = "https://github.com/qorelanguage/qls";
 }
+
+%requires astparser
 
 #! Represents one open document (source file).
 public class TextDocument {
@@ -50,8 +52,8 @@ public class TextDocument {
         #! The content of the opened text document.
         string text;
 
-        #! Program parsing the document. Used for getting all the important info.
-        *Program pgm;
+        #! AST parser. Used for getting all the important info.
+        astparser::AstParser parser;
 
         #! Whether the document has been parsed successfully by the program.
         bool parseOk;
@@ -71,19 +73,15 @@ public class TextDocument {
     #! Parse the text of the document.
     private parse() {
         parseOk = False;
-        pgm = new Program();
-        try {
-            pgm.parse(text, uri);
-            parseOk = True;
-            parseError = NOTHING;
+        parser = new astparser::AstParser();
+        int rc = parser.parseString(text);
+        if (rc) {
+            stderr.printf("error parsing the text document '%s'; return code: %d\n", uri, rc);
+            parseError = "error parsing the text document '%s'; return code: %d";
         }
-        catch (hash ex) {
-            stderr.printf("error parsing the text document '%s':\n%N\n", uri, ex);
-            if (ex.code == "PROGRAM-PARSE-ERROR") {
-                stderr.printf("PROGRAM-PARSE-ERROR\n");
-            }
-            pgm = NOTHING;
-            parseError = ex.code + ": " + ex.desc;
+        else {
+            parseOk = True;
+            delete parseError;
         }
         stderr.printf("parse finished\n");
     }
@@ -143,7 +141,7 @@ public class TextDocument {
             };
         }
 
-        *hash results = pgm.hover(Position.line, Position.character);
+        *hash results = parser.hover(Position.line, Position.character);
         if (!results)
             return {
                 "contents": "no results",

@@ -24,9 +24,13 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include <qore/Qore.h>
+#include <sstream>
+#include <string>
+
+#include "qore/Qore.h"
 
 #include "AstParserHolder.h"
+#include "AstTreePrinter.h"
 
 //! AstParser class
 /** Lorem ipsum dolor sit amet.
@@ -60,4 +64,45 @@ int AstParser::parseFile(string filename) {
  */
 int AstParser::parseString(string str) {
     return aph->parseString(str->getBuffer());
+}
+
+//! Hover info.
+/**
+    @param line on what line lies the symbol we want to get info about
+    @param col on what column lies the symbol we want to get info about
+    @return return value
+ */
+*hash AstParser::hover(int line, int col) {
+    ASTNode* node = aph->findNode(line, col);
+    if (!node)
+        return nullptr;
+
+    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    if (!start || !end || !range || !result)
+        return nullptr;
+    start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    range->setKeyValue("start", start.release(), xsink);
+    range->setKeyValue("end", end.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    std::ostringstream nodeName;
+    AstTreePrinter::printNode(nodeName, node, 0);
+    result->setKeyValue("contents", new QoreStringNode(nodeName.str()), xsink);
+    result->setKeyValue("range", range.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    return result.release();
 }

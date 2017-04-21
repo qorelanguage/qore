@@ -30,7 +30,9 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
+#include "ast/ASTParseLocation.h"
 #include "ast/ASTTree.h"
 
 class AstParser {
@@ -46,6 +48,11 @@ public:
 
     int parseString(const char* str);
     int parseString(std::string& str);
+
+    ASTNode* findNode(ast_loc_t line, ast_loc_t col);
+
+    ASTTree* getTreePtr() { parsedTree.get(); }
+    ASTTree* releaseTree() { parsedTree.release(); }
 };
 
 #endif // _QLS_ASTPARSER_H

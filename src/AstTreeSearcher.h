@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstParserHolder.h
+  AstTreeSearcher.h
 
   Qore AST Parser
 
@@ -25,34 +25,33 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTPARSERHOLDER_H
-#define _QLS_ASTPARSERHOLDER_H
+#ifndef _QLS_ASTTREESEARCHER_H
+#define _QLS_ASTTREESEARCHER_H
 
-#include <qore/Qore.h>
+#include <vector>
 
-class AstParser;
+#include "ast/ASTModifiers.h"
+#include "ast/ASTName.h"
+#include "ast/ASTOperator.h"
+#include "ast/ASTParseLocation.h"
 
+class ASTDeclaration;
+class ASTExpression;
 class ASTNode;
+class ASTStatement;
 class ASTTree;
 
-class AstParserHolder : public AbstractPrivateData {
-private:
-    AstParser* parser;
-
+class AstTreeSearcher {
 public:
-    AstParserHolder();
-    ~AstParserHolder();
+    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
-    int parseFile(const char* filename);
-    int parseFile(std::string& filename);
-
-    int parseString(const char* str);
-    int parseString(std::string& str);
-
-    ASTNode* findNode(int line, int col);
-
-    ASTTree* getTreePtr();
-    ASTTree* releaseTree();
+private:
+    static ASTNode* findNodeInDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
-#endif // _QLS_ASTPARSERHOLDER_H
+#endif // _QLS_ASTTREESEARCHER_H

@@ -31,6 +31,7 @@
 
 #include "ast/AST.h"
 #include "AstTreePrinter.h"
+#include "AstTreeSearcher.h"
 
 typedef void *yyscan_t;
 extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
@@ -72,7 +73,7 @@ int AstParser::parseFile(const char* filename) {
     // Store the created tree;
     parsedTree = std::move(tree);
 
-    AstTreePrinter::printTree(std::cout, parsedTree.get());
+    //AstTreePrinter::printTree(std::cout, parsedTree.get());
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
@@ -111,6 +112,8 @@ int AstParser::parseString(const char* str) {
     // Store the created tree;
     parsedTree = std::move(tree);
 
+    //AstTreePrinter::printTree(std::cout, parsedTree.get());
+
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
 
@@ -121,4 +124,12 @@ int AstParser::parseString(const char* str) {
 
 int AstParser::parseString(std::string& str) {
     return parseString(str.c_str());
+}
+
+ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
+    if (!parsedTree) {
+        return nullptr;
+    }
+
+    return AstTreeSearcher::findNode(parsedTree.get(), line, col);
 }
