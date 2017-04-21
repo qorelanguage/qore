@@ -46,11 +46,11 @@ public:
 
 public:
     ASTSuperclassDeclaration(ASTModifiers mods, const ASTName& n) :
-        ASTDeclaration(name.loc),
+        ASTDeclaration(n.loc),
         modifiers(mods),
         name(n) {}
     ASTSuperclassDeclaration(const ASTName& n) :
-        ASTDeclaration(name.loc),
+        ASTDeclaration(n.loc),
         name(n) {}
 
     virtual Kind getKind() const override {
