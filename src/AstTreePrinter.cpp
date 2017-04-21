@@ -215,6 +215,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
         printString(os, "<null expression>\n", indent);
         return;
     }
+
     switch (expr->getKind()) {
         case ASTExpression::Kind::AEK_Access: {
             ASTAccessExpression* e = static_cast<ASTAccessExpression*>(expr);
@@ -555,12 +556,202 @@ void AstTreePrinter::printName(std::ostream& os, ASTName& name, int indent, bool
 }
 
 void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int indent) {
-    printIndent(os, indent);
     if (!stmt) {
-        os << "<null statement>" << std::endl;
+        printString(os, "<null statement>\n", indent);
         return;
     }
-    os << "statement" << std::endl;
+
+    switch (stmt->getKind()) {
+        case ASTStatement::Kind::ASK_Block: {
+            ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
+            printString(os, "StmtBlock ", indent);
+            printLocation(os, s->loc, 0);
+            if (s->statements.size() > 0) {
+                for (unsigned int i = 0, count = s->statements.size(); i < count; i++)
+                    printStatement(os, s->statements[i], indent+1);
+            }
+            else {
+                printString(os, "<empty>\n", indent+1);
+            }
+            break;
+        }
+        case ASTStatement::Kind::ASK_Break: {
+            printString(os, "BreakStmt ", indent);
+            printLocation(os, stmt->loc, 0);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Call: {
+            ASTCallStatement* s = static_cast<ASTCallStatement*>(stmt);
+            printString(os, "CallStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printExpression(os, s->call.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Context: {
+            ASTContextStatement* s = static_cast<ASTContextStatement*>(stmt);
+            printString(os, "ContextStmt ", indent);
+            printLocation(os, s->loc, 0, false);
+            printString(os, s->subcontext ? " (subcontext)\n" : "\n", 0);
+            printString(os, "name:\n", indent+1);
+            printExpression(os, s->name.get(), indent+2);
+            printString(os, "data:\n", indent+1);
+            printExpression(os, s->data.get(), indent+2);
+            if (s->contextMods.size() > 0) {
+                printString(os, "contextMods:\n", indent+1);
+                for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+                    printExpression(os, s->contextMods[i], indent+2);
+            }
+            printStatement(os, s->statements.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Continue: {
+            printString(os, "ContinueStmt ", indent);
+            printLocation(os, stmt->loc, 0);
+            break;
+        }
+        case ASTStatement::Kind::ASK_DoWhile: {
+            ASTDoWhileStatement* s = static_cast<ASTDoWhileStatement*>(stmt);
+            printString(os, "DoWhileStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "condition:\n", indent+1);
+            printExpression(os, s->condition.get(), indent+2);
+            printStatement(os, s->statement.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Expression: {
+            ASTExpressionStatement* s = static_cast<ASTExpressionStatement*>(stmt);
+            printString(os, "ExpressionStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printExpression(os, s->expression.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_For: {
+            ASTForStatement* s = static_cast<ASTForStatement*>(stmt);
+            printString(os, "ForStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "init:\n", indent+1);
+            printExpression(os, s->init.get(), indent+2);
+            printString(os, "condition:\n", indent+1);
+            printExpression(os, s->condition.get(), indent+2);
+            printString(os, "iteration:\n", indent+1);
+            printExpression(os, s->iteration.get(), indent+2);
+            printStatement(os, s->statement.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Foreach: {
+            ASTForeachStatement* s = static_cast<ASTForeachStatement*>(stmt);
+            printString(os, "ForeachStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "value:\n", indent+1);
+            printExpression(os, s->value.get(), indent+2);
+            printString(os, "source:\n", indent+1);
+            printExpression(os, s->source.get(), indent+2);
+            printStatement(os, s->statement.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_If: {
+            ASTIfStatement* s = static_cast<ASTIfStatement*>(stmt);
+            printString(os, "IfStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "condition:\n", indent+1);
+            printExpression(os, s->condition.get(), indent+2);
+            printString(os, "then:\n", indent+1);
+            printStatement(os, s->stmtThen.get(), indent+2);
+            printString(os, "else:\n", indent+1);
+            printStatement(os, s->stmtElse.get(), indent+2);
+            break;
+        }
+        case ASTStatement::Kind::ASK_OnBlockExit: {
+            ASTOnBlockExitStatement* s = static_cast<ASTOnBlockExitStatement*>(stmt);
+            printString(os, "OnBlockExitStmt ", indent);
+            printLocation(os, s->loc, 0, false);
+            if (s->condition == ASTOnBlockExitStatement::Condition::AOBEC_Error)
+                printString(os, " (on_error)\n", 0);
+            else if (s->condition == ASTOnBlockExitStatement::Condition::AOBEC_Exit)
+                printString(os, " (on_exit)\n", 0);
+            else if (s->condition == ASTOnBlockExitStatement::Condition::AOBEC_Success)
+                printString(os, " (on_success)\n", 0);
+            printStatement(os, s->statement.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Rethrow: {
+            printString(os, "RethrowStmt ", indent);
+            printLocation(os, stmt->loc, 0);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Return: {
+            ASTReturnStatement* s = static_cast<ASTReturnStatement*>(stmt);
+            printString(os, "ReturnStmt ", indent);
+            printLocation(os, s->loc, 0);
+            if (s->retval.get())
+                printExpression(os, s->retval.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Summarize: {
+            ASTSummarizeStatement* s = static_cast<ASTSummarizeStatement*>(stmt);
+            printString(os, "SummarizeStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "name:\n", indent+1);
+            printExpression(os, s->name.get(), indent+2);
+            printString(os, "data:\n", indent+1);
+            printExpression(os, s->data.get(), indent+2);
+            printString(os, "by:\n", indent+1);
+            printExpression(os, s->by.get(), indent+2);
+            if (s->contextMods.size() > 0) {
+                printString(os, "contextMods:\n", indent+1);
+                for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+                    printExpression(os, s->contextMods[i], indent+2);
+            }
+            printStatement(os, s->statements.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Switch: {
+            ASTSwitchStatement* s = static_cast<ASTSwitchStatement*>(stmt);
+            printString(os, "SwitchStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "variable:\n", indent+1);
+            printExpression(os, s->variable.get(), indent+2);
+            printExpression(os, s->body.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_ThreadExit: {
+            printString(os, "ThreadExitStmt ", indent);
+            printLocation(os, stmt->loc, 0);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Throw: {
+            ASTThrowStatement* s = static_cast<ASTThrowStatement*>(stmt);
+            printString(os, "ThrowStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printExpression(os, s->expression.get(), indent+1);
+            break;
+        }
+        case ASTStatement::Kind::ASK_Try: {
+            ASTTryStatement* s = static_cast<ASTTryStatement*>(stmt);
+            printString(os, "TryStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "tryBlock:\n", indent+1);
+            printStatement(os, s->tryStmt.get(), indent+2);
+            if (s->catchVar.get()) {
+                printString(os, "catchVar:\n", indent+1);
+                printExpression(os, s->catchVar.get(), indent+2);
+            }
+            printString(os, "catchBlock:\n", indent+1);
+            printStatement(os, s->catchStmt.get(), indent+2);
+            break;
+        }
+        case ASTStatement::Kind::ASK_While: {
+            ASTWhileStatement* s = static_cast<ASTWhileStatement*>(stmt);
+            printString(os, "WhileStmt ", indent);
+            printLocation(os, s->loc, 0);
+            printString(os, "condition:\n", indent+1);
+            printExpression(os, s->condition.get(), indent+2);
+            printStatement(os, s->statement.get(), indent+1);
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void AstTreePrinter::printOperator(std::ostream& os, ASTOperator op, int indent, bool newline) {

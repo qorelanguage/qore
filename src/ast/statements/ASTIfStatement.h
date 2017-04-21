@@ -44,7 +44,7 @@ public:
 
 public:
     //! Condition.
-    ASTExpression::Ptr expression;
+    ASTExpression::Ptr condition;
 
     //! Code to execute when condition is true.
     ASTStatement::Ptr stmtThen;
@@ -53,9 +53,9 @@ public:
     ASTStatement::Ptr stmtElse;
 
 public:
-    ASTIfStatement(ASTExpression* expr, ASTStatement* sThen, ASTStatement* sElse) :
+    ASTIfStatement(ASTExpression* cond, ASTStatement* sThen, ASTStatement* sElse) :
         ASTStatement(),
-        expression(expr),
+        condition(cond),
         stmtThen(sThen),
         stmtElse(sElse) {}
 

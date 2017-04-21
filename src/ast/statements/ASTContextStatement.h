@@ -57,7 +57,7 @@ public:
     std::vector<ASTContextModExpression*> contextMods;
 
     //! Statements to execute.
-    ASTStatementBlock::Ptr stmts;
+    ASTStatementBlock::Ptr statements;
 
     //! Whether this is a (sub)context statement.
     bool subcontext;
@@ -71,7 +71,7 @@ public:
         ASTStatement(),
         name(ne),
         data(de),
-        stmts(sb),
+        statements(sb),
         subcontext(subcont)
     {
         if (cm)
