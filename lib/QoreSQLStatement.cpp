@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,14 +51,24 @@ public:
       //printd(5, "DBActionHelper::DBActionHelper() old ds: %p cmd: %s\n", stmt.priv->ds, DAH_TEXT(cmd));
       stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
 
+      //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
+
+      // issue #1835: the helperStartAction() call can fail in case of a timeout, therefore we have to check below
+      // that the call succeeded before raising an additional exception
+
       // if we are trying to start a new transaction on a new Datasource connection, but we have
       // already prepared the statement on another connection, we have to raise an exception
       // otherwise the statement will actually be executed on the original connection which is
       // cached in the driver (https://github.com/qorelanguage/qore/issues/465)
-      if (oldds && stmt.priv->ds != oldds && cmd == DAH_ACQUIRE)
+      if (oldds && stmt.priv->ds && stmt.priv->ds != oldds && cmd == DAH_ACQUIRE) {
+         // issue #1836 we release the connection before marking the object as invalid
+         stmt.priv->ds = stmt.dsh->helperEndAction(DAH_RELEASE, nt, xsink);
          xsink->raiseException("SQLSTATEMENT-ERROR", "statement was prepared on another Datasource; you must close the statement before executing this action on a new connection");
+      }
 
-      //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
+      // ensure we either have a datasource or an exception
+      assert((*xsink && !stmt.priv->ds) || (!*xsink && stmt.priv->ds));
+
       valid = *xsink ? false : true;
    }
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -97,7 +97,7 @@ DatasourcePool::~DatasourcePool() {
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
    assert(xsink);
-   // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
+   // ths initial Datasource creation could throw an exception if there is an error in a driver option, for example
    std::auto_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
