@@ -108,7 +108,7 @@ class SQLStatementTest inherits QUnit::Test {
             SQLStatement stmt(dsp);
             on_error dsp.rollback();
 
-            stmt.prepare("select * from test");
+            stmt.prepare("insert into test (string) values (%v)");
             stmt.exec();
             dsp.commit();
 
