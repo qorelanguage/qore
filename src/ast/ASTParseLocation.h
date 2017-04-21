@@ -32,9 +32,9 @@
 #ifndef _QLS_AST_ASTPARSELOCATION_H
 #define _QLS_AST_ASTPARSELOCATION_H
 
-struct ASTParseLocation {
-    typedef int ast_loc_t;
+typedef int ast_loc_t;
 
+struct ASTParseLocation {
     ast_loc_t firstLine;
     ast_loc_t firstCol;
     ast_loc_t lastLine;
@@ -73,6 +73,27 @@ struct ASTParseLocation {
     void setLast(const ASTParseLocation& last) {
         lastLine  = last.lastLine;
         lastCol   = last.lastCol;
+    }
+
+    bool inside(ast_loc_t line, ast_loc_t col) {
+        if (line < firstLine) return false;
+        if (line > lastLine) return false;
+        if (firstLine == lastLine) {
+            if (col < firstCol || col >= lastCol)
+                return false;
+            return true;
+        }
+        if (line == firstLine) {
+            if (col < firstCol)
+                return false;
+            return true;
+        }
+        if (line == lastLine) {
+            if (col >= lastCol)
+                return false;
+            return true;
+        }
+        return true;
     }
 };
 
