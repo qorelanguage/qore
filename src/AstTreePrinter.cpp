@@ -162,8 +162,8 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printString(os, "VariableDecl ", indent);
             printLocation(os, d->loc, 0);
             printModifiers(os, d->modifiers, indent+1);
-            printName(os, d->name, indent+1);
             printName(os, d->typeName, indent+1, true, true, "typeName: ");
+            printName(os, d->name, indent+1);
             break;
         }
         case ASTDeclaration::Kind::ADK_VarList: {
@@ -389,7 +389,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printLocation(os, e->loc, 0);
             printIndent(os, indent+1);
             if (e->kind == ALEK_Binary)
-                os << "binary: <" << e->value.str << ">" << "\n";
+                os << "binary: " << e->value.str << "\n";
             else if (e->kind == ALEK_Date)
                 os << "date: " << e->value.str << "\n";
             else if (e->kind == ALEK_Float)
