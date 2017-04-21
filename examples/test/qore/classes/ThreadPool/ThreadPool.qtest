@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class ThreadPoolTest
+
+class ThreadPoolTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ThreadPool", "1.0") {
+        addTestCase("ThreadPoolTest", \ThreadPoolTest());
+        set_return_value(main());
+    }
+
+    ThreadPoolTest() {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.parse("sub set(string k, any val) { save_thread_data((k: val)); } any sub get(string k) { return get_thread_data(k); }", "");
+        p.callFunction("set", "key", "value1");
+        assertEq("value1", p.callFunction("get", "key"));
+
+        Counter c(1);
+        Counter start(1);
+
+        code task = sub () {
+            assertEq(NOTHING, p.callFunction("get", "key"));
+            p.callFunction("set", "key", "value");
+            assertEq("value", p.callFunction("get", "key"));
+            start.dec();
+            c.waitForZero();
+        };
+
+        ThreadPool tp();
+        tp.submit(task);
+
+        # wait for task to be run
+        start.waitForZero();
+
+        assertEq("value1", p.callFunction("get", "key"));
+
+        delete p;
+        delete task;
+
+        # signal background task to exit
+        c.dec();
+    }
+}
