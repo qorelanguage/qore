@@ -32,7 +32,7 @@
 #ifndef _QLS_AST_EXPRESSIONS_ASTLITERALEXPRESSION_H
 #define _QLS_AST_EXPRESSIONS_ASTLITERALEXPRESSION_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 
 #include "ast/ASTExpression.h"
