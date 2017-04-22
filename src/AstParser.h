@@ -51,8 +51,8 @@ public:
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
 
-    ASTTree* getTreePtr() { parsedTree.get(); }
-    ASTTree* releaseTree() { parsedTree.release(); }
+    ASTTree* getTreePtr() { return parsedTree.get(); }
+    ASTTree* releaseTree() { return parsedTree.release(); }
 };
 
 #endif // _QLS_ASTPARSER_H
