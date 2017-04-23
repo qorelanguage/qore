@@ -146,6 +146,7 @@ DebugProgram::destructor() {
  *
  */
 nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
+   ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->addProgram(pgm, HARD_QORE_VALUE_OBJECT(args, 0));
 }
 
@@ -154,6 +155,7 @@ nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
  *
  */
 nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
+   ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->removeProgram(pgm);
 }
 
@@ -204,6 +206,7 @@ DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, refe
   *
   */
 nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
+   ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->breakProgramThread(pgm, tid);
 }
 
@@ -212,5 +215,6 @@ nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
   *
   */
 nothing DebugProgram::breakProgram(Program[QoreProgram] pgm) {
+   ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->breakProgram(pgm);
 }

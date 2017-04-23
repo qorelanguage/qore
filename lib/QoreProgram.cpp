@@ -167,6 +167,7 @@ qore_program_private::~qore_program_private() {
       dpgm->removeProgram(pgm);
    // wait till all debug calls are finished, no new calls possible as dpgm->removeProgram() set dpmg to NULL
    debug_program_counter.waitForZero();
+   deleteAllBreakpoints();
    assert(!parseSink);
    assert(!warnSink);
    assert(!pendingParseSink);
@@ -962,7 +963,15 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
    checkAttach(xsink);
    checkBreakFlag();
    int rc = 0;
-   if (stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0)) {
+   bool cond = stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0);
+   if (!cond && stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH) {
+      const AbstractStatement *st = statement ? statement : blockStatement;
+      if (st->getBreakpointFlag()) {   // fast breakpoint check
+         printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d, breakpoint phase-1\n", this, stepBreakpoint, gettid());
+         cond = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
+      }
+   }
+   if (cond) {
       printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
       functionCallLevel = 0;
       ThreadDebugEnum sb = stepBreakpoint;
@@ -1661,3 +1670,79 @@ void QoreDebugProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {
    priv->waitForTerminationAndClear(xsink);
    deref(xsink);
 }
+
+void QoreProgram::assignBreakpoint(QoreBreakpoint *bkpt) {
+   priv->assignBreakpoint(bkpt);
+}
+
+void QoreProgram::deleteAllBreakpoints() {
+   priv->deleteAllBreakpoints();
+}
+
+void QoreBreakpoint::unassignAllStatements() {
+   for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
+      (*it)->unassignBreakpoint(this);
+   }
+   statementList.clear();
+}
+
+QoreBreakpoint::~QoreBreakpoint() {
+   if (pgm) {
+      QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
+      pgm->breakpointList.remove(this);
+      unassignAllStatements();
+   } else {
+      unassignAllStatements();
+   }
+}
+// lck_breakpoint lock should be aquired
+bool QoreBreakpoint::isStatementAssigned(const AbstractStatement *statement) const {
+   return std::find(statementList.begin(), statementList.end(), statement) != statementList.end();
+}
+
+bool QoreBreakpoint::checkBreak() const {
+   // TODO: add break by pid
+   return enabled;
+}
+
+void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
+   if (new_pgm) {
+      new_pgm->assignBreakpoint(this);
+   } else {
+      if (pgm) {
+         QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
+         pgm->breakpointList.remove(this);
+         unassignAllStatements();
+         pgm = 0;
+      }
+   }
+}
+
+void QoreBreakpoint::assignStatement(AbstractStatement* statement, ExceptionSink* xsink) {
+   if (pgm) {
+      QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
+      if (pgm->isBreakpointRegistered(this)) {
+         if (statement && !isStatementAssigned(statement)) {
+            statementList.push_back(statement);
+            statement->assignBreakpoint(this);
+         }
+      }
+   } else {
+      xsink->raiseException("BREAKPOINT-ERROR", "QoreProgram is not assigned");
+   }
+}
+
+void QoreBreakpoint::unassignStatement(AbstractStatement* statement, ExceptionSink* xsink) {
+   if (pgm) {
+      QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
+      if (pgm->isBreakpointRegistered(this)) {
+         if (statement && isStatementAssigned(statement)) {
+            statementList.remove(statement);
+            statement->unassignBreakpoint(this);
+         }
+      }
+   } else {
+      xsink->raiseException("BREAKPOINT-ERROR", "QoreProgram is not assigned");
+   }
+}
+

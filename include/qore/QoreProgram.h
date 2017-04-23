@@ -52,7 +52,7 @@
 #define QP_WARN_INVALID_OPERATION        (1 << 7)   //!< when an expression always returns NOTHING, for example
 #define QP_WARN_CALL_WITH_TYPE_ERRORS    (1 << 8)   //!< when a function or method call always returns a fixed value due to type errors
 #define QP_WARN_RETURN_VALUE_IGNORED     (1 << 9)   //!< when a function or method call has no side effects and the return value is ignored
-#define QP_WARN_DEPRECATED               (1 << 10)  //!< when depcrecated functionality is accessed
+#define QP_WARN_DEPRECATED               (1 << 10)  //!< when deprecated functionality is accessed
 #define QP_WARN_EXCESS_ARGS              (1 << 11)  //!< when excess arguments are given to a function that does not access them
 #define QP_WARN_DUPLICATE_HASH_KEY       (1 << 12)  //!< when a hash key has been defined more than once in a literal hash
 #define QP_WARN_UNREFERENCED_VARIABLE    (1 << 13)  //!< when a variable is declared but not referenced
@@ -103,6 +103,7 @@ class ParamList;
 class AbstractQoreZoneInfo;
 class qore_program_private;
 class AbstractQoreProgramExternalData;
+class QoreBreakpoint;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -701,7 +702,14 @@ public:
    DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
    DLLEXPORT AbstractStatement* findFunction(const char* functionName) const;
 
-   DLLEXPORT void setBreakpoint(AbstractStatement* statement, ExceptionSink* xsink) const;   // threadId ???
+   /** Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
+    */
+   DLLEXPORT void assignBreakpoint(QoreBreakpoint *bkpt);
+
+   /** delete all breakpoints from instance
+    *
+    */
+   DLLEXPORT void deleteAllBreakpoints();
 
 };
 
@@ -795,6 +803,44 @@ public:
 
    //! for non-reference counted classes, deletes the object immediately
    virtual void doDeref() = 0;
+};
+
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+typedef std::list<AbstractStatement*> AbstractStatementList_t;
+
+//! Class implementing breakpoint for debugging
+/** Breakpoint is assigned to one or more statements. When such a statement is executed then
+ *  breakpoint is probed using @ref checkBreak and program is potentially interrupted and
+ *  callback @ref QoreDebugProgram is triggered. The instance must be assigned to a @ref QoreProgram
+ */
+class QoreBreakpoint {
+private:
+   qore_program_private* pgm;
+   bool enabled;
+   AbstractStatementList_t statementList;
+   DLLLOCAL void unassignAllStatements();
+   DLLLOCAL virtual ~QoreBreakpoint();
+   DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
+   friend class qore_program_private;
+   friend class AbstractStatement;
+protected:
+   //! check if program flow should be interrupted
+   DLLLOCAL virtual bool checkBreak() const;
+public:
+   DLLEXPORT QoreBreakpoint(): pgm(0), enabled(false) {}
+   /** Assign @ref QoreProgram to breakpoint.
+    *
+    *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
+    */
+   DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
+   /** Assign breakpoint to a statement.
+    *
+    */
+   DLLEXPORT void assignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+   /** Unassign breakpoint from statement
+    *
+    */
+   DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
 };
 
 #endif  // _QORE_QOREPROGRAM_H

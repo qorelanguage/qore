@@ -115,7 +115,7 @@ public:
    DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false), frame_boundary(false) {
+   DLLLOCAL VarValueBase() : val(QV_Bool), id(0), skip(false), finalized(false), frame_boundary(false) {
    }
 
    DLLLOCAL void setFrameBoundary() {

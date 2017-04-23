@@ -675,8 +675,8 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    }
 
    QoreProgram* pgm;
-   pgm = getProgram();
    if (po == PO_ATTACH) {
+      pgm = getProgram();
       pgm->ref();
    } else {
       pgm = new QoreProgram(pgm, po);

@@ -444,6 +444,9 @@ public:
    }
 };
 
+class QoreBreakpoint;
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+
 class qore_program_private : public qore_program_private_base {
 private:
    mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
@@ -462,6 +465,8 @@ private:
    }
 
    qore_debug_program_private* dpgm;
+   QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
+   QoreBreakpointList_t breakpointList;
 
    /**
     * get safely debug program pointer. The debug program instance itself must exists. It's not matter of lock as the flow goes to QoreDebugProgram
@@ -478,6 +483,12 @@ private:
       return ret;
 
    }
+
+   // lck_breakpoint lock should be aquired
+   DLLLOCAL bool isBreakpointRegistered(const QoreBreakpoint *bkpt) const {
+      return std::find(breakpointList.begin(), breakpointList.end(), bkpt) != breakpointList.end();
+   }
+   friend class QoreBreakpoint;
 public:
    DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options) : qore_program_private_base(n_pgm, n_parse_options), dpgm(0) {
       printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -1953,6 +1964,34 @@ public:
       for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
          i->second->dbgBreak();
       }
+   }
+
+   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt) {
+      if (!bkpt || this == bkpt->pgm) return;
+      if (bkpt->pgm) {
+         QoreAutoRWWriteLocker al(&bkpt->pgm->lck_breakpoint);
+         bkpt->pgm->breakpointList.remove(bkpt);
+         bkpt->unassignAllStatements();
+         bkpt->pgm = 0;
+      }
+      QoreAutoRWWriteLocker al(&lck_breakpoint);
+      breakpointList.push_back(bkpt);
+      bkpt->pgm = this;
+
+   }
+
+   DLLLOCAL void deleteAllBreakpoints() {
+      QoreAutoRWWriteLocker al(&lck_breakpoint);
+      for (std::list<QoreBreakpoint*>::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
+         (*it)->pgm = 0;
+         delete *it;
+      }
+      breakpointList.clear();
+   }
+
+   DLLLOCAL inline bool onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
+      QoreAutoRWReadLocker al(&lck_breakpoint);
+      return statement->getBreakpoint() != 0;
    }
 
 };
