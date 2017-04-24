@@ -38,6 +38,7 @@
 class ASTDeclaration;
 class ASTExpression;
 class ASTNode;
+class ASTParseOption;
 class ASTStatement;
 class ASTTree;
 
@@ -51,6 +52,7 @@ private:
     static ASTNode* findNodeInExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
     static ASTNode* findNodeInName(ASTName& name, ast_loc_t line, ast_loc_t col);
     static ASTNode* findNodeInName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
     static ASTNode* findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 

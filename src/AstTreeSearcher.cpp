@@ -318,6 +318,14 @@ ASTNode* AstTreeSearcher::findNodeInName(ASTName* name, ast_loc_t line, ast_loc_
     return name;
 }
 
+ASTNode* AstTreeSearcher::findNodeInParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col) {
+    if (!po)
+        return nullptr;
+    if (!po->loc.inside(line, col))
+        return nullptr;
+    return po;
+}
+
 ASTNode* AstTreeSearcher::findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col) {
     if (!stmt)
         return nullptr;
@@ -495,6 +503,11 @@ ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col)
             case ANT_Name: {
                 ASTName* name = static_cast<ASTName*>(node);
                 result = findNodeInName(name, line, col);
+                break;
+            }
+            case ANT_ParseOption: {
+                ASTParseOption* po = static_cast<ASTParseOption*>(node);
+                result = findNodeInParseOption(po, line, col);
                 break;
             }
             case ANT_Statement: {

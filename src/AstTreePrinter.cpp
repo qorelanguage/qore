@@ -854,6 +854,96 @@ void AstTreePrinter::printOperator(std::ostream& os, ASTOperator op, int indent,
     }
 }
 
+void AstTreePrinter::printParseOption(std::ostream& os, ASTParseOption* po, int indent) {
+    printString(os, "ParseOption ", indent);
+
+    ASTParseOptionKind kind = po->getKind();
+    switch (kind) {
+        case APOK_ALLOW_BARE_REFS: os << "ALLOW_BARE_REFS"; break;
+        case APOK_ALLOW_DEBUGGING: os << "ALLOW_DEBUGGING"; break;
+        case APOK_ALLOW_INJECTION: os << "ALLOW_INJECTION"; break;
+        case APOK_APPEND_INCLUDE_PATH: os << "APPEND_INCLUDE_PATH"; break;
+        case APOK_APPEND_MODULE_PATH: os << "APPEND_MODULE_PATH"; break;
+        case APOK_ASSUME_GLOBAL: os << "ASSUME_GLOBAL"; break;
+        case APOK_ASSUME_LOCAL: os << "ASSUME_LOCAL"; break;
+        case APOK_BROKEN_INT_ASSIGNMENTS: os << "BROKEN_INT_ASSIGNMENTS"; break;
+        case APOK_BROKEN_LIST_PARSING: os << "BROKEN_LIST_PARSING"; break;
+        case APOK_BROKEN_LOGIC_PRECEDENCE: os << "BROKEN_LOGIC_PRECEDENCE"; break;
+        case APOK_BROKEN_LOOP_STATEMENT: os << "BROKEN_LOOP_STATEMENT"; break;
+        case APOK_BROKEN_OPERATORS: os << "BROKEN_OPERATORS"; break;
+        case APOK_BROKEN_REFERENCES: os << "BROKEN_REFERENCES"; break;
+        case APOK_DEFINE: os << "DEFINE"; break;
+        case APOK_DISABLE_ALL_WARNINGS: os << "DISABLE_ALL_WARNINGS"; break;
+        case APOK_DISABLE_WARNING: os << "DISABLE_WARNING"; break;
+        case APOK_ENABLE_ALL_WARNINGS: os << "ENABLE_ALL_WARNINGS"; break;
+        case APOK_ENABLE_WARNING: os << "ENABLE_WARNING"; break;
+        case APOK_ENDTRY: os << "ENDTRY"; break;
+        case APOK_EXEC_CLASS: os << "EXEC_CLASS"; break;
+        case APOK_INCLUDE: os << "INCLUDE"; break;
+        case APOK_LOCKDOWN: os << "LOCKDOWN"; break;
+        case APOK_LOCK_OPTIONS: os << "LOCK_OPTIONS"; break;
+        case APOK_LOCK_WARNINGS: os << "LOCK_WARNINGS"; break;
+        case APOK_MODULE_CMD: os << "MODULE_CMD"; break;
+        case APOK_NEW_STYLE: os << "NEW_STYLE"; break;
+        case APOK_NO_CHILD_PO_RESTRICTIONS: os << "NO_CHILD_PO_RESTRICTIONS"; break;
+        case APOK_NO_CLASS_DEFS: os << "NO_CLASS_DEFS"; break;
+        case APOK_NO_CONSTANT_DEFS: os << "NO_CONSTANT_DEFS"; break;
+        case APOK_NO_DATABASE: os << "NO_DATABASE"; break;
+        case APOK_NO_EXTERNAL_PROCESS: os << "NO_EXTERNAL_PROCESS"; break;
+        case APOK_NO_EXTERNAL_INFO: os << "NO_EXTERNAL_INFO"; break;
+        case APOK_NO_EXTERNAL_ACCESS: os << "NO_EXTERNAL_ACCESS"; break;
+        case APOK_NO_FILESYSTEM: os << "NO_FILESYSTEM"; break;
+        case APOK_NO_GLOBAL_VARS: os << "NO_GLOBAL_VARS"; break;
+        case APOK_NO_GUI: os << "NO_GUI"; break;
+        case APOK_NO_IO: os << "NO_IO"; break;
+        case APOK_NO_LOCALE_CONTROL: os << "NO_LOCALE_CONTROL"; break;
+        case APOK_NO_MODULES: os << "NO_MODULES"; break;
+        case APOK_NO_NAMESPACE_DEFS: os << "NO_NAMESPACE_DEFS"; break;
+        case APOK_NO_NETWORK: os << "NO_NETWORK"; break;
+        case APOK_NO_NEW: os << "NO_NEW"; break;
+        case APOK_NO_PROCESS_CONTROL: os << "NO_PROCESS_CONTROL"; break;
+        case APOK_NO_SUBROUTINE_DEFS: os << "NO_SUBROUTINE_DEFS"; break;
+        case APOK_NO_TERMINAL_IO: os << "NO_TERMINAL_IO"; break;
+        case APOK_NO_THREADS: os << "NO_THREADS"; break;
+        case APOK_NO_THREAD_CLASSES: os << "NO_THREAD_CLASSES"; break;
+        case APOK_NO_THREAD_CONTROL: os << "NO_THREAD_CONTROL"; break;
+        case APOK_NO_THREAD_INFO: os << "NO_THREAD_INFO"; break;
+        case APOK_NO_TOP_LEVEL_STATEMENTS: os << "NO_TOP_LEVEL_STATEMENTS"; break;
+        case APOK_NO_UNCONTROLLED_APIS: os << "NO_UNCONTROLLED_APIS"; break;
+        case APOK_OLD_STYLE: os << "OLD_STYLE"; break;
+        case APOK_PERL_BOOLEAN_EVAL: os << "PERL_BOOLEAN_EVAL"; break;
+        case APOK_PUSH_PARSE_OPTIONS: os << "PUSH_PARSE_OPTIONS"; break;
+        case APOK_REQUIRES: os << "REQUIRES"; break;
+        case APOK_REQUIRE_DOLLAR: os << "REQUIRE_DOLLAR"; break;
+        case APOK_REQUIRE_OUR: os << "REQUIRE_OUR"; break;
+        case APOK_REQUIRE_PROTOTYPES: os << "REQUIRE_PROTOTYPES"; break;
+        case APOK_REQUIRE_TYPES: os << "REQUIRE_TYPES"; break;
+        case APOK_SET_TIME_ZONE: os << "SET_TIME_ZONE"; break;
+        case APOK_STRICT_ARGS: os << "STRICT_ARGS"; break;
+        case APOK_STRICT_BOOLEAN_EVAL: os << "STRICT_BOOLEAN_EVAL"; break;
+        case APOK_STRONG_ENCAPSULATION: os << "STRONG_ENCAPSULATION"; break;
+        case APOK_TRY_MODULE: os << "TRY_MODULE"; break;
+        default: break;
+    }
+
+    if (kind == APOK_APPEND_INCLUDE_PATH ||
+        kind == APOK_APPEND_MODULE_PATH ||
+        kind == APOK_DEFINE ||
+        kind == APOK_DISABLE_WARNING ||
+        kind == APOK_ENABLE_WARNING ||
+        kind == APOK_EXEC_CLASS ||
+        kind == APOK_INCLUDE ||
+        kind == APOK_MODULE_CMD ||
+        kind == APOK_REQUIRES ||
+        kind == APOK_TRY_MODULE)
+    {
+        ASTStringParseOption* spo = static_cast<ASTStringParseOption*>(po);
+        os << ": \"" << spo->str << "\"";
+    }
+
+    os << "\n";
+}
+
 void AstTreePrinter::printNode(std::ostream& os, ASTNode* node, int indent) {
     if (!node)
         return;
@@ -872,6 +962,11 @@ void AstTreePrinter::printNode(std::ostream& os, ASTNode* node, int indent) {
         case ANT_Name: {
             ASTName* name = static_cast<ASTName*>(node);
             printName(os, *name, indent);
+            break;
+        }
+        case ANT_ParseOption: {
+            ASTParseOption* po = static_cast<ASTParseOption*>(node);
+            printParseOption(os, po, indent);
             break;
         }
         case ANT_Statement: {

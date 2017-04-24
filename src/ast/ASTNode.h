@@ -39,6 +39,7 @@ enum ASTNodeType {
     ANT_Declaration,
     ANT_Expression,
     ANT_Name,
+    ANT_ParseOption,
     ANT_Statement,
 };
 

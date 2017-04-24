@@ -37,6 +37,7 @@
 class ASTDeclaration;
 class ASTExpression;
 class ASTNode;
+class ASTParseOption;
 class ASTStatement;
 class ASTTree;
 
@@ -47,6 +48,7 @@ public:
     static void printModifiers(std::ostream& os, ASTModifiers mods, int indent);
     static void printName(std::ostream& os, ASTName& name, int indent, bool location = true, bool newline = true, const char* prefix = "name: ");
     static void printOperator(std::ostream& os, ASTOperator op, int indent, bool newline);
+    static void printParseOption(std::ostream& os, ASTParseOption* po, int indent);
     static void printStatement(std::ostream& os, ASTStatement* stmt, int indent);
     static void printNode(std::ostream& os, ASTNode* node, int indent);
 

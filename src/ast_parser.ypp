@@ -104,6 +104,7 @@ typedef void* yyscan_t;
     ASTMemberGroupDeclaration* membergroup;
     ASTNameExpression* nameexpr;
     ASTNamespaceDeclaration* nsdecl;
+    ASTParseOption* parseopt;
     ASTRegexExpression* regex;
     ASTRegexSubstExpression* regexsubst;
     ASTRegexTransExpression* regextrans;
@@ -234,6 +235,9 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 
+//other
+%token PARSE_OPT_STR "parse option string (no data)"
+
 // operators with white-space inside
 %token WS_LOGICAL_LE
 %token WS_LOGICAL_GE
@@ -284,7 +288,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str
 %token <regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <i4> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
-%token <string> REQUIRES "%requires value"
+%token <parseopt> PARSE_OPTION "parse option"
 
 %nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE
@@ -353,6 +357,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str
 %type <ui4>            nsc_modifiers
 %type <nameexpr>       optname
 %type <funcdecl>       outofline_methoddef
+%type <parseopt>       parse_option
 %type <b>              ppub
 %type <membergroup>    private_member_list
 %type <membergroup>    public_member_list
@@ -377,8 +382,8 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } DOT_KW_IDENTIFIER QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
-%destructor { free($$); } BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NUMBER REQUIRES QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
+%destructor { delete $$; } DOT_KW_IDENTIFIER PARSE_OPTION QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { free($$); } BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
 %destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } } base_constructors class_attributes context_mods inheritance_list member_list member_list2 namespace_decls superclass_list
 
 %%
@@ -447,8 +452,19 @@ top_level_command:
             $$ = $1;
         }
         | TOK_MODULE '{' module_decls '}' { $$ = nullptr; }
-        | REQUIRES {
-            $$ = nullptr;
+        | parse_option {
+            $$ = $1;
+        }
+        ;
+
+parse_option:
+        PARSE_OPTION {
+            $$ = $1;
+            $$->loc = @1;
+        }
+        | PARSE_OPTION PARSE_OPT_STR {
+            $$ = $1;
+            $$->loc.set(@1, @2);
         }
         ;
 

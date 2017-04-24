@@ -396,166 +396,150 @@ RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
 RTIME           PT(-?[0-9]+[HMSu])+
 
 %%
-^%no-global-vars{WS}*$                  {} /* getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS); */
-^%no-subroutine-defs{WS}*$              {} /* getProgram()->parseSetParseOptions(PO_NO_SUBROUTINE_DEFS); */
-^%no-threads{WS}*$                      {} /* getProgram()->parseSetParseOptions(PO_NO_THREADS); */
-^%no-thread-classes{WS}*$               {} /* getProgram()->parseSetParseOptions(PO_NO_THREAD_CLASSES); */
-^%no-thread-control{WS}*$               {} /* getProgram()->parseSetParseOptions(PO_NO_THREAD_CONTROL); */
-^%no-thread-info{WS}*$                  {} /* getProgram()->parseSetParseOptions(PO_NO_THREAD_INFO); */
-^%no-top-level{WS}*$                    {} /* getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS); */
-^%no-class-defs{WS}*$                   {} /* getProgram()->parseSetParseOptions(PO_NO_CLASS_DEFS); */
-^%no-namespace-defs{WS}*$               {} /* getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS); */
-^%no-external-process{WS}*$             {} /* getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS); */
-^%no-external-info{WS}*$                {} /* getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_INFO); */
-^%no-external-access{WS}*$              {} /* getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_ACCESS); */
-^%no-filesystem{WS}*$                   {} /* getProgram()->parseSetParseOptions(PO_NO_FILESYSTEM); */
-^%no-io{WS}*$                           {} /* getProgram()->parseSetParseOptions(PO_NO_IO); */
-^%lockdown{WS}*$                        {} /* getProgram()->parseSetParseOptions(PO_LOCKDOWN); */
-^%lock-options{WS}*$                    {} /* getProgram()->lockOptions(); */
-^%lock-warnings{WS}*$                   {} /* getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS); */
-^%no-locale-control{WS}*$               {} /* getProgram()->parseSetParseOptions(PO_NO_LOCALE_CONTROL); */
-^%no-process-control{WS}*$              {} /* getProgram()->parseSetParseOptions(PO_NO_PROCESS_CONTROL); */
-^%no-constant-defs{WS}*$                {} /* getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS); */
-^%no-new{WS}*$                          {} /* getProgram()->parseSetParseOptions(PO_NO_NEW); */
-^%no-network{WS}*$                      {} /* getProgram()->parseSetParseOptions(PO_NO_NETWORK); */
-^%no-child-restrictions{WS}*$           {} /* getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS); */
-^%allow-injection{WS}*$                 {} /* getProgram()->parseSetParseOptions(PO_ALLOW_INJECTION); */
-^%no-database{WS}*$                     {} /* getProgram()->parseSetParseOptions(PO_NO_DATABASE); */
-^%no-gui{WS}*$                          {} /* getProgram()->parseSetParseOptions(PO_NO_GUI); */
-^%no-terminal-io{WS}*$                  {} /* getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO); */
-^%no-modules{WS}*$                      {} /* getProgram()->parseSetParseOptions(PO_NO_MODULES); */
-^%require-our{WS}*$                     {} /* getProgram()->parseSetParseOptions(PO_REQUIRE_OUR); */
-^%require-types{WS}*$                   {} /* getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES); */
-^%require-prototypes{WS}*$              {} /* getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES); */
-^%strict-args{WS}*$                     {} /* getProgram()->parseSetParseOptions(PO_STRICT_ARGS); */
-^%allow-bare-refs{WS}*$                 {} /* getProgram()->parseSetParseOptions(PO_ALLOW_BARE_REFS); */
-^%require-dollar{WS}*$                  {} /* getProgram()->parseDisableParseOptions(PO_ALLOW_BARE_REFS); */
-^%assume-local{WS}*$                    {} /* getProgram()->parseSetParseOptions(PO_ASSUME_LOCAL); */
-^%assume-global{WS}*$                   {} /* getProgram()->parseDisableParseOptions(PO_ASSUME_LOCAL); */
-^%new-style{WS}*$                       {} /* getProgram()->parseSetParseOptions(PO_NEW_STYLE); */
-^%old-style{WS}*$                       {} /* getProgram()->parseDisableParseOptions(PO_NEW_STYLE); */
-^%perl-bool-eval{WS}*$                  {} /* getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL); */
-^%strict-bool-eval{WS}*$                {} /* getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL); */
-^%strong-encapsulation{WS}*$            {} /* getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION); */
-^%no-uncontrolled-apis{WS}*$            {} /* getProgram()->parseSetParseOptions(PO_NO_UNCONTROLLED_APIS); */
-^%allow-debugging{WS}*$                 {} /* getProgram()->parseSetParseOptions(PO_ALLOW_DEBUGGING); */
-^%broken-list-parsing{WS}*$             {} /* getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING); */
-^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; }
-^%broken-loop-statement{WS}*$           {} /* getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT); */
-^%broken-int-assignments{WS}*$          {} /* getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS); */
-^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; }
-^%broken-references{WS}*$               {} /* getProgram()->parseSetParseOptions(PO_BROKEN_REFERENCES); */
-^%push-parse-options{WS}*$              {} /* push_parse_options(); */
-^%append-include-path{WS}*$             { /*parse_error("missing argument to %%append-include-path");*/ }
-^%append-include-path{WS}+              BEGIN(append_path_state);
+^%no-global-vars{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_GLOBAL_VARS); return PARSE_OPTION; }
+^%no-subroutine-defs{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_SUBROUTINE_DEFS); return PARSE_OPTION; }
+^%no-threads{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_THREADS); return PARSE_OPTION; }
+^%no-thread-classes{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CLASSES); return PARSE_OPTION; }
+^%no-thread-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CONTROL); return PARSE_OPTION; }
+^%no-thread-info{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_INFO); return PARSE_OPTION; }
+^%no-top-level{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_NO_TOP_LEVEL_STATEMENTS); return PARSE_OPTION; }
+^%no-class-defs{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_CLASS_DEFS); return PARSE_OPTION; }
+^%no-namespace-defs{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_NAMESPACE_DEFS); return PARSE_OPTION; }
+^%no-external-process{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_PROCESS); return PARSE_OPTION; }
+^%no-external-info{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_INFO); return PARSE_OPTION; }
+^%no-external-access{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_ACCESS); return PARSE_OPTION; }
+^%no-filesystem{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_FILESYSTEM); return PARSE_OPTION; }
+^%no-io{WS}*$                           { yylval->parseopt = new ASTParseOption(APOK_NO_IO); return PARSE_OPTION; }
+^%lockdown{WS}*$                        { yylval->parseopt = new ASTParseOption(APOK_LOCKDOWN); return PARSE_OPTION; }
+^%lock-options{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_LOCK_OPTIONS); return PARSE_OPTION; }
+^%lock-warnings{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_LOCK_WARNINGS); return PARSE_OPTION; }
+^%no-locale-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_LOCALE_CONTROL); return PARSE_OPTION; }
+^%no-process-control{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_PROCESS_CONTROL); return PARSE_OPTION; }
+^%no-constant-defs{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_CONSTANT_DEFS); return PARSE_OPTION; }
+^%no-new{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_NEW); return PARSE_OPTION; }
+^%no-network{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_NETWORK); return PARSE_OPTION; }
+^%no-child-restrictions{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_NO_CHILD_PO_RESTRICTIONS); return PARSE_OPTION; }
+^%allow-injection{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_INJECTION); return PARSE_OPTION; }
+^%no-database{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_NO_DATABASE); return PARSE_OPTION; }
+^%no-gui{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_GUI); return PARSE_OPTION; }
+^%no-terminal-io{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_TERMINAL_IO); return PARSE_OPTION; }
+^%no-modules{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_MODULES); return PARSE_OPTION; }
+^%require-our{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_OUR); return PARSE_OPTION; }
+^%require-types{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_TYPES); return PARSE_OPTION; }
+^%require-prototypes{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_PROTOTYPES); return PARSE_OPTION; }
+^%strict-args{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_STRICT_ARGS); return PARSE_OPTION; }
+^%allow-bare-refs{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_BARE_REFS); return PARSE_OPTION; }
+^%require-dollar{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_DOLLAR); return PARSE_OPTION; }
+^%assume-local{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_ASSUME_LOCAL); return PARSE_OPTION; }
+^%assume-global{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_ASSUME_GLOBAL); return PARSE_OPTION; }
+^%new-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_NEW_STYLE); return PARSE_OPTION; }
+^%old-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_OLD_STYLE); return PARSE_OPTION; }
+^%perl-bool-eval{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_PERL_BOOLEAN_EVAL); return PARSE_OPTION; }
+^%strict-bool-eval{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_STRICT_BOOLEAN_EVAL); return PARSE_OPTION; }
+^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION; }
+^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION; }
+^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION; }
+^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION; }
+^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION; }
+^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION; }
+^%broken-int-assignments{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_BROKEN_INT_ASSIGNMENTS); return PARSE_OPTION; }
+^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_OPERATORS); return PARSE_OPTION; }
+^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION; }
+^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION; }
+^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION; }
+^%append-include-path{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); BEGIN(append_path_state); return PARSE_OPTION; }
 <append_path_state>[^\n\r]+             {
-                                            //set_include_path(yytext);
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%append-module-path{WS}*$              {}
-^%append-module-path{WS}+               BEGIN(append_module_state);
+^%append-module-path{WS}*$              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); return PARSE_OPTION; }
+^%append-module-path{WS}+               { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); BEGIN(append_module_state); return PARSE_OPTION; }
 <append_module_state>[^\n\r]+           {
-                                            //append_module_path(yytext);
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%set-time-zone{WS}*$                   { /*arse_error("missing argument to %%set-time-zone");*/ }
-^%set-time-zone{WS}+                    BEGIN(set_zone);
+^%set-time-zone{WS}*$                   { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); return PARSE_OPTION; }
+^%set-time-zone{WS}+                    { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); BEGIN(set_zone); return PARSE_OPTION; }
 <set_zone>[^\n\r]+                      {
-                                            //parse_set_time_zone(yytext);
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%enable-all-warnings{WS}*$             {
-                                            //if (getProgram()->setWarningMask(-1))
-                                            //    qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
-                                        }
-^%disable-all-warnings{WS}*$            {
-                                            //if (getProgram()->setWarningMask(0))
-                                            //    qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
-                                        }
-^%disable-warning{WS}*$                 { /*parse_error("missing argument to %%disable-warning");*/ }
-^%disable-warning{WS}+                  BEGIN(disable_warning);
+^%enable-all-warnings{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_ENABLE_ALL_WARNINGS); return PARSE_OPTION; }
+^%disable-all-warnings{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_DISABLE_ALL_WARNINGS); return PARSE_OPTION; }
+^%disable-warning{WS}*$                 { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); return PARSE_OPTION; }
+^%disable-warning{WS}+                  { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); BEGIN(disable_warning); return PARSE_OPTION; }
 <disable_warning>[^\n\r]+               {
-                                            /*char* cn = trim(yytext);
-                                            //printd(5, "scanner: disable warning '%s'\n", cn);
-                                            int code = get_warning_code(cn);
-                                            if (!code)
-                                                qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
-                                            else if (getProgram()->disableWarning(code))
-                                                qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
-                                            //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
-                                            free(cn);*/
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%enable-warning{WS}*$                  { /*parse_error("missing argument to %%enable-warning");*/ }
-^%enable-warning{WS}+                   BEGIN(enable_warning);
+^%enable-warning{WS}*$                  { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); return PARSE_OPTION; }
+^%enable-warning{WS}+                   { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); BEGIN(enable_warning); return PARSE_OPTION; }
 <enable_warning>[^\n\r]+                {
-                                            /*char* cn = trim(yytext);
-                                            //printd(5, "scanner: enable warning '%s'\n", cn);
-                                            int code = get_warning_code(cn);
-                                            if (!code)
-                                                qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
-                                            else if (getProgram()->enableWarning(code))
-                                                qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
-                                            free(cn);*/
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%exec-class{WS}*$                      { /*parse_error("missing argument to %%exec-class");*/ }
-^%exec-class{WS}+                       BEGIN(exec_class_state);
-^%try-module{WS}*$                      { /*parse_error("missing argument to %%try-module");*/ }
-^%try-module{WS}+                       BEGIN(try_module);
+^%exec-class{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); return PARSE_OPTION; }
+^%exec-class{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); BEGIN(exec_class_state); return PARSE_OPTION; }
+<exec_class_state>{
+   [^\n\r]+                             {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+}
+^%try-module{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_TRY_MODULE); return PARSE_OPTION; }
+^%try-module{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_TRY_MODULE); BEGIN(try_module); return PARSE_OPTION; }
 <try_module>[^\n\r]+                    {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%endtry{WS}*$                          {}
-^%requires{WS}*$                        { /*parse_error("missing argument to %%requires");*/ }
-^%requires                              BEGIN(requires);
+^%endtry{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_ENDTRY); return PARSE_OPTION; }
+^%requires{WS}*$                        { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); return PARSE_OPTION; }
+^%requires                              { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); BEGIN(requires); return PARSE_OPTION; }
 <requires>[^\n\r]+                      {
-                                            /*char* cn = trim_inplace(yytext);
-                                            if (cn) {
-                                                BEGIN(INITIAL);
-                                                yylval->string = strdup(cn);
-                                                return REQUIRES;
-                                            }*/
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%module-cmd{WS}*$                      { /*parse_error("missing argument to %%module-cmd");*/ }
-^%module-cmd                            BEGIN(module_cmd);
+^%module-cmd{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); return PARSE_OPTION; }
+^%module-cmd                            { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); BEGIN(module_cmd); return PARSE_OPTION; }
 <module_cmd>{WS}*                       /* ignore white space */
 <module_cmd>[^\n\r]+                    {
-                                            /*QoreString str(yytext);
-                                            str.trim();
-                                            const char* p = str.getBuffer();
-                                            const char* op = strchr(p, '(');
-                                            if (!op)
-                                                parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
-                                            else {
-                                                p = op + 1;
-                                                const char* cp = strchr(p, ')');
-                                                if (!cp)
-                                                    parse_error("%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
-                                                else {
-                                                    // get module name
-                                                    QoreString module(p, cp - p);
-                                                    module.trim();
-
-                                                    // remove preface from string leaving only command
-                                                    str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
-                                                    str.trim();
-                                                    if (str.empty())
-                                                        parse_error("%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
-                                                    else {
-                                                        QMM.issueParseCmd(module.getBuffer(), 0, str);
-                                                    }
-                                                }
-                                            }*/
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
-^%define{WS}*$                          { /*parse_error("missing argument to %%define");*/ }
-^%define{WS}+                           BEGIN(p_def);
+^%define{WS}*$                          { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); return PARSE_OPTION; }
+^%define{WS}+                           { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); BEGIN(p_def); return PARSE_OPTION; }
 <p_def>{WS}*                            /* ignore white space */
 <p_def>[^\n\r]+                         {
-                                            //qore_parse_define(yytext);
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
 ^%ifdef{WS}*$                           { /*parse_error("missing argument to %%ifdef");*/ }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
@@ -658,79 +642,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   /* ignore */
 }
 ^%endif{WS}*$                           {} /* parse_cond_pop(); */
-^%include{WS}*$                         { /*parse_error("missing argument to %%include");*/ }
-^%include{WS}+                          BEGIN(incl);
-<exec_class_state>{
-   [^\n\r]+                             {
-                                            /*char* cn = trim(yytext);
-                                            //printf("setting class name to: '%s'\n", cn);
-                                            getProgram()->setExecClass(cn);
-                                            getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
-                                            free(cn);*/
-                                            BEGIN(INITIAL);
-                                        }
-}
-<incl>{WS}*                             // ignore white space
+^%include{WS}*$                         { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); return PARSE_OPTION; }
+^%include{WS}+                          { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); BEGIN(incl); return PARSE_OPTION; }
+<incl>{WS}*                             /* ignore white space */
 <incl>[^\n\r]+                          {
-                                            /*TempString fname(get_include_file_name(yytext));
-                                            const char* fn = fname->getBuffer();
-                                            // remove enclosing quotes if any
-                                            if (fname->strlen()
-                                                && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
-                                                    || (fn[0] == '\'' && fn[fname->strlen() - 1] == '\''))) {
-                                                fname->trim(fn[0]);
-                                            }
-
-                                            QoreProgram* pgm = getProgram();
-
-                                            if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
-                                                parse_error("cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
-                                                BEGIN(INITIAL);
-                                            }
-                                            else if (fname->empty()) {
-                                                parse_error("missing argument to %%include", yytext);
-                                                BEGIN(INITIAL);
-                                            }
-                                            else {
-                                                // re-get the buffer pointer
-                                                fn = fname->getBuffer();
-                                                // check if regular file
-                                                struct stat sbuf;
-                                                int rc = stat(fn, &sbuf);
-                                                if (rc) {
-                                                    ExceptionSink* xsink = pgm->getParseExceptionSink();
-                                                    if (xsink)
-                                                        xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
-                                                    BEGIN(INITIAL);
-                                                }
-                                                else {
-                                                    //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
-                                                    if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
-                                                        parse_error("cannot include \"%s\"; is not a regular file", fn);
-                                                        BEGIN(INITIAL);
-                                                    }
-                                                    else {
-                                                        FILE *save_yyin = yyin;
-                                                        yyin = fopen(fn, "r");
-
-                                                        if (!yyin) {
-                                                            parse_error("cannot open include file \"%s\"", fn);
-                                                            yyin = save_yyin;
-                                                            BEGIN(INITIAL);
-                                                        }
-                                                        else {
-                                                            // take string from buffer
-                                                            char* str = fname->giveBuffer();
-                                                            // save file name string in QoreProgram's list - the list now owns the string memory
-                                                            qore_program_private::addFile(*pgm, str);
-                                                            beginParsing(str, (void*)YY_CURRENT_BUFFER);
-                                                            ast_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyscanner), yyscanner);
-                                                            BEGIN(INITIAL);
-                                                        }
-                                                    }
-                                                }
-                                            }*/
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
                                             BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
                                         }
 <<EOF>>                                 {
                                             AST_FLEX_DO_EOF
