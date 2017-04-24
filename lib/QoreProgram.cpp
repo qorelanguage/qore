@@ -1714,6 +1714,7 @@ void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
          pgm->breakpointList.remove(this);
          unassignAllStatements();
          pgm = 0;
+         deref();
       }
    }
 }

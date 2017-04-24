@@ -813,17 +813,17 @@ typedef std::list<AbstractStatement*> AbstractStatementList_t;
  *  breakpoint is probed using @ref checkBreak and program is potentially interrupted and
  *  callback @ref QoreDebugProgram is triggered. The instance must be assigned to a @ref QoreProgram
  */
-class QoreBreakpoint {
+class QoreBreakpoint: public AbstractPrivateData {
 private:
    qore_program_private* pgm;
    bool enabled;
    AbstractStatementList_t statementList;
    DLLLOCAL void unassignAllStatements();
-   DLLLOCAL virtual ~QoreBreakpoint();
    DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
    friend class qore_program_private;
    friend class AbstractStatement;
 protected:
+   DLLLOCAL virtual ~QoreBreakpoint();
    //! check if program flow should be interrupted
    DLLLOCAL virtual bool checkBreak() const;
 public:

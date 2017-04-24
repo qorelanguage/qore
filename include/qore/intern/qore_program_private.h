@@ -1969,22 +1969,20 @@ public:
    DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt) {
       if (!bkpt || this == bkpt->pgm) return;
       if (bkpt->pgm) {
-         QoreAutoRWWriteLocker al(&bkpt->pgm->lck_breakpoint);
-         bkpt->pgm->breakpointList.remove(bkpt);
-         bkpt->unassignAllStatements();
-         bkpt->pgm = 0;
+         bkpt->assignProgram(0, 0);
       }
       QoreAutoRWWriteLocker al(&lck_breakpoint);
       breakpointList.push_back(bkpt);
       bkpt->pgm = this;
-
+      bkpt->ref();
    }
 
    DLLLOCAL void deleteAllBreakpoints() {
       QoreAutoRWWriteLocker al(&lck_breakpoint);
       for (std::list<QoreBreakpoint*>::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
+         (*it)->unassignAllStatements();
          (*it)->pgm = 0;
-         delete *it;
+         (*it)->deref();
       }
       breakpointList.clear();
    }
