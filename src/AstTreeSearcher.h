@@ -54,6 +54,13 @@ private:
     static ASTNode* findNodeInName(ASTName* name, ast_loc_t line, ast_loc_t col);
     static ASTNode* findNodeInParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
     static ASTNode* findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+
+    static std::vector<ASTNode*>* findNodeAndParentsInDecl(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInExpr(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
 #endif // _QLS_ASTTREESEARCHER_H
