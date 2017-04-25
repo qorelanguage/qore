@@ -65,6 +65,7 @@ bool ExceptionSink::isException() const {
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
+   assert(this);
    return qore_check_this(this) && (priv->head || priv->thread_exit);
 }
 
