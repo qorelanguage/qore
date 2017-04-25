@@ -48,7 +48,7 @@ const QLSServerCapabilities = {
      * Defines how text documents are synced. Is either a detailed structure defining each notification or
      * for backwards compatibility the TextDocumentSyncKind number.
      */
-    "textDocumentSync": TextDocumentSyncKind.Incremental,
+    "textDocumentSync": TextDocumentSyncKind.Full,
 
     /**
      * The server provides hover support.

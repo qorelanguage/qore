@@ -94,24 +94,8 @@ public class TextDocument {
     #! The document has changed.
     didChange(hash changes) {
         # Modify document text.
-        if (!changes.range && !changes.rangeLength) {
-            # Whole new version of document was sent.
-            text = changes.text;
-        }
-        else {
-            # Only changes were sent.
-            int startLine = changes.range.start.line;
-            int startChar = changes.range.start.character;
-            int endLine = changes.range.end.line;
-            int endChar = changes.range.end.character;
-            int rangeLength = changes.rangeLength;
-            if (startLine == endLine && startChar == endChar) { # addition
-                # TODO
-            }
-            else { # replacing
-                # TODO
-            }
-        }
+        # Using whole document sync here.
+        text = changes.text;
 
         # Re-parse the document.
         parse();
