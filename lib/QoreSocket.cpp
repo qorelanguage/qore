@@ -632,7 +632,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
 
    // set non blocking
    OptionalNonBlockingHelper nbh(qs, true, xsink);
-   if (*xsink)
+   if (xsink && *xsink)
       return -1;
 
    int rc;
@@ -1406,7 +1406,11 @@ BinaryNode* QoreSocket::recvBinary(int timeout, ExceptionSink* xsink) {
 QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
    assert(rc);
    qore_offset_t nrc;
-   QoreStringNode* str = priv->recv((ExceptionSink*)0, bufsize, timeout, nrc);
+   ExceptionSink xsink;
+   QoreStringNode* str = priv->recv(&xsink, bufsize, timeout, nrc);
+   // ignore exceptions; we use only a return code
+   if (xsink)
+      xsink.clear();
    *rc = (int)nrc;
    return str;
 }
@@ -1414,7 +1418,11 @@ QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, int *rc) {
 QoreStringNode* QoreSocket::recv(int timeout, int *rc) {
    assert(rc);
    qore_offset_t nrc;
-   QoreStringNode* str = priv->recv((ExceptionSink*)0, timeout, nrc);
+   ExceptionSink xsink;
+   QoreStringNode* str = priv->recv(&xsink, timeout, nrc);
+   // ignore exceptions; we use only a return code
+   if (xsink)
+      xsink.clear();
    *rc = (int)nrc;
    return str;
 }
@@ -1443,6 +1451,8 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
    if (priv->sock == QORE_INVALID_SOCKET || !size)
       return -1;
 
+   ExceptionSink xsink;
+
    char* buf;
    qore_offset_t br = 0;
    qore_offset_t rc;
@@ -1457,7 +1467,7 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 	    bn = DEFAULT_SOCKET_BUFSIZE;
       }
 
-      rc = priv->brecv(0, "recv", buf, bn, 0, timeout);
+      rc = priv->brecv(&xsink, "recv", buf, bn, 0, timeout);
       if (rc <= 0)
 	 break;
       br += rc;
@@ -1472,6 +1482,11 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 	 break;
       }
    }
+
+   // ignore exceptions; we use only a return code
+   if (xsink)
+      xsink.clear();
+
    return (int)rc;
 }
 

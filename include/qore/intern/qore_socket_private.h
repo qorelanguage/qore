@@ -814,7 +814,8 @@ struct qore_socket_private {
    DLLLOCAL int asyncIoWait(int timeout_ms, bool read, bool write, const char* cname, const char* mname, ExceptionSink* xsink) const {
       assert(read || write);
       if (sock == QORE_INVALID_SOCKET) {
-         se_not_open(cname, mname, xsink);
+         if (xsink)
+            se_not_open(cname, mname, xsink);
 	 return -1;
       }
 
@@ -2292,8 +2293,7 @@ struct qore_socket_private {
       bool nb = (timeout_ms >= 0);
       // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
       OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
-      assert(xsink);
-      if (*xsink)
+      if (xsink && *xsink)
          return -1;
 
       int64 total = 0;
