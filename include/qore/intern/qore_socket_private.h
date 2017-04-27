@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -472,7 +472,9 @@ struct qore_socket_private {
    DLLLOCAL int accept_internal(ExceptionSink* xsink, SocketSource *source, int timeout_ms = -1) {
       assert(xsink);
       if (sock == QORE_INVALID_SOCKET) {
-         xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened, bound, and in a listening state before new connections can be accepted");
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened, bound, and in a listening state before new connections can be accepted");
 	 return QSE_NOT_OPEN;
       }
       if (in_op >= 0) {
@@ -487,7 +489,9 @@ struct qore_socket_private {
       int rc;
       if (sfamily == AF_UNIX) {
 #ifdef _Q_WINDOWS
-         xsink->raiseException("SOCKET-ACCEPT-ERROR", "UNIX sockets are not available under Windows");
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseException("SOCKET-ACCEPT-ERROR", "UNIX sockets are not available under Windows");
 	 return -1;
 #else
 	 struct sockaddr_un addr_un;
@@ -756,7 +760,9 @@ struct qore_socket_private {
       QORE_TRACE("connectUNIX()");
 
 #ifdef _Q_WINDOWS
-      xsink->raiseException("SOCKET-CONNECTUNIX-ERROR", "UNIX sockets are not available under Windows");
+      // FIXME: remove check
+      if (xsink)
+         xsink->raiseException("SOCKET-CONNECTUNIX-ERROR", "UNIX sockets are not available under Windows");
       return -1;
 #else
       // close socket if already open
@@ -771,7 +777,9 @@ struct qore_socket_private {
       strncpy(addr.sun_path, p, sizeof(addr.sun_path) - 1);
       addr.sun_path[sizeof(addr.sun_path) - 1] = '\0';
       if ((sock = socket(AF_UNIX, sock_type, protocol)) == QORE_SOCKET_ERROR) {
-         xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error connecting to UNIX socket: '%s'", p);
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "error connecting to UNIX socket: '%s'", p);
 	 return -1;
       }
 
@@ -869,7 +877,9 @@ struct qore_socket_private {
 #ifndef _Q_WINDOWS
       // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
       if (sock >= FD_SETSIZE) {
-         xsink->raiseException("SOCKET-SELECT-ERROR", "fd is %d which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", sock, FD_SETSIZE);
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseException("SOCKET-SELECT-ERROR", "fd is %d which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", sock, FD_SETSIZE);
          return -1;
       }
 #endif
@@ -1024,7 +1034,9 @@ struct qore_socket_private {
 	    else {
                QoreStringNode* desc = new QoreStringNodeMaker("timeout in connection after %dms", timeout_ms);
                concat_target(*desc, ai_addr);
-               xsink->raiseException("SOCKET-CONNECT-ERROR", desc);
+               // FIXME: remove check
+               if (xsink)
+                  xsink->raiseException("SOCKET-CONNECT-ERROR", desc);
 	       return -1;
 	    }
 	 }
@@ -1115,7 +1127,9 @@ struct qore_socket_private {
       assert(xsink);
       printd(5, "qore_socket_private::connectINETIntern() host: %s service: %s family: %d timeout_ms: %d\n", host, service, ai_family, timeout_ms);
       if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == QORE_INVALID_SOCKET) {
-         xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "cannot establish a connection to %s:%s", host, service);
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseErrnoException("SOCKET-CONNECT-ERROR", errno, "cannot establish a connection to %s:%s", host, service);
 	 return -1;
       }
 
@@ -1267,14 +1281,18 @@ struct qore_socket_private {
    DLLLOCAL int bindUNIX(ExceptionSink* xsink, const char* name, int socktype = SOCK_STREAM, int protocol = 0) {
       assert(xsink);
 #ifdef _Q_WINDOWS
-      xsink->raiseException("SOCKET-BINDUNIX-ERROR", "UNIX sockets are not available under Windows");
+      // FIXME: remove check
+      if (xsink)
+         xsink->raiseException("SOCKET-BINDUNIX-ERROR", "UNIX sockets are not available under Windows");
       return -1;
 #else
       close();
 
       // try to open socket if necessary
       if (openUNIX(socktype, protocol)) {
-         xsink->raiseErrnoException("SOCKET-BIND-ERROR", errno, "error opening UNIX socket ('%s') for bind", name);
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseErrnoException("SOCKET-BIND-ERROR", errno, "error opening UNIX socket ('%s') for bind", name);
 	 return -1;
       }
 
@@ -1338,7 +1356,9 @@ struct qore_socket_private {
       return -1;
    }
 
+   // only called from qore-bound code - always with xsink
    DLLLOCAL QoreHashNode* getPeerInfo(ExceptionSink* xsink, bool host_lookup = true) const {
+      assert(xsink);
       if (sock == QORE_INVALID_SOCKET) {
 	 xsink->raiseException("SOCKET-GETPEERINFO-ERROR", "socket is not open()");
 	 return 0;
@@ -1354,7 +1374,9 @@ struct qore_socket_private {
       return getAddrInfo(addr, len, host_lookup);
    }
 
+   // only called from qore-bound code - always with xsink
    DLLLOCAL QoreHashNode* getSocketInfo(ExceptionSink* xsink, bool host_lookup = true) const {
+      assert(xsink);
       if (sock == QORE_INVALID_SOCKET) {
 	 xsink->raiseException("SOCKET-GETSOCKETINFO-ERROR", "socket is not open()");
 	 return 0;
@@ -1582,14 +1604,19 @@ struct qore_socket_private {
 		  //printd(5, "qore_socket_private::readHTTPData() this: %p rc: %d count: %d (%d) timeout: %d\n", this, rc, count, hdr->size(), timeout);
 		  se_closed("Socket", meth, xsink);
 	       }
-	       else
-		  xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", count, count == 1 ? "" : "s");
+	       else {
+                  // FIXME: remove check
+                  if (xsink)
+                     xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "socket closed on remote end while reading header data after reading " QSD " byte%s", count, count == 1 ? "" : "s");
+               }
 	    }
 	    return 0;
 	 }
 	 char c = buf[0];
 	 if (++count == QORE_MAX_HEADER_SIZE) {
-            xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", count);
+            // FIXME: remove check
+            if (xsink)
+               xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QSD " bytes", count);
 	    return 0;
 	 }
 
@@ -1909,13 +1936,17 @@ struct qore_socket_private {
       // readHTTPData will only return a string that satisifies one of the above conditions,
       // however an embedded 0 could have been sent which would make the above searches invalid
       else {
-         xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in Socket::readHTTPHeader()");
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in Socket::readHTTPHeader()");
 	 return 0;
       }
 
       char* t1;
       if (!(t1 = (char*)strstr(buf, "HTTP/"))) {
-         xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first header line in Socket::readHTTPHeader()");
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first header line in Socket::readHTTPHeader()");
          return 0;
       }
 

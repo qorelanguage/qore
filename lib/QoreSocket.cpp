@@ -40,26 +40,37 @@
 
 void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from a callback on an operation on the same socket", cname, meth);
+   // FIXME: remove check
+   if (xsink)
+      xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from a callback on an operation on the same socket", cname, meth);
 }
 
 void se_in_op_thread(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from another thread while a callback operation is in progress on the same socket", cname, meth);
+   // FIXME: remove check
+   if (xsink)
+      xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from another thread while a callback operation is in progress on the same socket", cname, meth);
 }
 
 void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before %s::%s() call", cname, meth);
+   // FIXME: remove check
+   if (xsink)
+      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before %s::%s() call", cname, meth);
 }
 
 void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink) {
    assert(xsink);
-   xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in %s::%s() call", timeout_ms, timeout_ms == 1 ? "" : "s", cname, meth);
+   // FIXME: remove check
+   if (xsink)
+      xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in %s::%s() call", timeout_ms, timeout_ms == 1 ? "" : "s", cname, meth);
 }
 
 void se_closed(const char* cname, const char* mname, ExceptionSink* xsink) {
-   xsink->raiseException("SOCKET-CLOSED", "error in %s::%s(): remote end closed the connection", cname, mname);
+   assert(xsink);
+   // FIXME: remove check
+   if (xsink)
+      xsink->raiseException("SOCKET-CLOSED", "error in %s::%s(): remote end closed the connection", cname, mname);
 }
 
 #ifdef _Q_WINDOWS
@@ -153,6 +164,9 @@ int check_windows_rc(int rc) {
 void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname, const char* host, const char* svc, const struct sockaddr *addr) {
    sock_get_error();
    assert(xsink);
+   // FIXME: remove this logic
+   if (!xsink)
+      return;
 
    QoreStringNode* desc = new QoreStringNode;
    if (mname)
@@ -210,6 +224,9 @@ int sock_get_error() {
 void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname, const char* host, const char* svc, const struct sockaddr *addr) {
    assert(rc);
    assert(xsink);
+   // FIXME: remove this logic
+   if (!xsink)
+      return;
 
    QoreStringNode* desc = new QoreStringNode;
    if (mname)
@@ -480,6 +497,8 @@ void SocketSource::setAll(QoreObject *o, ExceptionSink* xsink) {
 }
 
 int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   assert(xsink);
+
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
@@ -508,7 +527,9 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
          if (rc >= 0)
             break;
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
+            // FIXME: remove this check
+            if (xsink)
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
             break;
          }
       }
@@ -533,6 +554,7 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
 }
 
 int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
+   assert(xsink);
    if (!size)
       return 0;
    if (sock == QORE_INVALID_SOCKET) {
@@ -567,7 +589,9 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             break;
          // write(2) should not return 0, but in case it does, it's treated as an error
          if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", br);
+            // FIXME: remove this check
+            if (xsink)
+               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", br);
             break;
          }
       }
@@ -581,6 +605,7 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
 }
 
 void QoreSocket::doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink) {
+   assert(xsink);
    switch (rc) {
       case 0:
 	 se_closed("Socket", meth, xsink);
@@ -667,7 +692,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             rc = 0;
          else {
             if (!sslError(xsink, mname, "SSL_write"))
-               xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the remote host while calling SSL_write()", mname);
+               // FIXME: remove this check
+               if (xsink)
+                  xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the remote host while calling SSL_write()", mname);
             rc = QSE_SSL_ERR;
          }
 
@@ -675,18 +702,26 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
       }
       else if (err == SSL_ERROR_SYSCALL) {
          if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", !read)) {
-            if (!rc)
-               xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
+            if (!rc) {
+               // FIXME: remove this check
+               if (xsink)
+                  xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling SSL_%s()", mname, read ? "read" : "write");
+            }
             else if (rc == -1) {
-               xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
+               // FIXME: remove this check
+               if (xsink)
+                  xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling SSL_%s()", mname, read ? "read" : "write");
 #ifdef ECONNRESET
                // close the socket if connection reset received
                if (qs.isOpen() && sock_get_error() == ECONNRESET)
                   qs.close();
 #endif
             }
-            else
-               xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
+            else {
+               // FIXME: remove this check
+               if (xsink)
+                  xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in SSL_%s() but the error queue is empty", mname, rc, read ? "read" : "write");
+            }
          }
 
          rc = !*xsink ? 0 : QSE_SSL_ERR;
@@ -709,6 +744,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
 // if we close the connection due to a socket error, then the SSLSocketHelper object is deleted, therefore have to ensure that we do not access
 // "this" after the connection is closed
 int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, ExceptionSink* xsink) {
+   assert(xsink);
    SSLSocketReferenceHelper ssrh(this);
 
    assert(xsink);
@@ -785,6 +821,7 @@ int SSLSocketHelper::read(const char* mname, char* buf, int size, int timeout_ms
 // returns true if an error was raised or the connection was closed, false if not
 bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const char* func, bool always_error) {
    assert(refs > 1);
+   assert(xsink);
 
    long e = ERR_get_error();
    do {
@@ -793,13 +830,17 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
          //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
          if (always_error) {
             qs.close();
-            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
+            // FIXME: remove this check
+            if (xsink)
+               xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
          }
       }
       else {
          char buf[121];
          ERR_error_string(e, buf);
-         xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
+         // FIXME: remove this check
+         if (xsink)
+            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
 #ifdef ECONNRESET
          // close the socket if connection reset received
          if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
