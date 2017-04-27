@@ -545,7 +545,9 @@ struct qore_socket_private {
       }
       else {
 	 // should not happen
-         xsink->raiseException("SOCKET-ACCEPT-ERROR", "do not know how to accept connections with address family %d", sfamily);
+         // FIXME: remove check
+         if (xsink)
+            xsink->raiseException("SOCKET-ACCEPT-ERROR", "do not know how to accept connections with address family %d", sfamily);
 	 rc = -1;
       }
       return rc;
