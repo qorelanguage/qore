@@ -38,6 +38,7 @@
 #include "ast/ASTName.h"
 #include "ast/ASTNode.h"
 #include "ast/ASTOperator.h"
+#include "ast/ASTParseError.h"
 #include "ast/ASTParseOption.h"
 #include "ast/ASTStatement.h"
 #include "ast/ASTTree.h"

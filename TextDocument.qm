@@ -43,6 +43,9 @@ public class TextDocument {
         #! The text document's URI.
         string uri;
 
+        #! The text document name (without path).
+        string docName;
+
         #! The text document's language identifier.
         string languageId;
 
@@ -63,6 +66,7 @@ public class TextDocument {
 
     constructor(string n_uri, string n_text, string n_languageId, int n_version) {
         uri = n_uri;
+        docName = basename(uri);
         text = n_text;
         languageId = n_languageId;
         version = n_version;
@@ -76,8 +80,19 @@ public class TextDocument {
         parser = new astparser::AstParser();
         int rc = parser.parseString(text);
         if (rc) {
-            stderr.printf("error parsing the text document '%s'; return code: %d\n", uri, rc);
-            parseError = "error parsing the text document '%s'; return code: %d";
+            parseError = sprintf("Error parsing the text document '%s' - return code: %d\n\n", uri, rc);
+            if (parser.getErrorCount()) {
+                parseError += "Errors:\n\n";
+                *list diagnostics = parser.getDiagnostics();
+                int i = 1;
+                foreach hash diag in (diagnostics) {
+                    parseError += sprintf("%d) %s:%d:%d: %s\n\n", i++, docName,
+                        diag.range.start.line,
+                        diag.range.start.character,
+                        diag.message);
+                }
+            }
+            stderr.printf(parseError);
         }
         else {
             parseOk = True;
@@ -90,6 +105,16 @@ public class TextDocument {
     string getLanguageId() { return languageId; }
     int getVersion() { return version; }
     string getText() { return text; }
+
+    #! Get count of parse errors.
+    int getParseErrorCount() {
+        return parser.getErrorCount();
+    }
+
+    #! Get parse diagnostics (errors).
+    *list getDiagnostics() {
+        return parser.getDiagnostics();
+    }
 
     #! The document has changed.
     didChange(hash changes) {

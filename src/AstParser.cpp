@@ -34,7 +34,7 @@
 #include "AstTreeSearcher.h"
 
 typedef void *yyscan_t;
-extern int yyparse(yyscan_t yyscanner, ASTTree* parseTree);
+extern int yyparse(yyscan_t yyscanner, AstParseErrorLog* errorLog, ASTTree* parseTree);
 extern struct yy_buffer_state* yy_scan_string(const char *, yyscan_t yyscanner);
 extern struct yy_buffer_state* yy_create_buffer(FILE* file, int size, yyscan_t yyscanner);
 extern void yy_delete_buffer(struct yy_buffer_state* buffer, yyscan_t yyscanner);
@@ -64,7 +64,7 @@ int AstParser::parseFile(const char* filename) {
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
     // Parse.
-    int rc = yyparse(lexer, tree.get());
+    int rc = yyparse(lexer, this, tree.get());
     if (rc) {
         // ???
         return 1;
@@ -103,7 +103,7 @@ int AstParser::parseString(const char* str) {
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
     // Parse.
-    int rc = yyparse(lexer, tree.get());
+    int rc = yyparse(lexer, this, tree.get());
     if (rc) {
         // ???
         return 1;

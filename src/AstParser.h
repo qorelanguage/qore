@@ -32,11 +32,14 @@
 #include <string>
 #include <vector>
 
+#include "AstParseErrorLog.h"
+
 #include "ast/ASTParseLocation.h"
 #include "ast/ASTTree.h"
 
-class AstParser {
+class AstParser : public AstParseErrorLog {
 private:
+    //! Parsed AST.
     std::unique_ptr<ASTTree> parsedTree;
 
 public:

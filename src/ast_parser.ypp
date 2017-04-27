@@ -34,6 +34,7 @@
 #include <utility>
 #include <vector>
 
+#include "AstParseErrorLog.h"
 #include "ast/AST.h"
 
 #define YYINITDEPTH 300
@@ -72,7 +73,7 @@ typedef void* yyscan_t;
 
 %pure-parser
 %lex-param {yyscan_t yyscanner}
-%parse-param {yyscan_t yyscanner} {ASTTree* parseTree}
+%parse-param {yyscan_t yyscanner} {AstParseErrorLog* errorLog} {ASTTree* parseTree}
 %locations
 %error-verbose
 
@@ -121,9 +122,8 @@ typedef void* yyscan_t;
 
 int yylex(YY_LEX_PARAMETERS);
 
-void yyerror(YYLTYPE *loc, yyscan_t scanner, ASTTree* parseTree, const char* str) {
-    //printd(5, "yyerror() location: %d-%d: \"%s\"\n", loc->first_line, loc->last_line, str);
-    //parse_error("%s", str);
+void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree* parseTree, const char* str) {
+    errorLog->reportError(*loc, str);
 }
 
 %}

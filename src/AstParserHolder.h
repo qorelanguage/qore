@@ -33,6 +33,7 @@
 class AstParser;
 
 class ASTNode;
+class ASTParseError;
 class ASTTree;
 
 class AstParserHolder : public AbstractPrivateData {
@@ -53,6 +54,12 @@ public:
 
     ASTTree* getTreePtr();
     ASTTree* releaseTree();
+
+    //! Get the count of reported errors.
+    size_t getErrorCount() const;
+
+    //! Get a reported error.
+    ASTParseError* getError(unsigned int index);
 };
 
 #endif // _QLS_ASTPARSERHOLDER_H

@@ -44,6 +44,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "AstParseErrorLog.h"
 #include "ast/AST.h"
 
 #include "ast_parser.hpp"

@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  AstParseErrorLog.h
 
   Qore AST Parser
 
@@ -23,42 +23,45 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_ASTPARSEERRORLOG_H
+#define _QLS_ASTPARSEERRORLOG_H
 
-#include "ASTParseLocation.h"
+#include <vector>
 
-enum ASTNodeType {
-    ANT_None,
-    ANT_Declaration,
-    ANT_Expression,
-    ANT_Name,
-    ANT_ParseError,
-    ANT_ParseOption,
-    ANT_Statement,
-};
+#include "ast/ASTParseLocation.h"
+#include "ast/ASTParseError.h"
 
-//! Represents one node in the AST tree.
-class ASTNode {
+class AstParseErrorLog {
+private:
+    std::vector<ASTParseError*> errors;
+
 public:
-    //! Source location.
-    ASTParseLocation loc;
+    AstParseErrorLog() {}
+    ~AstParseErrorLog() {
+        clear();
+    }
 
-    ASTNode() {}
-    ASTNode(const ASTParseLocation& l) : loc(l) {}
+    //! Clear all the reported errors.
+    void clear() {
+        for (unsigned int i = 0, count = errors.size(); i < count; i++)
+            delete errors[i];
+        errors.clear();
+    }
 
-    virtual ~ASTNode() {}
+    //! Get the count of reported errors.
+    size_t getErrorCount() const { return errors.size(); }
 
-    //! Return AST node type.
-    virtual ASTNodeType getNodeType() {
-        return ANT_None;
+    //! Report a new error.
+    void reportError(const ASTParseLocation& loc, const char* str) {
+        errors.push_back(new ASTParseError(loc, str));
+    }
+
+    //! Get a reported error.
+    ASTParseError* getError(unsigned int index) {
+        return (index < 0 || index >= errors.size()) ? nullptr : errors[index];
     }
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_ASTPARSEERRORLOG_H

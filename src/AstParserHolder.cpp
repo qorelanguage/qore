@@ -63,3 +63,11 @@ ASTTree* AstParserHolder::getTreePtr() {
 ASTTree* AstParserHolder::releaseTree() {
     return parser->releaseTree();
 }
+
+size_t AstParserHolder::getErrorCount() const {
+    return parser->getErrorCount();
+}
+
+ASTParseError* AstParserHolder::getError(unsigned int index) {
+    return parser->getError(index);
+}

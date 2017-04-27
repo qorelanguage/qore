@@ -31,6 +31,7 @@
 
 #include "AstParserHolder.h"
 #include "AstTreePrinter.h"
+#include "ast/ASTParseError.h"
 
 //! AstParser class
 /** Lorem ipsum dolor sit amet.
@@ -66,11 +67,63 @@ int AstParser::parseString(string str) {
     return aph->parseString(str->getBuffer());
 }
 
+//! Get parse error count.
+/**
+    @return error count
+ */
+int AstParser::getErrorCount() {
+    return aph->getErrorCount();
+}
+
+//! Get diagnostics.
+/**
+    @return list of diagnostic hashes
+ */
+*list AstParser::getDiagnostics() {
+    size_t errorCount = aph->getErrorCount();
+    if (errorCount == 0)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0; i < errorCount; i++) {
+        ASTParseError* err = aph->getError(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> diag(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !diag)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(err->loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(err->loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(err->loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(err->loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        diag->setKeyValue("range", range.release(), xsink);
+        diag->setKeyValue("message", new QoreStringNode(err->getError()), xsink);
+        diag->setKeyValue("severity", new QoreBigIntNode(1), xsink); // 1 == error, 2 == warning, 3 == info, 4 == hint
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(diag.release());
+    }
+
+    return lst.release();
+}
+
 //! Hover info.
 /**
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
-    @return return value
+    @return hash with hover info
  */
 *hash AstParser::hover(int line, int col) {
     ASTNode* node = aph->findNode(line+1, col+1);

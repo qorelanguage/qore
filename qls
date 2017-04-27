@@ -284,6 +284,20 @@ class QLS {
         return make_jsonrpc_error(jsonRpcVer, request.id, err);
     }
 
+
+    #======================
+    # Server notifications
+    #======================
+
+    string diagnosticsNotification(string uri, *list diagnostics) {
+        hash notification = {
+            "uri": uri,
+            "diagnostics": diagnostics ? diagnostics : ()
+        };
+        return make_jsonrpc_request("textDocument/publishDiagnostics", jsonRpcVer, NOTHING, notification);
+    }
+
+
     #=================
     # General methods
     #=================
@@ -375,18 +389,27 @@ class QLS {
         TextDocument textDoc(doc.uri, doc.text, doc.languageId, doc.version);
         documents{doc.uri} = textDoc;
 
-        return NOTHING;
+        if (textDoc.getParseErrorCount() > 0) {
+            *list diagnostics = textDoc.getDiagnostics();
+            return diagnosticsNotification(doc.uri, diagnostics);
+        }
+        return diagnosticsNotification(doc.uri);
     }
 
     #! "textDocument/didChange" notification method handler
     *string meth_td_didChange(hash request) {
-        reference textDoc = \documents{request.params.textDocument.uri};
+        reference doc = \request.params.textDocument;
+        reference textDoc = \documents{doc.uri};
         foreach hash change in (request.params.contentChanges) {
             textDoc.didChange(change);
         }
-        textDoc.changeVersion(request.params.textDocument.version);
+        textDoc.changeVersion(doc.version);
 
-        return NOTHING;
+        if (textDoc.getParseErrorCount() > 0) {
+            *list diagnostics = textDoc.getDiagnostics();
+            return diagnosticsNotification(doc.uri, diagnostics);
+        }
+        return diagnosticsNotification(doc.uri);
     }
 
     #! "textDocument/willSave" notification method handler
