@@ -747,8 +747,6 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
    assert(xsink);
    SSLSocketReferenceHelper ssrh(this);
 
-   assert(xsink);
-
    int err = SSL_get_error(ssl, rc);
 
    if (err == SSL_ERROR_WANT_READ) {
@@ -1769,7 +1767,7 @@ int QoreSocket::bind(const char* name, bool reuseaddr) {
       rc = priv->bindINET(&xsink, host.getBuffer(), service.getBuffer(), reuseaddr, strchr(host.getBuffer(), ':') ? AF_INET6 : AF_INET, SOCK_STREAM);
    }
    else
-      return priv->bindUNIX(&xsink, name, SOCK_STREAM);
+      rc = priv->bindUNIX(&xsink, name, SOCK_STREAM);
 
    // ignore exception; we just use a return code
    if (xsink)
