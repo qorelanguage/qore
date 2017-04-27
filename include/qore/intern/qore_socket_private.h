@@ -1034,11 +1034,11 @@ struct qore_socket_private {
 	       return 0;
 	    }
 	    else {
-               QoreStringNode* desc = new QoreStringNodeMaker("timeout in connection after %dms", timeout_ms);
-               concat_target(*desc, ai_addr);
+               SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("timeout in connection after %dms", timeout_ms));
+               concat_target(*(*desc), ai_addr);
                // FIXME: remove check
                if (xsink)
-                  xsink->raiseException("SOCKET-CONNECT-ERROR", desc);
+                  xsink->raiseException("SOCKET-CONNECT-ERROR", desc.release());
 	       return -1;
 	    }
 	 }
