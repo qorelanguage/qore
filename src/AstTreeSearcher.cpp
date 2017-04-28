@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreePrinter.cpp
+  AstTreeSearcher.cpp
 
   Qore AST Parser
 
