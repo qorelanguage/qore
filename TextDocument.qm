@@ -130,7 +130,7 @@ public class TextDocument {
         version = n_version;
     }
 
-    #! Return info about symbol(s) at the passed document position.
+    #! Return info about symbol at the passed position.
     hash hover(hash Position) {
         int line = Position.line;
         int char = Position.character;
@@ -166,22 +166,19 @@ public class TextDocument {
                 }
             };
         return results;
+    }
 
-        /*int line = Position.line;
+    #! Find references of the symbol at the passed position.
+    *list findReferences(hash Position, bool includeDecl) {
+        int line = Position.line;
         int char = Position.character;
+        *list references = parser.findReferences(line, char, includeDecl);
+        if (references) {
+            int count = references.size();
+            for (int i = 0; i < count; i++)
+                references[i].uri = uri;
+        }
 
-        return {
-            "contents": "random text hover " + string(rand()),
-            "range": {
-                "start": {
-                    "line": line,
-                    "character": (char-3) >= 0 ? (char-3) : 0
-                },
-                "end": {
-                    "line": line,
-                    "character": (char+3)
-                }
-            }
-        };*/
+        return references;
     }
 }

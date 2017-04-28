@@ -75,7 +75,7 @@ const QLSServerCapabilities = {
     /**
      * The server provides find references support.
      */
-    "referencesProvider": False,
+    "referencesProvider": True,
 
     /**
      * The server provides document highlight support.

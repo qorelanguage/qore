@@ -24,8 +24,10 @@
   DEALINGS IN THE SOFTWARE.
 */
 
+#include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "qore/Qore.h"
 
@@ -158,4 +160,46 @@ int AstParser::getErrorCount() {
     if (xsink && *xsink)
         return nullptr;
     return result.release();
+}
+
+//! Find symbol references
+/**
+    @return list of reference locations
+ */
+*list AstParser::findReferences(int line, int col, bool includeDecl) {
+    std::unique_ptr<std::vector<ASTNode*> > vec(aph->findReferences(line+1, col+1, includeDecl));
+    if (!vec)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0, count = vec->size(); i < count; i++) {
+        ASTNode* node = vec->at(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !location)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        location->setKeyValue("range", range.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(location.release());
+    }
+
+    return lst.release();
 }

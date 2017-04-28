@@ -133,3 +133,26 @@ ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
 
     return AstTreeSearcher::findNode(parsedTree.get(), line, col);
 }
+
+std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl) {
+    ASTNode* node = AstTreeSearcher::findNode(parsedTree.get(), line, col);
+
+    // Don't consider anything else other than names.
+    if (!node || node->getNodeType() != ANT_Name)
+        return nullptr;
+
+    // Find the references.
+    ASTName* name = static_cast<ASTName*>(node);
+    std::unique_ptr<std::vector<ASTNode*> > vec(AstTreeSearcher::findReferences(parsedTree.get(), name->name));
+
+    // Remove the initial declaration.
+    if (vec && !includeDecl) {
+        for (size_t i = 0, count = vec->size(); i < count; i++) {
+            if (vec->at(i) == node) {
+                vec->erase(vec->begin() + i);
+                break;
+            }
+        }
+    }
+    return vec.release();
+}

@@ -28,6 +28,7 @@
 #ifndef _QLS_ASTTREESEARCHER_H
 #define _QLS_ASTTREESEARCHER_H
 
+#include <string>
 #include <vector>
 
 #include "ast/ASTModifiers.h"
@@ -44,8 +45,13 @@ class ASTTree;
 
 class AstTreeSearcher {
 public:
+    AstTreeSearcher() = delete;
+    AstTreeSearcher(const AstTreeSearcher& other) = delete;
+
+public:
     static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
 
 private:
     static ASTNode* findNodeInDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
@@ -61,6 +67,12 @@ private:
     static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName* name, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParentsInPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParentsInStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+
+    static void findReferencesInDecl(std::vector<ASTNode*>* vec, ASTDeclaration* decl, const std::string& name);
+    static void findReferencesInExpr(std::vector<ASTNode*>* vec, ASTExpression* expr, const std::string& name);
+    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName& n, const std::string& name);
+    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName* n, const std::string& name);
+    static void findReferencesInStmt(std::vector<ASTNode*>* vec, ASTStatement* stmt, const std::string& name);
 };
 
 #endif // _QLS_ASTTREESEARCHER_H

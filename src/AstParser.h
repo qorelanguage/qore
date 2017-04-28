@@ -53,6 +53,7 @@ public:
     int parseString(std::string& str);
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
+    std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
 
     ASTTree* getTreePtr() { return parsedTree.get(); }
     ASTTree* releaseTree() { return parsedTree.release(); }

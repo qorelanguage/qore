@@ -52,8 +52,12 @@ int AstParserHolder::parseString(std::string& filename) {
     return parser->parseString(filename);
 }
 
-ASTNode* AstParserHolder::findNode(int line, int col) {
+ASTNode* AstParserHolder::findNode(ast_loc_t line, ast_loc_t col) {
     return parser->findNode(line, col);
+}
+
+std::vector<ASTNode*>* AstParserHolder::findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl) {
+    return parser->findReferences(line, col, includeDecl);
 }
 
 ASTTree* AstParserHolder::getTreePtr() {
