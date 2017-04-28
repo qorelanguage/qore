@@ -703,7 +703,7 @@ table_mapper.setRowCode(rowcode);
                     *hash th = insertRow(row + crec);
                     if (th) {
                         hash batchth = record2Batch(th);
-                        addBatchToBatch(\h, batchth); # h_size ignored
+                        addBatchToBatch(\h, batchth);
                     }
                 }
                 return h;
@@ -814,7 +814,7 @@ on_error table_mapper.rollback();
                 # but appears only once on the output!
                 *hash th = queueDataIntern(row + crec);
                 if (th) {
-                    addBatchToBatch(\h, th); # 'th' size unused
+                    addBatchToBatch(\h, th);
                 }
             }
             return h;
