@@ -43,6 +43,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
                 # data for test of driver specific opts merged into tolevel hash
                 "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
                                "size" : 1,

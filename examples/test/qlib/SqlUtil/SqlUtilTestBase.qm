@@ -790,8 +790,8 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2, "null_f": "abc") + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
-        upsert_data = (("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": "abc", "blob_f": <cafe01>, "clob_f": "test1") + row, ("id": 2, "id_": 2, "null_f": NULL, "blob_f": <cafe02>, "clob_f": "test2") + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": "abc", "blob_f": <cafe02>, "clob_f": "test2") + row, ("id": 3, "id_": 2, "null_f": NULL, "blob_f": <cafe03>, "clob_f": "test3") + row,);
     }
 
     deleteTest() {
