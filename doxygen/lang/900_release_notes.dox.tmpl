@@ -64,6 +64,8 @@
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>
       - <a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>
       - <a href="../../modules/Qdx/html/index.html">Qdx</a>
+    - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
+      - added the \c c_blob() and \c c_clob() functions (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
       - added support for upserts in \c InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
       - added \c InboundTableMapper::queueData(list)
@@ -175,7 +177,8 @@
     - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
     - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
-    - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>
+    - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>)
+    - fixed a bug in handling the \c SqlUtil::BLOB type in the <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
 
     @section qore_081210 Qore 0.8.12.10
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Schema.qm Qore user module for working with SQL data
 
-/*  Schema.qm Copyright 2014 - 2016 Qore Technologies, s.r.o.
+/*  Schema.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.1.1";
+    version = "1.2";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,11 @@ module Schema {
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_2 Schema Module v1.2
+    - added the following public functions: (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
+      - Schema::c_blob()
+      - Schema::c_clob()
 
     @subsection schema_v1_1_1 Schema Module v1.1.1
     - applied the \a force option (i.e. cascade) when aligning schemas (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -309,6 +314,60 @@ public namespace Schema {
             "comment": comment,
             )
             ;
+    }
+
+    #! returns a column hash for a \c BLOB column
+    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param comment an optional comment for the column
+
+        @see c_clob()
+     */
+    public hash sub c_blob(bool notnull = False, *string comment) {
+        return (
+            "qore_type": SqlUtil::BLOB,
+            "comment": comment,
+            )
+            + (notnull ? ("notnull": True) : NOTHING)
+            ;
+    }
+
+    #! returns a column hash for a \c BLOB column
+    /** @param comment the comment for the column
+
+        @see c_clob()
+     */
+    public hash sub c_blob(string comment) {
+        return (
+            "qore_type": SqlUtil::BLOB,
+            "comment": comment,
+            );
+    }
+
+    #! returns a column hash for a \c CLOB column
+    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param comment an optional comment for the column
+
+        @see c_blob()
+     */
+    public hash sub c_clob(bool notnull = False, *string comment) {
+        return (
+            "qore_type": SqlUtil::CLOB,
+            "comment": comment,
+            )
+            + (notnull ? ("notnull": True) : NOTHING)
+            ;
+    }
+
+    #! returns a column hash for a \c CLOB column
+    /** @param comment the comment for the column
+
+        @see c_blob()
+     */
+    public hash sub c_clob(string comment) {
+        return (
+            "qore_type": SqlUtil::CLOB,
+            "comment": comment,
+            );
     }
 
     #! this class provides callback support for schema operations
