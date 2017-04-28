@@ -25,7 +25,7 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "FindReferencesQuery.h"
+#include "queries/FindReferencesQuery.h"
 
 #include <memory>
 

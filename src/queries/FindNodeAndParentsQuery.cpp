@@ -25,7 +25,7 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "FindNodeAndParentsQuery.h"
+#include "queries/FindNodeAndParentsQuery.h"
 
 #include "ast/AST.h"
 
