@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreePrinter.cpp
+  FindReferencesQuery.h
 
   Qore AST Parser
 
@@ -25,23 +25,34 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "AstTreeSearcher.h"
+#ifndef _QLS_QUERIES_FINDREFERENCESQUERY_H
+#define _QLS_QUERIES_FINDREFERENCESQUERY_H
 
-#include <memory>
+#include <string>
+#include <vector>
 
-#include "ast/AST.h"
-#include "queries/FindNodeQuery.h"
-#include "queries/FindNodeAndParentsQuery.h"
-#include "queries/FindReferencesQuery.h"
+#include "ast/ASTName.h"
+#include "ast/ASTParseLocation.h"
 
-ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeQuery::findNode(tree, line, col);
-}
+class ASTDeclaration;
+class ASTExpression;
+class ASTNode;
+class ASTStatement;
+class ASTTree;
 
-std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeAndParentsQuery::findNodeAndParents(tree, line, col);
-}
+class FindReferencesQuery {
+public:
+    FindReferencesQuery() = delete;
+    FindReferencesQuery(const FindReferencesQuery& other) = delete;
 
-std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::findReferences(tree, name);
-}
+    static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
+
+private:
+    static void findReferencesInDecl(std::vector<ASTNode*>* vec, ASTDeclaration* decl, const std::string& name);
+    static void findReferencesInExpr(std::vector<ASTNode*>* vec, ASTExpression* expr, const std::string& name);
+    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName& n, const std::string& name);
+    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName* n, const std::string& name);
+    static void findReferencesInStmt(std::vector<ASTNode*>* vec, ASTStatement* stmt, const std::string& name);
+};
+
+#endif // _QLS_QUERIES_FINDREFERENCESQUERY_H

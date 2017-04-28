@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreePrinter.cpp
+  FindNodeQuery.h
 
   Qore AST Parser
 
@@ -25,23 +25,33 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "AstTreeSearcher.h"
+#ifndef _QLS_QUERIES_FINDNODEQUERY_H
+#define _QLS_QUERIES_FINDNODEQUERY_H
 
-#include <memory>
+#include "ast/ASTName.h"
+#include "ast/ASTParseLocation.h"
 
-#include "ast/AST.h"
-#include "queries/FindNodeQuery.h"
-#include "queries/FindNodeAndParentsQuery.h"
-#include "queries/FindReferencesQuery.h"
+class ASTDeclaration;
+class ASTExpression;
+class ASTNode;
+class ASTParseOption;
+class ASTStatement;
+class ASTTree;
 
-ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeQuery::findNode(tree, line, col);
-}
+class FindNodeQuery {
+public:
+    FindNodeQuery() = delete;
+    FindNodeQuery(const FindNodeQuery& other) = delete;
 
-std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeAndParentsQuery::findNodeAndParents(tree, line, col);
-}
+    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
-std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::findReferences(tree, name);
-}
+private:
+    static ASTNode* findNodeInDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static ASTNode* findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+};
+
+#endif // _QLS_QUERIES_FINDNODEQUERY_H

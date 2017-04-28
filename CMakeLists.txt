@@ -41,6 +41,9 @@ set(CPP_SRC
     src/AstParserHolder.cpp
     src/AstTreePrinter.cpp
     src/AstTreeSearcher.cpp
+    src/queries/FindNodeQuery.cpp
+    src/queries/FindNodeAndParentsQuery.cpp
+    src/queries/FindReferencesQuery.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp
 )

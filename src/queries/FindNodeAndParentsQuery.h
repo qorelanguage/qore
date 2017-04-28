@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.h
+  FindNodeAndParentsQuery.h
 
   Qore AST Parser
 
@@ -25,25 +25,35 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREESEARCHER_H
-#define _QLS_ASTTREESEARCHER_H
+#ifndef _QLS_QUERIES_FINDNODEANDPARENTSQUERY_H
+#define _QLS_QUERIES_FINDNODEANDPARENTSQUERY_H
 
-#include <string>
 #include <vector>
 
+#include "ast/ASTName.h"
 #include "ast/ASTParseLocation.h"
 
+class ASTDeclaration;
+class ASTExpression;
 class ASTNode;
+class ASTParseOption;
+class ASTStatement;
 class ASTTree;
 
-class AstTreeSearcher {
+class FindNodeAndParentsQuery {
 public:
-    AstTreeSearcher() = delete;
-    AstTreeSearcher(const AstTreeSearcher& other) = delete;
+    FindNodeAndParentsQuery() = delete;
+    FindNodeAndParentsQuery(const FindNodeAndParentsQuery& other) = delete;
 
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
+
+private:
+    static std::vector<ASTNode*>* findNodeAndParentsInDecl(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInExpr(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* findNodeAndParentsInStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
-#endif // _QLS_ASTTREESEARCHER_H
+#endif // _QLS_QUERIES_FINDNODEANDPARENTSQUERY_H
