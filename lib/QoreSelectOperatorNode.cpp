@@ -66,21 +66,21 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
    iterator_func = dynamic_cast<FunctionalOperator*>(left);
 
    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
-   if (iteratorTypeInfo->hasType()) {
-      if (iteratorTypeInfo->isType(NT_NOTHING)) {
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
-	 typeInfo = nothingTypeInfo;
+   if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
+      if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+         typeInfo = nothingTypeInfo;
       }
-      else if (iteratorTypeInfo->isType(NT_LIST)) {
-	 typeInfo = listTypeInfo;
+      else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
+         typeInfo = listTypeInfo;
       }
       else {
-	 const QoreClass* qc = iteratorTypeInfo->getUniqueReturnClass();
-	 if (qc && qore_class_private::parseCheckCompatibleClass(*qc, *QC_ABSTRACTITERATOR))
-	    typeInfo = listTypeInfo;
-	 else if ((iteratorTypeInfo->parseReturnsType(NT_LIST) == QTI_NOT_EQUAL)
-		  && (iteratorTypeInfo->parseReturnsClass(QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
-	    typeInfo = iteratorTypeInfo;
+         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
+         if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+            typeInfo = listTypeInfo;
+         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+            typeInfo = iteratorTypeInfo;
       }
    }
 
@@ -98,16 +98,16 @@ QoreValue QoreSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    while (true) {
       ValueOptionalRefHolder iv(xsink);
       if (f->getNext(iv, xsink))
-	 break;
+         break;
 
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       if (value_type == single)
-	 return ref_rv ? iv.takeReferencedValue() : QoreValue();
+         return ref_rv ? iv.takeReferencedValue() : QoreValue();
 
       if (ref_rv)
-	 rv->push(iv.getReferencedValue());
+         rv->push(iv.getReferencedValue());
    }
 
    return rv.release();
@@ -117,7 +117,7 @@ FunctionalOperatorInterface* QoreSelectOperatorNode::getFunctionalIteratorImpl(F
    if (iterator_func) {
       std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
       if (*xsink || value_type == nothing)
-	 return 0;
+         return 0;
       return new QoreFunctionalSelectOperator(this, f.release());
    }
 
@@ -128,19 +128,19 @@ FunctionalOperatorInterface* QoreSelectOperatorNode::getFunctionalIteratorImpl(F
    qore_type_t t = marg->getType();
    if (t != NT_LIST) {
       if (t == NT_OBJECT) {
-	 AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
-	 if (*xsink)
-	    return 0;
-	 if (h) {
-	    bool temp = marg.isTemp();
-	    marg.clearTemp();
-	    value_type = list;
-	    return new QoreFunctionalSelectIteratorOperator(this, temp, h, xsink);
-	 }
+         AbstractIteratorHelper h(xsink, "select operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
+         if (*xsink)
+            return 0;
+         if (h) {
+            bool temp = marg.isTemp();
+            marg.clearTemp();
+            value_type = list;
+            return new QoreFunctionalSelectIteratorOperator(this, temp, h, xsink);
+         }
       }
       if (t == NT_NOTHING) {
-	 value_type = nothing;
-	 return 0;
+         value_type = nothing;
+         return 0;
       }
 
       value_type = single;
@@ -154,7 +154,7 @@ FunctionalOperatorInterface* QoreSelectOperatorNode::getFunctionalIteratorImpl(F
 bool QoreFunctionalSelectListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
    while (true) {
       if (!next())
-	 return true;
+         return true;
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(index());
@@ -198,9 +198,9 @@ bool QoreFunctionalSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder& v
    while (true) {
       bool b = h.next(xsink);
       if (!b)
-	 return true;
+         return true;
       if (*xsink)
-	 return false;
+         return false;
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(index++);
@@ -208,7 +208,7 @@ bool QoreFunctionalSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder& v
       // get the current value
       ValueHolder iv(h.getValue(xsink), xsink);
       if (*xsink)
-	 return false;
+         return false;
       // setup the implicit argument
       SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
       // check if value can be selected
@@ -228,9 +228,9 @@ bool QoreFunctionalSelectOperator::getNextImpl(ValueOptionalRefHolder& val, Exce
    while (true) {
       ValueOptionalRefHolder iv(xsink);
       if (f->getNext(iv, xsink))
-	 return true;
+         return true;
       if (*xsink)
-	 return false;
+         return false;
 
       // set offset in thread-local data for "$#"
       ImplicitElementHelper eh(index++);

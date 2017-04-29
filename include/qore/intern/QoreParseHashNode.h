@@ -88,9 +88,9 @@ protected:
          else if (!needs_eval && keys[i] && keys[i]->needs_eval())
             needs_eval = true;
 
-         if (argTypeInfo->nonStringValue()) {
+         if (QoreTypeInfo::nonStringValue(argTypeInfo)) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
+            QoreTypeInfo::doNonStringWarning(argTypeInfo, lvec[i], str.getBuffer());
          }
 
          argTypeInfo = 0;
@@ -115,16 +115,16 @@ protected:
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
       for (size_t i = 0; i < keys.size(); ++i) {
          QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
 
          QoreNodeEvalOptionalRefHolder v(values[i], xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
 
          QoreStringValueHelper key(*k);
          h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
-         if (*xsink)
+         if (xsink && *xsink)
             return QoreValue();
       }
       return h.release();

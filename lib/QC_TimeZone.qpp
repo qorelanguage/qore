@@ -98,7 +98,7 @@ int offset = tz.UTCOffset();
     @endcode
  */
 int TimeZone::UTCOffset() [flags=CONSTANT] {
-   return (*z)->getUTCOffset();
+   return AbstractQoreZoneInfo::getUTCOffset(z->get());
 }
 
 //! Returns @ref True if the zone has daylight saving's time rules, @ref False if not
@@ -112,7 +112,7 @@ bool hasdst = tz.hasDST();
     @endcode
  */
 bool TimeZone::hasDST() [flags=CONSTANT] {
-   return (*z)->hasDST();
+   return AbstractQoreZoneInfo::hasDST(z->get());
 }
 
 //! Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like \c "+01:00"
@@ -124,7 +124,7 @@ string region = tz.region();
     @endcode
  */
 string TimeZone::region() [flags=CONSTANT] {
-   return new QoreStringNode((*z)->getRegionName());
+   return new QoreStringNode(AbstractQoreZoneInfo::getRegionName(z->get()));
 }
 
 //! Returns the equivalent date in the time zone of the current object

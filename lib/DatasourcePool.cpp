@@ -96,7 +96,8 @@ DatasourcePool::~DatasourcePool() {
 
 // common constructor code
 void DatasourcePool::init(ExceptionSink* xsink) {
-   // ths intiial Datasource creation could throw an exception if there is an error in a driver option, for example
+   assert(xsink);
+   // ths initial Datasource creation could throw an exception if there is an error in a driver option, for example
    std::unique_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
@@ -242,6 +243,7 @@ void DatasourcePool::freeDS(ExceptionSink* xsink) {
 }
 
 Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
+   assert(xsink);
    assert(!*xsink);
 
    // total # of microseconds waiting for a new connection

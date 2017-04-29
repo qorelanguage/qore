@@ -124,7 +124,7 @@ bool QoreListNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink
    if (l->size() != size())
       return false;
    for (qore_size_t i = 0; i < l->size(); i++)
-      if (compareSoft(l->retrieve_entry(i), retrieve_entry(i), xsink) || *xsink)
+      if (compareSoft(l->retrieve_entry(i), retrieve_entry(i), xsink) || (xsink && *xsink))
          return false;
    return true;
 }
@@ -137,7 +137,7 @@ bool QoreListNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink
    if (l->size() != size())
       return false;
    for (qore_size_t i = 0; i < l->size(); i++)
-      if (compareHard(l->retrieve_entry(i), retrieve_entry(i), xsink) || *xsink)
+      if (compareHard(l->retrieve_entry(i), retrieve_entry(i), xsink) || (xsink && *xsink))
          return false;
    return true;
 }

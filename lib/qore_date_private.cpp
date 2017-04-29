@@ -500,7 +500,7 @@ qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt)
    // break down date and do day, month, and year math
    if (dt.year || dt.month || dt.day) {
       // get the broken-down date values for the date in local time
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
 
 #ifdef DEBUG
       // only needed by the debugging statement at the bottom
@@ -522,7 +522,7 @@ qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt)
       epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
 
       // adjust for new UTC offset for target day at the original time
-      epoch -= zone->getUTCOffset(epoch);
+      epoch -= AbstractQoreZoneInfo::getUTCOffset(zone, epoch);
 
       usecs = tm.us;
    }

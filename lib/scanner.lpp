@@ -671,7 +671,7 @@ static bool is_identifier(const char *str) {
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
       if (yybs) { /* need to close file and switch to previous buffer */ \
-         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);  \
+         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner); \
       } else yyterminate();  \
    }
 %}
@@ -754,6 +754,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
 ^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
 ^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
+^%broken-references{WS}*$               getProgram()->parseSetParseOptions(PO_BROKEN_REFERENCES);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);

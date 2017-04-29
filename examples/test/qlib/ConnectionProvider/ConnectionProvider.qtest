@@ -7,6 +7,7 @@
 %strict-args
 %allow-injection
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ConnectionProviderTest
@@ -15,6 +16,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
     constructor() : Test("ConnectionProvider Test", "1.0") {
         addTestCase("urlp test", \urlProviderTest());
         addTestCase("urlp neg test", \urlProviderNegativeTest());
+        addTestCase("filesystem", \filesystemConnectionTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -54,5 +56,29 @@ public class ConnectionProviderTest inherits QUnit::Test {
         p.parse("string sub test(string str) { return get_connection_url(str); }", "");
         assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "X"));
         assertEq("X://x", p.callFunction("test", "X://x"));
+    }
+
+    filesystemConnectionTest() {
+        Program p();
+        p.loadModule("ConnectionProvider");
+        p.loadModule("Util");
+
+        p.parse("FilesystemConnection sub get_conn() {
+    string dir = tmp_location() + '/' + get_random_string() + '/' + get_random_string();
+    string url = 'file://' + dir;
+    return new FilesystemConnection('test', 'desc', url, False, NOTHING, parse_url(url));
+}", "");
+
+        object o = p.callFunction("get_conn");
+        hash h = o.ping();
+        assertEq("test", h.name);
+        assertEq("desc", h.desc);
+        assertEq(False, h.ok);
+
+        o.opts.readonly = True;
+        h = o.ping();
+        assertEq("test", h.name);
+        assertEq("desc", h.desc);
+        assertEq(True, h.ok);
     }
 }

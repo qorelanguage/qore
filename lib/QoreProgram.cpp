@@ -129,6 +129,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
       doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
+      doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -721,6 +722,12 @@ int qore_program_private::setGlobalVarValue(const char* name, QoreValue val, Exc
    return lvh.assign(holder.release(), "<API assignment>");
 }
 
+LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeInfo* typeInfo) {
+   LocalVar* lv = new LocalVar(name, typeInfo);
+   local_var_list.push_back(lv);
+   return lv;
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -748,12 +755,6 @@ void QoreProgram::deref(ExceptionSink* xsink) {
    printd(QPP_DBG_LVL, "QoreProgram::deref() this: %p priv: %p %d->%d\n", this, priv, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
-}
-
-LocalVar* QoreProgram::createLocalVar(const char* name, const QoreTypeInfo* typeInfo) {
-   LocalVar* lv = new LocalVar(name, typeInfo);
-   priv->local_var_list.push_back(lv);
-   return lv;
 }
 
 ExceptionSink* QoreProgram::getParseExceptionSink() {

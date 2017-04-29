@@ -91,10 +91,10 @@ nothing TreeMap::put(string path, any value) {
 //! Retrieves a value from the TreeMap and returns optionally unmatched path suffix
 /** Looks for an entry whose key is the longest prefix of \c path.
     @param path the path to lookup
-    @param unmatched path suffix, reference to a ref @string_or_nothing_type "*string" compatible type is needed, if \c path not found then returns NOTHING
+    @param unmatched path suffix, reference to a @ref string_or_nothing_type "*string" compatible type is needed, if \c path not found then returns @ref nothing
     @since %Qore 0.8.13
 
-    @return the value pointed to by the longest prefix of \c path or NOTHING if no such mapping exists
+    @return the value pointed to by the longest prefix of \c path or @ref nothing if no such mapping exists
 
     @par Example:
     @code{.py}

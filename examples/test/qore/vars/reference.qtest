@@ -5,14 +5,16 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ReferenceTest
 
 class ReferenceTest inherits QUnit::Test {
-    constructor () : Test("Hash test", "1.0") {
+    constructor() : Test("Reference Test", "1.0") {
         addTestCase("Reference test", \testReference());
+        addTestCase("Assignment test", \testReferenceAssignments());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -52,5 +54,127 @@ class ReferenceTest inherits QUnit::Test {
         assertThrows("REFERENCE-ERROR", sub () { r2 = \r3; });
         reference r4 = \r3;
         assertThrows("REFERENCE-ERROR", sub () { r2 = \r4; });
-   }
+    }
+
+    testReferenceAssignments() {
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {reference r = {};}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {*reference r = {};}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("our reference r = {};", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("our *reference r = {};", ""));
+            p.parse("sub t1() {int a; reference r = \\a;}", "");
+            p.parse("sub t2() {int a; *reference r = \\a;}", "");
+            p.parse("sub t3(*reference r) {r = 1;}", "");
+            p.parse("sub t4(reference r) {r = 2;}", "");
+            p.parse("sub t5(*reference r) {reference r1 = \\r; r1 = 1;}", "");
+            p.parse("sub t6(reference r) {reference r1 = \\r; r1 = 2;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("sub t7(*reference r) {reference r1 = r; r1 = 3;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("sub t8(reference r) {reference r1 = r; r1 = 4;}", "");
+            p.parse("sub _t9(reference r) {r = 5;} int sub t9() {int i; reference x = \\i; _t9(\\x); return i;}", "");
+            p.parse("sub _t10(*reference r) {r = 6;} int sub t10() {int i; *reference x = \\i; _t10(\\x); return i;}", "");
+            p.parse("sub _t11(reference r) {r = 7;} int sub t11() {int i; _t11(\\i); return i;}", "");
+            p.parse("sub _t12(*reference r) {r = 8;} int sub t12() {int i; _t12(\\i); return i;}", "");
+            p.parse("int sub t13(*reference r) {r = 9; return r;}", "");
+            p.parse("int sub t14(*reference r) {_t14(\\r); r.a = 1; return r.size();} sub _t14(reference r) {r = {};}", "");
+            p.parse("int sub t15(*reference r) {_t15(\\r); r[0] = 1; return r.size();} sub _t15(reference r) {r = ();}", "");
+            int i;
+            p.callFunction("t3", \i);
+            p.callFunction("t3");
+            assertEq(1, i);
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t3", i));
+            p.callFunction("t4", \i);
+            assertEq(2, i);
+            p.callFunction("t5", \i);
+            assertEq(1, i);
+            p.callFunction("t6", \i);
+            assertEq(2, i);
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), ("t7", \i));
+            assertEq(2, i);
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), ("t8", \i));
+            assertEq(2, i);
+            assertEq(5, p.callFunction("t9"));
+            assertEq(6, p.callFunction("t10"));
+            assertEq(7, p.callFunction("t11"));
+            assertEq(8, p.callFunction("t12"));
+            assertEq(9, p.callFunction("t13"));
+            assertEq(1, p.callFunction("t14"));
+            assertEq(1, p.callFunction("t15"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("our int i; *int sub get() {return i;}", "");
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class T { public {reference r = 1;}}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class T { public {*reference r = 1;}}", ""));
+            p.parse("class T1 { public {reference r;} constructor() {r = \\i; r = 1;}} int sub t1() {T1 t(); return i;}", "");
+            p.parse("class T2 { public {static reference r;} constructor() {r = \\i; r = 2;}} int sub t2() {T2 t(); return i;}", "");
+            p.parse("class T3 { public {*reference r;} constructor() {r = \\i; r = 3;}} int sub t3() {T3 t(); return i;}", "");
+            p.parse("class T4 { public {static *reference r;} constructor() {r = \\i; r = 4;}} int sub t4() {T4 t(); return i;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("class T5 { public {reference r;} constructor() {r = 1;}} int sub t5() {T5 t(); return i;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("class T6 { public {*reference r;} constructor() {r = 1;}} int sub t6() {T6 t(); return i;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("class T7 { public {static reference r;} constructor() {r = 1;}} int sub t7() {T7 t(); return i;}", "");
+            # the following does not cause a parse error to be raised because the runtime type of the reference isn't known
+            p.parse("class T8 { public {static *reference r;} constructor() {r = 1;}} int sub t8() {T8 t(); return i;}", "");
+            assertEq(NOTHING, p.callFunction("get"));
+            assertEq(1, p.callFunction("t1"));
+            assertEq(2, p.callFunction("t2"));
+            assertEq(3, p.callFunction("t3"));
+            assertEq(4, p.callFunction("t4"));
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t5");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t6");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t7");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t8");
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_BROKEN_REFERENCES);
+            p.parse("our int i; *int sub get() {return i;}", "");
+            p.parse("int sub tb_0() {reference r = {}; return r.size();}", "");
+            p.parse("int sub tb_1() {*reference r = {}; return r.size();}", "");
+            p.parse("our reference r = {}; int sub tb_2(){return r.size();}", "");
+            p.parse("class TB_0 { public {reference r = 1;}} int sub tb_3(){TB_0 t(); return t.r.size();}", "");
+            p.parse("class TB_1 { public {*reference r = 1;}} int sub tb_4(){TB_1 t(); return t.r.size();}", "");
+            p.parse("class TB_2 { public {static reference r = 1;}} int sub tb_5(){TB_2::r.size();}", "");
+            p.parse("class TB_3 { public {static *reference r = 1;}} int sub tb_6(){TB_3::r.size();}", "");
+            p.parse("int sub tb_7(reference r) {r = {}; return r.size();}", "");
+            p.parse("int sub tb_8(*reference r) {r = {}; return r.size();}", "");
+            assertEq(0, p.callFunction("tb_0"));
+            assertEq(0, p.callFunction("tb_1"));
+            assertEq(0, p.callFunction("tb_2"));
+            assertEq(0, p.callFunction("tb_3"));
+            assertEq(0, p.callFunction("tb_4"));
+            assertEq(0, p.callFunction("tb_7"));
+            assertEq(0, p.callFunction("tb_8"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_BROKEN_REFERENCES);
+            p.parse("our *reference r = {}; int sub tb_0(){return r.size();}", "");
+            assertEq(0, p.callFunction("tb_0"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t(*reference r) {}", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("our int i = 1; sub t(reference r = \\i) { r = 3; } int sub get() { return i;}", "");
+            p.run();
+            int i = 2;
+            p.callFunction("t", \i);
+            assertEq(3, i);
+            assertEq(1, p.callFunction("get"));
+            p.callFunction("t");
+            assertEq(3, p.callFunction("get"));
+        }
+    }
 }

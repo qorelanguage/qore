@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1047,11 +1047,17 @@ public:
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return qore_check_this(this) ? typeInfo : 0;
+      return typeInfo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
+      // we cannot tell of the member has been initialized, so we return anyTypeInfo here for potential references
+      return (typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo) ? anyTypeInfo : typeInfo;
+      //return typeInfo;
    }
 
    DLLLOCAL bool parseHasTypeInfo() const {
-      return qore_check_this(this) && (typeInfo || parseTypeInfo);
+      return (typeInfo || parseTypeInfo);
    }
 
    DLLLOCAL ClassAccess getAccess() const {
@@ -1094,9 +1100,6 @@ public:
    }
 
    DLLLOCAL QoreMemberInfo* copy(const qore_class_private* n_qc, ClassAccess n_access = Public) const {
-      if (!qore_check_this(this))
-         return 0;
-
       return new QoreMemberInfo(*this, n_qc, n_access);
    }
 
@@ -1109,12 +1112,12 @@ protected:
    }
 
    DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
-         if (finalized) {
-            xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
-            return -1;
-         }
-         return 0;
+      if (finalized) {
+         xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
+         return -1;
       }
+      return 0;
+   }
 
 public:
    mutable QoreVarRWLock rwl;
@@ -1149,9 +1152,6 @@ public:
    }
 
    DLLLOCAL QoreVarInfo* copy() const {
-      if (!qore_check_this(this))
-         return 0;
-
       return new QoreVarInfo(*this);
    }
 
@@ -1173,7 +1173,7 @@ public:
       val.set(getTypeInfo());
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       // try to set an optimized value type for the value holder if possible
-      discard(val.assignInitial(typeInfo->getDefaultQoreValue()), 0);
+      discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
 #endif
    }
 
@@ -2063,29 +2063,29 @@ public:
       const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
 
       if (!omi) {
-	 int rc = 0;
-	 if (!parseHasMemberGate() || (pflag & PF_FOR_ASSIGNMENT)) {
-	    if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
-	       parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations",
-	             mem, name.c_str());
-	       rc = -1;
-	    }
-	    if (parseHasPublicMembersInHierarchy()) {
-	       //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate: %d pflag: %d\n", name.c_str(), mem, parseHasMemberGate(), pflag);
-	       parse_error(loc, "illegal access to unknown member '%s' in class '%s' which has a public member list (or inherited public member list)", mem, name.c_str());
-	       rc = -1;
-	    }
-	 }
-	 return rc;
+         int rc = 0;
+         if (!parseHasMemberGate() || (pflag & PF_FOR_ASSIGNMENT)) {
+            if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
+               parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations",
+                  mem, name.c_str());
+               rc = -1;
+            }
+            if (parseHasPublicMembersInHierarchy()) {
+               //printd(5, "qore_class_private::parseCheckMemberAccess() %s %%.%s memberGate: %d pflag: %d\n", name.c_str(), mem, parseHasMemberGate(), pflag);
+               parse_error(loc, "illegal access to unknown member '%s' in class '%s' which has a public member list (or inherited public member list)", mem, name.c_str());
+               rc = -1;
+            }
+         }
+         return rc;
       }
 
       memberTypeInfo = omi->getTypeInfo();
 
       // only raise a parse error for illegal access to private members if there is not memberGate function
       if ((access > Public) && !parseHasMemberGate() && !parseCheckPrivateClassAccess()) {
-	 memberTypeInfo = 0;
+         memberTypeInfo = 0;
          parse_error(loc, "illegal access to private member '%s' of class '%s'", mem, name.c_str());
-	 return -1;
+         return -1;
       }
       return 0;
    }
@@ -2110,25 +2110,25 @@ public:
       ClassAccess access;
       const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
       if (omi)
-         memberTypeInfo = omi->getTypeInfo();
+         memberTypeInfo = omi->parseGetTypeInfo();
 
       int rc = 0;
       if (!omi) {
-	 if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
-	    parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem, name.c_str());
-	    rc = -1;
-	 }
-	 if (parseHasPublicMembersInHierarchy()) {
+         if (parse_check_parse_option(PO_REQUIRE_TYPES)) {
+            parse_error(loc, "member '%s' of class '%s' referenced has no type information because it was not declared in a public or private member list, but parse options require type information for all declarations", mem, name.c_str());
+            rc = -1;
+         }
+         if (parseHasPublicMembersInHierarchy()) {
             parse_error(loc, "illegal access to unknown member '%s' in class '%s' which has a public member list (or inherited public member list)", mem, name.c_str());
-	    rc = -1;
-	 }
+            rc = -1;
+         }
       }
       return rc;
    }
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const {
       if (has_public_memdecl || pending_has_public_memdecl)
-	 return true;
+         return true;
 
       return scl ? scl->parseHasPublicMembersInHierarchy() : false;
    }
@@ -2203,12 +2203,12 @@ public:
 
       QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
       if (!vi)
-	 vi = pending_vars.find(const_cast<char*>(vname));
+         vi = pending_vars.find(const_cast<char*>(vname));
 
       if (vi) {
          qc = this;
          access = vi->getAccess();
-	 return vi;
+         return vi;
       }
 
       return scl ? scl->parseFindVar(vname, qc, access, toplevel) : 0;
@@ -2228,7 +2228,7 @@ public:
             parse_error("'%s' has already been declared as a constant in class '%s' and therefore cannot be also declared as a static class variable in the same class with the same name", dname, name.c_str());
             return -1;
          }
-	 return 0;
+         return 0;
       }
 
       return checkExistingVarMember(dname, vi, ovi, qc, access, true);
@@ -2249,7 +2249,7 @@ public:
       ClassAccess access = Public;
       const QoreMemberInfo* omi = scl ? scl->parseFindMember(mem, qc, access, true) : 0;
       if (!omi || (omi->getClass(qc) == mi->getClass(this)))
-	 return 0;
+         return 0;
 
       return checkExistingVarMember(mem, mi, omi, qc, omi->access);
    }
@@ -2338,7 +2338,7 @@ public:
       ClassAccess access = Public;
       AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
       if (!rv)
-	 rv = pend_constlist.parseFind(cname, cTypeInfo, access);
+         rv = pend_constlist.parseFind(cname, cTypeInfo, access);
 
       // check for accessibility to private constants
       if (rv && (access > Public)) {
@@ -2364,7 +2364,7 @@ public:
       ClassAccess access = Public;
       AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
       if (!rv)
-	 rv = pend_constlist.parseFind(cname, cTypeInfo, access);
+         rv = pend_constlist.parseFind(cname, cTypeInfo, access);
 
       // check for accessibility to private constants
       if (rv) {
@@ -2452,29 +2452,29 @@ public:
       if (!sys) { sys = true; }
       // check for special methods (except constructor and destructor)
       if (!special_method && !checkAssignSpecialIntern(m))
-	 // add ancestors
-	 addAncestors(m);
+         // add ancestors
+         addAncestors(m);
    }
 
    DLLLOCAL void recheckBuiltinMethodHierarchy();
 
    DLLLOCAL void addNewAncestors(QoreMethod* m) {
       if (!scl)
-	 return;
+         return;
 
       scl->addNewAncestors(m);
    }
 
    DLLLOCAL void addNewStaticAncestors(QoreMethod* m) {
       if (!scl)
-	 return;
+         return;
 
       scl->addNewStaticAncestors(m);
    }
 
    DLLLOCAL void addStaticAncestors(QoreMethod* m) {
       if (!scl)
-	 return;
+         return;
 
       scl->addStaticAncestors(m);
    }
@@ -2483,14 +2483,14 @@ public:
       assert(strcmp(m->getName(), "constructor"));
 
       if (!scl)
-	 return;
+         return;
 
       scl->addAncestors(m);
    }
 
    DLLLOCAL void parseAddStaticAncestors(QoreMethod* m) {
       if (!scl)
-	 return;
+         return;
 
       scl->parseAddStaticAncestors(m);
    }
@@ -2500,7 +2500,7 @@ public:
       assert(strcmp(m->getName(), "constructor"));
 
       if (!scl)
-	 return;
+         return;
 
       scl->parseAddAncestors(m);
    }
@@ -2541,13 +2541,14 @@ public:
    DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
    DLLLOCAL int initVar(const char* vname, QoreVarInfo& vi, ExceptionSink* xsink) const {
+      assert(xsink);
       if (vi.exp) {
          // evaluate expression
          ReferenceHolder<AbstractQoreNode> val(vi.exp->eval(xsink), xsink);
          if (*xsink)
             return -1;
 
-         val = vi.getTypeInfo()->acceptInputMember(vname, val.release(), xsink);
+         val = QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, val.release(), xsink);
          if (*xsink)
             return -1;
 
@@ -3137,10 +3138,10 @@ public:
       return qc.priv->runtimeCheckPrivateClassAccess(oqc);
    }
 
-   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
-      if (!qore_check_this(&oc))
+   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass* qc, const QoreClass* oc) {
+      if (!oc)
          return QTI_NOT_EQUAL;
-      return qc.priv->parseCheckCompatibleClass(*oc.priv);
+      return qc->priv->parseCheckCompatibleClass(*(oc->priv));
    }
 
    DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {

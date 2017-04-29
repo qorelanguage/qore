@@ -302,7 +302,7 @@ void LValueHelper::setValue(QoreLValueGeneric& nv) {
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
-   xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", typeInfo->getName(), type);
+   xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
    return -1;
 }
 
@@ -335,7 +335,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
       // if the lvalue is not already a list, then make it one
       // but first make sure the lvalue can be converted to a list
-      if (!typeInfo->parseAcceptsReturns(NT_LIST)) {
+      if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)) {
          var_type_err(typeInfo, "list", vl.xsink);
          clearPtr();
          return -1;
@@ -365,11 +365,6 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
    if (doLValue(op->getLeft(), for_remove))
       return -1;
 
-   /*
-   if (!isNode())
-      return for_remove ? -1 : var_type_err(typeInfo, "hash", vl.xsink);
-   */
-
    qore_type_t t = getType();
    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(getValue()) : 0;
    QoreHashNode* h = 0;
@@ -389,7 +384,7 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
 
          // if the variable's value is not already a hash or an object, then make it a hash
          // but first make sure the lvalue can be converted to a hash
-         if (!typeInfo->parseAcceptsReturns(NT_HASH)) {
+         if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
             var_type_err(typeInfo, "hash", vl.xsink);
             clearPtr();
             return -1l;
@@ -466,7 +461,6 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
-      // true is for "internal"
       if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
          return -1;
 
@@ -558,7 +552,7 @@ int LValueHelper::assign(QoreValue n, const char* desc) {
       n.v.n = 0;
 
    // check type for assignment
-   typeInfo->acceptAssignment(desc, n, vl.xsink);
+   QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
    if (*vl.xsink) {
       //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
       saveTemp(n);
@@ -585,8 +579,8 @@ int LValueHelper::makeInt(const char* desc) {
    if (val->isInt())
       return 0;
 
-   if (typeInfo && !typeInfo->parseAccepts(bigIntTypeInfo)) {
-      typeInfo->doTypeException(0, desc, bigIntTypeInfo->getName(), vl.xsink);
+   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
       assert(*vl.xsink);
       return -1;
    }
@@ -600,8 +594,8 @@ int LValueHelper::makeFloat(const char* desc) {
    if (val->isFloat())
       return 0;
 
-   if (typeInfo && !typeInfo->parseAccepts(floatTypeInfo)) {
-      typeInfo->doTypeException(0, desc, floatTypeInfo->getName(), vl.xsink);
+   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
+      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
       return -1;
    }
 
@@ -614,8 +608,8 @@ int LValueHelper::makeNumber(const char* desc) {
    if (val->getType() == NT_NUMBER)
       return 0;
 
-   if (typeInfo && !typeInfo->parseAccepts(numberTypeInfo)) {
-      typeInfo->doTypeException(0, desc, numberTypeInfo->getName(), vl.xsink);
+   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
+      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
       return -1;
    }
 
@@ -1272,7 +1266,7 @@ const void* ClosureVarValue::getLValueId() const {
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
 
-   if (typeInfo->needsScan())
+   if (QoreTypeInfo::needsScan(typeInfo))
       lvh.setClosure(const_cast<ClosureVarValue*>(this));
 
    QoreSafeVarRWWriteLocker sl(rml);
@@ -1284,6 +1278,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    lvh.setTypeInfo(typeInfo);
+
    lvh.set(rml);
    sl.stay_locked();
    lvh.setValue((QoreLValueGeneric&)val);

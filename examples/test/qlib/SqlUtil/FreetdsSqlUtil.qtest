@@ -38,6 +38,8 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );

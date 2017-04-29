@@ -125,11 +125,11 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
       return 0;
    }
 
-   //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, typeInfo->getName());
+   //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, QoreTypeInfo::getName(typeInfo));
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
-	 ref.id = push_local_var(name.ostr, loc, typeInfo, true, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
+	 ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
 	 ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
@@ -143,7 +143,7 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    return this;
 }
 
-AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
    parseInitIntern(oflag, pflag, lvids, 0);
 
    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -156,7 +156,7 @@ AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvi
       outTypeInfo = nothingTypeInfo;
    }
    else
-      outTypeInfo = parseGetTypeInfo();
+      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 
    return this;
 }
@@ -188,7 +188,7 @@ void VarRefNode::makeGlobal() {
 
 int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
    if (type == VT_LOCAL)
-      return ref.id->getLValue(lvh, for_remove);
+      return ref.id->getLValue(lvh, for_remove, new_decl);
    if (type == VT_CLOSURE)
       return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
    if (type == VT_LOCAL_TS)
@@ -237,7 +237,7 @@ GlobalVarRefNode::GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo) : 
 
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
    if (!typeInfo) {
-      typeInfo = parseTypeInfo->resolveAndDelete(loc);
+      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
    }
 #ifdef DEBUG
@@ -258,7 +258,7 @@ AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
    if (!is_assignment && new_decl)
       outTypeInfo = nothingTypeInfo;
    else
-      outTypeInfo = parseGetTypeInfo();
+      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 
    return this;
 }
@@ -314,9 +314,9 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
 AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
    parseInitCommon(oflag, pflag, lvids, true);
 
-   const QoreClass *qc = typeInfo->getUniqueReturnClass();
+   const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
    if (!qc)
-      parse_error(loc, "cannot instantiate type '%s' as a class", typeInfo->getName());
+      parse_error(loc, "cannot instantiate type '%s' as a class", QoreTypeInfo::getName(typeInfo));
 
    parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;
@@ -324,8 +324,8 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag,
 }
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(typeInfo->getUniqueReturnClass());
-   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*typeInfo->getUniqueReturnClass(), variant, args, xsink), xsink);
+   assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*QoreTypeInfo::getUniqueReturnClass(typeInfo), variant, args, xsink), xsink);
    if (*xsink)
       return QoreValue();
 

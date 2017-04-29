@@ -133,7 +133,9 @@ class FtpServer {
 
             if (cmd =~ /^TYPE /i) {
                 *string arg = (cmd =~ x/^TYPE (.*)$/i)[0];
-                if (arg != "I")
+                if (arg == "A")
+                    ftpSend(ns, 200, "Switching to Text mode.");
+                else if (arg != "I")
                     ftpSend(ns, 500, "Unrecognised TYPE command %y.", arg);
                 else
                     ftpSend(ns, 200, "Switching to Binary mode.");
@@ -182,6 +184,29 @@ class FtpServer {
 
                 data.close();
                 ftpSend(ns, 226, "Transfer completed.");
+                continue;
+            }
+
+            if (cmd =~ /^NLST/i) {
+                if (!data.isOpen()) {
+                    ftpSend(ns, 425, "Use EPASV first.");
+                    continue;
+                }
+                dcnt.waitForZero();
+                ftpSend(ns, 150, "Here comes the directory listing.");
+
+                if (doBroken("nlst", data))
+                    break;
+
+                #printf("get: empty %y\n", get_empty);
+                if (!get_empty) {
+                    # write a bunch of data and then exit
+                    for (int i = 0; i < 200; ++i)
+                        data.send(sprintf("drwxr-xr-x    2 0        0            4096 Jul 08  2016 pub_%s\n", get_random_string(5)));
+                }
+
+                data.close();
+                ftpSend(ns, 226, "Directory send OK.");
                 continue;
             }
 
@@ -404,5 +429,7 @@ class FtpTest inherits QUnit::Test {
         assertEq(NOTHING, fc.get(local_path, local_path));
         assertEq("", ReadOnlyFile::readTextFile(local_path));
         assertEq("", fc.getAsString(local_path));
+
+        assertEq(Type::String, fc.nlst().type());
     }
 }

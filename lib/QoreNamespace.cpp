@@ -255,6 +255,7 @@ void qore_ns_private::setClassHandler(q_ns_class_handler_t n_class_handler) {
 }
 
 void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
+   assert(xsink);
    if (classList.importSystemClasses(source.classList, this, xsink))
       rns.runtimeRebuildClassIndexes(this);
 
@@ -280,6 +281,7 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, 
 }
 
 void qore_ns_private::runtimeImportSystemConstants(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
+   assert(xsink);
    if (constant.importSystemConstants(source.constant, xsink))
       rns.runtimeRebuildConstantIndexes(this);
 
@@ -305,6 +307,7 @@ void qore_ns_private::runtimeImportSystemConstants(const qore_ns_private& source
 }
 
 void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
+   assert(xsink);
    if (func_list.importSystemFunctions(source.func_list, this, xsink))
       rns.runtimeRebuildFunctionIndexes(this);
 
@@ -1002,7 +1005,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
       LocalVar* id = find_local_var(bword, in_closure);
       if (id) {
          //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() %s is an lvar: %p\n", bword, id);
-         typeInfo = id->getTypeInfo();
+         typeInfo = id->parseGetTypeInfo();
          return new VarRefNode(strdup(bword), id, in_closure);
       }
    }

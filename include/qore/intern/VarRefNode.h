@@ -82,6 +82,14 @@ protected:
       return 0;
    }
 
+   DLLLOCAL virtual const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
+      if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
+         return ref.id->parseGetTypeInfoForInitialAssignment();
+      if (type == VT_GLOBAL)
+         return ref.var->parseGetTypeInfoForInitialAssignment();
+      return 0;
+   }
+
    DLLLOCAL void setThreadSafeIntern() {
       ref.id->setClosureUse();
       type = VT_LOCAL_TS;
@@ -393,8 +401,8 @@ public:
    // will only be called on *VarRefNewObjectNode objects, but this is their common class
    DLLLOCAL virtual const char* getNewObjectClassName() const {
       if (typeInfo) {
-         assert(typeInfo->getUniqueReturnClass());
-         return typeInfo->getUniqueReturnClass()->getName();
+         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+         return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
       }
       return parseTypeInfo->cscope->getIdentifier();
    }

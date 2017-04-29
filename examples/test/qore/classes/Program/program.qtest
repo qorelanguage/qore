@@ -420,5 +420,9 @@ class ProgramTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
             assertThrows("PARSE-EXCEPTION", "do not allow access", \p.parse(), ("get_local_vars(0);", ""));
         }
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-ERROR", "local variable.*already declared", \p.parse(), ("hash h; hash h;", ""));
+        }
     }
 }

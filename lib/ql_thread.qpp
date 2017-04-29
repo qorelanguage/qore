@@ -43,6 +43,7 @@
 extern QoreClass* QC_TIMEZONE;
 
 static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -62,6 +63,7 @@ static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* 
 }
 
 static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -84,6 +86,7 @@ static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, Except
 }
 
 static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -103,6 +106,7 @@ static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* x
 }
 
 static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, ExceptionSink* xsink) {
+   assert(xsink);
    // get thread data hash
    QoreHashNode *data = getProgram()->getThreadData();
 
@@ -377,6 +381,34 @@ foreach string tid in (cs.keyIterator()) {
 hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
+#else
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
+#endif
+}
+
+//! Returns a call stack for current TID (thread ID). As it is called always inside thread then no locking is applied as in @ref get_all_thread_call_stacks.
+/**
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
+
+    @return a call stack for current TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
+
+    @par Example:
+    @code{.py}
+list cs = get_thread_call_stack();
+  foreach hash l in (cs)
+    if (l.type != "new-thread")
+      printf(" %d: %s() called at %s:%d (%s function)\n", ++i, l.function, l.file, l.line, l.type);
+    else
+      printf(" %d: *** thread started by background operator ***\n", ++i);
+}
+    @endcode
+
+    @since %Qore 0.8.13
+*/
+list get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+   return getCallStack()->getCallStack();
 #else
    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
 #endif

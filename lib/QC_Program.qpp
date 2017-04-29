@@ -440,6 +440,13 @@ const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
 */
 const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
 
+//! allows for old pre-%Qore 0.8.13 handling of @ref reference_type "reference" and @ref reference_or_nothing_type "*reference"
+/** @see @ref broken-references "%broken-references"
+
+    @since %Qore 0.8.13
+*/
+const PO_BROKEN_REFERENCES = PO_BROKEN_REFERENCES;
+
 //! disallows out-of-line class and namespace declarations
 /** @see @ref strong-encapsulation "%strong-encapsulation"
 

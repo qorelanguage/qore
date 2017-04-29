@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthUtil.qm Copyright 2015 - 2016 Qore Technologies, s.r.o.
+/*  FixedLengthUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -266,6 +266,9 @@ w.write(data);
       - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter" and @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter"
     - added @ref FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
 
+    @subsection fixedlengthutil_v1_0 Version 1.0.1
+    - fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
+
     @subsection fixedlengthutil_v1_0 Version 1.0
     - initial version of module
 */
@@ -462,11 +465,21 @@ my hash $h = $i.getValue();
                     if (!fmt)
                         fmt = m_opts.date_format;
 
-                    return tz ? tz.date(value, fmt) : date(value, fmt);
+                    try {
+                        return tz ? tz.date(value, fmt) : date(value, fmt);
+                    }
+                    catch (hash ex) {
+                        throw ex.err, ex.desc, ("value": value, "fmt": fmt);
+                    }
                 }
-                if (t != NT_DATE && tz)
-                    value = date(value);
-                return tz ? tz.date(value) : date(value);
+                try {
+                    if (t != NT_DATE && tz)
+                        value = date(value);
+                    return tz ? tz.date(value) : date(value);
+                }
+                catch (hash ex) {
+                    throw ex.err, ex.desc, ("value": value);
+                }
             }
             default: {
                 throw "FIELD-TYPE-ERROR", sprintf("output type %y not supported", type.type);
@@ -559,7 +572,7 @@ my hash $h = $i.getValue();
         *string rv;
         int len = input_line.size();
         if (!m_resolve_by_rule{len} && !m_resolve_by_length{len})
-            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length %d found; known lengths: %y (record: %s)", len, (map $1.toInt(), m_resolve_by_rule.keyIterator()+m_resolve_by_length.keyIterator()).sort(), input_line);
+            throw "FIXED-LENGTH-UTIL-NON-MATCHING-TYPE", sprintf("Line of unexpected length %d found; known lengths: %y (record: %s)", len, (map $1.toInt(), sort(keys (m_resolve_by_rule + m_resolve_by_length))), input_line);
 
         if (m_resolve_by_rule{len}) {
             # try match type by filter spec

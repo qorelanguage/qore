@@ -93,7 +93,19 @@ DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
 DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg = true, int n_refs = 0, bool top_level = false);
+
+// push a local variable on the stack at parse time
+/** @param name the name of the var
+    @param loc the location of the declaration
+    @param typeInfo the declared type of the variable
+    @param is_auto true if it's an automatic variable (already assigned - ex: parameter var or "self"/"argv")
+    @param n_refs reference count
+    @param top_level true if a local variable with global scope
+
+    @return the LocalVar ptr (caller owns the pointer returned)
+*/
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, bool top_level = false);
+
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

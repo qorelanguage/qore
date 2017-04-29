@@ -96,9 +96,26 @@ extern QoreClass* QC_SOCKET;
     |@ref EVENT_HTTP_CHUNKED_DATA_RECEIVED|Raised when a block of HTTP chunked data is received.
     |@ref EVENT_HTTP_CHUNK_SIZE|Raised when the next chunk size for HTTP chunked data is known.
 
+    @section httpclient_get_with_body HTTP GET Requests With a Message Body
+
+    The %Qore HTTPClient class allows \c GET requests to be made with a message body, however please note
+    that this is a bad practice according to HTTP 1.1 RFCs; specifically:
+    - <a href="https://tools.ietf.org/html/rfc2616#section-4.3">RFC 2616 section 4.3</a>:
+    @verbatim if the request method does not include defined semantics for an entity-body,
+then the message-body SHOULD be ignored when handling the request.@endverbatim
+    - <a href="https://tools.ietf.org/html/rfc7231#section-4.3.1">RFC 7231 section 4.3.1</a>:
+    @verbatim A payload within a GET request message has no defined semantics; sending a
+payload body on a GET request might cause some existing implementations to
+reject the request.@endverbatim
+    .
+    Therefore we can conclude that \c GET methods do not include defined semantics, and therefore message bodies included with \c GET requests \c SHOULD be ignored according to the HTTP 1.1 spec, therefore it's recommended not to send
+    a message body with a \c GET request if standards compliance and compatibility is a goal.
+
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
     - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    - HTTP headers should accept data in ISO-8859-1 (LATIN-1) encoding, but in practice for maximum compatibility US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format according to <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs character encoding conversion on strings used as the message body.
+    - The default character encoding for this class is the same as the @ref default_encoding "default character encoding" for %Qore (normally \c UTF-8); this class does not include a \c ";charset=utf-8" in the \c "Content-Type" header by default; this must be set explicitly by users of this class if necessary.
  */
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
@@ -111,20 +128,20 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-    - \c url: A string giving the URL to connect to
-    - \c default_port: The default port number to connect to if none is given in the URL
-    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
-    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
+    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method requires sending a message body; for example:
+    @code{.py}
+    # add two new HTTP methods for WebDAV; both require message bodies
+    HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
+    @endcode
+    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+    - \c default_port: The default port number to connect to if none is given in the URL
+    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
-    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
-    - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash uses method name as a key and value is a boolean \c True or \c False indicating if the HTTPClient should post the message body as well. Example:
-    @code{.py}
-    # add new HTTP methods for WebDAV. Both of them require body posting to the server
-    ("additional_methods" : ( "PROPFIND" : True, "MKCOL": True ) );
-    @endcode
+    - \c url: A string giving the URL to connect to
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
@@ -265,12 +282,24 @@ nothing HTTPClient::disconnect() {
 hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @param body The message body to send
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added in the constructor as a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -287,10 +316,17 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @see @ref httpclient_get_with_body
  */
 hash HTTPClient::send(string body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->strlen(), getbody, *ohrh, xsink), xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
 }
 
@@ -308,7 +344,19 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -324,6 +372,8 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @see @ref httpclient_get_with_body
  */
 hash HTTPClient::send(*binary body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -346,7 +396,19 @@ hash msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
 
@@ -365,6 +427,8 @@ hash msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
     - For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @see @ref httpclient_get_with_body
 
     @since Qore 0.8.10
  */
@@ -397,12 +461,24 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -413,11 +489,17 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
+    @see @ref httpclient_get_with_body
+
     @since Qore 0.8.10
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body->getBuffer(), body->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -443,12 +525,24 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -463,35 +557,42 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
+   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
-//! Sends an HTTP request with the specified method and optional message body; headers are returned through a receive callback and any body received is written to an @ref OutputStream
+//! Sends an HTTP request with the specified method and optional message body; headers are returned through an optional receive callback and any body received is written to the @ref OutputStream
 /** This method is useful for receiving data in real time; data are sent to the output stream as soon as they are received.
     If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
     @par Example:
     @code{.py}
-httpclient.sendWithOutputStream(rcv_callback, outputStream, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+# save the HTTP response body directly to a file with a random file name
+string fn = tmp_location() + DirSep + get_random_string() + ".tmp"
+FileOutputString output_stream(fn);
+# log the "X-Logme" header
+code rcb = sub (hash h) {
+    if (h.hdr."x-logme")
+        log("X-Logme: %y", h.hdr."x-logme");
+};
+httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb);
     @endcode
 
-    @param rcb The receive callback for the data received; this method is called with a hash of the message headers. Header or trailer data is placed in a hash with the following keys:
-    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param os The @ref OutputStream to write the response body to
     @param body The message body to send; pass @ref nothing (no value) to send no body
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
-     methods can be added in the constructor as a \c additional_methods option.
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server); status errors are not thrown in case a receive callback is used
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -504,10 +605,83 @@ httpclient.sendWithOutputStream(rcv_callback, outputStream, data, "POST", "/path
 
     @since %Qore 0.8.13
  */
-nothing HTTPClient::sendWithOutputStream(code rcb, Qore::OutputStream[OutputStream] os, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb) {
    SimpleRefHolder<OutputStream> osHolder(os);
    OptHashRefHelper ohrh(info, xsink);
-   client->sendWithOutputStream(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+   const char* pstr = path && !path->empty() ? path->c_str() : nullptr;
+   if (get_node_type(body) == NT_STRING) {
+      const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(body);
+      TempEncodingHelper tmp(str, client->getEncoding(), xsink);
+      client->sendWithOutputStream(method->getBuffer(), pstr, headers, str->c_str(), str->size(), getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+   }
+   else {
+      const BinaryNode* b = reinterpret_cast<const BinaryNode*>(body);
+      client->sendWithOutputStream(method->getBuffer(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+   }
+}
+
+//! Sends a chunked HTTP request with the specified method and message body; headers are returned through an optional receive callback and any body received is written to the @ref OutputStream
+/** This method is useful for receiving data in real time; data are sent to the output stream as soon as they are received.
+    If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+
+    @par Example:
+    @code{.py}
+# save the HTTP response body directly to a file with a random file name
+string fn = tmp_location() + DirSep + get_random_string() + ".tmp"
+FileOutputString output_stream(fn);
+# log the "X-Logme" header
+code rcb = sub (hash h) {
+    if (h.hdr."x-logme")
+        log("X-Logme: %y", h.hdr."x-logme");
+};
+# write the "X-Content-Done" header when done
+code tcb = *hash sub () {
+    return ("X-Content-Done": "true");
+};
+httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb, tcb);
+    @endcode
+
+    @param os The @ref OutputStream to write the response body to
+    @param is The @ref InputStream to read the request body from; each read will be sent as a separate chunk
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
+    @param max_chunk_size the maximum chunk size as the read block size for the @ref InputStream read block size; the actual size of the data read will determine the size of each HTTP chunk
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param headers An optional hash of headers to include in the message.
+    @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
+    - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+    @param tcb An optional trailer callback for message trailers to write in the outgoing chunked message; the callback takes no arguments and must return either @ref nothing or @ref hash_type "hash" giving a hash of trailers for the final chunk
+
+    @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
+    @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
+    @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server); status errors are not thrown in case a receive callback is used
+    @throw HTTP-CHUNK-ERROR the chunk size given is not greater than 0
+    @throw HTTP-TRAILER-ERROR the trailer callback must return either @ref nothing or @ref hash_type "hash"; this exception is thrown is another type is returned
+    @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
+    @throw SOCKET-SEND-ERROR There was an error sending the data
+    @throw SOCKET-CLOSED The remote end closed the connection
+    @throw SOCKET-RECV-ERROR There was an error receiving the data
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
+    @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since %Qore 0.8.13
+ */
+nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb, *code tcb) {
+   SimpleRefHolder<OutputStream> osHolder(os);
+   SimpleRefHolder<InputStream> isHolder(is);
+   if (max_chunk_size < 1) {
+      xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD, max_chunk_size);
+      return QoreValue();
+   }
+   OptHashRefHelper ohrh(info, xsink);
+   client->sendChunked(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, getbody, *ohrh, timeout_ms, rcb, self, os, is, (size_t)max_chunk_size, tcb, xsink);
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
@@ -528,13 +702,24 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional
-     methods can be added in the constructor as a \c additional_methods option.
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", or \c "CONNECT"). Additional methods can be added using the \c additional_methods option in the constructor(hash).
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message.
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -553,6 +738,8 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     - if a response is received while the chunked send operation is still in progress, an error is assumed, the send operation is aborted, and the response header is read immediately and the \c send_aborted flag is set in the argument to \a rcb
     - For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
+    @see @ref httpclient_get_with_body
+
     @since Qore 0.8.10
  */
 nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
@@ -561,7 +748,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 }
 
 //! Sends an HTTP \c GET request and returns the message body received as a string or @ref nothing if no message body is received
-/** In order to get the headers and the body, use the HTTPClient::send() method instead.
+/** In order to get the headers and the body, use the HTTPClient::send() method instead (although note that sending an HTTP message bosdy with a \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information).
 
     If no connection has already been established, an internal call to HTTPClient::connect() will be made before sending the request.
 
@@ -574,7 +761,19 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
 
@@ -592,6 +791,8 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @see @ref httpclient_get_with_body
  */
 *string HTTPClient::get(string path, *hash headers, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -609,7 +810,19 @@ hash msg = httpclient.head("/path");
 
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the headers received from the HTTP server with all key names converted to lower-case
 
@@ -647,7 +860,19 @@ httpclient.post("/path", body);
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the string to use as the message body
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 
@@ -669,7 +894,11 @@ httpclient.post("/path", body);
  */
 *string HTTPClient::post(string path, string body, *hash headers, *reference info) {
    OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body->getBuffer(), body->size(), *ohrh, xsink), xsink);
+   // issue 1813: convert string to socket's character encoding as documented
+   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, btmp->c_str(), btmp->size(), *ohrh, xsink), xsink);
 #ifdef DEBUG
    assert(!rv || rv->getType() == NT_STRING);
 #endif
@@ -689,7 +918,19 @@ httpclient.post("/path", body);
     @param path the path for the message (i.e. \c "/path/resource?method&param=value")
     @param body the optional data to use as the message body
     @param headers an optional hash of headers to include in the message
-    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request
+    @param info an optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
+    - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
+    - \c request-body: the raw message body in the request (before any content encoding)
+    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+      - \c http_version: the HTTP version in the response URI
+      - \c status_code: the HTTP status code of the response
+      - \c status_message: the HTTP status message of the response
+    - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
 

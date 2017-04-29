@@ -73,6 +73,9 @@ module HttpServerUtil {
     @subsection httputil0311 HttpServerUtil 0.3.12
     - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
 
+    @subsection httputil0312 HttpServerUtil 0.3.11.2
+    - eliminated excess logging of each HTTP chunk sent or received
+
     @subsection httputil0311 HttpServerUtil 0.3.11.1
     - aligned version with HttpServer module version
 
@@ -628,8 +631,17 @@ public class HttpServer::AbstractStreamRequest {
         return v;
     }
 
+    #! this method can be overridden in base classes to log each HTTP chunk sent
+    /** @par
+        @code{.py}
+private logChunk(bool send, int size) {
+    listener.log("cid %d %s CHUNK %d bytes", cx.id, send ? "send" : "recv", size);
+}
+        @endcode
+
+        By default this method does nothing
+    */
     private logChunk(bool send, int size) {
-        listener.log("cid %d %s CHUNK %d bytes", cx.id, send ? "send" : "recv", size);
     }
 
     #! this method should return the response message description hash

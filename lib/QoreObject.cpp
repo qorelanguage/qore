@@ -234,7 +234,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
             return;
 
          // check type compatibility and perform type translations, if any
-         ReferenceHolder<AbstractQoreNode> val(ti->acceptInputMember(hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+         ReferenceHolder<AbstractQoreNode> val(QoreTypeInfo::acceptInputMember(ti, hi.getKey(), hi.getReferencedValue(), xsink), xsink);
          if (*xsink)
             return;
 
@@ -337,7 +337,7 @@ AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const ch
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   return odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
+   return odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti), this);
 #else
    return odata->priv->swapKeyValue(key, 0, this);
 #endif
@@ -365,7 +365,7 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
 
    AbstractQoreNode* rv;
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   rv = odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
+   rv = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti), this);
 #else
    rv = odata->priv->swapKeyValue(key, 0, this);
 #endif
@@ -414,7 +414,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
       QoreHashNode* odata = internal_member ? (id ? id : (id = getCreateInternalData(class_ctx))) : data;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      AbstractQoreNode* n = odata->priv->swapKeyValue(key, mti->getDefaultValue(), this);
+      AbstractQoreNode* n = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti), this);
 #else
       AbstractQoreNode* n = odata->priv->swapKeyValue(key, 0, this);
 #endif
@@ -476,12 +476,9 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
 
    qolhm.stay_locked();
 
-   // save lvalue type info
-   lvh.setTypeInfo(mti);
-
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
-   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d int: %d odata: %p\n", this, theclass->getName(), key, mti->getName(), for_remove, internal_member, odata);
+   //printd(5, "qore_object_private::getLValue() this: %p %s::%s type %s for_remove: %d int: %d odata: %p\n", this, theclass->getName(), key, QoreTypeInfo::getName(mti), for_remove, internal_member, odata);
 
    HashMember* m;
    if (for_remove) {
@@ -492,6 +489,14 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
    else
       m = odata->priv->findCreateMember(key);
    lvh.setPtr(m->node);
+
+   // if it's an assigned reference, then return anyTypeInfo
+   if (get_node_type(m->node) != NT_NOTHING && (mti == referenceTypeInfo || mti == referenceOrNothingTypeInfo))
+      mti = anyTypeInfo;
+
+   // save lvalue type info
+   lvh.setTypeInfo(mti);
+
    return 0;
 }
 
@@ -661,7 +666,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                // rset can be changed unless the rsection is acquired
                sl.acquireRSection();
 
-               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, rset->isValid(), rcount, ref_copy, references.load(), rrefs, deferred_scan, qodh.doScan());
+               printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' rset: %p (valid: %d) rcount: %d refs: %d/%d rrefs: %d (deferred: %d do_scan: %d)\n", this, getClassName(), rset, RSet::isValid(rset), rcount, ref_copy, references.load(), rrefs, deferred_scan, qodh.doScan());
 
                int rc;
                RSet* rs = rset;

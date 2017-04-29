@@ -32,6 +32,12 @@
 
 #include <stdlib.h>
 
+// check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
+static bool qore_check_this(const void* p) {
+   assert(p);
+   return p;
+}
+
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
 
@@ -60,6 +66,8 @@ bool ExceptionSink::isException() const {
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
+   assert(this);
+   // FIXME: remove qore_check_this() in the next possible release of Qore
    return qore_check_this(this) && (priv->head || priv->thread_exit);
 }
 

@@ -54,6 +54,8 @@ static QoreTypeInfo staticAnyTypeInfo,
    staticCallReferenceTypeInfo(NT_FUNCREF)
    ;
 
+//static ReferenceValueTypeInfo staticReferenceValueTypeInfo;
+
 // const pointers to static reference types
 const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -67,17 +69,18 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *runTimeClosureTypeInfo = &staticRunTimeClosureTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
+   //*referenceValueTypeInfo = &staticReferenceValueTypeInfo,
 
    // assigned in init_qore_types()
-   *bigIntOrNothingTypeInfo = 0,
-   *stringOrNothingTypeInfo = 0,
-   *boolOrNothingTypeInfo = 0,
-   *binaryOrNothingTypeInfo = 0,
-   *objectOrNothingTypeInfo = 0,
-   *dateOrNothingTypeInfo = 0,
-   *hashOrNothingTypeInfo = 0,
-   *listOrNothingTypeInfo = 0,
-   *nullOrNothingTypeInfo = 0
+   *bigIntOrNothingTypeInfo = nullptr,
+   *stringOrNothingTypeInfo = nullptr,
+   *boolOrNothingTypeInfo = nullptr,
+   *binaryOrNothingTypeInfo = nullptr,
+   *objectOrNothingTypeInfo = nullptr,
+   *dateOrNothingTypeInfo = nullptr,
+   *hashOrNothingTypeInfo = nullptr,
+   *listOrNothingTypeInfo = nullptr,
+   *nullOrNothingTypeInfo = nullptr
    ;
 
 // reference types
@@ -351,12 +354,27 @@ bool builtinTypeHasDefaultValue(qore_type_t t) {
 
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
-   return i != str_typeinfo_map.end() ? i->second : 0;
+   if (i == str_typeinfo_map.end())
+      return nullptr;
+
+   const QoreTypeInfo* rv = i->second;
+   // return type "any" for reference types if PO_BROKEN_REFERENCES is set
+   if (rv == referenceTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
+      rv = anyTypeInfo;
+   return rv;
 }
 
 const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str) {
    str_typeinfo_map_t::iterator i = str_ornothingtypeinfo_map.find(str);
-   return i != str_ornothingtypeinfo_map.end() ? i->second : 0;
+   if (i == str_ornothingtypeinfo_map.end())
+      return nullptr;
+
+   const QoreTypeInfo* rv = i->second;
+   // return type "any" for reference types if PO_BROKEN_REFERENCES is set
+   if (rv == referenceOrNothingTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
+      rv = anyTypeInfo;
+
+   return rv;
 }
 
 const char* getBuiltinTypeName(qore_type_t type) {
@@ -385,6 +403,9 @@ const char* getBuiltinTypeName(qore_type_t type) {
 }
 
 int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const {
+   if (qt == NT_ALL)
+      return 0;
+
    qore_type_t nt = n.getType();
 
    if (qt != nt)
@@ -396,12 +417,12 @@ int QoreTypeInfo::runtimeAcceptInputIntern(bool &priv_error, QoreValue& n) const
    bool priv;
    if (reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
       if (!priv)
-	 return 0;
+         return 0;
 
       // check private access if required class is privately
       // inherited in the input argument's class
       if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
-	 return 0;
+         return 0;
 
       priv_error = true;
    }
@@ -422,9 +443,8 @@ int QoreTypeInfo::acceptInputDefault(bool& priv_error, QoreValue& n) const {
    // check all types until one accepts the input
    // priv_error can be set to false more than once; this is OK for error reporting
    for (type_vec_t::const_iterator i = at.begin(), e = at.end(); i != e; ++i) {
-      assert((*i)->acceptsSingle());
       if (!(*i)->runtimeAcceptInputIntern(priv_error, n))
-	 return 0;
+         return 0;
    }
 
    return runtimeAcceptInputIntern(priv_error, n);
@@ -459,19 +479,19 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo* typeInfo) const {
    for (type_vec_t::const_iterator i = my_at.begin(), e = my_at.end(); i != e; ++i) {
       bool ident = false;
       for (type_vec_t::const_iterator j = their_at.begin(), je = their_at.end(); j != je; ++j) {
-	 //printd(5, "QoreTypeInfo::isInputIdentical() this=%p i=%p %s j=%p %s\n", this, *i, (*i)->getName(), *j, (*j)->getName());
+         //printd(5, "QoreTypeInfo::isInputIdentical() this=%p i=%p %s j=%p %s\n", this, *i, (*i)->getName(), *j, (*j)->getName());
 
-	 // if the second type is the original type, skip it
-	 if (*j == this)
-	    continue;
+         // if the second type is the original type, skip it
+         if (*j == this)
+            continue;
 
-	 if ((*i) == (*j) || (*i)->isInputIdentical(*j)) {
-	    ident = true;
-	    break;
-	 }
+         if ((*i) == (*j) || (*i)->isInputIdentical(*j)) {
+            ident = true;
+            break;
+         }
       }
       if (!ident)
-	 return false;
+         return false;
    }
 
    return true;
@@ -535,14 +555,14 @@ bool QoreTypeInfo::isOutputIdentical(const QoreTypeInfo* typeInfo) const {
    for (type_vec_t::const_iterator i = my_rt.begin(), e = my_rt.end(); i != e; ++i) {
       bool ident = false;
       for (type_vec_t::const_iterator j = their_rt.begin(), je = their_rt.end(); j != je; ++j) {
-	 if ((*i)->isOutputIdentical(*j)) {
-	    ident = true;
-	    break;
-	 }
+         if ((*i)->isOutputIdentical(*j)) {
+            ident = true;
+            break;
+         }
       }
       if (!ident) {
          //printd(5, "QoreTypeInfo::isOutputIdentical() cannot find match for %s in rhs\n", (*i)->getName());
-	 return false;
+         return false;
       }
    }
 
@@ -559,7 +579,7 @@ qore_type_result_e QoreTypeInfo::matchClassIntern(const QoreClass* n_qc) const {
    if (!qc)
       return QTI_AMBIGUOUS;
 
-   qore_type_result_e rc = qore_class_private::parseCheckCompatibleClass(*qc, *n_qc);
+   qore_type_result_e rc = qore_class_private::parseCheckCompatibleClass(qc, n_qc);
    if (rc == QTI_IDENT && !exact_return)
       return QTI_AMBIGUOUS;
    return rc;
@@ -582,30 +602,39 @@ qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass* n_qc) 
 }
 
 void QoreTypeInfo::doNonNumericWarning(const char* preface) const {
+   QoreTypeInfo::doNonNumericWarning(this, preface);
+}
+
+void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
+   QoreTypeInfo::doNonBooleanWarning(this, preface);
+}
+
+void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreTypeInfo::doNonStringWarning(this, loc, preface);
+}
+
+void QoreTypeInfo::doNonNumericWarning(const QoreTypeInfo* ti, const char* preface) {
    QoreStringNode* desc = new QoreStringNode(preface);
-   getThisType(*desc);
+   QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
+void QoreTypeInfo::doNonBooleanWarning(const QoreTypeInfo* ti, const char* preface) {
    QoreStringNode* desc = new QoreStringNode(preface);
-   getThisType(*desc);
+   QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
    QoreStringNode* desc = new QoreStringNode(preface);
-   getThisType(*desc);
+   QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
-   if (!qore_check_this(this))
-      return 0;
-
    // resolve class
    const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
 
@@ -615,8 +644,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocatio
    if (qc && my_or_nothing) {
       const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
-	 parse_error(loc, "class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
-	 return objectOrNothingTypeInfo;
+         parse_error(loc, "class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+         return objectOrNothingTypeInfo;
       }
       return rv;
    }
@@ -645,13 +674,26 @@ bool OrNothingTypeInfo::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) cons
    if (t == NT_NOTHING)
       return true;
    if (t == NT_NULL) {
-      discard(n.assign((AbstractQoreNode*)0), xsink);
+      discard(n.assign((AbstractQoreNode*)nullptr), xsink);
       return true;
+   }
+
+   if (accepts_mult) {
+      const type_vec_t& at = getAcceptTypeList();
+
+      bool priv_error = false;
+      // check all types until one accepts the input
+      for (auto& i : at) {
+         if (&*i == anyTypeInfo)
+            return true;
+         if (!(*i).runtimeAcceptInputIntern(priv_error, n))
+            return true;
+      }
    }
 
    if (qc) {
       if (t != NT_OBJECT)
-	 return false;
+         return false;
       const QoreClass* n_qc = reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass();
       return qore_class_private::runtimeCheckCompatibleClass(*qc, *n_qc);
    }
