@@ -166,14 +166,20 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
    }
 }
 
-void QoreSQLStatement::transactionDone(bool clear, ExceptionSink* xsink) {
+void QoreSQLStatement::transactionDone(bool clear, bool close, ExceptionSink* xsink) {
    //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
    if (priv->data) {
       assert(priv->ds);
-      qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
-      assert(!priv->data);
-      status = STMT_IDLE;
+      // if "close" is set, then we delete the statement's local data
+      if (close) {
+         qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+         assert(!priv->data);
+         status = STMT_IDLE;
+      }
+      else // otherwise, any handles are freed but the local data stays in place
+         qore_dbi_private::get(*priv->ds->getDriver())->stmt_free(this, xsink);
    }
+   // if "clear" is set, then we clear the datasource
    if (clear && priv->ds)
       priv->ds = 0;
 }

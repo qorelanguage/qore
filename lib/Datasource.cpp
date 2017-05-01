@@ -281,6 +281,10 @@ void Datasource::connectionLost(ExceptionSink* xsink) {
    priv->connectionLost(xsink);
 }
 
+void Datasource::connectionRecovered(ExceptionSink* xsink) {
+   priv->connectionRecovered(xsink);
+}
+
 bool Datasource::wasConnectionAborted() const {
    return priv->connection_aborted;
 }

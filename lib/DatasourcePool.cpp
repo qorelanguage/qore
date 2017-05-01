@@ -234,7 +234,7 @@ void DatasourcePool::freeDS(ExceptionSink* xsink) {
    free_list.push_back(i->second);
 
    // issue 1250: close any other statements created on this datasource
-   qore_ds_private::get(*pool[i->second])->transactionDone(true, xsink);
+   qore_ds_private::get(*pool[i->second])->transactionDone(true, true, xsink);
 
    tmap.erase(i);
 
