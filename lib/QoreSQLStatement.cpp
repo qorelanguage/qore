@@ -30,11 +30,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SQLStatement.h>
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/sql_statement_private.h>
-#include <qore/intern/qore_ds_private.h>
-#include <qore/intern/qore_dbi_private.h>
+#include "qore/intern/QC_SQLStatement.h"
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/sql_statement_private.h"
+#include "qore/intern/qore_ds_private.h"
+#include "qore/intern/qore_dbi_private.h"
 
 const char* QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
@@ -47,47 +47,46 @@ public:
    bool nt; // new transaction flag
 
    DLLLOCAL DBActionHelper(QoreSQLStatement& n_stmt, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
-      Datasource* oldds = stmt.priv->ds;
-      //printd(5, "DBActionHelper::DBActionHelper() old ds: %p cmd: %s\n", stmt.priv->ds, DAH_TEXT(cmd));
-      stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
+      Datasource* newds = stmt.dsh->helperStartAction(xsink, nt);
+      assert(!newds || !stmt.priv->ds || (newds == stmt.priv->ds));
+      assert(newds || *xsink);
+      if (newds && !stmt.priv->ds)
+         qore_ds_private::get(*newds)->addStatement(&n_stmt);
+      stmt.priv->ds = newds;
 
-      //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
-
-      // issue #1835: the helperStartAction() call can fail in case of a timeout, therefore we have to check below
-      // that the call succeeded before raising an additional exception
-
-      // if we are trying to start a new transaction on a new Datasource connection, but we have
-      // already prepared the statement on another connection, we have to raise an exception
-      // otherwise the statement will actually be executed on the original connection which is
-      // cached in the driver (https://github.com/qorelanguage/qore/issues/465)
-      if (oldds && stmt.priv->ds && stmt.priv->ds != oldds && cmd == DAH_ACQUIRE) {
-         // issue #1836 we release the connection before marking the object as invalid
-         stmt.priv->ds = stmt.dsh->helperEndAction(DAH_RELEASE, nt, xsink);
-         xsink->raiseException("SQLSTATEMENT-ERROR", "statement was prepared on another Datasource; you must close the statement before executing this action on a new connection");
-      }
-
-      // ensure we either have a datasource or an exception
-      assert((*xsink && !stmt.priv->ds) || (!*xsink && stmt.priv->ds));
-
-      valid = *xsink ? false : true;
+      //printd(5, "DBActionHelper::DBActionHelper() ds: %p new: %p cmd: %s nt: %d xs: %d stmt: %p\n", stmt.priv->ds, newds, DAH_TEXT(cmd), nt, (bool)*xsink, &stmt);
+      valid = (bool)stmt.priv->ds;
    }
 
    DLLLOCAL ~DBActionHelper() {
-      if (!valid)
+      // if no datasource is currently assigned
+      if (!valid || !stmt.priv->ds)
          return;
 
       /* release the Datasource if:
-         1) the connection was lost (exception already raised)
+         1) the transaction was aborted
+         or
          2) the Datasource was acquired for this call, and
               the command was NOCHANGE, meaning, leave the Datasource in the same state it was before the call
        */
-      if (stmt.priv->ds->wasConnectionAborted() || (nt && (cmd == DAH_NOCHANGE)))
+      if (stmt.priv->ds->wasConnectionAborted() || !stmt.priv->ds->isOpen() || (nt && (cmd == DAH_NOCHANGE)))
          cmd = DAH_RELEASE;
 
-      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent());
+      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d stmt: %p status: %d data: %p\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent(), &stmt, stmt.status, stmt.priv->data);
+
+      // remove statement from Datasource if the connection is no longer allocated
+      // must be executed in the Datasource allocation lock
+      if (cmd == DAH_RELEASE) {
+         qore_ds_private* dspriv = qore_ds_private::get(*stmt.priv->ds);
+         //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
+         dspriv->removeStatement(&stmt);
+      }
 
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
+
+      // we have to remove the datasource from the statement immediately if the Datasource is closed or committed
+      assert((cmd == DAH_RELEASE) || stmt.priv->ds);
    }
 
    DLLLOCAL operator bool() const {
@@ -151,13 +150,12 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
 
 void QoreSQLStatement::deref(ExceptionSink* xsink) {
    if (ROdereference()) {
-      char cmd = DAH_NOCHANGE;
-      //printd(5, "QoreSQLStatement::deref() deleting this=%p cmd=%s\n", this, DAH_TEXT(cmd));
-      {
-         DBActionHelper dba(*this, xsink, cmd);
-         if (dba)
-            closeIntern(xsink);
-      }
+      //char cmd = DAH_NOCHANGE;
+      //printd(5, "QoreSQLStatement::deref() deleting this: %p cmd: %s\n", this, DAH_TEXT(cmd));
+      closeIntern(xsink);
+
+      if (priv->ds)
+         qore_ds_private::get(*priv->ds)->removeStatement(this);
 
       dsh->helperDestructor(this, xsink);
 
@@ -166,6 +164,18 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
 
       delete this;
    }
+}
+
+void QoreSQLStatement::transactionDone(bool clear, ExceptionSink* xsink) {
+   //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
+   if (priv->data) {
+      assert(priv->ds);
+      qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+      assert(!priv->data);
+      status = STMT_IDLE;
+   }
+   if (clear && priv->ds)
+      priv->ds = 0;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
@@ -201,7 +211,6 @@ int QoreSQLStatement::prepareIntern(ExceptionSink* xsink) {
    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
    if (!rc) {
       status = STMT_PREPARED;
-      //stmtds = ds;
    }
    else
       closeIntern(xsink);
@@ -290,7 +299,7 @@ int QoreSQLStatement::execIntern(DBActionHelper& dba, ExceptionSink* xsink) {
 
    //printd(5, "QoreSQLStatement::execIntern() this: %p ds: %p: %s@%s: %s\n", this, priv->ds, priv->ds->getUsername(), priv->ds->getDBName(), str.getBuffer());
 
-   priv->ds->priv->statementExecuted(rc, xsink);
+   priv->ds->priv->statementExecuted(rc);
    return rc;
 }
 
@@ -430,7 +439,7 @@ int QoreSQLStatement::commit(ExceptionSink* xsink) {
       return -1;
 
    int rc = closeIntern(xsink);
-   rc = priv->ds->commit(xsink);
+   rc = qore_ds_private::get(*priv->ds)->commitIntern(xsink);
    //printd(5, "QoreSQLStatement::commit() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
@@ -441,7 +450,7 @@ int QoreSQLStatement::rollback(ExceptionSink* xsink) {
       return -1;
 
    int rc = closeIntern(xsink);
-   rc = priv->ds->rollback(xsink);
+   rc = qore_ds_private::get(*priv->ds)->rollbackIntern(xsink);
    //printd(5, "QoreSQLStatement::rollback() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }

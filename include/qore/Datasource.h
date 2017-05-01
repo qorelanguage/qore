@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -53,6 +53,7 @@ class DBIDriver;
 */
 class Datasource {
    friend class QoreSQLStatement;
+   friend struct qore_ds_private;
 
 private:
    struct qore_ds_private *priv; // private implementation
@@ -433,6 +434,7 @@ public:
 
    //! executes the "get_client_version" function of the driver, if any, and returns the result
    /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
+
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
@@ -447,8 +449,42 @@ public:
    /** The DBIDriver should raise its own exception when this call is made, as making this call will
        suppress further Qore exceptions from being raised in the Datasource destructor (at least for
        derived classes)
+
+       @note This call results in all open statements being closed and then the Datasource
+       itself is closed, resulting in the deletion of the driver-specific Datasource local
+       data; if the driver needs to free memory before the Datasource is closed, then the
+       driver should call connectionLost() instead, free its memory, and then call
+       the variant of function taking an ExceptionSink pointer argument.
+
+       @deprecated use connectionAborted(ExceptionSink*) instead
    */
    DLLEXPORT void connectionAborted();
+
+   //! should be called by the DBI driver if the connection to the server has been lost
+   /** The DBIDriver should raise its own exception when this call is made, as making this call will
+       suppress further Qore exceptions from being raised in the Datasource destructor (at least for
+       derived classes)
+
+       @note This call results in all open statements being closed and then the Datasource
+       itself is closed, resulting in the deletion of the driver-specific Datasource local
+       data; if the driver needs to free memory before the Datasource is closed, then the
+       driver should call connectionLost() instead, free its memory, and then call
+       this function.
+
+       @since %Qore 0.8.12.10
+   */
+   DLLEXPORT void connectionAborted(ExceptionSink* xsink);
+
+   //! should be called be the DBI driver to signify that the connection to the server has been lost
+   /** This call does not result in the Datasource being closed, but rather ensures that
+       all open statements are closed while the driver-specific Datasource local data remains
+       in place.
+
+       This flag does not result in the connection aborted flag being set.
+
+       @since %Qore 0.8.12.10
+    */
+   DLLEXPORT void connectionLost(ExceptionSink* xsink);
 
    //! returns the connection aborted status
    /** @return the connection aborted status
