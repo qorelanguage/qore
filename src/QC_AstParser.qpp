@@ -165,9 +165,13 @@ int AstParser::getErrorCount() {
 
 //! Find symbol references
 /**
+    @param uri document's uri'
+    @param line line on which the symbol lies
+    @param col column at which the symbol lies
+    @param includeDecl whether to include a reference at the passed position
     @return list of reference locations
  */
-*list AstParser::findReferences(int line, int col, bool includeDecl) {
+*list AstParser::findReferences(string uri, int line, int col, bool includeDecl) {
     std::unique_ptr<std::vector<ASTNode*> > vec(aph->findReferences(line+1, col+1, includeDecl));
     if (!vec)
         return nullptr;
@@ -196,6 +200,7 @@ int AstParser::getErrorCount() {
         range->setKeyValue("end", end.release(), xsink);
         if (xsink && *xsink)
             return nullptr;
+        location->setKeyValue("uri", uri->stringRefSelf(), xsink);
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
             return nullptr;

@@ -172,13 +172,7 @@ public class TextDocument {
     *list findReferences(hash Position, bool includeDecl) {
         int line = Position.line;
         int char = Position.character;
-        *list references = parser.findReferences(line, char, includeDecl);
-        if (references) {
-            int count = references.size();
-            for (int i = 0; i < count; i++)
-                references[i].uri = uri;
-        }
-
+        *list references = parser.findReferences(uri, line, char, includeDecl);
         return references;
     }
 
