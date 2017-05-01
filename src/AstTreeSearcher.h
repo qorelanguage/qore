@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "ast/ASTParseLocation.h"
+#include "ast/ASTSymbolInfo.h"
 
 class ASTNode;
 class ASTTree;
@@ -44,6 +45,7 @@ public:
     static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
+    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
 };
 
 #endif // _QLS_ASTTREESEARCHER_H

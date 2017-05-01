@@ -181,4 +181,10 @@ public class TextDocument {
 
         return references;
     }
+
+    #! Find document's symbols.
+    *list findSymbols() {
+        *list symbols = parser.findSymbols(uri);
+        return symbols;
+    }
 }

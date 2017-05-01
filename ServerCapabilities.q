@@ -85,7 +85,7 @@ const QLSServerCapabilities = {
     /**
      * The server provides document symbol support.
      */
-    "documentSymbolProvider": False,
+    "documentSymbolProvider": True,
 
     /**
      * The server provides workspace symbol support.

@@ -156,3 +156,7 @@ std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, 
     }
     return vec.release();
 }
+
+std::vector<ASTSymbolInfo>* AstParser::findSymbols() {
+    return AstTreeSearcher::findSymbols(parsedTree.get());
+}

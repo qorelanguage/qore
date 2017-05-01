@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.cpp
+  ASTSymbolInfo.h
 
   Qore AST Parser
 
@@ -23,30 +23,48 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
 */
 
-#include "AstTreeSearcher.h"
+#ifndef _QLS_AST_ASTSYMBOLINFO_H
+#define _QLS_AST_ASTSYMBOLINFO_H
 
-#include <memory>
+class ASTName;
 
-#include "ast/AST.h"
-#include "queries/FindNodeQuery.h"
-#include "queries/FindNodeAndParentsQuery.h"
-#include "queries/FindReferencesQuery.h"
-#include "queries/FindSymbolsQuery.h"
+enum ASTSymbolKind {
+    ASYK_None = 0,
+    ASYK_File = 1,
+    ASYK_Module = 2,
+    ASYK_Namespace = 3,
+    ASYK_Package = 4,
+    ASYK_Class = 5,
+    ASYK_Method = 6,
+    ASYK_Property = 7,
+    ASYK_Field = 8,
+    ASYK_Constructor = 9,
+    ASYK_Enum = 10,
+    ASYK_Interface = 11,
+    ASYK_Function = 12,
+    ASYK_Variable = 13,
+    ASYK_Constant = 14,
+    ASYK_String = 15,
+    ASYK_Number = 16,
+    ASYK_Boolean = 17,
+    ASYK_Array = 18,
+};
 
-ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeQuery::findNode(tree, line, col);
-}
+struct ASTSymbolInfo {
+    ASTSymbolInfo() : kind(ASYK_None), name(nullptr) {}
+    ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : kind(k), name(n) {}
 
-std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeAndParentsQuery::findNodeAndParents(tree, line, col);
-}
+    //! Symbol's kind.'
+    ASTSymbolKind kind;
 
-std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::findReferences(tree, name);
-}
+    //! Symbol's name.'
+    ASTName* name;
+};
 
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
-    return FindSymbolsQuery::findSymbols(tree);
-}
+#endif // _QLS_AST_ASTSYMBOLINFO_H

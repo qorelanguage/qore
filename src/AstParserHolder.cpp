@@ -60,6 +60,10 @@ std::vector<ASTNode*>* AstParserHolder::findReferences(ast_loc_t line, ast_loc_t
     return parser->findReferences(line, col, includeDecl);
 }
 
+std::vector<ASTSymbolInfo>* AstParserHolder::findSymbols() {
+    return parser->findSymbols();
+}
+
 ASTTree* AstParserHolder::getTreePtr() {
     return parser->getTreePtr();
 }

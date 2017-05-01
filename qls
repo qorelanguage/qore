@@ -470,7 +470,9 @@ class QLS {
 
     #! "textDocument/documentSymbol" method handler
     *string meth_td_documentSymbol(hash request) {
-        return invalidRequestResponse(request);
+        TextDocument textDoc = documents{request.params.textDocument.uri};
+        *list symbols = textDoc.findSymbols();
+        return make_jsonrpc_response(jsonRpcVer, request.id, symbols ?? list());
     }
 
     #! "textDocument/formatting" method handler

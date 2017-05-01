@@ -35,6 +35,7 @@
 #include "AstParseErrorLog.h"
 
 #include "ast/ASTParseLocation.h"
+#include "ast/ASTSymbolInfo.h"
 #include "ast/ASTTree.h"
 
 class AstParser : public AstParseErrorLog {
@@ -54,6 +55,7 @@ public:
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
+    std::vector<ASTSymbolInfo>* findSymbols();
 
     ASTTree* getTreePtr() { return parsedTree.get(); }
     ASTTree* releaseTree() { return parsedTree.release(); }

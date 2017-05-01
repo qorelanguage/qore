@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.cpp
+  FindSymbolsQuery.h
 
   Qore AST Parser
 
@@ -25,28 +25,32 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "AstTreeSearcher.h"
+#ifndef _QLS_QUERIES_FINDSYMBOLSQUERY_H
+#define _QLS_QUERIES_FINDSYMBOLSQUERY_H
 
-#include <memory>
+#include <vector>
 
-#include "ast/AST.h"
-#include "queries/FindNodeQuery.h"
-#include "queries/FindNodeAndParentsQuery.h"
-#include "queries/FindReferencesQuery.h"
-#include "queries/FindSymbolsQuery.h"
+#include "ast/ASTName.h"
+#include "ast/ASTSymbolInfo.h"
 
-ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeQuery::findNode(tree, line, col);
-}
+class ASTDeclaration;
+class ASTExpression;
+class ASTStatement;
+class ASTTree;
 
-std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeAndParentsQuery::findNodeAndParents(tree, line, col);
-}
+class FindSymbolsQuery {
+public:
+    FindSymbolsQuery() = delete;
+    FindSymbolsQuery(const FindSymbolsQuery& other) = delete;
 
-std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::findReferences(tree, name);
-}
+    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
 
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
-    return FindSymbolsQuery::findSymbols(tree);
-}
+private:
+    static void findSymbolsInDecl(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
+    static void findSymbolsInExpr(std::vector<ASTSymbolInfo>* vec, ASTExpression* expr);
+    static void findSymbolsInName(std::vector<ASTSymbolInfo>* vec, ASTName& name);
+    static void findSymbolsInName(std::vector<ASTSymbolInfo>* vec, ASTName* name);
+    static void findSymbolsInStmt(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt);
+};
+
+#endif // _QLS_QUERIES_FINDSYMBOLSQUERY_H

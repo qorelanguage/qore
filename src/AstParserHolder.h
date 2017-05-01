@@ -31,6 +31,7 @@
 #include "qore/Qore.h"
 
 #include "ast/ASTParseLocation.h"
+#include "ast/ASTSymbolInfo.h"
 
 class AstParser;
 
@@ -54,6 +55,7 @@ public:
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
+    std::vector<ASTSymbolInfo>* findSymbols();
 
     ASTTree* getTreePtr();
     ASTTree* releaseTree();
