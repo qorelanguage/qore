@@ -9,6 +9,7 @@
 
     @subsection qore_081210_bug_fixes Bug Fixes in Qore
 
+    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>: fixed a bug in flush messages in the \c InboundTableMapper class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
     - fixed a bug where connections were not immediately released back to the @ref Qore::SQL::DatasourcePool "DatasourcePool" in case of an \c SQLSTATEMENT-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/1836">issue 1836</a>)
     - eliminated a spurious exception in the @ref Qore::SQL::SQLStatement "SQLStatement" class in case of a @ref Qore::SQL::DatasourcePool "DatasourcePool" timeout (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>: eliminated excess logging of all HTTP chunks sent and received (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
@@ -16,8 +17,7 @@
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
     - fixed a crash when the %Qore library exits caused by an error in handling module dependencies with injected modules  (<a href="https://github.com/qorelanguage/qore/issues/1805">issue 1805</a>)
     - fixed segfault crashes caused by calling object methods with null pointers (<a href="https://github.com/qorelanguage/qore/issues/1791">issue 1791</a>)
-    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module fixes:
-      - fixed a bug in flush messages in the \c InboundTableMapper class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
+    - added internal API support to make it easier for DBI drivers to handle lost connections and to allow DBI drivers that must close all open handles before a connection is closed (such as the oracle driver); due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
 
     @section qore_08129 Qore 0.8.12.9
 
