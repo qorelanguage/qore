@@ -48,6 +48,7 @@
 #include "qore/intern/QC_SSLPrivateKey.h"
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_DebugProgram.h"
+#include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/QC_File.h"
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_GetOpt.h"
@@ -877,6 +878,8 @@ QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {
    return rpriv->qoreNS;
 }
 
+extern void preinitBreakpointClass();
+
 // sets up the root namespace
 StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
    rpriv->qoreNS = new QoreNamespace("Qore");
@@ -922,8 +925,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSSLCertificateClass(qns));
    qns.addSystemClass(initSSLPrivateKeyClass(qns));
    qns.addSystemClass(initSocketClass(qns));
+   preinitBreakpointClass();  // to resolve circular dependency Program/Breakpoint class
    qns.addSystemClass(initProgramClass(qns));
    qns.addSystemClass(initDebugProgramClass(qns));
+   qns.addSystemClass(initBreakpointClass(qns));
 
    qns.addSystemClass(initTermIOSClass(qns));
    qns.addSystemClass(initReadOnlyFileClass(qns));

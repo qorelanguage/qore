@@ -1679,11 +1679,26 @@ void QoreProgram::deleteAllBreakpoints() {
    priv->deleteAllBreakpoints();
 }
 
+void QoreProgram::getBreakpoints(QoreBreakpointList_t &bkptList) {
+   priv->getBreakpoints(bkptList);
+}
+
 void QoreBreakpoint::unassignAllStatements() {
    for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
       (*it)->unassignBreakpoint(this);
    }
    statementList.clear();
+}
+
+QoreBreakpoint& QoreBreakpoint::operator=(const QoreBreakpoint& other) {
+   qo = 0;
+   enabled = other.enabled;
+   policy = other.policy;
+   pgm = other.pgm;
+   statementList = other.statementList;
+   tidMap = other.tidMap;
+
+   return *this;
 }
 
 QoreBreakpoint::~QoreBreakpoint() {
@@ -1705,6 +1720,17 @@ bool QoreBreakpoint::checkBreak() const {
    return enabled;
 }
 
+bool QoreBreakpoint::checkPgm(ExceptionSink* xsink) const {
+   if (pgm) {
+      return true;
+   } else {
+      if (xsink) {
+         xsink->raiseException("BREAKPOINT-ERROR", "QoreProgram is not assigned");
+      }
+      return false;
+   }
+}
+
 void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
    if (new_pgm) {
       new_pgm->assignBreakpoint(this);
@@ -1720,7 +1746,7 @@ void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
 }
 
 void QoreBreakpoint::assignStatement(AbstractStatement* statement, ExceptionSink* xsink) {
-   if (pgm) {
+   if (checkPgm(xsink)) {
       QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
       if (pgm->isBreakpointRegistered(this)) {
          if (statement && !isStatementAssigned(statement)) {
@@ -1728,13 +1754,11 @@ void QoreBreakpoint::assignStatement(AbstractStatement* statement, ExceptionSink
             statement->assignBreakpoint(this);
          }
       }
-   } else {
-      xsink->raiseException("BREAKPOINT-ERROR", "QoreProgram is not assigned");
    }
 }
 
 void QoreBreakpoint::unassignStatement(AbstractStatement* statement, ExceptionSink* xsink) {
-   if (pgm) {
+   if (checkPgm(xsink)) {
       QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
       if (pgm->isBreakpointRegistered(this)) {
          if (statement && isStatementAssigned(statement)) {
@@ -1742,8 +1766,107 @@ void QoreBreakpoint::unassignStatement(AbstractStatement* statement, ExceptionSi
             statement->unassignBreakpoint(this);
          }
       }
-   } else {
-      xsink->raiseException("BREAKPOINT-ERROR", "QoreProgram is not assigned");
    }
 }
 
+void QoreBreakpoint::getThreadIds(TidList_t &tidList, ExceptionSink* xsink) {
+   tidList.clear();
+   QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   for (TidMap_t::iterator it = tidMap.begin(); it != tidMap.end(); ++it) {
+      for (int j = 0; j < it->second; j++) {
+         tidList.push_back(it->first+j);
+      }
+   }
+}
+
+void QoreBreakpoint::setThreadIds(TidList_t tidList, ExceptionSink* xsink) {
+   QoreAutoRWWriteLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   tidMap.clear();
+   tidList.sort();  // or create copy not to sort argument list ?
+   TidList_t::iterator it = tidList.begin();
+   while (it != tidList.end()) {
+      int tid = *it;
+      int cnt = 1;
+      ++it;
+      while (it != tidList.end()) {
+         if (tid + cnt != *it) break;
+         ++it;
+         cnt++;
+      }
+      //printd(5, "QoreBreakpoint::setThreadIds(), tid: %d, cnt: %d\n", tid, cnt);
+      tidMap.insert(TidMap_t::value_type(tid, cnt));
+   }
+}
+
+void QoreBreakpoint::addThreadId(int tid, ExceptionSink* xsink) {
+   QoreAutoRWWriteLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   if (!tidMap.empty()) {
+      TidMap_t::iterator it2 = tidMap.upper_bound(tid);
+      if (it2 != tidMap.begin()) {
+         TidMap_t::iterator it = it2;
+         it--;
+         if ((tid >= it->first && tid < it->first + it->second) ) {
+            // already exists
+            return;
+         }
+         if (tid == it->first + it->second) {
+            // extend existing range
+            it->second++;
+            if (it2 != tidMap.end() && tid == it2->first - 1) {
+               // join
+               it->second += it2->second;
+               tidMap.erase(it2);
+            }
+            return;
+         }
+      }
+      if (it2 != tidMap.end() && tid == it2->first - 1) {
+         // extend lower bound
+         tidMap.insert(TidMap_t::value_type(it2->first - 1, it2->second + 1));
+         tidMap.erase(it2);
+         return;
+      }
+   }
+   tidMap.insert(TidMap_t::value_type(tid, 1));
+}
+
+void QoreBreakpoint::removeThreadId(int tid, ExceptionSink* xsink) {
+   QoreAutoRWWriteLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   if (!tidMap.empty()) {
+      TidMap_t::iterator it = tidMap.upper_bound(tid);
+      if (it != tidMap.begin()) {
+         --it;  // we can iterate from end() as well
+         if (tid >= it->first && tid < it->first + it->second) {
+            if (tid == it->first) {
+               tidMap.insert(TidMap_t::value_type(it->first + 1, it->second - 1));
+               tidMap.erase(it);
+            } else if (tid == it->first + it->second - 1) {
+               it->second--;
+            } else {
+               tidMap.insert(TidMap_t::value_type(tid + 1, it->first + it->second - tid - 1));
+               it->second = tid - it->first;
+            }
+         }
+      }
+   }
+}
+
+bool QoreBreakpoint::isThreadId(int tid, ExceptionSink* xsink) {
+   QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   //printd(5, "QoreBreakpoint::isThreadId(%d), tidMap.empty()==%d\n", tid, tidMap.empty());
+   if (!tidMap.empty()) {
+      TidMap_t::iterator it = tidMap.upper_bound(tid);
+      if (it != tidMap.begin()) {
+         --it;  // we can iterate from end() as well
+         //printd(5, "QoreBreakpoint::isThreadId(%d), it.tid: %d, it.cnt: %d\n", tid, it->first, it->second);
+         return (tid >= it->first && tid < it->first + it->second);
+      }
+      //printd(5, "QoreBreakpoint::isThreadId(%d), it@begin()\n", tid);
+   }
+   return false;
+}
+
+void QoreBreakpoint::clearThreadIds(ExceptionSink* xsink) {
+   QoreAutoRWWriteLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   tidMap.clear();
+}

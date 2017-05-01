@@ -74,6 +74,11 @@ enum ThreadDebugEnum : unsigned char {
    DBG_SB_STOPPED = 5,    // last one, see assert in setStepBreakpoint
 };
 
+enum BreakpointPolicy : unsigned char {
+   BKP_PO_NONE = 0,
+   BKP_PO_ACCEPT = 1,
+   BKP_PO_REJECT = 2,
+};
 
 //! list of strings of warning codes
 DLLEXPORT extern const char** qore_warnings;
@@ -104,6 +109,8 @@ class AbstractQoreZoneInfo;
 class qore_program_private;
 class AbstractQoreProgramExternalData;
 class QoreBreakpoint;
+
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -711,6 +718,11 @@ public:
     */
    DLLEXPORT void deleteAllBreakpoints();
 
+   /** get list of breakpoint assigned to program.
+    *
+    */
+   DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
+
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates
@@ -807,6 +819,7 @@ public:
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 typedef std::list<AbstractStatement*> AbstractStatementList_t;
+typedef std::list<int> TidList_t;
 
 //! Class implementing breakpoint for debugging
 /** Breakpoint is assigned to one or more statements. When such a statement is executed then
@@ -816,10 +829,15 @@ typedef std::list<AbstractStatement*> AbstractStatementList_t;
 class QoreBreakpoint: public AbstractPrivateData {
 private:
    qore_program_private* pgm;
-   bool enabled;
    AbstractStatementList_t statementList;
+   typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
+   TidMap_t tidMap;
+   QoreObject* qo; // reference to Qore script object, it's private object but we cannot
+
    DLLLOCAL void unassignAllStatements();
    DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
+   DLLLOCAL bool checkPgm(ExceptionSink* xsink) const;
+
    friend class qore_program_private;
    friend class AbstractStatement;
 protected:
@@ -827,7 +845,17 @@ protected:
    //! check if program flow should be interrupted
    DLLLOCAL virtual bool checkBreak() const;
 public:
-   DLLEXPORT QoreBreakpoint(): pgm(0), enabled(false) {}
+   bool enabled;
+   /** Defines policy how thread list is evaluated. In the case of ACCEPT policy are considered all TIDs in list.
+    *  In case of REJECT policy are considered all TIDs not in the list.
+    */
+   BreakpointPolicy policy;
+
+   DLLEXPORT QoreBreakpoint(): pgm(0), qo(0), enabled(false), policy(BKP_PO_NONE) {}
+   /** Copy all props but object reference
+    *
+    */
+   DLLEXPORT QoreBreakpoint& operator=(const QoreBreakpoint& other);
    /** Assign @ref QoreProgram to breakpoint.
     *
     *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
@@ -841,6 +869,39 @@ public:
     *
     */
    DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+   /** Get list of the thread IDs
+    *
+    */
+   DLLEXPORT void getThreadIds(TidList_t &tidList, ExceptionSink* xsink);
+   /** Set list of the thread IDs
+    *
+    */
+   DLLEXPORT void setThreadIds(TidList_t tidList, ExceptionSink* xsink);
+   /** Add thread ID to the list
+    *
+    */
+   DLLEXPORT void addThreadId(int tid, ExceptionSink* xsink);
+   /** Remove thread ID from the list
+    *
+    */
+   DLLEXPORT void removeThreadId(int tid, ExceptionSink* xsink);
+   /** Check if thread is ID in list
+    *
+    */
+   DLLEXPORT bool isThreadId(int tid, ExceptionSink* xsink);
+   /** Clear list of the thread IDs
+    *
+    */
+   DLLEXPORT void clearThreadIds(ExceptionSink* xsink);
+
+   /* it is for private purpose but we cannot define friend procedure because it's is qpp generated function */
+   DLLLOCAL void setObject(QoreObject *q) {
+      qo = q;
+   }
+   DLLLOCAL QoreObject* getObject() {
+      return qo;
+   }
+
 };
 
 #endif  // _QORE_QOREPROGRAM_H

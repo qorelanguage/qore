@@ -271,6 +271,7 @@
 #include "QC_Socket.cpp"
 #include "QC_Program.cpp"
 #include "QC_DebugProgram.cpp"
+#include "QC_Breakpoint.cpp"
 #include "QC_ReadOnlyFile.cpp"
 #include "QC_File.cpp"
 #include "QC_Dir.cpp"

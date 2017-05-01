@@ -32,6 +32,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
@@ -675,8 +676,8 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    }
 
    QoreProgram* pgm;
+   pgm = getProgram();
    if (po == PO_ATTACH) {
-      pgm = getProgram();
       pgm->ref();
    } else {
       pgm = new QoreProgram(pgm, po);
@@ -1657,4 +1658,41 @@ pgm.setGlobalVarValue("a", 1);
  */
 nothing Program::setGlobalVarValue(string name, any value) {
    p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
+
+
+//! Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
+/**
+ */
+nothing Program::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
+   p->assignBreakpoint(bkpt);
+}
+
+//! delete all breakpoints from instance
+/**
+ *
+ */
+nothing Program::deleteAllBreakpoints() {
+   p->deleteAllBreakpoints();
+}
+
+//! get list of breakpoint assigned to program.
+/**
+ *
+ */
+list Program::getBreakpoints() {
+   QoreBreakpointList_t bl;
+   p->getBreakpoints(bl);
+   QoreListNode *l = new QoreListNode;
+   for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
+      if (!(*it)->getObject()) {
+         // create script object if not exists
+         QoreObject *q = new QoreObject(QC_BREAKPOINT, p, *it);
+//         q->setPrivate(CID_BREAKPOINT, (*it));
+         (*it)->setObject(q);
+         (*it)->ref();
+      }
+      l->push((*it)->getObject());
+   }
+   return l;
 }

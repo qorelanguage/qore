@@ -137,6 +137,7 @@ class DebugTest inherits QUnit::Test {
         addTestCase("SingleThreadDebugTest", \singleThreadDebugTest());
         addTestCase("MultiThreadBreakTest", \multiThreadBreakTest());
         #addTestCase("MultiThreadDebugTest", \multiThreadDebugTest());
+        addTestCase("BreakpointTest", \breakpointTest());
 
         thisProgram = new Program(PO_ATTACH);
         debugProgram = new MyDebugProgram();
@@ -418,6 +419,85 @@ class DebugTest inherits QUnit::Test {
     multiThreadDebugTest() {
     }
 
+    breakpointTest() {
+        string name = "Breakpoint::"; 
+        Breakpoint b = new Breakpoint();
+        testAssertionValue(name+'getEnabled() default', b.getEnabled(), False);
+        b.setEnabled(True);
+        testAssertionValue(name+'setEnabled(True)', b.getEnabled(), True);
+        testAssertionValue(name+'getPolicy() default', b.getPolicy(), BreakpointPolicyNone);
+        b.setPolicy(BreakpointPolicyAccept);
+        testAssertionValue(name+'setPolicy(BreakpointPolicyAccept)', b.getPolicy(), BreakpointPolicyAccept);
+        b.setPolicy(BreakpointPolicyReject);
+        testAssertionValue(name+'setPolicy(BreakpointPolicyReject)', b.getPolicy(), BreakpointPolicyReject);
+
+        testAssertionValue(name+'getThreadIds()', b.getThreadIds(), ());
+        b.setThreadIds(list(1,2,3,4,5,6,7,8,9,10,20,21,30));
+        testAssertionValue(name+'setThreadIds((1,2,3,4,5,6,7,8,9,10,20,21,30))', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30));
+        testAssertionValue(name+'isThreadId(0)', b.isThreadId(0), False);
+        testAssertionValue(name+'isThreadId(1)', b.isThreadId(1), True);
+        testAssertionValue(name+'isThreadId(5)', b.isThreadId(5), True);
+        testAssertionValue(name+'isThreadId(10)', b.isThreadId(10), True);
+        testAssertionValue(name+'isThreadId(11)', b.isThreadId(11), False);
+        testAssertionValue(name+'isThreadId(10)', b.isThreadId(21), True);
+        testAssertionValue(name+'isThreadId(10)', b.isThreadId(30), True);
+
+        Breakpoint b2 = b;  # copy constructor test
+        testAssertionValue(name+'setEnabled(True) copy', b2.getEnabled(), True);
+        testAssertionValue(name+'setPolicy(BreakpointPolicyReject) copy', b2.getPolicy(), BreakpointPolicyReject);
+        testAssertionValue(name+'setThreadIds((1,2,3,4,5,6,7,8,9,10,20,21,30)) copy', b2.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30));
+
+        b.setEnabled(False);
+        testAssertionValue(name+'setEnabled(False)', b.getEnabled(), False);
+        b.setPolicy(BreakpointPolicyNone);
+        testAssertionValue(name+'setPolicy(BreakpointPolicyNone)', b.getPolicy(), BreakpointPolicyNone);
+
+        b.addThreadId(1);
+        testAssertionValue(name+'addThreadId(1)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30));
+        b.addThreadId(30);
+        testAssertionValue(name+'addThreadId(30)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30));
+        b.addThreadId(40);
+        testAssertionValue(name+'addThreadId(40)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30,40));
+        b.addThreadId(39);
+        testAssertionValue(name+'addThreadId(39)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30,39,40));
+        b.addThreadId(41);
+        testAssertionValue(name+'addThreadId(41)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,30,39,40,41));
+        testAssertionValue(name+'isThreadId(39)', b.isThreadId(39), True);
+        testAssertionValue(name+'isThreadId(40)', b.isThreadId(40), True);
+        testAssertionValue(name+'isThreadId(41)', b.isThreadId(41), True);
+        b.removeThreadId(5);
+        testAssertionValue(name+'removeThreadId(5)', b.getThreadIds(), list(1,2,3,4,6,7,8,9,10,20,21,30,39,40,41));
+        b.removeThreadId(30);
+        testAssertionValue(name+'removeThreadId(30)', b.getThreadIds(), list(1,2,3,4,6,7,8,9,10,20,21,39,40,41));
+        b.removeThreadId(41);
+        testAssertionValue(name+'removeThreadId(41)', b.getThreadIds(), list(1,2,3,4,6,7,8,9,10,20,21,39,40));
+        b.removeThreadId(39);
+        testAssertionValue(name+'removeThreadId(39)', b.getThreadIds(), list(1,2,3,4,6,7,8,9,10,20,21,40));
+        b.addThreadId(5);
+        testAssertionValue(name+'addThreadId(30)', b.getThreadIds(), list(1,2,3,4,5,6,7,8,9,10,20,21,40));
+
+        b.setThreadIds((1));
+        testAssertionValue(name+'setThreadIds((1))', b.getThreadIds(), list(1));
+
+        b.clearThreadIds();
+        testAssertionValue(name+'clearThreadIds()', b.getThreadIds(), ());
+
+        b.assignProgram(thisProgram);
+        b.setThreadIds((1,2));
+        testAssertionValue(name+'setThreadIds((1))', b.getThreadIds(), list(1,2));
+        b.unassignProgram();
+        b.assignProgram(thisProgram);
+        testAssertionValue(name+'setThreadIds((1))', b.getThreadIds(), list(1,2));
+
+        b.setThreadIds(list());
+        testAssertionValue(name+'setThreadIds(())', b.getThreadIds(), list());
+
+        /*
+        testAssertionValue(name+'setPolicy(BreakpointPolicyNone)', b.getPolicy(), BreakpointPolicyNone);
+        assertThrows('BREAKPOINT-ERROR', \b.getThreadIds(), (), name+'.getThreadIds() no program');
+
+        b.assignProgram(thisProgram); */
+    }
 
 }
 

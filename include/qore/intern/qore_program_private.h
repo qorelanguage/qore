@@ -1987,6 +1987,15 @@ public:
       breakpointList.clear();
    }
 
+   DLLLOCAL void getBreakpoints(QoreBreakpointList_t &bkptList) {
+      QoreAutoRWReadLocker al(&lck_breakpoint);
+      bkptList.clear();
+      for (std::list<QoreBreakpoint*>::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
+         bkptList.push_back(*it);
+         (*it)->ref();
+      }
+   }
+
    DLLLOCAL inline bool onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
       return statement->getBreakpoint() != 0;

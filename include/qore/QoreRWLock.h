@@ -123,14 +123,16 @@ public:
       l->rdlock();
    }
 
-   //! creates the object and grabs the read lock
+   //! creates the object and grabs the read lock. If parameter is null then no function is performed.
    DLLLOCAL QoreAutoRWReadLocker(QoreRWLock *n_l) : l(n_l) {
-      l->rdlock();
+      if (l)
+         l->rdlock();
    }
 
    //! destroys the object and releases the lock
    DLLLOCAL ~QoreAutoRWReadLocker() {
-      l->unlock();
+      if (l)
+         l->unlock();
    }
 };
 
@@ -160,14 +162,16 @@ public:
       l->wrlock();
    }
 
-   //! creates the object and grabs the write lock
+   //! creates the object and grabs the write lock. If parameter is null then no function is performed.
    DLLLOCAL QoreAutoRWWriteLocker(QoreRWLock *n_l) : l(n_l) {
-      l->wrlock();
+      if (l)
+         l->wrlock();
    }
 
    //! destroys the object and releases the lock
    DLLLOCAL ~QoreAutoRWWriteLocker() {
-      l->unlock();
+      if (l)
+         l->unlock();
    }
 };
 
