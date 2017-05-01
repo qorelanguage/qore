@@ -120,7 +120,7 @@ public:
    DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
 
    // called by the datasource object if the connection is lost or the transaction has been committed or rolled back
-   DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink);
+   DLLLOCAL void transactionDone(bool clear, bool close, ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

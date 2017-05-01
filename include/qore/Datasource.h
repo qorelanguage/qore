@@ -465,6 +465,9 @@ public:
        suppress further Qore exceptions from being raised in the Datasource destructor (at least for
        derived classes)
 
+       This function should be called after a connectionLost() call if the connection is
+       not able to be reopened.
+
        @note This call results in all open statements being closed and then the Datasource
        itself is closed, resulting in the deletion of the driver-specific Datasource local
        data; if the driver needs to free memory before the Datasource is closed, then the
@@ -485,6 +488,18 @@ public:
        @since %Qore 0.8.12.10
     */
    DLLEXPORT void connectionLost(ExceptionSink* xsink);
+
+   //! should be called be the DBI driver to signify that the connection to the server has been recovered
+   /** This call does not result in the Datasource being closed, but rather ensures that
+       all open statements are closed and also that driver-specific Datasource local data
+       is deleted.
+
+       This function should be called after a connectionLost() call if the connection is
+       then reopened.
+
+       @since %Qore 0.8.12.10
+    */
+   DLLEXPORT void connectionRecovered(ExceptionSink* xsink);
 
    //! returns the connection aborted status
    /** @return the connection aborted status
