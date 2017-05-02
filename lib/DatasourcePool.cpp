@@ -47,8 +47,8 @@ DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char
       tl_timeout_ms(120000),
       stats_reqs(0),
       stats_hits(0),
-      warning_callback(0),
-      callback_arg(0),
+      warning_callback(nullptr),
+      callback_arg(nullptr),
       config(ndsl, user, pass, db, charset, hostname, port, opts, q, a),
       valid(false) {
    //assert(mn > 0);
@@ -77,8 +77,8 @@ DatasourcePool::DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink) 
    tl_timeout_ms(old.tl_timeout_ms),
    stats_reqs(0),
    stats_hits(0),
-   warning_callback(old.warning_callback ? old.warning_callback->refRefSelf() : 0),
-   callback_arg(old.callback_arg ? old.callback_arg->refSelf() : 0),
+   warning_callback(old.warning_callback ? old.warning_callback->refRefSelf() : nullptr),
+   callback_arg(old.callback_arg ? old.callback_arg->refSelf() : nullptr),
    config(old.config),
    valid(false) {
    init(xsink);
@@ -98,7 +98,7 @@ DatasourcePool::~DatasourcePool() {
 void DatasourcePool::init(ExceptionSink* xsink) {
    assert(xsink);
    // ths initial Datasource creation could throw an exception if there is an error in a driver option, for example
-   std::auto_ptr<Datasource> ds(config.get(xsink));
+   std::unique_ptr<Datasource> ds(config.get(xsink));
    if (*xsink)
       return;
 
@@ -185,8 +185,8 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
       warning_callback->deref(xsink);
       discard(callback_arg, xsink);
 #ifdef DEBUG
-      warning_callback = 0;
-      callback_arg = 0;
+      warning_callback = nullptr;
+      callback_arg = nullptr;
 #endif
    }
 
@@ -208,13 +208,13 @@ void DatasourcePool::resetSQL() {
    QoreString* str = thread_local_storage.get();
    if (str) {
       delete str;
-      thread_local_storage.set(0);
+      thread_local_storage.set(nullptr);
    }
 }
 
 QoreString* DatasourcePool::getAndResetSQL() {
    QoreString* str = thread_local_storage.get();
-   thread_local_storage.set(0);
+   thread_local_storage.set(nullptr);
    return str;
 }
 #endif
@@ -251,7 +251,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
    Datasource* ds = getDSIntern(new_ds, wait_total, xsink);
    if (!ds) {
       assert(*xsink);
-      return 0;
+      return nullptr;
    }
    assert(ds);
    assert(!*xsink);
@@ -263,7 +263,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
       assert(new_ds);
       assert(!ds->isInTransaction());
       freeDS(xsink);
-      return 0;
+      return nullptr;
    }
 
    // try to open Datasource if it's not open already
@@ -272,7 +272,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
       if (ds->open(xsink)) {
 	 assert(!ds->isInTransaction());
 	 freeDS(xsink);
-	 return 0;
+	 return nullptr;
       }
    }
 
@@ -310,7 +310,7 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
    args->push(getConfigString());
    args->push(new QoreBigIntNode(wait_total));
    args->push(new QoreBigIntNode(tl_warning_ms));
-   args->push(callback_arg ? callback_arg->refSelf() : 0);
+   args->push(callback_arg ? callback_arg->refSelf() : nullptr);
    wc->execValue(*args, xsink).discard(xsink);
    return *xsink ? -1 : 0;
 }
@@ -385,14 +385,14 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 
       if (!valid) {
 	 xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
-	 return 0;
+	 return nullptr;
       }
 
       if (rc && tl_timeout_ms) {
 	 xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
 			       getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid,
 			       tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
-	 return 0;
+	 return nullptr;
       }
 
       if (!iter)
@@ -417,7 +417,7 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 AbstractQoreNode* DatasourcePool::select(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return dpah->select(sql, args, xsink);
 }
@@ -425,7 +425,7 @@ AbstractQoreNode* DatasourcePool::select(const QoreString* sql, const QoreListNo
 QoreHashNode* DatasourcePool::selectRow(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return dpah->selectRow(sql, args, xsink);
 }
@@ -433,7 +433,7 @@ QoreHashNode* DatasourcePool::selectRow(const QoreString* sql, const QoreListNod
 AbstractQoreNode* DatasourcePool::selectRows(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return dpah->selectRows(sql, args, xsink);
 }
@@ -441,7 +441,7 @@ AbstractQoreNode* DatasourcePool::selectRows(const QoreString* sql, const QoreLi
 QoreHashNode* DatasourcePool::describe(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return dpah->describe(sql, args, xsink);
 }
@@ -457,7 +457,7 @@ int DatasourcePool::beginTransaction(ExceptionSink* xsink) {
 AbstractQoreNode* DatasourcePool::exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return doBind ? dpah->exec(sql, args, xsink) : dpah->execRaw(sql, args, xsink);;
 }
@@ -467,7 +467,7 @@ AbstractQoreNode* DatasourcePool::exec(const QoreString* sql, const QoreListNode
 }
 
 AbstractQoreNode* DatasourcePool::execRaw(const QoreString* sql, ExceptionSink* xsink) {
-   return exec_internal(false, sql, 0, xsink);
+   return exec_internal(false, sql, nullptr, xsink);
 }
 
 int DatasourcePool::commit(ExceptionSink* xsink) {
@@ -493,7 +493,7 @@ int DatasourcePool::rollback(ExceptionSink* xsink) {
 AbstractQoreNode* DatasourcePool::getServerVersion(ExceptionSink* xsink) {
    DatasourcePoolActionHelper dpah(*this, xsink);
    if (!dpah)
-      return 0;
+      return nullptr;
 
    return dpah->getServerVersion(xsink);
 }
@@ -573,10 +573,10 @@ QoreHashNode* DatasourcePool::getConfigHash() const {
    QoreHashNode* opt = reinterpret_cast<QoreHashNode*>(h->getKeyValue("options"));
    if (!opt) {
       opt = new QoreHashNode;
-      h->setKeyValue("options", opt, 0);
+      h->setKeyValue("options", opt, nullptr);
    }
-   opt->setKeyValue("min", new QoreBigIntNode(min), 0);
-   opt->setKeyValue("max", new QoreBigIntNode(max), 0);
+   opt->setKeyValue("min", new QoreBigIntNode(min), nullptr);
+   opt->setKeyValue("max", new QoreBigIntNode(max), nullptr);
 
    return h;
 }
@@ -599,7 +599,7 @@ void DatasourcePool::clearWarningCallback(ExceptionSink* xsink) {
    if (warning_callback) {
       discard(callback_arg, xsink);
       warning_callback->deref(xsink);
-      warning_callback = 0;
+      warning_callback = nullptr;
       tl_warning_ms = 0;
    }
 }
@@ -624,13 +624,13 @@ QoreHashNode* DatasourcePool::getUsageInfo() const {
    AutoLocker al((QoreThreadLock*)this);
    QoreHashNode* h = new QoreHashNode;
    if (warning_callback) {
-      h->setKeyValue("callback", warning_callback->refRefSelf(), 0);
-      h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
-      h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), 0);
+      h->setKeyValue("callback", warning_callback->refRefSelf(), nullptr);
+      h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : nullptr, nullptr);
+      h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), nullptr);
    }
-   h->setKeyValue("wait_max", new QoreBigIntNode(wait_max), 0);
-   h->setKeyValue("stats_reqs", new QoreBigIntNode(stats_reqs), 0);
-   h->setKeyValue("stats_hits", new QoreBigIntNode(stats_hits), 0);
+   h->setKeyValue("wait_max", new QoreBigIntNode(wait_max), nullptr);
+   h->setKeyValue("stats_reqs", new QoreBigIntNode(stats_reqs), nullptr);
+   h->setKeyValue("stats_hits", new QoreBigIntNode(stats_hits), nullptr);
    return h;
 }
 
@@ -645,7 +645,7 @@ void DatasourcePool::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSin
 	 first = false;
       }
       else
-	 pool[i]->setEventQueue(q ? q->queueRefSelf() : 0, arg ? arg->refSelf() : 0, xsink);
+	 pool[i]->setEventQueue(q ? q->queueRefSelf() : nullptr, arg ? arg->refSelf() : nullptr, xsink);
    }
 
    config.setQueue(q, arg, xsink);

@@ -35,7 +35,7 @@
 
 #define _QORE_CLASS_SEQUENCE_H
 
-#include <qore/intern/Sequence.h>
+#include "qore/intern/Sequence.h"
 
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 DLLLOCAL extern QoreClass* QC_SEQUENCE;
