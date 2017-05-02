@@ -4002,7 +4002,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @endcode
         Generates:
         @verbatim
-select * from table where name != other_name and ((type != 'C' and validation flag is not null) or (expiration_date >= %v))
+select * from schema.table where name = other_name and ((type = %v and validation flag is not null) or (expiration_date >= %v))
         @endverbatim
 
         @param h1 the hash of expressions to combine with \c "or" logic
