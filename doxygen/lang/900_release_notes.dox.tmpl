@@ -16,6 +16,7 @@
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
     - fixed a crash when the %Qore library exits caused by an error in handling module dependencies with injected modules  (<a href="https://github.com/qorelanguage/qore/issues/1805">issue 1805</a>)
     - fixed segfault crashes caused by calling object methods with null pointers (<a href="https://github.com/qorelanguage/qore/issues/1791">issue 1791</a>)
+    - added internal API support to make it easier for DBI drivers to handle lost connections and to allow DBI drivers that must close all open handles before a connection is closed (such as the oracle driver); due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
 
     @section qore_08129 Qore 0.8.12.9
 
