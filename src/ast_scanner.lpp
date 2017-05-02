@@ -655,7 +655,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <<EOF>>                                 {
                                             AST_FLEX_DO_EOF
                                         }
-\"                                      yylval->String = new std::string; BEGIN(str_state);
+\"                                      { yylval->String = new std::string; BEGIN(str_state); return QUOTED_WORD_BEGIN; }
 <str_state>{
       \"                                BEGIN(INITIAL); return QUOTED_WORD;
       \n                                yylval->String->push_back('\n');
@@ -858,9 +858,9 @@ by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->regex = new ASTRegexExpression; BEGIN(regex_state);
+   \/                                   { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    {WS}+                                /* ignore */
-   [^\/]                                yyless(0); BEGIN(INITIAL);
+   [^\/]                                { yyless(0); BEGIN(INITIAL); }
 }
 default                                 return TOK_DEFAULT;
 inherits                                return TOK_INHERITS;
@@ -879,33 +879,33 @@ foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
 static                                  return TOK_STATIC;
-class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
-private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
-new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;
-delete\(                                yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN;
-case\(                                  yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN;
-chomp\(                                 yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN;
-final\(                                 yylval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN;
-find\(                                  yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN;
-trim\(                                  yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN;
-push\(                                  yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN;
-pop\(                                   yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN;
-splice\(                                yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN;
-shift\(                                 yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN;
-unshift\(                               yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN;
-background\(                            yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN;
-exists\(                                yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN;
-map\(                                   yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN;
-foldr\(                                 yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN;
-foldl\(                                 yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN;
-select\(                                yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN;
-inherits\(                              yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN;
-default{WS}*\(                          yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN;
-static{WS}*\(                           yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN;
-returns{WS}*\(                          yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN;
-public{WS}*\(                           yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN;
-deprecated{WS}*\(                       yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN;
-module{WS}*\(                           yylval->string = strdup("module"); return KW_IDENTIFIER_OPENPAREN;
+class\(                                 { yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN; }
+private\(                               { yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN; }
+new\(                                   { yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN; }
+delete\(                                { yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN; }
+case\(                                  { yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN; }
+chomp\(                                 { yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN; }
+final\(                                 { yylval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN; }
+find\(                                  { yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN; }
+trim\(                                  { yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN; }
+push\(                                  { yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN; }
+pop\(                                   { yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN; }
+splice\(                                { yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN; }
+shift\(                                 { yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN; }
+unshift\(                               { yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN; }
+background\(                            { yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN; }
+exists\(                                { yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN; }
+map\(                                   { yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN; }
+foldr\(                                 { yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN; }
+foldl\(                                 { yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN; }
+select\(                                { yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN; }
+inherits\(                              { yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN; }
+default{WS}*\(                          { yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN; }
+static{WS}*\(                           { yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN; }
+returns{WS}*\(                          { yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN; }
+public{WS}*\(                           { yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN; }
+deprecated{WS}*\(                       { yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN; }
+module{WS}*\(                           { yylval->string = strdup("module"); return KW_IDENTIFIER_OPENPAREN; }
 \.returns[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("returns")
 \.new[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("new")
 \.private[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("private")
@@ -970,23 +970,23 @@ module{WS}*\(                           yylval->string = strdup("module"); retur
 \.while[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("while")
 \.module[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("module")
 
-{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   yylval->string = strdup(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      yylval->string = strdup(yytext); return DATETIME;
-{YEAR}-{MONTH}-{DAY}?{TZ}?                                   yylval->string = strdup(yytext); return DATETIME;
-{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?                        yylval->string = strdup(yytext); return DATETIME;
-P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?              yylval->string = strdup(yytext); return DATETIME;
-PT{D2}:{D2}(:{D2}(\.{US})?)?            yylval->string = strdup(yytext); return DATETIME;
-P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->string = strdup(yytext); return DATETIME;
-{RDATETIME}                             yylval->string = strdup(yytext); return DATETIME;
-{RDATE}                                 yylval->string = strdup(yytext); return DATETIME;
-{RTIME}                                 yylval->string = strdup(yytext); return DATETIME;
-({WORD}::)+{WORD}                       yylval->string = strdup(yytext); return SCOPED_REF;
-(::{WORD})+                             yylval->string = strdup(yytext); return SCOPED_REF;
-({WORD}::)+\${WORD}                     yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
-(::{WORD})?::\${WORD}                   yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
-cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
-cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
-({WORD}::)+\$\.{WORD}                   yylval->string = strdup(yytext); return BASE_CLASS_CALL;
+{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   { yylval->string = strdup(yytext); return DATETIME; }
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      { yylval->string = strdup(yytext); return DATETIME; }
+{YEAR}-{MONTH}-{DAY}?{TZ}?                                   { yylval->string = strdup(yytext); return DATETIME; }
+{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?                        { yylval->string = strdup(yytext); return DATETIME; }
+P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?              { yylval->string = strdup(yytext); return DATETIME; }
+PT{D2}:{D2}(:{D2}(\.{US})?)?            { yylval->string = strdup(yytext); return DATETIME;}
+P{D2}:{D2}(:{D2}(\.{US})?)?             { yylval->string = strdup(yytext); return DATETIME;}
+{RDATETIME}                             { yylval->string = strdup(yytext); return DATETIME;}
+{RDATE}                                 { yylval->string = strdup(yytext); return DATETIME;}
+{RTIME}                                 { yylval->string = strdup(yytext); return DATETIME;}
+({WORD}::)+{WORD}                       { yylval->string = strdup(yytext); return SCOPED_REF;}
+(::{WORD})+                             { yylval->string = strdup(yytext); return SCOPED_REF;}
+({WORD}::)+\${WORD}                     { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
+(::{WORD})?::\${WORD}                   { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
+cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     { yylval->string = make_cast(yytext); return QORE_CAST;}
+cast\<{WS}*{WORD}{WS}*\>                { yylval->string = make_cast(yytext); return QORE_CAST;}
+({WORD}::)+\$\.{WORD}                   { yylval->string = strdup(yytext); return BASE_CLASS_CALL;}
 @[Nn][Aa][Nn]@                          {
 #ifdef NAN
                                             yylval->decimal = NAN;
@@ -1003,42 +1003,42 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 #endif
                                             return QFLOAT;
                                         }
-{DIGIT}+"."{DIGIT}+                     yylval->decimal = q_strtod(yytext); return QFLOAT;
-{DIGIT}+[eE][+-]?{DIGIT}+               yylval->decimal = q_strtod(yytext); return QFLOAT;
-{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    yylval->decimal = q_strtod(yytext); return QFLOAT;
-@[Nn][Aa][Nn]@n                         yylval->string = strdup("@nan@"); return NUMBER;
-@[Ii][Nn][Ff]@n                         yylval->string = strdup("@inf@"); return NUMBER;
-{DIGIT}+n                               yylval->string = strdup(yytext); return NUMBER;
-{DIGIT}+"."{DIGIT}+n                    yylval->string = strdup(yytext); return NUMBER;
-{DIGIT}+[eE][+-]?{DIGIT}+n              yylval->string = strdup(yytext); return NUMBER;
-{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   yylval->string = strdup(yytext); return NUMBER;
-0[0-7]+                                 yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER;
-{DIGIT}+                                yylval->integer = parse_get_integer(yytext); return INTEGER;
-{DIGIT}+Y                               yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+M                               yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+D                               yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+h                               yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+ms                              yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+us                              yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+m                               yylval->string = strdup(yytext); return DATETIME;
-{DIGIT}+s                               yylval->string = strdup(yytext); return DATETIME;
-{HEX_CONST}                             yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
-{BINARY}                                yylval->string = strdup(yytext); return BINARY;
-\$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
-\${WORD}                                yylval->string = strdup(yytext + 1); return VAR_REF;
-class{WS}+({WORD}::)+{WORD}             yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF;
-class{WS}+(::{WORD})+                   yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF;
-class{WS}+{WORD}                        yylval->string = trim(yytext + 6); return CLASS_STRING;
+{DIGIT}+"."{DIGIT}+                     { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+{DIGIT}+[eE][+-]?{DIGIT}+               { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+@[Nn][Aa][Nn]@n                         { yylval->string = strdup("@nan@"); return NUMBER; }
+@[Ii][Nn][Ff]@n                         { yylval->string = strdup("@inf@"); return NUMBER; }
+{DIGIT}+n                               { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+"."{DIGIT}+n                    { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+[eE][+-]?{DIGIT}+n              { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   { yylval->string = strdup(yytext); return NUMBER; }
+0[0-7]+                                 { yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER; }
+{DIGIT}+                                { yylval->integer = parse_get_integer(yytext); return INTEGER; }
+{DIGIT}+Y                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+M                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+D                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+h                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+ms                              { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+us                              { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+m                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+s                               { yylval->string = strdup(yytext); return DATETIME; }
+{HEX_CONST}                             { yylval->integer = strtoll(yytext, 0, 16); return INTEGER; }
+{BINARY}                                { yylval->string = strdup(yytext); return BINARY; }
+\$\.{WORD}                              { yylval->string = strdup(yytext + 2); return SELF_REF; }
+\${WORD}                                { yylval->string = strdup(yytext + 1); return VAR_REF; }
+class{WS}+({WORD}::)+{WORD}             { yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF; }
+class{WS}+(::{WORD})+                   { yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF; }
+class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); return CLASS_STRING; }
 namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); /* TODO */ return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); /* TODO */ return TOK_MODULE; }
-{WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
-\%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
-\%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
+{WORD}                                  { yylval->string = strdup(yytext); return IDENTIFIER; }
+\%{WORD}                                { yylval->string = strdup(yytext + 1); return CONTEXT_REF; }
+\%{WORD}\:{WORD}                        { yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF; }
 \%\%                                    return TOK_CONTEXT_ROW;
-\`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
-\'[^\']*\'                              yylval->String = new std::string(remove_quotes(yytext)); return QUOTED_WORD;
-\$\$                                    yylval->i4 = -1; return IMPLICIT_ARG_REF;
-\$[0-9][0-9]*                           yylval->i4 = strtol(yytext + 1, 0, 0); return IMPLICIT_ARG_REF;
+\`[^`]*\`                               { yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE; }
+\'[^\']*\'                              { yylval->String = new std::string(remove_quotes(yytext)); return QUOTED_WORD; }
+\$\$                                    { yylval->i4 = -1; return IMPLICIT_ARG_REF; }
+\$[0-9][0-9]*                           { yylval->i4 = strtol(yytext + 1, 0, 0); return IMPLICIT_ARG_REF; }
 \$#                                     return IMPLICIT_ELEMENT;
 \?\?                                    return NULL_COALESCING;
 \?\*                                    return VALUE_COALESCING;
@@ -1123,22 +1123,22 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                             }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->regexsubst = new ASTRegexSubstExpression; BEGIN(regex_subst1);
-   x\/                                  yylval->regex = new ASTRegexExpression(true); BEGIN(regex_extract_state);
-   tr\/                                 yylval->regextrans = new ASTRegexTransExpression; BEGIN(regex_trans1);
-   m\/                                  yylval->regex = new ASTRegexExpression; BEGIN(regex_state);
-   \/                                   yylval->regex = new ASTRegexExpression; BEGIN(regex_state);
+   s\/                                  { yylval->regexsubst = new ASTRegexSubstExpression; BEGIN(regex_subst1); return REGEX_SUBST_BEGIN; }
+   x\/                                  { yylval->regex = new ASTRegexExpression(true); BEGIN(regex_extract_state); return REGEX_EXTRACT_BEGIN; }
+   tr\/                                 { yylval->regextrans = new ASTRegexTransExpression; BEGIN(regex_trans1); return REGEX_TRANS_BEGIN; }
+   m\/                                  { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
+   \/                                   { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            { BEGIN(INITIAL); }/* TODO parse_error("missing regular expression after =~"); BEGIN(INITIAL);*/
 }
 <regex_negative_universe>{
-   m\/                                  yylval->regex = new ASTRegexExpression; BEGIN(regex_state);
-   \/                                   yylval->regex = new ASTRegexExpression; BEGIN(regex_state);
+   m\/                                  { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
+   \/                                   { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               { BEGIN(INITIAL); }/* TODO parse_error("missing regular expression after !~"); BEGIN(INITIAL);*/
 }
-=\~                                     BEGIN(regex_googleplex); return REGEX_MATCH;
-\!\~                                    BEGIN(regex_negative_universe); return REGEX_NMATCH;
+=\~                                     { BEGIN(regex_googleplex); return REGEX_MATCH; }
+\!\~                                    { BEGIN(regex_negative_universe); return REGEX_NMATCH; }
 {WSNL}+                                 /* ignore whitespace */
 .                                       return yytext[0];
 %%
