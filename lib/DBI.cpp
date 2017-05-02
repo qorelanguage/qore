@@ -170,7 +170,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -371,6 +371,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_STMT_CLOSE:
             assert(!f.stmt.close);
             f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_FREE:
+            assert(!f.stmt.free);
+            f.stmt.free = (q_dbi_stmt_close_t)(*i).second;
             break;
          case QDBI_METHOD_STMT_AFFECTED_ROWS:
             assert(!f.stmt.affected_rows);

@@ -201,25 +201,33 @@ struct qore_ds_private {
          stmt_set.erase(i);
    }
 
-   DLLLOCAL void connectionAborted() {
+   DLLLOCAL void connectionAborted(ExceptionSink* xsink) {
       assert(isopen);
+      // close all statements and clear private data, leave datasource allocated
+      transactionDone(false, true, xsink);
+      // mark connection aborted
       connection_aborted = true;
-
-      // unfortunately we have to ignore any exceptions here
-      ExceptionSink xsink;
-      // close statements but do not clear datasource or statements in the datasource
-      transactionDone(false, &xsink);
-      xsink.clear();
-
       // close the datasource
       close();
    }
 
+   DLLLOCAL void connectionLost(ExceptionSink* xsink) {
+      assert(isopen);
+      // close statements but do not clear datasource or statements in the datasource
+      transactionDone(false, false, xsink);
+   }
+
+   DLLLOCAL void connectionRecovered(ExceptionSink* xsink) {
+      assert(isopen);
+      // close all statements, clear private data, leave datasource allocation
+      transactionDone(false, true, xsink);
+   }
+
    // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
-   DLLLOCAL void transactionDone(bool clear, ExceptionSink* xsink) {
+   DLLLOCAL void transactionDone(bool clear, bool close, ExceptionSink* xsink) {
       AutoLocker al(m);
-      for (auto& i : stmt_set)
-         (*i).transactionDone(clear, xsink);
+      for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i)
+         (*i)->transactionDone(clear, close, xsink);
       if (clear)
          stmt_set.clear();
    }
@@ -241,13 +249,13 @@ struct qore_ds_private {
 
    DLLLOCAL int commit(ExceptionSink* xsink) {
       int rc = commitIntern(xsink);
-      transactionDone(true, xsink);
+      transactionDone(true, true, xsink);
       return rc;
    }
 
    DLLLOCAL int rollback(ExceptionSink* xsink) {
       int rc = rollbackIntern(xsink);
-      transactionDone(true, xsink);
+      transactionDone(true, true, xsink);
       return rc;
    }
 

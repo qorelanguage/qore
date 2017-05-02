@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -92,8 +92,9 @@
 #define QDBI_METHOD_OPT_GET                  30
 #define QDBI_METHOD_STMT_DESCRIBE            31
 #define QDBI_METHOD_DESCRIBE                 32
+#define QDBI_METHOD_STMT_FREE                33
 
-#define QDBI_VALID_CODES 32
+#define QDBI_VALID_CODES 33
 
 /* DBI EVENT Types
    all DBI events must have the following keys:
