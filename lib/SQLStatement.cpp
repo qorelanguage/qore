@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/sql_statement_private.h>
+#include "qore/intern/sql_statement_private.h"
 
 SQLStatement::SQLStatement() : priv(new sql_statement_private) {
 }
@@ -45,7 +45,7 @@ void* SQLStatement::getPrivateData() const {
 
 void* SQLStatement::takePrivateData() {
    void* rv = priv->data;
-   priv->data = 0;
+   priv->data = nullptr;
    return rv;
 }
 
