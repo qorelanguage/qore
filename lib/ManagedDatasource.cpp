@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2015 Qore Technologies, sro
+  Copyright 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,10 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
 
 void ManagedDatasource::destructor(ExceptionSink *xsink) {
    AutoLocker al(&ds_lock);
+   // issue 1250: close all statements created on this datasource
+   // must be performed before the datasource is closed
+   qore_ds_private::get(*this)->transactionDone(true, true, xsink);
+
    if (tid == gettid() || tid == -1)
       // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
       closeUnlocked(xsink);
