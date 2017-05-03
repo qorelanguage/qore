@@ -36,7 +36,7 @@
 %requires json
 %requires Mime
 
-%requires ./TextDocument.qm
+%requires ./Document.qm
 
 %include ./ServerCapabilities.q
 
@@ -403,31 +403,31 @@ class QLS {
 
     #! "textDocument/didOpen" notification method handler
     *string meth_td_didOpen(hash request) {
-        reference doc = \request.params.textDocument;
-        TextDocument textDoc(doc.uri, doc.text, doc.languageId, doc.version);
-        documents{doc.uri} = textDoc;
+        reference textDoc = \request.params.textDocument;
+        Document doc(textDoc.uri, textDoc.text, textDoc.languageId, textDoc.version);
+        documents{textDoc.uri} = doc;
 
-        if (textDoc.getParseErrorCount() > 0) {
-            *list diagnostics = textDoc.getDiagnostics();
-            return diagnosticsNotification(doc.uri, diagnostics);
+        if (doc.getParseErrorCount() > 0) {
+            *list diagnostics = doc.getDiagnostics();
+            return diagnosticsNotification(textDoc.uri, diagnostics);
         }
-        return diagnosticsNotification(doc.uri);
+        return diagnosticsNotification(textDoc.uri);
     }
 
     #! "textDocument/didChange" notification method handler
     *string meth_td_didChange(hash request) {
-        reference doc = \request.params.textDocument;
-        reference textDoc = \documents{doc.uri};
+        reference textDoc = \request.params.textDocument;
+        reference doc = \documents{textDoc.uri};
         foreach hash change in (request.params.contentChanges) {
-            textDoc.didChange(change);
+            doc.didChange(change);
         }
-        textDoc.changeVersion(doc.version);
+        doc.changeVersion(textDoc.version);
 
-        if (textDoc.getParseErrorCount() > 0) {
-            *list diagnostics = textDoc.getDiagnostics();
-            return diagnosticsNotification(doc.uri, diagnostics);
+        if (doc.getParseErrorCount() > 0) {
+            *list diagnostics = doc.getDiagnostics();
+            return diagnosticsNotification(textDoc.uri, diagnostics);
         }
-        return diagnosticsNotification(doc.uri);
+        return diagnosticsNotification(textDoc.uri);
     }
 
     #! "textDocument/willSave" notification method handler
@@ -465,8 +465,8 @@ class QLS {
 
     #! "textDocument/hover" method handler
     *string meth_td_hover(hash request) {
-        TextDocument textDoc = documents{request.params.textDocument.uri};
-        return make_jsonrpc_response(jsonRpcVer, request.id, textDoc.hover(request.params.position));
+        Document doc = documents{request.params.textDocument.uri};
+        return make_jsonrpc_response(jsonRpcVer, request.id, doc.hover(request.params.position));
     }
 
     #! "textDocument/signatureHelp" method handler
@@ -476,8 +476,8 @@ class QLS {
 
     #! "textDocument/references" method handler
     *string meth_td_references(hash request) {
-        TextDocument textDoc = documents{request.params.textDocument.uri};
-        *list references = textDoc.findReferences(request.params.position, request.params.context.includeDeclaration);
+        Document doc = documents{request.params.textDocument.uri};
+        *list references = doc.findReferences(request.params.position, request.params.context.includeDeclaration);
         return make_jsonrpc_response(jsonRpcVer, request.id, references ?? list());
     }
 
@@ -488,8 +488,8 @@ class QLS {
 
     #! "textDocument/documentSymbol" method handler
     *string meth_td_documentSymbol(hash request) {
-        TextDocument textDoc = documents{request.params.textDocument.uri};
-        *list symbols = textDoc.findSymbols();
+        Document doc = documents{request.params.textDocument.uri};
+        *list symbols = doc.findSymbols();
         return make_jsonrpc_response(jsonRpcVer, request.id, symbols ?? list());
     }
 

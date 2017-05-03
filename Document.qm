@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  TextDocument.qm Copyright 2017 Qore Technologies, s.r.o.
+/*  Document.qm Copyright 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,9 +28,9 @@
 
 %disable-warning unreferenced-variable
 
-module TextDocument {
+module Document {
     version = "0.1";
-    desc    = "TextDocument class";
+    desc    = "Document class";
     author  = "Ondrej Musil <ondrej.musil@qoretechnologies.com>";
     url     = "https://github.com/qorelanguage/qls";
 }
@@ -38,15 +38,15 @@ module TextDocument {
 %requires astparser
 
 #! Represents one open document (source file).
-public class TextDocument {
+public class Document {
     private {
-        #! The text document's URI.
+        #! The document's URI.
         string uri;
 
-        #! The text document name (without path).
+        #! The document's name (without path).
         string docName;
 
-        #! The text document's language identifier.
+        #! The document's language identifier.
         string languageId;
 
         #! The version number of this document (it will strictly increase after each change, including undo/redo).
