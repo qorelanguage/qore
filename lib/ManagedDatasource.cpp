@@ -53,9 +53,6 @@ void ManagedDatasource::destructor(ExceptionSink* xsink) {
       closeUnlocked(xsink);
    else
       xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
-
-   // issue 1250: close all statements created on this datasource
-   qore_ds_private::get(*this)->transactionDone(true, true, xsink);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
