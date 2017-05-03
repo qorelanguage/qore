@@ -53,6 +53,14 @@ const ErrorCodes = {
     "UnknownErrorCode": -32001
 };
 
+#! LSP MessageType definition
+const MessageTypes = {
+    "Error": 1,
+    "Warning": 2,
+    "Info": 3,
+    "Log": 4,
+};
+
 sub debugLog(string fmt) {
     string str = sprintf("%s: ", format_date("YYYY-MM-DD HH:mm:SS", now()));
     string msg = vsprintf(str + fmt + "\n", argv);
@@ -289,12 +297,22 @@ class QLS {
     # Server notifications
     #======================
 
+    #! Create a diagnostics notification.
     string diagnosticsNotification(string uri, *list diagnostics) {
         hash notification = {
             "uri": uri,
             "diagnostics": diagnostics ? diagnostics : ()
         };
         return make_jsonrpc_request("textDocument/publishDiagnostics", jsonRpcVer, NOTHING, notification);
+    }
+
+    #! Create a "showMessage" notification.
+    string showMessageNotification(int messageType, string message) {
+        hash notification = {
+            "type": messageType,
+            "message": message
+        };
+        return make_jsonrpc_request("window/showMessage", jsonRpcVer, NOTHING, notification);
     }
 
 
