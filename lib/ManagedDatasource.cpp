@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2015 Qore Technologies, sro
+  Copyright 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,9 @@ void ManagedDatasource::destructor(ExceptionSink *xsink) {
       closeUnlocked(xsink);
    else
       xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
+
+   // issue 1250: close all statements creates on this datasource
+   qore_ds_private::get(*this)->transactionDone(true, true, xsink);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
