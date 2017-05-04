@@ -38,6 +38,7 @@
 
 %requires ./Document.qm
 
+%include ./Files.q
 %include ./ServerCapabilities.q
 
 #! LSP ErrorCodes definition
@@ -54,7 +55,7 @@ const ErrorCodes = {
 };
 
 #! LSP MessageType definition
-const MessageTypes = {
+const MessageType = {
     "Error": 1,
     "Warning": 2,
     "Info": 3,
@@ -114,6 +115,9 @@ class QLS {
 
         #! Open text documents. Hash keys are document URIs.
         hash documents;
+
+        #! Qore Documents in the current workspace.
+        hash workspaceDocs;
     }
 
     constructor() {
@@ -211,12 +215,6 @@ class QLS {
             else {
                 error("invalid JSON-RPC request");
             }
-
-            /*if (!shutdown) {
-                hash params = {"type": 3, "message": "QLS works!"};
-                string msgwindow = make_jsonrpc_request("window/showMessage", jsonRpcVer, NOTHING, params);
-                sendMessage(msgwindow);
-            }*/
         }
 
         return exitCode;
@@ -261,6 +259,33 @@ class QLS {
         stdout.printf("Content-Length: %d%s", response.size(), LSP_PART_DELIMITER);
         stdout.write(LSP_PART_DELIMITER + response);
         debugLog("message sent");
+    }
+
+
+    #=================
+    # Parsing
+    #=================
+
+    private:internal parseFilesInWorkspace() {
+        stderr.printf("parsing files in workspace\n");
+
+        # find all Qore files in the workspace
+        list qoreFiles = findQoreFilesInWorkspace(rootPath);
+
+        # create a list of file URIs
+        int rootPathSize = rootPath.size();
+        qoreFiles = map rootUri + $1.substr(rootPathSize), qoreFiles;
+        stderr.printf("qore files: %N\n", qoreFiles);
+
+        # measure start time
+        date start = now_us();
+
+        # parse everything
+        map workspaceDocs{$1} = new Document($1), qoreFiles;
+
+        # measure end time
+        date end = now_us();
+        stderr.printf("parsing of %d files took: %y\n", qoreFiles.size(), end-start);
     }
 
 
@@ -331,9 +356,12 @@ class QLS {
             rootUri = initParams.rootUri;
         if (initParams{"rootPath"})
             rootPath = initParams.rootPath;
-        if (!rootPath && rootUri) {
+        if (!rootPath && rootUri)
             rootPath = parse_url(rootUri).path;
-        }
+        if (!rootUri && rootPath)
+            rootUri = "file://" + rootPath;
+
+        parseFilesInWorkspace();
 
         hash result = {
             "capabilities": QLSServerCapabilities

@@ -53,7 +53,7 @@ public class Document {
         int version;
 
         #! The content of the opened text document.
-        string text;
+        *string text;
 
         #! AST parser. Used for getting all the important info.
         astparser::AstParser parser;
@@ -61,6 +61,7 @@ public class Document {
         #! Whether the document has been parsed successfully by the program.
         bool parseOk;
 
+        #! Parse error description (in case a parse error occured).
         *string parseError;
     }
 
@@ -71,16 +72,28 @@ public class Document {
         languageId = n_languageId;
         version = n_version;
 
-        parse();
+        parseText();
     }
 
-    #! Parse the text of the document.
-    private parse() {
-        parseOk = False;
+    constructor(string n_uri) {
+        uri = n_uri;
+        docName = basename(uri);
+        languageId = "qore";
+        version = 0;
+
+        parseFile();
+    }
+
+    private:internal parseInit() {
+        delete parseError;
+        parseOk = True;
         parser = new astparser::AstParser();
-        int rc = parser.parseString(text);
+    }
+
+    private:internal handleParseErrors(int rc) {
         if (rc) {
-            parseError = sprintf("Error parsing the text document '%s' - return code: %d\n\n", uri, rc);
+            parseOk = False;
+            parseError = sprintf("Error parsing text document '%s' - return code: %d\n\n", uri, rc);
             if (parser.getErrorCount()) {
                 parseError += "Errors:\n\n";
                 *list diagnostics = parser.getDiagnostics();
@@ -92,13 +105,26 @@ public class Document {
                         diag.message);
                 }
             }
+        }
+    }
+
+    #! Parse document from a file.
+    private:internal parseFile() {
+        parseInit();
+        string filePath = uri.substr(7); # trim "file://"
+        int rc = parser.parseFile(filePath);
+        handleParseErrors(rc);
+        if (rc)
             stderr.printf(parseError);
-        }
-        else {
-            parseOk = True;
-            delete parseError;
-        }
-        stderr.printf("parse finished\n");
+    }
+
+    #! Parse the text of the document.
+    private:internal parseText() {
+        parseInit();
+        int rc = parser.parseString(text);
+        handleParseErrors(rc);
+        if (rc)
+            stderr.printf(parseError);
     }
 
     string getUri() { return uri; }
@@ -123,7 +149,7 @@ public class Document {
         text = changes.text;
 
         # Re-parse the document.
-        parse();
+        parseText();
     }
     
     changeVersion(int n_version) {
