@@ -80,9 +80,6 @@ class QLS {
         #! JSON-RPC version string (ex. "2.0")
         string jsonRpcVer;
 
-        #! Content-Type sent via the "initialize" request
-        string contentType;
-
         #! Workspace root URI (ex. "file:///home/user/projects/lorem")
         string rootUri;
 
