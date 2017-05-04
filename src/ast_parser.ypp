@@ -2418,6 +2418,9 @@ quoted_word:
         QUOTED_WORD_BEGIN QUOTED_WORD {
             $$ = $2;
         }
+        | QUOTED_WORD {
+            $$ = $1;
+        }
         ;
 
 string:
