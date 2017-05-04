@@ -517,7 +517,7 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
     if (mods.empty())
         return;
     printIndent(os, indent);
-    os << "modifiers: ";
+    os << "modifiers:";
     if (mods.contains(AM_Abstract))
         os << " abstract";
     if (mods.contains(AM_Deprecated))
