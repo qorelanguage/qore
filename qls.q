@@ -38,6 +38,7 @@
 
 %requires ./Document.qm
 %requires ./ErrorResponse.qm
+%requires ./Messenger.qm
 %requires ./Notification.qm
 
 %include ./Files.q
@@ -154,92 +155,65 @@ class QLS {
         };
     }
 
+
+    #=================
+    # Main logic
+    #=================
+
     int main() {
         while (running) {
             # read JSON-RPC request
-            *string msg = receiveMessage();
-            if (!msg)
+            hash received = Messenger::receive();
+            if (received.error)
+                error(received.error);
+            if (!received.msg)
                 break;
 
-            # parse the request
-            any parsed = parse_json(msg);
-
             # handle the request
-            if (parsed.typeCode() == NT_HASH) {
-                hash request = parsed;
-                debugLog("req: %N", request);
-                *string response;
+            *string response = handleRequest(received.msg);
 
-                # find and run method handler
-                if (initialized) {
-                    *code method = methodMap{request.method};
-                    if (method) {
-                        response = method(request);
-                    }
-                    else {
-                        if (request.id) # if it's a request, send response
-                            response = ErrorResponse::methodNotFound(request);
-                        # else it's notification -> ignore
-                    }
-                }
-                else { # run "initialize" method handler or return an error
-                    if (request.method == "initialize")
-                        response = meth_initialize(request);
-                    else
-                        response = ErrorResponse::notInitialized(request);
-                }
-
-                # send back response if any
-                if (response)
-                    sendMessage(response);
-            }
-            else {
-                error("invalid JSON-RPC request");
-            }
+            # send back response if any
+            if (response)
+                Messenger::send(response);
         }
 
         return exitCode;
     }
 
+    *string handleRequest(string msg) {
+        # parse the request
+        any parsed = parse_json(msg);
 
-    #=================
-    # Message I/O
-    #=================
+        # handle the request
+        if (parsed.typeCode() == NT_HASH) {
+            hash request = parsed;
+            debugLog("req: %N", request);
+            *string response;
 
-    #! Receive JSON-RPC request from stdin.
-    private:internal *string receiveMessage() {
-        debugLog("reading message");
-        int contentLength = -1;
-        *string txt = "";
-
-        while (True) {
-            txt = stdin.readLine(False, LSP_PART_DELIMITER);
-            debugLog("read line: '%n'", txt);
-
-            # read headers
-            if (txt.equalPartial("Content-Length")) { # format: "Content-Length: %d"
-                contentLength = txt.substr(16).toInt();
+            # find and run method handler
+            if (initialized) {
+                *code method = methodMap{request.method};
+                if (method) {
+                    response = method(request);
+                }
+                else {
+                    if (request.id) # if it's a request, send response
+                        response = ErrorResponse::methodNotFound(request);
+                    # else it's notification -> ignore
+                }
             }
-            else if (txt.equalPartial("Content-Type")){  # format: "Content-Type: %s"
-                contentType = trim(txt);
+            else { # run "initialize" method handler or return an error
+                if (request.method == "initialize")
+                    response = meth_initialize(request);
+                else
+                    response = ErrorResponse::notInitialized(request);
             }
-            # read JSON-RPC message
-            else if (txt == "") {
-                if (contentLength == -1)
-                    error("Content-Length header is missing");
-                txt = stdin.readBinary(contentLength).toString("UTF-8");
-                debugLog("read JSON message (%d bytes): '%s'", txt.size(), txt);
-                return txt;
-            }
+            return response;
         }
-    }
-
-    #! Send JSON-RPC response to stdin.
-    private:internal sendMessage(string response) {
-        debugLog("sending message: '%s'", response);
-        stdout.printf("Content-Length: %d%s", response.size(), LSP_PART_DELIMITER);
-        stdout.write(LSP_PART_DELIMITER + response);
-        debugLog("message sent");
+        else {
+            error("invalid JSON-RPC request");
+        }
+        return NOTHING;
     }
 
 

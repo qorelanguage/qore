@@ -1,0 +1,77 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*  Messenger.qm Copyright 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+module Messenger {
+    version = "0.1";
+    desc    = "Messenger";
+    author  = "Ondrej Musil <ondrej.musil@qoretechnologies.com>";
+    url     = "https://github.com/qorelanguage/qls";
+}
+
+#! Messenger.
+public class Messenger {
+    private {
+        const LSP_PART_DELIMITER = "\r\n";
+    }
+
+    #! Receive JSON-RPC request from stdin.
+    public static hash receive() {
+        int contentLength = -1;
+        string contentType;
+        *string txt = "";
+
+        while (True) {
+            txt = stdin.readLine(False, LSP_PART_DELIMITER);
+            #debugLog("read line: '%n'", txt);
+
+            # read headers
+            if (txt.equalPartial("Content-Length")) { # format: "Content-Length: %d"
+                contentLength = txt.substr(16).toInt();
+            }
+            else if (txt.equalPartial("Content-Type")){  # format: "Content-Type: %s"
+                contentType = trim(txt);
+            }
+            # read JSON-RPC message
+            else if (txt == "") {
+                if (contentLength == -1)
+                    return {"error": "Content-Length header is missing"};
+                txt = stdin.readBinary(contentLength).toString("UTF-8");
+                #debugLog("read JSON message (%d bytes): '%s'", txt.size(), txt);
+                return {"Content-Type": contentType, "msg": txt};
+            }
+        }
+    }
+
+    #! Send JSON-RPC response to stdin.
+    public static send(string response) {
+        #debugLog("sending message: '%s'", response);
+        stdout.printf("Content-Length: %d%s", response.size(), LSP_PART_DELIMITER);
+        stdout.write(LSP_PART_DELIMITER + response);
+        #debugLog("message sent");
+    }
+}
