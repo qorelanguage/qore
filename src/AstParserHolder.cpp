@@ -52,6 +52,10 @@ int AstParserHolder::parseString(std::string& filename) {
     return parser->parseString(filename);
 }
 
+void AstParserHolder::printTree(std::ostream& os) {
+    parser->printTree(os);
+}
+
 ASTNode* AstParserHolder::findNode(ast_loc_t line, ast_loc_t col) {
     return parser->findNode(line, col);
 }

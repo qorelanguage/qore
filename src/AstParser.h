@@ -29,6 +29,7 @@
 #define _QLS_ASTPARSER_H
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -52,6 +53,8 @@ public:
 
     int parseString(const char* str);
     int parseString(std::string& str);
+
+    void printTree(std::ostream& os);
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);

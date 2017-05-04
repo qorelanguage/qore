@@ -126,6 +126,10 @@ int AstParser::parseString(std::string& str) {
     return parseString(str.c_str());
 }
 
+void AstParser::printTree(std::ostream& os) {
+    AstTreePrinter::printTree(os, parsedTree.get());
+}
+
 ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
     if (!parsedTree) {
         return nullptr;

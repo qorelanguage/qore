@@ -28,6 +28,10 @@
 #ifndef _QLS_ASTPARSERHOLDER_H
 #define _QLS_ASTPARSERHOLDER_H
 
+#include <ostream>
+#include <string>
+#include <vector>
+
 #include "qore/Qore.h"
 
 #include "ast/ASTParseLocation.h"
@@ -52,6 +56,8 @@ public:
 
     int parseString(const char* str);
     int parseString(std::string& str);
+
+    void printTree(std::ostream& os);
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);

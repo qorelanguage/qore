@@ -25,6 +25,7 @@
 */
 
 #include <memory>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -68,6 +69,15 @@ int AstParser::parseFile(string filename) {
  */
 int AstParser::parseString(string str) {
     return aph->parseString(str->getBuffer());
+}
+
+//! Print tree.
+/**
+    @param file name of file where to print out the tree
+ */
+AstParser::printTree(string file) {
+    std::ofstream ofs(file->c_str(), std::ofstream::out | std::ofstream::trunc);
+    aph->printTree(ofs);
 }
 
 //! Get parse error count.
