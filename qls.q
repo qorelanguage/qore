@@ -1,7 +1,7 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  qls Copyright 2017 Qore Technologies, s.r.o.
+/*  qls.q Copyright 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,30 +37,11 @@
 %requires Mime
 
 %requires ./Document.qm
+%requires ./ErrorResponse.qm
+%requires ./Notification.qm
 
 %include ./Files.q
 %include ./ServerCapabilities.q
-
-#! LSP ErrorCodes definition
-const ErrorCodes = {
-    "ParseError": -32700,
-    "InvalidRequest": -32600,
-    "MethodNotFound": -32601,
-    "InvalidParams": -32602,
-    "InternalError": -32603,
-    "serverErrorStart": -32099,
-    "serverErrorEnd": -32000,
-    "ServerNotInitialized": -32002,
-    "UnknownErrorCode": -32001
-};
-
-#! LSP MessageType definition
-const MessageType = {
-    "Error": 1,
-    "Warning": 2,
-    "Info": 3,
-    "Log": 4,
-};
 
 sub debugLog(string fmt) {
     string str = sprintf("%s: ", format_date("YYYY-MM-DD HH:mm:SS", now()));
@@ -197,7 +178,7 @@ class QLS {
                     }
                     else {
                         if (request.id) # if it's a request, send response
-                            response = methodNotFoundResponse(request);
+                            response = ErrorResponse::methodNotFound(request);
                         # else it's notification -> ignore
                     }
                 }
@@ -205,7 +186,7 @@ class QLS {
                     if (request.method == "initialize")
                         response = meth_initialize(request);
                     else
-                        response = notInitializedResponse(request);
+                        response = ErrorResponse::notInitialized(request);
                 }
 
                 # send back response if any
@@ -290,58 +271,6 @@ class QLS {
 
 
     #=================
-    # Error responses
-    #=================
-
-    private:internal string notInitializedResponse(hash request) {
-        hash err = {
-            "code": ErrorCodes.ServerNotInitialized,
-            "message": "server has not been initialized yet"
-        };
-        return make_jsonrpc_error(jsonRpcVer, request.id, err);
-    }
-
-    private:internal string invalidRequestResponse(hash request, *string message) {
-        hash err = {
-            "code": ErrorCodes.InvalidRequest,
-            "message": message ? message : "invalid request"
-        };
-        return make_jsonrpc_error(jsonRpcVer, request.id, err);
-    }
-
-    private:internal string methodNotFoundResponse(hash request) {
-        hash err = {
-            "code": ErrorCodes.MethodNotFound,
-            "message": sprintf("method '%s' is not implemented", request.method)
-        };
-        return make_jsonrpc_error(jsonRpcVer, request.id, err);
-    }
-
-
-    #======================
-    # Server notifications
-    #======================
-
-    #! Create a diagnostics notification.
-    private:internal string diagnosticsNotification(string uri, *list diagnostics) {
-        hash notification = {
-            "uri": uri,
-            "diagnostics": diagnostics ? diagnostics : ()
-        };
-        return make_jsonrpc_request("textDocument/publishDiagnostics", jsonRpcVer, NOTHING, notification);
-    }
-
-    #! Create a "showMessage" notification.
-    private:internal string showMessageNotification(int messageType, string message) {
-        hash notification = {
-            "type": messageType,
-            "message": message
-        };
-        return make_jsonrpc_request("window/showMessage", jsonRpcVer, NOTHING, notification);
-    }
-
-
-    #=================
     # General methods
     #=================
 
@@ -416,12 +345,12 @@ class QLS {
 
     #! "workspace/symbol"  method handler
     private:internal *string meth_ws_symbol(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "workspace/executeCommand"  method handler
     private:internal *string meth_ws_executeCommand(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
 
@@ -437,9 +366,9 @@ class QLS {
 
         if (doc.getParseErrorCount() > 0) {
             *list diagnostics = doc.getDiagnostics();
-            return diagnosticsNotification(textDoc.uri, diagnostics);
+            return Notification::diagnostics(jsonRpcVer, textDoc.uri, diagnostics);
         }
-        return diagnosticsNotification(textDoc.uri);
+        return Notification::diagnostics(jsonRpcVer, textDoc.uri);
     }
 
     #! "textDocument/didChange" notification method handler
@@ -453,9 +382,9 @@ class QLS {
 
         if (doc.getParseErrorCount() > 0) {
             *list diagnostics = doc.getDiagnostics();
-            return diagnosticsNotification(textDoc.uri, diagnostics);
+            return Notification::diagnostics(jsonRpcVer, textDoc.uri, diagnostics);
         }
-        return diagnosticsNotification(textDoc.uri);
+        return Notification::diagnostics(jsonRpcVer, textDoc.uri);
     }
 
     #! "textDocument/willSave" notification method handler
@@ -466,7 +395,7 @@ class QLS {
 
     #! "textDocument/willSaveWaitUntil" method handler
     private:internal *string meth_td_willSaveWaitUntil(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/didSave" notification method handler
@@ -483,12 +412,12 @@ class QLS {
 
     #! "textDocument/completion" method handler
     private:internal *string meth_td_completion(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "completionItem/resolve" method handler
     private:internal *string meth_completionItem_resolve(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/hover" method handler
@@ -499,7 +428,7 @@ class QLS {
 
     #! "textDocument/signatureHelp" method handler
     private:internal *string meth_td_signatureHelp(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/references" method handler
@@ -511,7 +440,7 @@ class QLS {
 
     #! "textDocument/documentHighlight" method handler
     private:internal *string meth_td_documentHighlight(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/documentSymbol" method handler
@@ -523,51 +452,51 @@ class QLS {
 
     #! "textDocument/formatting" method handler
     private:internal *string meth_td_formatting(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/rangeFormatting" method handler
     private:internal *string meth_td_rangeFormatting(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/onTypeFormatting" method handler
     private:internal *string meth_td_onTypeFormatting(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/definition" method handler
     private:internal *string meth_td_definition(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/codeAction" method handler
     private:internal *string meth_td_codeAction(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/codeLens" method handler
     private:internal *string meth_td_codeLens(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "codeLens/resolve" method handler
     private:internal *string meth_codeLens_resolve(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/documentLink" method handler
     private:internal *string meth_td_documentLink(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "documentLink/resolve" method handler
     private:internal *string meth_documentLink_resolve(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 
     #! "textDocument/rename" method handler
     private:internal *string meth_td_rename(hash request) {
-        return invalidRequestResponse(request);
+        return ErrorResponse::invalidRequest(request);
     }
 }
