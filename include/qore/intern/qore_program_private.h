@@ -468,6 +468,17 @@ private:
    QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
    QoreBreakpointList_t breakpointList;
 
+   // map for line to statement
+   typedef std::map<int, AbstractStatement*> sline_statement_multimap_t;
+
+   // map for filenames
+   typedef std::map<const char*, sline_statement_multimap_t*> name_sline_statement_map_t;
+
+   // index source filename/label -> line -> statement
+   name_sline_statement_map_t statementByFileIndex;
+   name_sline_statement_map_t statementByLabelIndex;
+
+
    /**
     * get safely debug program pointer. The debug program instance itself must exists. It's not matter of lock as the flow goes to QoreDebugProgram
     * instance and may stay very long time.
@@ -2001,6 +2012,137 @@ public:
       return statement->getBreakpoint() != 0;
    }
 
+   DLLLOCAL QoreStringNode* getStatementId(const AbstractStatement* statement) const {
+      AutoLocker al(&plock);
+      if (!statement)
+         return 0;
+      char buff[2*(sizeof(this))+5+ 2*sizeof(statement)+5 +1+1];  // printf %p is implementation specific
+      snprintf(buff, sizeof(buff), "%p-%p", this, statement);
+      return new QoreStringNode(buff);
+   }
+
+   DLLLOCAL AbstractStatement* resolveStatementId(const char *statementId) const {
+      AutoLocker al(&plock);
+      if (!statementId)
+         return 0;
+      qore_program_private *p;
+      AbstractStatement *s;
+      // we cannot use dynamic_cast to change if it is correct object as it required non general void* pointer
+      int n;
+      if ((n = sscanf(statementId, "%p-%p", &p, &s) != 2)) {
+         printd(5, "AbstractStatement::resolveStatementId(%s), n:%d\n", statementId, n);
+         return 0;
+      }
+      printd(5, "AbstractStatement::resolveStatementId(%s), pgm:%p, st:%p, n:%d\n", statementId, p, s, n);
+      if (p != this)
+         return 0;
+      return s;
+   }
+
+   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement) {
+      // index is being built when parsing
+      if (!statement)
+         return;
+      sline_statement_multimap_t *ssm;
+      std::map<const char*, sline_statement_multimap_t*>::iterator it = statementIndex->find(key);
+      if (it == statementIndex->end()) {
+         ssm = new sline_statement_multimap_t();
+         statementIndex->insert(std::pair<const char*, sline_statement_multimap_t*>(key, ssm));
+      } else {
+         ssm = it->second;
+         std::map<int, AbstractStatement*>::iterator li = ssm->find(statement->loc.start_line);
+         while (li != ssm->end() && li->first == statement->loc.start_line) {
+            if (li->second->loc.end_line == statement->loc.end_line) {
+               // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
+               return;
+            }
+            ++li;
+         }
+      }
+      ssm->insert(std::pair<int, AbstractStatement*>(statement->loc.start_line, statement));
+   }
+
+   DLLLOCAL static void addStatementToIndex(QoreProgram* pgm, AbstractStatement *statement) {
+      // index is being built when parsing
+      if (!statement)
+         return;
+      if (statement->loc.source) {
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement);
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement);
+      } else {
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement);
+      }
+   }
+
+   DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
+      AutoLocker al(&plock);
+      std::map<const char*, sline_statement_multimap_t*>::iterator it;
+      if (statementByFileIndex.empty())
+         return 0;
+      if (!name || *name == '\0') {
+         if (statementByFileIndex.size() != 1)
+            return 0;
+         it = statementByFileIndex.begin();
+      } else {
+         size_t l = strlen(name);
+         it = statementByFileIndex.find(name);
+         if (it == statementByFileIndex.end()) {
+            it = statementByLabelIndex.find(name);  // label only full name match
+            if (it == statementByLabelIndex.end()) {
+
+               // did not find exact match so try a heuristic
+               it = statementByFileIndex.begin();
+               while (it != statementByFileIndex.end()) {
+                  size_t k = strlen(it->first);
+                  if (k >= l) {
+                     if (strcmp(name, it->first + k - l) == 0) {
+                        // match against suffix following '/'
+                        if (k == l /* should not happen as it is full match*/ || name[0] == '/' || it->first[k-l-1] == '/')
+                           break;
+                     }
+                  }
+                  ++it;
+               }
+               if (it == statementByFileIndex.end())
+                  return 0;
+            }
+         }
+      }
+      sline_statement_multimap_t *ssm = it->second;
+      if (ssm->size() == 0)
+         return 0;
+
+      std::map<int, AbstractStatement*>::iterator li = ssm->upper_bound(line);
+      if (li == ssm->begin())
+         return 0;
+      --li;
+      int ln = li->first;
+      int minnl = -1;
+      AbstractStatement* st = 0;
+      while (true) {
+         // find the nearest statement, i.e. statement with smallest num of lines
+         if (ln != li->first)
+            break;
+         if (li->second->loc.start_line >= line && li->second->loc.end_line <= line) {
+            int n = li->second->loc.end_line - li->second->loc.start_line;
+            if (minnl >= 0) {
+               if (n < minnl) {
+                  minnl = n;
+                  st = li->second;
+               }
+            } else {
+               minnl = n;
+               st = li->second;
+            }
+            if (minnl == 0)
+               break;
+         }
+         if (li == ssm->begin())
+            break;
+         --li;
+      };
+      return st;
+   }
 };
 
 class ParseWarnHelper : public ParseWarnOptions {

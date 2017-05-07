@@ -1663,6 +1663,7 @@ nothing Program::setGlobalVarValue(string name, any value) {
 
 //! Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
 /**
+   @since %Qore 0.8.13
  */
 nothing Program::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
    p->assignBreakpoint(bkpt);
@@ -1671,6 +1672,7 @@ nothing Program::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
 //! delete all breakpoints from instance
 /**
  *
+   @since %Qore 0.8.13
  */
 nothing Program::deleteAllBreakpoints() {
    p->deleteAllBreakpoints();
@@ -1679,6 +1681,7 @@ nothing Program::deleteAllBreakpoints() {
 //! get list of breakpoint assigned to program.
 /**
  *
+   @since %Qore 0.8.13
  */
 list Program::getBreakpoints() {
    QoreBreakpointList_t bl;
@@ -1695,4 +1698,65 @@ list Program::getBreakpoints() {
       l->push((*it)->getObject());
    }
    return l;
+}
+
+//! get information related to statement id
+/**
+   @return a hash of statement info
+
+   @see
+      @ref Program::findStatementId()
+      @ref Program::findFunctionStatementId()
+
+
+   @since %Qore 0.8.13
+*/
+hash Program::getStatementIdInfo(string id) {
+   AbstractStatement* s = p->resolveStatementId(id->c_str());
+   if (!s) {
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from \"%s\"", id->c_str());
+   }
+   QoreHashNode* h = new QoreHashNode;
+   h->setKeyValue("file", new QoreStringNode(s->loc.file), 0);
+   h->setKeyValue("source", new QoreStringNode(s->loc.source), 0);
+   h->setKeyValue("offset", new QoreBigIntNode(s->loc.offset), 0);
+   h->setKeyValue("start_line", new QoreBigIntNode(s->loc.start_line), 0);
+   h->setKeyValue("end_line", new QoreBigIntNode(s->loc.end_line), 0);
+   return h;
+}
+
+//! Find statement related to position in file
+/**
+   @param file name where is looking for. Searching is done in two steps, in the first one is looking for full name match, in the second for end suffix match. File can by null if program contains only one file
+   @param line to find statement. In case of multiple statements of line the first one is found
+
+   @see
+      @ref Program::resolveStatementId()
+      @ref Program::findFunctionStatementId()
+
+   @since %Qore 0.8.13
+*/
+string Program::findStatementId(string file, int line) {
+   AbstractStatement* s = p->findStatement(file->c_str(), line);
+   if (!s) {
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
+   }
+   return p->getStatementId(s);
+}
+
+//! Find the first statement if function
+/**
+   @param function name
+
+   @see
+      @ref Program::resolveStatementId()
+      @ref Program::findStatementId()
+
+   @since %Qore 0.8.13
+*/
+string Program::findFunctionStatementId(string function) {
+   AbstractStatement* s = p->findFunctionStatement(function->c_str());
+   if (!s)
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for function \"%s\"", function->c_str());
+   return p->getStatementId(s);
 }

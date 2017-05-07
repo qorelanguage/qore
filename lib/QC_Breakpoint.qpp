@@ -165,17 +165,33 @@ nothing Breakpoint::unassignProgram() {
 //! Assign breakpoint to a statement.
 /**
  *
- *
-nothing Breakpoint::assignStatement(AbstractStatement* statement) {
+ */
+nothing Breakpoint::assignStatement(string statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId->c_str(), xsink);
+   if (!xsink->isEvent()) {
+      bkpt->assignStatement(s, xsink);
+   }
+}
 
-} */
 //! Unassign breakpoint from statement
 /**
  *
- *
-nothing Breakpoint::unassignStatement(AbstractStatement* statement) {
+ */
+nothing Breakpoint::unassignStatement(string statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId->c_str(), xsink);
+   if (!xsink->isEvent()) {
+      bkpt->unassignStatement(s, xsink);
+   }
+}
 
-} */
+//! Get list of statements
+/**
+ *  @see @ref Program::resolveStatementId()
+ */
+list Breakpoint::getStatementIds() {
+   return bkpt->getStatementIds(xsink);
+}
+
 //! Get list of the thread IDs
 /**
  *

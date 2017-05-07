@@ -459,6 +459,9 @@ public:
    DLLLOCAL bool hasBody() const {
       return (bool)statements;
    }
+   DLLLOCAL StatementBlock* getStatementBlock() const {
+      return statements;
+   }
 
    DLLLOCAL int64 getParseOptions(int64 po) const;
 

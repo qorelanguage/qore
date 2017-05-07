@@ -75,15 +75,6 @@ private:
       // xsink->assimilate(xsink2);
    }
 
-   DLLLOCAL QoreHashNode* getLocation(const AbstractStatement *s) const {
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("file", new QoreStringNode(s->loc.file), 0);
-      h->setKeyValue("source", new QoreStringNode(s->loc.source), 0);
-      h->setKeyValue("offset", new QoreBigIntNode(s->loc.offset), 0);
-      h->setKeyValue("start_line", new QoreBigIntNode(s->loc.start_line), 0);
-      h->setKeyValue("end_line", new QoreBigIntNode(s->loc.end_line), 0);
-      return h;
-   }
 public:
    DLLLOCAL QoreDebugProgramWithQoreObject(QoreObject* n_qo): qo(n_qo) {
       printd(5, "QoreDebugProgramWithCoreObject::QoreDebugProgramWithCoreObject() this: %p, qo: %p\n", this, n_qo);
@@ -116,8 +107,8 @@ public:
    DLLLOCAL virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[3];
-      params[0] = getLocation(blockStatement);
-      params[1] = statement ? getLocation(statement) : 0;
+      params[0] = pgm->getStatementId(blockStatement);
+      params[1] = statement ? pgm->getStatementId(statement) : 0;
       ReferenceArgumentHelper rah(retCode, &xsink2);
       params[2] = rah.getArg(); // caller owns ref
       callMethod("onStep", pgm, 3, params, sb, xsink, xsink2);
@@ -128,13 +119,13 @@ public:
    DLLLOCAL virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *blockStatement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[1];
-      params[0] = getLocation(blockStatement);
+      params[0] = pgm->getStatementId(blockStatement);
       callMethod("onFunctionEnter", pgm, 1, params, sb, xsink, xsink2);
    }
    DLLLOCAL virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[2];
-      params[0] = getLocation(blockStatement);
+      params[0] = pgm->getStatementId(blockStatement);
       printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       if (returnValue.getInternalNode()) {
          printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#1: QVtype: %d, refCount: %d\n", returnValue.type, returnValue.getInternalNode()->reference_count());
@@ -154,7 +145,7 @@ public:
    DLLLOCAL virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[3];
-      params[0] = getLocation(statement);
+      params[0] = pgm->getStatementId(statement);
       QoreException* except = xsink->getException();
       params[1] = except->makeExceptionObject();
       ReferenceArgumentHelper rah(false, &xsink2);

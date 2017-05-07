@@ -182,6 +182,8 @@ void StatementBlock::addStatement(AbstractStatement* s) {
          on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
       loc.end_line = s->loc.end_line;
+
+      qore_program_private::addStatementToIndex(getProgram(), s);
    }
 }
 

@@ -762,6 +762,9 @@ void qore_program_private::del(ExceptionSink* xsink) {
       delete i.second;
 
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+
+   statementByFileIndex.clear();
+   statementByLabelIndex.clear();
 }
 
 QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
@@ -1683,6 +1686,53 @@ void QoreProgram::getBreakpoints(QoreBreakpointList_t &bkptList) {
    priv->getBreakpoints(bkptList);
 }
 
+AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) const {
+   return priv->getStatementFromIndex(fileName, line);
+}
+
+AbstractStatement* QoreProgram::findMethodStatement(const char* className, const char* methodName) const {
+   ExceptionSink xsink;
+   QoreClass* cl = qore_root_ns_private::runtimeFindClass(*(priv->RootNS), className);
+   if (!cl)
+      return 0;
+   // TODO: is class used as namespace ??
+   // const qore_class_private* class_ctx = cl->pric
+   return 0;
+}
+
+AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName) {
+   const QoreFunction* u;
+   const qore_ns_private* ns = 0;
+   {
+      ExceptionSink xsink;
+      ProgramRuntimeParseAccessHelper pah(&xsink, this);
+      if (xsink) {
+         xsink.clear();
+         return 0;
+      }
+
+      u = qore_root_ns_private::runtimeFindFunction(*(priv->RootNS), functionName, ns);
+      if (!u)
+         return 0;
+      const qore_class_private* class_ctx = 0;  // TODO: class methods, support also private
+      const AbstractQoreFunctionVariant* uv = u->runtimeFindVariant(&xsink, 0 /* TODO: how to define and pass args to find variant */, true, class_ctx);
+      if (!uv)
+         return 0;
+      const UserVariantBase* uvb = uv->getUserVariantBase();
+      if (!uvb)
+         return 0;
+      return uvb->getStatementBlock();
+   }
+}
+
+QoreStringNode* QoreProgram::getStatementId(const AbstractStatement* statement) const {
+   return priv->getStatementId(statement);
+}
+
+AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) const {
+   return priv->resolveStatementId(statementId);
+}
+
 void QoreBreakpoint::unassignAllStatements() {
    for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
       (*it)->unassignBreakpoint(this);
@@ -1692,6 +1742,7 @@ void QoreBreakpoint::unassignAllStatements() {
 
 QoreBreakpoint& QoreBreakpoint::operator=(const QoreBreakpoint& other) {
    qo = 0;
+   QoreAutoRWReadLocker al(&pgm->lck_breakpoint);
    enabled = other.enabled;
    policy = other.policy;
    pgm = other.pgm;
@@ -1745,6 +1796,10 @@ void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
    }
 }
 
+QoreProgram* QoreBreakpoint::getProgram() const {
+   return pgm->pgm;
+}
+
 void QoreBreakpoint::assignStatement(AbstractStatement* statement, ExceptionSink* xsink) {
    if (checkPgm(xsink)) {
       QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
@@ -1767,6 +1822,36 @@ void QoreBreakpoint::unassignStatement(AbstractStatement* statement, ExceptionSi
          }
       }
    }
+}
+
+void QoreBreakpoint::getStatements(AbstractStatementList_t &statList, ExceptionSink* xsink) {
+   statList.clear();
+   QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
+      statList.push_back(*it);
+   }
+}
+
+QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
+   QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
+   QoreListNode* l = new QoreListNode;
+   for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
+      l->push(pgm->getStatementId(*it));
+   }
+   return l;
+}
+
+AbstractStatement* QoreBreakpoint::resolveStatementId(const char *statementId, ExceptionSink* xsink) const {
+   AbstractStatement *s = 0;
+   if (checkPgm(xsink)) {
+      s = pgm->resolveStatementId(statementId);
+      if (!s) {
+         if (xsink) {
+            xsink->raiseException("BREAKPOINT-ERROR", "Cannot resolve statement \"%s\"", statementId);
+         }
+      }
+   }
+   return s;
 }
 
 void QoreBreakpoint::getThreadIds(TidList_t &tidList, ExceptionSink* xsink) {

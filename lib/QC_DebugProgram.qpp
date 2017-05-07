@@ -98,7 +98,7 @@ const DebugBlockContinue = RC_CONTINUE;
 
     class MyDebugProgram dbg() inherits DebugProgram {
     private(local):
-       int onAttach(Program pgm, hash location) {
+       int onAttach(Program pgm, string statement) {
           return DebugStep;
        }
 
@@ -177,28 +177,31 @@ DebugProgram::onDetach(Program[QoreProgram] pgm, reference sb) {
 /**
  *
  */
-DebugProgram::onStep(Program[QoreProgram] pgm, hash blockLocation, *hash location, reference retCode, reference sb) {
+DebugProgram::onStep(Program[QoreProgram] pgm, string blockStatement, *string statement, reference retCode, reference sb) {
 }
 
 //! Executed when a function is entered.
 /**
- *
+    @see
+       @ref Program::getStatementIdInfo()
  */
-DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, hash location, reference sb) {
+DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, string statement, reference sb) {
 }
 
 //! Executed when a function is exited.
 /**
- *
+    @see
+       @ref Program::getStatementIdInfo()
  */
-DebugProgram::onFunctionExit(Program[QoreProgram] pgm, hash location, reference returnValue, reference sb) {
+DebugProgram::onFunctionExit(Program[QoreProgram] pgm, string statement, reference returnValue, reference sb) {
 }
 
 //! Executed when an exception is raised.
 /**
- *
+    @see
+       @ref Program::getStatementIdInfo()
  */
-DebugProgram::onException(Program[QoreProgram] pgm, hash location, hash ex, reference dismiss, reference sb) {
+DebugProgram::onException(Program[QoreProgram] pgm, string statement, hash ex, reference dismiss, reference sb) {
 }
 
 //! Break particular program thread

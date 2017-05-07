@@ -704,10 +704,6 @@ public:
     *   @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
     */
    DLLEXPORT QoreValue getLocalVariableVal(const char* var, bool &found) const;
-   //DLLEXPORT getCallStack(int tid) const;
-   //DLLEXPORT setFrame(int tid, int frameId) const;
-   DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
-   DLLEXPORT AbstractStatement* findFunction(const char* functionName) const;
 
    /** Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
     */
@@ -722,6 +718,36 @@ public:
     *
     */
    DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
+
+   /** find statement related to particular line in a source file
+    *
+    */
+   DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
+
+   /** find statement related to particular function
+    *
+    */
+   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName);
+
+   /** find statement related to particular method
+    *
+    */
+   DLLEXPORT AbstractStatement* findMethodStatement(const char* className, const char* methodName) const;
+
+   //! get the statement id
+   /**
+      @param statement MUST be statement of this Program instance!
+      @return the statement id which consist of pointer to both program and statement instances
+    */
+   DLLEXPORT QoreStringNode* getStatementId(const AbstractStatement* statement) const;
+
+   //! get the statement from statement id
+   /**
+      @param statementId created by @ref Program::getStatementId
+
+      @return the original statement or null if statement cannot be resolved
+    */
+   DLLEXPORT AbstractStatement* resolveStatementId(const char *statementId) const;
 
 };
 
@@ -861,6 +887,10 @@ public:
     *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
     */
    DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
+   /* Get assigned program to breakpoint
+    *
+    */
+   DLLEXPORT QoreProgram* getProgram() const;
    /** Assign breakpoint to a statement.
     *
     */
@@ -869,6 +899,18 @@ public:
     *
     */
    DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+   /** Get list of statements
+    *
+    */
+   DLLEXPORT void getStatements(AbstractStatementList_t &statList, ExceptionSink* xsink);
+   /** Get list of statement ids
+    *
+    */
+   DLLEXPORT QoreListNode* getStatementIds(ExceptionSink* xsink);
+   /** Resolve statement from statement id
+    *
+    */
+   DLLEXPORT AbstractStatement* resolveStatementId(const char *statementId, ExceptionSink* xsink) const;
    /** Get list of the thread IDs
     *
     */

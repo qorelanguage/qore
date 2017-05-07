@@ -50,7 +50,10 @@ class MyDebugProgram inherits DebugProgram {
         return actions[0];
     }
   }
-  handle(int func, Program pgm, reference sb, *hash location, *hash extra) {
+  handle(int func, Program pgm, reference sb, *string statementId, *hash extra) {
+    *hash location;
+    if (statementId)
+      location = pgm.getStatementIdInfo(statementId);
     #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, sb, location, extra);
     hash it = (
       'func': stResolve{func},
@@ -86,34 +89,34 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_DETACH, pgm, \sb);
   }
 
-  onStep(Program pgm, hash blockLocation, *hash location, reference retCode, reference sb) {
-    int st = location ? ST_STEP : ST_BLOCK;
+  onStep(Program pgm, string blockStatementId, *string statementId, reference retCode, reference sb) {
+    int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.retCode) {
-        #printf("loc:%y, retCode: %y\n", location, act.retCode);
+        #printf("loc:%y, retCode: %y\n", statementId, act.retCode);
         retCode = act.retCode;
     }
-    handle(st, pgm, \sb, location ?? blockLocation);
+    handle(st, pgm, \sb, statementId ?? blockStatementId);
   }
 
-  onFunctionEnter(Program pgm, hash location, reference sb) {
-    handle(ST_FUNC_ENTER, pgm, \sb, location);
+  onFunctionEnter(Program pgm, string statementId, reference sb) {
+    handle(ST_FUNC_ENTER, pgm, \sb, statementId);
   }
 
-  onFunctionExit(Program pgm, hash location, reference returnValue, reference sb) {
+  onFunctionExit(Program pgm, string statementId, reference returnValue, reference sb) {
     any act = getAction(ST_FUNC_EXIT);
     if (exists act.retVal) {
         returnValue = act.retVal;
     }
-    handle(ST_FUNC_EXIT, pgm, \sb, location, ("retVal": returnValue));
+    handle(ST_FUNC_EXIT, pgm, \sb, statementId, ("retVal": returnValue));
   }
 
-  onException(Program pgm, hash location, hash ex, reference dismiss, reference sb) {
+  onException(Program pgm, string statementId, hash ex, reference dismiss, reference sb) {
     any act = getAction(ST_EXCEPTION);
     if (exists act.dismiss) {
         dismiss = act.dismiss;
     }
-    handle(ST_EXCEPTION, pgm, \sb, location, ("ex": ex));
+    handle(ST_EXCEPTION, pgm, \sb, statementId, ("ex": ex));
   }
 
 }
