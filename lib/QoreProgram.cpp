@@ -1767,8 +1767,18 @@ bool QoreBreakpoint::isStatementAssigned(const AbstractStatement *statement) con
 }
 
 bool QoreBreakpoint::checkBreak() const {
-   // TODO: add break by pid
-   return enabled;
+   if (!enabled)
+      return false;
+   switch (policy) {
+   case BKP_PO_NONE:
+      return true;
+   case BKP_PO_ACCEPT:
+      return tidMap.find(gettid()) != tidMap.end();
+   case BKP_PO_REJECT:
+      return tidMap.find(gettid()) == tidMap.end();
+   default:
+      return false;
+   }
 }
 
 bool QoreBreakpoint::checkPgm(ExceptionSink* xsink) const {

@@ -65,10 +65,10 @@ const BreakpointPolicyReject = BKP_PO_REJECT;
     Program p(PO_ATTACH);
     .....
     Breakpoint b = new Breakpoint();
-    testAssertionValue(name+'getEnabled() default', b.getEnabled(), False);
     b.setPolicy(BreakpointPolicyNone);
+    #b.addThreadId(tidToBreak);
     b.setEnabled(True);
-    // TODO: addStatements
+    b.assignStatement(p.findStatementId(fileToBreak, lineToBreak));
     b.assignProgram(p);
 
     @endcode

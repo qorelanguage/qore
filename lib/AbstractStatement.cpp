@@ -101,7 +101,7 @@ void AbstractStatement::assignBreakpoint(QoreBreakpoint *bkpt) {
 }
 
 void AbstractStatement::unassignBreakpoint(QoreBreakpoint *bkpt) {
-   if (!breakpoints) {
+   if (breakpoints) {
       breakpoints->remove(bkpt);
       breakpointFlag = !breakpoints->empty();
    }

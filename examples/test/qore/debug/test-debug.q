@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%allow-debugging
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -61,9 +62,17 @@ class MyDebugProgram inherits DebugProgram {
       'line': location.start_line,
       'tid': gettid(),
     );
+    any act = getAction(func);
+    if (exists act.localVars) {
+      hash v = get_local_vars(2); # get local vars from program being debugged
+      hash vv;
+      foreach string lv in (act.localVars) {
+        vv{lv}= v{lv}.value;
+      }
+      it.localVars = vv;
+    }
     it += extra;
     push traceLog, it;
-    any act = getAction(func);
     if (exists act) {
       shift actions;
       if (act.typeCode() == NT_HASH) {
@@ -137,10 +146,12 @@ class DebugTest inherits QUnit::Test {
     }
 
     constructor() : Test("Debug Test", "1.0") {
+        addTestCase("StatementTest", \statementTest());
+        addTestCase("BreakpointTest", \breakpointTest());
         addTestCase("SingleThreadDebugTest", \singleThreadDebugTest());
+        addTestCase("SingleThreadBreakpointTest", \singleThreadBreakpointTest());
         addTestCase("MultiThreadBreakTest", \multiThreadBreakTest());
         #addTestCase("MultiThreadDebugTest", \multiThreadDebugTest());
-        addTestCase("BreakpointTest", \breakpointTest());
 
         thisProgram = new Program(PO_ATTACH);
         debugProgram = new MyDebugProgram();
@@ -242,6 +253,9 @@ class DebugTest inherits QUnit::Test {
             }
             if (exists el.retVal) {
                 testAssertionValue(sprintf(name+':tracelog %d retval', i), al.retVal, el.retVal);
+            }
+            if (exists el.localVars) {
+                testAssertionValue(sprintf(name+':tracelog %d local vars', i), al.localVars, el.localVars);
             }
             if (exists el.ex) {
                 testAssertionValue(sprintf(name+':tracelog %d exception err', i), al.ex.err, el.ex);
@@ -413,6 +427,54 @@ class DebugTest inherits QUnit::Test {
         checkProgram("do not attach", list(DebugDetach), list(), "DIVISION-BY-ZERO");
     }
 
+    singleThreadBreakpointTest() {
+        list traceLog2 = (
+            ("func": ST_STEP, "line": line.tstFunction+1),
+            ("func": ST_FUNC_EXIT, "line": line.tstFunction+1),
+            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
+        );
+        list action2 = list(DebugRun, ("sb": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "sb": DebugRun), ("localVars": ("tid", "s", "ret"), "sb": DebugDetach) );
+        
+        Breakpoint b1 = new Breakpoint();
+        b1.setEnabled(True);
+        b1.addThreadId(gettid());
+        b1.assignProgram(thisProgram);
+        b1.assignStatement(thisProgram.findStatementId('', line.tstProgram+5));
+        
+        Breakpoint b2 = new Breakpoint();;
+        b2.setEnabled(True);
+        b2.addThreadId(gettid());
+        b2.assignProgram(thisProgram);
+        b2.assignStatement(thisProgram.findStatementId('', line.tstFunction+1));
+        
+        checkProgram("breakpoint b1(enable), b2(enable)", action2, traceLog2, "DIVISION-BY-ZERO");
+        # disable breakpoint 1
+        list traceLog3 = (
+            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "DONE"), "sb": DebugDetach),
+        );
+        list action3 = list(DebugRun, ("localVars": ("tid", "s", "ret"), "sb": DebugDetach) );
+        b2.setEnabled(False);
+        checkProgram("breakpoint b1(enable), b2(dísable)", action3, traceLog3, "DIVISION-BY-ZERO");
+        b2.setEnabled(True);
+        b2.setPolicy(BreakpointPolicyReject);
+        checkProgram("breakpoint b1(enable), b2(reject)", action3, traceLog3, "DIVISION-BY-ZERO");    
+        b2.clearThreadIds();
+        b2.addThreadId(gettid()+1000);
+        b2.setPolicy(BreakpointPolicyAccept);
+        checkProgram("breakpoint b1(enable), b2(not accept)", action3, traceLog3, "DIVISION-BY-ZERO");    
+        b2.addThreadId(gettid());
+        checkProgram("breakpoint b1(enable), b2(accept)", action2, traceLog2, "DIVISION-BY-ZERO");
+
+        # breakpoint group
+        b2.assignStatement(thisProgram.findStatementId('', line.tstFunction+6));
+        b2.assignStatement(thisProgram.findStatementId('', line.tstFunction+9));
+        checkProgram("breakpoint b1(enable), b2(accept,group3)", splice(action2, 1, 0, (DebugRun, DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6), ("func": ST_STEP, "line": line.tstFunction+9))), "DIVISION-BY-ZERO");        
+        b2.unassignStatement(thisProgram.findStatementId('', line.tstFunction+9));
+        checkProgram("breakpoint b1(enable), b2(accept,group2)", splice(action2, 1, 0, list(DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6))), "DIVISION-BY-ZERO");
+        b2.setEnabled(False);
+        checkProgram("breakpoint b1(enable), b2(dísable,group)", action3, traceLog3, "DIVISION-BY-ZERO");
+    }
+
     multiThreadBreakTest() {
         checkBreakProgram("break program", -1, True);
         checkBreakProgram("break thread", gettid(), True);
@@ -488,7 +550,22 @@ class DebugTest inherits QUnit::Test {
         b.assignProgram(thisProgram);
         b.setThreadIds((1,2));
         testAssertionValue(name+'setThreadIds((1))', b.getThreadIds(), list(1,2));
+        
+        testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list());
+
+        string sid1 = thisProgram.findStatementId('', line.tstFunction2+1);
+        string sid2 = thisProgram.findStatementId('', line.tstFunction+1);
+        b.assignStatement(sid1);
+        testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list(sid1));
+        b.unassignStatement(sid1);
+        testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list());
+        b.assignStatement(sid1);
+        b.assignStatement(sid2);
+        testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list(sid1, sid2));
+        
         b.unassignProgram();
+        testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list());
+        
         b.assignProgram(thisProgram);
         testAssertionValue(name+'setThreadIds((1))', b.getThreadIds(), list(1,2));
 
@@ -502,5 +579,71 @@ class DebugTest inherits QUnit::Test {
         b.assignProgram(thisProgram); */
     }
 
+    statementTest() {
+        string name = "Program::"; 
+        Program p();
+        # stress statement test 
+        p.parsePending(
+         "*string sub f1(int p, string s) {
+            int a; int b;  #2
+            a = 1; b = 2;  #3
+            {
+              a = a + b; doSleep(10); #5
+              {
+                if (p > 0) {  #7
+                  b = 1+  #8
+                      1+
+                      1+
+                      1+
+                      1;  #12
+                } #13
+              }
+            }
+            return sprintf(\"%s,%d,%d,%d\", s, p, a, b);  #16
+          }",
+          "label-f1", NOTHING, "/usr/lib/my-source.q", 10, False);
+        p.parse(
+         "sub doSleep(int ms) {
+            sleep(ms); #2
+          }", "label-sleep", NOTHING, "/usr/lib/my-source.q", 100, False);
+        p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
+        p.parseCommit();
+
+        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
+        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
+
+        string sid;
+        sid = p.findStatementId("main.q", 1);
+        testAssertionValue(name+'findStatementId("main.q", 1)', sid.size() > 0, True);
+        
+        hash info;
+        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1) );
+        
+        sid = p.findStatementId("label-f1", 2);
+        testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid.size() > 0, True);
+
+        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 12) full file', p.findStatementId("/usr/lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("/lib/my-source.q", 12) suffix', p.findStatementId("/lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("lib/my-source.q", 12) suffix', p.findStatementId("lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("my-source.q", 12) suffix', p.findStatementId("my-source.q", 12), sid);
+        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("ib/my-source.q", 102), name+'findStatementId("ib/my-source.q", 12) no suffix match');
+
+        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'getStatementIdInfo("label-f1", 1)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 2, 'end_line': 2) );
+
+
+        sid = p.findStatementId("label-f1", 8);
+        testAssertionValue(name+'findStatementId("label-f1", 8)', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("label-f1", 11) multiline', p.findStatementId("label-f1", 11), sid);
+        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'getStatementIdInfo("label-f1", 11)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 8, 'end_line': 12) );
+
+        sid = p.findStatementId("label-sleep", 2);
+        testAssertionValue(name+'findStatementId("label-sleep", 2)', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 102) full file', p.findStatementId("/usr/lib/my-source.q", 102), sid);
+        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'getStatementIdInfo("label-sleep", 2)', info, ('file': 'label-sleep', 'source': '/usr/lib/my-source.q', 'offset': 100, 'start_line': 2, 'end_line': 2) );
+    }
 }
 

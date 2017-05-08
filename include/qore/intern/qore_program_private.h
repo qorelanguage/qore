@@ -471,8 +471,16 @@ private:
    // map for line to statement
    typedef std::map<int, AbstractStatement*> sline_statement_multimap_t;
 
+   struct cmp_char_str
+   {
+      bool operator()(char const *a, char const *b)
+      {
+         return strcmp(a, b) < 0;
+      }
+   };
+
    // map for filenames
-   typedef std::map<const char*, sline_statement_multimap_t*> name_sline_statement_map_t;
+   typedef std::map<const char*, sline_statement_multimap_t*, cmp_char_str> name_sline_statement_map_t;
 
    // index source filename/label -> line -> statement
    name_sline_statement_map_t statementByFileIndex;
@@ -2039,27 +2047,30 @@ public:
       return s;
    }
 
-   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement) {
+   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs) {
       // index is being built when parsing
       if (!statement)
          return;
       sline_statement_multimap_t *ssm;
       std::map<const char*, sline_statement_multimap_t*>::iterator it = statementIndex->find(key);
       if (it == statementIndex->end()) {
+         printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) key not found, this: %p\n", key, offs, this);
          ssm = new sline_statement_multimap_t();
          statementIndex->insert(std::pair<const char*, sline_statement_multimap_t*>(key, ssm));
       } else {
          ssm = it->second;
-         std::map<int, AbstractStatement*>::iterator li = ssm->find(statement->loc.start_line);
-         while (li != ssm->end() && li->first == statement->loc.start_line) {
+         std::map<int, AbstractStatement*>::iterator li = ssm->find(statement->loc.start_line+offs);
+         while (li != ssm->end() && li->first == statement->loc.start_line+offs) {
             if (li->second->loc.end_line == statement->loc.end_line) {
                // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
+               printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) skipping line (%d-%d), this: %p\n", key, offs, statement->loc.start_line, statement->loc.end_line, this);
                return;
             }
             ++li;
          }
       }
-      ssm->insert(std::pair<int, AbstractStatement*>(statement->loc.start_line, statement));
+      printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) insert line %d (%d-%d), this: %p\n", key, offs, statement->loc.start_line+offs, statement->loc.start_line, statement->loc.end_line, this);
+      ssm->insert(std::pair<int, AbstractStatement*>(statement->loc.start_line+offs, statement));
    }
 
    DLLLOCAL static void addStatementToIndex(QoreProgram* pgm, AbstractStatement *statement) {
@@ -2067,18 +2078,23 @@ public:
       if (!statement)
          return;
       if (statement->loc.source) {
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement);
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement);
+         printd(5, "qore_program_private::addStatementToIndex(file+source), this: %p, statement: %p\n", pgm->priv, statement);
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset);
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement, 0);
       } else {
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement);
+         printd(5, "qore_program_private::addStatementToIndex(file), this: %p, statement: %p\n", pgm->priv, statement);
+         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/);
       }
    }
 
    DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
+      printd(5, "qore_program_private::getStatementFromIndex('%s',%d), this: %p, file#: %d, label#: %d\n", name, line, this, statementByFileIndex.size(), statementByLabelIndex.size());
       AutoLocker al(&plock);
       std::map<const char*, sline_statement_multimap_t*>::iterator it;
-      if (statementByFileIndex.empty())
+      if (statementByFileIndex.empty()) {
          return 0;
+      }
+      bool addOffs = true;
       if (!name || *name == '\0') {
          if (statementByFileIndex.size() != 1)
             return 0;
@@ -2097,33 +2113,47 @@ public:
                   if (k >= l) {
                      if (strcmp(name, it->first + k - l) == 0) {
                         // match against suffix following '/'
-                        if (k == l /* should not happen as it is full match*/ || name[0] == '/' || it->first[k-l-1] == '/')
+                        if (k == l /* should not happen as it is full match*/ || name[0] == '/' || it->first[k-l-1] == '/') {
                            break;
+                        }
                      }
                   }
                   ++it;
                }
-               if (it == statementByFileIndex.end())
+               if (it == statementByFileIndex.end()) {
+                  printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no suffix match, this: %p\n", name, line, this);
                   return 0;
+               }
+               printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by file suffix match, this: %p\n", name, line, this);
+            } else {
+               addOffs = false;
+               printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by label full match, this: %p\n", name, line, this);
             }
+         } else {
+            printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by file full match, this: %p\n", name, line, this);
          }
       }
       sline_statement_multimap_t *ssm = it->second;
+      printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found '%s', this: %p, ssm#: %d\n", name, line, it->first, this, ssm->size());
       if (ssm->size() == 0)
          return 0;
 
       std::map<int, AbstractStatement*>::iterator li = ssm->upper_bound(line);
-      if (li == ssm->begin())
+      if (li == ssm->begin()) {
+         printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no statement found by line #1, this: %p\n", name, line, this);
          return 0;
+      }
       --li;
       int ln = li->first;
       int minnl = -1;
       AbstractStatement* st = 0;
       while (true) {
          // find the nearest statement, i.e. statement with smallest num of lines
-         if (ln != li->first)
+         if (ln != li->first) {
             break;
-         if (li->second->loc.start_line >= line && li->second->loc.end_line <= line) {
+            // we do not try to find outer statement when looking for line behind inner statement
+         }
+         if (li->second->loc.start_line + (addOffs ? li->second->loc.offset : 0) <= line && li->second->loc.end_line + (addOffs ? li->second->loc.offset : 0) >= line) {
             int n = li->second->loc.end_line - li->second->loc.start_line;
             if (minnl >= 0) {
                if (n < minnl) {
@@ -2140,7 +2170,12 @@ public:
          if (li == ssm->begin())
             break;
          --li;
-      };
+      }
+      if (st) {
+         printd(5, "qore_program_private::getStatementFromIndex('%s',%d) statement:('file':%s,source:%s,offset:%d,line:%d-%d), this: %p\n", name, line, st->loc.file, st->loc.source, st->loc.offset, st->loc.start_line, st->loc.end_line, this);
+      } else {
+         printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no statement found by line #2, this: %p\n", name, line, this);
+      }
       return st;
    }
 };

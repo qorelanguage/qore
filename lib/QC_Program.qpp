@@ -1727,7 +1727,8 @@ hash Program::getStatementIdInfo(string id) {
 
 //! Find statement related to position in file
 /**
-   @param file name where is looking for. Searching is done in two steps, in the first one is looking for full name match, in the second for end suffix match. File can by null if program contains only one file
+   @param file name where is looking for. Searching is done in three steps, in the first one is looking for full name match, in the second is looking for label full match (if exists) and
+      in the third for end suffix match. File can by empty if program contains only one file. Beware of label formating, see @ref Qore::Program::parse
    @param line to find statement. In case of multiple statements of line the first one is found
 
    @see
