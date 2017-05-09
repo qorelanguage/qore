@@ -60,10 +60,10 @@ struct ASTSymbolInfo {
     ASTSymbolInfo() : kind(ASYK_None), name(nullptr) {}
     ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : kind(k), name(n) {}
 
-    //! Symbol's kind.'
+    //! Symbol's kind.
     ASTSymbolKind kind;
 
-    //! Symbol's name.'
+    //! Symbol's name.
     ASTName* name;
 };
 

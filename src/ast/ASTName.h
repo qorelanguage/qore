@@ -52,7 +52,8 @@ enum class ASTNameKind {
     ANK_BaseClassCall,
     ANK_CastType,
     ANK_ClassString,
-    ANK_ClassScopedRef
+    ANK_ClassScopedRef,
+    ANK_Namespace
 };
 
 //! Represents a name.

@@ -140,6 +140,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printString(os, "NamespaceDecl ", indent);
             printLocation(os, d->loc, 0);
             printModifiers(os, d->modifiers, indent+1);
+            printName(os, d->name, indent+1);
             if (d->declarations.size() > 0) {
                 for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
                     printDeclaration(os, d->declarations[i], indent+1);
