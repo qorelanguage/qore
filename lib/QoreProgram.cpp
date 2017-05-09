@@ -879,6 +879,7 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
 }
 
 ThreadDebugEnum qore_program_private::onAttach(ExceptionSink* xsink) {
+
 void qore_program_private::onAttach(ThreadDebugEnum &sb, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
