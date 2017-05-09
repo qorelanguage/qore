@@ -45,14 +45,14 @@ public:
     FindReferencesQuery() = delete;
     FindReferencesQuery(const FindReferencesQuery& other) = delete;
 
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
+    static std::vector<ASTNode*>* find(ASTTree* tree, const std::string& name);
 
 private:
-    static void findReferencesInDecl(std::vector<ASTNode*>* vec, ASTDeclaration* decl, const std::string& name);
-    static void findReferencesInExpr(std::vector<ASTNode*>* vec, ASTExpression* expr, const std::string& name);
-    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName& n, const std::string& name);
-    static void findReferencesInName(std::vector<ASTNode*>* vec, ASTName* n, const std::string& name);
-    static void findReferencesInStmt(std::vector<ASTNode*>* vec, ASTStatement* stmt, const std::string& name);
+    static void inDeclaration(std::vector<ASTNode*>* vec, ASTDeclaration* decl, const std::string& name);
+    static void inExpression(std::vector<ASTNode*>* vec, ASTExpression* expr, const std::string& name);
+    static void inName(std::vector<ASTNode*>* vec, ASTName& n, const std::string& name);
+    static void inName(std::vector<ASTNode*>* vec, ASTName* n, const std::string& name);
+    static void inStatement(std::vector<ASTNode*>* vec, ASTStatement* stmt, const std::string& name);
 };
 
 #endif // _QLS_QUERIES_FINDREFERENCESQUERY_H

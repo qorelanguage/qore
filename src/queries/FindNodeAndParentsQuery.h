@@ -45,15 +45,15 @@ public:
     FindNodeAndParentsQuery() = delete;
     FindNodeAndParentsQuery(const FindNodeAndParentsQuery& other) = delete;
 
-    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
 private:
-    static std::vector<ASTNode*>* findNodeAndParentsInDecl(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParentsInExpr(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName& name, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParentsInName(ASTName* name, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParentsInPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParentsInStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inDecl(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inExpr(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
 #endif // _QLS_QUERIES_FINDNODEANDPARENTSQUERY_H

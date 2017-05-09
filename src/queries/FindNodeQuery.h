@@ -43,15 +43,15 @@ public:
     FindNodeQuery() = delete;
     FindNodeQuery(const FindNodeQuery& other) = delete;
 
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static ASTNode* find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
 private:
-    static ASTNode* findNodeInDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
-    static ASTNode* findNodeInExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
-    static ASTNode* findNodeInName(ASTName& name, ast_loc_t line, ast_loc_t col);
-    static ASTNode* findNodeInName(ASTName* name, ast_loc_t line, ast_loc_t col);
-    static ASTNode* findNodeInParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
-    static ASTNode* findNodeInStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inName(ASTName& name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inName(ASTName* name, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static ASTNode* inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
 #endif // _QLS_QUERIES_FINDNODEQUERY_H

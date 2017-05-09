@@ -43,14 +43,14 @@ public:
     FindSymbolsQuery() = delete;
     FindSymbolsQuery(const FindSymbolsQuery& other) = delete;
 
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree);
 
 private:
-    static void findSymbolsInDecl(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
-    static void findSymbolsInExpr(std::vector<ASTSymbolInfo>* vec, ASTExpression* expr);
-    static void findSymbolsInName(std::vector<ASTSymbolInfo>* vec, ASTName& name);
-    static void findSymbolsInName(std::vector<ASTSymbolInfo>* vec, ASTName* name);
-    static void findSymbolsInStmt(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt);
+    static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
+    static void inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpression* expr);
+    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName& name);
+    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName* name);
+    static void inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt);
 };
 
 #endif // _QLS_QUERIES_FINDSYMBOLSQUERY_H

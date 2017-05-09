@@ -37,19 +37,19 @@
 #include "queries/FindSymbolsQuery.h"
 
 ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeQuery::findNode(tree, line, col);
+    return FindNodeQuery::find(tree, line, col);
 }
 
 std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return FindNodeAndParentsQuery::findNodeAndParents(tree, line, col);
+    return FindNodeAndParentsQuery::find(tree, line, col);
 }
 
 std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::findReferences(tree, name);
+    return FindReferencesQuery::find(tree, name);
 }
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
-    return FindSymbolsQuery::findSymbols(tree);
+    return FindSymbolsQuery::find(tree);
 }
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
