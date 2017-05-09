@@ -46,13 +46,19 @@ static bool matches(const std::string& name, const std::string& query) {
 
     // Find first character of the query (case insensitive).
     size_t pos = name.find_first_of(first);
-    if (pos != std::string::npos) {
+    while (pos != std::string::npos) {
         char lwrName[512];
         char lwrQuery[512];
         size_t querySize = query.size() % 512;
-        copyLwr(name.c_str(), lwrName, querySize);
+
+        // Compare lower-case name and query.
+        copyLwr(name.c_str()+pos, lwrName, querySize);
         copyLwr(query.c_str(), lwrQuery, querySize);
-        return !strncmp(lwrName, lwrQuery, querySize);
+        if (!strncmp(lwrName, lwrQuery, querySize))
+            return true;
+
+        // Search next characters behind this occurence.
+        pos = name.find_first_of(first, pos+1);
     }
     return false;
 }
