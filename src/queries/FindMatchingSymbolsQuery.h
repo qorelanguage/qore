@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstParser.h
+  FindMatchingSymbolsQuery.h
 
   Qore AST Parser
 
@@ -25,44 +25,33 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTPARSER_H
-#define _QLS_ASTPARSER_H
+#ifndef _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H
+#define _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H
 
-#include <memory>
-#include <ostream>
 #include <string>
 #include <vector>
 
-#include "AstParseErrorLog.h"
-
-#include "ast/ASTParseLocation.h"
+#include "ast/ASTName.h"
 #include "ast/ASTSymbolInfo.h"
-#include "ast/ASTTree.h"
 
-class AstParser : public AstParseErrorLog {
-private:
-    //! Parsed AST.
-    std::unique_ptr<ASTTree> parsedTree;
+class ASTDeclaration;
+class ASTExpression;
+class ASTStatement;
+class ASTTree;
 
+class FindMatchingSymbolsQuery {
 public:
-    AstParser() {}
-    ~AstParser() {}
+    FindMatchingSymbolsQuery() = delete;
+    FindMatchingSymbolsQuery(const FindMatchingSymbolsQuery& other) = delete;
 
-    int parseFile(const char* filename);
-    int parseFile(std::string& filename);
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query);
 
-    int parseString(const char* str);
-    int parseString(std::string& str);
-
-    void printTree(std::ostream& os);
-
-    ASTNode* findNode(ast_loc_t line, ast_loc_t col);
-    std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
-    std::vector<ASTSymbolInfo>* findSymbols();
-    std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query);
-
-    ASTTree* getTreePtr() { return parsedTree.get(); }
-    ASTTree* releaseTree() { return parsedTree.release(); }
+private:
+    static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl, const std::string& query);
+    static void inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpression* expr, const std::string& query);
+    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName& name, const std::string& query);
+    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName* name, const std::string& query);
+    static void inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt, const std::string& query);
 };
 
-#endif // _QLS_ASTPARSER_H
+#endif // _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H

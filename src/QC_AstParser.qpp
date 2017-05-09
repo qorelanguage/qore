@@ -220,13 +220,65 @@ int AstParser::getErrorCount() {
     return lst.release();
 }
 
-//! Find symbols
+//! Find all symbols in a document.
 /**
-    @param uri document's uri'
+    @param uri document's uri
     @return list of symbols
  */
 *list AstParser::findSymbols(string uri) {
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(aph->findSymbols());
+    if (!vec)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0, count = vec->size(); i < count; i++) {
+        ASTSymbolInfo& si = vec->at(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> symbolInfo(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !location || !symbolInfo)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(si.name->loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(si.name->loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(si.name->loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(si.name->loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        location->setKeyValue("uri", uri->stringRefSelf(), xsink);
+        location->setKeyValue("range", range.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        symbolInfo->setKeyValue("name", new QoreStringNode(si.name->name), xsink);
+        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("location", location.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(symbolInfo.release());
+    }
+
+    return lst.release();
+}
+
+//! Find matching symbols in a document.
+/**
+    @param uri document's uri
+    @param query search query
+    @return list of symbols
+ */
+*list AstParser::findMatchingSymbols(string uri, string query) {
+    std::string queryStr(query->c_str());
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(aph->findMatchingSymbols(queryStr));
     if (!vec)
         return nullptr;
 

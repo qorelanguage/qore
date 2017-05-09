@@ -164,3 +164,7 @@ std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, 
 std::vector<ASTSymbolInfo>* AstParser::findSymbols() {
     return AstTreeSearcher::findSymbols(parsedTree.get());
 }
+
+std::vector<ASTSymbolInfo>* AstParser::findMatchingSymbols(const std::string& query) {
+    return AstTreeSearcher::findMatchingSymbols(parsedTree.get(), query);
+}

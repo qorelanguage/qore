@@ -90,7 +90,7 @@ const QLSServerCapabilities = {
     /**
      * The server provides workspace symbol support.
      */
-    "workspaceSymbolProvider": False,
+    "workspaceSymbolProvider": True,
 
     /**
      * The server provides code actions.

@@ -68,6 +68,10 @@ std::vector<ASTSymbolInfo>* AstParserHolder::findSymbols() {
     return parser->findSymbols();
 }
 
+std::vector<ASTSymbolInfo>* AstParserHolder::findMatchingSymbols(const std::string& query) {
+    return parser->findMatchingSymbols(query);
+}
+
 ASTTree* AstParserHolder::getTreePtr() {
     return parser->getTreePtr();
 }

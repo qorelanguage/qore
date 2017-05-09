@@ -202,9 +202,15 @@ public class Document {
         return references;
     }
 
-    #! Find document's symbols.
+    #! Find all symbols.
     *list findSymbols() {
         *list symbols = parser.findSymbols(uri);
         return symbols;
+    }
+
+    #! Find matching symbols.
+    list findMatchingSymbols(string query) {
+        *list symbols = parser.findMatchingSymbols(uri, query);
+        return symbols ?? list();
     }
 }

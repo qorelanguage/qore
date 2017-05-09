@@ -52,6 +52,13 @@ sub debugLog(string fmt) {
     #stderr.write(msg);
 }
 
+#! LSP FileChangeType definition
+const FileChangeType = {
+	"Created": 1,
+	"Changed": 2,
+	"Deleted": 3,
+};
+
 %exec-class QLS
 
 class QLS {
@@ -310,18 +317,35 @@ class QLS {
 
     #! "workspace/didChangeWatchedFiles" notification method handler
     private:internal *string meth_ws_didChangeWatchedFiles(hash request) {
-        # ignore for now
+        list changes = request.params.changes;
+        foreach hash change in (changes) {
+            switch (change.type) {
+                case FileChangeType.Created:
+                case FileChangeType.Changed:
+                    workspaceDocs{change.uri} = new Document(change.uri);
+                case FileChangeType.Deleted:
+                    remove workspaceDocs{change.uri};
+                default:
+                    break;
+            }
+        }
         return NOTHING;
     }
 
     #! "workspace/symbol"  method handler
     private:internal *string meth_ws_symbol(hash request) {
-        return ErrorResponse::invalidRequest(request);
+        #stderr.printf("workspace/symbol request received\n");
+        list symbols = ();
+        string query = request.params.query;
+        map symbols += $1.findMatchingSymbols(query), documents.iterator();
+        map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
+        #stderr.printf("found %d matching symbols\n", symbols.size());
+        return make_jsonrpc_response(jsonRpcVer, request.id, symbols);
     }
 
     #! "workspace/executeCommand"  method handler
     private:internal *string meth_ws_executeCommand(hash request) {
-        return ErrorResponse::invalidRequest(request);
+        return ErrorResponse::methodNotFound(request);
     }
 
 
@@ -332,7 +356,11 @@ class QLS {
     #! "textDocument/didOpen" notification method handler
     private:internal *string meth_td_didOpen(hash request) {
         reference textDoc = \request.params.textDocument;
-        Document doc(textDoc.uri, textDoc.text, textDoc.languageId, textDoc.version);
+        *Document doc;
+        if (workspaceDocs{textDoc.uri})
+            doc = remove workspaceDocs{textDoc.uri};
+        else
+            doc = new Document(textDoc.uri, textDoc.text, textDoc.languageId, textDoc.version);
         documents{textDoc.uri} = doc;
 
         if (doc.getParseErrorCount() > 0) {
@@ -377,7 +405,8 @@ class QLS {
 
     #! "textDocument/didClose" notification method handler
     private:internal *string meth_td_didClose(hash request) {
-        remove documents{request.params.textDocument.uri};
+        string uri = request.params.textDocument.uri;
+        workspaceDocs{uri} = remove documents{uri};
         return NOTHING;
     }
 

@@ -30,6 +30,7 @@
 #include <memory>
 
 #include "ast/AST.h"
+#include "queries/FindMatchingSymbolsQuery.h"
 #include "queries/FindNodeQuery.h"
 #include "queries/FindNodeAndParentsQuery.h"
 #include "queries/FindReferencesQuery.h"
@@ -49,4 +50,8 @@ std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std:
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
     return FindSymbolsQuery::findSymbols(tree);
+}
+
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
+    return FindMatchingSymbolsQuery::find(tree, query);
 }
