@@ -42,13 +42,17 @@ public:
     //! Namespace modifiers.
     ASTModifiers modifiers;
 
+    //! Name of the namespace.
+    ASTName name;
+
     //! Declarations inside the namespace.
     std::vector<ASTDeclaration*> declarations;
 
 public:
-    ASTNamespaceDeclaration(ASTModifiers mods, std::vector<ASTDeclaration*>* decls = nullptr) :
+    ASTNamespaceDeclaration(ASTModifiers mods, const ASTName& n, std::vector<ASTDeclaration*>* decls = nullptr) :
         ASTDeclaration(),
-        modifiers(mods)
+        modifiers(mods),
+        name(n)
     {
         if (decls)
             declarations.swap(*decls);
