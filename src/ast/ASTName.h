@@ -37,23 +37,23 @@
 #include "ASTNode.h"
 
 enum class ASTNameKind {
-    ANK_Identifier,
-    ANK_KWIdentifier,
-    ANK_IdentOpenParen,
-    ANK_ScopedRef,
-    ANK_ScopedVref,
-    ANK_SelfRef,
-    ANK_SelfAndScopedRef,
-    ANK_VarRef,
-    ANK_QTypedef,
-    ANK_UncQTypedef,
-    ANK_ContextRef,
-    ANK_ComplexContextRef,
     ANK_BaseClassCall,
     ANK_CastType,
     ANK_ClassString,
     ANK_ClassScopedRef,
-    ANK_Namespace
+    ANK_ComplexContextRef,
+    ANK_ContextRef,
+    ANK_IdentOpenParen,
+    ANK_Identifier,
+    ANK_KWIdentifier,
+    ANK_Namespace,
+    ANK_QTypedef,
+    ANK_ScopedRef,
+    ANK_ScopedVref,
+    ANK_SelfAndScopedRef,
+    ANK_SelfRef,
+    ANK_UncQTypedef,
+    ANK_VarRef,
 };
 
 //! Represents a name.
