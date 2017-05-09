@@ -271,7 +271,7 @@ class QLS {
         parseFilesInWorkspace();
 
         hash result = {
-            "capabilities": QLSServerCapabilities
+            "capabilities": ServerCapabilities
         };
 
         initialized = True;

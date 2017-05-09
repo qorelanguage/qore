@@ -43,7 +43,7 @@ const TextDocumentSyncKind = {
 };
 
 #! QLS LSP ServerCapabilities
-const QLSServerCapabilities = {
+const ServerCapabilities = {
     /**
      * Defines how text documents are synced. Is either a detailed structure defining each notification or
      * for backwards compatibility the TextDocumentSyncKind number.
@@ -53,13 +53,13 @@ const QLSServerCapabilities = {
     /**
      * The server provides hover support.
      */
-    "hoverProvider": True,
+    "hoverProvider": "true",
 
     /**
      * The server provides completion support.
      */
     /*"completionProvider": {
-        "resolveProvider": False
+        "resolveProvider": "false",
     },*/
 
     /**
@@ -70,49 +70,49 @@ const QLSServerCapabilities = {
     /**
      * The server provides goto definition support.
      */
-    "definitionProvider": False,
+    #"definitionProvider": "false",
 
     /**
      * The server provides find references support.
      */
-    "referencesProvider": True,
+    "referencesProvider": "true",
 
     /**
      * The server provides document highlight support.
      */
-    "documentHighlightProvider": False,
+    #"documentHighlightProvider": "false",
 
     /**
      * The server provides document symbol support.
      */
-    "documentSymbolProvider": True,
+    "documentSymbolProvider": "true",
 
     /**
      * The server provides workspace symbol support.
      */
-    "workspaceSymbolProvider": True,
+    "workspaceSymbolProvider": "true",
 
     /**
      * The server provides code actions.
      */
-    "codeActionProvider": False,
+    #"codeActionProvider": "false",
 
     /**
      * The server provides code lens.
      */
     /*"codeLensProvider": {
-        "resolveProvider": False
+        "resolveProvider": "false",
     },*/
 
     /**
      * The server provides document formatting.
      */
-    "documentFormattingProvider": False,
+    #"documentFormattingProvider": "false",
 
     /**
      * The server provides document range formatting.
      */
-    "documentRangeFormattingProvider": False,
+    #"documentRangeFormattingProvider": "false",
 
     /**
      * The server provides document formatting on typing.
@@ -122,13 +122,13 @@ const QLSServerCapabilities = {
     /**
      * The server provides rename support.
      */
-    "renameProvider": False,
+    #"renameProvider": "false",
 
     /**
      * The server provides document link support.
      */
     /*"documentLinkProvider": {
-        "resolveProvider": False
+        "resolveProvider": "false",
     },*/
 
     /**

@@ -27,11 +27,12 @@
 
 #include "queries/FindMatchingSymbolsQuery.h"
 
+#include <cstring>
 #include <memory>
 
 #include "ast/AST.h"
 
-static void copyLwr(const char* src, const char* dest, size_t n) {
+static void copyLwr(const char* src, char* dest, size_t n) {
     for (size_t i = 0; i < n && src[i]; i++)
         dest[i] = (src[i] > 64 && src[i] < 91) ? src[i]+32 : src[i];
 }
@@ -49,8 +50,8 @@ static bool matches(const std::string& name, const std::string& query) {
         char lwrName[512];
         char lwrQuery[512];
         size_t querySize = query.size() % 512;
-        copyLwr(name, lwrName, querySize);
-        copyLwr(query, lwrQuery, querySize);
+        copyLwr(name.c_str(), lwrName, querySize);
+        copyLwr(query.c_str(), lwrQuery, querySize);
         return !strncmp(lwrName, lwrQuery, querySize);
     }
     return false;
@@ -63,7 +64,7 @@ void FindMatchingSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, AS
     switch (decl->getKind()) {
         case ASTDeclaration::Kind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
-            if (matches(d->name, query))
+            if (matches(d->name.name, query))
                 vec->push_back(ASTSymbolInfo(ASYK_Class, &d->name));
             for (unsigned int i = 0, count = d->inherits.size(); i < count; i++)
                 inDeclaration(vec, d->inherits[i], query);
@@ -80,14 +81,14 @@ void FindMatchingSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, AS
         }
         case ASTDeclaration::Kind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
-            if (matches(d->name, query))
+            if (matches(d->name.name, query))
                 vec->push_back(ASTSymbolInfo(ASYK_Constant, &d->name));
             inExpression(vec, d->value.get(), query);
             break;
         }
         case ASTDeclaration::Kind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
-            if (matches(d->name, query))
+            if (matches(d->name.name, query))
                 vec->push_back(ASTSymbolInfo(ASYK_Function, &d->name));
             inExpression(vec, d->returnType.get(), query);
             inExpression(vec, d->params.get(), query);
@@ -109,13 +110,13 @@ void FindMatchingSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, AS
         }
         case ASTDeclaration::Kind::ADK_Superclass: {
             ASTSuperclassDeclaration* d = static_cast<ASTSuperclassDeclaration*>(decl);
-            if (matches(d->name, query))
+            if (matches(d->name.name, query))
                 vec->push_back(ASTSymbolInfo(ASYK_Class, &d->name));
             break;
         }
         case ASTDeclaration::Kind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
-            if (matches(d->name, query))
+            if (matches(d->name.name, query))
                 vec->push_back(ASTSymbolInfo(ASYK_Variable, &d->name));
             break;
         }
@@ -416,7 +417,7 @@ std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const 
             }
             case ANT_Name: {
                 ASTName* name = static_cast<ASTName*>(node);
-                findSymbolsInName(vec.get(), name, query);
+                inName(vec.get(), name, query);
                 break;
             }
             case ANT_ParseOption:
