@@ -240,6 +240,8 @@
 #include "FunctionalOperator.cpp"
 #include "StreamPipe.cpp"
 #include "CompressionTransforms.cpp"
+#include "EncryptionTransforms.cpp"
+#include "Transform.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

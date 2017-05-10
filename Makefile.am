@@ -518,6 +518,8 @@ noinst_HEADERS = \
 	include/qore/intern/StdoutOutputStream.h \
 	include/qore/intern/StderrOutputStream.h \
 	include/qore/intern/StringReaderHelper.h \
+	include/qore/intern/CompressionTransforms.h \
+	include/qore/intern/EncryptionTransforms.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

@@ -170,6 +170,11 @@ ReferenceNode::~ReferenceNode() {
    delete priv;
 }
 
+ReferenceNode* ReferenceNode::refRefSelf() const {
+   ref();
+   return const_cast<ReferenceNode*>(this);
+}
+
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly

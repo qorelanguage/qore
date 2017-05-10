@@ -316,6 +316,8 @@ libqore_la_SOURCES = \
 	QoreValue.cpp \
 	StreamPipe.cpp \
 	CompressionTransforms.cpp \
+	EncryptionTransforms.cpp \
+	Transform.cpp \
 	xxhash.cpp \
 	minitest.cpp \
 	QoreValueList.cpp \

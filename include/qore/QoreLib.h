@@ -578,4 +578,6 @@ DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink)
  */
 DLLEXPORT int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
 
+DLLLOCAL void q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
+
 #endif // _QORE_QORELIB_H

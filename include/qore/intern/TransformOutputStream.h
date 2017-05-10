@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,11 +35,9 @@
 #include "qore/intern/OutputStreamBase.h"
 #include "qore/Transform.h"
 
-//FIXME this is still work in progress
 class TransformOutputStream : public OutputStreamBase {
-
 public:
-   TransformOutputStream(OutputStream *os, Transform *t) : os(os), t(t), closed(false) {
+   TransformOutputStream(OutputStream *os, Transform *t) : os(os), t(t), bufsize(t->outputBufferSize()), closed(false) {
    }
 
    const char *getName() override {
@@ -51,9 +49,9 @@ public:
    }
 
    void close(ExceptionSink *xsink) override {
-      char buf[BUFSIZE];
+      char buf[bufsize];
       while (true) {
-         std::pair<int64, int64> r = t->apply(NULL, 0, buf, sizeof(buf), xsink);
+         std::pair<int64, int64> r = t->apply(nullptr, 0, buf, sizeof(buf), xsink);
          if (*xsink) {
             break;
          }
@@ -70,8 +68,8 @@ public:
 
    void write(const void *ptr, int64 len, ExceptionSink *xsink) override {
       assert(len >= 0);
-      const char *src = static_cast<const char *>(ptr);
-      char buf[BUFSIZE];
+      const char *src = static_cast<const char*>(ptr);
+      char buf[bufsize];
       while (len > 0) {
          std::pair<int64, int64> r = t->apply(src, len, buf, sizeof(buf), xsink);
          if (*xsink) {
@@ -89,11 +87,9 @@ public:
    }
 
 private:
-   static constexpr size_t BUFSIZE = 4096;
-
-private:
    SimpleRefHolder<OutputStream> os;
    SimpleRefHolder<Transform> t;
+   size_t bufsize;
    bool closed;
 };
 
