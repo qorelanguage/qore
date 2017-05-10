@@ -43,6 +43,7 @@ class AstParser : public AstParseErrorLog {
 private:
     //! Parsed AST.
     std::unique_ptr<ASTTree> parsedTree;
+    std::unique_ptr<std::vector<ASTSymbolInfo> > symbols;
 
 public:
     AstParser() {}
@@ -58,7 +59,7 @@ public:
 
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
-    std::vector<ASTSymbolInfo>* findSymbols();
+    const std::vector<ASTSymbolInfo>* findSymbols();
     std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query);
 
     ASTTree* getTreePtr() { return parsedTree.get(); }

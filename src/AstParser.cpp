@@ -63,6 +63,10 @@ int AstParser::parseFile(const char* filename) {
     // Prepare an empty AST tree for holding the parsed tree.
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
+    // Delete old stuff.
+    symbols = nullptr;
+    parsedTree = nullptr;
+
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
@@ -102,6 +106,10 @@ int AstParser::parseString(const char* str) {
     // Prepare an empty AST tree for holding the parsed tree.
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
+    // Delete old stuff.
+    symbols = nullptr;
+    parsedTree = nullptr;
+
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
@@ -131,10 +139,6 @@ void AstParser::printTree(std::ostream& os) {
 }
 
 ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
-    if (!parsedTree) {
-        return nullptr;
-    }
-
     return AstTreeSearcher::findNode(parsedTree.get(), line, col);
 }
 
@@ -161,10 +165,14 @@ std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, 
     return vec.release();
 }
 
-std::vector<ASTSymbolInfo>* AstParser::findSymbols() {
-    return AstTreeSearcher::findSymbols(parsedTree.get());
+const std::vector<ASTSymbolInfo>* AstParser::findSymbols() {
+    if (!symbols) {
+        std::unique_ptr<std::vector<ASTSymbolInfo> > syms(AstTreeSearcher::findSymbols(parsedTree.get()));
+        symbols = std::move(syms);
+    }
+    return symbols.get();
 }
 
 std::vector<ASTSymbolInfo>* AstParser::findMatchingSymbols(const std::string& query) {
-    return AstTreeSearcher::findMatchingSymbols(parsedTree.get(), query);
+    return AstTreeSearcher::findMatchingSymbols(findSymbols(), query);
 }

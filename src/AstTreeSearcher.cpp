@@ -55,3 +55,7 @@ std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
     return FindMatchingSymbolsQuery::find(tree, query);
 }
+
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query) {
+    return FindMatchingSymbolsQuery::find(symbols, query);
+}

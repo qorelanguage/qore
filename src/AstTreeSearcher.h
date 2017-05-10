@@ -47,6 +47,7 @@ public:
     static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
     static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
     static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query);
+    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
 };
 
 #endif // _QLS_ASTTREESEARCHER_H

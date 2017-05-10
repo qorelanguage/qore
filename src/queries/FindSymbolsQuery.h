@@ -51,6 +51,12 @@ private:
     static void inName(std::vector<ASTSymbolInfo>* vec, ASTName& name);
     static void inName(std::vector<ASTSymbolInfo>* vec, ASTName* name);
     static void inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt);
+
+    static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
+    static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
+    static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
+    static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
+    static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec);
 };
 
 #endif // _QLS_QUERIES_FINDSYMBOLSQUERY_H

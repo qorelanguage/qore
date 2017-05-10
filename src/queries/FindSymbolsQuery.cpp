@@ -30,6 +30,7 @@
 #include <memory>
 
 #include "ast/AST.h"
+#include "queries/FindNodeAndParentsQuery.h"
 
 void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl) {
     if (!decl)
@@ -38,7 +39,7 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
     switch (decl->getKind()) {
         case ASTDeclaration::Kind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
-            vec->push_back(ASTSymbolInfo(ASYK_Class, &d->name));
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Class, &d->name)));
             for (unsigned int i = 0, count = d->inherits.size(); i < count; i++)
                 inDeclaration(vec, d->inherits[i]);
             for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
@@ -54,13 +55,13 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
         }
         case ASTDeclaration::Kind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
-            vec->push_back(ASTSymbolInfo(ASYK_Constant, &d->name));
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Constant, &d->name)));
             inExpression(vec, d->value.get());
             break;
         }
         case ASTDeclaration::Kind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
-            vec->push_back(ASTSymbolInfo(ASYK_Function, &d->name));
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Function, &d->name)));
             inExpression(vec, d->returnType.get());
             inExpression(vec, d->params.get());
             inExpression(vec, d->inits.get());
@@ -75,18 +76,16 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
         }
         case ASTDeclaration::Kind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Namespace, &d->name)));
             for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i]);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Superclass: {
-            ASTSuperclassDeclaration* d = static_cast<ASTSuperclassDeclaration*>(decl);
-            vec->push_back(ASTSymbolInfo(ASYK_Class, &d->name));
+        case ASTDeclaration::Kind::ADK_Superclass:
             break;
-        }
         case ASTDeclaration::Kind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
-            vec->push_back(ASTSymbolInfo(ASYK_Variable, &d->name));
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Variable, &d->name)));
             break;
         }
         case ASTDeclaration::Kind::ADK_VarList: {
@@ -138,7 +137,6 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
         }
         case ASTExpression::Kind::AEK_Cast: {
             ASTCastExpression* e = static_cast<ASTCastExpression*>(expr);
-            //inName(vec, e->castType); TODO
             inExpression(vec, e->obj.get());
             break;
         }
@@ -200,12 +198,7 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
             break;
         }
         case ASTExpression::Kind::AEK_Literal:
-            break;
-        case ASTExpression::Kind::AEK_Name: {
-            ASTNameExpression* e = static_cast<ASTNameExpression*>(expr);
-            //inName(vec, e->name); TODO
-            break;
-        }
+        case ASTExpression::Kind::AEK_Name:
         case ASTExpression::Kind::AEK_Regex:
         case ASTExpression::Kind::AEK_RegexSubst:
         case ASTExpression::Kind::AEK_RegexTrans:
@@ -363,6 +356,149 @@ void FindSymbolsQuery::inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement
     }
 }
 
+void FindSymbolsQuery::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_Class) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+        }
+    }
+}
+
+void FindSymbolsQuery::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_Constant) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+                break;
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+        }
+    }
+}
+
+void FindSymbolsQuery::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_Function) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class) {
+                si.kind = (si.name == "constructor") ? ASYK_Constructor : ASYK_Method;
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            }
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace) {
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+            }
+        }
+    }
+}
+
+void FindSymbolsQuery::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_Variable) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+                break;
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+        }
+    }
+}
+
+void FindSymbolsQuery::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec) {
+    for (unsigned int i = 0, count = vec->size(); i < count; i++) {
+        ASTSymbolInfo& si = vec->at(i);
+
+        // Do this only for classes, constants, functions and variables.
+        if (si.kind != ASYK_Function && si.kind != ASYK_Variable && si.kind != ASYK_Class && si.kind != ASYK_Constant)
+            continue;
+
+        // Get symbol's location.
+        ASTParseLocation& loc = si.loc;
+
+        // Target node is first, all the parents follow.
+        std::unique_ptr<std::vector<ASTNode*> > nodes(FindNodeAndParentsQuery::find(tree, loc.firstLine, loc.firstCol));
+        if (!nodes)
+            continue;
+
+        // Fix the symbol info.
+        switch (si.kind) {
+            case ASYK_Class:
+                fixClassInfo(si, nodes.get()); break;
+            case ASYK_Constant:
+                fixConstantInfo(si, nodes.get()); break;
+            case ASYK_Function:
+                fixFunctionInfo(si, nodes.get()); break;
+            case ASYK_Variable:
+                fixVariableInfo(si, nodes.get()); break;
+            default:
+                break;
+        }
+    }
+}
+
 std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree) {
     if (!tree)
         return nullptr;
@@ -399,5 +535,7 @@ std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree) {
                 break;
         }
     }
+
+    fixSymbolInfos(tree, vec.get());
     return vec.release();
 }

@@ -46,7 +46,6 @@ qclass AstParser [arg=AstParserHolder* aph; ns=astparser; flags=final];
 
 //! Creates the AstParser.
 /**
-    @param src lorem ipsum
  */
 AstParser::constructor() {
     SimpleRefHolder<AstParserHolder> astp(new AstParserHolder);
@@ -226,13 +225,13 @@ int AstParser::getErrorCount() {
     @return list of symbols
  */
 *list AstParser::findSymbols(string uri) {
-    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(aph->findSymbols());
+    const std::vector<ASTSymbolInfo>* vec = aph->findSymbols();
     if (!vec)
         return nullptr;
 
     ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
     for (size_t i = 0, count = vec->size(); i < count; i++) {
-        ASTSymbolInfo& si = vec->at(i);
+        const ASTSymbolInfo& si = vec->at(i);
         ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
@@ -243,12 +242,12 @@ int AstParser::getErrorCount() {
         if (!start || !end || !range || !location || !symbolInfo)
             return nullptr;
 
-        start->setKeyValue("line", new QoreBigIntNode(si.name->loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.name->loc.firstCol-1), xsink);
+        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
         if (xsink && *xsink)
             return nullptr;
-        end->setKeyValue("line", new QoreBigIntNode(si.name->loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.name->loc.lastCol-1), xsink);
+        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
         if (xsink && *xsink)
             return nullptr;
         range->setKeyValue("start", start.release(), xsink);
@@ -259,7 +258,7 @@ int AstParser::getErrorCount() {
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
             return nullptr;
-        symbolInfo->setKeyValue("name", new QoreStringNode(si.name->name), xsink);
+        symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
         symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
@@ -295,12 +294,12 @@ int AstParser::getErrorCount() {
         if (!start || !end || !range || !location || !symbolInfo)
             return nullptr;
 
-        start->setKeyValue("line", new QoreBigIntNode(si.name->loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.name->loc.firstCol-1), xsink);
+        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
         if (xsink && *xsink)
             return nullptr;
-        end->setKeyValue("line", new QoreBigIntNode(si.name->loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.name->loc.lastCol-1), xsink);
+        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
         if (xsink && *xsink)
             return nullptr;
         range->setKeyValue("start", start.release(), xsink);
@@ -311,7 +310,7 @@ int AstParser::getErrorCount() {
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
             return nullptr;
-        symbolInfo->setKeyValue("name", new QoreStringNode(si.name->name), xsink);
+        symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
         symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)

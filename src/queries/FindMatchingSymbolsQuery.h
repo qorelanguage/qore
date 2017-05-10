@@ -44,14 +44,25 @@ public:
     FindMatchingSymbolsQuery() = delete;
     FindMatchingSymbolsQuery(const FindMatchingSymbolsQuery& other) = delete;
 
+    //! Find matching symbols in the given tree.
+    /**
+        @param tree tree to search
+        @param query search query
+        @return new list of matching symbols
+    */
     static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query);
 
+    //! Find matching symbols in the given symbol list.
+    /**
+        @param symbols symbol list to search
+        @param query search query
+        @return new list of matching symbols
+    */
+    static std::vector<ASTSymbolInfo>* find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
+
 private:
-    static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl, const std::string& query);
-    static void inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpression* expr, const std::string& query);
-    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName& name, const std::string& query);
-    static void inName(std::vector<ASTSymbolInfo>* vec, ASTName* name, const std::string& query);
-    static void inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt, const std::string& query);
+    static bool matches(const std::string& name, const std::string& query);
+    static void filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query);
 };
 
 #endif // _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H

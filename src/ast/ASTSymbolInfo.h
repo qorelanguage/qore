@@ -32,7 +32,8 @@
 #ifndef _QLS_AST_ASTSYMBOLINFO_H
 #define _QLS_AST_ASTSYMBOLINFO_H
 
-class ASTName;
+#include "ast/ASTName.h"
+#include "ast/ASTNode.h"
 
 enum ASTSymbolKind {
     ASYK_None = 0,
@@ -56,15 +57,29 @@ enum ASTSymbolKind {
     ASYK_Array = 18,
 };
 
-struct ASTSymbolInfo {
-    ASTSymbolInfo() : kind(ASYK_None), name(nullptr) {}
-    ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : kind(k), name(n) {}
+struct ASTSymbolInfo : public ASTNode {
+    ASTSymbolInfo() : ASTNode(), kind(ASYK_None), name(nullptr) {}
+    ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : ASTNode(n->loc), kind(k), name(n->name) {}
+    ASTSymbolInfo(const ASTSymbolInfo& si) : ASTNode(si.loc), kind(si.kind), name(si.name) {}
+    ASTSymbolInfo(ASTSymbolInfo&& si) : ASTNode(si.loc), kind(si.kind), name(std::move(si.name)) {}
+    ASTSymbolInfo& operator=(const ASTSymbolInfo& si) {
+        loc = si.loc;
+        kind = si.kind;
+        name = si.name;
+        return *this;
+    }
+    ASTSymbolInfo& operator=(ASTSymbolInfo&& si) {
+        loc = si.loc;
+        kind = si.kind;
+        name = std::move(si.name);
+        return *this;
+    }
 
     //! Symbol's kind.
     ASTSymbolKind kind;
 
     //! Symbol's name.
-    ASTName* name;
+    std::string name;
 };
 
 #endif // _QLS_AST_ASTSYMBOLINFO_H
