@@ -60,7 +60,8 @@ public class CryptoTest inherits QUnit::Test {
             assertEq(x, x1);
         }
 
-        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key)), alg + " encrypt");
+        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key)), alg + " encrypt bin");
+        assertEq(str, decrypt_to_string(alg, x1, Key), alg + " encrypt str");
         try {
             binary x = decrypt_to_binary(alg, x1, "x" + Key);
             assertEq(False, x == x1, alg + " decrypt");
@@ -74,6 +75,7 @@ public class CryptoTest inherits QUnit::Test {
         binary mac;
 
         binary x1 = encrypt(alg, str, Key, NOTHING, \mac, 16);
-        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, NOTHING, mac)));
+        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, NOTHING, mac)), alg + " encrypt bin");
+        assertEq(str, decrypt_to_string(alg, x1, Key, NOTHING, mac), alg + " encrypt str");
     }
 }

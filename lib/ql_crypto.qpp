@@ -239,13 +239,12 @@ static QoreValue apply_transformation(SimpleRefHolder<Transform>& t, SimpleRefHo
    rv->preallocate(data_len + (EVP_MAX_BLOCK_LENGTH * 2));
    size_t rv_maxsize = rv->size();
    size_t rvsize = 0;
-
    size_t offset = 0;
 
    // decrypt data
    while (offset != data_len) {
       // get block size
-      size_t bs = QORE_MIN(Q_CRYPTO_BUFSIZE, data_len - offset);
+      size_t bs = data_len - offset;
 
       // ensure we always have buffer space for the encryption algorithm
       {
@@ -2504,5 +2503,63 @@ binary decrypt_to_binary(string alg, data data, data key, data iv = Qore::Defaul
 
    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
    return apply_transformation(t, rv, datastr, data_len, xsink);
+}
+
+//! Returns a string of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
+/** @par Example:
+    @code
+string str = decrypt_to_string(Qore::CRYPTO_ALG_BLOWFISH, data, key);
+    @endcode
+
+    @param alg the transformation algorithm; see @ref crypto_transformations for possible values
+    @param data the data to decrypt
+    @param key the encryption key
+    @param iv the initialization vector
+    @param mac a message authentication code to be used to decrypt the message if required by the cryptographic algorithm, if not required, this argument is ignored
+    @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
+
+    @return a string of decrypted data corresponding to the input arguments
+
+    @throw DECRYPT-ERROR unknown decryption algorithm; error with the decryption algorithm (ex: invalid key)
+
+    @since %Qore 0.8.13
+ */
+binary decrypt_to_string(string alg, data data, data key, data iv = Qore::DefaultIV, *data mac, *data aad, *string encoding) [flags=RET_VALUE_ONLY] {
+   const char* datastr;
+   size_t data_len;
+   q_get_data(data, datastr, data_len);
+
+   const char* keystr;
+   size_t key_len;
+   q_get_data(key, keystr, key_len);
+
+   const char* ivstr;
+   size_t iv_len;
+   q_get_data(iv, ivstr, iv_len);
+
+   const char* macstr = nullptr;
+   size_t mac_len = 0;
+   if (mac)
+      q_get_data(mac, macstr, mac_len);
+
+   const char* aadstr = nullptr;
+   size_t aad_len = 0;
+   if (aad)
+      q_get_data(aad, aadstr, aad_len);
+
+   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
+   if (*xsink)
+      return QoreValue();
+
+   SimpleRefHolder<BinaryNode> bin(new BinaryNode);
+   ValueHolder vh(apply_transformation(t, bin, datastr, data_len, xsink), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   const QoreEncoding* enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+
+   size_t size = vh->get<BinaryNode>()->size();
+   return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size + 1, enc) : new QoreStringNode(enc);
 }
 //@}
