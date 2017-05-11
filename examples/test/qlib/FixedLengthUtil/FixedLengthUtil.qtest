@@ -159,6 +159,7 @@ class Test inherits QUnit::Test {
         addTestCase("FixedLengthUtil padding test #2", \test_padding_2());
         addTestCase("FixedLengthUtil padding test #3", \test_padding_3());
         addTestCase("FixedLengthUtil value-too-large test", \test_value_too_large());
+        addTestCase("FixedLengthUtil truncate tests", \test_truncate());
         set_return_value(main());
     }
 
@@ -216,5 +217,21 @@ class Test inherits QUnit::Test {
         data1[2].record.col2 += data1[2].record.col2;
         FixedLengthDataWriter w (Specs, GlobalWriterOptions);
         assertThrows ("FIELD-INPUT-ERROR", NOTHING, sub () { w.write(data1); }, (), "throw value too large");
+    }
+
+    test_truncate() {
+        list data1 = HashData;
+        data1[2].record.col2 += data1[2].record.col2;
+        {
+            hash specs = Specs;
+            specs.type1.col2.truncate = True;
+            FixedLengthDataWriter w (specs, GlobalWriterOptions);
+            assertEq (StrData, w.write(data1), "truncate - field option");
+        }
+        {
+            hash gopts = GlobalWriterOptions + ("truncate": True);
+            FixedLengthDataWriter w (Specs, gopts);
+            assertEq (StrData, w.write(data1), "truncate - global option");
+        }
     }
 }
