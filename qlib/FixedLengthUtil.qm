@@ -73,6 +73,7 @@ module FixedLengthUtil {
     - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
     - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
     - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
+    - \c "truncate": The flag controls whether to truncate an output field value if its bigger than its specified \a length. Default is \c "False". Used only in writers.
 
     @section fixedlengthspec Specification Hash
 
@@ -128,8 +129,9 @@ const Specs = (
     | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
     | \c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined
-    | \c regex|string|the regular expressionto use to apply to input data lines when determining the record type
+    | \c regex|string|the regular expression to use to apply to input data lines when determining the record type
     | \c default|string|In writer the value is default output value when value is not specified in record data.
+    | \c truncate|bool|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False". Used only in writers.
 
     @subsection fixedlengthspectypes Field Data Types
 
@@ -950,9 +952,14 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             }
 
             int len = value.length();
-            # Validate
-            if (len > fh.length)
-                throw "FIELD-INPUT-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, field, fh.length);
+            # Validate and truncate if configured to do so
+            if (len > fh.length) {
+                if (!(fh.truncate ?? m_opts.truncate))
+                    throw "FIELD-INPUT-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, field, fh.length);
+                splice value, fh.length;
+                len = value.length();
+            }
+
             # do output justification
             int spacingsize = fh.length - len;
             if (spacingsize) {
