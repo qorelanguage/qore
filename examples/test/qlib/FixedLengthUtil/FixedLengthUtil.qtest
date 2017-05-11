@@ -158,6 +158,7 @@ class Test inherits QUnit::Test {
         addTestCase("FixedLengthUtil padding test #1", \test_padding_1());
         addTestCase("FixedLengthUtil padding test #2", \test_padding_2());
         addTestCase("FixedLengthUtil padding test #3", \test_padding_3());
+        addTestCase("FixedLengthUtil value-too-large test", \test_value_too_large());
         set_return_value(main());
     }
 
@@ -208,5 +209,12 @@ class Test inherits QUnit::Test {
     test_padding_3() {
         FixedLengthDataWriter pw3(PADDING_SPEC);
         testAssertionValue("file content check - padding of floats", pw3.write(PADDING_DATA3), PADDING_OUTPUT3);
+    }
+
+    test_value_too_large() {
+        list data1 = HashData;
+        data1[2].record.col2 += data1[2].record.col2;
+        FixedLengthDataWriter w (Specs, GlobalWriterOptions);
+        assertThrows ("FIELD-INPUT-ERROR", NOTHING, sub () { w.write(data1); }, (), "throw value too large");
     }
 }
