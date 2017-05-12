@@ -2827,7 +2827,7 @@ string str = decrypt_to_string(Qore::CRYPTO_ALG_BLOWFISH, data, key);
 
     @since %Qore 0.8.13
  */
-binary decrypt_to_string(string alg, data data, data key, data iv = Qore::DefaultIV, *data mac, *data aad, *string encoding) [flags=RET_VALUE_ONLY] {
+string decrypt_to_string(string alg, data data, data key, data iv = Qore::DefaultIV, *data mac, *data aad, *string encoding) [flags=RET_VALUE_ONLY] {
    const char* datastr;
    size_t data_len;
    q_get_data(data, datastr, data_len);
