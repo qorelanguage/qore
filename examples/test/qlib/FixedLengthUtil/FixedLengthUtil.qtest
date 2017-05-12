@@ -108,6 +108,8 @@ class Test inherits QUnit::Test {
             ("type": "type1", "record": ("col1": "99999", "col2": "dddd")),
             );
 
+        const HashDataTS = (("type": "type1", "record": ("col1": 11111, "col2": "b\tb")));
+
         const GlobalOptions = (
             "encoding"     : "UTF-8",
             "eol"          : "\n",
@@ -160,6 +162,7 @@ class Test inherits QUnit::Test {
         addTestCase("FixedLengthUtil padding test #3", \test_padding_3());
         addTestCase("FixedLengthUtil value-too-large test", \test_value_too_large());
         addTestCase("FixedLengthUtil truncate tests", \test_truncate());
+        addTestCase("FixedLengthUtil tabs-to-spaces tests", \test_data_with_tabs());
         set_return_value(main());
     }
 
@@ -232,6 +235,28 @@ class Test inherits QUnit::Test {
             hash gopts = GlobalWriterOptions + ("truncate": True);
             FixedLengthDataWriter w (Specs, gopts);
             assertEq (StrData, w.write(data1), "truncate - global option");
+        }
+    }
+
+    test_data_with_tabs() {
+        {
+            string str = "11111b\tb \n";
+            FixedLengthDataWriter w (Specs, GlobalWriterOptions);
+            assertEq (str, w.write (HashDataTS), "tabs to spaces - default case");
+        }
+        for (int i=0; i<10; i++) {
+            hash specs = Specs;
+            specs.type1.col2.tab2space = i;
+            specs.type1.col2.truncate = True;
+            string str = "11111" + substr ("b" + strmul(' ', i) + "b  ", 0, Specs.type1.col2.length) + "\n";
+            FixedLengthDataWriter w (specs, GlobalWriterOptions);
+            assertEq (str, w.write (HashDataTS), sprintf ("tabs to spaces - field option - case #%d", i));
+        }
+        for (int i=0; i<10; i++) {
+            hash gopts = GlobalWriterOptions + ("tab2space": i, "truncate": True);
+            string str = "11111" + substr ("b" + strmul(' ', i) + "b  ", 0, Specs.type1.col2.length) + "\n";
+            FixedLengthDataWriter w (Specs, gopts);
+            assertEq (str, w.write (HashDataTS), sprintf ("tabs to spaces - global option - case #%d", i));
         }
     }
 }
