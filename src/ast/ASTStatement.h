@@ -42,7 +42,7 @@ public:
     using Ptr = std::unique_ptr<ASTStatement>;
 
     enum class Kind { // ASK == (A)st (S)tatement (K)ind
-        ASK_Block,          //!< Identifies an instance of \ref ASTStatementBlock.
+        ASK_Block = 0,      //!< Identifies an instance of \ref ASTStatementBlock.
         ASK_Break,          //!< Identifies an instance of \ref ASTBreakStatement.
         ASK_Call,           //!< Identifies an instance of \ref ASTCallStatement.
         ASK_Context,        //!< Identifies an instance of \ref ASTContextStatement.

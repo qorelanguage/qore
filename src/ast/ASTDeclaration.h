@@ -43,7 +43,7 @@ public:
 
 public:
     enum class Kind { // ADK == (A)st (D)eclaration (K)ind
-        ADK_Class,              //!< Identifies instances of \ref ASTClassDeclaration.
+        ADK_Class = 0,          //!< Identifies instances of \ref ASTClassDeclaration.
         ADK_Closure,            //!< Identifies instances of \ref ASTClosureDeclaration.
         ADK_Constant,           //!< Identifies instances of \ref ASTConstantDeclaration.
         ADK_Function,           //!< Identifies instances of \ref ASTFunctionDeclaration.

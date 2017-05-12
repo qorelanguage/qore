@@ -43,7 +43,7 @@ public:
 
 public:
     enum class Kind { // AEK == (A)st (E)xpression (K)ind
-        AEK_Access,             //!< Identifies an instance of \ref ASTAccessExpression.
+        AEK_Access = 0,         //!< Identifies an instance of \ref ASTAccessExpression.
         AEK_Assignment,         //!< Identifies an instance of \ref ASTAssignmentExpression.
         AEK_Backquote,          //!< Identifies an instance of \ref ASTBackquoteExpression.
         AEK_Binary,             //!< Identifies an instance of \ref ASTBinaryExpression.
