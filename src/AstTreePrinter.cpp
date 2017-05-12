@@ -39,6 +39,16 @@ static void printString(std::ostream& os, const char* str, int indent) {
     os << str;
 }
 
+static void printString(std::ostream& os, const std::string& str, int indent) {
+    printIndent(os, indent);
+    os << str;
+}
+
+static void printString(std::ostream& os, const std::string* str, int indent) {
+    printIndent(os, indent);
+    os << *str;
+}
+
 static void printLocation(std::ostream& os, const ASTParseLocation& loc, int indent, bool newline = true) {
     printIndent(os, indent);
     os << "<" << loc.firstLine << ":" << loc.firstCol << "-" << loc.lastLine << ":" << loc.lastCol << ">";
@@ -514,33 +524,34 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
     }
 }
 
-void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent) {
+void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly) {
     if (mods.empty())
         return;
     printIndent(os, indent);
-    os << "modifiers:";
+    if (!modsOnly)
+        os << "modifiers: ";
     if (mods.contains(AM_Abstract))
-        os << " abstract";
-    if (mods.contains(AM_Deprecated))
-        os << " deprecated";
-    if (mods.contains(AM_Final))
-        os << " final";
-    if (mods.contains(AM_Static))
-        os << " static";
-    if (mods.contains(AM_Synchronized))
-        os << " synchronized";
+        os << "abstract ";
     if (mods.contains(AM_Our))
-        os << " our";
+        os << "our ";
     if (mods.contains(AM_My))
-        os << " my";
+        os << "my ";
     if (mods.contains(AM_Public))
-        os << " public";
+        os << "public ";
     if (mods.contains(AM_Private))
-        os << " private";
+        os << "private ";
     if (mods.contains(AM_PrivateHierarchy))
-        os << " private:hierarchy";
+        os << "private:hierarchy ";
     if (mods.contains(AM_PrivateInternal))
-        os << " private:internal";
+        os << "private:internal ";
+    if (mods.contains(AM_Static))
+        os << "static ";
+    if (mods.contains(AM_Synchronized))
+        os << "synchronized ";
+    if (mods.contains(AM_Final))
+        os << "final ";
+    if (mods.contains(AM_Deprecated))
+        os << "deprecated ";
     os << "\n";
 }
 
