@@ -269,6 +269,8 @@ w.write(data);
       - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator" and @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator"
       - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter" and @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter"
     - added @ref FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
+    - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
+    - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
 
     @subsection fixedlengthutil_v1_0 Version 1.0.1
     - fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
