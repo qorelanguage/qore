@@ -812,6 +812,10 @@ Qore::TransformOutputStream ts(of, get_compressor(Qore::COMPRESSION_ALG_BZIP2));
     @param level compression level as defined by the algorithm or @ref COMPRESSION_LEVEL_DEFAULT to use the default compression level
 
     @return a @ref Transform object for compressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+
+    @see @ref Qore::get_decompressor()
+
+    @since %Qore 0.8.13
  */
 Transform get_compressor(string alg, int level = COMPRESSION_LEVEL_DEFAULT) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getCompressor(alg, level, xsink));
@@ -831,6 +835,10 @@ Qore::TransformOutputStream ts(of, get_decompressor(Qore::COMPRESSION_ALG_BZIP2)
     @param alg the transformation algorithm; see @ref compression_transformations for possible values
 
     @return a @ref Transform object for decompressing data using the given @ref compression_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
+
+    @see @ref Qore::get_compressor()
+
+    @since %Qore 0.8.13
  */
 Transform get_decompressor(string alg) {
    SimpleRefHolder<Transform> t(CompressionTransforms::getDecompressor(alg, xsink));

@@ -43,19 +43,6 @@
 #include <openssl/des.h>
 #include <openssl/hmac.h>
 
-struct CryptoEntry {
-   // the length of the key; 0 = variable length key
-   unsigned key_len;
-   // the OpenSSL cipher type
-   const EVP_CIPHER* cipher_type;
-   // the initialization vector length
-   int iv_len;
-   // does the algorithm use Galois Counter Mode (GCM)?
-   bool gcm;
-};
-
-typedef std::map<std::string, CryptoEntry> crypto_map_t;
-
 crypto_map_t crypto_map = {
    {"blowfish", {0, EVP_bf_cbc(), 8, false}},
    {"des", {8, EVP_des_cbc(), 8, false}},
@@ -63,7 +50,7 @@ crypto_map_t crypto_map = {
    {"desede3", {24, EVP_des_ede3_cbc(), 8, false}},
    {"desx", {24, EVP_desx_cbc(), 8, false}},
    {"rc2", {0, EVP_rc2_cbc(), 8, false}},
-   {"rc4", {0, EVP_rc4(), 8, false}},
+   {"rc4", {0, EVP_rc4(), -1, false}},
 #ifndef OPENSSL_NO_RC5
    {"rc5", {0, EVP_rc5_32_12_16_cbc(), 8, false}},
 #endif
@@ -74,6 +61,16 @@ crypto_map_t crypto_map = {
    {"aes192", {24, EVP_aes_192_gcm(), 0, true}},
    {"aes256", {32, EVP_aes_256_gcm(), 0, true}},
 };
+
+QoreHashNode* CryptoEntry::getInfo() const {
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, nullptr);
+
+   rv->setKeyValue("key_len", new QoreBigIntNode(key_len), nullptr);
+   rv->setKeyValue("iv_len", new QoreBigIntNode(iv_len), nullptr);
+   rv->setKeyValue("type", new QoreStringNode(gcm ? "GCM" : "CBC"), nullptr);
+
+   return rv.release();
+}
 
 class CryptoTransform : public Transform {
 public:
@@ -91,7 +88,7 @@ public:
 
       ce = i->second;
 
-      if (iv && ce.iv_len && iv_len < ce.iv_len) {
+      if (iv && ce.iv_len > 0 && iv_len < ce.iv_len) {
          xsink->raiseException(err, "cannot create a %scryption transformation object for algorithm '%s' with an initialization vector of size %d; %d bytes are required", do_crypt ? "en" : "de", cipher, iv_len, ce.iv_len);
          return;
       }

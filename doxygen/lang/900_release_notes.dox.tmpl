@@ -32,6 +32,7 @@
       - @ref Qore::StreamWriter "StreamWriter"
       - @ref Qore::StringInputStream "StringInputStream"
       - @ref Qore::StringOutputStream "StringOutputStream"
+      - @ref Qore::Transform "Transform"
       - @ref Qore::TransformInputStream "TransformInputStream"
       - @ref Qore::TransformOutputStream "TransformOutputStream"
       - @ref Qore::StdoutOutputStream "StdoutOutputStream"
@@ -60,6 +61,27 @@
       - @ref foldl "foldl": supports lazy evaluation of the iterator expression
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
+      - @ref Qore::decrypt_to_binary()
+      - @ref Qore::decrypt_to_string()
+      - @ref Qore::encrypt()
+      - @ref Qore::get_crypto_info()
+      - @ref Qore::get_decryptor()
+      - @ref Qore::get_encryptor()
+      .
+      The following constants were added to support the new generic cryptographic APIs:
+      - @ref Qore::CRYPTO_ALG_AES_128
+      - @ref Qore::CRYPTO_ALG_AES_192
+      - @ref Qore::CRYPTO_ALG_AES_256
+      - @ref Qore::CRYPTO_ALG_BLOWFISH
+      - @ref Qore::CRYPTO_ALG_CAST5
+      - @ref Qore::CRYPTO_ALG_DES
+      - @ref Qore::CRYPTO_ALG_DES_EDE
+      - @ref Qore::CRYPTO_ALG_DES_EDE3
+      - @ref Qore::CRYPTO_ALG_DESX
+      - @ref Qore::CRYPTO_ALG_RC2
+      - @ref Qore::CRYPTO_ALG_RC4
+      - @ref Qore::CRYPTO_ALG_RC5
     - new user modules:
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>
       - <a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>
@@ -98,12 +120,21 @@
       - <number>::toBase(int)
       - <float>::toBase(int)
     - new functions:
+      - @ref Qore::decrypt_to_binary()
+      - @ref Qore::decrypt_to_string()
+      - @ref Qore::encrypt()
+      - @ref Qore::get_compressor()
+      - @ref Qore::get_crypto_info()
+      - @ref Qore::get_decompressor()
+      - @ref Qore::get_decryptor()
+      - @ref Qore::get_encryptor()
       - @ref Qore::get_global_vars()
-      - @ref Qore::set_global_var_value()
       - @ref Qore::get_local_vars()
-      - @ref Qore::set_local_var_value()
-      - @ref Qore::parse_int()
+      - @ref Qore::get_random_bytes()
       - @ref Qore::get_thread_call_stack()
+      - @ref Qore::parse_int()
+      - @ref Qore::set_global_var_value()
+      - @ref Qore::set_local_var_value()
     - updated functions:
       - @ref Qore::ceil(int/float/number num, int prec = 0)
       - @ref Qore::floor(int/float/number num, int prec = 0)

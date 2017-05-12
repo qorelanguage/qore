@@ -39,4 +39,21 @@ public:
    DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink);
 };
 
+struct CryptoEntry {
+   // the length of the key; 0 = variable length key
+   unsigned key_len;
+   // the OpenSSL cipher type
+   const EVP_CIPHER* cipher_type;
+   // the initialization vector length
+   int iv_len;
+   // does the algorithm use Galois Counter Mode (GCM)?
+   bool gcm;
+
+   DLLLOCAL QoreHashNode* getInfo() const;
+};
+
+typedef std::map<std::string, CryptoEntry> crypto_map_t;
+
+DLLLOCAL extern crypto_map_t crypto_map;
+
 #endif // _QORE_ENCRYPTIONTRANSFORMS_H

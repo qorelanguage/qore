@@ -15,6 +15,7 @@ public class CryptoTest inherits QUnit::Test {
     public {
         const Str = "Hello There This is a Test - 1234567890";
         const Key = "1234567812345abcabcdefghijklmnopqrstuvwxyz";
+        const Aad = "additional authenticated data";
     }
 
     constructor() : Test("Crypto test", "1.0") {
@@ -53,6 +54,9 @@ public class CryptoTest inherits QUnit::Test {
     testEncryption(string alg, string str = Str, code enc_func, code dec_func) {
         binary x1 = encrypt(alg, str, Key);
 
+        hash h = get_crypto_info(){alg};
+        assertEq("CBC", h.type);
+
         if (enc_func) {
             binary x = enc_func(str, Key);
             string xstr = dec_func(x, Key);
@@ -62,6 +66,8 @@ public class CryptoTest inherits QUnit::Test {
 
         assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key)), alg + " encrypt bin");
         assertEq(str, decrypt_to_string(alg, x1, Key), alg + " encrypt str");
+
+        # decryption must fail with a different key
         try {
             binary x = decrypt_to_binary(alg, x1, "x" + Key);
             assertEq(False, x == x1, alg + " decrypt");
@@ -69,13 +75,60 @@ public class CryptoTest inherits QUnit::Test {
         catch (hash ex) {
             assertEq("DECRYPT-ERROR", ex.err, alg + " decrypt");
         }
+
+        # encrypt with an iv
+        binary iv = get_random_bytes(12);
+        x1 = encrypt(alg, str, Key, iv);
+
+        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, iv)), alg + " encrypt bin+iv");
+        assertEq(str, decrypt_to_string(alg, x1, Key, iv), alg + " encrypt str+iv");
+
+        # decryption must fail with a different key
+        try {
+            binary x = decrypt_to_binary(alg, x1, Key);
+            assertEq(False, x == x1, alg + " decrypt+iv");
+        }
+        catch (hash ex) {
+            assertEq("DECRYPT-ERROR", ex.err, alg + " decrypt+iv");
+        }
     }
 
     testGcmEncryption(string alg, string str = Str) {
         binary mac;
 
+        hash h = get_crypto_info(){alg};
+        assertEq("GCM", h.type);
+
         binary x1 = encrypt(alg, str, Key, NOTHING, \mac, 16);
         assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, NOTHING, mac)), alg + " encrypt bin");
         assertEq(str, decrypt_to_string(alg, x1, Key, NOTHING, mac), alg + " encrypt str");
+
+        # decryption must fail with a different key
+        assertThrows("DECRYPT-ERROR", \decrypt_to_binary(), (alg, x1, "x" + Key, NOTHING, mac), alg + " encrypt bin");
+        assertThrows("DECRYPT-ERROR", \decrypt_to_string(), (alg, x1, "x" + Key, NOTHING, mac), alg + " encrypt bin");
+
+        # decryption must fail with a different MAC
+        mac = get_random_bytes(16);
+        assertThrows("DECRYPT-ERROR", \decrypt_to_binary(), (alg, x1, "x" + Key, NOTHING, mac), alg + " encrypt bin");
+        assertThrows("DECRYPT-ERROR", \decrypt_to_string(), (alg, x1, "x" + Key, NOTHING, mac), alg + " encrypt bin");
+
+        # test with IVs
+        binary iv = get_random_bytes(12);
+        x1 = encrypt(alg, str, Key, iv, \mac, 16);
+        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, iv, mac)), alg + " encrypt bin");
+        assertEq(str, decrypt_to_string(alg, x1, Key, iv, mac), alg + " encrypt str");
+
+        # decryption must fail with a different IV
+        assertThrows("DECRYPT-ERROR", \decrypt_to_binary(), (alg, x1, Key, NOTHING, mac), alg + " encrypt bin");
+        assertThrows("DECRYPT-ERROR", \decrypt_to_string(), (alg, x1, Key, NOTHING, mac), alg + " encrypt bin");
+
+        # test with AAD
+        x1 = encrypt(alg, str, Key, NOTHING, \mac, 16, Aad);
+        assertEq(str, binary_to_string(decrypt_to_binary(alg, x1, Key, NOTHING, mac, Aad)), alg + " encrypt bin");
+        assertEq(str, decrypt_to_string(alg, x1, Key, NOTHING, mac, Aad), alg + " encrypt str");
+
+        # decryption must fail with different AAD
+        assertThrows("DECRYPT-ERROR", \decrypt_to_binary(), (alg, x1, Key, NOTHING, mac), alg + " encrypt bin");
+        assertThrows("DECRYPT-ERROR", \decrypt_to_string(), (alg, x1, Key, NOTHING, mac), alg + " encrypt bin");
     }
 }

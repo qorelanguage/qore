@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <openssl/rand.h>
+
 #define QCRYPTO_DECRYPT 0
 #define QCRYPTO_ENCRYPT 1
 
@@ -296,12 +298,19 @@ static QoreValue apply_transformation(SimpleRefHolder<Transform>& t, SimpleRefHo
     The following @ref Transform constants can be used with @ref TransformInputStream and @ref TransformOutputStream to transform stream data
 
     @par Example:
-    @code
+    @code{.py}
 Qore::FileOutputStream of("my-file.txt");
 Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH));
     @endcode
 
-    @see compression_transformations
+    These constants are useful in the following functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
+    @see @ref compression_transformations
 
     @since %Qore 0.8.13
  */
@@ -346,7 +355,9 @@ const CRYPTO_ALG_DESX = "desx";
 const CRYPTO_ALG_RC2 = "rc2";
 
 //! Identifies the Alleged <a href="http://en.wikipedia.org/wiki/RC4">RC4 cryptographic algorithm</a>, which should be compatible with RSA's RC4(TM) algorithm in <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining (CBC)</a> mode with a variable-length key
-/** @note This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
+/** @note
+    - This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
+    - This algorithm does not support (ignores) initialization vectors
  */
 const CRYPTO_ALG_RC4 = "rc4";
 
@@ -365,8 +376,8 @@ const CRYPTO_ALG_RC5 = "rc5";
  */
 const CRYPTO_ALG_CAST5 = "cast5";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard"AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
-/** The initialization vector (which is really a nonce) is recommended to be 12 bytes in this case
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
+/** The initialization vector is recommended to be 12 bytes in this case
 
     @note
     - This algorithm supports returning a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> when encrypting and requires a MAC for decryption, therefore at least one byte of the MAC should be retrieved when encoding as well
@@ -375,8 +386,8 @@ const CRYPTO_ALG_CAST5 = "cast5";
  */
 const CRYPTO_ALG_AES_128 = "aes128";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard"AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
-/** The initialization vector (which is really a nonce) is recommended to be 12 bytes in this case.
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
+/** The initialization vector is recommended to be 12 bytes in this case.
 
     @note
     - This algorithm supports returning a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> when encrypting and requires a MAC for decryption, therefore at least one byte of the MAC should be retrieved when encoding as well
@@ -385,8 +396,8 @@ const CRYPTO_ALG_AES_128 = "aes128";
  */
 const CRYPTO_ALG_AES_192 = "aes192";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard"AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
-/** The initialization vector (which is really a nonce) is recommended to be 12 bytes in this case
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
+/** The initialization vector is recommended to be 12 bytes in this case
 
     @note
     - This algorithm supports returning a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> when encrypting and requires a MAC for decryption, therefore at least one byte of the MAC should be retrieved when encoding as well
@@ -399,15 +410,17 @@ const CRYPTO_ALG_AES_256 = "aes256";
 //! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
 //! @qppval: Qore::DefaultIV=DefaultIV->refSelf()
 
-/** @defgroup cryptographic_constants Crytographic Contants
-    Cryptographic constants
+/** @defgroup cryptographic_constants Cryptographic Contants
+    Other generic cryptographic constants
+
+    @see @ref crypto_transformations for constants related to cryptographic algorithms
  */
 //@{
 //! The default initialization vector is simply a 8-byte string of nulls
 const DefaultIV = <0000000000000000>;
 //@}
 
-/** @defgroup cryptographic_functions Crytographic Functions
+/** @defgroup cryptographic_functions Cryptographic Functions
     %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
 
     See also:
@@ -431,6 +444,13 @@ binary sub get_key(int size) {
     return f.readBinary(size);
 }
     @endcode
+
+    @note The following generic cryptographic functions are recommended over the older cipher-specific functions which will be deprecated in a later release of %Qore:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 //@{
 
@@ -462,6 +482,15 @@ binary bin = blowfish_encrypt_cbc(data, key);
 
     @throw BLOWFISH-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_BLOWFISH "CRYPTO_ALG_BLOWFISH", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -487,6 +516,15 @@ binary bin = blowfish_decrypt_cbc(data, key);
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_BLOWFISH "CRYPTO_ALG_BLOWFISH", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary blowfish_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -513,6 +551,15 @@ string str = blowfish_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
 
     @throw BLOWFISH-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_BLOWFISH "CRYPTO_ALG_BLOWFISH", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
@@ -541,6 +588,15 @@ binary bin = des_encrypt_cbc(data, key);
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_DES "CRYPTO_ALG_DES", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -568,6 +624,15 @@ binary bin = des_decrypt_cbc(data, key);
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_DES "CRYPTO_ALG_DES", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -597,6 +662,15 @@ string bin = des_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_DES "CRYPTO_ALG_DES", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -625,6 +699,15 @@ binary bin = des_ede_encrypt_cbc(data, key);
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_DES_EDE "CRYPTO_ALG_DES_EDE", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -652,6 +735,15 @@ binary bin = des_ede_decrypt_cbc(data, key);
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_DES_EDE "CRYPTO_ALG_DES_EDE", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_ede_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -681,6 +773,15 @@ string bin = des_ede_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_DES_EDE "CRYPTO_ALG_DES_EDE", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -709,6 +810,15 @@ binary bin = des_ede3_encrypt_cbc(data, key);
     @throw DES-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_DES_EDE3 "CRYPTO_ALG_DES_EDE3", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -736,6 +846,15 @@ binary bin = des_ede3_decrypt_cbc(data, key);
     @throw DES-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_DES_EDE3 "CRYPTO_ALG_DES_EDE3", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary des_ede3_decrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -765,6 +884,15 @@ string bin = des_ede3_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @throw DES-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_DES_EDE3 "CRYPTO_ALG_DES_EDE2", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -793,6 +921,15 @@ binary bin = desx_encrypt_cbc(data, key);
     @throw DESX-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_DESX "CRYPTO_ALG_DESX", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -820,6 +957,15 @@ binary bin = desx_decrypt_cbc(data, key);
     @throw DESX-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_DESX "CRYPTO_ALG_DESX", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -849,6 +995,15 @@ string str = desx_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @throw DESX-KEY-ERROR invalid key (too short)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_DESX "CRYPTO_ALG_DESX", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -876,6 +1031,17 @@ binary bin = rc4_encrypt(data, key);
 
     @throw RC4-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note
+    - Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_RC4 "CRYPTO_ALG_RC4", data, key, iv)
+    - This algorithm does not support (ignores) initialization vectors
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -901,6 +1067,17 @@ binary bin = rc4_decrypt(data, key);
 
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note
+    - Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_RC4 "CRYPTO_ALG_RC4", data, key, iv)
+    - This algorithm does not support (ignores) initialization vectors
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc4_decrypt(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -928,6 +1105,17 @@ string str = rc4_decrypt_to_string(encrypted_data, key, NOTHING, "iso-8859-1");
     @throw RC4-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note
+    - Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_RC4 "CRYPTO_ALG_RC4", data, key, iv)
+    - This algorithm does not support (ignores) initialization vectors
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -954,6 +1142,15 @@ binary bin = rc2_encrypt_cbc(data, key);
 
     @throw RC2-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_RC2 "CRYPTO_ALG_RC2", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -979,6 +1176,15 @@ binary bin = rc2_decrypt_cbc(data, key);
 
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_RC2 "CRYPTO_ALG_RC2", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc2_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -1006,6 +1212,15 @@ string str = rc2_decrypt_cbc_to_string(data, key);
     @throw RC2-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_RC2 "CRYPTO_ALG_RC2", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -1032,6 +1247,15 @@ binary bin = cast5_encrypt_cbc(data, key);
 
     @throw CAST5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_CAST5 "CRYPTO_ALG_CAST5", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -1057,6 +1281,15 @@ binary bin = cast5_decrypt_cbc(data, key);
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_CAST5 "CRYPTO_ALG_CAST5", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary cast5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
    CryptoHelper ch;
@@ -1083,6 +1316,15 @@ string bin = cast5_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
 
     @throw CAST5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_CAST5 "CRYPTO_ALG_CAST5", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
@@ -1113,6 +1355,15 @@ binary bin = rc2_encrypt_cbc(data, key);
 
     @throw RC5-ENCRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw ENCRYPT-ERROR processing error encrypting the data (should not normally happen)
+
+    @note Equivalent to @ref Qore::encrypt() "encrypt"(@ref Qore::CRYPTO_ALG_RC5 "CRYPTO_ALG_RC5", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_RC5
@@ -1145,6 +1396,15 @@ binary bin = rc2_decrypt_cbc(data, key);
 
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
+
+    @note Equivalent to @ref Qore::decrypt_to_binary() "decrypt_to_binary"(@ref Qore::CRYPTO_ALG_RC5 "CRYPTO_ALG_RC5", data, key, iv)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
  */
 binary rc5_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV) [flags=RET_VALUE_ONLY] {
 #ifndef OPENSSL_NO_RC5
@@ -1179,6 +1439,15 @@ string str = rc2_decrypt_cbc_to_string(data, key, NOTHING, "iso-8859-1");
     @throw RC5-DECRYPT-PARAM-ERROR invalid initialization vector (less than 8 bytes)
     @throw DECRYPT-ERROR processing error decrypting the data (for example invalid data)
 
+    @note Equivalent to @ref Qore::decrypt_to_string() "decrypt_to_string"(@ref Qore::CRYPTO_ALG_RC5 "CRYPTO_ALG_RC5", data, key, iv, ...)
+
+    @see the following generic cryptographic API functions:
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
     @since %Qore 0.8.4 added the encoding parameter to specify the output encoding of the string
  */
 string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV, *string[doc] encoding) [flags=RET_VALUE_ONLY] {
@@ -1194,9 +1463,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
    return missing_openssl_feature("RC5", xsink);
 #endif
 }
-
 //@}
-
 
 /** @defgroup digest_functions Digest (Hash) Functions
     %Qore's cryptography support is provided by the OpenSSL library.
@@ -2323,7 +2590,7 @@ string RIPEMD160_hmac(data[doc] data, string key) {
 
 //! Returns a @ref Transform object for encrypting data using the given @ref crypto_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
 /** @par Example:
-    @code
+    @code{.py}
 Qore::FileOutputStream of("my-file.txt.enc");
 Qore::TransformOutputStream ts(of, get_encryptor(Qore::CRYPTO_ALG_BLOWFISH, key));
     @endcode
@@ -2339,6 +2606,13 @@ Qore::TransformOutputStream ts(of, get_encryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
 
     @throw MAC-ERROR this exception is thrown if the \a mac_size argument is passed but no \a mac argument or vice-versa or if the \a mac_size argument is negative or greater than 4096 bytes
     @throw ENCRYPT-ERROR unknown encryption algorithm; error with the encryption algorithm (ex: invalid key size)
+
+    @see
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_crypto_info()
+    - @ref Qore::get_decryptor()
 
     @since %Qore 0.8.13
  */
@@ -2365,7 +2639,7 @@ Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *refere
 
 //! Returns a @ref Transform object for decrypting data using the given @ref crypto_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
 /** @par Example:
-    @code
+    @code{.py}
 Qore::FileOutputStream of("my-file.txt.enc");
 Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH, key));
     @endcode
@@ -2379,6 +2653,13 @@ Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
     @return a @ref Transform object for decrypting data using the given @ref crypto_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
 
     @throw DECRYPT-ERROR unknown encryption algorithm; error decrypting the data
+
+    @see
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_crypto_info()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.13
  */
@@ -2407,14 +2688,14 @@ Transform get_decryptor(string alg, data key, data iv = Qore::DefaultIV, *data m
 
 //! Returns a binary object of encrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
 /** @par Example:
-    @code
+    @code{.py}
 binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @endcode
 
     @param alg the transformation algorithm; see @ref crypto_transformations for possible values
     @param data the data to encrypt
     @param key the encryption key
-    @param iv the initialization vector
+    @param iv the initialization vector or cryptographic nonce
     @param mac a reference to a @ref binary_type "binary" lvalue that will store the <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> when the transformation is closed, if the algorithm produces one; it is not an error to provide a reference here for cryptographic algorithms that do not generate a MAC, however in such cases, nothing will be written to the reference; in case this argument is passed, the \a mac_size argument must also be passed or a \c MAC-ERROR exception will be thrown
     @param mac_size number of bytes of the MAC to return; this value must be non-negative and less than 4096 or a \c MAC-ERROR exception will be thrown
     @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
@@ -2423,6 +2704,13 @@ binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
 
     @throw MAC-ERROR this exception is thrown if the \a mac_size argument is passed but no \a mac argument or vice-versa or if the \a mac_size argument is negative or greater than 4096 bytes
     @throw ENCRYPT-ERROR unknown encryption algorithm; error with the encryption algorithm (ex: invalid key size)
+
+    @see
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::get_crypto_info()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.13
  */
@@ -2457,20 +2745,27 @@ binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *refe
 
 //! Returns a binary object of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
 /** @par Example:
-    @code
+    @code{.py}
 binary bin = decrypt_to_binary(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @endcode
 
     @param alg the transformation algorithm; see @ref crypto_transformations for possible values
     @param data the data to decrypt
     @param key the encryption key
-    @param iv the initialization vector
+    @param iv the initialization vector or cryptographic nonce
     @param mac a message authentication code to be used to decrypt the message if required by the cryptographic algorithm, if not required, this argument is ignored
     @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
 
     @return a binary object of decrypted data corresponding to the input arguments
 
     @throw DECRYPT-ERROR unknown decryption algorithm; error with the decryption algorithm (ex: invalid key)
+
+    @see
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_crypto_info()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.13
  */
@@ -2507,14 +2802,14 @@ binary decrypt_to_binary(string alg, data data, data key, data iv = Qore::Defaul
 
 //! Returns a string of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
 /** @par Example:
-    @code
+    @code{.py}
 string str = decrypt_to_string(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @endcode
 
     @param alg the transformation algorithm; see @ref crypto_transformations for possible values
     @param data the data to decrypt
     @param key the encryption key
-    @param iv the initialization vector
+    @param iv the initialization vector or cryptographic nonce
     @param mac a message authentication code to be used to decrypt the message if required by the cryptographic algorithm, if not required, this argument is ignored
     @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
@@ -2522,6 +2817,13 @@ string str = decrypt_to_string(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @return a string of decrypted data corresponding to the input arguments
 
     @throw DECRYPT-ERROR unknown decryption algorithm; error with the decryption algorithm (ex: invalid key)
+
+    @see
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_crypto_info()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
 
     @since %Qore 0.8.13
  */
@@ -2561,5 +2863,66 @@ binary decrypt_to_string(string alg, data data, data key, data iv = Qore::Defaul
 
    size_t size = vh->get<BinaryNode>()->size();
    return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size + 1, enc) : new QoreStringNode(enc);
+}
+
+//! Returns a hash of information about each cryptographic algorithmn supported by the current build of %Qore
+/** @par Example:
+    @code{.py}
+hash h = get_crypto_info();
+    @endcode
+
+    @return a hash of information about each cryptographic algorithmn supported by the current build of %Qore; keys are algorithm names, values are hashes with the following keys:
+    - \c key_len: the minimum required length of the cryptographic key; if 0 it means that the cipher takes a variable key length
+    - \c iv_len: the minimum required lengh of the initialization vector or nonce; if 0 it means that the initialization vector can be of any length (note that initialization vector or nonce is always optional); -1 means that the algorithm does not support (ignores) initialization vectors
+    - \c type: either \c "GCM" for <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode</a> (meaning that the cipher accepts AAD and produces / requires a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> for encryption / decryption, respectively) or \c "CBC" for <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> (meaning that the cipher does not support AAD or a MAC)
+
+    @see
+    - @ref Qore::decrypt_to_binary()
+    - @ref Qore::decrypt_to_string()
+    - @ref Qore::encrypt()
+    - @ref Qore::get_decryptor()
+    - @ref Qore::get_encryptor()
+
+    @since %Qore 0.8.13
+ */
+hash get_crypto_info() [flags=CONSTANT] {
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+
+   for (auto& i : crypto_map) {
+      rv->setKeyValue(i.first.c_str(), i.second.getInfo(), nullptr);
+   }
+
+   return rv.release();
+}
+
+//! returns a binary object of random bytes using openssl
+/** @par Example:
+    @code{.py}
+# return 16 bytes of random data
+binary b = get_random_bytes(16);
+    @endcode
+
+    @param size the number of bytes in the output; if this value is not positive, an empty binary object is returned
+
+    @return a binary object of random bytes using openssl
+
+    @throw GET-RANDOM-BYTES-ERROR thrown if there is an error generating or acquiring random data (ex: not enough entropy; random function not supported by the current random method)
+
+    @since %Qore 0.8.13
+*/
+binary get_random_bytes(int size) [flags=RET_VALUE_ONLY] {
+   SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+   if (size > 0) {
+      rv->preallocate(size);
+      int rc = RAND_bytes((unsigned char*)rv->getPtr(), size);
+      if (rc <= 0) {
+         unsigned long err = ERR_get_error();
+         char buf[121];
+         ERR_error_string(err, buf);
+         xsink->raiseException("GET-RANDOM-BYTES-ERROR", "the RAND_bytes() returned error code %d with a request of length %d: %s", rc, (int)size, buf);
+         return QoreValue();
+      }
+   }
+   return rv.release();
 }
 //@}
