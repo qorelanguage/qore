@@ -31,12 +31,8 @@
 #include <string>
 #include <vector>
 
-#include "ast/ASTName.h"
 #include "ast/ASTSymbolInfo.h"
 
-class ASTDeclaration;
-class ASTExpression;
-class ASTStatement;
 class ASTTree;
 
 class FindMatchingSymbolsQuery {

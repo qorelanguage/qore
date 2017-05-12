@@ -58,7 +58,8 @@ enum ASTSymbolKind {
 };
 
 struct ASTSymbolInfo : public ASTNode {
-    ASTSymbolInfo() : ASTNode(), kind(ASYK_None), name(nullptr) {}
+public:
+    ASTSymbolInfo() : ASTNode(), kind(ASYK_None) {}
     ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : ASTNode(n->loc), kind(k), name(n->name) {}
     ASTSymbolInfo(const ASTSymbolInfo& si) : ASTNode(si.loc), kind(si.kind), name(si.name) {}
     ASTSymbolInfo(ASTSymbolInfo&& si) : ASTNode(si.loc), kind(si.kind), name(std::move(si.name)) {}
