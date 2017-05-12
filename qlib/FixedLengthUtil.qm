@@ -74,6 +74,7 @@ module FixedLengthUtil {
     - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
     - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
     - \c "truncate": The flag controls whether to truncate an output field value if its bigger than its specified \a length. Default is \c "False". Used only in writers.
+    - \c "tab2space": Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
 
     @section fixedlengthspec Specification Hash
 
@@ -131,7 +132,8 @@ const Specs = (
     | \c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined
     | \c regex|string|the regular expression to use to apply to input data lines when determining the record type
     | \c default|string|In writer the value is default output value when value is not specified in record data.
-    | \c truncate|bool|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False". Used only in writers.
+    | \c truncate|boolean|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False". Used only in writers.
+    | \c tab2space|integer|Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
 
     @subsection fixedlengthspectypes Field Data Types
 
@@ -886,6 +888,9 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         else
             opts.eol = "\n";
 
+        if (exists opts.tab2space && opts.tab2space.typeCode() != NT_INT)
+            throw errname, sprintf("expecting an int value to option \"tab2space\"; got %y (type %s) instead", opts.tab2space, opts.tab2space.type());
+
         return opts;
     }
 
@@ -949,6 +954,11 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
                     if (value.typeCode() != NT_STRING)
                         value = string(value);
                     break;
+            }
+
+            # Convert tabs to spaces
+            if (exists fh.tab2space || exists m_opts.tab2space) {
+                value = replace (value, "\t", strmul(' ', fh.tab2space ?? m_opts.tab2space));
             }
 
             int len = value.length();
