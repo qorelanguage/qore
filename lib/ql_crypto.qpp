@@ -2862,7 +2862,8 @@ string decrypt_to_string(string alg, data data, data key, data iv = Qore::Defaul
    const QoreEncoding* enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    size_t size = vh->get<BinaryNode>()->size();
-   return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size + 1, enc) : new QoreStringNode(enc);
+   // create string with len == allocated to ensure that it gets terminated
+   return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size, enc) : new QoreStringNode(enc);
 }
 
 //! Returns a hash of information about each cryptographic algorithmn supported by the current build of %Qore
