@@ -41,10 +41,10 @@ public:
    DLLLOCAL TransformInputStream(InputStream *is, Transform *t) :
       is(is),
       t(t),
-      in_bufsize(t->inputBufferSize()),
-      out_bufsize(t->outputBufferSize()),
-      buf(new char[in_bufsize]),
-      outBuf(new char[out_bufsize]),
+      inBufSize(t->inputBufferSize()),
+      outBufSize(t->outputBufferSize()),
+      buf(new char[inBufSize]),
+      outBuf(new char[outBufSize]),
       bufCount(0),
       outBufCount(0),
       eof(false) {
@@ -68,8 +68,8 @@ public:
          return toCopy;
       }
       while (true) {
-         if (!eof && in_bufsize - bufCount > 0) {
-            int64 r = is->read(buf + bufCount, in_bufsize - bufCount, xsink);
+         if (!eof && inBufSize - bufCount > 0) {
+            int64 r = is->read(buf + bufCount, inBufSize - bufCount, xsink);
             if (*xsink) {
                return 0;
             }
@@ -104,7 +104,7 @@ public:
    DLLLOCAL int64 peek(ExceptionSink* xsink) override {
       if (outBufCount > 0)
          return outBuf[0];
-      int64 rc = read(outBuf, out_bufsize, xsink);
+      int64 rc = read(outBuf, outBufSize, xsink);
       if (*xsink)
          return -2;
       if (rc == 0) {
@@ -118,7 +118,8 @@ public:
 private:
    SimpleRefHolder<InputStream> is;
    SimpleRefHolder<Transform> t;
-   size_t in_bufsize, out_bufsize;
+   size_t inBufSize; //!< Input buffer size.
+   size_t outBufSize; //!< Output buffer size.
    char* buf; //!< Buffer with source data from input stream.
    char* outBuf; //!< Output buffer used for peeking.
    size_t bufCount; //!< Actual count of bytes in the buffer.
