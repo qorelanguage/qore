@@ -108,22 +108,22 @@ public:
 
       if (iv && ce.gcm) {
          if (!EVP_CIPHER_CTX_ctrl(&ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr)) {
-	    xsink->raiseException(err, "error setting %s initialization vector length: %d", cipher, iv_len);
+            xsink->raiseException(err, "error setting %s initialization vector length: %d", cipher, iv_len);
             state = STATE_ERROR;
-	    return;
+            return;
          }
       }
 
       if (key_len) {
-	 if (key_len > EVP_MAX_KEY_LENGTH)
-	    key_len = EVP_MAX_KEY_LENGTH;
+         if (key_len > EVP_MAX_KEY_LENGTH)
+            key_len = EVP_MAX_KEY_LENGTH;
 
-	 if (!EVP_CIPHER_CTX_set_key_length(&ctx, key_len) || !EVP_CipherInit_ex(&ctx, nullptr, nullptr, (const unsigned char*)key, (const unsigned char*)iv, -1)) {
+         if (!EVP_CIPHER_CTX_set_key_length(&ctx, key_len) || !EVP_CipherInit_ex(&ctx, nullptr, nullptr, (const unsigned char*)key, (const unsigned char*)iv, -1)) {
             // should not happen
-	    xsink->raiseException(err, "error setting %s key length: %d", cipher, key_len);
+            xsink->raiseException(err, "error setting %s key length: %d", cipher, key_len);
             state = STATE_ERROR;
-	    return;
-	 }
+            return;
+         }
       }
 
       // set AAD if applicable
