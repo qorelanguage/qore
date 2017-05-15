@@ -45,16 +45,30 @@
 
 crypto_map_t crypto_map = {
    {"blowfish", {0, EVP_bf_cbc(), 8, false}},
+   {"blowfish-cfb", {0, EVP_bf_cfb(), 8, false}},
+   {"blowfish-ofb", {0, EVP_bf_ofb(), 8, false}},
    {"des", {8, EVP_des_cbc(), 8, false}},
+   {"des-cfb", {8, EVP_des_cfb(), 8, false}},
+   {"des-ofb", {8, EVP_des_ofb(), 8, false}},
    {"desede", {16, EVP_des_ede_cbc(), 8, false}},
+   {"desede-cfb", {16, EVP_des_ede_cfb(), 8, false}},
+   {"desede-ofb", {16, EVP_des_ede_ofb(), 8, false}},
    {"desede3", {24, EVP_des_ede3_cbc(), 8, false}},
+   {"desede3-cfb", {24, EVP_des_ede3_cfb(), 8, false}},
+   {"desede3-ofb", {24, EVP_des_ede3_ofb(), 8, false}},
    {"desx", {24, EVP_desx_cbc(), 8, false}},
    {"rc2", {0, EVP_rc2_cbc(), 8, false}},
+   {"rc2-cfb", {0, EVP_rc2_cfb(), 8, false}},
+   {"rc2-ofb", {0, EVP_rc2_ofb(), 8, false}},
    {"rc4", {0, EVP_rc4(), -1, false}},
 #ifndef OPENSSL_NO_RC5
    {"rc5", {0, EVP_rc5_32_12_16_cbc(), 8, false}},
+   {"rc5-cfb", {0, EVP_rc5_32_12_16_cfb(), 8, false}},
+   {"rc5-ofb", {0, EVP_rc5_32_12_16_ofb(), 8, false}},
 #endif
    {"cast5", {0, EVP_cast5_cbc(), 8, false}},
+   {"cast5-cfb", {0, EVP_cast5_cfb(), 8, false}},
+   {"cast5-ofb", {0, EVP_cast5_ofb(), 8, false}},
 
    // AES ciphers
    {"aes128", {16, EVP_aes_128_gcm(), 0, true}},

@@ -29,15 +29,28 @@ public class CryptoTest inherits QUnit::Test {
         assertEq(Type::Int, call_builtin_function("type", 1));
 
         foreach string str in (Str, strmul("x", 99999)) {
+            testEncryption("des", str, \des_encrypt_cbc(), \des_decrypt_cbc_to_string());
+            testEncryption("des-cfb", str);
+            testEncryption("des-ofb", str);
             testEncryption("desede", str, \des_ede_encrypt_cbc(), \des_ede_decrypt_cbc_to_string());
+            testEncryption("desede-cfb", str);
+            testEncryption("desede-ofb", str);
             testEncryption("desede3", str, \des_ede3_encrypt_cbc(), \des_ede3_decrypt_cbc_to_string());
+            testEncryption("desede3-cfb", str);
+            testEncryption("desede3-ofb", str);
             testEncryption("desx", str, \desx_encrypt_cbc(), \desx_decrypt_cbc_to_string());
             testEncryption("blowfish", str, \blowfish_encrypt_cbc(), \blowfish_decrypt_cbc_to_string());
+            testEncryption("blowfish-cfb", str);
+            testEncryption("blowfish-ofb", str);
             testEncryption("rc2", str, \rc2_encrypt_cbc(), \rc2_decrypt_cbc_to_string());
+            testEncryption("rc2-cfb", str);
+            testEncryption("rc2-ofb", str);
 %ifdef HAVE_RC4
             testEncryption("rc4", str, \rc4_encrypt_cbc(), \rc4_decrypt_cbc_to_string());
 %endif
             testEncryption("cast5", str, \cast5_encrypt_cbc(), \cast5_decrypt_cbc_to_string());
+            testEncryption("cast5-cfb", str);
+            testEncryption("cast5-ofb", str);
 
             binary bkey = des_random_key();
             binary x = des_encrypt_cbc(str, bkey);
@@ -51,7 +64,7 @@ public class CryptoTest inherits QUnit::Test {
         }
     }
 
-    testEncryption(string alg, string str = Str, code enc_func, code dec_func) {
+    testEncryption(string alg, string str = Str, *code enc_func, *code dec_func) {
         binary x1 = encrypt(alg, str, Key);
 
         hash h = get_crypto_info(){alg};
