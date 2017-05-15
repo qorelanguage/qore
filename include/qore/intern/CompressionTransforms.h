@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,8 +42,8 @@ public:
 
    static constexpr int64 LEVEL_DEFAULT = -1;
 
-   static Transform *getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink);
-   static Transform *getDecompressor(const QoreStringNode *alg, ExceptionSink *xsink);
+   DLLLOCAL static Transform *getCompressor(const QoreStringNode *alg, int64 level, ExceptionSink *xsink);
+   DLLLOCAL static Transform *getDecompressor(const QoreStringNode *alg, ExceptionSink *xsink);
 };
 
 #endif // _QORE_COMPRESSIONTRANSFORMS_H

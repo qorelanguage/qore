@@ -578,6 +578,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreValue.cpp
     lib/StreamPipe.cpp
     lib/CompressionTransforms.cpp
+    lib/EncryptionTransforms.cpp
+    lib/Transform.cpp
     lib/QorePseudoMethods.cpp
     lib/xxhash.cpp
     lib/minitest.cpp
