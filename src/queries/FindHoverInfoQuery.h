@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.h
+  FindHoverInfoQuery.h
 
   Qore AST Parser
 
@@ -25,31 +25,33 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREESEARCHER_H
-#define _QLS_ASTTREESEARCHER_H
+#ifndef _QLS_QUERIES_FINDHOVERINFOQUERY_H
+#define _QLS_QUERIES_FINDHOVERINFOQUERY_H
 
-#include <string>
 #include <vector>
 
-#include "ast/ASTHoverInfo.h"
+#include "ast/ASTName.h"
 #include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
+#include "ast/ASTHoverInfo.h"
 
-class ASTNode;
+class ASTClassDeclaration;
 class ASTTree;
 
-class AstTreeSearcher {
+class FindHoverInfoQuery {
 public:
-    AstTreeSearcher() = delete;
-    AstTreeSearcher(const AstTreeSearcher& other) = delete;
+    FindHoverInfoQuery() = delete;
+    FindHoverInfoQuery(const FindHoverInfoQuery& other) = delete;
 
-    static ASTHoverInfo findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
+    static ASTHoverInfo find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+
+private:
+    //static void classHoverInfo(ASTHoverInfo& hi, ASTClassDeclaration* d);
+
+    static ASTHoverInfo nextRound(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+
+    static ASTHoverInfo inDeclaration(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTHoverInfo inExpression(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTHoverInfo inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
 };
 
-#endif // _QLS_ASTTREESEARCHER_H
+#endif // _QLS_QUERIES_FINDHOVERINFOQUERY_H

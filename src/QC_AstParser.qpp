@@ -33,9 +33,36 @@
 #include "qore/Qore.h"
 
 #include "AstParserHolder.h"
+#include "AstPrinter.h"
 #include "AstTreePrinter.h"
+#include "ast/ASTDeclaration.h"
 #include "ast/ASTParseError.h"
 #include "ast/ASTSymbolInfo.h"
+
+int64_t getSymbolKind(ASTDeclaration* decl) {
+    switch (decl->getKind()) {
+        case ASTDeclaration::Kind::ADK_Class:
+            return static_cast<int64_t>(ASYK_Class);
+        case ASTDeclaration::Kind::ADK_Closure:
+            break;
+        case ASTDeclaration::Kind::ADK_Constant:
+            return static_cast<int64_t>(ASYK_Constant);
+        case ASTDeclaration::Kind::ADK_Function:
+            return static_cast<int64_t>(ASYK_Function);
+        case ASTDeclaration::Kind::ADK_MemberGroup:
+            break;
+        case ASTDeclaration::Kind::ADK_Namespace:
+            return static_cast<int64_t>(ASYK_Namespace);
+        case ASTDeclaration::Kind::ADK_Superclass:
+            return static_cast<int64_t>(ASYK_Class);
+        case ASTDeclaration::Kind::ADK_Variable:
+            return static_cast<int64_t>(ASYK_Variable);
+        case ASTDeclaration::Kind::ADK_VarList:
+        default:
+            break;
+    }
+    return static_cast<int64_t>(ASYK_None);
+}
 
 //! AstParser class
 /** Lorem ipsum dolor sit amet.
@@ -133,24 +160,97 @@ int AstParser::getErrorCount() {
 
 //! Hover info.
 /**
+    @param kind symbol kind
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
     @return hash with hover info
  */
-*hash AstParser::hover(int line, int col) {
-    ASTNode* node = aph->findNode(line+1, col+1);
-    if (!node)
+*hash AstParser::hoverInfo(int kind, int line, int col) {
+    std::unique_ptr<std::vector<ASTNode*> > nodes(aph->findNodeAndParents(line+1, col+1));
+    if (!nodes)
+        return nullptr;
+
+    if (kind == static_cast<int64_t>(ASYK_Method))
+        kind = static_cast<int64_t>(ASYK_Function);
+    if (kind == static_cast<int64_t>(ASYK_Constructor))
+        kind = static_cast<int64_t>(ASYK_Function);
+
+    ASTDeclaration* decl = nullptr;
+    for (size_t i = 0, count = nodes->size(); i < count; i++) {
+        if (nodes->at(i)->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* d = static_cast<ASTDeclaration*>(nodes->at(i));
+            if (d && getSymbolKind(d) == kind) {
+                decl = d;
+                break;
+            }
+        }
+    }
+
+    if (!decl)
         return nullptr;
 
     ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
+    ReferenceHolder<QoreListNode> contents(new QoreListNode, xsink);
     if (xsink && *xsink)
         return nullptr;
-    if (!start || !end || !range || !result)
+    if (!start || !end || !range || !result || !contents)
         return nullptr;
-    start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
+    start->setKeyValue("line", new QoreBigIntNode(decl->loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(decl->loc.firstCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    end->setKeyValue("line", new QoreBigIntNode(decl->loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(decl->loc.lastCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    range->setKeyValue("start", start.release(), xsink);
+    range->setKeyValue("end", end.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    std::ostringstream hoverInfo;
+    if (kind == ASYK_Class)
+        AstPrinter::printClassSignature(hoverInfo, reinterpret_cast<ASTClassDeclaration*>(decl));
+    else if (kind == ASYK_Constant)
+        AstPrinter::printConstantSignature(hoverInfo, reinterpret_cast<ASTConstantDeclaration*>(decl));
+    else if (kind == ASYK_Function)
+        AstPrinter::printFunctionSignature(hoverInfo, reinterpret_cast<ASTFunctionDeclaration*>(decl));
+    else if (kind == ASYK_Variable)
+        AstPrinter::printVariableSignature(hoverInfo, reinterpret_cast<ASTVariableDeclaration*>(decl));
+
+    result->setKeyValue("contents", new QoreStringNode(hoverInfo.str()), xsink);
+    result->setKeyValue("range", range.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    return result.release();
+}
+
+//! Hover info.
+/**
+    @param line on what line lies the symbol we want to get info about
+    @param col on what column lies the symbol we want to get info about
+    @return hash with hover info
+ */
+*hash AstParser::hover(int line, int col) {
+    //ASTNode* node = aph->findNode(line+1, col+1);
+    ASTHoverInfo si = std::move(aph->findHoverInfo(line+1, col+1));
+    /*if (!node)
+        return nullptr;*/
+
+    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
+    ReferenceHolder<QoreListNode> contents(new QoreListNode, xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    if (!start || !end || !range || !result || !contents)
+        return nullptr;
+    /*start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
     start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
@@ -168,8 +268,72 @@ int AstParser::getErrorCount() {
     result->setKeyValue("contents", new QoreStringNode(nodeName.str()), xsink);
     result->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
+        return nullptr;*/
+
+    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+    if (xsink && *xsink)
         return nullptr;
+    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    range->setKeyValue("start", start.release(), xsink);
+    range->setKeyValue("end", end.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    /*for (size_t i = 0, count = si.strings.size(); i < count; i++)
+        contents->push(new QoreStringNode(si.strings[i]));
+
+    result->setKeyValue("contents", contents.release(), xsink);*/
+    result->setKeyValue("contents", new QoreStringNode(si.name), xsink);
+    result->setKeyValue("range", range.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
     return result.release();
+}
+
+//! Hover info.
+/**
+    @param line on what line lies the symbol we want to get info about
+    @param col on what column lies the symbol we want to get info about
+    @return hash with hover info
+ */
+*hash AstParser::hoverInfo(int line, int col) {
+    ASTHoverInfo hi = std::move(aph->findHoverInfo(line+1, col+1));
+
+    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> hoverInfo(new QoreHashNode, xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    if (!start || !end || !range || !hoverInfo)
+        return nullptr;
+
+    start->setKeyValue("line", new QoreBigIntNode(hi.loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(hi.loc.firstCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    end->setKeyValue("line", new QoreBigIntNode(hi.loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(hi.loc.lastCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    range->setKeyValue("start", start.release(), xsink);
+    range->setKeyValue("end", end.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(hi.kind)), xsink);
+    hoverInfo->setKeyValue("hiKind", new QoreBigIntNode(static_cast<int64_t>(hi.hiKind)), xsink);
+    hoverInfo->setKeyValue("name", new QoreStringNode(hi.name), xsink);
+    hoverInfo->setKeyValue("range", range.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    return hoverInfo.release();
 }
 
 //! Find symbol references

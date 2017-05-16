@@ -194,6 +194,34 @@ public class Document {
         return results;
     }
 
+    #! Return hover info about symbol at the passed position.
+    *hash hoverInfo(hash Position) {
+        return parser.hoverInfo(Position.line, Position.character);
+    }
+
+    #! Return hover info about symbol at the passed position.
+    *hash hoverInfo(int kind, hash Position) {
+        int line = Position.line;
+        int char = Position.character;
+        if (!parseOk) {
+            return {
+                "contents": parseError,
+                "range": {
+                    "start": {
+                        "line": line,
+                        "character": char
+                    },
+                    "end": {
+                        "line": line,
+                        "character": char+1
+                    }
+                }
+            };
+        }
+
+        return parser.hoverInfo(kind, line, char);
+    }
+
     #! Find references of the symbol at the passed position.
     *list findReferences(hash Position, bool includeDecl) {
         int line = Position.line;

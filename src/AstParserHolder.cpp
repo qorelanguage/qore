@@ -56,8 +56,20 @@ void AstParserHolder::printTree(std::ostream& os) {
     parser->printTree(os);
 }
 
+ASTHoverInfo AstParserHolder::findHoverInfo(ast_loc_t line, ast_loc_t col) {
+    return std::move(parser->findHoverInfo(line, col));
+}
+
+std::vector<ASTSymbolInfo>* AstParserHolder::findMatchingSymbols(const std::string& query) {
+    return parser->findMatchingSymbols(query);
+}
+
 ASTNode* AstParserHolder::findNode(ast_loc_t line, ast_loc_t col) {
     return parser->findNode(line, col);
+}
+
+std::vector<ASTNode*>* AstParserHolder::findNodeAndParents(ast_loc_t line, ast_loc_t col) {
+    return parser->findNodeAndParents(line, col);
 }
 
 std::vector<ASTNode*>* AstParserHolder::findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl) {
@@ -66,10 +78,6 @@ std::vector<ASTNode*>* AstParserHolder::findReferences(ast_loc_t line, ast_loc_t
 
 const std::vector<ASTSymbolInfo>* AstParserHolder::findSymbols() {
     return parser->findSymbols();
-}
-
-std::vector<ASTSymbolInfo>* AstParserHolder::findMatchingSymbols(const std::string& query) {
-    return parser->findMatchingSymbols(query);
 }
 
 ASTTree* AstParserHolder::getTreePtr() {

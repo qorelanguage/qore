@@ -61,6 +61,8 @@ struct ASTSymbolInfo : public ASTNode {
 public:
     ASTSymbolInfo() : ASTNode(), kind(ASYK_None) {}
     ASTSymbolInfo(ASTSymbolKind k, ASTName* n) : ASTNode(n->loc), kind(k), name(n->name) {}
+    ASTSymbolInfo(ASTSymbolKind k, const ASTParseLocation& nloc, std::string&& n) : ASTNode(nloc), kind(k), name(std::move(n)) {}
+    ASTSymbolInfo(ASTSymbolKind k, const ASTParseLocation& nloc, const std::string& n) : ASTNode(nloc), kind(k), name(n) {}
     ASTSymbolInfo(const ASTSymbolInfo& si) : ASTNode(si.loc), kind(si.kind), name(si.name) {}
     ASTSymbolInfo(ASTSymbolInfo&& si) : ASTNode(si.loc), kind(si.kind), name(std::move(si.name)) {}
     ASTSymbolInfo& operator=(const ASTSymbolInfo& si) {

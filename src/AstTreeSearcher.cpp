@@ -30,11 +30,24 @@
 #include <memory>
 
 #include "ast/AST.h"
+#include "queries/FindHoverInfoQuery.h"
 #include "queries/FindMatchingSymbolsQuery.h"
 #include "queries/FindNodeQuery.h"
 #include "queries/FindNodeAndParentsQuery.h"
 #include "queries/FindReferencesQuery.h"
 #include "queries/FindSymbolsQuery.h"
+
+ASTHoverInfo AstTreeSearcher::findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
+    return std::move(FindHoverInfoQuery::find(tree, line, col));
+}
+
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
+    return FindMatchingSymbolsQuery::find(tree, query);
+}
+
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query) {
+    return FindMatchingSymbolsQuery::find(symbols, query);
+}
 
 ASTNode* AstTreeSearcher::findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
     return FindNodeQuery::find(tree, line, col);
@@ -50,12 +63,4 @@ std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std:
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {
     return FindSymbolsQuery::find(tree);
-}
-
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
-    return FindMatchingSymbolsQuery::find(tree, query);
-}
-
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query) {
-    return FindMatchingSymbolsQuery::find(symbols, query);
 }

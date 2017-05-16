@@ -39,8 +39,10 @@ set(CPP_SRC
     src/astparser-module.cpp
     src/AstParser.cpp
     src/AstParserHolder.cpp
+    src/AstPrinter.cpp
     src/AstTreePrinter.cpp
     src/AstTreeSearcher.cpp
+    src/queries/FindHoverInfoQuery.cpp
     src/queries/FindMatchingSymbolsQuery.cpp
     src/queries/FindNodeQuery.cpp
     src/queries/FindNodeAndParentsQuery.cpp

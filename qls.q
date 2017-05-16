@@ -423,7 +423,39 @@ class QLS {
     #! "textDocument/hover" method handler
     private:internal *string meth_td_hover(hash request) {
         Document doc = documents{request.params.textDocument.uri};
-        return make_jsonrpc_response(jsonRpcVer, request.id, doc.hover(request.params.position));
+
+        *hash hoverInfo = doc.hoverInfo(request.params.position);
+        if (!hoverInfo)
+            return make_jsonrpc_response(jsonRpcVer, request.id, doc.hover(request.params.position));
+
+        list symbols = ();
+        string query = hoverInfo.name;
+        map symbols += $1.findMatchingSymbols(query), documents.iterator();
+        map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
+
+        for (int i = symbols.size()-1; i > 0; i--) {
+            if (symbols[i].kind != hoverInfo.kind)
+                splice symbols, i, 1;
+        }
+        /*hash result = { "contents": list(), "range": hoverInfo.range };
+        foreach hash symbol in (symbols) {
+            string str = symbol.location.uri;
+            str += ":" + symbol.location.range.start.line;
+            str += ":" + symbol.location.range.start.character;
+            str += ": " + symbol.name + sprintf(" (kind: %d)", symbol.kind);
+            result.contents += str;
+        }
+
+        return make_jsonrpc_response(jsonRpcVer, request.id, result);*/
+        *hash result;
+        if (documents{symbols[0].location.uri}) {
+            result = documents{symbols[0].location.uri}.hoverInfo(symbols[0].kind, symbols[0].location.range.start);
+        }
+        else {
+            result = workspaceDocs{symbols[0].location.uri}.hoverInfo(symbols[0].kind, symbols[0].location.range.start);
+        }
+
+        return make_jsonrpc_response(jsonRpcVer, request.id, result ? result : hash());
     }
 
     #! "textDocument/signatureHelp" method handler
