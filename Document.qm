@@ -231,14 +231,23 @@ public class Document {
     }
 
     #! Find all symbols.
-    *list findSymbols() {
-        *list symbols = parser.findSymbols(uri);
+    /**
+        @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+        @return list of symbols
+    */
+    *list findSymbols(bool bareNames = False) {
+        *list symbols = parser.findSymbols(uri, bareNames);
         return symbols;
     }
 
     #! Find matching symbols.
-    list findMatchingSymbols(string query) {
-        *list symbols = parser.findMatchingSymbols(uri, query);
+    /**
+        @param query search query
+        @param exactMatch whether to only find exact matches
+        @return list of symbols
+    */
+    list findMatchingSymbols(string query, bool exactMatch = False) {
+        *list symbols = parser.findMatchingSymbols(uri, query, exactMatch);
         return symbols ?? list();
     }
 }

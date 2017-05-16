@@ -59,12 +59,12 @@ public:
 
     void printTree(std::ostream& os);
 
-    std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query);
+    std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query, bool exactMatch = false);
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findNodeAndParents(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
     ASTSymbolInfo findSymbolInfo(ast_loc_t line, ast_loc_t col);
-    const std::vector<ASTSymbolInfo>* findSymbols();
+    const std::vector<ASTSymbolInfo>* findSymbols(bool bareNames = false);
 
     ASTTree* getTreePtr();
     ASTTree* releaseTree();

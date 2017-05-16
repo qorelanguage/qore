@@ -42,13 +42,13 @@ public:
     AstTreeSearcher() = delete;
     AstTreeSearcher(const AstTreeSearcher& other) = delete;
 
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
+    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch = false);
+    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch = false);
     static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
     static ASTSymbolInfo findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
+    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree, bool bareNames = false);
 };
 
 #endif // _QLS_ASTTREESEARCHER_H

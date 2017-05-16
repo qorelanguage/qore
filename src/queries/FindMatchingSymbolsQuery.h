@@ -44,9 +44,10 @@ public:
     /**
         @param tree tree to search
         @param query search query
+        @param exactMatch whether to only find exact matches
         @return new list of matching symbols
     */
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query);
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query, bool exactMatch);
 
     //! Find matching symbols in the given symbol list.
     /**
@@ -54,11 +55,11 @@ public:
         @param query search query
         @return new list of matching symbols
     */
-    static std::vector<ASTSymbolInfo>* find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
+    static std::vector<ASTSymbolInfo>* find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch);
 
 private:
-    static bool matches(const std::string& name, const std::string& query);
-    static void filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query);
+    static bool matches(const std::string& name, const std::string& query, bool exactMatch);
+    static void filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query, bool exactMatch);
 };
 
 #endif // _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H

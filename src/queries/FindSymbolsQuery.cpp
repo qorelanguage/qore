@@ -356,7 +356,10 @@ void FindSymbolsQuery::inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement
     }
 }
 
-void FindSymbolsQuery::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+void FindSymbolsQuery::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+    if (bareNames)
+        return;
+
     size_t nextNode = 0;
     size_t nodeCount = nodes->size();
     for (; nextNode < nodeCount; nextNode++) {
@@ -382,7 +385,10 @@ void FindSymbolsQuery::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* no
     }
 }
 
-void FindSymbolsQuery::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+void FindSymbolsQuery::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+    if (bareNames)
+        return;
+
     size_t nextNode = 0;
     size_t nodeCount = nodes->size();
     for (; nextNode < nodeCount; nextNode++) {
@@ -410,7 +416,7 @@ void FindSymbolsQuery::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>*
     }
 }
 
-void FindSymbolsQuery::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+void FindSymbolsQuery::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
     size_t nextNode = 0;
     size_t nodeCount = nodes->size();
     for (; nextNode < nodeCount; nextNode++) {
@@ -430,16 +436,21 @@ void FindSymbolsQuery::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>*
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
             if (decl->getKind() == ASTDeclaration::Kind::ADK_Class) {
                 si.kind = (si.name == "constructor") ? ASYK_Constructor : ASYK_Method;
-                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+                if (!bareNames)
+                    si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
             }
             else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace) {
-                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+                if (!bareNames)
+                    si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
             }
         }
     }
 }
 
-void FindSymbolsQuery::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes) {
+void FindSymbolsQuery::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+    if (bareNames)
+        return;
+
     size_t nextNode = 0;
     size_t nodeCount = nodes->size();
     for (; nextNode < nodeCount; nextNode++) {
@@ -467,7 +478,7 @@ void FindSymbolsQuery::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>*
     }
 }
 
-void FindSymbolsQuery::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec) {
+void FindSymbolsQuery::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec, bool bareNames) {
     for (unsigned int i = 0, count = vec->size(); i < count; i++) {
         ASTSymbolInfo& si = vec->at(i);
 
@@ -486,20 +497,20 @@ void FindSymbolsQuery::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>*
         // Fix the symbol info.
         switch (si.kind) {
             case ASYK_Class:
-                fixClassInfo(si, nodes.get()); break;
+                fixClassInfo(si, nodes.get(), bareNames); break;
             case ASYK_Constant:
-                fixConstantInfo(si, nodes.get()); break;
+                fixConstantInfo(si, nodes.get(), bareNames); break;
             case ASYK_Function:
-                fixFunctionInfo(si, nodes.get()); break;
+                fixFunctionInfo(si, nodes.get(), bareNames); break;
             case ASYK_Variable:
-                fixVariableInfo(si, nodes.get()); break;
+                fixVariableInfo(si, nodes.get(), bareNames); break;
             default:
                 break;
         }
     }
 }
 
-std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree) {
+std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree, bool bareNames) {
     if (!tree)
         return nullptr;
 
@@ -536,6 +547,6 @@ std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree) {
         }
     }
 
-    fixSymbolInfos(tree, vec.get());
+    fixSymbolInfos(tree, vec.get(), bareNames);
     return vec.release();
 }

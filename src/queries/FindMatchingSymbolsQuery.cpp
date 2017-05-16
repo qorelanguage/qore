@@ -40,7 +40,13 @@ static void copyLwr(const char* src, char* dest, size_t n) {
         dest[i] = '\0';
 }
 
-bool FindMatchingSymbolsQuery::matches(const std::string& name, const std::string& query) {
+bool FindMatchingSymbolsQuery::matches(const std::string& name, const std::string& query, bool exactMatch) {
+    if (exactMatch) {
+        if (name == query)
+            return true;
+        return false;
+    }
+
     const char* q = query.c_str();
     char first[3];
     first[0] = q[0];
@@ -66,28 +72,28 @@ bool FindMatchingSymbolsQuery::matches(const std::string& name, const std::strin
     return false;
 }
 
-void FindMatchingSymbolsQuery::filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query) {
+void FindMatchingSymbolsQuery::filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query, bool exactMatch) {
     if (query.empty() || vec->empty())
         return;
     for (int i = vec->size()-1; i >= 0; i--) {
-        if (!matches(vec->at(i).name, query))
+        if (!matches(vec->at(i).name, query, exactMatch))
             vec->erase(vec->begin()+i);
     }
 }
 
-std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const std::string& query) {
+std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const std::string& query, bool exactMatch) {
     if (!tree)
         return nullptr;
 
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(FindSymbolsQuery::find(tree));
-    filterByQuery(vec.get(), query);
+    filterByQuery(vec.get(), query, exactMatch);
 
     return vec.release();
 }
 
-std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query) {
+std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch) {
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(new std::vector<ASTSymbolInfo>(*symbols));
-    filterByQuery(vec.get(), query);
+    filterByQuery(vec.get(), query, exactMatch);
 
     return vec.release();
 }

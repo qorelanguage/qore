@@ -385,10 +385,11 @@ int AstParser::getErrorCount() {
 //! Find all symbols in a document.
 /**
     @param uri document's uri
+    @param bareNames whether to return bare symbol names (without namespace and class prefixes)
     @return list of symbols
  */
-*list AstParser::findSymbols(string uri) {
-    const std::vector<ASTSymbolInfo>* vec = aph->findSymbols();
+*list AstParser::findSymbols(string uri, bool bareNames = False) {
+    const std::vector<ASTSymbolInfo>* vec = aph->findSymbols(bareNames);
     if (!vec)
         return nullptr;
 
@@ -436,11 +437,12 @@ int AstParser::getErrorCount() {
 /**
     @param uri document's uri
     @param query search query
+    @param exactMatch whether to only find exact matches
     @return list of symbols
  */
-*list AstParser::findMatchingSymbols(string uri, string query) {
+*list AstParser::findMatchingSymbols(string uri, string query, bool exactMatch = False) {
     std::string queryStr(query->c_str());
-    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(aph->findMatchingSymbols(queryStr));
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(aph->findMatchingSymbols(queryStr, exactMatch));
     if (!vec)
         return nullptr;
 

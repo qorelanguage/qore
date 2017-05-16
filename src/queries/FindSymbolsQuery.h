@@ -43,7 +43,13 @@ public:
     FindSymbolsQuery() = delete;
     FindSymbolsQuery(const FindSymbolsQuery& other) = delete;
 
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree);
+    //! Find all symbols in the given tree.
+    /**
+        @param tree tree to search
+        @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+        @return new list of matching symbols
+    */
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, bool bareNames = false);
 
 private:
     static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
@@ -52,11 +58,11 @@ private:
     static void inName(std::vector<ASTSymbolInfo>* vec, ASTName* name);
     static void inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt);
 
-    static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
-    static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
-    static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
-    static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes);
-    static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec);
+    static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec, bool bareNames);
 };
 
 #endif // _QLS_QUERIES_FINDSYMBOLSQUERY_H

@@ -430,8 +430,8 @@ class QLS {
 
         list symbols = ();
         string query = symbolInfo.name;
-        map symbols += $1.findMatchingSymbols(query), documents.iterator();
-        map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
+        map symbols += $1.findMatchingSymbols(query, True), documents.iterator();
+        map symbols += $1.findMatchingSymbols(query, True), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
             if (symbols[i].kind != symbolInfo.kind)
@@ -511,8 +511,8 @@ class QLS {
 
         list symbols = ();
         string query = symbolInfo.name;
-        map symbols += $1.findMatchingSymbols(query), documents.iterator();
-        map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
+        map symbols += $1.findMatchingSymbols(query, True), documents.iterator();
+        map symbols += $1.findMatchingSymbols(query, True), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
             if (symbols[i].kind != symbolInfo.kind)
