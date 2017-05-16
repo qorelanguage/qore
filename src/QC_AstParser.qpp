@@ -189,16 +189,15 @@ int AstParser::getErrorCount() {
     if (!decl)
         return nullptr;
 
-    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+    /*ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
-    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);*/
     ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
-    ReferenceHolder<QoreListNode> contents(new QoreListNode, xsink);
     if (xsink && *xsink)
         return nullptr;
-    if (!start || !end || !range || !result || !contents)
+    if (/*!start || !end || !range || */!result /*|| !contents*/)
         return nullptr;
-    start->setKeyValue("line", new QoreBigIntNode(decl->loc.firstLine-1), xsink);
+    /*start->setKeyValue("line", new QoreBigIntNode(decl->loc.firstLine-1), xsink);
     start->setKeyValue("character", new QoreBigIntNode(decl->loc.firstCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
@@ -209,7 +208,7 @@ int AstParser::getErrorCount() {
     range->setKeyValue("start", start.release(), xsink);
     range->setKeyValue("end", end.release(), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return nullptr;*/
 
     std::ostringstream hoverInfo;
     if (kind == ASYK_Class)
@@ -221,8 +220,8 @@ int AstParser::getErrorCount() {
     else if (kind == ASYK_Variable)
         AstPrinter::printVariableSignature(hoverInfo, reinterpret_cast<ASTVariableDeclaration*>(decl));
 
-    result->setKeyValue("contents", new QoreStringNode(hoverInfo.str()), xsink);
-    result->setKeyValue("range", range.release(), xsink);
+    result->setKeyValue("description", new QoreStringNode(hoverInfo.str()), xsink);
+    //result->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
         return nullptr;
 

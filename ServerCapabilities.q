@@ -70,7 +70,7 @@ const ServerCapabilities = {
     /**
      * The server provides goto definition support.
      */
-    #"definitionProvider": "false",
+    "definitionProvider": "true",
 
     /**
      * The server provides find references support.

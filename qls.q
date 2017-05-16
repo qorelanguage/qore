@@ -447,15 +447,19 @@ class QLS {
         }
 
         return make_jsonrpc_response(jsonRpcVer, request.id, result);*/
-        *hash result;
-        if (documents{symbols[0].location.uri}) {
-            result = documents{symbols[0].location.uri}.hoverInfo(symbols[0].kind, symbols[0].location.range.start);
-        }
-        else {
-            result = workspaceDocs{symbols[0].location.uri}.hoverInfo(symbols[0].kind, symbols[0].location.range.start);
+        hash result = { "range": hoverInfo.range, "contents": list() };
+        foreach hash symbol in (symbols) {
+            *hash description;
+            if (documents{symbol.location.uri})
+                description = documents{symbol.location.uri}.hoverInfo(symbol.kind, symbol.location.range.start);
+            else
+                description = workspaceDocs{symbol.location.uri}.hoverInfo(symbol.kind, symbol.location.range.start);
+
+            if (description)
+                result.contents += description.description;
         }
 
-        return make_jsonrpc_response(jsonRpcVer, request.id, result ? result : hash());
+        return make_jsonrpc_response(jsonRpcVer, request.id, result);
     }
 
     #! "textDocument/signatureHelp" method handler
@@ -499,7 +503,23 @@ class QLS {
 
     #! "textDocument/definition" method handler
     private:internal *string meth_td_definition(hash request) {
-        return ErrorResponse::invalidRequest(request);
+        Document doc = documents{request.params.textDocument.uri};
+
+        *hash hoverInfo = doc.hoverInfo(request.params.position);
+        if (!hoverInfo)
+            return make_jsonrpc_response(jsonRpcVer, request.id, list());
+
+        list symbols = ();
+        string query = hoverInfo.name;
+        map symbols += $1.findMatchingSymbols(query), documents.iterator();
+        map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
+
+        for (int i = symbols.size()-1; i > 0; i--) {
+            if (symbols[i].kind != hoverInfo.kind)
+                splice symbols, i, 1;
+        }
+        list result = map $1.location, symbols;
+        return make_jsonrpc_response(jsonRpcVer, request.id, result);
     }
 
     #! "textDocument/codeAction" method handler
