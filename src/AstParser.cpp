@@ -138,7 +138,7 @@ void AstParser::printTree(std::ostream& os) {
     AstTreePrinter::printTree(os, parsedTree.get());
 }
 
-ASTHoverInfo AstParser::findHoverInfo(ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo AstParser::findHoverInfo(ast_loc_t line, ast_loc_t col) {
     return std::move(AstTreeSearcher::findHoverInfo(parsedTree.get(), line, col));
 }
 

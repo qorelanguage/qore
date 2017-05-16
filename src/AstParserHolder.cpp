@@ -56,7 +56,7 @@ void AstParserHolder::printTree(std::ostream& os) {
     parser->printTree(os);
 }
 
-ASTHoverInfo AstParserHolder::findHoverInfo(ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo AstParserHolder::findHoverInfo(ast_loc_t line, ast_loc_t col) {
     return std::move(parser->findHoverInfo(line, col));
 }
 

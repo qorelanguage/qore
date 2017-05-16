@@ -32,7 +32,7 @@
 
 #include "ast/ASTName.h"
 #include "ast/ASTParseLocation.h"
-#include "ast/ASTHoverInfo.h"
+#include "ast/ASTSymbolInfo.h"
 
 class ASTClassDeclaration;
 class ASTTree;
@@ -42,16 +42,16 @@ public:
     FindHoverInfoQuery() = delete;
     FindHoverInfoQuery(const FindHoverInfoQuery& other) = delete;
 
-    static ASTHoverInfo find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
 private:
-    //static void classHoverInfo(ASTHoverInfo& hi, ASTClassDeclaration* d);
+    //static void classHoverInfo(ASTSymbolInfo& hi, ASTClassDeclaration* d);
 
-    static ASTHoverInfo nextRound(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo nextRound(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
 
-    static ASTHoverInfo inDeclaration(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
-    static ASTHoverInfo inExpression(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
-    static ASTHoverInfo inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo inDeclaration(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo inExpression(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
 };
 
 #endif // _QLS_QUERIES_FINDHOVERINFOQUERY_H

@@ -236,7 +236,7 @@ int AstParser::getErrorCount() {
  */
 *hash AstParser::hover(int line, int col) {
     //ASTNode* node = aph->findNode(line+1, col+1);
-    ASTHoverInfo si = std::move(aph->findHoverInfo(line+1, col+1));
+    ASTSymbolInfo si = std::move(aph->findHoverInfo(line+1, col+1));
     /*if (!node)
         return nullptr;*/
 
@@ -301,7 +301,7 @@ int AstParser::getErrorCount() {
     @return hash with hover info
  */
 *hash AstParser::hoverInfo(int line, int col) {
-    ASTHoverInfo hi = std::move(aph->findHoverInfo(line+1, col+1));
+    ASTSymbolInfo si = std::move(aph->findHoverInfo(line+1, col+1));
 
     ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
@@ -312,12 +312,12 @@ int AstParser::getErrorCount() {
     if (!start || !end || !range || !hoverInfo)
         return nullptr;
 
-    start->setKeyValue("line", new QoreBigIntNode(hi.loc.firstLine-1), xsink);
-    start->setKeyValue("character", new QoreBigIntNode(hi.loc.firstCol-1), xsink);
+    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
-    end->setKeyValue("line", new QoreBigIntNode(hi.loc.lastLine-1), xsink);
-    end->setKeyValue("character", new QoreBigIntNode(hi.loc.lastCol-1), xsink);
+    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
     if (xsink && *xsink)
         return nullptr;
     range->setKeyValue("start", start.release(), xsink);
@@ -325,9 +325,9 @@ int AstParser::getErrorCount() {
     if (xsink && *xsink)
         return nullptr;
 
-    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(hi.kind)), xsink);
-    hoverInfo->setKeyValue("hiKind", new QoreBigIntNode(static_cast<int64_t>(hi.hiKind)), xsink);
-    hoverInfo->setKeyValue("name", new QoreStringNode(hi.name), xsink);
+    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+    hoverInfo->setKeyValue("usage", new QoreBigIntNode(static_cast<int64_t>(si.usage)), xsink);
+    hoverInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
     hoverInfo->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
         return nullptr;

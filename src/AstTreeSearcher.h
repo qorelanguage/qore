@@ -31,7 +31,6 @@
 #include <string>
 #include <vector>
 
-#include "ast/ASTHoverInfo.h"
 #include "ast/ASTParseLocation.h"
 #include "ast/ASTSymbolInfo.h"
 
@@ -43,7 +42,7 @@ public:
     AstTreeSearcher() = delete;
     AstTreeSearcher(const AstTreeSearcher& other) = delete;
 
-    static ASTHoverInfo findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
+    static ASTSymbolInfo findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query);
     static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
     static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);

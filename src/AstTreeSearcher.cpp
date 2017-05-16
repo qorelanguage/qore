@@ -37,7 +37,7 @@
 #include "queries/FindReferencesQuery.h"
 #include "queries/FindSymbolsQuery.h"
 
-ASTHoverInfo AstTreeSearcher::findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo AstTreeSearcher::findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
     return std::move(FindHoverInfoQuery::find(tree, line, col));
 }
 

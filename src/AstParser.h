@@ -35,7 +35,6 @@
 
 #include "AstParseErrorLog.h"
 
-#include "ast/ASTHoverInfo.h"
 #include "ast/ASTParseLocation.h"
 #include "ast/ASTSymbolInfo.h"
 #include "ast/ASTTree.h"
@@ -58,7 +57,7 @@ public:
 
     void printTree(std::ostream& os);
 
-    ASTHoverInfo findHoverInfo(ast_loc_t line, ast_loc_t col);
+    ASTSymbolInfo findHoverInfo(ast_loc_t line, ast_loc_t col);
     std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query);
     ASTNode* findNode(ast_loc_t line, ast_loc_t col);
     std::vector<ASTNode*>* findNodeAndParents(ast_loc_t line, ast_loc_t col);
