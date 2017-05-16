@@ -33,8 +33,11 @@
 #include "queries/FindSymbolsQuery.h"
 
 static void copyLwr(const char* src, char* dest, size_t n) {
-    for (size_t i = 0; i < n && src[i]; i++)
+    size_t i = 0;
+    for (; i < n && src[i]; i++)
         dest[i] = (src[i] > 64 && src[i] < 91) ? src[i]+32 : src[i];
+    if (i < n)
+        dest[i] = '\0';
 }
 
 bool FindMatchingSymbolsQuery::matches(const std::string& name, const std::string& query) {
