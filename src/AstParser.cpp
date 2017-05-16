@@ -138,10 +138,6 @@ void AstParser::printTree(std::ostream& os) {
     AstTreePrinter::printTree(os, parsedTree.get());
 }
 
-ASTSymbolInfo AstParser::findHoverInfo(ast_loc_t line, ast_loc_t col) {
-    return std::move(AstTreeSearcher::findHoverInfo(parsedTree.get(), line, col));
-}
-
 std::vector<ASTSymbolInfo>* AstParser::findMatchingSymbols(const std::string& query) {
     return AstTreeSearcher::findMatchingSymbols(findSymbols(), query);
 }
@@ -175,6 +171,10 @@ std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, 
         }
     }
     return vec.release();
+}
+
+ASTSymbolInfo AstParser::findSymbolInfo(ast_loc_t line, ast_loc_t col) {
+    return std::move(AstTreeSearcher::findSymbolInfo(parsedTree.get(), line, col));
 }
 
 const std::vector<ASTSymbolInfo>* AstParser::findSymbols() {

@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  FindHoverInfoQuery.h
+  FindSymbolInfoQuery.h
 
   Qore AST Parser
 
@@ -25,8 +25,8 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_QUERIES_FINDHOVERINFOQUERY_H
-#define _QLS_QUERIES_FINDHOVERINFOQUERY_H
+#ifndef _QLS_QUERIES_FINDSYMBOLINFOQUERY_H
+#define _QLS_QUERIES_FINDSYMBOLINFOQUERY_H
 
 #include <vector>
 
@@ -34,13 +34,13 @@
 #include "ast/ASTParseLocation.h"
 #include "ast/ASTSymbolInfo.h"
 
-class ASTClassDeclaration;
+//class ASTClassDeclaration;
 class ASTTree;
 
-class FindHoverInfoQuery {
+class FindSymbolInfoQuery {
 public:
-    FindHoverInfoQuery() = delete;
-    FindHoverInfoQuery(const FindHoverInfoQuery& other) = delete;
+    FindSymbolInfoQuery() = delete;
+    FindSymbolInfoQuery(const FindSymbolInfoQuery& other) = delete;
 
     static ASTSymbolInfo find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
@@ -54,4 +54,4 @@ private:
     static ASTSymbolInfo inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col);
 };
 
-#endif // _QLS_QUERIES_FINDHOVERINFOQUERY_H
+#endif // _QLS_QUERIES_FINDSYMBOLINFOQUERY_H

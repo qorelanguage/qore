@@ -424,20 +424,20 @@ class QLS {
     private:internal *string meth_td_hover(hash request) {
         Document doc = documents{request.params.textDocument.uri};
 
-        *hash hoverInfo = doc.hoverInfo(request.params.position);
-        if (!hoverInfo)
+        *hash symbolInfo = doc.findSymbolInfo(request.params.position);
+        if (!symbolInfo)
             return make_jsonrpc_response(jsonRpcVer, request.id, doc.hover(request.params.position));
 
         list symbols = ();
-        string query = hoverInfo.name;
+        string query = symbolInfo.name;
         map symbols += $1.findMatchingSymbols(query), documents.iterator();
         map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
-            if (symbols[i].kind != hoverInfo.kind)
+            if (symbols[i].kind != symbolInfo.kind)
                 splice symbols, i, 1;
         }
-        /*hash result = { "contents": list(), "range": hoverInfo.range };
+        /*hash result = { "contents": list(), "range": symbolInfo.range };
         foreach hash symbol in (symbols) {
             string str = symbol.location.uri;
             str += ":" + symbol.location.range.start.line;
@@ -447,7 +447,7 @@ class QLS {
         }
 
         return make_jsonrpc_response(jsonRpcVer, request.id, result);*/
-        hash result = { "range": hoverInfo.range, "contents": list() };
+        hash result = { "range": symbolInfo.range, "contents": list() };
         foreach hash symbol in (symbols) {
             *hash description;
             if (documents{symbol.location.uri})
@@ -505,17 +505,17 @@ class QLS {
     private:internal *string meth_td_definition(hash request) {
         Document doc = documents{request.params.textDocument.uri};
 
-        *hash hoverInfo = doc.hoverInfo(request.params.position);
-        if (!hoverInfo)
+        *hash symbolInfo = doc.findSymbolInfo(request.params.position);
+        if (!symbolInfo)
             return make_jsonrpc_response(jsonRpcVer, request.id, list());
 
         list symbols = ();
-        string query = hoverInfo.name;
+        string query = symbolInfo.name;
         map symbols += $1.findMatchingSymbols(query), documents.iterator();
         map symbols += $1.findMatchingSymbols(query), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
-            if (symbols[i].kind != hoverInfo.kind)
+            if (symbols[i].kind != symbolInfo.kind)
                 splice symbols, i, 1;
         }
         list result = map $1.location, symbols;

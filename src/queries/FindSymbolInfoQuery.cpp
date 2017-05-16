@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  FindHoverInfoQuery.cpp
+  FindSymbolInfoQuery.cpp
 
   Qore AST Parser
 
@@ -25,7 +25,7 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "queries/FindHoverInfoQuery.h"
+#include "queries/FindSymbolInfoQuery.h"
 
 #include <memory>
 #include <string>
@@ -36,7 +36,7 @@
 #include "ast/AST.h"
 #include "queries/FindNodeAndParentsQuery.h"
 
-/*void FindHoverInfoQuery::classHoverInfo(ASTSymbolInfo& hi, ASTClassDeclaration* d) {
+/*void FindSymbolInfoQuery::classHoverInfo(ASTSymbolInfo& hi, ASTClassDeclaration* d) {
     hi.loc = d->loc;
     std::ostringstream os;
     AstPrinter::printClassSignature(os, d);
@@ -98,7 +98,7 @@ ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsag
     return ASTSymbolInfo(sk, suk, name->loc, name->name.name);
 }
 
-ASTSymbolInfo FindHoverInfoQuery::nextRound(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo FindSymbolInfoQuery::nextRound(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
     if (nodes->size() > 0) {
         nodes->erase(nodes->begin());
         if (nodes->size() > 0) {
@@ -114,7 +114,7 @@ ASTSymbolInfo FindHoverInfoQuery::nextRound(std::vector<ASTNode*>* nodes, ast_lo
     return ASTSymbolInfo();
 }
 
-ASTSymbolInfo FindHoverInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
     ASTDeclaration* decl = static_cast<ASTDeclaration*>(nodes->front());
     if (!decl)
         return ASTSymbolInfo();
@@ -175,7 +175,7 @@ ASTSymbolInfo FindHoverInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, as
     return ASTSymbolInfo();
 }
 
-ASTSymbolInfo FindHoverInfoQuery::inExpression(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
     ASTExpression* expr = static_cast<ASTExpression*>(nodes->front());
     if (!expr)
         return ASTSymbolInfo();
@@ -307,7 +307,7 @@ ASTSymbolInfo FindHoverInfoQuery::inExpression(std::vector<ASTNode*>* nodes, ast
     return ASTSymbolInfo();
 }
 
-ASTSymbolInfo FindHoverInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast_loc_t line, ast_loc_t col) {
     ASTStatement* stmt = static_cast<ASTStatement*>(nodes->front());
     if (!stmt)
         return ASTSymbolInfo();
@@ -411,7 +411,7 @@ ASTSymbolInfo FindHoverInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast_
     return ASTSymbolInfo();
 }
 
-ASTSymbolInfo FindHoverInfoQuery::find(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
+ASTSymbolInfo FindSymbolInfoQuery::find(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
     if (!tree)
         return ASTSymbolInfo();
 

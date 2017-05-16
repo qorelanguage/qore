@@ -236,7 +236,7 @@ int AstParser::getErrorCount() {
  */
 *hash AstParser::hover(int line, int col) {
     //ASTNode* node = aph->findNode(line+1, col+1);
-    ASTSymbolInfo si = std::move(aph->findHoverInfo(line+1, col+1));
+    ASTSymbolInfo si = std::move(aph->findSymbolInfo(line+1, col+1));
     /*if (!node)
         return nullptr;*/
 
@@ -294,14 +294,14 @@ int AstParser::getErrorCount() {
     return result.release();
 }
 
-//! Hover info.
+//! Find symbol info.
 /**
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
     @return hash with hover info
  */
-*hash AstParser::hoverInfo(int line, int col) {
-    ASTSymbolInfo si = std::move(aph->findHoverInfo(line+1, col+1));
+*hash AstParser::findSymbolInfo(int line, int col) {
+    ASTSymbolInfo si = std::move(aph->findSymbolInfo(line+1, col+1));
 
     ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);

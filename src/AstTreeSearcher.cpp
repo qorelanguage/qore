@@ -30,16 +30,12 @@
 #include <memory>
 
 #include "ast/AST.h"
-#include "queries/FindHoverInfoQuery.h"
 #include "queries/FindMatchingSymbolsQuery.h"
 #include "queries/FindNodeQuery.h"
 #include "queries/FindNodeAndParentsQuery.h"
 #include "queries/FindReferencesQuery.h"
+#include "queries/FindSymbolInfoQuery.h"
 #include "queries/FindSymbolsQuery.h"
-
-ASTSymbolInfo AstTreeSearcher::findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return std::move(FindHoverInfoQuery::find(tree, line, col));
-}
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query) {
     return FindMatchingSymbolsQuery::find(tree, query);
@@ -59,6 +55,10 @@ std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_lo
 
 std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
     return FindReferencesQuery::find(tree, name);
+}
+
+ASTSymbolInfo AstTreeSearcher::findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
+    return std::move(FindSymbolInfoQuery::find(tree, line, col));
 }
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree) {

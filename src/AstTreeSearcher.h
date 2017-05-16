@@ -42,12 +42,12 @@ public:
     AstTreeSearcher() = delete;
     AstTreeSearcher(const AstTreeSearcher& other) = delete;
 
-    static ASTSymbolInfo findHoverInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query);
     static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query);
     static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* findReferences(ASTTree* tree, const std::string& name);
+    static ASTSymbolInfo findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree);
 };
 

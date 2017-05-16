@@ -42,11 +42,11 @@ set(CPP_SRC
     src/AstPrinter.cpp
     src/AstTreePrinter.cpp
     src/AstTreeSearcher.cpp
-    src/queries/FindHoverInfoQuery.cpp
     src/queries/FindMatchingSymbolsQuery.cpp
     src/queries/FindNodeQuery.cpp
     src/queries/FindNodeAndParentsQuery.cpp
     src/queries/FindReferencesQuery.cpp
+    src/queries/FindSymbolInfoQuery.cpp
     src/queries/FindSymbolsQuery.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp

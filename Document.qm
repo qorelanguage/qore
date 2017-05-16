@@ -194,9 +194,9 @@ public class Document {
         return results;
     }
 
-    #! Return hover info about symbol at the passed position.
-    *hash hoverInfo(hash Position) {
-        return parser.hoverInfo(Position.line, Position.character);
+    #! Find info about symbol at the passed position.
+    *hash findSymbolInfo(hash Position) {
+        return parser.findSymbolInfo(Position.line, Position.character);
     }
 
     #! Return hover info about symbol at the passed position.
