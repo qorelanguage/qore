@@ -36,13 +36,13 @@
 %requires json
 %requires Mime
 
-%requires ./Document.qm
-%requires ./ErrorResponse.qm
-%requires ./Messenger.qm
-%requires ./Notification.qm
+%requires ./qlib/Document.qm
+%requires ./qlib/ErrorResponse.qm
+%requires ./qlib/Messenger.qm
+%requires ./qlib/Notification.qm
 
-%include ./Files.q
-%include ./ServerCapabilities.q
+%include ./qlib/Files.q
+%include ./qlib/ServerCapabilities.q
 
 sub debugLog(string fmt) {
     string str = sprintf("%s: ", format_date("YYYY-MM-DD HH:mm:SS", now()));
