@@ -85,7 +85,7 @@ std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const 
     if (!tree)
         return nullptr;
 
-    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(FindSymbolsQuery::find(tree));
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(FindSymbolsQuery::find(tree, true));
     filterByQuery(vec.get(), query, exactMatch);
 
     return vec.release();

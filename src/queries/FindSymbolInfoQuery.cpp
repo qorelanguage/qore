@@ -217,7 +217,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
         case ASTExpression::Kind::AEK_Case: {
             ASTCaseExpression* e = static_cast<ASTCaseExpression*>(expr);
             if (exprMatches(e->caseExpr.get(), line, col))
-                return std::move(exprHoverInfo(e->caseExpr.get(), ASYK_Variable, ASUK_CaseExpr));
+                return std::move(exprHoverInfo(e->caseExpr.get(), ASYK_Constant, ASUK_CaseExpr));
             break;
         }
         case ASTExpression::Kind::AEK_Cast: {

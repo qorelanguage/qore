@@ -44,6 +44,7 @@ private:
     //! Parsed AST.
     std::unique_ptr<ASTTree> parsedTree;
     std::unique_ptr<std::vector<ASTSymbolInfo> > symbols;
+    std::unique_ptr<std::vector<ASTSymbolInfo> > bareNamesSymbols;
 
 public:
     AstParser() {}

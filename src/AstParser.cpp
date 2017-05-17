@@ -139,7 +139,7 @@ void AstParser::printTree(std::ostream& os) {
 }
 
 std::vector<ASTSymbolInfo>* AstParser::findMatchingSymbols(const std::string& query, bool exactMatch) {
-    return AstTreeSearcher::findMatchingSymbols(findSymbols(), query, exactMatch);
+    return AstTreeSearcher::findMatchingSymbols(findSymbols(true), query, exactMatch);
 }
 
 ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
@@ -178,6 +178,13 @@ ASTSymbolInfo AstParser::findSymbolInfo(ast_loc_t line, ast_loc_t col) {
 }
 
 const std::vector<ASTSymbolInfo>* AstParser::findSymbols(bool bareNames) {
+    if (bareNames) {
+        if (!bareNamesSymbols) {
+            std::unique_ptr<std::vector<ASTSymbolInfo> > syms(AstTreeSearcher::findSymbols(parsedTree.get(), bareNames));
+            bareNamesSymbols = std::move(syms);
+        }
+        return bareNamesSymbols.get();
+    }
     if (!symbols) {
         std::unique_ptr<std::vector<ASTSymbolInfo> > syms(AstTreeSearcher::findSymbols(parsedTree.get(), bareNames));
         symbols = std::move(syms);

@@ -40,6 +40,7 @@
 %requires ./qlib/ErrorResponse.qm
 %requires ./qlib/Messenger.qm
 %requires ./qlib/Notification.qm
+%requires ./qlib/SymbolInfoKinds.qm
 
 %include ./qlib/Files.q
 %include ./qlib/ServerCapabilities.q
@@ -434,19 +435,10 @@ class QLS {
         map symbols += $1.findMatchingSymbols(query, True), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
-            if (symbols[i].kind != symbolInfo.kind)
+            if (!SymbolUsageFastMap{symbolInfo.usage}.contains(symbols[i].kind))
                 splice symbols, i, 1;
         }
-        /*hash result = { "contents": list(), "range": symbolInfo.range };
-        foreach hash symbol in (symbols) {
-            string str = symbol.location.uri;
-            str += ":" + symbol.location.range.start.line;
-            str += ":" + symbol.location.range.start.character;
-            str += ": " + symbol.name + sprintf(" (kind: %d)", symbol.kind);
-            result.contents += str;
-        }
 
-        return make_jsonrpc_response(jsonRpcVer, request.id, result);*/
         hash result = { "range": symbolInfo.range, "contents": list() };
         foreach hash symbol in (symbols) {
             *hash description;
@@ -515,7 +507,7 @@ class QLS {
         map symbols += $1.findMatchingSymbols(query, True), workspaceDocs.iterator();
 
         for (int i = symbols.size()-1; i > 0; i--) {
-            if (symbols[i].kind != symbolInfo.kind)
+            if (!SymbolUsageFastMap{symbolInfo.usage}.contains(symbols[i].kind))
                 splice symbols, i, 1;
         }
         list result = map $1.location, symbols;
