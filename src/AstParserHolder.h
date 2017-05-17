@@ -30,16 +30,10 @@
 
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "qore/Qore.h"
 
-#include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
-
 class AstParser;
-
-class ASTNode;
 class ASTParseError;
 class ASTTree;
 
@@ -51,23 +45,13 @@ public:
     AstParserHolder();
     ~AstParserHolder();
 
-    int parseFile(const char* filename);
-    int parseFile(std::string& filename);
+    ASTTree* parseFile(const char* filename);
+    ASTTree* parseFile(std::string& filename);
 
-    int parseString(const char* str);
-    int parseString(std::string& str);
+    ASTTree* parseString(const char* str);
+    ASTTree* parseString(std::string& str);
 
     void printTree(std::ostream& os);
-
-    std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query, bool exactMatch = false);
-    ASTNode* findNode(ast_loc_t line, ast_loc_t col);
-    std::vector<ASTNode*>* findNodeAndParents(ast_loc_t line, ast_loc_t col);
-    std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
-    ASTSymbolInfo findSymbolInfo(ast_loc_t line, ast_loc_t col);
-    const std::vector<ASTSymbolInfo>* findSymbols(bool bareNames = false);
-
-    ASTTree* getTreePtr();
-    ASTTree* releaseTree();
 
     //! Get the count of reported errors.
     size_t getErrorCount() const;

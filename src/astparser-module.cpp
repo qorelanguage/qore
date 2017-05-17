@@ -31,6 +31,8 @@
 #endif
 
 #include "QC_AstParser.h"
+#include "QC_AstTree.h"
+#include "QC_AstTreeSearcher.h"
 
 QoreStringNode *astparser_module_init();
 void astparser_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
@@ -54,6 +56,8 @@ DLLEXPORT char qore_module_license_str[] = "MIT";
 QoreNamespace AstParserNS("astparser");
 
 QoreStringNode* astparser_module_init() {
+    AstParserNS.addSystemClass(initAstTreeClass(AstParserNS));
+    AstParserNS.addSystemClass(initAstTreeSearcherClass(AstParserNS));
     AstParserNS.addSystemClass(initAstParserClass(AstParserNS));
 
     return nullptr;

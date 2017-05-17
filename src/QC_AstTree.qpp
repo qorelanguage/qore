@@ -1,10 +1,9 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AstTree.qpp AstTree class definition */
 /*
-  AstParserHolder.cpp
-
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -25,41 +24,31 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include "AstParserHolder.h"
-#include "AstParser.h"
+#include <fstream>
 
-AstParserHolder::AstParserHolder() {
-    parser = new AstParser;
+#include "qore/Qore.h"
+
+#include "AstTreeHolder.h"
+#include "ast/ASTParseError.h"
+
+//! AstTree class
+/** Lorem ipsum dolor sit amet.
+
+    @since %Qore 0.8.13
+ */
+qclass AstTree [arg=AstTreeHolder* ath; ns=astparser; flags=final];
+
+//! Creates the AstTree.
+/**
+ */
+AstTree::constructor() {
+    self->setPrivate(CID_ASTTREE, new AstTreeHolder);
 }
-
-AstParserHolder::~AstParserHolder() {
-    delete parser;
-}
-
-ASTTree* AstParserHolder::parseFile(const char* filename) {
-    return parser->parseFile(filename);
-}
-
-ASTTree* AstParserHolder::parseFile(std::string& filename) {
-    return parser->parseFile(filename);
-}
-
-ASTTree* AstParserHolder::parseString(const char* filename) {
-    return parser->parseString(filename);
-}
-
-ASTTree* AstParserHolder::parseString(std::string& filename) {
-    return parser->parseString(filename);
-}
-
-void AstParserHolder::printTree(std::ostream& os) {
-    parser->printTree(os);
-}
-
-size_t AstParserHolder::getErrorCount() const {
-    return parser->getErrorCount();
-}
-
-ASTParseError* AstParserHolder::getError(unsigned int index) {
-    return parser->getError(index);
+//! Print tree.
+/**
+    @param file name of file where to print out the tree
+ */
+AstTree::printTree(string file) {
+    std::ofstream ofs(file->c_str(), std::ofstream::out | std::ofstream::trunc);
+    ath->printTree(ofs);
 }

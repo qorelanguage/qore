@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.h
+  QC_AstTree.h
 
   Qore AST Parser
 
@@ -25,30 +25,11 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREESEARCHER_H
-#define _QLS_ASTTREESEARCHER_H
+#ifndef _QLS_QC_ASTTREE_H
+#define _QLS_QC_ASTTREE_H
 
-#include <string>
-#include <vector>
+DLLEXPORT extern qore_classid_t CID_ASTTREE;
+DLLEXPORT extern QoreClass *QC_ASTTREE;
+DLLLOCAL QoreClass* initAstTreeClass(QoreNamespace& ns);
 
-#include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
-
-class ASTNode;
-class ASTTree;
-
-class AstTreeSearcher {
-public:
-    AstTreeSearcher() = delete;
-    AstTreeSearcher(const AstTreeSearcher& other) = delete;
-
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch = false);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch = false);
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, ast_loc_t line, ast_loc_t col, bool includeDecl);
-    static ASTSymbolInfo findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree, bool bareNames = false);
-};
-
-#endif // _QLS_ASTTREESEARCHER_H
+#endif // _QLS_QC_ASTTREE_H

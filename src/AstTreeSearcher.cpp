@@ -53,8 +53,27 @@ std::vector<ASTNode*>* AstTreeSearcher::findNodeAndParents(ASTTree* tree, ast_lo
     return FindNodeAndParentsQuery::find(tree, line, col);
 }
 
-std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, const std::string& name) {
-    return FindReferencesQuery::find(tree, name);
+std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, ast_loc_t line, ast_loc_t col, bool includeDecl) {
+    ASTNode* node = findNode(tree, line, col);
+
+    // Don't consider anything else other than names.
+    if (!node || node->getNodeType() != ANT_Name)
+        return nullptr;
+
+    // Find the references.
+    ASTName* name = static_cast<ASTName*>(node);
+    std::unique_ptr<std::vector<ASTNode*> > vec(FindReferencesQuery::find(tree, name->name));
+
+    // Remove the initial declaration.
+    if (vec && !includeDecl) {
+        for (size_t i = 0, count = vec->size(); i < count; i++) {
+            if (vec->at(i) == node) {
+                vec->erase(vec->begin() + i);
+                break;
+            }
+        }
+    }
+    return vec.release();
 }
 
 ASTSymbolInfo AstTreeSearcher::findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {

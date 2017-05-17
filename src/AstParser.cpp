@@ -27,11 +27,11 @@
 
 #include "AstParser.h"
 
-#include <iostream>
+#include <cstdio>
+#include <memory>
 
 #include "ast/AST.h"
 #include "AstTreePrinter.h"
-#include "AstTreeSearcher.h"
 
 typedef void *yyscan_t;
 extern int yyparse(yyscan_t yyscanner, AstParseErrorLog* errorLog, ASTTree* parseTree);
@@ -47,7 +47,7 @@ extern void yyset_lineno(int line_number, yyscan_t yyscanner);
 //! Copied over from YY_BUF_SIZE from the generated flex scanner.
 #define AST_BUF_SIZE 16384
 
-int AstParser::parseFile(const char* filename) {
+ASTTree* AstParser::parseFile(const char* filename) {
     // Prepare scanner.
     yyscan_t lexer;
     yylex_init(&lexer);
@@ -63,21 +63,12 @@ int AstParser::parseFile(const char* filename) {
     // Prepare an empty AST tree for holding the parsed tree.
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
-    // Delete old stuff.
-    symbols = nullptr;
-    parsedTree = nullptr;
-
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
         // ???
-        return 1;
+        return nullptr;
     }
-
-    // Store the created tree;
-    parsedTree = std::move(tree);
-
-    //AstTreePrinter::printTree(std::cout, parsedTree.get());
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
@@ -87,14 +78,16 @@ int AstParser::parseFile(const char* filename) {
 
     // Destroy scanner.
     yylex_destroy(lexer);
-    return 0;
+
+    // Release the created tree.
+    return tree.release();
 }
 
-int AstParser::parseFile(std::string& filename) {
+ASTTree* AstParser::parseFile(std::string& filename) {
     return parseFile(filename.c_str());
 }
 
-int AstParser::parseString(const char* str) {
+ASTTree* AstParser::parseString(const char* str) {
     // Prepare scanner.
     yyscan_t lexer;
     yylex_init(&lexer);
@@ -106,88 +99,27 @@ int AstParser::parseString(const char* str) {
     // Prepare an empty AST tree for holding the parsed tree.
     std::unique_ptr<ASTTree> tree(new ASTTree);
 
-    // Delete old stuff.
-    symbols = nullptr;
-    parsedTree = nullptr;
-
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
         // ???
-        return 1;
+        return nullptr;
     }
-
-    // Store the created tree;
-    parsedTree = std::move(tree);
-
-    //AstTreePrinter::printTree(std::cout, parsedTree.get());
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
 
     // Destroy scanner.
     yylex_destroy(lexer);
-    return 0;
+
+    // Release the created tree.
+    return tree.release();
 }
 
-int AstParser::parseString(std::string& str) {
+ASTTree* AstParser::parseString(std::string& str) {
     return parseString(str.c_str());
 }
 
 void AstParser::printTree(std::ostream& os) {
-    AstTreePrinter::printTree(os, parsedTree.get());
-}
-
-std::vector<ASTSymbolInfo>* AstParser::findMatchingSymbols(const std::string& query, bool exactMatch) {
-    return AstTreeSearcher::findMatchingSymbols(findSymbols(true), query, exactMatch);
-}
-
-ASTNode* AstParser::findNode(ast_loc_t line, ast_loc_t col) {
-    return AstTreeSearcher::findNode(parsedTree.get(), line, col);
-}
-
-std::vector<ASTNode*>* AstParser::findNodeAndParents(ast_loc_t line, ast_loc_t col) {
-    return AstTreeSearcher::findNodeAndParents(parsedTree.get(), line, col);
-}
-
-std::vector<ASTNode*>* AstParser::findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl) {
-    ASTNode* node = AstTreeSearcher::findNode(parsedTree.get(), line, col);
-
-    // Don't consider anything else other than names.
-    if (!node || node->getNodeType() != ANT_Name)
-        return nullptr;
-
-    // Find the references.
-    ASTName* name = static_cast<ASTName*>(node);
-    std::unique_ptr<std::vector<ASTNode*> > vec(AstTreeSearcher::findReferences(parsedTree.get(), name->name));
-
-    // Remove the initial declaration.
-    if (vec && !includeDecl) {
-        for (size_t i = 0, count = vec->size(); i < count; i++) {
-            if (vec->at(i) == node) {
-                vec->erase(vec->begin() + i);
-                break;
-            }
-        }
-    }
-    return vec.release();
-}
-
-ASTSymbolInfo AstParser::findSymbolInfo(ast_loc_t line, ast_loc_t col) {
-    return std::move(AstTreeSearcher::findSymbolInfo(parsedTree.get(), line, col));
-}
-
-const std::vector<ASTSymbolInfo>* AstParser::findSymbols(bool bareNames) {
-    if (bareNames) {
-        if (!bareNamesSymbols) {
-            std::unique_ptr<std::vector<ASTSymbolInfo> > syms(AstTreeSearcher::findSymbols(parsedTree.get(), bareNames));
-            bareNamesSymbols = std::move(syms);
-        }
-        return bareNamesSymbols.get();
-    }
-    if (!symbols) {
-        std::unique_ptr<std::vector<ASTSymbolInfo> > syms(AstTreeSearcher::findSymbols(parsedTree.get(), bareNames));
-        symbols = std::move(syms);
-    }
-    return symbols.get();
+    //AstTreePrinter::printTree(os, parsedTree.get());
 }

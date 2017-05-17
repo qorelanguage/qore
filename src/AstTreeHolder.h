@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.h
+  AstTreeHolder.h
 
   Qore AST Parser
 
@@ -25,30 +25,32 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREESEARCHER_H
-#define _QLS_ASTTREESEARCHER_H
+#ifndef _QLS_ASTTREEHOLDER_H
+#define _QLS_ASTTREEHOLDER_H
 
+#include <ostream>
 #include <string>
 #include <vector>
 
-#include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
+#include "qore/Qore.h"
 
 class ASTNode;
+class ASTParseError;
 class ASTTree;
 
-class AstTreeSearcher {
-public:
-    AstTreeSearcher() = delete;
-    AstTreeSearcher(const AstTreeSearcher& other) = delete;
+class AstTreeHolder : public AbstractPrivateData {
+private:
+    ASTTree* tree;
 
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch = false);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch = false);
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, ast_loc_t line, ast_loc_t col, bool includeDecl);
-    static ASTSymbolInfo findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree, bool bareNames = false);
+public:
+    AstTreeHolder(ASTTree* t = nullptr);
+    ~AstTreeHolder();
+
+    void printTree(std::ostream& os);
+
+    void set(ASTTree* t);
+    ASTTree* get();
+    ASTTree* release();
 };
 
-#endif // _QLS_ASTTREESEARCHER_H
+#endif // _QLS_ASTTREEHOLDER_H

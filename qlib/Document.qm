@@ -55,8 +55,11 @@ public class Document {
         #! The content of the opened text document.
         *string text;
 
-        #! AST parser. Used for getting all the important info.
+        #! AST parser.
         astparser::AstParser parser;
+
+        #! AST tree containing all the syntax info.
+        *astparser::AstTree tree;
 
         #! Whether the document has been parsed successfully by the program.
         bool parseOk;
@@ -86,6 +89,7 @@ public class Document {
 
     private:internal parseInit() {
         delete parseError;
+        delete tree;
         parseOk = True;
         parser = new astparser::AstParser();
     }
@@ -112,19 +116,27 @@ public class Document {
     private:internal parseFile() {
         parseInit();
         string filePath = uri.substr(7); # trim "file://"
-        int rc = parser.parseFile(filePath);
-        handleParseErrors(rc);
-        if (rc)
+        tree = parser.parseFile(filePath);
+        if (!tree) {
+            handleParseErrors(1);
             stderr.printf(parseError);
+        }
+        /*handleParseErrors(rc);
+        if (rc)
+            stderr.printf(parseError);*/
     }
 
     #! Parse the text of the document.
     private:internal parseText() {
         parseInit();
-        int rc = parser.parseString(text);
-        handleParseErrors(rc);
-        if (rc)
+        tree = parser.parseString(text);
+        if (!tree) {
+            handleParseErrors(1);
             stderr.printf(parseError);
+        }
+        /*handleParseErrors(rc);
+        if (rc)
+            stderr.printf(parseError);*/
     }
 
     string getUri() { return uri; }
@@ -176,7 +188,10 @@ public class Document {
             };
         }
 
-        *hash results = parser.hover(Position.line, Position.character);
+        AstTreeSearcher searcher();
+        *hash results;
+        if (tree)
+            results = searcher.hover(tree, Position.line, Position.character);
         if (!results)
             return {
                 "contents": "no results",
@@ -196,7 +211,10 @@ public class Document {
 
     #! Find info about symbol at the passed position.
     *hash findSymbolInfo(hash Position) {
-        return parser.findSymbolInfo(Position.line, Position.character);
+        AstTreeSearcher searcher();
+        if (tree)
+            return searcher.findSymbolInfo(tree, Position.line, Position.character);
+        return NOTHING;
     }
 
     #! Return hover info about symbol at the passed position.
@@ -219,15 +237,20 @@ public class Document {
             };
         }
 
-        return parser.hoverInfo(kind, line, char);
+        AstTreeSearcher searcher();
+        if (tree)
+            return searcher.hoverInfo(tree, kind, line, char);
+        return NOTHING;
     }
 
     #! Find references of the symbol at the passed position.
     *list findReferences(hash Position, bool includeDecl) {
         int line = Position.line;
         int char = Position.character;
-        *list references = parser.findReferences(uri, line, char, includeDecl);
-        return references;
+        AstTreeSearcher searcher();
+        if (tree)
+            return searcher.findReferences(tree, uri, line, char, includeDecl);
+        return NOTHING;
     }
 
     #! Find all symbols.
@@ -236,8 +259,10 @@ public class Document {
         @return list of symbols
     */
     *list findSymbols(bool bareNames = False) {
-        *list symbols = parser.findSymbols(uri, bareNames);
-        return symbols;
+        AstTreeSearcher searcher();
+        if (tree)
+            return searcher.findSymbols(tree, uri, bareNames);
+        return NOTHING;
     }
 
     #! Find matching symbols.
@@ -247,7 +272,11 @@ public class Document {
         @return list of symbols
     */
     list findMatchingSymbols(string query, bool exactMatch = False) {
-        *list symbols = parser.findMatchingSymbols(uri, query, exactMatch);
-        return symbols ?? list();
+        AstTreeSearcher searcher();
+        if (tree) {
+            *list symbols = searcher.findMatchingSymbols(tree, uri, query, exactMatch);
+            return symbols ?? list();
+        }
+        return list();
     }
 }

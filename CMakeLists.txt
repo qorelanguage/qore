@@ -33,13 +33,18 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-set(QPP_SRC src/QC_AstParser.qpp)
+set(QPP_SRC
+    src/QC_AstParser.qpp
+    src/QC_AstTree.qpp
+    src/QC_AstTreeSearcher.qpp
+)
 
 set(CPP_SRC
     src/astparser-module.cpp
     src/AstParser.cpp
     src/AstParserHolder.cpp
     src/AstPrinter.cpp
+    src/AstTreeHolder.cpp
     src/AstTreePrinter.cpp
     src/AstTreeSearcher.cpp
     src/queries/FindMatchingSymbolsQuery.cpp
@@ -81,9 +86,9 @@ qore_dist(${PROJECT_VERSION})
 
 qore_config_info()
 
-FIND_PACKAGE(Doxygen)
-if (DOXYGEN_FOUND)
-  qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
-  add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
-  add_dependencies(docs QORE_MOD_DOX_FILES)
-endif()
+#FIND_PACKAGE(Doxygen)
+#if (DOXYGEN_FOUND)
+#  qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+#  add_custom_target(QORE_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+#  add_dependencies(docs QORE_MOD_DOX_FILES)
+#endif()

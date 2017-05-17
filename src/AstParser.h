@@ -28,45 +28,25 @@
 #ifndef _QLS_ASTPARSER_H
 #define _QLS_ASTPARSER_H
 
-#include <memory>
 #include <ostream>
 #include <string>
-#include <vector>
 
 #include "AstParseErrorLog.h"
 
-#include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
-#include "ast/ASTTree.h"
+class ASTTree;
 
 class AstParser : public AstParseErrorLog {
-private:
-    //! Parsed AST.
-    std::unique_ptr<ASTTree> parsedTree;
-    std::unique_ptr<std::vector<ASTSymbolInfo> > symbols;
-    std::unique_ptr<std::vector<ASTSymbolInfo> > bareNamesSymbols;
-
 public:
     AstParser() {}
     ~AstParser() {}
 
-    int parseFile(const char* filename);
-    int parseFile(std::string& filename);
+    ASTTree* parseFile(const char* filename);
+    ASTTree* parseFile(std::string& filename);
 
-    int parseString(const char* str);
-    int parseString(std::string& str);
+    ASTTree* parseString(const char* str);
+    ASTTree* parseString(std::string& str);
 
     void printTree(std::ostream& os);
-
-    std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::string& query, bool exactMatch = false);
-    ASTNode* findNode(ast_loc_t line, ast_loc_t col);
-    std::vector<ASTNode*>* findNodeAndParents(ast_loc_t line, ast_loc_t col);
-    std::vector<ASTNode*>* findReferences(ast_loc_t line, ast_loc_t col, bool includeDecl);
-    ASTSymbolInfo findSymbolInfo(ast_loc_t line, ast_loc_t col);
-    const std::vector<ASTSymbolInfo>* findSymbols(bool bareNames = false);
-
-    ASTTree* getTreePtr() { return parsedTree.get(); }
-    ASTTree* releaseTree() { return parsedTree.release(); }
 };
 
 #endif // _QLS_ASTPARSER_H

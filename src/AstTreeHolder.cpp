@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreeSearcher.h
+  AstTreeHolder.cpp
 
   Qore AST Parser
 
@@ -25,30 +25,36 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREESEARCHER_H
-#define _QLS_ASTTREESEARCHER_H
+#include "AstTreeHolder.h"
 
-#include <string>
-#include <vector>
+#include "AstTreePrinter.h"
+#include "ast/ASTTree.h"
 
-#include "ast/ASTParseLocation.h"
-#include "ast/ASTSymbolInfo.h"
+AstTreeHolder::AstTreeHolder(ASTTree* t) : tree(t) {
+}
 
-class ASTNode;
-class ASTTree;
+AstTreeHolder::~AstTreeHolder() {
+    if (tree)
+        delete tree;
+}
 
-class AstTreeSearcher {
-public:
-    AstTreeSearcher() = delete;
-    AstTreeSearcher(const AstTreeSearcher& other) = delete;
+void AstTreeHolder::printTree(std::ostream& os) {
+    if (tree)
+        AstTreePrinter::printTree(os, tree);
+}
 
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch = false);
-    static std::vector<ASTSymbolInfo>* findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch = false);
-    static ASTNode* findNode(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findNodeAndParents(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* findReferences(ASTTree* tree, ast_loc_t line, ast_loc_t col, bool includeDecl);
-    static ASTSymbolInfo findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTSymbolInfo>* findSymbols(ASTTree* tree, bool bareNames = false);
-};
+void AstTreeHolder::set(ASTTree* t) {
+    if (tree)
+        delete tree;
+    tree = t;
+}
 
-#endif // _QLS_ASTTREESEARCHER_H
+ASTTree* AstTreeHolder::get() {
+    return tree;
+}
+
+ASTTree* AstTreeHolder::release() {
+    ASTTree* t = tree;
+    tree = nullptr;
+    return t;
+}
