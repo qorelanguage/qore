@@ -716,6 +716,9 @@ if (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 # end of documentation
 
+# astparser module
+add_subdirectory(modules/astparser)
+
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
 # NOTE: anything below will be installed into versioned dirs!
