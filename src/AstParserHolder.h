@@ -51,8 +51,6 @@ public:
     ASTTree* parseString(const char* str);
     ASTTree* parseString(std::string& str);
 
-    void printTree(std::ostream& os);
-
     //! Get the count of reported errors.
     size_t getErrorCount() const;
 

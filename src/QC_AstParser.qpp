@@ -24,8 +24,6 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#include <fstream>
-
 #include "qore/Qore.h"
 
 #include "AstParserHolder.h"
@@ -35,7 +33,7 @@
 #include "QC_AstTree.h"
 
 //! AstParser class
-/** Lorem ipsum dolor sit amet.
+/** AstParser is used for parsing an AST tree of a Qore source file.
 
     @since %Qore 0.8.13
  */
@@ -51,7 +49,7 @@ AstParser::constructor() {
 //! Parse file.
 /**
     @param filename file's name including path
-    @return return value
+    @return parsed AST tree
  */
 AstTree AstParser::parseFile(string filename) {
     ASTTree* tree = aph->parseFile(filename->getBuffer());
@@ -61,20 +59,11 @@ AstTree AstParser::parseFile(string filename) {
 //! Parse string.
 /**
     @param str string with code
-    @return return value
+    @return parsed AST tree
  */
 AstTree AstParser::parseString(string str) {
     ASTTree* tree = aph->parseString(str->getBuffer());
     return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
-}
-
-//! Print tree.
-/**
-    @param file name of file where to print out the tree
- */
-AstParser::printTree(string file) {
-    std::ofstream ofs(file->c_str(), std::ofstream::out | std::ofstream::trunc);
-    aph->printTree(ofs);
 }
 
 //! Get parse error count.

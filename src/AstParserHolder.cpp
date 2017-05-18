@@ -52,10 +52,6 @@ ASTTree* AstParserHolder::parseString(std::string& filename) {
     return parser->parseString(filename);
 }
 
-void AstParserHolder::printTree(std::ostream& os) {
-    parser->printTree(os);
-}
-
 size_t AstParserHolder::getErrorCount() const {
     return parser->getErrorCount();
 }

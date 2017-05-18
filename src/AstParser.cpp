@@ -119,7 +119,3 @@ ASTTree* AstParser::parseString(const char* str) {
 ASTTree* AstParser::parseString(std::string& str) {
     return parseString(str.c_str());
 }
-
-void AstParser::printTree(std::ostream& os) {
-    //AstTreePrinter::printTree(os, parsedTree.get());
-}

@@ -28,7 +28,6 @@
 #ifndef _QLS_ASTPARSER_H
 #define _QLS_ASTPARSER_H
 
-#include <ostream>
 #include <string>
 
 #include "AstParseErrorLog.h"
@@ -40,13 +39,33 @@ public:
     AstParser() {}
     ~AstParser() {}
 
+    //! Parse Qore source file.
+    /**
+        @param filename source file name
+        @return parsed AST tree
+     */
     ASTTree* parseFile(const char* filename);
+
+    //! Parse Qore source file.
+    /**
+        @param filename source file name
+        @return parsed AST tree
+     */
     ASTTree* parseFile(std::string& filename);
 
+    //! Parse Qore code from string.
+    /**
+        @param str Qore code
+        @return parsed AST tree
+     */
     ASTTree* parseString(const char* str);
-    ASTTree* parseString(std::string& str);
 
-    void printTree(std::ostream& os);
+    //! Parse Qore code from string.
+    /**
+        @param str Qore code
+        @return parsed AST tree
+     */
+    ASTTree* parseString(std::string& str);
 };
 
 #endif // _QLS_ASTPARSER_H
