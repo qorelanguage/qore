@@ -35,7 +35,7 @@
 
 #include <qore/common.h>
 
-#include <qore/intern/Function.h>
+#include "qore/intern/Function.h"
 
 #include <map>
 #include <string>
@@ -125,7 +125,7 @@ public:
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, FunctionEntry*, qore_hash_str, eqstr> fl_map_t;
 #else

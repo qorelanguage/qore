@@ -196,6 +196,10 @@ class SocketTest inherits QUnit::Test {
 
     unconnectedSocketTest() {
         Socket s();
+        assertThrows("SOCKET-NOT-OPEN", \s.upgradeClientToSSL());
+        assertThrows("SOCKET-NOT-OPEN", \s.upgradeServerToSSL());
+        assertThrows("SOCKET-NOT-OPEN", \s.getPeerInfo());
+        assertThrows("SOCKET-NOT-OPEN", \s.getSocketInfo());
         assertThrows("SOCKET-NOT-OPEN", \s.recv(), 1);
         assertThrows("SOCKET-NOT-OPEN", \s.recvi1());
         assertThrows("SOCKET-NOT-OPEN", \s.recvBinary(), 1);

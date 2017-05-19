@@ -33,7 +33,7 @@
 
 #define _QORE_THREADRESOURCELIST_H
 
-#include <qore/intern/Sequence.h>
+#include "qore/intern/Sequence.h"
 
 #include <set>
 #include <map>
