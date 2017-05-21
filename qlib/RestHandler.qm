@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
+/* RestHandler.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -308,7 +308,7 @@ Content-Length: 36
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_2 RestHandler v1.2
-    - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -616,9 +616,8 @@ public namespace RestHandler {
                 return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
 
-            # try to mask passwords in args
-            string astr = sprintf("%y", args);
-            astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
+            # try to mask passwords and sensitive data in args
+            string astr = rh.maskData(sprintf("%y", args));
             rh.logDebug("REST DBG: class %y: dispatching method %y args: %s", name(), mn, astr);
             return dispatchStream(listener, rh, s, mn, args, cx);
         }
@@ -682,8 +681,7 @@ public namespace RestHandler {
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     # try to mask passwords in args
-                    string astr = sprintf("%y", ah);
-                    astr =~ s/(pass(?:word)?:\s*)"([^"]*)"/$1"<masked>"/;
+                    string astr = rh.maskData(sprintf("%y", ah));
                     rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn, name(), astr);
                     # see if alternate methods would work
                     list hl = ();
@@ -856,9 +854,7 @@ public namespace RestHandler {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
             if (b) {
-                string bstr = b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b);
-                # try to mask passwords in the message body
-                bstr =~ s/(pass(?:word)?"?[=:>\s]*).*/$1<masked>.../; #/;
+                string bstr = maskData(b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
                 logDebug("REST DBG: body: %s", bstr);
             }
 
@@ -946,7 +942,7 @@ public namespace RestHandler {
             *string astr = hdr.accept;
             hash aih;
             if (astr) {
-                astr =~ s/;.*//;#/;
+                astr =~ s/;.*//;
                 astr =~ s/ +//g;
                 map aih.$1 = True, astr.split(",");
             }
