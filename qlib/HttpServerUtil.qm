@@ -444,7 +444,16 @@ public class HttpServer::AbstractAuthenticator {
     #! primary method called to authenticate each request
     /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
-        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
 
         @return returns @ref nothing if there were no errors, otherwise returns a hash with the following keys to indicate an authentication or authorization error:
         - \c "code": the HTTP response code
@@ -506,7 +515,16 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
     #! primary method called to authenticate each request
     /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
-        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
 
         @return returns @ref nothing indicating that the request is authenticated
     */
@@ -818,6 +836,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -913,7 +932,16 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! helper method for handling log messages
-    /** @param cx the call context hash
+    /** @param cx the call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param api the API description hash
         @param params a reference to the call parameters; the call context hash will be added as the first argument
         @param args an optional reference to a string describing the arguments
@@ -1094,6 +1122,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1152,6 +1181,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1183,6 +1213,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
+        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
