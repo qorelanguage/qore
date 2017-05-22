@@ -1,6 +1,7 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Transform.qpp Transform class definition */
+/* -*- indent-tabs-mode: nil -*- */
 /*
+  Transform.cpp
+
   Qore Programming Language
 
   Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
@@ -29,22 +30,14 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/Transform.h"
 
-//! Marker interface for transformations usable in @ref TransformOutputStream and @ref TransformInputStream
-/** @since %Qore 0.8.13
+#define TRANSFORM_OUTPUT_BUFFER_SIZE 1024
+#define TRANSFORM_INPUT_BUFFER_SIZE 4096
 
-    The following functions return Transform objects:
-    - get_compressor()
-    - get_decompressor()
-    - get_decryptor()
-    - get_encryptor()
- */
-qclass Transform [arg=Transform* t; ns=Qore; flags=final];
+size_t Transform::outputBufferSize() {
+   return TRANSFORM_OUTPUT_BUFFER_SIZE;
+}
 
-//! Constructor
-/**
- */
-private Transform::constructor() {
-   assert(false);
+size_t Transform::inputBufferSize() {
+   return TRANSFORM_INPUT_BUFFER_SIZE;
 }

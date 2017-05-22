@@ -32,6 +32,7 @@
       - @ref Qore::StreamWriter "StreamWriter"
       - @ref Qore::StringInputStream "StringInputStream"
       - @ref Qore::StringOutputStream "StringOutputStream"
+      - @ref Qore::Transform "Transform"
       - @ref Qore::TransformInputStream "TransformInputStream"
       - @ref Qore::TransformOutputStream "TransformOutputStream"
       - @ref Qore::StdoutOutputStream "StdoutOutputStream"
@@ -60,6 +61,41 @@
       - @ref foldl "foldl": supports lazy evaluation of the iterator expression
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+    - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
+      - @ref Qore::decrypt_to_binary()
+      - @ref Qore::decrypt_to_string()
+      - @ref Qore::encrypt()
+      - @ref Qore::get_crypto_info()
+      - @ref Qore::get_decryptor()
+      - @ref Qore::get_encryptor()
+      .
+      The following constants were added to support the new generic cryptographic APIs:
+      - @ref Qore::CRYPTO_ALG_AES_128
+      - @ref Qore::CRYPTO_ALG_AES_192
+      - @ref Qore::CRYPTO_ALG_AES_256
+      - @ref Qore::CRYPTO_ALG_BLOWFISH
+      - @ref Qore::CRYPTO_ALG_BLOWFISH_CFB
+      - @ref Qore::CRYPTO_ALG_BLOWFISH_OFB
+      - @ref Qore::CRYPTO_ALG_CAST5
+      - @ref Qore::CRYPTO_ALG_CAST5_CFB
+      - @ref Qore::CRYPTO_ALG_CAST5_OFB
+      - @ref Qore::CRYPTO_ALG_DES
+      - @ref Qore::CRYPTO_ALG_DES_CFB
+      - @ref Qore::CRYPTO_ALG_DES_OFB
+      - @ref Qore::CRYPTO_ALG_DES_EDE
+      - @ref Qore::CRYPTO_ALG_DES_EDE_CFB
+      - @ref Qore::CRYPTO_ALG_DES_EDE_OFB
+      - @ref Qore::CRYPTO_ALG_DES_EDE3
+      - @ref Qore::CRYPTO_ALG_DES_EDE3_CFB
+      - @ref Qore::CRYPTO_ALG_DES_EDE3_OFB
+      - @ref Qore::CRYPTO_ALG_DESX
+      - @ref Qore::CRYPTO_ALG_RC2
+      - @ref Qore::CRYPTO_ALG_RC2_CFB
+      - @ref Qore::CRYPTO_ALG_RC2_OFB
+      - @ref Qore::CRYPTO_ALG_RC4
+      - @ref Qore::CRYPTO_ALG_RC5
+      - @ref Qore::CRYPTO_ALG_RC5_CFB
+      - @ref Qore::CRYPTO_ALG_RC5_OFB
     - new user modules:
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>
       - <a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>
@@ -73,6 +109,7 @@
     - new parse options:
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
+      - @ref broken-references "%broken-references": allows @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to accept any type contrary to the documented design and intention of these type restrictions
       - @ref no-uncontrolled-apis "%no-uncontrolled-apis": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
@@ -98,12 +135,21 @@
       - <number>::toBase(int)
       - <float>::toBase(int)
     - new functions:
+      - @ref Qore::decrypt_to_binary()
+      - @ref Qore::decrypt_to_string()
+      - @ref Qore::encrypt()
+      - @ref Qore::get_compressor()
+      - @ref Qore::get_crypto_info()
+      - @ref Qore::get_decompressor()
+      - @ref Qore::get_decryptor()
+      - @ref Qore::get_encryptor()
       - @ref Qore::get_global_vars()
-      - @ref Qore::set_global_var_value()
       - @ref Qore::get_local_vars()
-      - @ref Qore::set_local_var_value()
-      - @ref Qore::parse_int()
+      - @ref Qore::get_random_bytes()
       - @ref Qore::get_thread_call_stack()
+      - @ref Qore::parse_int()
+      - @ref Qore::set_global_var_value()
+      - @ref Qore::set_local_var_value()
     - updated functions:
       - @ref Qore::ceil(int/float/number num, int prec = 0)
       - @ref Qore::floor(int/float/number num, int prec = 0)
@@ -111,8 +157,6 @@
       - @ref Qore::mkdir(string path, softint mode = 0777, bool parents = False)
       - @ref Qore::round(int/float/number num, int prec = 0)
       - @ref Qore::set_thread_init()
-    - new parse options:
-      - @ref broken-loop-statement "%broken-loop-statement"
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
@@ -122,7 +166,6 @@
       - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
       - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
       - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
-    - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
     - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module updates:
       - added the \c Pop3Connection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
@@ -137,11 +180,12 @@
       - added support for URLs in the constructor()
       - added the \c TelnetClient::getTarget() method
     - <a href="../../modules/Qorize/html/index.html">Qorize</a> module:
-      - Qorize module: qorize_named() added support for objects
+      - \c qorize_named() added support for objects
     - the following classes can be used from binary modules:
       - @ref Qore::File "File"
       - @ref Qore::ReadOnlyFile "ReadOnlyFile"
-    - relative time stamp is logged in trace and debug logs
+    - updated the build to require a <a href="https://en.wikipedia.org/wiki/C%2B%2B11">C++11</a> compiler or better to build %Qore (<a href="https://github.com/qorelanguage/qore/issues/994">issue 994</a>)
+    - a relative time stamp is now logged in trace and debug output
 
     @subsection qore_0813_bug_fixes Bug Fixes in Qore
     - fixed a bug causing @ref Qore::AbstractQuantifiedBidirectionalIterator "AbstractQuantifiedBidirectionalIterator" not being available (<a href="https://github.com/qorelanguage/qore/issues/968">issue 968</a>)

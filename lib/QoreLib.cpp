@@ -2458,3 +2458,20 @@ template<>
 bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
    return (bool)var[p];
 }
+
+void q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
+   switch (data.getType()) {
+      case NT_STRING: {
+         const QoreStringNode* str = data.get<const QoreStringNode>();
+         ptr = str->getBuffer();
+         len = str->size();
+         return;
+      }
+      case NT_BINARY: {
+         const BinaryNode* b = data.get<const BinaryNode>();
+         ptr = (const char*)b->getPtr();
+         len = b->size();
+         return;
+      }
+   }
+}

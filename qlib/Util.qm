@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2016 Qore Technologies, sro
+/*  Util.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -547,7 +547,7 @@ bool abs = absolute_path_windows(path);
         <b>String Parsing</b>
         |!Format|!Description
         |<tt><i>key_string</i> = <i>value</i>[, ...]</tt>|a @ref hash "hash"
-        |<tt><i>value</i>, [...]|a @ref list "list"
+        |<tt><i>value</i>, [...]</tt>|a @ref list "list"
         |integers|an @ref integer "integer"
         |floats|a @ref float "float"
         |arbitrary-numeric value|a @ref number "number"
@@ -558,7 +558,7 @@ bool abs = absolute_path_windows(path);
 
         @par Examples:
         @verbatim
-prompt% qore -l ./Util.qm -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
+prompt% qore -l Util -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
 hash: (1 member)
   a : hash: (1 member)
     b : list: (3 elements)
@@ -717,6 +717,8 @@ string pass = get_random_string();
         - 4: +symbols but not including any quote characters
 
         @return a random string of the given length containing only printable ASCII characters according to the \a level argument
+
+        @see @ref Qore::get_random_bytes()
     */
     public string sub get_random_string(softint len = 15, int level = 3) {
         string str;
@@ -937,7 +939,7 @@ unlink(testfile);
         @return True if input represents an integer value, False otherwise.
 
         @par Example:
-        @code
+        @code{.py}
 bool match = is_int("123");
 # returns True, while any of the following returns False:
 match = is_int("1.0", True);
@@ -958,7 +960,7 @@ match = is_int("12x");
         '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
         '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
         '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
-        ')\s*$';
+        ')\s*$'; #';
 
     #! Checks whether string represents a (true) float value.
     /**
@@ -967,7 +969,7 @@ match = is_int("12x");
         @return True if input represents a float value, False otherwise.
 
         @par Example:
-        @code
+        @code{.py}
 bool match = is_float("1.2");
 # returns True, while any of the following returns False:
 match = is_float("12", True);
@@ -988,7 +990,7 @@ match = is_float("1.2x");
         '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
         '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
         '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
-        '|\d+)n\s*$'; # integer
+        '|\d+)n\s*$'; #'; #integer
 
     #! Checks whether string represents a (true) number value.
     /**
@@ -997,7 +999,7 @@ match = is_float("1.2x");
         @return True if input represents a number value, False otherwise.
 
         @par Example:
-        @code
+        @code{.py}
 bool match = is_number("1.2n");
 # returns True, while any of the following returns False:
 match = is_number("12", True);

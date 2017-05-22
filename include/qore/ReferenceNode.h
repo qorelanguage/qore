@@ -81,6 +81,9 @@ public:
     */
    DLLLOCAL ReferenceNode(const ReferenceNode& old);
 
+   //! returns a reference to itself
+   DLLEXPORT ReferenceNode* refRefSelf() const;
+
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
        @param str the string representation of the type will be concatenated to this QoreString reference
