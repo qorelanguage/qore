@@ -74,7 +74,7 @@ set(QORE_DOX_TMPL_SRC
 
 add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
 add_dependencies(${astparser_module_name} ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
-target_include_directories(${astparser_module_name} PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${astparser_module_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(${astparser_module_name} PUBLIC BUILDING_DLL)
@@ -87,7 +87,7 @@ if(DEFINED QORE_PRE_INCLUDES)
     include_directories( ${QORE_PRE_INCLUDES} )
 endif()
 include_directories( ${QORE_INCLUDE_DIR} )
-include_directories( ${CMAKE_BINARY_DIR} )
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 # compiler stuff
 if (CMAKE_COMPILER_IS_GNUCXX)
