@@ -29,7 +29,8 @@
   information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
+#include "qore/Transform.h"
 
 #define TRANSFORM_OUTPUT_BUFFER_SIZE 1024
 #define TRANSFORM_INPUT_BUFFER_SIZE 4096
