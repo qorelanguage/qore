@@ -436,6 +436,10 @@ my hash $h = $i.getValue();
             case "string": {
                 if (value.typeCode() == NT_STRING) {
                     trim value;
+                    # Convert tabs to spaces
+                    if (exists type.tab2space || exists m_opts.tab2space) {
+                        value = replace (value, "\t", strmul(' ', type.tab2space ?? m_opts.tab2space));
+                    }
                     return m_opts.encoding && value.encoding() != m_opts.encoding ? convert_encoding(value, m_opts.encoding) : value;
                 }
                 return string(value, m_opts.encoding);
@@ -542,6 +546,10 @@ my hash $h = $i.getValue();
                         throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                     # TODO: check here
                     break;
+                }
+                case "tab2space": {
+                    if (i.value.typeCode() != NT_INT)
+                        throw errname, sprintf("expecting an int value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                 }
             }
         }
