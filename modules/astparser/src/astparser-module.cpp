@@ -26,9 +26,6 @@
 */
 
 #include "qore/Qore.h"
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "QC_AstParser.h"
 #include "QC_AstTree.h"
