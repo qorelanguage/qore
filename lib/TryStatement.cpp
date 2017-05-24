@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/TryStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/TryStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 class CatchExceptionHelper {
 private:

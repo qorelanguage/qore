@@ -181,7 +181,7 @@ void QoreSQLStatement::transactionDone(bool clear, bool close, ExceptionSink* xs
    }
    // if "clear" is set, then we clear the datasource
    if (clear && priv->ds)
-      priv->ds = 0;
+      priv->ds = nullptr;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
@@ -203,12 +203,12 @@ int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString& n_str, const Qor
    if (prepare_args) {
       prepare_args->deref(xsink);
       if (*xsink) {
-         prepare_args = 0;
+         prepare_args = nullptr;
          return -1;
       }
    }
 
-   prepare_args = args ? args->listRefSelf() : 0;
+   prepare_args = args ? args->listRefSelf() : nullptr;
    return 0;
 }
 
@@ -245,7 +245,7 @@ int QoreSQLStatement::prepareRaw(const QoreString& n_str, ExceptionSink* xsink) 
    if (checkStatus(xsink, dba, STMT_IDLE, "prepareRaw"))
       return -1;
 
-   if (prepareArgs(true, n_str, 0, xsink))
+   if (prepareArgs(true, n_str, nullptr, xsink))
       return -1;
 
    return 0;
@@ -323,10 +323,10 @@ int QoreSQLStatement::affectedRows(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::getOutput(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_EXECED, "getOutput"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output(this, xsink);
 }
@@ -334,10 +334,10 @@ QoreHashNode* QoreSQLStatement::getOutput(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::getOutputRows(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_EXECED, "getOutputRows"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output_rows(this, xsink);
 }
@@ -378,10 +378,10 @@ int QoreSQLStatement::defineIntern(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::fetchRow(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRow"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_row(this, xsink);
 }
@@ -389,10 +389,10 @@ QoreHashNode* QoreSQLStatement::fetchRow(ExceptionSink* xsink) {
 QoreListNode* QoreSQLStatement::fetchRows(int rows, ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRows"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_rows(this, rows, xsink);
 }
@@ -400,10 +400,10 @@ QoreListNode* QoreSQLStatement::fetchRows(int rows, ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchColumns"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
 }
@@ -411,10 +411,10 @@ QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
     DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
     if (!dba)
-       return 0;
+       return nullptr;
 
     if (checkStatus(xsink, dba, STMT_DEFINED, "describe"))
-       return 0;
+       return nullptr;
 
     return qore_dbi_private::get(*priv->ds->getDriver())->stmt_describe(this, xsink);
 }
@@ -473,7 +473,7 @@ QoreStringNode* QoreSQLStatement::getSQL(ExceptionSink* xsink) {
    // we have to acquire the datasource in order to use the thread lock to access the SQL string
    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
    if (!dba)
-      return 0;
+      return nullptr;
 
-   return str.empty() ? 0 : new QoreStringNode(str);
+   return str.empty() ? nullptr : new QoreStringNode(str);
 }

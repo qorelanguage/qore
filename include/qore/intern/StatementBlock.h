@@ -33,7 +33,7 @@
 
 #define _QORE_STATEMENT_BLOCK_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 #include <qore/safe_dslist>
 
 #include <set>
