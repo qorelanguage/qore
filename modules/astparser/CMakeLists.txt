@@ -50,10 +50,9 @@ flex_target(astscanner src/ast_scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/ast_scann
 add_flex_bison_dependency(astscanner astparser)
 
 qore_wrap_qpp(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
-add_custom_target(ASTPARSER_QPP_GENERATED_FILES DEPENDS ${ASTPARSER_QPP_SOURCES})
+add_custom_target(ASTPARSER_QPP_GENERATED_FILES DEPENDS qpp ${ASTPARSER_QPP_SOURCES})
 add_custom_target(ASTPARSER_BISON_GENERATED_FILES DEPENDS ${BISON_astparser_OUTPUTS})
 add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_astscanner_OUTPUTS})
-
 set(astparser_module_name "astparser")
 
 set(QORE_DOX_TMPL_SRC
@@ -61,7 +60,7 @@ set(QORE_DOX_TMPL_SRC
 )
 
 add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
-add_dependencies(${astparser_module_name} ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
+add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
 qore_binary_module(${astparser_module_name} "${VERSION}")
 
 #FIND_PACKAGE(Doxygen)
