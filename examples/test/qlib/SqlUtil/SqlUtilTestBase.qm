@@ -758,7 +758,7 @@ public class SqlTestBase inherits QUnit::Test {
             }
         }
 
-        # issue #1880": queries with offset = 0 and no orderby key must be ordered by the table's PK
+        # issue #1880: queries with offset = 0 and no orderby key must be ordered by the table's PK
         sql = table.getSelectSql(("offset": 0, "limit": 1));
         assertEq(True, sql =~ /order by/);
     }
