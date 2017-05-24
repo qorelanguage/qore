@@ -1,10 +1,10 @@
-/* -*- indent-tabs-mode: nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Transform.cpp
+  AstParserHolder.cpp
 
-  Qore Programming Language
+  Qore AST Parser
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -23,22 +23,39 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
-#include "qore/Qore.h"
-#include "qore/Transform.h"
+#include "AstParserHolder.h"
+#include "AstParser.h"
 
-#define TRANSFORM_OUTPUT_BUFFER_SIZE 1024
-#define TRANSFORM_INPUT_BUFFER_SIZE 4096
-
-size_t Transform::outputBufferSize() {
-   return TRANSFORM_OUTPUT_BUFFER_SIZE;
+AstParserHolder::AstParserHolder() {
+    parser = new AstParser;
 }
 
-size_t Transform::inputBufferSize() {
-   return TRANSFORM_INPUT_BUFFER_SIZE;
+AstParserHolder::~AstParserHolder() {
+    delete parser;
+}
+
+ASTTree* AstParserHolder::parseFile(const char* filename) {
+    return parser->parseFile(filename);
+}
+
+ASTTree* AstParserHolder::parseFile(std::string& filename) {
+    return parser->parseFile(filename);
+}
+
+ASTTree* AstParserHolder::parseString(const char* filename) {
+    return parser->parseString(filename);
+}
+
+ASTTree* AstParserHolder::parseString(std::string& filename) {
+    return parser->parseString(filename);
+}
+
+size_t AstParserHolder::getErrorCount() const {
+    return parser->getErrorCount();
+}
+
+ASTParseError* AstParserHolder::getError(unsigned int index) {
+    return parser->getError(index);
 }

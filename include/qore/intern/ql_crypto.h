@@ -35,6 +35,7 @@
 
 #define _QORE_QL_CRYPTO_H
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/des.h>
 #include <openssl/hmac.h>

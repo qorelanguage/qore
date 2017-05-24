@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  EncryptionTransforms.h
+  ASTSwitchBodyExpression.h
 
-  Qore Programming Language
+  Qore AST Parser
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,33 +29,36 @@
   information.
 */
 
-#ifndef _QORE_ENCRYPTIONTRANSFORMS_H
-#define _QORE_ENCRYPTIONTRANSFORMS_H
+#ifndef _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H
 
-#include "qore/Transform.h"
+#include <memory>
+#include <vector>
 
-#include <openssl/evp.h>
+#include "ast/ASTExpression.h"
+#include "ast/expressions/ASTCaseExpression.h"
 
-class EncryptionTransforms {
+class ASTSwitchBodyExpression : public ASTExpression {
 public:
-   DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink);
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTSwitchBodyExpression>;
+
+public:
+    //! Cases of the switch statement.
+    std::vector<ASTCaseExpression*> cases;
+
+public:
+    ASTSwitchBodyExpression() : ASTExpression() {}
+
+    virtual ~ASTSwitchBodyExpression() {
+        for (int i = 0, count = cases.size(); i < count; i++)
+            delete cases[i];
+        cases.clear();
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::AEK_SwitchBody;
+    }
 };
 
-struct CryptoEntry {
-   // the length of the key; 0 = variable length key
-   unsigned key_len;
-   // the OpenSSL cipher type
-   const EVP_CIPHER* cipher_type;
-   // the initialization vector length
-   int iv_len;
-   // does the algorithm use Galois Counter Mode (GCM)?
-   bool gcm;
-
-   DLLLOCAL QoreHashNode* getInfo() const;
-};
-
-typedef std::map<std::string, CryptoEntry> crypto_map_t;
-
-DLLLOCAL extern crypto_map_t crypto_map;
-
-#endif // _QORE_ENCRYPTIONTRANSFORMS_H
+#endif // _QLS_AST_EXPRESSIONS_ASTSWITCHBODYEXPRESSION_H

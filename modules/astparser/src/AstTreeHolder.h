@@ -1,10 +1,10 @@
-/* -*- indent-tabs-mode: nil -*- */
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Transform.cpp
+  AstTreeHolder.h
 
-  Qore Programming Language
+  Qore AST Parser
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -23,22 +23,34 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
+#ifndef _QLS_ASTTREEHOLDER_H
+#define _QLS_ASTTREEHOLDER_H
+
+#include <ostream>
+#include <string>
+#include <vector>
+
 #include "qore/Qore.h"
-#include "qore/Transform.h"
 
-#define TRANSFORM_OUTPUT_BUFFER_SIZE 1024
-#define TRANSFORM_INPUT_BUFFER_SIZE 4096
+class ASTNode;
+class ASTParseError;
+class ASTTree;
 
-size_t Transform::outputBufferSize() {
-   return TRANSFORM_OUTPUT_BUFFER_SIZE;
-}
+class AstTreeHolder : public AbstractPrivateData {
+private:
+    ASTTree* tree;
 
-size_t Transform::inputBufferSize() {
-   return TRANSFORM_INPUT_BUFFER_SIZE;
-}
+public:
+    AstTreeHolder(ASTTree* t = nullptr);
+    ~AstTreeHolder();
+
+    void printTree(std::ostream& os);
+
+    void set(ASTTree* t);
+    ASTTree* get();
+    ASTTree* release();
+};
+
+#endif // _QLS_ASTTREEHOLDER_H
