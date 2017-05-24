@@ -757,6 +757,10 @@ public class SqlTestBase inherits QUnit::Test {
                     assertEq (d.value, row{d.key}, sprintf ("checking offset / limit %s row %s column %s", t.key, rn, d.key));
             }
         }
+
+        # issue #1880: queries with offset = 0 and no orderby key must be ordered by the table's PK
+        sql = table.getSelectSql(("offset": 0, "limit": 1));
+        assertEq(True, sql =~ /order by/);
     }
 
     fetchColumnsTest() {
