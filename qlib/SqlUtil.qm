@@ -11736,7 +11736,7 @@ string sql = table.getSelectSql(sh, \args);
             # get pseudo-column hash
             *hash psch = getPseudoColumnHash();
 
-            if (qh.offset) {
+            if (qh.hasKey("offset")) {
                 if (!qh.orderby) {
                     # use primary key by default
                     getPrimaryKeyUnlocked();
