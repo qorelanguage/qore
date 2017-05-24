@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,63 +38,31 @@ protected:
 
    const QoreTypeInfo* typeInfo;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-      const QoreTypeInfo *leftTypeInfo = 0;
-      e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
 
-      if (QoreTypeInfo::nonNumericValue(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-         QoreTypeInfo::doNonBooleanWarning(leftTypeInfo, "the initial expression with the '?:' operator is ");
-
-      leftTypeInfo = 0;
-      e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
-
-      const QoreTypeInfo* rightTypeInfo = 0;
-      e[2] = e[2]->parseInit(oflag, pflag, lvids, rightTypeInfo);
-
-      typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : 0;
-
-      return this;
-   }
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      ValueEvalRefHolder b(e[0], xsink);
-      if (*xsink)
-         return QoreValue();
-
-      AbstractQoreNode* exp = b->getAsBool() ? e[1] : e[2];
-
-      ValueEvalRefHolder rv(exp, xsink);
-      if (*xsink)
-         return QoreValue();
-
-      return rv.takeValue(needs_deref);
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL QoreQuestionMarkOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), typeInfo(0) {
    }
 
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = false;
       return &question_mark_str;
    }
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
       str.concat(&question_mark_str);
       return 0;
    }
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
 
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return question_mark_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return ::node_has_effect(e[1]) || ::node_has_effect(e[2]);
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
