@@ -35,6 +35,9 @@
 
 #define _QORE_QOREFTPCLIENT_H
 
+#include <qore/InputStream.h>
+#include <qore/OutputStream.h>
+
 #define DEFAULT_FTP_CONTROL_PORT  21
 #define DEFAULT_FTP_DATA_PORT     20
 
@@ -129,6 +132,15 @@ public:
    */
    DLLEXPORT int put(const char *localpath, const char *remotename, ExceptionSink *xsink);
 
+   //! sends the content of an InputStream to the remote server
+   /** the connection must be already established before this function is called or an error will be raised.
+       @param is the input stream
+       @param remotename the name of the file on the remote server
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+   */
+   DLLEXPORT int put(InputStream *is, const char* remotename, ExceptionSink* xsink);
+
    //! gets a file from the remote server and saves it on the local filesystem
    /** the connection must be already established before this function is called or an error will be raised.
        @param remotepath the path of the file on the remote server
@@ -140,6 +152,18 @@ public:
        @see QoreFtpCleint::getAsBinary()
    */
    DLLEXPORT int get(const char *remotepath, const char *localname, ExceptionSink *xsink);
+
+   //! gets a file from the remote server and writes it to an OutputStream
+   /** the connection must be already established before this function is called or an error will be raised.
+       @param remotepath the path of the file on the remote server
+       @param os the output stream
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+       @return 0 for OK, non-zero for error (meaning that an exception has been raised)
+
+       @see QoreFtpClient::getAsString()
+       @see QoreFtpCleint::getAsBinary()
+   */
+   DLLEXPORT int get(const char *remotepath, OutputStream *os, ExceptionSink *xsink);
 
    //! sends a file data io the remote server
    /** the connection must be already established before this function is called or an error will be raised.

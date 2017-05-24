@@ -33,7 +33,7 @@
 
 #define _QORE_CLASS_GETOPT_H
 
-#include <qore/intern/QoreGetOpt.h>
+#include "qore/intern/QoreGetOpt.h"
 #include <qore/AbstractPrivateData.h>
 
 DLLEXPORT extern qore_classid_t CID_GETOPT;
