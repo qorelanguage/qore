@@ -1806,7 +1806,7 @@ my any $v = $c.name;
                 getTriggersUnlocked();
             }
 
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
                 map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();
