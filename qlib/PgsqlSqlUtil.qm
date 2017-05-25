@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.1.1";
+    version = "1.1.2";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,9 @@ $function$
     to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv112 PgsqlSqlUtil v1.1.2
+    - fixed a bug in setting a \c comment for a table column (<a href="https://github.com/qorelanguage/qore/issues/1886">issue 1886</a>)
 
     @subsection pgsqlsqlutilv111 PgsqlSqlUtil v1.1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -1806,7 +1809,7 @@ my any $v = $c.name;
                 getTriggersUnlocked();
             }
 
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is '%s'", name, $1.name, $1.comment), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
                 map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();
