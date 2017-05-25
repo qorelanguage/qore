@@ -43,6 +43,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
                 # data for test of driver specific opts merged into tolevel hash
                 "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
                                "size" : 1,
@@ -203,6 +205,12 @@ class OracleTest inherits SqlTestBase {
             ds.execRaw("create type oracle_test_coll as table of oracle_test_object");
 
             initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                OracleTable t = new OracleTable(ds, "oracle_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
 
             # create the test schema
             schema = new OracleTestSchema(ds);
