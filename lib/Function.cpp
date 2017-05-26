@@ -702,6 +702,8 @@ static int check_extra_args(AbstractFunctionSignature* sig, const type_vec_t& ar
 
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const {
+   // the lowest match length with the highest score wins
+   int match_len = -1;
    int match = -1;
    const AbstractQoreFunctionVariant* variant = 0;
 
@@ -767,7 +769,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
          }
 
          // skip variants with signatures with fewer possible elements than the best match already
-         if ((int)(sig->getParamTypes() * 2) <= match)
+         if ((int)(sig->getParamTypes() * 2) < match)
             continue;
 
          int count = 0;
@@ -778,7 +780,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             if (args)
                n = args->retrieveEntry(pi);
 
-            //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.typeName(n));
+            //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, t.typeName(), n.typeName(n));
 
             int rc;
             if (n.isNothing() && sig->hasDefaultArg(pi))
@@ -815,9 +817,12 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
                continue;
          }
 
-         if (count > match) {
+         //printd(5, "QoreFunction::runtimeFindVariant() count: %d match: %d match_len: %d np: %d v: %p\n", count, match,          match_len, sig->numParams(), variant);
+
+         if (count > match || (count == match && (match_len == -1 || (sig->numParams() < match_len)))) {
             match = count;
             variant = *i;
+            match_len = sig->numParams();
          }
       }
       // issue 1229: stop searching the class hierarchy if a match found
@@ -897,6 +902,8 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
 // finds a variant at parse time
 const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) {
+   // the lowest match length with the highest score wins
+   int match_len = -1;
    // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
    int match = -1;
    // the number of possible matches at runtime (due to missing types at parse time); number of parameters
@@ -907,9 +914,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    unsigned npv = 0;
 
    // pointer to the variant matched
-   const AbstractQoreFunctionVariant* variant = 0;
+   const AbstractQoreFunctionVariant* variant = nullptr;
    // pointer to the last possible variant matched
-   const AbstractQoreFunctionVariant* pvariant = 0;
+   const AbstractQoreFunctionVariant* pvariant = nullptr;
    unsigned num_args = argTypeInfo.size();
 
    //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
@@ -1031,34 +1038,37 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             if (!npv)
                pvariant = variant;
             else
-               pvariant = 0;
+               pvariant = nullptr;
 
             ++npv;
 
-            if (count > match || (count == match && variant_nperfect > nperfect)) {
+            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < match_len))))) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
-               if (variant_pmatch < pmatch)
-                  variant = 0;
+               if (variant_pmatch < pmatch) {
+                  variant = nullptr;
+               }
                else {
                   // only set variant if it's the longest absolute match and the
                   // longest potential match
                   pmatch = variant_pmatch;
                   match = count;
                   nperfect = variant_nperfect;
+                  match_len = sig->numParams();
                   if (!variant_missing_types ) {
                      //printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
                      variant = *i;
                   }
                   else
-                     variant = 0;
+                     variant = nullptr;
                }
             }
             else if (variant_pmatch && variant_pmatch >= pmatch) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
-               variant = 0;
+               variant = nullptr;
                pmatch = variant_pmatch;
+               match_len = -1;
             }
          }
       }
@@ -1160,35 +1170,36 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             if (!npv)
                pvariant = variant;
             else
-               pvariant = 0;
+               pvariant = nullptr;
 
             ++npv;
 
-            //printd(5, "QoreFunction::parseFindVariant() variant: %p count: %d match: %d pmatch: %d variant_pmatch: %d nperfect: %d variant_nperfect: %d\n", variant, count, match, pmatch, variant_pmatch, nperfect, variant_nperfect);
+            //printd(5, "QoreFunction::parseFindVariant() variant: %p count: %d match: %d pmatch: %d variant_pmatch: %d nperfect: %d variant_nperfect: %d match_len: %d\n", variant, count, match, pmatch, variant_pmatch, nperfect, variant_nperfect, match_len);
 
-            if (count > match || (count == match && variant_nperfect > nperfect)) {
+            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < match_len))))) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
                if (variant_pmatch < pmatch)
-                  variant = 0;
+                  variant = nullptr;
                else {
                   // only set variant if it's the longest absolute match and the
                   // longest potential match
                   pmatch = variant_pmatch;
                   match = count;
+                  match_len = sig->numParams();
                   nperfect = variant_nperfect;
                   if (!variant_missing_types) {
                      //printd(5, "QoreFunction::parseFindVariant() assigning pending variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
                      variant = *i;
                   }
                   else
-                     variant = 0;
+                     variant = nullptr;
                }
             }
             else if (variant_pmatch && variant_pmatch >= pmatch) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
-               variant = 0;
+               variant = nullptr;
                pmatch = variant_pmatch;
             }
          }

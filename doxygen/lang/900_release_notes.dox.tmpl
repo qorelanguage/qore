@@ -222,6 +222,7 @@
     - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
     - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>)
     - fixed a bug in handling the \c SqlUtil::BLOB type in the <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
+    - fixed a bug in overloaded call variant matching where missing arguments were counted towards the match (<a href="https://github.com/qorelanguage/qore/issues/1897">issue 1897</a>)
 
     @section qore_081210 Qore 0.8.12.10
 

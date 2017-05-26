@@ -59,6 +59,22 @@ int sub f5_test(string str) {
     return 0;
 }
 
+int sub f6(int i, *string s1, *int i1, *hash h1) {
+    return 4;
+}
+
+int sub f6(int i, *string s1, *int i1) {
+    return 3;
+}
+
+int sub f6(int i, *string s1) {
+    return 2;
+}
+
+int sub f6(int i) {
+    return 1;
+}
+
 public class OverloadTest inherits QUnit::Test {
     constructor() : Test("Overload test", "1.0") {
         addTestCase("Values test", \testValues());
@@ -95,10 +111,13 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(0, f3_test());
         assertEq(0, f4_test(()));
         assertEq(0, f5_test("hi"));
+        assertEq(1, f6(1));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));
         assertEq(0, call_function(\f3_test()));
         assertEq(0, call_function(\f4_test(), ()));
+
+        assertEq(1, call_function(\f6(), 1));
     }
 }
