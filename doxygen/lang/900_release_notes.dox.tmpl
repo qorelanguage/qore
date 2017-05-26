@@ -230,6 +230,8 @@
 
     @subsection qore_081210_bug_fixes Bug Fixes in Qore
 
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: fixed a bug in setting a \c comment for a table column (<a href="https://github.com/qorelanguage/qore/issues/1886">issue 1886</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
     - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>: fixed a bug in flush messages in the \c InboundTableMapper class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
     - fixed a bug where connections were not immediately released back to the @ref Qore::SQL::DatasourcePool "DatasourcePool" in case of an \c SQLSTATEMENT-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/1836">issue 1836</a>)
     - eliminated a spurious exception in the @ref Qore::SQL::SQLStatement "SQLStatement" class in case of a @ref Qore::SQL::DatasourcePool "DatasourcePool" timeout (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
