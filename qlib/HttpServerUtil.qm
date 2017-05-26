@@ -344,7 +344,7 @@ public namespace HttpServer {
         optionally whitespace, and a quoted string
     */
     public string sub http_mask_data(string msg) {
-        msg =~ s/((?:pass(?:word)?|sensitive(?:_data)?)"?[=:>\s]*).*/$1<masked>.../;
+        msg =~ s/((?:pass(?:word)?)"?[=:>\s]*).*/$1<masked>.../;
         return msg;
     }
 }

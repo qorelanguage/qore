@@ -569,6 +569,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         *code logfunc;
         *code errlogfunc;
 
+        # for masking HTTP request log msgs
+        *code maskfunc;
+
         # quit server flag
         bool exit = False;
 
@@ -1215,6 +1218,31 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 logError(estr);
             }
         }
+    }
+
+    #! masks log messages by removing sensitive data
+    /** @see setMaskCode()
+
+        @since %HttpServer 0.3.12
+    */
+    string maskData(string msg) {
+        return maskfunc ? maskfunc(msg) : http_mask_data(msg);
+    }
+
+    #! sets the @ref closure "closure" or @ref call_reference "call reference" that will be used to mask sensitive data in log messages
+    /** @par Example
+        @code{.py}
+        http_server.setMaskCode(string sub (string msg) { return do_mask(msg); });
+        @endcode
+
+        @param maskfunc a @ref closure "closure" or @ref call_reference "call reference" that takes a single string argument and returns the masked string
+
+        @see maskData()
+
+        @since %HttpServer 0.3.12
+    */
+    setMaskCode(code maskfunc) {
+        self.maskfunc = maskfunc;
     }
 
     #! returns a complete URL from a bind address
@@ -2193,13 +2221,14 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
                 {
                     # attempt to mask sensitive data in the URI path
-                    orig_path =~ s/(pass(?:word)?|sensitive(?:_data)?)=.*/$1=<masked>/;
+                    orig_path = serv.maskData(orig_path);
+                    #s/(pass(?:word)?|sensitive(?:_data)?|svalue)=.*/$1=<masked>/;
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
                     if (body) {
                         if (body.typeCode() == NT_STRING) {
                             string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
                             # attempt to mask sensitive data in the message body
-                            bstr = http_mask_data(bstr);
+                            bstr = serv.maskData(bstr);
                             bstr = replace(bstr, "\n", "\\n");
                             bstr = replace(bstr, "\r", "\\r");
                             bstr = replace(bstr, "\t", "\\t");
