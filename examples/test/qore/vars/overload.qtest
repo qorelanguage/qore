@@ -130,12 +130,18 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(0, f5_test("hi"));
         assertEq(1, f6(1));
         # make sure we catch and fix the behavior of corner cases
+        any a;
         assertEq(2, f6(1, NOTHING));
+        assertEq(2, f6(1, a));
         assertEq(2, f6(1, "hi"));
         assertEq(3, f6(1, NOTHING, 1));
+        assertEq(3, f6(1, a, 1));
         assertEq(3, f6(1, NOTHING, NOTHING));
+        assertEq(3, f6(1, a, 1));
         assertEq(4, f6(1, NOTHING, NOTHING, {}));
+        assertEq(4, f6(1, a, a, {}));
         assertEq(4, f6(1, NOTHING, NOTHING, NOTHING));
+        assertEq(4, f6(1, a, a, a));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));
@@ -145,10 +151,15 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(1, call_function(\f6(), 1));
         # make sure we catch and fix the behavior of corner cases
         assertEq(2, call_function(\f6(), 1, NOTHING));
+        assertEq(2, call_function(\f6(), 1, a));
         assertEq(2, call_function(\f6(), 1, "hi"));
         assertEq(3, call_function(\f6(), 1, NOTHING, 1));
+        assertEq(3, call_function(\f6(), 1, a, 1));
         assertEq(3, call_function(\f6(), 1, NOTHING, NOTHING));
+        assertEq(3, call_function(\f6(), 1, a, a));
         assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, {}));
+        assertEq(4, call_function(\f6(), 1, a, a, {}));
         assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, NOTHING));
+        assertEq(4, call_function(\f6(), 1, a, a, a));
     }
 }
