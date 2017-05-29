@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ForStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/ForStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 ForStatement::ForStatement(int start_line, int end_line, AbstractQoreNode *a, AbstractQoreNode *c, AbstractQoreNode *i, StatementBlock *cd) : AbstractStatement(start_line, end_line), assignment(a), cond(c), iterator(i), code(cd), lvars(0) {
 }
@@ -104,7 +104,7 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       ignore_return_value(iterator);
    }
    if (code)
-      code->parseInitImpl(oflag, pflag);
+      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
 
    // save local variables
    if (lvids)

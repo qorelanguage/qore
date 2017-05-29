@@ -39,9 +39,10 @@
 
 %requires(reexport) Mime >= 1.3
 %requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.0
 
 module SalesforceRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,6 +63,7 @@ module SalesforceRestClient {
 
     The main classes are:
     - @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient": this class provides the REST client API for communuication with Salesforce.com; it also automates authentication and authorization to the target Connected App
+    - @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection": provides a REST connection object to a Salesforce.com server (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     @par Example:
     @code{.py}
@@ -147,6 +149,9 @@ rc.bulkJobClose(h.id);
     functionality and a more detailed example of code using this module.
 
     @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_0 SalesforceRestClient v1.1
+    - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
 
     @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
     - the initial version of the %SalesforceRestClient module
@@ -971,6 +976,94 @@ sfrest.logout();
 
             # set the URL to the Salesforce.com URL for REST API calls
             setURL(h.instance_url + ah.url);
+        }
+    }
+
+    #! class for Salesforce.com REST connections; returns @ref SalesforceRestClient::SalesforceRestClient objects
+    /** supports the following options:
+        - \c "api": the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+        - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
+        - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+
+        @since %SalesforceRestConnection 1.1
+    */
+    public class SalesforceRestConnection inherits RestClient::RestConnection {
+        public {
+            #! SalesforceRestConnection object connection options
+            const Options = RestConnection::Options + (
+                "api": True,
+                "client_id": True,
+                "client_secret": True,
+                );
+
+            const OptionList = Options.keys();
+        }
+
+        #! creates the SalesforceRestConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL (potentially with password info)
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
+            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+        }
+
+        #! returns a @ref SalesforceRestClient::SalesforceRestClient object
+        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+            @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
+        */
+        private SalesforceRestClient getImpl(bool connect = True, *hash rtopts) {
+            return new SalesforceRestClient(real_opts, !connect);
+        }
+
+        #! gets options
+        /** @return returns a hash with the following supported options:
+            - \c "api": the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
+            - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
+            - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
+            - \c "connect_timeout": connection timeout to use in milliseconds
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+            - \c "max_redirects": maximum redirects to support
+            - \c "proxy": proxy URL to use
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "timeout": transfer timeout to use in milliseconds
+
+            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+        */
+        hash getOptions() {
+            return Options;
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return HttpConnection::DefaultOptions;
+        }
+
+        #! returns \c "rest"
+        string getType() {
+            return "rest";
+        }
+
+        #! static constructor
+        static SalesforceRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new SalesforceRestConnection(name, desc, url, monitor, opts, urlh);
         }
     }
 }

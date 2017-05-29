@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreHashListIterator.h>
+#include "qore/intern/QoreHashListIterator.h"
 
 extern QoreClass* QC_HASHLISTITERATOR;
 
