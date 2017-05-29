@@ -73,17 +73,21 @@
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
 
-#define YYLLOC_DEFAULT(Current, Rhs, N)                                \
-          do                                                           \
-            if (N) {                                                   \
-                (Current).first_line   = YYRHSLOC(Rhs, 1).first_line;  \
-                (Current).last_line    = YYRHSLOC(Rhs, N).last_line;   \
-            }                                                          \
-            else {                                                     \
-                (Current).first_line   = (Current).last_line   =       \
-                  YYRHSLOC(Rhs, 0).last_line;                          \
-            }                                                          \
-          while (0)
+#define YYLLOC_DEFAULT(Current, Rhs, N)                      \
+   do                                                        \
+      if (N) {                                               \
+         (Current).first_line = YYRHSLOC(Rhs, 1).first_line; \
+         (Current).first_col  = YYRHSLOC(Rhs, 1).first_col;  \
+         (Current).last_line  = YYRHSLOC(Rhs, N).last_line;  \
+         (Current).last_col   = YYRHSLOC(Rhs, N).last_col;   \
+      }                                                      \
+      else {                                                 \
+         (Current).first_line = (Current).last_line =        \
+            YYRHSLOC(Rhs, 0).last_line;                      \
+         (Current).first_col = (Current).last_col =          \
+            YYRHSLOC(Rhs, 0).last_col;                       \
+      }                                                      \
+   while (0)
 
 class HashElement {
 public:
@@ -1456,6 +1460,13 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 
+//other (needed for correct locations)
+%token QUOTED_WORD_BEGIN "quoted string beginning (no data)"
+%token REGEX_BEGIN "regular expression beginning (no data)"
+%token REGEX_EXTRACT_BEGIN "regular expression extraction beginning (no data)"
+%token REGEX_SUBST_BEGIN "regular expression substitution beginning (no data)"
+%token REGEX_TRANS_BEGIN "transliteration beginning (no data)"
+
  // tokens returning data
 %token <integer> INTEGER "integer value"
 %token <decimal> QFLOAT "floating-point value"
@@ -1530,6 +1541,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <hash>           alt_hash
 %type <list>           list
 %type <list>           list_n
+%type <String>         quoted_word
 %type <String>         string
 %type <hashelement>    hash_element
 %type <cmods>          context_mods
@@ -1571,12 +1583,16 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <b>              ppub
 %type <gv>             gvardecl
 %type <methoddef>      outofline_methoddef
+%type <Regex>          regex
+%type <Regex>          regex_extract
+%type <RegexSubst>     regex_subst
+%type <RegexTrans>     regex_trans
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans
 %destructor { qore_class_private::get(*$$)->deref(); } class_attributes
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
-%destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
+%destructor { if ($$) $$->deref(); } namespace_decl namespace_decls quoted_word string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
 
 %%
@@ -1789,6 +1805,7 @@ namespace_decl:
         | outofline_methoddef {
            $$ = new NSNode($1);
         }
+        ;
 
 unscoped_const_decl:
         TOK_CONST IDENTIFIER '=' exp ';' {
@@ -2036,29 +2053,29 @@ case_code:
            $$ = new CaseNodeWithOperator($3, 0, OP_LOG_GT);
         }
 
-        | TOK_CASE REGEX_MATCH REGEX ':' statements
+        | TOK_CASE REGEX_MATCH regex ':' statements
         {
            $$ = new CaseNodeRegex($3, $5);
         }
-        | TOK_CASE REGEX_MATCH REGEX ':' // nothing
+        | TOK_CASE REGEX_MATCH regex ':' // nothing
         {
            $$ = new CaseNodeRegex($3, 0);
         }
 
-        | TOK_CASE REGEX_NMATCH REGEX ':' statements
+        | TOK_CASE REGEX_NMATCH regex ':' statements
         {
            $$ = new CaseNodeNegRegex($3, $5);
         }
-        | TOK_CASE REGEX_NMATCH REGEX ':' // nothing
+        | TOK_CASE REGEX_NMATCH regex ':' // nothing
         {
            $$ = new CaseNodeNegRegex($3, 0);
         }
 
-        | TOK_CASE REGEX ':' statements
+        | TOK_CASE regex ':' statements
         {
            $$ = new CaseNodeRegex($2, $4);
         }
-        | TOK_CASE REGEX ':' // nothing
+        | TOK_CASE regex ':' // nothing
         {
            $$ = new CaseNodeRegex($2, 0);
         }
@@ -2303,6 +2320,7 @@ classvardecl:
 
            delete $2;
         }
+        ;
 
 member2:
         qtypedef SELF_REF ';' {
@@ -2596,6 +2614,7 @@ return_value:
         {
            $$ = 0;
         }
+        ;
 
 sub_def:
         TOK_SUB ident_openparen myexp ')' return_value block {
@@ -2637,6 +2656,7 @@ sub_def:
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
         }
+        ;
 
 scoped_sub_def:
         TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
@@ -2744,6 +2764,7 @@ alt_hash:
            $2->setCurly();
            $$ = $2;
         }
+        ;
 
 exp_c:  scalar
         { $$ = $1; }
@@ -3207,11 +3228,11 @@ exp
     | exp '|' exp                       { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
     | exp '&' exp                       { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp '^' exp                       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
-    | exp REGEX_MATCH REGEX             { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
-    | exp REGEX_NMATCH REGEX            { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
-    | exp REGEX_MATCH REGEX_SUBST       { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
-    | exp REGEX_MATCH REGEX_TRANS       { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
-    | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp REGEX_MATCH regex             { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
+    | exp REGEX_NMATCH regex            { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
+    | exp REGEX_MATCH regex_subst       { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
+    | exp REGEX_MATCH regex_trans       { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
+    | exp REGEX_MATCH regex_extract     { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
     | exp '>' exp                       { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp '<' exp                       { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp LOGICAL_CMP exp               { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
@@ -3264,11 +3285,11 @@ exp_n
     | exp_n '|' exp                     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
     | exp_n '&' exp                     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp_n '^' exp                     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
-    | exp_n REGEX_MATCH REGEX           { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
-    | exp_n REGEX_NMATCH REGEX          { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
-    | exp_n REGEX_MATCH REGEX_SUBST     { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
-    | exp_n REGEX_MATCH REGEX_TRANS     { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
-    | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
+    | exp_n REGEX_MATCH regex           { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
+    | exp_n REGEX_NMATCH regex          { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
+    | exp_n REGEX_MATCH regex_subst     { $$ = new QoreTreeNode($1, OP_REGEX_SUBST, $3); }
+    | exp_n REGEX_MATCH regex_trans     { $$ = new QoreTreeNode($1, OP_REGEX_TRANS, $3); }
+    | exp_n REGEX_MATCH regex_extract   { $$ = new QoreTreeNode($1, OP_REGEX_EXTRACT, $3); }
     | exp_n '>' exp                     { $$ = new QoreLogicalGreaterThanOperatorNode($1, $3); }
     | exp_n '<' exp                     { $$ = new QoreLogicalLessThanOperatorNode($1, $3); }
     | exp_n LOGICAL_CMP exp             { $$ = new QoreTreeNode($1, OP_LOG_CMP, $3); }
@@ -3291,15 +3312,49 @@ exp_n
     | exp_n DOT_KW_IDENTIFIER           { $$ = new QoreTreeNode($1, OP_OBJECT_REF, $2); }
     ;
 
-string:
-        QUOTED_WORD {
+regex:
+        REGEX_BEGIN REGEX {
+           $$ = $2;
+        }
+        ;
+
+regex_extract:
+        REGEX_EXTRACT_BEGIN REGEX_EXTRACT {
+           $$ = $2;
+        }
+        ;
+
+regex_subst:
+        REGEX_SUBST_BEGIN REGEX_SUBST {
+           $$ = $2;
+        }
+        ;
+
+regex_trans:
+        REGEX_TRANS_BEGIN REGEX_TRANS {
+           $$ = $2;
+        }
+        ;
+
+quoted_word:
+        QUOTED_WORD_BEGIN QUOTED_WORD {
+           $$ = $2;
+        }
+        | QUOTED_WORD {
            $$ = $1;
         }
-        | QUOTED_WORD string {
+        ;
+
+string:
+        quoted_word {
+           $$ = $1;
+        }
+        | quoted_word string {
            $$ = $1;
            $$->concat($2);
            $2->deref();
         }
+        ;
 
 scalar:
         QFLOAT        { $$ = new QoreFloatNode($1); }
