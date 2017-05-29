@@ -110,6 +110,8 @@
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref broken-references "%broken-references": allows @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to accept any type contrary to the documented design and intention of these type restrictions
+      - @ref correct-loop-statement "%correct-loop-statement": to revert the effect of @ref broken-loop-statement "%broken-loop-statement"
+      - @ref correct-references "%correct-references": to revert the effect of @ref broken-references "%broken-references"
       - @ref no-uncontrolled-apis "%no-uncontrolled-apis": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
     - new constants:
@@ -244,6 +246,12 @@
     - fixed a crash when the %Qore library exits caused by an error in handling module dependencies with injected modules  (<a href="https://github.com/qorelanguage/qore/issues/1805">issue 1805</a>)
     - fixed segfault crashes caused by calling object methods with null pointers (<a href="https://github.com/qorelanguage/qore/issues/1791">issue 1791</a>)
     - added internal API support to make it easier for DBI drivers to handle lost connections and to allow DBI drivers that must close all open handles before a connection is closed (such as the oracle driver); due to this change, @ref Qore::SQL::SQLStatement "SQLStatement" objects based on a @ref Qore::SQL::DatasourcePool "DatasourcePool" are closed automatically whenever the datasource is returned to the pool (<a href="https://github.com/qorelanguage/qore/issues/1250">issue 1250</a>)
+    - implemented new parse options to revert the effect of parse options that affect code safety (<a href="https://github.com/qorelanguage/qore/issues/1895">issue 1895</a>):
+      - @ref correct-list-parsing "%correct-list-parsing"
+      - @ref correct-logic-precedence "%correct-logic-precedence"
+      - @ref correct-int-assignments "%correct-int-assignments"
+      - @ref correct-operators "%correct-operators"
+      - @ref loose-args "%loose-args"
 
     @section qore_08129 Qore 0.8.12.9
 

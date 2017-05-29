@@ -69,6 +69,16 @@ class  BreakAndContinueTest inherits QUnit::Test {
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { switch(0) {case 0: continue; }}", ""));
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {continue;}(); } while (False); }", ""));
         assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit continue; } while (False); }", ""));
+
+        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+        assertEq(NOTHING, p.parse("sub f_x() { continue; }", ""));
+        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { continue; }", ""));
+        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { switch(0) {case 0: continue; }}", ""));
+        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { sub() {continue;}(); } while (False); }", ""));
+        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { on_exit continue; } while (False); }", ""));
     }
 
     legacyContinueInSwitch() {

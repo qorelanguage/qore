@@ -160,6 +160,12 @@ class ReferenceTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_BROKEN_REFERENCES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("%correct-references\nour reference r = {};", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("%correct-references\nour *reference r = {};", ""));
+        }
+
+        {
             Program p(PO_NEW_STYLE);
             p.parse("sub t(*reference r) {}", "");
             assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), ("t", {}));
