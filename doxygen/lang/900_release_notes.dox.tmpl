@@ -169,6 +169,8 @@
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
       - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - support for the \c text/plain \c Content-Type
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
+      - added an API to allow REST calls to be made internally (<a href="https://github.com/qorelanguage/qore/issues/1899">issue 1899</a>)
     - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:
       - added the \c SalesforcRestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
@@ -194,7 +196,7 @@
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module fixes:
       - fixed a bug where the \a msg arg to \c AbstractAuthenticator::do401() was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
-      - added logic to attempt to mask passwords in debug log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+      - added logic allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
     - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
