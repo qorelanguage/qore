@@ -746,6 +746,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
 ^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
+^%correct-list-parsing{WS}*$            getProgram()->parseDisableParseOptions(PO_BROKEN_LIST_PARSING);
+^%correct-logic-precedence{WS}*$        getProgram()->parseDisableParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
+^%correct-int-assignments{WS}*$         getProgram()->parseDisableParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
+^%correct-operators{WS}*$               getProgram()->parseDisableParseOptions(PO_BROKEN_OPERATORS);
+^%loose-args{WS}*$                      getProgram()->parseDisableParseOptions(PO_STRICT_ARGS);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error("missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
