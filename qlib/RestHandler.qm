@@ -832,12 +832,12 @@ public namespace RestHandler {
         #! processes REST API calls outside the HTTP server
         /** Requests will be dispatched to REST classes registered with this object
 
-            @param method the HTTP method; if the the method is unknown, an \c UNKNOWN-REST-METHOD is raised
+            @param method the HTTP method; if the the method is unknown, an \c UNKNOWN-REST-METHOD exception is raised
             @param path the URI path for the call
             @param body the arguments to the call; note that arguments are combined with any arguments provided in \a path
             @param cx simulated HTTP call context hash
 
-            @return the responde value of the REST method
+            @return the response value of the REST method
 
             @throw UNKNOWN-REST-METHOD the HTTP method is unknown / unsupported
             @throw INVALID-URI-PATH URI cannot be parsed
