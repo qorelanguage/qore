@@ -2578,10 +2578,10 @@ base_constructors:
 
 base_constructor:
         IDENTIFIER '(' myexp ')' {
-           $$ = new BCANode($1, make_args($3));
+           $$ = new BCANode($1, make_args($3), @3.first_line, @3.last_line);
         }
         | SCOPED_REF '(' myexp ')' {
-           $$ = new BCANode(new NamedScope($1), make_args($3));
+           $$ = new BCANode(new NamedScope($1), make_args($3), @3.first_line, @3.last_line);
         }
         ;
 
