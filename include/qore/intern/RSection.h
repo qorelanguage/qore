@@ -33,7 +33,7 @@
 
 #define _QORE_INTERN_RSECTION_H
 
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/qore_var_rwlock_priv.h"
 
 class qore_rsection_priv;
 class RNotifier {
