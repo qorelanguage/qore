@@ -1341,6 +1341,7 @@ void qore_class_private::setPublic() {
 
 QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant) {
    bceamap_t::iterator i = lower_bound(classid);
+   // not found
    if (i == end() || i->first != classid) {
       insert(i, bceamap_t::value_type(classid, new BCEANode));
       *aexeced = false;
@@ -1348,12 +1349,14 @@ QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const Ab
       return 0;
    }
 
+   // already executed
    if (i->second->execed) {
       *aexeced = true;
       variant = 0;
       return 0;
    }
 
+   // found and not yet executed
    *aexeced = false;
    i->second->execed = true;
    variant = i->second->variant;
