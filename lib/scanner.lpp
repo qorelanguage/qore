@@ -57,22 +57,18 @@
 #include <limits.h>
 #include <cmath>
 
-QoreParserLocation::QoreParserLocation() : explicit_first(false), first_line(0) {
-}
-
-void QoreParserLocation::updatePosition(int f) {
-   if (!explicit_first) {
-      first_line = f;
-      update_parse_line_location(f, f);
+#define YY_USER_ACTION {                                                     \
+      yylloc->first_line = yylloc->last_line;                                \
+      yylloc->first_col = yylloc->last_col;                                  \
+      if (yylloc->first_line == yylineno)                                    \
+         yylloc->last_col += yyleng;                                         \
+      else {                                                                 \
+         unsigned int col = 1;                                               \
+         for (; (col <= yyleng) && (yytext[yyleng - col] != '\n'); ++col) {} \
+         yylloc->last_col = col;                                             \
+         yylloc->last_line = yylineno;                                       \
+      }                                                                      \
    }
-   else {
-      update_parse_line_location(first_line, f);
-      explicit_first = false;
-   }
-   last_line = f;
-}
-
-#define YY_USER_ACTION { yylloc->updatePosition(yylineno); }
 
 int yyparse(yyscan_t yyscanner);
 
@@ -1164,7 +1160,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <<EOF>>                                 {
                                            QORE_FLEX_DO_EOF
                                         }
-\"                                      yylval->String = new QoreStringNode; yylloc->setExplicitFirst(yylineno); BEGIN(str_state);
+\"                                      yylval->String = new QoreStringNode; BEGIN(str_state); return QUOTED_WORD_BEGIN;
 <str_state>{
       \"                                BEGIN(INITIAL); return QUOTED_WORD;
       \n                                yylval->String->concat('\n');
@@ -1376,7 +1372,7 @@ by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->Regex = new QoreRegex(); yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegex(); BEGIN(regex_state); return REGEX_BEGIN;
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
 }
@@ -1636,17 +1632,17 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                            }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->RegexSubst = new QoreRegexSubst; yylloc->setExplicitFirst(yylineno); BEGIN(regex_subst1);
-   x\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_extract_state);
-   tr\/                                 yylval->Trans = new QoreTransliteration; yylloc->setExplicitFirst(yylineno); BEGIN(regex_trans1);
-   m\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-   \/                                   yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   s\/                                  yylval->RegexSubst = new QoreRegexSubst; BEGIN(regex_subst1); return REGEX_SUBST_BEGIN;
+   x\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_extract_state); return REGEX_EXTRACT_BEGIN;
+   tr\/                                 yylval->Trans = new QoreTransliteration; BEGIN(regex_trans1); return REGEX_TRANS_BEGIN;
+   m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error("missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
-   \/                                   yylval->Regex      = new QoreRegex;  yylloc->setExplicitFirst(yylineno); BEGIN(regex_state);
+   m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error("missing regular expression after !~"); BEGIN(INITIAL);
 }

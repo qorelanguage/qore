@@ -343,7 +343,7 @@ public:
             statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
       }
       else
-	 statements->parseInit(this);
+         statements->parseInit(this);
 
       // recheck types against committed types if necessary
       if (recheck)
@@ -1037,7 +1037,7 @@ public:
 
    DLLLOCAL void del() {
       if (exp) {
-	 exp->deref(0);
+         exp->deref(0);
          exp = 0;
       }
       if (parseTypeInfo) {
@@ -1414,17 +1414,19 @@ public:
    char* name;
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope* n, QoreListNode* n_args) : FunctionCallBase(n_args), loc(ParseLocation), classid(0), ns(n), name(0) {
+   DLLLOCAL BCANode(NamedScope* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
+      assert(start_line > 0);
    }
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(char* n, QoreListNode* n_args) : FunctionCallBase(n_args), loc(ParseLocation), classid(0), ns(0), name(n) {
+   DLLLOCAL BCANode(char* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
+      assert(start_line > 0);
    }
 
    DLLLOCAL ~BCANode() {
       delete ns;
       if (name)
-	 free(name);
+         free(name);
    }
 
    // resolves classes, parses arguments, and attempts to find constructor variant
@@ -1687,7 +1689,7 @@ public:
    bool execed;
    bool member_init_done;
 
-   DLLLOCAL BCEANode(QoreListNode* n_args, const AbstractQoreFunctionVariant* n_variant) : args(n_args), variant(reinterpret_cast<const MethodVariant*>(n_variant)), execed(false), member_init_done(false) {}
+   DLLLOCAL BCEANode(QoreListNode* args, const AbstractQoreFunctionVariant* variant) : args(args), variant(reinterpret_cast<const MethodVariant*>(variant)), execed(false), member_init_done(false) {}
    DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : args(0), variant(0), execed(n_execed), member_init_done(mid) {}
 };
 
@@ -1983,19 +1985,19 @@ public:
    DLLLOCAL bool checkAssignSpecialIntern(const QoreMethod* m) {
       // set quick pointers
       if (!methodGate && !strcmp(m->getName(), "methodGate")) {
-	 methodGate = m;
-	 return true;
+         methodGate = m;
+         return true;
       }
 
       if (!memberGate && !strcmp(m->getName(), "memberGate")) {
-	 memberGate = m;
-	 //printd(5, "qore_class_private::checkAssignSpecialIntern() this: %p got %s::%s()\n", this, name.c_str(), m->getName());
-	 return true;
+         memberGate = m;
+         //printd(5, "qore_class_private::checkAssignSpecialIntern() this: %p got %s::%s()\n", this, name.c_str(), m->getName());
+         return true;
       }
 
       if (!memberNotification && !strcmp(m->getName(), "memberNotification")) {
-	 memberNotification = m;
-	 return true;
+         memberNotification = m;
+         return true;
       }
 
       return false;
@@ -2005,9 +2007,9 @@ public:
    DLLLOCAL bool checkSpecialStaticIntern(const char* mname) {
       // set quick pointers
       if ((!methodGate && !strcmp(mname, "methodGate"))
-	  || (!memberGate && !strcmp(mname, "memberGate"))
-	  || (!memberNotification && !strcmp(mname, "memberNotification")))
-	 return true;
+          || (!memberGate && !strcmp(mname, "memberGate"))
+          || (!memberNotification && !strcmp(mname, "memberNotification")))
+         return true;
       return false;
    }
 
@@ -2015,12 +2017,12 @@ public:
    DLLLOCAL bool checkSpecial(const char* mname) {
       // set quick pointers
       if ((!methodGate && !strcmp(mname, "methodGate"))
-	  || (!memberGate && !strcmp(mname, "memberGate"))
-	  || (!memberNotification && !strcmp(mname, "memberNotification"))
-	  || (!constructor && !strcmp(mname, "constructor"))
-	  || (!destructor && !strcmp(mname, "destructor"))
-	  || (!copyMethod && !strcmp(mname, "copy")))
-	 return true;
+          || (!memberGate && !strcmp(mname, "memberGate"))
+          || (!memberNotification && !strcmp(mname, "memberNotification"))
+          || (!constructor && !strcmp(mname, "constructor"))
+          || (!destructor && !strcmp(mname, "destructor"))
+          || (!copyMethod && !strcmp(mname, "copy")))
+         return true;
       return false;
    }
 
@@ -2028,18 +2030,18 @@ public:
    DLLLOCAL bool checkAssignSpecial(const QoreMethod* m) {
       // set quick pointers
       if (!constructor && !strcmp(m->getName(), "constructor")) {
-	 constructor = m;
-	 return true;
+         constructor = m;
+         return true;
       }
 
       if (!destructor && !strcmp(m->getName(), "destructor")) {
-	 destructor = m;
-	 return true;
+         destructor = m;
+         return true;
       }
 
       if (!copyMethod && !strcmp(m->getName(), "copy")) {
-	 copyMethod = m;
-	 return true;
+         copyMethod = m;
+         return true;
       }
 
       return checkAssignSpecialIntern(m);
@@ -2583,7 +2585,7 @@ public:
          return -1;
 
       if (members.empty())
-	 return 0;
+         return 0;
 
       // ensure class is only initialized once
       if (bceal && bceal->initMembers(cls->getID()))
@@ -2592,7 +2594,7 @@ public:
       SelfInstantiatorHelper sih(&selfid, &o, xsink);
 
       if (initMembers(o, members.begin(), members.end(), xsink))
-	 return -1;
+         return -1;
       return 0;
    }
    */
