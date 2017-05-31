@@ -473,7 +473,7 @@ private:
 
    struct cmp_char_str
    {
-      bool operator()(char const *a, char const *b)
+      bool operator()(char const *a, char const *b) const
       {
          return strcmp(a, b) < 0;
       }
@@ -1621,6 +1621,7 @@ public:
    DLLLOCAL const QoreTypeInfo* getComplexReferenceType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexReferenceOrNothingType(const QoreTypeInfo* vti);
    DLLLOCAL AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

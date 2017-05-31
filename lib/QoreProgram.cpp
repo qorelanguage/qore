@@ -939,7 +939,7 @@ void qore_program_private::onException(const AbstractStatement *statement, Threa
    }
 }
 
-AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
@@ -1741,7 +1741,7 @@ AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) cons
    return priv->resolveStatementId(statementId);
 }
 
-AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
    return priv->runtimeFindCall(name, params, xsink);
 }
 

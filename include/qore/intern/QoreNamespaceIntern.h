@@ -991,7 +991,7 @@ protected:
    DLLLOCAL const QoreClass* runtimeFindClassIntern(const NamedScope& name, const qore_ns_private*& ns);
 
    DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const char* name, const qore_ns_private*& ns) {
-      fmap_t::iterator i = fmap.find(name);
+      fmap_t::const_iterator i = fmap.find(name);
 
       if (i != fmap.end()) {
          ns = i->second.getNamespace();
@@ -1700,7 +1700,7 @@ public:
       rebuildFunctionIndexes(fmap, ns->func_list, ns);
    }
 
-   DLLLOCAL AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
    DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
       return rns.rpriv->getGlobalVars();

@@ -1628,7 +1628,7 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    return fr_holder.release();
 }
 
-AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
    // set fake program location for runtime type resolution errors
    QoreProgramLocation loc;
    loc.file = "<user input>";
@@ -1643,7 +1643,7 @@ AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* n
    // resolve call to function or method
    if (!strstr(name, "::")) {
       const qore_ns_private* ns;
-      qf = runtimeFindFunction(name, ns);
+      qf = runtimeFindFunctionIntern(name, ns);
 
       if (!qf) {
          xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "function call \"%s()\" cannot be resolved to any accessible function", name);
@@ -1656,7 +1656,8 @@ AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* n
       NamedScope scope(name);
       qc = parseFindScopedClassWithMethod(scope, false);
       if (qc) {
-         method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), qc);
+         qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
+         method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);
          if (method)
             qf = method->getFunction();
          else
@@ -1665,7 +1666,8 @@ AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* n
 
       if (!method) {
          // see if this is a function call to a function defined in a namespace
-         qf = parseResolveFunction(scope);
+         const qore_ns_private* ns;
+         qf = runtimeFindFunctionIntern(scope, ns);
          if (!qf) {
             xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "scoped call \"%s()\" cannot be resolved to any accessible function or class method", name);
             return nullptr;
@@ -1724,7 +1726,7 @@ AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* n
       }
    }
 
-   return qf->runtimeFindVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
+   return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
 }
 
 void qore_ns_private::parseInitGlobalVars() {

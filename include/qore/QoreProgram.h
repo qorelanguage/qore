@@ -669,7 +669,7 @@ public:
    // finds a function or class method variant if possible
    /** @since %Qore 0.8.13
    */
-   DLLEXPORT AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
