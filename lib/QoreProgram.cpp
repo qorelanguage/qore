@@ -939,7 +939,14 @@ void qore_program_private::onException(const AbstractStatement *statement, Threa
    }
 }
 
-inline void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
+AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   return qore_root_ns_private::get(*RootNS)->runtimeFindCall(name, params, xsink);
+}
+
+void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
    if (stepBreakpoint != DBG_SB_STOPPED) {
       if (attachFlag > 0) {
          ThreadDebugEnum sb = stepBreakpoint;
@@ -1732,6 +1739,10 @@ QoreStringNode* QoreProgram::getStatementId(const AbstractStatement* statement) 
 
 AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) const {
    return priv->resolveStatementId(statementId);
+}
+
+AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+   return priv->runtimeFindCall(name, params, xsink);
 }
 
 void QoreBreakpoint::unassignAllStatements() {

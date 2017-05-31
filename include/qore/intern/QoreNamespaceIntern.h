@@ -1700,6 +1700,8 @@ public:
       rebuildFunctionIndexes(fmap, ns->func_list, ns);
    }
 
+   DLLLOCAL AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+
    DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
       return rns.rpriv->getGlobalVars();
    }

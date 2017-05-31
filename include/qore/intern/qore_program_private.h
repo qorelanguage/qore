@@ -1620,6 +1620,7 @@ public:
    DLLLOCAL const QoreTypeInfo* getComplexListOrNothingType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexReferenceType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexReferenceOrNothingType(const QoreTypeInfo* vti);
+   DLLLOCAL AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
@@ -2195,7 +2196,7 @@ public:
 };
 
 typedef std::map<QoreProgram*, qore_program_private*> qore_program_map_t;
-struct QoreDebugProgram;
+class QoreDebugProgram;
 
 class qore_debug_program_private {
 private:

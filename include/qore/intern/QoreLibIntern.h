@@ -555,18 +555,16 @@ private:
    int& lvids;
    QoreListNode* l;
    bool finished;
-   qore_size_t pos;
-   const QoreTypeInfo* singleTypeInfo;
+   qore_size_t pos = -1;
+   const QoreTypeInfo* singleTypeInfo = nullptr;
 
 public:
    DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
       oflag(n_oflag),
       pflag(n_pflag),
       lvids(n_lvids),
-      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : 0),
-      finished(!l),
-      pos(-1),
-      singleTypeInfo(0) {
+      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : nullptr),
+      finished(!l) {
       // if the expression is not a list, then initialize it now
       // and save the return type
       if (!l) {

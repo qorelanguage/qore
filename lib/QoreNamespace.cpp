@@ -1628,6 +1628,105 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
    return fr_holder.release();
 }
 
+AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+   // set fake program location for runtime type resolution errors
+   QoreProgramLocation loc;
+   loc.file = "<user input>";
+   loc.start_line = loc.end_line = 1;
+
+   // function or method
+   const QoreFunction* qf = nullptr;
+
+   // class context
+   const QoreClass* qc = nullptr;
+
+   // resolve call to function or method
+   if (!strstr(name, "::")) {
+      const qore_ns_private* ns;
+      qf = runtimeFindFunction(name, ns);
+
+      if (!qf) {
+         xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "function call \"%s()\" cannot be resolved to any accessible function", name);
+         return nullptr;
+      }
+   }
+   else {
+      const QoreMethod* method = nullptr;
+
+      NamedScope scope(name);
+      qc = parseFindScopedClassWithMethod(scope, false);
+      if (qc) {
+         method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), qc);
+         if (method)
+            qf = method->getFunction();
+         else
+            qc = nullptr;
+      }
+
+      if (!method) {
+         // see if this is a function call to a function defined in a namespace
+         qf = parseResolveFunction(scope);
+         if (!qf) {
+            xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "scoped call \"%s()\" cannot be resolved to any accessible function or class method", name);
+            return nullptr;
+         }
+      }
+   }
+
+   assert(qf);
+
+   // convert params to real param list
+   type_vec_t tvec;
+   if (params && !params->empty()) {
+      // resolve types
+      tvec.reserve(params->size());
+      ConstValueListIterator li(params);
+      while (li.next()) {
+         QoreValue v = li.getValue();
+         if (v.getType() != NT_STRING) {
+            xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d given as type \"%s\"; expecting \"string\"", name, li.index() + 1, v.getTypeName());
+            return nullptr;
+         }
+         const QoreString& tname = *v.get<const QoreStringNode>();
+
+         // resolve string to type
+         bool or_nothing = (tname[0] == '*');
+         bool has_scope = (tname.bindex("::", 0) != -1);
+
+         const char* tstr = tname.c_str() + (or_nothing ? 1 : 0);
+
+         const QoreTypeInfo* ti = nullptr;
+         if (!has_scope) {
+            ti = or_nothing
+               ? getBuiltinUserOrNothingTypeInfo(tstr)
+               : getBuiltinUserTypeInfo(tstr);
+         }
+         if (!ti) {
+            NamedScope scope(tstr);
+            const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, scope);
+            if (!qc) {
+               xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
+               return nullptr;
+            }
+
+            if (or_nothing) {
+               ti = qc->getOrNothingTypeInfo();
+               if (!ti) {
+                  xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d \"%s\"; class \"%s\" cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", name, li.index() + 1, tname.c_str(), qc->getName());
+                  return nullptr;
+               }
+            }
+            else
+               ti = qc->getTypeInfo();
+         }
+         assert(ti);
+         tvec.push_back(ti);
+      }
+   }
+
+   return qf->runtimeFindVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
+}
+
 void qore_ns_private::parseInitGlobalVars() {
    var_list.parseInit();
    nsl.parseInitGlobalVars();

@@ -89,6 +89,7 @@ DLLEXPORT extern unsigned qore_num_warnings;
 //! returns the warning code corresponding to the string passed (0 if no match was made)
 DLLEXPORT int get_warning_code(const char* str);
 
+// forward references
 class AbstractCallReferenceNode;
 class LocalVar;
 class ExceptionSink;
@@ -109,6 +110,7 @@ class AbstractQoreZoneInfo;
 class qore_program_private;
 class AbstractQoreProgramExternalData;
 class QoreBreakpoint;
+class AbstractQoreFunctionVariant;
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
@@ -663,6 +665,11 @@ public:
        @since %Qore 0.8.13
     */
    DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
+
+   // finds a function or class method variant if possible
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
