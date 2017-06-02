@@ -205,13 +205,82 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             message(STATUS "documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exits: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            message(WARNING "file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
 
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built")
     endif (DOXYGEN_FOUND)
 ENDMACRO (QORE_BINARY_MODULE)
+
+# Install qore native/user module (.qm file) into proper location.
+#
+# Param #1: path to the module; e.g. "qlib/RestHandler.qm"
+# Param #2: list of module dependencies separated by semicolon; e.g. "HttpServerUtil;Mime;Util"
+#
+# Example:
+#     qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
+#
+# The module will be installed automatically in 'make install' target.
+MACRO (QORE_USER_MODULE _module_file _mod_deps)
+    if (DOXYGEN_FOUND)
+        # get module name
+        get_filename_component(f ${_module_file} NAME_WE)
+        message(STATUS "Preparing generation of documentation for module: ${f}")
+
+        # prepare directories for the documentation
+        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
+        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/modules/${f})
+
+        # prepare needed vars
+        set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
+        unset(MOD_DEPS)
+        foreach(i ${_mod_deps})
+            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=${CMAKE_BINARY_DIR}/docs/modules/${i}/html)
+        endforeach(i)
+
+        # prepare QDX arguments
+        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+
+        # add CMake target for the documentation
+        if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+            add_custom_target(docs-${f}
+                COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
+                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+        else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+            add_custom_target(docs-${f}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+        endif (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+
+        # make 'docs' target dependent on this module documentation
+        add_dependencies(docs docs-${f})
+
+        # make this dependent on Qore lang and lib documentation targets
+        add_dependencies(docs-${f} docs-lang)
+        add_dependencies(docs-${f} docs-lib)
+
+        # make this dependent on the other module targets
+        foreach(i ${_mod_deps})
+            add_dependencies(docs-${f} docs-${i})
+        endforeach(i)
+    endif (DOXYGEN_FOUND)
+
+    # install qm file
+    install(FILES ${_module_file} DESTINATION ${QORE_USER_MODULES_DIR})
+ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.
 # Example:
@@ -236,7 +305,7 @@ MACRO (QORE_USER_MODULES _inputs)
                 COMMENT "Generating API documentation with Doxygen for: ${f}" VERBATIM
             )
             add_dependencies(docs docs-${f})
-        endforeach()
+        endforeach(i)
     else (xDOXYGEN_FOUND)
         message(WARNING "Doxygen support for user modules is still TODO")
     endif (xDOXYGEN_FOUND)
