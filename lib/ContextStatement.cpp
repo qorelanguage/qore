@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ContextStatement.h"
-#include "qore/intern/StatementBlock.h"
+#include <qore/intern/ContextStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 ContextMod::ContextMod(int t, AbstractQoreNode *n) {
    type = t;
@@ -180,7 +180,7 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // initialize statement block
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
 
    // save local variables
    if (lvids)

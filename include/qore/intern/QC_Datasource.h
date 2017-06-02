@@ -44,7 +44,7 @@
 #define _QORE_QC_DATASOURCE_H
 
 #ifdef _QORE_LIB_INTERN
-#include "qore/intern/ManagedDatasource.h"
+#include <qore/intern/ManagedDatasource.h>
 
 DLLEXPORT extern qore_classid_t CID_DATASOURCE;
 DLLLOCAL extern QoreClass* QC_DATASOURCE;

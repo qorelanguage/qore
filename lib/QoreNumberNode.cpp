@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_number_private.h"
+#include <qore/intern/qore_number_private.h>
 
-void qore_number_private::getAsString(QoreString& str, bool round, int base) const {
+void qore_number_private::getAsString(QoreString& str, bool round) const {
    // first check for zero
    if (zero()) {
       str.concat("0");
@@ -41,7 +41,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 
    mpfr_exp_t exp;
 
-   char* buf = mpfr_get_str(0, &exp, base, 0, num, QORE_MPFR_RND);
+   char* buf = mpfr_get_str(0, &exp, 10, 0, num, QORE_MPFR_RND);
    if (!buf) {
       numError(str);
       return;
@@ -54,7 +54,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
    if (number()) {
       int sgn = sign();
       qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
-      //printd(5, "qore_number_private::getAsString() this: %p '%s' exp " QLLD " len: " QLLD "\n", this, buf, exp, len);
+      //printd(5, "qore_number_private::getAsString() this: %p '%s' exp "QLLD" len: "QLLD"\n", this, buf, exp, len);
 
       qore_size_t dp = 0;
 
@@ -65,7 +65,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 	 exp = -exp;
 	 str.insert("0.", len);
 	 dp = len + 1;
-	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " dp: " QLLD " len: " QLLD "\n", this, str.getBuffer(), exp, dp, len);
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" dp: "QLLD" len: "QLLD"\n", this, str.getBuffer(), exp, dp, len);
 	 if (exp)
 	    str.insertch('0', len + 2, exp);
       }
@@ -73,7 +73,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 	 // get remaining length of string (how many characters were added)
 	 qore_size_t rlen = str.size() - len;
 
-	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " rlen: " QLLD "\n", this, str.getBuffer(), exp, rlen);
+	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: "QLLD" rlen: "QLLD"\n", this, str.getBuffer(), exp, rlen);
 
 	 // assert that we have added at least 1 character
 	 assert(rlen > 0);
@@ -199,7 +199,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    // decimal separator
    QoreString dsep;
    // number of digits after the decimal separator
-   int prec = 0;
+   unsigned prec = 0;
    if (fl > 2) {
       if (dsep.concat(fmt, 1, 1, xsink))
          return -1;
@@ -209,43 +209,10 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
          return -1;
       assert(i >= 2);
       prec = atoi(fmt.getBuffer() + i);
+      if (!prec)
+         dsep.clear();
    }
 
-   return formatNumberStringIntern(num, prec, dsep, tsep, xsink);
-}
-
-int qore_number_private::formatNumberString(QoreString& num, int prec, const QoreString& dsep_str, const QoreString& tsep_str, ExceptionSink* xsink) {
-   assert(!num.empty());
-   TempEncodingHelper dsep(dsep_str, num.getEncoding(), xsink);
-   if (*xsink)
-      return -1;
-   TempEncodingHelper tsep(tsep_str, num.getEncoding(), xsink);
-   if (*xsink)
-      return -1;
-
-   return formatNumberStringIntern(num, prec, **dsep, **tsep, xsink);
-}
-
-int qore_number_private::doRound(QoreString& num, qore_offset_t& dp, int prec) {
-   // must round before the decimal point - get the position of the number to round
-   int dt = dp + prec;
-   bool roundup = (num[dt] > '4');
-   //printd(5, "qore_number_private::doRound() num: '%s' dp: " QLLD " prec: %d roundup: %d\n", num.c_str(), dp, prec, roundup);
-   // if the position is not in the string, then return 0
-   if (dt < 0 || (!roundup && !dt)) {
-      num.set("0", num.getEncoding());
-      return -1;
-   }
-   num.terminate(dp);
-   for (int i = dt; i < dp; ++i)
-      const_cast<char*>(num.c_str())[i] = '0';
-   if (roundup && roundUp(num, dt - 1))
-      ++dp;
-   return 0;
-}
-
-int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, const QoreString& dsep, const QoreString& tsep, ExceptionSink* xsink) {
-   //printd(5, "qore_number_private::formatNumberStringIntern() num: '%s' prec: %d dsep: '%s' tsep: '%s'\n", num.c_str(), prec, dsep.c_str(), tsep.c_str());
    // non-zero flag: if any digits are non-zero
    bool nonzero = false;
 
@@ -260,17 +227,12 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
       // how many digits do we have now after the decimal point
       qore_size_t d = num.strlen() - dp - 1;
       assert(d);
-      if (prec >= 0) {
-         if ((int)d < prec)
-            num.addch('0', prec - d);
-         else if ((int)d > prec) {
-            if ((num[dp + prec + 1] > '4') && (roundUp(num, dp + prec)))
-               ++dp;
-            if (!prec)
-               num.terminate(dp);
-            else
-               num.terminate(dp + prec + 1);
-         }
+      if (d < prec)
+         num.addch('0', prec - d);
+      else if (d > prec) {
+         if ((num[dp + prec + 1] > '4') && (roundUp(num, dp + prec)))
+            ++dp;
+         num.terminate(dp + prec + 1);
       }
 
       // scan for non-zero digits if negative
@@ -283,33 +245,11 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
          }
       }
 
-      // trim trailing zeros if only significant digits should be included or the precision is negative
-      if (prec < 0) {
-         bool removed_decimal = false;
-
-         num.trim_trailing('0');
-         size_t len = num.size();
-         if (num[len - 1] == '.') {
-            num.terminate(len - 1);
-            removed_decimal = true;
-         }
-
-         // perform pre-decimal rounding if necessary
-         if (prec != QORE_NUM_ALL_DIGITS && doRound(num, dp, prec))
-            return 0;
-
-         if (removed_decimal)
-            prec = 0;
-      }
       // now substitute decimal point if necessary
-      else if (prec > 0 && (dsep.strlen() != 1 || dsep[0] != '.'))
+      if (dsep.strlen() != 1 || dsep[0] != '.')
          num.replace(dp, 1, dsep.getBuffer());
    }
    else {
-      dp = num.size();
-      if ((prec < 0) && (prec != QORE_NUM_ALL_DIGITS) && doRound(num, dp, prec))
-         return 0;
-
       // scan for non-zero digits if negative
       if (ds) {
          for (const char* c = num.c_str(); *c; ++c) {
@@ -320,9 +260,11 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
          }
       }
 
-      if (prec > 0) {
+      dp = num.size();
+      if (prec) {
          // add decimal point
-         num.concat(&dsep);
+         num.concat(&dsep, xsink);
+         assert(!*xsink);
          // add zeros for significant digits
          num.addch('0', prec);
       }
@@ -669,29 +611,4 @@ bool QoreNumberNode::inf() const {
 
 bool QoreNumberNode::ordinary() const {
    return priv->number();
-}
-
-QoreNumberNodeHelper::QoreNumberNodeHelper(const QoreValue n) {
-   if (n.type == QV_Node && get_node_type(n.v.n) == NT_NUMBER) {
-      del = false;
-      num = n.get<const QoreNumberNode>();
-   }
-   else {
-      del = true;
-      num = new QoreNumberNode(n);
-   }
-}
-
-QoreNumberNodeHelper::~QoreNumberNodeHelper() {
-   if (del)
-      const_cast<QoreNumberNode*>(num)->deref();
-}
-
-QoreNumberNode* QoreNumberNodeHelper::getReferencedValue() {
-   auto rv = const_cast<QoreNumberNode*>(num);
-   num = 0;
-   del = false;
-   if (!del)
-      rv->ref();
-   return rv;
 }

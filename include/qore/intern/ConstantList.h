@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
@@ -39,7 +39,7 @@
 #define _QORE_CONSTANTLIST_H
 
 #include <qore/common.h>
-#include "qore/intern/ParseNode.h"
+#include <qore/intern/ParseNode.h>
 
 #include <map>
 #include <string>
@@ -89,11 +89,9 @@ class RuntimeConstantRefNode;
 class ConstantEntry : public QoreReferenceCounter {
    friend class ConstantEntryInitHelper;
    friend class RuntimeConstantRefNode;
-   friend class ConstantList;
 
 protected:
    AbstractQoreNode* saved_node;
-   ClassAccess access;
 
    int scanValue(const AbstractQoreNode* n) const;
 
@@ -114,7 +112,7 @@ public:
       builtin : 1     // builtin vs user
       ;
 
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false);
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL void deref() {
@@ -135,7 +133,6 @@ public:
    DLLLOCAL void del(QoreListNode& l);
 
    DLLLOCAL int parseInit(ClassNs ptr);
-
    DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
       if (in_init) {
          parse_error("recursive constant reference found to constant '%s'", name.c_str());
@@ -175,10 +172,6 @@ public:
    DLLLOCAL bool isUser() const {
       return !builtin;
    }
-
-   DLLLOCAL ClassAccess getAccess() const {
-      return access;
-   }
 };
 
 class ConstantEntryInitHelper {
@@ -203,7 +196,7 @@ public:
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include "qore/intern/xxhash.h"
+#include <qore/intern/xxhash.h>
 
 typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #else
@@ -219,6 +212,7 @@ private:
    DLLLOCAL ConstantList& operator=(const ConstantList&);
 
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
+   DLLLOCAL int checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
 
 protected:
    // the object that owns the list (either a class or a namespace)
@@ -236,43 +230,29 @@ public:
    DLLLOCAL ConstantList(const ConstantList& old, int64 po, ClassNs p);
 
    // do not delete the object returned by this function
-   DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, ClassAccess access = Public);
+   DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0);
 
-   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, bool pub = false, ClassAccess access = Public);
+   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, bool pub = false);
 
    DLLLOCAL ConstantEntry* findEntry(const char* name);
-
-   DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
-
-   DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo) {
-      ClassAccess access;
-      return parseFind(name, constantTypeInfo, access);
-   }
-
-   DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
-
-   DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
-      ClassAccess access;
-      return find(name, constantTypeInfo, access);
-   }
-
+   DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo);
    DLLLOCAL bool inList(const char* name) const;
    DLLLOCAL bool inList(const std::string& name) const;
    //DLLLOCAL ConstantList *copy();
-
    // assimilate the list without any duplicate checking
    DLLLOCAL void assimilate(ConstantList& n);
-
    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
-   DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char* type, const char* name);
+   DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char* nsname);
 
    // copy all user/public elements of the source list to the target, assuming no duplicates
    DLLLOCAL void mergeUserPublic(const ConstantList& src);
 
    DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
+   // assimilate a constant list in a class constant list with duplicate checking (pub & priv + pending)
+   DLLLOCAL void assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
    // add a constant to a list with duplicate checking (pub & priv + pending)
-   DLLLOCAL void parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname);
+   DLLLOCAL void parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname);
 
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode* getInfo();
@@ -291,11 +271,6 @@ public:
 
    DLLLOCAL cnemap_t::const_iterator end() const {
       return cnemap.end();
-   }
-
-   DLLLOCAL void setAccess(ClassAccess access) {
-      for (auto& i : cnemap)
-         i.second->access = access;
    }
 };
 
@@ -326,10 +301,6 @@ public:
 
    DLLLOCAL ConstantEntry* getEntry() const {
       return i->second;
-   }
-
-   DLLLOCAL ClassAccess getAccess() const {
-      return i->second->getAccess();
    }
 
    DLLLOCAL const bool isPublic() const {

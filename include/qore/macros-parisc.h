@@ -10,6 +10,16 @@
 
 #ifdef __GNUC__
 
+/*
+#define HAVE_ATOMIC_MACROS
+
+static inline int atomic_dec(int *pw) {
+}
+
+static inline void atomic_inc(int *pw) {
+}
+*/
+
 #define HAVE_CHECK_STACK_POS
 
 static inline size_t get_stack_pos() {
@@ -21,6 +31,12 @@ static inline size_t get_stack_pos() {
 #endif
 
 #ifdef __HP_aCC
+
+//#define HAVE_ATOMIC_MACROS
+
+// routines are implemented in assembler
+//extern "C" int atomic_dec(int *pw);
+//extern "C" void atomic_inc(int *pw);
 
 #define HAVE_CHECK_STACK_POS
 

@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore/intern/QoreValueCoalescingOperatorNode.h"
+#include <qore/intern/QoreValueCoalescingOperatorNode.h>
 //#include <qore/intern/qore_program_private.h>
 
 QoreString QoreValueCoalescingOperatorNode::value_coalescing_str("value coalescing operator");

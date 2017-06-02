@@ -46,8 +46,8 @@ module Diff {
     The %Diff module provides some routines for comparing data structures.
 
     To use this module, use \c "%requires Diff" in your code.
-
-    All the public symbols in the module are defined in the Diff namespace
+    
+    All the public symbols in the module are defined in the Util namespace
 
     Functions:
     - @ref Diff::diff()
@@ -58,7 +58,7 @@ module Diff {
     - the initial version of the Diff module
 */
 
-#! the Diff namespace contains all the objects in the Diff module
+#! the Diff namespace contains all the objects in the Util module
 public namespace Diff {
     #! returns differences in two lists
     /** @par Example:
@@ -100,7 +100,7 @@ my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
         list e_eq   = slice(neww, maxlen > 0 ? range(new_max, new_max + maxlen - 1) : list());
         list e2_old = slice(old, old.size() > old_max + maxlen ? range(old_max + maxlen, old.size() - 1) : list());
         list e2_new = slice(neww, neww.size() > new_max + maxlen ? range(new_max + maxlen, neww.size() - 1) : list());
-        return
+        return 
             diff(e1_old, e1_new)
             + e_eq
             + diff(e2_old, e2_new);

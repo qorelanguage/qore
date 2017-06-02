@@ -34,11 +34,7 @@
 %enable-all-warnings
     @endcode
 
-    @note If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/local/bin/qore</tt>), or more portably without using a direct path to the interpreter:
-    @code{.py}
-#!/usr/bin/env qore
-    @endcode
-    This form will work as long as the \c qore binary is in the current \c PATH.
+    @note If another installation directory is used (such as \c /usr/local/bin), then the correct path must be reflected in the first line of the %Qore script (ex: <tt>#!/usr/local/bin/qore</tt>).  However, there is a better, more flexible way how to do it -- do not specify direct path to the interpreter, but use this construct instead: <tt>#!/usr/bin/env qore</tt> -- thus there is no need to worry about exact path and it just works.
 
-    %Qore convention dictates that %Qore script file names end with \c ".q"; @ref user_modules "user modules" with \c ".qm", and <a href="../../modules/QUnit/html/index.html">test scripts</a> with \c ".qtest".
+    %Qore convention dictates that %Qore script file names end with \c ".q".
 */

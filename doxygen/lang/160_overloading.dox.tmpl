@@ -1,8 +1,5 @@
 /** @page overloading Overloading
 
-    @tableofcontents
-
-    @section overloading_intro Overloading Introduction
     Functions and methods can be overloaded if parameter types are declared as in the following example:
 
     @code{.py}
@@ -19,19 +16,5 @@ string sub example(string str) {
 
     In this case, the first version (<tt>example(int)</tt>) will be executed if called with an integer argument, and the second (<tt>example(string)</tt>) if called with a string argument.
 
-    %Qore looks at the arguments passed to the function or method and tries to find the best match.  A perfect match is when all arguments exactly match the expected types.  An imperfect match is when the declared type accepts the argument value, but it is not an exact match.  Examples of imperfect matches are @ref float_type "float" accepting an @ref int_type "int" value, or a @ref number_type "number" type accepting a @ref float_type "float".
-
-    When types are declared in the source, %Qore uses this information to perform overloaded function and method resolution at parse time, which speeds up runtime execution.  If there is not enough information to match the function or method variant at parse time, then %Qore has to perform variant resolution at runtime, therefore it's advisable to declare types whenever possible.
-
-    @see @ref require-types "%require-types"
-
-    @section overloaded_methods Overloaded Class Methods
-
-    Class methods may also be overloaded, but note that \c destructor(), \c copy(), @ref methodGate_methods "methodGate()", @ref memberGate_methods "memberGate()", and @ref memberNotification_methods "memberNotification()" methods may not be overloaded, but all other methods may be overloaded.
-
-    When resolving an overloaded method in a class hierarchy, the first method that matches the arguments is selected, so even if a better match might be declared in a parent class, if any method variant matches in a class, then that class's method is used.  The same rules are used with parse-time resolution as at runtime.
-
-    For calls and call references with a class prefix, when @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" are in effect, static methods are searched first, then, if no match is found in the hierarchy, normal methods are searched.  For calls without a class prefix, normal methods are searched first, then static methods.
-
-    @see @ref qore_classes for more information
+    Class methods may also be overloaded, but note that @ref destructors "destructor()", @ref copying_objects "copy()", @ref methodGate_methods "methodGate()", @ref memberGate_methods "memberGate()", and @ref memberNotification_methods "memberNotification()" methods may not be overloaded (see @ref qore_classes for more information).
 */

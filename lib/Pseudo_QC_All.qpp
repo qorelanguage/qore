@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/SingleValueIterator.h"
+#include <qore/intern/SingleValueIterator.h>
 
 extern QoreClass* QC_SINGLEVALUEITERATOR;
 

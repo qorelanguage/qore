@@ -34,7 +34,7 @@
 #define _QORE_QC_AUTOLOCK_H
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_Mutex.h"
+#include <qore/intern/QC_Mutex.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOLOCK;
 DLLLOCAL extern QoreClass* QC_AUTOLOCK;

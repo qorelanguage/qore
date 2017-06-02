@@ -739,7 +739,6 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
@@ -935,7 +934,6 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)

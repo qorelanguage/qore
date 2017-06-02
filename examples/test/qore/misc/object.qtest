@@ -120,7 +120,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
         p.importClass("PrivTest");
         p.parse(CreateObjectSource, "create-object");
         assertThrows("CREATE-OBJECT-ERROR", \p.callFunction(), "test1");
-        assertThrows("RUNTIME-OVERLOAD-ERROR", \p.callFunction(), "test2");
+        assertThrows("CONSTRUCTOR-IS-PRIVATE", \p.callFunction(), "test2");
         assertEq("PrivTest", p.callFunction("test3").className());
     }
 

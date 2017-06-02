@@ -17,7 +17,6 @@ class IntTest inherits QUnit::Test {
 
     constructor() : QUnit::Test("IntTest", "1.0") {
         addTestCase("IntTests", \intTests());
-        addTestCase("formatTests", \formatTests());
         set_return_value(main());
     }
 
@@ -25,38 +24,5 @@ class IntTest inherits QUnit::Test {
         assertEq(9223372036854775807, MAXINT);
         int i = -MAXINT - 1;
         assertEq(-i, MININT);
-    }
-
-    formatTests() {
-        assertEq("1,001", 1001.format(","));
-        assertEq("1,001", 1001.format(",."));
-        assertEq("1.001", 1001.format("."));
-        assertEq("1.001", 1001.format(".,"));
-
-        assertEq("-48.392.093.894,000", (-48392093894).format(".,3"));
-
-        assertEq("1001", 1001.format(SNF_AllDigits));
-        assertEq("1,001", 1001.format(0, "", ","));
-        assertEq("1,001", 1001.format(0, ".", ","));
-        assertEq("1,001.00", 1001.format(2, NOTHING, ","));
-        assertEq("1.001", 1001.format(0, "", "."));
-        assertEq("1.001", 1001.format(0, ",", "."));
-        assertEq("1.001,00", 1001.format(2, ",", "."));
-
-        assertEq("10", 5.format(-1));
-        assertEq("0", 5.format(-2));
-        assertEq("0", 5.format(-3));
-        assertEq("450", 449.format(-1));
-        assertEq("400", 449.format(-2));
-        assertEq("25,400", 25449.format(-2, NOTHING, ","));
-        assertEq("-25,400", (-25449).format(-2, NOTHING, ","));
-        assertEq("-25,500", (-25450).format(-2, NOTHING, ","));
-        assertEq("-1,000", (-500).format(-3, NOTHING, ","));
-
-        assertEq("-48.392.093.894,000", (-48392093894).format(3, ",", "."));
-
-        assertEq("1000", 1001.format(-3));
-        assertEq("0", 1001.format(-4));
-        assertEq("0", 1001.format(-5));
     }
 }

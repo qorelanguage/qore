@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,7 @@
 
 #define _QORE_QOREOBJECTITERATOR_H
 
-#include "qore/intern/QoreHashIterator.h"
-#include "qore/intern/QoreObjectIntern.h"
+#include <qore/intern/QoreHashIterator.h>
 
 extern QoreClass* QC_OBJECTITERATOR;
 extern QoreClass* QC_OBJECTKEYITERATOR;
@@ -44,7 +43,7 @@ extern QoreClass* QC_OBJECTREVERSEITERATOR;
 // the c++ object
 class QoreObjectIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(qore_object_private::get(*o)->getRuntimeMemberHash(0)) {
+   DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(o->getRuntimeMemberHash(0)) {
    }
 
    DLLLOCAL QoreObjectIterator() {

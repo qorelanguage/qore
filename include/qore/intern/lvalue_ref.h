@@ -38,13 +38,13 @@ class RSetHelper;
 
 class lvalue_ref {
 public:
+   ReferenceNode* ref;
    AbstractQoreNode* vexp;
    QoreObject* self;
    QoreProgram* pgm;
    const void* lvalue_id;
-   const qore_class_private* cls;
 
-   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls);
+   DLLLOCAL lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid);
 
    DLLLOCAL lvalue_ref(const lvalue_ref& old);
 

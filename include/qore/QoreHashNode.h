@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -570,9 +570,6 @@ public:
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
-   //! returns the hash
-   DLLEXPORT QoreHashNode* getHash() const;
-
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
 
@@ -680,9 +677,6 @@ public:
 
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
-
-   //! returns the hash
-   DLLEXPORT const QoreHashNode* getHash() const;
 
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;

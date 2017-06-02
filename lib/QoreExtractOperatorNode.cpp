@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_program_private.h"
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreExtractOperatorNode::extract_str("extract operator expression");
 
@@ -59,13 +59,13 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
-         QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
-         QoreTypeInfo::getThisType(expTypeInfo, *desc);
-         desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
-         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
+	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
-         returnTypeInfo = typeInfo = expTypeInfo;
+	 returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression
@@ -144,7 +144,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_extract() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
    }
-   else if (vt == NT_STRING) {
+   else {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
       printd(5, "op_extract() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
    }

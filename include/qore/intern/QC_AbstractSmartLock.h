@@ -33,7 +33,7 @@
 
 #define _QORE_CLASS_ABSTRACTSMARTLOCK_H
 
-#include "qore/intern/AbstractSmartLock.h"
+#include <qore/intern/AbstractSmartLock.h>
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTSMARTLOCK;
 DLLLOCAL extern QoreClass* QC_ABSTRACTSMARTLOCK;

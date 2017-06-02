@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/OnBlockExitStatement.h"
-#include "qore/intern/StatementBlock.h"
+#include <qore/intern/OnBlockExitStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 OnBlockExitStatement::OnBlockExitStatement(int start_line, int end_line, class StatementBlock *n_code, enum obe_type_e n_type) : AbstractStatement(start_line, end_line), code(n_code), type(n_type) {
 }
@@ -47,7 +47,7 @@ int OnBlockExitStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink
 
 int OnBlockExitStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    if (code)
-      code->parseInitImpl(oflag, pflag & ~(PF_TOP_LEVEL | PF_BREAK_OK | PF_CONTINUE_OK));
+      code->parseInitImpl(oflag, pflag & ~PF_TOP_LEVEL);
 
    return 0;
 }

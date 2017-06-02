@@ -252,7 +252,6 @@ public:
    }
 
    DLLLOCAL void setLink(QoreAbstractModule* n) {
-      //printd(5, "AbstractQoreModule::setLink() n: %p '%s'\n", n, n->getName());
       assert(!next);
       assert(!n->prev);
       next = n;
@@ -399,15 +398,14 @@ public:
    }
 
 #ifdef DEBUG
-   DLLLOCAL void show(const char* name) {
-      printf("ModMap '%s':\n", name);
+   DLLLOCAL void show() {
       for (md_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          QoreString str("[");
          for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
             str.sprintf("'%s',", (*si).c_str());
          str.concat("]");
 
-         printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.getBuffer());
+         printd(0, " + rmd_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
       }
    }
 #endif
@@ -461,7 +459,7 @@ protected:
    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, QoreProgram* path_pgm = 0, unsigned load_opt = QMLO_NONE);
    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
+   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::auto_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
 
    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
    DLLLOCAL void delOrig(QoreAbstractModule* mi);
@@ -481,7 +479,6 @@ public:
    DLLLOCAL void issueParseCmd(const char* mname, QoreProgram* pgm, QoreString &cmd);
 
    DLLLOCAL void addModule(QoreAbstractModule* m) {
-      assert(map.find(m->getName()) == map.end());
       map.insert(module_map_t::value_type(m->getName(), m));
    }
 
@@ -608,8 +605,13 @@ public:
    DLLLOCAL virtual ~QoreBuiltinModule() {
       printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
       module_delete();
-      // we do not close binary modules because we may have thread local data that needs to be
-      // destroyed when exit() is called
+      if (dlptr) {
+         printd(5, "calling dlclose(%p)\n", dlptr);
+#ifndef DEBUG
+         // do not close modules when debugging
+         dlclose((void* )dlptr);
+#endif
+      }
    }
 
    DLLLOCAL unsigned getAPIMajor() const {

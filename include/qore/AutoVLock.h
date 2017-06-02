@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   AutoVLock.h
-
+  
   Qore Programming Language
-
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
-
+ 
+  Copyright (C) 2003 - 2015 David Nichols
+ 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -94,20 +94,17 @@ private:
    struct qore_avl_private* priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL AutoVLock(const AutoVLock&) = delete;
+   DLLLOCAL AutoVLock(const AutoVLock&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL AutoVLock& operator=(const AutoVLock&) = delete;
+   DLLLOCAL AutoVLock& operator=(const AutoVLock&);
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void* operator new(size_t) = delete;
-
+   DLLLOCAL void* operator new(size_t);
+   
 public:
    //! creates an empty lock container
    /** @param n_xsink pointer to ExceptionSink object for use with object notifications
     */
    DLLEXPORT AutoVLock(ExceptionSink* n_xsink);
-
-   //! default move constructor
-   DLLEXPORT AutoVLock(AutoVLock&& o) = default;
 
    //! releases all locks held and destroys the container
    DLLEXPORT ~AutoVLock();

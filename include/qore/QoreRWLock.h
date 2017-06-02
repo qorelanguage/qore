@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ extern int gettid();
 #endif
 
 //! provides a simple POSIX-threads-based read-write lock
-/** This utility class is just a simple wrapper for pthread_rwlock_t.  It does
+/** This utility class is just a simple wrapper for pthread_rwlock_t.  It does 
     not provide any special logic for checking for correct usage, etc.
  */
 class QoreRWLock {
@@ -106,10 +106,10 @@ class QoreAutoRWReadLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreAutoRWReadLocker(const QoreAutoRWReadLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreAutoRWReadLocker& operator=(const QoreAutoRWReadLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void *operator new(size_t);
 
@@ -143,10 +143,10 @@ class QoreAutoRWWriteLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreAutoRWWriteLocker(const QoreAutoRWWriteLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreAutoRWWriteLocker& operator=(const QoreAutoRWWriteLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void *operator new(size_t);
 
@@ -180,10 +180,10 @@ class QoreSafeRWReadLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSafeRWReadLocker(const QoreSafeRWReadLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSafeRWReadLocker& operator=(const QoreSafeRWReadLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void *operator new(size_t);
 
@@ -243,10 +243,10 @@ class QoreSafeRWWriteLocker {
 private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSafeRWWriteLocker(const QoreSafeRWWriteLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSafeRWWriteLocker& operator=(const QoreSafeRWWriteLocker&);
-
+   
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void *operator new(size_t);
 

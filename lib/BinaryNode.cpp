@@ -167,7 +167,7 @@ const char *BinaryNode::getTypeName() const {
 }
 
 int BinaryNode::preallocate(qore_size_t size) {
-   //printd(5, "BinaryNode::preallocate(" QLLD ") this: %p ptr: %p len: " QLLD "\n", size, this, ptr, len);
+   //printd(5, "BinaryNode::preallocate("QLLD") this: %p ptr: %p len: "QLLD"\n", size, this, ptr, len);
    ptr = q_realloc(ptr, size);
    if (ptr) {
       len = size;
@@ -222,7 +222,7 @@ void BinaryNode::checkOffset(qore_offset_t& offset, qore_offset_t& num) const {
 
 void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, BinaryNode* extract) {
    checkOffset(offset, length);
-  //printd(5, "BinaryNode::splice(offset=" QSD ", length=" QSD ", priv->len=" QSD ")\n", offset, length, len);
+  //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
 
    if (offset == (qore_offset_t)len || !length)
       return;
@@ -257,7 +257,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
       length = 0;
    }
 
-   //printd(5, "BinaryNode::splice(offset=" QSD ", length=" QSD ", priv->len=" QSD ")\n", offset, length, len);
+   //printd(5, "BinaryNode::splice(offset="QSD", length="QSD", priv->len="QSD")\n", offset, length, len);
 
    qore_size_t end;
    if (length > (qore_offset_t)(len - offset)) {

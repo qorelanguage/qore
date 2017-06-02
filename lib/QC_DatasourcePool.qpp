@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include <qore/DBI.h>
 
-#include "qore/intern/QC_DatasourcePool.h"
+#include <qore/intern/QC_DatasourcePool.h>
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
@@ -142,7 +142,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
     The connection is released to the pool when DatasourcePool::commit() or DatasourcePool::rollback() are called (or in the case the thread terminates, in which case an exception is raised as well).\n\n
     To begin a transaction with one of the select methods (for example, with \c "select for update"), call DatasourcePool::beginTransaction() first to manually dedicate a Datasource to the thread before calling the select method. Otherwise statements that should be in the same transaction may be executed in different connections.\n\n
     Executing a %DatasourcePool method while not in a transaction is realized by allocating a temporary connection to the calling thread which is re-released when the method returns. No explicit commits are executed by the class, therefore it is an error to execute transaction-relevant commands without first calling DatasourcePool::exec(), DatasourcePool::vexec(), DatasourcePool::execRaw(), or DatasourcePool::beginTransaction().\n\n
-    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; when connections are returned to the pool, all SQLStatement objects using the allocated datasource are closed automatically; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
+    Note that the @ref Qore::SQL::SQLStatement "SQLStatement" class also grabs allocates a persistent connection to the calling thread when executing if it is created using a %DatasourcePool object in the constructor; for more information see the @ref Qore::SQL::SQLStatement "SQLStatement" class documentation.
 
     @par Thread Resource Handling
     The DatasourcePool class manages connection allocations as a @ref thread_resources "thread resource"; if the
@@ -204,17 +204,17 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
    }
 
    if (min <= 0) {
-      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: " QLLD ")", min);
+      xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: "QLLD")", min);
       return;
    }
 
    if (max < min) {
-      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: " QLLD ")", min, max);
+      xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: "QLLD")", min, max);
       return;
    }
 
    if (port < 0) {
-      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: " QLLD ")", port);
+      xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: "QLLD")", port);
       return;
    }
 

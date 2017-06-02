@@ -32,7 +32,7 @@
 #ifndef _QORE_CLASS_SQLSTATEMENT_H
 #define _QORE_CLASS_SQLSTATEMENT_H
 
-#include "qore/intern/QoreSQLStatement.h"
+#include <qore/intern/QoreSQLStatement.h>
 
 DLLEXPORT extern qore_classid_t CID_SQLSTATEMENT;
 DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;

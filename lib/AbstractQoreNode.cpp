@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,9 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_list_private.h"
-#include "qore/intern/QoreHashNodeIntern.h"
-#include "qore/intern/QoreClosureNode.h"
+#include <qore/intern/qore_list_private.h>
+#include <qore/intern/QoreHashNodeIntern.h>
+#include <qore/intern/QoreClosureNode.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -82,10 +82,10 @@ void AbstractQoreNode::ref() const {
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references.load(), references.load() + 1, o, o->getClass()->getName());
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d object (%d->%d) object: %p, class: %s\n", this, type, references, references + 1, o, o->getClass()->getName());
    }
    else
-      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() + 1);
+      printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
 #endif
 #endif
    if (!there_can_be_only_one) {
@@ -125,21 +125,21 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    */
 #if TRACK_REFS
    if (type == NT_OBJECT)
-      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
+      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references, references - 1, custom_reference_handlers);
    else
-      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() - 1);
+      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
 
 #endif
-   if (references.load() > 10000000 || references.load() <= 0){
+   if (references > 10000000 || references <= 0){
       if (type == NT_STRING)
 	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
-		this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
+		this, references, getTypeName(), ((QoreStringNode*)this)->getBuffer());
       else
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
+	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references, getTypeName());
       assert(false);
    }
 #endif
-   assert(references.load() > 0);
+   assert(references > 0);
 
    if (there_can_be_only_one) {
       assert(is_unique());
@@ -454,6 +454,11 @@ static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionS
    return h.release();
 }
 
+static inline AbstractQoreNode* crlr_tree_copy(const QoreTreeNode* n, ExceptionSink* xsink) {
+   return new QoreTreeNode(copy_and_resolve_lvar_refs(n->left, xsink), n->getOp(),
+			   n->right ? copy_and_resolve_lvar_refs(n->right, xsink) : 0);
+}
+
 static inline AbstractQoreNode* crlr_selfcall_copy(const SelfFunctionCallNode* n, ExceptionSink* xsink) {
    QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
    if (na)
@@ -543,6 +548,9 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
 
    if (ntype == NT_HASH)
       return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
+
+   if (ntype == NT_TREE)
+      return crlr_tree_copy(reinterpret_cast<const QoreTreeNode*>(n), xsink);
 
    if (ntype == NT_OPERATOR)
       return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);

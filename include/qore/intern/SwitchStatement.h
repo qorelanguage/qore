@@ -33,8 +33,8 @@
 
 #define _QORE_SWITCHSTATEMENT_H
 
-#include "qore/intern/AbstractStatement.h"
-#include "qore/intern/StatementBlock.h"
+#include <qore/intern/AbstractStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 class CaseNode {
 private:

@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_AutoGate.h"
-#include "qore/intern/QC_Gate.h"
+#include <qore/intern/QC_AutoGate.h>
+#include <qore/intern/QC_Gate.h>
 
 //! A helper class for the @ref Qore::Thread::Gate "Gate" class for exception-safe @ref Qore::Thread::Gate "Gate" handling
 /** AutoGate objects, when used along with a @ref Qore::Thread::Gate "Gate" object, allow %Qore programmers to safely enter and exit a @ref Qore::Thread::Gate "Gate" lock, even if exceptions are thrown or return statements are executed in the block where the AutoGate object is created.

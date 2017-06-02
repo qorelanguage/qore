@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols, Vaclav Pfeifer
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREHASHMAPOPERATORNODE_H
 #define _QORE_QOREHASHMAPOPERATORNODE_H
 
-#include "qore/intern/AbstractIteratorHelper.h"
+#include <qore/intern/AbstractIteratorHelper.h>
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
@@ -53,6 +53,11 @@ protected:
 
    inline DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return returnTypeInfo;
+   }
+
+   inline DLLLOCAL virtual bool hasEffect() const {
+      // FIXME: check iterated expression to see if it really has an effect
+      return true;
    }
 
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;

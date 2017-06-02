@@ -34,7 +34,27 @@
 
 #ifdef __GNUC__
 
+#define HAVE_ATOMIC_MACROS
 #define HAVE_CHECK_STACK_POS
+
+// returns 1 when counter reaches zero, 0 if not
+static inline int atomic_dec(volatile int *a) {
+   unsigned char rc;
+
+   __asm(
+        "lock; decl %0; sete %1"
+        : "=m" (*a), "=qm" (rc)
+	: "m" (*a) : "memory"
+      );
+   return rc != 0;
+}
+
+static inline void atomic_inc(volatile int *a) {
+   __asm(
+        "lock; incl %0"
+        : "=m" (*a)
+   );
+}
 
 static inline size_t get_stack_pos() {
    size_t addr;
@@ -46,7 +66,12 @@ static inline size_t get_stack_pos() {
 
 #ifdef __SUNPRO_CC
 
+#define HAVE_ATOMIC_MACROS
 #define HAVE_CHECK_STACK_POS
+
+// these routines are implemented in assembler
+extern "C" int atomic_dec(volatile int *a);
+extern "C" void atomic_inc(volatile int *a);
 
 extern "C" size_t get_stack_pos();
 

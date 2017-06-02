@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_QORECLOSUREPARSENODE_H
 
-#include "qore/intern/ParseNode.h"
+#include <qore/intern/ParseNode.h>
 
 #include <vector>
 
@@ -101,7 +101,7 @@ public:
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
-   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 

@@ -1,9 +1,9 @@
 /*
   QoreBoolNode.cpp
-
+  
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_date_private.h"
 
 QoreBoolNode::QoreBoolNode(bool n_b) : UniqueValueQoreNode(NT_BOOLEAN), b(n_b) {
 }
@@ -53,12 +52,12 @@ void QoreBoolNode::getStringRepresentation(QoreString &str) const {
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *QoreBoolNode::getDateTimeRepresentation(bool &del) const {
    del = true;
-   return DateTime::makeRelativeFromSeconds(b ? 1 : 0);
+   return new DateTime((int64)b);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreBoolNode::getDateTimeRepresentation(DateTime &dt) const {
-   dt.setRelativeDateSeconds(b ? 1 : 0);
+   dt.setDate((int64)b);
 }
 
 bool QoreBoolNode::getAsBoolImpl() const {

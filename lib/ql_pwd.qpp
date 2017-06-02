@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ql_env.h"
+#include <qore/intern/ql_env.h>
 
 #include <stdio.h>
 #ifdef HAVE_PWD_H

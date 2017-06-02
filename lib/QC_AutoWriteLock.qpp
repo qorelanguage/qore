@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_AutoWriteLock.h"
-#include "qore/intern/QC_RWLock.h"
+#include <qore/intern/QC_AutoWriteLock.h>
+#include <qore/intern/QC_RWLock.h>
 
 //! A helper class for the @ref Qore::Thread::RWLock "RWLock" class for exception-safe write lock handling
 /** AutoWriteLock objects, when used along with a @ref Qore::Thread::RWLock "RWLock" object, allow %Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or return statements are executed in the block where the AutoWriteLock object is created.

@@ -1,9 +1,9 @@
 /*
   QoreFloatNode.cpp
-
+  
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,24 +49,18 @@ QoreString *QoreFloatNode::getStringRepresentation(bool &del) const {
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
 void QoreFloatNode::getStringRepresentation(QoreString &str) const {
-   size_t offset = str.size();
    str.sprintf("%.9g", f);
-   // issue 1556: external modules that call setlocale() can change
-   // the decimal point character used here from '.' to ','
-   // only search the double added, QoreString::sprintf() concatenates
-   q_fix_decimal(&str, offset);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *QoreFloatNode::getDateTimeRepresentation(bool &del) const {
    del = true;
-   return DateTime::makeRelativeFromSeconds((int64)f, (int)((f - (double)((int)f)) * 1000000));
+   return DateTime::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreFloatNode::getDateTimeRepresentation(DateTime &dt) const {
-   int64 secs = (int64)f;
-   dt.setRelativeDateSeconds(secs, (int)((f - (double)secs) * 1000000));
+   dt.setLocalDate(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
 }
 
 bool QoreFloatNode::getAsBoolImpl() const {

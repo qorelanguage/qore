@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore/intern/glob.h"
+#include <qore/intern/glob.h>
 
 int glob(const char *pattern, int flags, glob_error_t errfunc, glob_t *buf) {
    return buf->set(pattern, flags, errfunc);

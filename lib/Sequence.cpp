@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/Sequence.h"
+#include <qore/intern/Sequence.h>
 
 Sequence::Sequence(int start) {
    val = start;

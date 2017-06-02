@@ -5,8 +5,8 @@
   QoreStringNode Class Definition
 
   Qore Programming Language
-
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -155,7 +155,7 @@ public:
    DLLEXPORT virtual DateTime* getDateTimeRepresentation(bool& del) const;
 
    //! assigns the date representation of this string to the DateTime reference passed
-   /**
+   /** 
        @param dt the DateTime reference to be assigned
    */
    DLLEXPORT virtual void getDateTimeRepresentation(DateTime& dt) const;
@@ -219,7 +219,7 @@ public:
    DLLEXPORT QoreStringNode* parseBase64ToString(ExceptionSink* xsink) const;
 
    //! parses the current string data as base64-encoded data and returns it as a QoreStringNode pointer owned by the caller
-   /**
+   /** 
        @param enc the encoding to tag the decoded string with
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return a QoreStringNode of the decoded data (0 if an exception occurs), the QoreStringNode pointer is owned by the caller
@@ -315,14 +315,14 @@ protected:
 
    //! sets up the object / common initialization
    DLLLOCAL void setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc = 0);
-
+   
 public:
    //! creates the object and acquires a pointer to the QoreString representation of the AbstractQoreNode passed
    DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n);
 
    //! creates the object and acquires a pointer to the QoreString representation of the QoreValue passed
    DLLEXPORT explicit QoreStringValueHelper(const QoreValue& n);
-
+   
    //! gets the QoreString representation and ensures that it's in the desired encoding
    /** a Qore-language exception may be thrown if an encoding error occurs
        @code
@@ -389,7 +389,7 @@ public:
       str = 0;
       return rv;
    }
-
+   
    //! returns true if the pointer being managed is temporary
    DLLLOCAL bool is_temp() const {
       return del;
@@ -407,7 +407,7 @@ public:
 class QoreStringNodeValueHelper {
 private:
    QoreStringNode* str;
-   bool del;
+   bool temp;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreStringNodeValueHelper(const QoreStringNodeValueHelper&);
@@ -418,32 +418,11 @@ private:
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL void* operator new(size_t);
 
-   //! sets up the object / common initialization
-   DLLLOCAL void setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc = 0);
-
 public:
    DLLEXPORT QoreStringNodeValueHelper(const AbstractQoreNode* n);
 
    DLLEXPORT QoreStringNodeValueHelper(const QoreValue& n);
-
-   //! gets the QoreString representation and ensures that it's in the desired encoding
-   /** a Qore-language exception may be thrown if an encoding error occurs
-       @code
-       // get a QoreString value from "node" and ensure it's in UTF-8 encoding
-       QoreStringNodeValueHelper t(node, QCS_UTF8, xsink);
-       // return if there was an exception converting the encoding to UTF-8
-       if (*xsink)
-          return 0;
-
-       // use the string value
-       return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
-       @endcode
-   */
-   DLLEXPORT QoreStringNodeValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink);
-
-   //! gets the QoreString representation and ensures that it's in the desired encoding
-   DLLEXPORT QoreStringNodeValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
-
+   
    //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
    DLLEXPORT ~QoreStringNodeValueHelper();
 
@@ -461,15 +440,10 @@ public:
 
    //! returns a referenced value - the caller will own the reference
    /**
-      The string is referenced if necessary (if it was a not a temporary value)
+      The string is referenced if necessary (if it was a temporary value)
       @return the string value, where the caller will own the reference count
    */
    DLLEXPORT QoreStringNode* getReferencedValue();
-
-   //! returns true if the referenced being managed is temporary
-   DLLLOCAL bool is_temp() const {
-      return del;
-   }
 };
 
 #include <qore/ReferenceHolder.h>

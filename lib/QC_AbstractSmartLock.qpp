@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_AbstractSmartLock.h"
+#include <qore/intern/QC_AbstractSmartLock.h>
 
 //! The abstract base class for locks that support the internal API for use with the @ref Qore::Thread::Condition "Condition" class
 /** This is an abstract class to be inherited by builtin classes that implement the internal %Qore API that allows them to be used by the @ref Qore::Thread::Condition "Condition" class. Currently the @ref Qore::Thread::RWLock "RWLock" and @ref Qore::Thread::Mutex "Mutex" classes inherit this class.

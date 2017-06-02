@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_date_private.h"
+#include <qore/intern/qore_date_private.h>
 
 #include <sys/time.h>
 #include <errno.h>

@@ -35,7 +35,7 @@
 
 #define _QORE_CLASS_QORERWLOCK
 
-#include "qore/intern/RWLock.h"
+#include <qore/intern/RWLock.h>
 
 DLLEXPORT extern qore_classid_t CID_RWLOCK;
 DLLLOCAL extern QoreClass* QC_RWLOCK;

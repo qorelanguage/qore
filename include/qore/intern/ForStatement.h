@@ -33,7 +33,7 @@
 
 #define _QORE_FORSTATEMENT_H
 
-#include "qore/intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class StatementBlock;
 class LVList;

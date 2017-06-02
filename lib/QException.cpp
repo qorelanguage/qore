@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/minitest.hpp>
-#include "qore/intern/QException.h"
+#include <qore/intern/QException.h>
 
 #include <assert.h>
 #include <string.h>

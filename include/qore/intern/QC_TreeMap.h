@@ -83,43 +83,27 @@ public:
       }
    }
 
-   DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, const ReferenceNode* unmatched, ExceptionSink *xsink) const {
+   DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, ExceptionSink *xsink) const {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (!keyStr) {
          return 0;
       }
 
       QoreAutoRWReadLocker al(rwl);
-      if (!data.empty()) {
-         std::string path(keyStr->getBuffer());
-
-         Map::const_iterator b = data.begin();
-         Map::const_iterator it = data.upper_bound(path);
-
-         size_t prefixLen = getFirstPathSegmentLength(path);
-         while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
-            if (isPathPrefix(it->first, path)) {
-               if (unmatched) {
-                  size_t l = it->first.length();
-                  if (isPathEnd(path[l])) {
-                     l++;
-                  }
-                  QoreTypeSafeReferenceHelper ref(unmatched, xsink);
-                  if (!ref)
-                     return 0;
-                  if (ref.assign(key->substr(l, xsink)))
-                     return 0;
-               }
-               return it->second.getReferencedValue();
-            }
-         }
+      if (data.empty()) {
+         return 0;
       }
-      if (unmatched) {
-         QoreTypeSafeReferenceHelper ref(unmatched, xsink);
-         if (!ref)
-            return 0;
-         if (ref.assign(&Nothing))
-            return 0;
+
+      std::string path(keyStr->getBuffer());
+
+      Map::const_iterator b = data.begin();
+      Map::const_iterator it = data.upper_bound(path);
+
+      size_t prefixLen = getFirstPathSegmentLength(path);
+      while (it != b && !(--it)->first.compare(0, prefixLen, path, 0, prefixLen)) {
+         if (isPathPrefix(it->first, path)) {
+            return it->second.getReferencedValue();
+         }
       }
       return 0;
    }

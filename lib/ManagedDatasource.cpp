@@ -29,8 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ManagedDatasource.h"
-#include "qore/intern/qore_ds_private.h"
+#include <qore/intern/ManagedDatasource.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +45,7 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
    releaseLockIntern();
 }
 
-void ManagedDatasource::destructor(ExceptionSink* xsink) {
+void ManagedDatasource::destructor(ExceptionSink *xsink) {
    AutoLocker al(&ds_lock);
    if (tid == gettid() || tid == -1)
       // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
@@ -158,7 +157,7 @@ int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction
       return -1;
    }
 
-   //printd(5, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
+   //printd(0, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
    return 0;
 }
 
@@ -231,7 +230,7 @@ AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const Qor
    if (!dbah)
       return 0;
 
-   //printd(5, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
+   //printd(0, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
 
    return Datasource::exec(query_str, args, xsink);
 }
@@ -258,7 +257,7 @@ bool ManagedDatasource::beginTransaction(ExceptionSink *xsink) {
       return false;
 
    Datasource::beginTransaction(xsink);
-   //printd(5, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
+   //printd(0, "ManagedDatasource::beginTransaction() this=%p isInTransaction()=%d\n", this, isInTransaction());
 
    return dbah.newTransaction();
 }

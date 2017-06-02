@@ -35,11 +35,6 @@ class FileTest inherits QUnit::Test {
         assertEq("ä", f.getchar());
         assertEq("s", f.getchar());
         f.setPos(0);
-        # issue 1548
-        assertEq("ä", f.read(1));
-        assertEq("s", f.read(1));
-        assertEq("dfaä", f.read(4));
-        f.setPos(0);
         assertEq(Data, f.read(-1));
     }
 }

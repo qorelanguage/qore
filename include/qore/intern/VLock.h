@@ -34,7 +34,7 @@
 #define _QORE_VLOCK_H
 
 #include <qore/Qore.h>
-#include "qore/intern/AbstractSmartLock.h"
+#include <qore/intern/AbstractSmartLock.h>
 
 #include <vector>
 #include <map>

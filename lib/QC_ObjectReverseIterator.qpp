@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QoreObjectIterator.h"
+#include <qore/intern/QoreObjectIterator.h>
 
 extern QoreClass* QC_OBJECTITERATOR;
 

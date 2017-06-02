@@ -3,9 +3,9 @@
   CaseNodeRegex.h
 
   Qore Programming Language
-
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
-
+ 
+  Copyright (C) 2003 - 2015 David Nichols
+ 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,8 +32,8 @@
 #ifndef QORE_CASENODEREGEX_H
 #define QORE_CASENODEREGEX_H
 
-#include "qore/intern/SwitchStatement.h"
-#include "qore/intern/QoreRegex.h"
+#include <qore/intern/SwitchStatement.h>
+#include <qore/intern/QoreRegexNode.h>
 
 // Class supporting:
 // switch ($a) {
@@ -41,17 +41,17 @@
 //
 class CaseNodeRegex : public CaseNode {
 protected:
-   QoreRegex *re;
-
+   QoreRegexNode *re;
+   
    DLLLOCAL virtual bool isCaseNodeImpl() const {
       return false;
    }
    DLLLOCAL virtual bool isDefault() const {
       return false;
    }
-
+   
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
+   DLLLOCAL CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk);
    DLLLOCAL virtual ~CaseNodeRegex() {
       delete re;
    }
@@ -60,7 +60,7 @@ public:
 
 class CaseNodeNegRegex : public CaseNodeRegex {
 public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
+   DLLLOCAL CaseNodeNegRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
    }
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };

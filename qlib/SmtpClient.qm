@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2016 Qore Technologies, s.r.o.
+/*  SmtpClient.qm Copyright 2012 - 2015 Qore Technologies, sro
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -33,24 +33,53 @@
 # need MailMessage classes
 %requires MailMessage >= 1.0
 
-%requires(reexport) ConnectionProvider
-
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 
 module SmtpClient {
-    version = "1.6";
+    version = "1.5";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
     license = "MIT";
 }
 
+/*  Version History
+    * 2015-11-11 v1.5: David Nichols <david@qore.org>:
+      + converted to new-style
+
+    * 2014-03-17 v1.4: David Nichols <david@qore.org>:
+      + fixed missing username and missing password errors
+
+    * 2014-02-04 v1.3: David Nichols <david@qore.org>:
+      + added socket instrumention support from Qore 0.8.9
+
+    * 2013-11-25 v1.3: David Nichols <david@qore.org>:
+      + optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
+
+    * 2012-11-24 v1.2: David Nichols <david@qore.org>:
+      + added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
+      + use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
+      + implemented support for automatically detecting if the server accepts the STARTTLS command and, if so, automatically setting the STARTTLS flag if it's not already set
+
+    * 2012-06-14 v1.1: David Nichols <david@qore.org>:
+      + removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
+
+    * 2012-05-21 v1.0: David Nichols <david@qore.org>:
+      + updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + the bane of all developers: documentation :)
+
+    ritzinwo, 20090716
+
+    based on:
+    - http://james.apache.org/server/rfclist/smtp/rfc0821.txt
+    - http://tools.ietf.org/html/rfc821: initial SMTP protocol spec
+    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
+    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
+    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
+    - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
+*/
+
 /** @mainpage SmtpClient Module
-
-    @tableofcontents
-
-    @section smtpclientintro SmtpClient Introduction
 
     The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails, with or without TLS/SSL encryption.
 
@@ -58,9 +87,7 @@ module SmtpClient {
 
     All the public symbols in the module are defined in the SmtpClient namespace
 
-    Classes provided:
-    - @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
-    - @ref SmtpClient::SmtpConnection "SmtpConnection": provides a connection object to an SMTP server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    The main class is: @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
 
     The following supporting classes are provided by the MailMessage module:
     - MailMessage::Message: wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
@@ -94,47 +121,9 @@ msg.addTO("My Best Friend <you@friend.com>");
 msg.attach(filename, Mime::MimeTypeText, data);
 
 code log = sub (string str) {printf("%y: %s\n", now_us(), str);};
-SmtpClient::SmtpClient smtp("esmtptls://user@password:smtp.example.com", log, log);
+my SmtpClient::SmtpClient smtp("esmtptls://user@password:smtp.example.com", log, log);
 smtp.sendMessage(msg);@endcode
-
-    @section smtpclient_references SmtpClient References
-
-    Based on:
-    - http://james.apache.org/server/rfclist/smtp/rfc0821.txt
-    - http://tools.ietf.org/html/rfc821: initial SMTP protocol spec
-    - http://tools.ietf.org/html/rfc1521: quoted printable & base 64 transfer encodings
-    - http://tools.ietf.org/html/rfc2045: mime headers, content types, etc
-    - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
-    - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
-
-    @section smtpclient_relnotes SmtpClient Release Notes
-
-    @subsection smtpclient_v1_6 SmtpClient 1.6
-    - added the @ref SmtpClient::SmtpConnection "SmtpConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-
-    @subsection smtpclient_v1_5 SmtpClient 1.5
-    - converted to @ref new-style "%new-style"
-
-    @subsection smtpclient_v1_4 SmtpClient 1.4
-    - fixed missing username and missing password errors
-
-    @subsection smtpclient_v1_3 SmtpClient 1.3
-    - added socket instrumention support from Qore 0.8.9
-
-    @subsection smtpclient_v1_3 SmtpClient 1.3
-    - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
-
-    @subsection smtpclient_v1_2 SmtpClient 1.2
-    - added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
-    - use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
-    - implemented support for automatically detecting if the server accepts the STARTTLS command and, if so, automatically setting the STARTTLS flag if it's not already set
-
-    @subsection smtpclient_v1_1 SmtpClient 1.1
-    - removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
-
-    @subsection smtpclient_v1_10 SmtpClient 1.0
-    + updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + documentation
-*/
+ */
 
 #! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
 /** This includes:
@@ -803,64 +792,5 @@ smtp.clearStats();
             }
         }
         #! @endcond
-    }
-
-    #! class for SMTP connections; returns an object of class @ref SmtpClient for sending emails
-    /** supports the following runtime options in getImpl() for connection logging:
-        - \c "log": a closure accepting a single string for logging
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-        @since %SmtpClient 1.6
-    */
-    public class SmtpConnection inherits ConnectionProvider::AbstractConnection {
-        #! creates the SmtpConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-            #code log = sub (string fmt) { vprintf(fmt + "\n", argv); };
-            #opts.dbglog = opts.log = log;
-        }
-
-        #! returns \c "smtp"
-        string getType() {
-            return "smtp";
-        }
-
-        #! returns runtime options
-        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        */
-        *hash getRuntimeOptions() {
-            return (
-                "log": True,
-                "dbglog": True,
-                );
-        }
-
-        #! returns an @ref SmtpClient object
-        /** @param connect if @ref Qore::True "True", then @ref SmtpClient::connect() is called
-            @param rtopts supports the following runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-            @return an @ref SmtpClient object
-        */
-        private SmtpClient getImpl(bool connect = True, *hash rtopts) {
-            SmtpClient sc(url, rtopts.log, rtopts.dbglog);
-            if (connect)
-                sc.connect();
-            return sc;
-        }
-
-        #! static constructor
-        static SmtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new SmtpConnection(name, desc, url, monitor, opts, urlh);
-        }
     }
 }

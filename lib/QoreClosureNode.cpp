@@ -86,7 +86,7 @@ bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue QoreClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, pgm, args, 0, 0, xsink);
+   return closure->exec(*this, pgm, args, 0, xsink);
 }
 
 bool QoreClosureNode::getAsBoolImpl() const {
@@ -108,5 +108,5 @@ bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue QoreObjectClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
    CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, 0, args, obj, class_ctx, xsink);
+   return closure->exec(*this, 0, args, obj, xsink);
 }

@@ -34,7 +34,7 @@
 #define _QORE_CLASS_MUTEX
 
 #include <qore/Qore.h>
-#include "qore/intern/SmartMutex.h"
+#include <qore/intern/SmartMutex.h>
 #include <qore/safe_dslist>
 
 DLLEXPORT extern qore_classid_t CID_MUTEX;

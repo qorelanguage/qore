@@ -2,13 +2,11 @@
 *** COMPILING and INSTALLING QORE FROM SOURCE ***
 *************************************************
 
-see README-GIT to lean how to build qore from git sources
+see README-GIT to lean how to build qore from svn sources
 see README-WINDOWS for info specific to the windows builds
 
 Build Requirements
 ------------------
-*) a C++ compiler with C++11 support
-
 *) flex 2.5.31 (or greater -- 2.5.4 or before will NOT work, sorry.  flex 2.5.37 or greater is recommended)
 qore requires this very new version of flex in order to build a reentrant parser.  I was not able to build a reentrant parser with earler versions of flex (including 2.5.4).  many older linux distributions ship with flex 2.5.4; this version will not work and the configure script will exit an error message if only this version is found.  You can download flex 2.5.37 at:
 	 http://sourceforge.net/projects/flex
@@ -85,10 +83,13 @@ as long as all the prerequisite libraries are installed, the configure script sh
 note that there is a freebsd port of Qore available (http://www.freebsd.org/cgi/cvsweb.cgi/ports/lang/qore)
 
 *) Darwin - OS/X
-One of the main development platforms for Qore.  No particular issues with recent versions of OS/X.  Note that there is a port available for Qore in macports (https://trac.macports.org/browser/trunk/dports/lang/qore/Portfile); there are also ports for the development version and for many binary modules
+One of the main development platforms for Qore.  There are no particular issues on newer version of OS/X (10.5+), just make sure you have the prerequisite libraries and header files available - this applies to PCRE on newer versions of OS/X.  On older versions (10.4 and earlier), you'll also need to ensure that you have at least libtool 1.5.10 when building from svn, get it from fink/macports/brew as you like.
+NOTE that pthread_create() on Darwin 8.7.1 (OS X 10.4.7) < OS X 10.7 returns 0 (no error) on i386 at least, even when it appears that thread resources are exhausted and the new thread is never started.  This happens after 2560 threads are started, so normally this will not be an issue for most programs.  To make sure that this doesn't happen, when qore is compiled on Darwin MAX_QORE_THREADS is automatically set to 2560 (otherwise the default is normally 4096).  This issue was fixed in OS X 10.7 - MAX_QORE_THREADS is set automatically when building on the appropriate platform, this is just for your information.
 
 *) Solaris:
-Supported with g++ with c++11 support, Oracle Studio CC not tested recently
+One of the main development platforms for Qore.  g++ and CC static and shared builds work fine (tested with many versions of g++ and CC).
+Note that on Solaris x86 when making a 64-bit build I had to use libtool 1.5.22, libtool 1.5.11 did not recognize that -xarch=generic64 should be passed to the linker and the linker for some reason did not recognize that it should produce a 64-bit output file
+Also note that qore requires a relatively new version of the SunPro compiler (CC), Sun Studio 11 and 12 work fine, whereas SunPro 5.5 does not.
 
 *) HP-UX
 Qore supported HP-UX in the past, but it has not been tested for a few years.
@@ -103,7 +104,7 @@ CPU Support
 -----------
 *) gcc with i386, x86_64, ppc, sparc32, itanium, aCC with itanium, CC (SunPro or Sun Studio CC) with i386, x86_64, sparc32: fast inline assembly atomic operations are supported for reference counting, as well as a SMP cache invalidation optimization for temporary objects (temporary objects do not require a cache invalidation);
 *) CPU stack guard is working on all above combinations and with g++ and aCC with PA-RISC as well
-*) all others: a pthread mutex is used to ensure atomicity for reference counting.
+*) all others: I use a pthread mutex to ensure atomicity for reference counting.
 The cache invalidation optimization is not safe on platforms without an atomic reference counting implementation, therefore is not implemented for these platforms
 
 Modules

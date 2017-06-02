@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 
 #define _QORE_GLOBALVARIABLELIST_H
 
-#include "qore/intern/Variable.h"
+#include <qore/intern/Variable.h>
 
 #include <map>
 
@@ -44,7 +44,7 @@ class Var;
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include "qore/intern/xxhash.h"
+#include <qore/intern/xxhash.h>
 
 typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
 #else
@@ -97,8 +97,6 @@ public:
    }
 
    DLLLOCAL QoreListNode* getVarList() const;
-
-   DLLLOCAL void getGlobalVars(const std::string& path, QoreHashNode& h) const;
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();

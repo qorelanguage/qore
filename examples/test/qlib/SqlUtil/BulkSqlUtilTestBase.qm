@@ -24,7 +24,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     }
 
     private *hash doTables(hash tables, hash columns) {
-        foreach string table in (keys tables) {
+        foreach string table in (tables.keyIterator()) {
             foreach hash h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
                 hash ch = (
@@ -62,8 +62,6 @@ public class SqlTestBase inherits QUnit::Test {
             );
 
         const OptionColumn = 22;
-
-        hash expect_data;
 
         list insert_data;
         list upsert_data;
@@ -117,13 +115,17 @@ public class SqlTestBase inherits QUnit::Test {
         # compare data inserted
         list l = table.selectRows(("orderby": "id"));
         assertEq(5, l.size());
-        map assertEq(insert_data[$#] + crec + expect_data, $1), l;
+        # trim char fields for match
+        foreach hash h in (\l) {
+            trim h.char_f;
+        }
+        map assertEq(insert_data[$#] + crec, $1), l;
     }
 
     static hash getRows(list l, int start, int end = -1) {
         if (end < 0)
             end = l.size();
-        hash h = map {$1: ()}, keys l[0];
+        hash h = map {$1: ()}, l[0].keyIterator();
 
         for (int i = start; i < end; ++i)
             map h{$1.key} += $1.value, l[i].pairIterator();
@@ -158,12 +160,10 @@ public class SqlTestBase inherits QUnit::Test {
         foreach hash h in (custom_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             row{cn} = h.value.bind ?? h.value.value ?? h.value;
-            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
         }
         foreach hash h in (const_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             crec{cn} = h.value.bind ?? h.value.value ?? h.value;
-            expect_data{cn} = h.value.expect ?? h.value.bind."^value^" ?? h.value.value ?? h.value;
         }
         insert_data = (
             {"id": 1, "id_": 2, "null_f": "abc"} + row,

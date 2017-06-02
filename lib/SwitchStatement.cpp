@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,11 +29,11 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/SwitchStatement.h"
-#include "qore/intern/StatementBlock.h"
-#include "qore/intern/CaseNodeWithOperator.h"
-#include "qore/intern/CaseNodeRegex.h"
-#include "qore/intern/qore_program_private.h"
+#include <qore/intern/SwitchStatement.h>
+#include <qore/intern/StatementBlock.h>
+#include <qore/intern/CaseNodeWithOperator.h>
+#include <qore/intern/CaseNodeRegex.h>
+#include <qore/intern/qore_program_private.h>
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS
@@ -121,8 +121,7 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
 	 w = w->next;
       }
-
-      if (rc == RC_BREAK || ((getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT) != 0 && rc == RC_CONTINUE))
+      if (rc == RC_BREAK || rc == RC_CONTINUE)
 	 rc = 0;
    }
 
@@ -192,7 +191,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       }
 
       if (w->code)
-	 w->code->parseInitImpl(oflag, pflag | PF_BREAK_OK);
+	 w->code->parseInitImpl(oflag, pflag);
       w = w->next;
    }
 
@@ -203,7 +202,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(v, c), op_func(op) {
+CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op) : CaseNode(v, c), m_operator(op) {
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
@@ -211,10 +210,11 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const {
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
-   return op_func(lhs_value, val, xsink);
+   ValueHolder rv(m_operator->eval(lhs_value, val, true, xsink), xsink);
+   return rv->getAsBool();
 }
 
-CaseNodeRegex::CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
+CaseNodeRegex::CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
 }
 
 bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {

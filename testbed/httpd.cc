@@ -209,7 +209,7 @@ protected:
    int max,    // maximum number of threads in pool (if <= 0 then unlimited)
       minidle, // minimum number of idle threads
       maxidle, // maximum number of idle threads
-      release_ms;
+      release_ms;  
 
    // mutex for atomicity
    QoreThreadLock m;
@@ -245,7 +245,7 @@ protected:
    }
 
    DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
-      std::unique_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
+      std::auto_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
       if (!tpth->valid()) {
 	 assert(*xsink);
 	 return -1;
@@ -278,14 +278,14 @@ protected:
 	 //printf("ThreadPool::getThreadUnlocked() got idle thread %p\n", tpt);
       }
       else {
-	 std::unique_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
+	 std::auto_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
 	 if (!tpt_pt->valid()) {
 	    assert(*xsink);
 	    return 0;
 	 }
 	 tpt = tpt_pt.release();
       }
-
+      
       ah.push_back(tpt);
       tplist_t::iterator i = ah.end();
       --i;
@@ -305,7 +305,7 @@ public:
 
    DLLLOCAL void toString(QoreString& str) {
       AutoLocker al(m);
-
+      
       str.sprintf("ThreadPool %p total: %d max: %d minidle: %d maxidle: %d release_ms: %d running: [", this, ah.size() + fh.size(), max, minidle, maxidle, release_ms);
       for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i) {
 	 if (i != ah.begin())
@@ -383,7 +383,7 @@ public:
 	 if (!stopped && !confirm) {
 	    tplist_t::iterator i = tpt->getPos();
 	    ah.erase(i);
-
+	    
 	    if (!stopflag) {
 	       // requeue thread if possible
 	       if (fh.size() < maxidle || q.size() > fh.size()) {
@@ -414,7 +414,7 @@ ThreadPoolThread::ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink) : tp(
 
 void ThreadPoolThread::worker(ExceptionSink* xsink) {
    SafeLocker sl(m);
-
+      
    while (!stopflag) {
       if (!task) {
          //printd(5, "ThreadPoolThread::worker() id %d about to wait stopflag: %d task: %p\n", id, stopflag, task);
@@ -422,14 +422,14 @@ void ThreadPoolThread::worker(ExceptionSink* xsink) {
          if (stopflag && !task)
             break;
       }
-
+      
       assert(task);
-
+      
       sl.unlock();
       task->run(xsink);
       sl.lock();
       task = 0;
-
+      
       if (stopflag || tp.done(this))
          break;
    }
@@ -455,7 +455,7 @@ static void tp_start_thread(ExceptionSink* xsink, ThreadPool* tp) {
    tp->worker(xsink);
 }
 
-ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle, int n_release_ms) :
+ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_maxidle, int n_release_ms) : 
    max(n_max), minidle(n_minidle), maxidle(n_maxidle), release_ms(n_release_ms), quit(false), waiting(false), stopflag(false), stopped(false), confirm(false) {
    if (max < 0)
       max = 0;
@@ -463,7 +463,7 @@ ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_max
       minidle = 0;
    if (maxidle <= 0)
       maxidle = minidle;
-
+   
    if (q_start_thread(xsink, (q_thread_t)tp_start_thread, this) == -1) {
       assert(*xsink);
       stopped = true;
@@ -620,7 +620,7 @@ struct HttpTestThreadData {
    bool close;
 
    DLLLOCAL HttpTestThreadData(QoreSocket* n_ns, req_type_t* n_req = 0) : ns(n_ns), req(n_req), close(false) {
-   }
+   }   
 
    DLLLOCAL ~HttpTestThreadData() {
       if (req)
@@ -660,7 +660,7 @@ struct HttpTestThreadData {
       const QoreStringNode* method = (const QoreStringNode*)req->getKeyValue("method");
       const QoreStringNode* path = (const QoreStringNode*)req->getKeyValue("path");
       const QoreStringNode* conn = 0;
-
+      
       if (version && *version == "1.1") {
 	 conn = (const QoreStringNode*)req->getKeyValue("connection");
 	 if (conn && conn->bindex("close", 0) != -1)
@@ -671,7 +671,7 @@ struct HttpTestThreadData {
 	 if (!conn || conn->bindex("Keep-Alive", 0) == -1)
 	    close = true;
       }
-
+      
       log("%s %s HTTP/%s (conn: %s close: %d)", method ? method->getBuffer() : "n/a", path ? path->getBuffer() : "n/a", version ? version->getBuffer() : "n/a", conn ? conn->getBuffer() : "n/a", close);
 
       return close;
@@ -681,7 +681,7 @@ struct HttpTestThreadData {
 	 log("error: no HTTP version found in request header: %s", req->getBuffer());
 	 return 1;
       }
-
+      
       bool http11 = !strncmp(req->getBuffer() + i + 5, "1.1", 3);
       i = req->bindex("Connection: ", i + 10);
       bool close = false;
@@ -712,14 +712,14 @@ struct HttpTestThreadData {
       dstr->concat(" GMT");
       mh->setKeyValue("Date", dstr, 0);
       mh->setKeyValue("Connection", new QoreStringNode(close ? "close" : "Keep-Alive"), 0);
-
+      
       ns->sendHTTPResponse(&xsink, 200, "OK", "1.1", *mh, msg, msg_size);
 #else
       DateTime dt;
       dt.setNow(0);
       QoreString dstr;
       dt.format(dstr, "Dy, DD Mon YYYY HH:mm:SS");
-
+      
       QoreString hstr("HTTP/1.1 200 OK\r\n");
       hstr.concat(&hdr, &xsink);
       hstr.sprintf("Date: %s GMT\r\n", dstr.getBuffer());
@@ -733,13 +733,13 @@ struct HttpTestThreadData {
 
 void* op_conn_thread(void* x) {
    HttpTestThreadData* td = (HttpTestThreadData*)x;
-   std::unique_ptr<HttpTestThreadData> tdh(td);
+   std::auto_ptr<HttpTestThreadData> tdh(td);
 
    QoreForeignThreadHelper tfth;
    ExceptionSink xsink;
 
    //ReferenceHolder<QoreHashNode> ph(td->ns->getPeerInfo(&xsink, false), &xsink);
-   //show_socket_info(*ph);
+   //show_socket_info(*ph);  
 
    if (!td->req && !td->getReq(xsink, 10))
       return 0;
@@ -754,7 +754,7 @@ void* op_conn_thread(void* x) {
 	 break;
       }
       //log("Connection: Keep-Alive");
-
+      
       if (!td->getReq(xsink, 10))
 	 break;
 
@@ -769,7 +769,7 @@ static void tp_conn_thread(ExceptionSink* xsink, void* x) {
    op_conn_thread(x);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {   
    msg_size = strlen(msg);
    pthread_attr_t attr;
    pthread_attr_init(&attr);
@@ -815,7 +815,7 @@ int main(int argc, char *argv[]) {
 	 continue;
       }
 
-      std::unique_ptr<HttpTestThreadData> td(new HttpTestThreadData(ns));
+      std::auto_ptr<HttpTestThreadData> td(new HttpTestThreadData(ns));
       tp.submit(tp_conn_thread, td.release(), &xsink);
    }
 

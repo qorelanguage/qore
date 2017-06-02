@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore/intern/qore_dbi_private.h"
+#include <qore/intern/qore_dbi_private.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -565,13 +565,8 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
    }
 
    qore_type_t t = v->getType();
-   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->c_str(), '.'))) {
-      size_t offset = str->size();
+   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->getBuffer(), '.'))) {
       str->sprintf("%g", v->getAsFloat());
-      // issue 1556: external modules that call setlocale() can change
-      // the decimal point character used here from '.' to ','
-      // only search the double added, QoreString::sprintf() concatenates
-      q_fix_decimal(str, offset);
       return;
    }
    else if (t == NT_NUMBER) {

@@ -38,8 +38,6 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
-                "blob_f": c_blob(True),
-                "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );
@@ -141,12 +139,6 @@ class FreetdsTest inherits SqlTestBase {
 
         if (ds) {
             initTestData(CustomColumns);
-
-            { # Make sure the DB is clear before doing the tests.
-                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
-                if (t.checkExistence())
-                    t.dropCommit();
-            }
 
             # create the test schema
             schema = new FreetdsTestSchema(ds);

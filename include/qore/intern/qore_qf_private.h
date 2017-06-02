@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,10 @@
 #ifndef _QORE_INTERN_QORE_QF_PRIVATE_H
 #define _QORE_INTERN_QORE_QF_PRIVATE_H
 
-#include "qore/intern/QC_Queue.h"
+#include <qore/intern/QC_Queue.h>
 #ifdef HAVE_TERMIOS_H
-#include "qore/intern/QC_TermIOS.h"
+#include <qore/intern/QC_TermIOS.h>
 #endif
-
-#include "qore/intern/StringReaderHelper.h"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -346,33 +344,6 @@ struct qore_qf_private {
       return charset->getUnicode(buf);
    }
 
-   DLLLOCAL qore_offset_t readData(void* dest, qore_size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
-      // wait for data
-      if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
-         if (!*xsink)
-            xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
-         return -1;
-      }
-
-      qore_offset_t rc;
-      while (true) {
-         rc = ::read(fd, dest, limit);
-         // try again if we were interrupted by a signal
-         if (rc >= 0)
-            break;
-         if (errno != EINTR) {
-            xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file in ReadOnlyFile::%s()", mname);
-            return -1;
-         }
-      }
-
-      return rc;
-   }
-
-   DLLLOCAL QoreStringNode* readString(qore_offset_t size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
-      return q_read_string(xsink, size, charset, std::bind(&qore_qf_private::readData, this, _1, _2, timeout_ms, mname, _3));
-   }
-
    DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
       qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
       qore_size_t br = 0;
@@ -383,7 +354,7 @@ struct qore_qf_private {
 	 // wait for data
 	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
             if (!*xsink)
-               xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
+               xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in File::%s()", timeout_ms, mname);
 	    br = 0;
 	    break;
 	 }

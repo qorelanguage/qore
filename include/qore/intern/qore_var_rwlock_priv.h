@@ -69,9 +69,9 @@ public:
       assert(tid != write_tid);
 
       while (readers || write_tid != -1) {
-         ++write_waiting;
-         write_cond.wait(l);
-         --write_waiting;
+	 ++write_waiting;
+	 write_cond.wait(l);
+	 --write_waiting;
       }
 
       write_tid = tid;
@@ -83,7 +83,7 @@ public:
       AutoLocker al(l);
       assert(tid != write_tid);
       if (readers || write_tid != -1)
-         return -1;
+	 return -1;
 
       write_tid = tid;
       return 0;
@@ -95,15 +95,15 @@ public:
       AutoLocker al(l);
       if (write_tid == tid) {
          write_tid = -1;
-         if (has_notify)
-            notifyIntern();
+	 if (has_notify)
+	    notifyIntern();
 
-         unlock_signal();
+	 unlock_signal();
       }
       else {
-         assert(readers);
-         if (!--readers)
-            unlock_read_signal();
+	 assert(readers);
+	 if (!--readers)
+	    unlock_read_signal();
       }
    }
 
@@ -112,9 +112,9 @@ public:
       AutoLocker al(l);
       assert(write_tid != gettid());
       while (write_tid != -1) {
-         ++read_waiting;
-         read_cond.wait(l);
-         --read_waiting;
+	 ++read_waiting;
+	 read_cond.wait(l);
+	 --read_waiting;
       }
 
       ++readers;
@@ -125,7 +125,7 @@ public:
       AutoLocker al(l);
       assert(write_tid != gettid());
       if (write_tid != -1)
-         return -1;
+	 return -1;
 
       ++readers;
       return 0;
@@ -133,15 +133,15 @@ public:
 
    DLLLOCAL void unlock_signal() {
       if (write_waiting)
-         write_cond.signal();
+	 write_cond.signal();
       else if (read_waiting)
-         read_cond.broadcast();
+	 read_cond.broadcast();
    }
 
    DLLLOCAL void unlock_read_signal() {
       //assert(!read_waiting);
       if (write_waiting)
-         write_cond.signal();
+	 write_cond.signal();
    }
 };
 

@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_dbi_private.h"
+#include <qore/intern/qore_dbi_private.h>
 
 /** @defgroup old_dbi_functions Old DBI Functions
     Old DBI functions; see @ref dbi_functions

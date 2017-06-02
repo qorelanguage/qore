@@ -349,7 +349,7 @@ public:
 class DateTimeNodeValueHelper {
 private:
    DateTimeNode* dt;
-   bool del;
+   bool temp;
 
    DLLLOCAL DateTimeNodeValueHelper(const DateTimeNodeValueHelper&); // not implemented
    DLLLOCAL DateTimeNodeValueHelper& operator=(const DateTimeNodeValueHelper&); // not implemented
@@ -360,20 +360,20 @@ public:
    DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n) {
       if (!n) {
          dt = ZeroDate;
-         del = false;
+         temp = false;
          return;
       }
 
       // optmization without virtual function call for most common case
       if (n->getType() == NT_DATE) {
          dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
-         del = false;
+         temp = false;
          return;
       }
 
       dt = new DateTimeNode;
       n->getDateTimeRepresentation(*dt);
-      del = true;
+      temp = true;
    }
 
    //! gets the DateTimeNode value and sets the temporary flag
@@ -383,12 +383,9 @@ public:
     */
    DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink);
 
-   //! gets the DateTime value and set the delete flag
-   DLLEXPORT DateTimeNodeValueHelper(const QoreValue& n);
-
    //! dereferences the DateTimeNode value if necessary
    DLLLOCAL ~DateTimeNodeValueHelper() {
-      if (dt && del)
+      if (dt && temp)
          dt->deref();
    }
 
@@ -401,8 +398,8 @@ public:
       @return the DateTimeNode value, where the caller will own the reference count
    */
    DLLLOCAL DateTimeNode* getReferencedValue() {
-      if (del)
-         del = false;
+      if (temp)
+         temp = false;
       else if (dt)
          dt->ref();
       return dt;

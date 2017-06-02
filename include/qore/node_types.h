@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -63,9 +63,9 @@ const qore_type_t NT_CONSTANT           = 20; //!< type value for ScopedRefNode 
 const qore_type_t NT_BAREWORD           = 21; //!< type value for BarewordNode
 const qore_type_t NT_REFERENCE          = 22; //!< type value for ReferenceNode
 const qore_type_t NT_CONTEXT_ROW        = 23; //!< type value for ContextRowNode
-//const qore_type_t NT_XXX                = 24; //!< unused
-//const qore_type_t NT_XXX                = 25; //!< unused
-//const qore_type_t NT_XXX                = 26; //!< unused
+const qore_type_t NT_REGEX_SUBST        = 24; //!< type value for RegexSubstNode
+const qore_type_t NT_REGEX_TRANS        = 25; //!< type value for RegexTransNode
+const qore_type_t NT_REGEX              = 26; //!< type value for QoreRegexNode
 const qore_type_t NT_CLASSREF           = 27; //!< type value for ClassRefNode
 const qore_type_t NT_OBJMETHREF         = 28; //!< type value for AbstractParseObjectMethodReferenceNode
 const qore_type_t NT_FUNCREF            = 29; //!< type value for AbstractCallReferenceNode

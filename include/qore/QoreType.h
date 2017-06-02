@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,22 +67,19 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *runTimeClosureTypeInfo,
    *callReferenceTypeInfo,
    *referenceTypeInfo,
-   //*referenceValueTypeInfo,
    *userReferenceTypeInfo,
-   *codeTypeInfo,                 // either closure or callref
-   *softBigIntTypeInfo,           // converts to int from float, string, and bool
-   *softFloatTypeInfo,            // converts to float from int, string, and bool
-   *softNumberTypeInfo,           // xxx
-   *softBoolTypeInfo,             // converts to bool from int, float, and string
-   *softStringTypeInfo,           // converts to string from int, float, and bool
-   *softDateTypeInfo,             // converts to date from int, float, bool, and string
-   *softListTypeInfo,             // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
-   *somethingTypeInfo,            // i.e. not "NOTHING"
-   *dataTypeInfo,                 // either string or binary
-   *timeoutTypeInfo,              // accepts int or date and returns int giving timeout in milliseconds
-   *bigIntOrFloatTypeInfo,        // accepts int or float and returns the same
-   *bigIntFloatOrNumberTypeInfo,  // accepts int or float and returns the same
-   *floatOrNumberTypeInfo,        // accepts float or number and returns the same
+   *codeTypeInfo,              // either closure or callref
+   *softBigIntTypeInfo,        // converts to int from float, string, and bool
+   *softFloatTypeInfo,         // converts to float from int, string, and bool
+   *softNumberTypeInfo,        // xxx
+   *softBoolTypeInfo,          // converts to bool from int, float, and string
+   *softStringTypeInfo,        // converts to string from int, float, and bool
+   *softDateTypeInfo,          // converts to date from int, float, bool, and string
+   *softListTypeInfo,          // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
+   *somethingTypeInfo,         // i.e. not "NOTHING"
+   *dataTypeInfo,              // either string or binary
+   *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
+   *bigIntOrFloatTypeInfo,     // accepts int or float and returns the same
 
    *bigIntOrNothingTypeInfo,
    *floatOrNothingTypeInfo,

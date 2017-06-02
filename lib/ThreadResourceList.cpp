@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ThreadResourceList.h"
+#include <qore/intern/ThreadResourceList.h>
 #include <qore/AbstractThreadResource.h>
 
 Sequence ThreadResourceList::seq;

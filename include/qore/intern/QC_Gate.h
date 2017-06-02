@@ -35,7 +35,7 @@
 
 #define _QORE_CLASS_GATE_H
 
-#include "qore/intern/VRMutex.h"
+#include <qore/intern/VRMutex.h>
 
 DLLEXPORT extern qore_classid_t CID_GATE;
 DLLLOCAL extern QoreClass* QC_GATE;

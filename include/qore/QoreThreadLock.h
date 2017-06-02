@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ public:
 //! provides a safe and exception-safe way to hold locks in Qore, only to be used on the stack, cannot be dynamically allocated
 /** Ensures that locks are released by locking the lock when the
     object is created and releasing it when the object is destroyed.
-    For a similar object that allows for unlocking the lock earlier
+    For a similar object that allows for unlocking the lock earlier 
     than the object's destruction, see SafeLocker.
 
     @see AutoUnlocker
@@ -225,7 +225,7 @@ private:
    DLLLOCAL void *operator new(size_t);
 
 protected:
-   //! the pointer to the lock that will be managed
+   //! the pointer to the lock that will be managed      
    QoreThreadLock* lck;
 
    //! flag indicating if the lock is held or not

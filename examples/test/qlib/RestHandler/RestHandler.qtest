@@ -90,40 +90,28 @@ public class RestHandlerTest inherits QUnit::Test {
         # special tests for rawxml (typeless / raw XML encoding)
         mClient.setSerialization("rawxml");
 
-        {
-            hash info;
-            on_error printf("info: %N\n", info);
+        hash info;
+        on_error printf("info: %N\n", info);
 
-            hash h = mClient.get("test?action=echo", LargerHashValue, \info);
-            assertEq(("value": LargerHashValue), h.body);
-            h = mClient.put("test?action=echo", LargerHashValue, \info);
-            assertEq(("value": LargerHashValue), h.body);
-            h = mClient.get("test?action=echo", HashValue, \info);
-            assertEq(("value": HashValue), h.body);
-            h = mClient.put("test?action=echo", HashValue, \info);
-            assertEq(("value": HashValue), h.body);
-            h = mClient.put("test?action=echo", "1", \info);
-            assertEq(("value": "1"), h.body);
-            h = mClient.put("test?action=echo", ListValue, \info);
-            assertEq(("list": ("element": ListValue)), h.body);
+        hash h = mClient.get("test?action=echo", LargerHashValue, \info);
+        assertEq(("value": LargerHashValue), h.body);
+        h = mClient.put("test?action=echo", LargerHashValue, \info);
+        assertEq(("value": LargerHashValue), h.body);
+        h = mClient.get("test?action=echo", HashValue, \info);
+        assertEq(("value": HashValue), h.body);
+        h = mClient.put("test?action=echo", HashValue, \info);
+        assertEq(("value": HashValue), h.body);
+        h = mClient.put("test?action=echo", "1", \info);
+        assertEq(("value": "1"), h.body);
+        h = mClient.put("test?action=echo", ListValue, \info);
+        assertEq(("list": ("element": ListValue)), h.body);
 
-            # special tests for "url" (form URL encoding)
-            mClient.setSerialization("url");
+        # special tests for "url" (form URL encoding)
+        mClient.setSerialization("url");
 
-            assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", "1", \info));
-            assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", ListValue, \info));
-            assertThrows("INVALID-VALUE", \mClient.put(), ("test?action=echo", HashValue, \info));
-        }
-
-        # test direct interface
-        any val = mHandler.handleExternalRequest("GET", "test?action=echo", LargerHashValue);
-        assertEq(LargerHashValue, val);
-        val = mHandler.handleExternalRequest("PUT", "test?action=echo", LargerHashValue);
-        assertEq(LargerHashValue, val);
-        val = mHandler.handleExternalRequest("GET", "test?action=echo", HashValue);
-        assertEq(HashValue, val);
-        val = mHandler.handleExternalRequest("PUT", "test?action=echo", HashValue);
-        assertEq(HashValue, val);
+        assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", "1", \info));
+        assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", ListValue, \info));
+        assertThrows("INVALID-VALUE", \mClient.put(), ("test?action=echo", HashValue, \info));
     }
 
     testSerialization(string data, softlist values) {

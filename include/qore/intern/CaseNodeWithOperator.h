@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2006 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef QORE_CASENODEWITHOPERATOR_H
 #define QORE_CASENODEWITHOPERATOR_H
 
-#include "qore/intern/SwitchStatement.h"
+#include <qore/intern/SwitchStatement.h>
 
 // Class supporting:
 // switch ($a) {
@@ -46,13 +46,14 @@ private:
    DLLLOCAL virtual bool isCaseNodeImpl() const;
 
 private:
-   op_log_func_t op_func;
+   class Operator* m_operator;
 
 public:
-   DLLLOCAL CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, op_log_func_t op);
+   DLLLOCAL CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op);
    DLLLOCAL ~CaseNodeWithOperator() {}
-
+   
    DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
 };
 
 #endif
+

@@ -10,117 +10,11 @@
 
 %exec-class DeadlockTest
 
-class Base {
-    private {
-        bool dl; # deadlock flag
-
-        static bool sdl; # static deadlock flag
-    }
-}
-
-class D1 inherits Base {
-    synchronized m(Test t, D2 d, *Counter c) {
-        if (c) {
-            c.dec();
-            c.waitForZero();
-        }
-        if (dl)
-            return;
-        try {
-            return d.m(t, self);
-        }
-        catch (hash ex) {
-            t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-            dl = True;
-        }
-    }
-
-    static synchronized sm(Test t, *Counter c) {
-        if (c) {
-            c.dec();
-            c.waitForZero();
-        }
-        if (sdl)
-            return;
-        try {
-            return D2::sm(t);
-        }
-        catch (hash ex) {
-            t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-            sdl = True;
-        }
-    }
-}
-
-class D2 inherits Base {
-    synchronized m(Test t, D1 d, *Counter c) {
-        if (c) {
-            c.dec();
-            c.waitForZero();
-        }
-        if (dl)
-            return;
-        try {
-            return d.m(t, self);
-        }
-        catch (hash ex) {
-            t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-            dl = True;
-        }
-    }
-
-    static synchronized sm(Test t, *Counter c) {
-        if (c) {
-            c.dec();
-            c.waitForZero();
-        }
-        if (sdl)
-            return;
-        try {
-            return D1::sm(t);
-        }
-        catch (hash ex) {
-            t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-            sdl = True;
-        }
-    }
-}
-
-our bool dl;
-
-synchronized sub internal_deadlock_a(Test t, *Counter c) {
-    if (c) {
-        c.dec();
-        c.waitForZero();
-    }
-    if (dl)
-        return;
-    try {
-        return internal_deadlock_b(t);
-    }
-    catch (hash ex) {
-        t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-        dl = True;
-    }
-}
-
-synchronized sub internal_deadlock_b(Test t, *Counter c) {
-    if (c) {
-        c.dec();
-        c.waitForZero();
-    }
-    if (dl)
-        return;
-    try {
-        return internal_deadlock_a(t);
-    }
-    catch (hash ex) {
-        t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
-        dl = True;
-    }
-}
-
 class DeadlockTest inherits QUnit::Test {
+    private {
+        bool dl;  # deadlock flag
+    }
+
     constructor() : QUnit::Test("Deadlock test", "1.0") {
         addTestCase("Test deadlocks", \testDeadlocks());
         set_return_value(main());
@@ -128,6 +22,38 @@ class DeadlockTest inherits QUnit::Test {
 
     globalSetUp() {
         dl = False;
+    }
+
+    synchronized internal_deadlock_a(*Counter c) {
+        if (c) {
+            c.dec();
+            c.waitForZero();
+        }
+        if (dl)
+            return;
+        try {
+            return internal_deadlock_b();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
+            dl = True;
+        }
+    }
+
+    synchronized internal_deadlock_b(*Counter c) {
+        if (c) {
+            c.dec();
+            c.waitForZero();
+        }
+        if (dl)
+            return;
+        try {
+            return internal_deadlock_a();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
+            dl = True;
+        }
     }
 
     mutex_gate_deadlock_a(Counter c, Mutex m, Gate g) {
@@ -250,22 +176,10 @@ class DeadlockTest inherits QUnit::Test {
     }
 
     testDeadlocks() {
-        # internal deadlock with synchronized methods
+        # internal deadlock with synchronized subroutines
         Counter c(2);
-        D1 d1();
-        D2 d2();
-        background d1.m(self, d2, c);
-        d2.m(self, d1, c);
-        # internal deadlock with synchronized static methods
-        c.inc();
-        c.inc();
-        background D1::sm(self, c);
-        D2::sm(self, c);
-        # internal deadlock with synchronized functions
-        c.inc();
-        c.inc();
-        background internal_deadlock_a(self, c);
-        internal_deadlock_b(self, c);
+        background internal_deadlock_a(c);
+        internal_deadlock_b(c);
 
         # deadlock tests with qore classes and explicit locking
         Mutex m();

@@ -43,7 +43,6 @@ else()
 endif()
 
 set(QORE_API_VERSION @MODULE_API_MAJOR@.@MODULE_API_MINOR@)
-set(QORE_USERMODULE_DOXYGEN_TEMPLATE @CMAKE_INSTALL_FULL_DATADIR@/qore/Doxyfile.in)
 
 # allow the qore executable to be overridden (for example, when cross-compiling)
 if(NOT DEFINED QORE_EXECUTABLE)

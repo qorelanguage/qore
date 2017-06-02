@@ -74,40 +74,6 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
 
 ENDMACRO (QORE_WRAP_QPP_VALUE)
 
-#
-# Create dox code from dox.tmpl files
-#
-#  _dox_files : output dox filenames created in CMAKE_CURRENT_BINARY_DIR
-#
-# usage:
-# set(MY_DOX_TMPL foo.dox.tmpl bar.dox.tmpl)
-# qore_wrap_dox(MY_DOX ${MY_DOX_TMPL})
-#
-MACRO (QORE_WRAP_DOX _dox_files)
-    set(options)
-    set(oneValueArgs)
-    set(multiValueArgs OPTIONS)
-
-    cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
-
-        GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
-        GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
-        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox)
-
-        ADD_CUSTOM_COMMAND(OUTPUT ${_doxfile}
-                           COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS --table=${_infile} --output=${_doxfile}
-                           MAIN_DEPENDENCY ${_infile}
-                           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                           VERBATIM
-                        )
-        SET(${_dox_files} ${${_dox_files}} ${_doxfile})
-    ENDFOREACH (it)
-
-ENDMACRO (QORE_WRAP_DOX)
-
 # Create qore binary module.
 # Arguments:
 #  _module_name - string name of the module
@@ -190,8 +156,8 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
     # docs
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
-        if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
-            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+        if (EXISTS "${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
+            configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 
             add_custom_target(docs
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
@@ -205,7 +171,7 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             message(STATUS "documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exits: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            message(WARNING "file does not exits: ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
         endif()
 
     else (DOXYGEN_FOUND)
@@ -226,7 +192,7 @@ MACRO (QORE_USER_MODULES _inputs)
             get_filename_component(f ${i} NAME_WE)
             message(STATUS "Doxyfile for ${f}")
             set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
-            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
+            configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/)
             add_custom_target(docs-${f}
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}

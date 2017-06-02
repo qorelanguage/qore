@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_RWLock.h"
-#include "qore/intern/QC_AbstractSmartLock.h"
+#include <qore/intern/QC_RWLock.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
 
 //! The RWLock class implements a read-write thread lock
 /** @par Overview

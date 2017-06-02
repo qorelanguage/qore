@@ -34,26 +34,26 @@
 #include <qore/Qore.h>
 #include <openssl/err.h>
 
-#include "qore/intern/ThreadResourceList.h"
-#include "qore/intern/ConstantList.h"
-#include "qore/intern/QoreSignal.h"
-#include "qore/intern/qore_program_private.h"
-#include "qore/intern/ModuleInfo.h"
+#include <qore/intern/ThreadResourceList.h>
+#include <qore/intern/ConstantList.h>
+#include <qore/intern/QoreSignal.h>
+#include <qore/intern/qore_program_private.h>
+#include <qore/intern/ModuleInfo.h>
 
 // to register object types
-#include "qore/intern/QC_Queue.h"
-#include "qore/intern/QC_Mutex.h"
-#include "qore/intern/QC_Condition.h"
-#include "qore/intern/QC_RWLock.h"
-#include "qore/intern/QC_Gate.h"
-#include "qore/intern/QC_Sequence.h"
-#include "qore/intern/QC_Counter.h"
-#include "qore/intern/QC_AutoLock.h"
-#include "qore/intern/QC_AutoGate.h"
-#include "qore/intern/QC_AutoReadLock.h"
-#include "qore/intern/QC_AutoWriteLock.h"
-#include "qore/intern/QC_AbstractSmartLock.h"
-#include "qore/intern/QC_AbstractThreadResource.h"
+#include <qore/intern/QC_Queue.h>
+#include <qore/intern/QC_Mutex.h>
+#include <qore/intern/QC_Condition.h>
+#include <qore/intern/QC_RWLock.h>
+#include <qore/intern/QC_Gate.h>
+#include <qore/intern/QC_Sequence.h>
+#include <qore/intern/QC_Counter.h>
+#include <qore/intern/QC_AutoLock.h>
+#include <qore/intern/QC_AutoGate.h>
+#include <qore/intern/QC_AutoReadLock.h>
+#include <qore/intern/QC_AutoWriteLock.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
 
 #include <pthread.h>
 #include <sys/time.h>
@@ -70,6 +70,8 @@
 
 // global background thread counter
 QoreCounter thread_counter;
+
+Operator* OP_BACKGROUND;
 
 ThreadCleanupList tclist;
 
@@ -98,6 +100,15 @@ QorePThreadAttr ta_default;
 DLLLOCAL QoreThreadList thread_list;
 
 DLLLOCAL QoreClass* initThreadPoolClass(QoreNamespace& ns);
+
+const qore_class_private* ClassObj::getClass() const {
+   if (!ptr)
+      return 0;
+   if (!(ptr & 1))
+      return qore_class_private::get(*((QoreObject*)ptr)->getClass());
+
+   return (const qore_class_private*)(ptr & ~1);
+}
 
 class ArgvRefStack {
 protected:
@@ -269,10 +280,7 @@ public:
    const char* current_code;
 
    // current object context
-   QoreObject* current_obj;
-
-   // current class context
-   const qore_class_private* current_class;
+   ClassObj current_classobj;
 
    // current program context
    QoreProgram* current_pgm;
@@ -348,7 +356,6 @@ public:
       runtime_po(0), tid(ptid), vlock(ptid), context_stack(0), plStack(0),
       parse_code(0), parseState(0), vstack(0), cvarstack(0),
       parseClass(0), catchException(0), trlist(new ThreadResourceList), current_code(0),
-      current_obj(0), current_class(0),
       current_pgm(p), current_ns(0), current_implicit_arg(0), tlpd(0), tpd(new ThreadProgramData(this)),
       closure_parse_env(0), closure_rt_env(0),
       returnTypeInfo(0), parse_return_type_info(0), element(0), global_vnode(0), pcs(0),
@@ -574,16 +581,14 @@ tid_node::~tid_node() {
 
 class BGThreadParams {
 private:
-   // call_obj: get and reference the current stack object, if any, for the new call stack
-   QoreObject* call_obj;
+   // callobj: get and reference the current stack object, if any, for the new call stack
+   ClassObj callobj;
 
    DLLLOCAL ~BGThreadParams() {
    }
 
 public:
    QoreObject* obj;
-   const qore_class_private* class_ctx;
-
    AbstractQoreNode* fc;
    QoreProgram* pgm;
    int tid;
@@ -591,20 +596,14 @@ public:
    bool registered, started;
 
    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-      : obj(0),
+      : callobj((thread_data.get())->current_classobj), obj(0),
         fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
       assert(xsink);
-      {
-         ThreadData* td = thread_data.get();
-         call_obj = td->current_obj;
-         class_ctx = td->current_class;
-      }
-
-      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
+      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p callobj: %p\n", f, f->getTypeName(), f->getType(), t, this, callobj);
 
       // first try to preregister the new thread
       if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
-         call_obj = 0;
+         callobj.clear();
          return;
       }
 
@@ -612,23 +611,37 @@ public:
 
       qore_type_t fctype = fc->getType();
       if (fctype == NT_SELF_CALL) {
-         {
-            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
-            if (qc)
-               class_ctx = qore_class_private::get(*qc);
-         }
-
          // must have a current object if an in-object method call is being executed
          // (i.e. $.method())
          // we reference the object so it won't go out of scope while the thread is running
-         obj = call_obj;
+         obj = callobj.getObj();
          assert(obj);
          obj->realRef();
-         call_obj = 0;
+         callobj.clear();
+      }
+      else if (fctype == NT_OPERATOR) {
+         QoreDotEvalOperatorNode* deon = dynamic_cast<QoreDotEvalOperatorNode*>(fc);
+         if (deon) {
+            // evaluate object
+            QoreNodeEvalOptionalRefHolder n(deon->getExpression(), xsink);
+            if (*xsink || is_nothing(*n))
+               return;
+
+            // if we have actually evaluated something, then we save the result in the tree
+            if (n.isTemp()) {
+               deon->replaceExpression(n.getReferencedValue());
+            } else if (n->getType() == NT_OBJECT) {
+               // we reference the object so it won't go out of scope while the thread is running
+               obj =  reinterpret_cast<QoreObject*>(n.getReferencedValue());
+               qore_object_private::get(*obj)->setRealReference();
+               callobj.clear();
+            }
+         }
       }
 
-      if (call_obj)
-         call_obj->tRef();
+      QoreObject* o = callobj.getObj();
+      if (o)
+         o->tRef();
    }
 
    DLLLOCAL void del() {
@@ -657,7 +670,7 @@ public:
    }
 
    DLLLOCAL QoreObject* getCallObject() {
-      return obj ? obj : call_obj;
+      return obj ? obj : callobj.getObj();
    }
 
    DLLLOCAL void cleanup(ExceptionSink* xsink) {
@@ -668,10 +681,10 @@ public:
 
    DLLLOCAL void derefCallObj() {
       // dereference call object if present
-      if (call_obj) {
-         call_obj->tDeref();
-         call_obj = 0;
-      }
+      QoreObject* o = callobj.getObj();
+      if (o)
+         o->tDeref();
+      callobj.clear();
    }
 
    DLLLOCAL void derefObj(ExceptionSink* xsink) {
@@ -863,40 +876,6 @@ ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id) {
 
 ClosureParseEnvironment* thread_get_closure_parse_env() {
    return thread_data.get()->closure_parse_env;
-}
-
-void thread_push_frame_boundary() {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.pushFrameBoundary();
-   td->tlpd->cvstack.pushFrameBoundary();
-}
-
-void thread_pop_frame_boundary() {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.popFrameBoundary();
-   td->tlpd->cvstack.popFrameBoundary();
-}
-
-QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   ThreadData* td = thread_data.get();
-   if (frame >= 0) {
-      td->tlpd->lvstack.getLocalVars(**rv, frame, xsink);
-      if (*xsink)
-         return nullptr;
-      td->tlpd->cvstack.getLocalVars(**rv, frame, xsink);
-      if (*xsink)
-         return nullptr;
-   }
-   return rv.release();
-}
-
-int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->lvstack.setVarValue(name, val, xsink);
-}
-
-int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->cvstack.setVarValue(name, val, xsink);
 }
 
 void parse_push_name(const char* name) {
@@ -1346,64 +1325,69 @@ QoreProgramContextHelper::~QoreProgramContextHelper() {
    td->current_pgm = old_pgm;
 }
 
-ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj, const qore_class_private* c) {
+ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj) {
    ThreadData* td  = thread_data.get();
-   old_obj = td->current_obj;
-   old_class = td->current_class;
-   td->current_obj = obj;
-   td->current_class = c;
+   old = td->current_classobj;
+   td->current_classobj = obj;
 }
 
 ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    ThreadData* td  = thread_data.get();
-   td->current_obj = old_obj;
-   td->current_class = old_class;
+   td->current_classobj = old;
+}
+
+OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(QoreObject* obj) : subst(obj ? true : false) {
+   if (obj) {
+      ThreadData* td  = thread_data.get();
+      old = td->current_classobj;
+      td->current_classobj = obj;
+   }
 }
 
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
    if (qc) {
       ThreadData* td  = thread_data.get();
-      old_obj = td->current_obj;
-      old_class = td->current_class;
-      td->current_obj = 0;
-      td->current_class = qc;
+      old = td->current_classobj;
+      td->current_classobj = qc;
    }
 }
 
 OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    if (subst) {
       ThreadData* td  = thread_data.get();
-      td->current_obj = old_obj;
-      td->current_class = old_class;
+      td->current_classobj = old;
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) {
+CodeContextHelper::CodeContextHelper(const char* code, ClassObj obj, ExceptionSink* xs) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
-   td->current_code = code;
+   old = td->current_classobj;
+   xsink = xs;
 
-   old_obj = td->current_obj;
-   td->current_obj = obj;
-
-   old_class = td->current_class;
-   td->current_class = c;
-
-   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
+   QoreObject* o = obj.getObj();
+   if (o && o != old.getObj() && !qore_object_private::get(*o)->startCall(code, xsink))
       do_ref = true;
    else
       do_ref = false;
+
+   td->current_code = code;
+   td->current_classobj = obj;
+   //printd(5, "CodeContextHelper::CodeContextHelper(code: '%s', {cls: %p, obj: %p}) this: %p td: %p, old_code: %s, old {cls: %p, obj: %p}\n", code ? code : "null", obj.getClass(), obj.getObj(), this, td, old_code ? old_code : "null", old.getClass(), old.getObj());
 }
 
-CodeContextHelperBase::~CodeContextHelperBase() {
-   ThreadData* td = thread_data.get();
+CodeContextHelper::~CodeContextHelper() {
+   ThreadData* td  = thread_data.get();
+
    if (do_ref) {
-      assert(td->current_obj);
-      qore_object_private::get(*td->current_obj)->endCall(xsink);
+      QoreObject* o = td->current_classobj.getObj();
+      assert(o);
+      qore_object_private::get(*o)->endCall(xsink);
    }
+
+   //printd(5, "CodeContextHelper::~CodeContextHelper() this: %p td: %p current=(code: %s, {cls: %p, obj: %p}) restoring code: %s, {cls: %p, obj: %p}\n", this, td, td->current_code ? td->current_code : "null", td->current_classobj.getClass(), o, old_code ? old_code : "null", old.getClass(), old.getObj());
    td->current_code = old_code;
-   td->current_obj = old_obj;
-   td->current_class = old_class;
+   td->current_classobj = old;
 }
 
 ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink) : xsink(n_xsink) {
@@ -1467,21 +1451,17 @@ CallStack* getCallStack() {
 
 bool runtime_in_object_method(const char* name, const QoreObject* o) {
    ThreadData* td = thread_data.get();
-   return (td->current_obj == o && td->current_code == name) ? true : false;
+   if (td->current_classobj.getObj() == o && td->current_code == name)
+      return true;
+   return false;
 }
 
 QoreObject* runtime_get_stack_object() {
-   return (thread_data.get())->current_obj;
+   return (thread_data.get())->current_classobj.getObj();
 }
 
 const qore_class_private* runtime_get_class() {
-   return (thread_data.get())->current_class;
-}
-
-void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& qc) {
-   ThreadData* td = thread_data.get();
-   obj = td->current_obj;
-   qc = td->current_class;
+   return (thread_data.get())->current_classobj.getClass();
 }
 
 QoreProgramBlockParseOptionHelper::QoreProgramBlockParseOptionHelper(int64 n_po) {
@@ -1537,7 +1517,7 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    QoreProgram* pgm = td->current_pgm;
    //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
-   td->tlpd = old_tlpd;
+   td->tlpd        = old_tlpd;
 
    qore_program_private::decThreadCount(*pgm, td->tid);
 }
@@ -1605,37 +1585,12 @@ ProgramRuntimeParseContextHelper::~ProgramRuntimeParseContextHelper() {
 CurrentProgramRuntimeParseContextHelper::CurrentProgramRuntimeParseContextHelper() {
    ThreadData* td = thread_data.get();
    // attach to and lock current program for parsing - cannot fail with a running program
-   // but current_pgm can be null when loading binary modules
-   if (td->current_pgm)
-      qore_program_private::lockParsing(*td->current_pgm, 0);
+   qore_program_private::lockParsing(*td->current_pgm, 0);
 }
 
 CurrentProgramRuntimeParseContextHelper::~CurrentProgramRuntimeParseContextHelper() {
    ThreadData* td = thread_data.get();
-   // current_pgm can be null when loading binary modules
-   if (td->current_pgm)
-      qore_program_private::unlockParsing(*td->current_pgm);
-}
-
-CurrentProgramRuntimeExternalParseContextHelper::CurrentProgramRuntimeExternalParseContextHelper() {
-   ThreadData* td = thread_data.get();
-   // attach to and lock current program for parsing - cannot fail with a running program
-   // but current_pgm can be null when loading binary modules
-   if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0))
-      valid = false;
-}
-
-CurrentProgramRuntimeExternalParseContextHelper::~CurrentProgramRuntimeExternalParseContextHelper() {
-   if (valid) {
-      ThreadData* td = thread_data.get();
-      // current_pgm can be null when loading binary modules
-      if (td->current_pgm)
-         qore_program_private::unlockParsing(*td->current_pgm);
-   }
-}
-
-CurrentProgramRuntimeExternalParseContextHelper::operator bool() const {
-   return valid;
+   qore_program_private::unlockParsing(*td->current_pgm);
 }
 
 ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
@@ -1717,13 +1672,8 @@ void setParseClass(QoreClass* c) {
    td->parseClass = c;
 }
 
-QoreClass* parse_get_class() {
+QoreClass* getParseClass() {
    return (thread_data.get())->parseClass;
-}
-
-qore_class_private* parse_get_class_priv() {
-   QoreClass* qc = parse_get_class();
-   return qc ? qore_class_private::get(*qc) : 0;
 }
 
 // to save the exception for "rethrow"
@@ -1825,11 +1775,11 @@ int q_deregister_foreign_thread() {
    // save tid for freeing the thread entry later
    int tid = td->tid;
 
-   // run any thread cleanup functions
-   tclist.exec();
-
    // delete internal thread data structure and release TID entry
    thread_list.deleteDataRelease(tid);
+
+   // run any thread cleanup functions
+   tclist.exec();
 
    qore_thread_cleanup();
 
@@ -1873,11 +1823,11 @@ int q_deregister_reserved_foreign_thread() {
 
    xsink.handleExceptions();
 
-   // run any thread cleanup functions
-   tclist.exec();
-
    // delete internal thread data structure (do not release TID entry)
    thread_list.deleteData(td->tid);
+
+   // run any thread cleanup functions
+   tclist.exec();
 
    qore_thread_cleanup();
 
@@ -1942,11 +1892,11 @@ namespace {
 
             printd(4, "q_run_thread(): thread terminating");
 
-            // run any cleanup functions
-            tclist.exec();
-
             // delete internal thread data structure and release TID entry
             thread_list.deleteDataRelease(ta->tid);
+
+            // run any cleanup functions
+            tclist.exec();
 
             //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
             delete ta;
@@ -1977,7 +1927,12 @@ namespace {
          {
             AbstractQoreNode* rv;
             {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject(), btp->class_ctx);
+               CodeContextHelper cch(0, btp->getCallObject(), &xsink);
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+               // push this call on the thread stack
+               CallStackHelper csh("background operator", CT_NEWTHREAD, btp->getCallObject(), &xsink);
+#endif
 
                // dereference call object if present
                btp->derefCallObj();
@@ -2007,11 +1962,11 @@ namespace {
 
             printd(4, "thread terminating");
 
-            // run any cleanup functions
-            tclist.exec();
-
             // delete internal thread data structure and release TID entry
             thread_list.deleteDataRelease(tid);
+
+            // run any cleanup functions
+            tclist.exec();
          }
       }
 
@@ -2022,15 +1977,15 @@ namespace {
    }
 }
 
-QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
+static AbstractQoreNode* op_background(const AbstractQoreNode* left, const AbstractQoreNode* ignored, bool ref_rv, ExceptionSink* xsink) {
    if (!left)
-      return QoreValue();
+      return 0;
 
    //printd(2, "op_background() before crlr left = %p\n", left);
    ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
    //printd(2, "op_background() after crlr nl = %p\n", nl);
    if (*xsink || !nl)
-      return QoreValue();
+      return 0;
 
    // now we are ready to create the new thread
 
@@ -2042,14 +1997,14 @@ QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
    // if can't start thread, then throw exception
    if (tid == -1) {
       xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return QoreValue();
+      return 0;
    }
 
    BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
    //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
    if (*xsink) {
       deregister_thread(tid);
-      return QoreValue();
+      return 0;
    }
    //printd(5, "tp = %p\n", tp);
    // create thread
@@ -2066,10 +2021,10 @@ QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
       thread_counter.dec();
       deregister_thread(tid);
       xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return QoreValue();
+      return 0;
    }
    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return tid;
+   return ref_rv ? new QoreBigIntNode(tid) : 0;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2100,6 +2055,15 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    }
 
    return tid;
+}
+
+static AbstractQoreNode* check_op_background(QoreTreeNode* tree, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo, const char* name, const char* descr) {
+   returnTypeInfo = bigIntTypeInfo;
+
+   if (pflag & PF_CONST_EXPRESSION)
+      parseException("ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
+
+   return tree->defaultParseInit(oflag, pflag, lvids, returnTypeInfo);
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
@@ -2153,6 +2117,10 @@ void init_qore_threads() {
 
    // setup parent thread data
    thread_list.activate(initial_thread = get_thread_entry());
+
+   // register "background" Operator.handler
+   OP_BACKGROUND = oplist.add(new Operator(1, "background", "run in background thread", 0, true, false, check_op_background));
+   OP_BACKGROUND->addFunction(NT_ALL, NT_NONE, op_background);
 
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);

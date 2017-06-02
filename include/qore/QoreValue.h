@@ -111,7 +111,7 @@ namespace detail {
 //! The main value class in Qore, designed to be passed by value
 struct QoreValue {
    friend class ValueHolder;
-   friend class ValueOptionalRefHolder;
+   friend class ValueEvalRefHolder;
    template<typename> friend struct detail::QoreValueCastHelper;
 
 protected:
@@ -374,24 +374,25 @@ protected:
    //! flag indicating if the value should be dereferenced in the destructor or not
    bool needs_deref;
 
+   //! creates an empty object
+   DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
+   }
+
 public:
    //! creates the object with the given values
    DLLLOCAL ValueOptionalRefHolder(QoreValue n_v, bool nd, ExceptionSink* xs) : ValueHolderBase(n_v, xs), needs_deref(nd) {
    }
 
-   //! creates an empty object
-   DLLLOCAL ValueOptionalRefHolder(ExceptionSink* xs) : ValueHolderBase(xs), needs_deref(false) {
-   }
-
+   //! dereferences the object if needs_deref = true
    DLLEXPORT ~ValueOptionalRefHolder();
 
    //! returns true if the value is temporary (needs dereferencing)
    DLLLOCAL bool isTemp() const { return needs_deref; }
 
    //! sets needs_deref = false
-   DLLLOCAL void clearTemp() {
-      if (needs_deref)
-         needs_deref = false;
+   DLLLOCAL void setTemp() {
+      assert(needs_deref);
+      needs_deref = false;
    }
 
    //! returns true if holding an AbstractQoreNode reference
@@ -399,23 +400,21 @@ public:
       return v.type == QV_Node && v.v.n;
    }
 
-   //! assigns a new non-temporary value
-   DLLLOCAL void setValue(QoreValue nv) {
-      if (needs_deref) {
-         v.discard(xsink);
-         needs_deref = false;
-      }
-      v = nv;
-   }
-
-   //! assigns a new value
-   DLLLOCAL void setValue(QoreValue nv, bool temp) {
+   //! assigns a new temporary value
+   DLLLOCAL void setTemp(QoreValue nv) {
       if (needs_deref)
          v.discard(xsink);
-      if (needs_deref != temp)
-         needs_deref = temp;
       v = nv;
    }
+};
+
+//! evaluates an AbstractQoreNode and dereferences the stored value in the destructor
+class ValueEvalRefHolder : public ValueOptionalRefHolder {
+protected:
+
+public:
+   //! evaluates the AbstractQoreNode argument
+   DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 
    // ensures that the held value is referenced
    /** if needs_deref is false and an AbstractQoreNode* is contained, then the value is referenced and needs_deref is set to true
@@ -458,27 +457,7 @@ public:
    }
 
    //! returns the stored value which must be dereferenced if it is a node object (i.e. type == QV_Node)
-   DLLLOCAL void takeValueFrom(ValueOptionalRefHolder& val) {
-      if (needs_deref)
-         v.discard(xsink);
-      v = val.takeValue(needs_deref);
-   }
-
-   //! returns a QoreValue after incrementing the reference count of any node value stored
    DLLEXPORT QoreValue takeReferencedValue();
-
-   // FIXME: remove with new API/ABI
-   //! converts pointers to efficient representations and manages the reference count
-   DLLEXPORT void sanitize();
-};
-
-//! evaluates an AbstractQoreNode and dereferences the stored value in the destructor
-class ValueEvalRefHolder : public ValueOptionalRefHolder {
-protected:
-
-public:
-   //! evaluates the AbstractQoreNode argument
-   DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 };
 
 #endif

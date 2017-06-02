@@ -38,8 +38,6 @@
 #define _QORE_QORESOCKET_H
 
 #include <qore/Qore.h>
-#include <qore/InputStream.h>
-#include <qore/OutputStream.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -127,7 +125,6 @@ class QoreSocket {
    friend struct qore_socket_private;
    friend struct qore_httpclient_priv;
    friend class QoreSocketObject;
-   friend class QoreFtpClient;
 
 private:
    //! private implementation of the class
@@ -1430,7 +1427,7 @@ public:
    /** The socket must be connected before this call is made.
        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
        are returned as the other hash keys in the hash.
-       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms tieout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)

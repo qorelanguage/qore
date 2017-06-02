@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ExpressionStatement.h"
+#include <qore/intern/ExpressionStatement.h>
 
 ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line), exp(v) {
    // if it is a global variable declaration, then do not register

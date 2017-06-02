@@ -30,9 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ql_time.h"
-#include "qore/intern/QC_TimeZone.h"
-#include "qore/intern/qore_date_private.h"
+#include <qore/intern/ql_time.h>
+#include <qore/intern/QC_TimeZone.h>
+#include <qore/intern/qore_date_private.h>
 
 #include <stdio.h>
 #include <time.h>
@@ -1704,38 +1704,34 @@ date date(string dtstr) [flags=CONSTANT] {
    return *xsink ? 0 : date.getReferencedValue();
 }
 
-//! The argument is assumed to be the number of seconds and fractions of a second
+//! The argument is assumed to be the number of seconds and fractions of a second since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
 /**
-    @param f the number of seconds and fractions of a second
+    @param f the number of seconds and fractions of a second since 1970-01-01 in the local time zone
 
-    @return a @ref relative_dates "relative date/time value" corresponding to the number of seconds and fractions of a second in the argument
+    @return a date corresponding to the number of seconds and fractions of a second since 1970-01-01 in the local time zone passed as the sole argument
 
     @par Example:
     @code{.py}
 date d = date(f);
     @endcode
-
-    @since %Qore 0.8.13 the return value is a @ref relative_dates "relative date/time value" in seconds
  */
-date date(softfloat f) [flags=CONSTANT] {
-   return DateTimeNode::makeRelativeFromSeconds((int64)f, (int)((f - (double)((int)f)) * 1000000));
+date date(float f) [flags=CONSTANT] {
+   return DateTimeNode::makeAbsoluteLocal(currentTZ(), (int64)f, (int)((f - (float)((int)f)) * 1000000));
 }
 
-//! The argument is assumed to be the number of seconds
+//! The argument is assumed to be the number of seconds since 1970-01-01 in the local time zone; this value is used to produce the date value that is returned
 /**
-    @param i the number of seconds
+    @param i the number of seconds since 1970-01-01 in the local time zone
 
-    @return a @ref relative_dates "relative date/time value" corresponding to the number of seconds
+    @return a date corresponding to the number of seconds since 1970-01-01 in the local time zone passed as the sole argument
 
     @par Example:
     @code{.py}
 date d = date(i);
     @endcode
-
-    @since %Qore 0.8.13 the return value is a @ref relative_dates "relative date/time value" in seconds
  */
-date date(int i) [flags=CONSTANT] {
-   return DateTimeNode::makeRelativeFromSeconds(i);
+date date(softint i) [flags=CONSTANT] {
+   return new DateTimeNode(i);
 }
 
 //! This function just returns 1970-01-01Z

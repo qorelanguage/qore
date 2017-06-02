@@ -60,9 +60,6 @@ class ProgramTest inherits QUnit::Test {
 
     private {
 	const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
-
-        # global variables provided by the Qore language
-        const QoreGlobalVars = ("Qore::ENV", "Qore::QORE_ARGV", "Qore::ARGV");
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
@@ -73,8 +70,6 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("type error test", \typeErrorTest());
         addTestCase("broken-operators test", \brokenOperatorsTest());
         addTestCase("class test", \classTest());
-        addTestCase("setThreadInit test", \setThreadInitTest());
-        addTestCase("var test", \varTest());
 	set_return_value(main());
     }
 
@@ -193,22 +188,12 @@ class ProgramTest inherits QUnit::Test {
     typeErrorTest() {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
-            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub f() {} f(1);", ""));
+            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("sub f() {} f(1);", ""));
         }
         {
             Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
             p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
             assertEq(NOTHING, p.run());
-        }
-        {
-            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
-            p.parse("Program p(PO_NEW_STYLE|PO_STRICT_ARGS); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
-            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
-        }
-        {
-            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
-            p.parse("Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
-            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
         }
     }
 
@@ -309,151 +294,6 @@ class ProgramTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
             assertEq(NOTHING, p.parse("class X { static copy(X obj) {}}", ""));
-        }
-    }
-
-    setThreadInitTest() {
-        our int i = 0;
-        our Counter cnt(1);
-        Program p(PO_NEW_STYLE);
-        p.importGlobalVariable("i");
-        p.importGlobalVariable("cnt");
-        bool b = p.setThreadInit(sub () { i = 1;});
-        assertEq(False, b);
-        p.parse("background cnt.dec();", "");
-        p.run();
-        cnt.waitForZero();
-        assertEq(1, i);
-        b = p.setThreadInit();
-        assertEq(True, b);
-        i = 0;
-        cnt.inc();
-        p.run();
-        assertEq(0, i);
-    }
-
-    varTest() {
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
-            p.run();
-            assertEq(("i": 1, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
-            p.run();
-            p.setGlobalVarValue("i", 2);
-            assertEq(("i": 2, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
-            p.run();
-            assertThrows("RUNTIME-TYPE-ERROR", \p.setGlobalVarValue(), ("i", "hi"));
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
-            p.run();
-            assertThrows("UNKNOWN-VARIABLE", \p.setGlobalVarValue(), ("x", "hi"));
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi'; set_global_var_value('i', 'hi');", "");
-            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi'; set_global_var_value('x', 'hi');", "");
-            assertThrows("UNKNOWN-VARIABLE", \p.run());
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
-
-            hash vh = (
-                "frame": ("type": "local", "value": 0),
-                "i": ("type": "local", "value": 1),
-                "str": ("type": "local", "value": "hi"),
-                "argv": ("type": "local", "value": NOTHING),
-                );
-
-            assertEq(vh, p.callFunction("test", 0));
-            assertEq({}, p.callFunction("test", 1));
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value('i', 2); set_local_var_value('str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
-
-            hash vh = (
-                "frame": ("type": "local", "value": 0),
-                "i": ("type": "closure", "value": 2),
-                "str": ("type": "local", "value": "bye"),
-                "argv": ("type": "local", "value": NOTHING),
-                );
-
-            assertEq(vh, p.callFunction("test", 0));
-            assertEq({}, p.callFunction("test", 1));
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); }", "");
-            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); sub () { i = 3; };}", "");
-            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('i', 'hi'); sub () { i = 3; };}", "");
-            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
-        }
-
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
-
-            hash vh = (
-                "str": ("type": "local", "value": "hi"),
-                "i": ("type": "local", "value": 1),
-                "argv": ("type": "local", "value": NOTHING),
-                "frame": ("type": "local", "value": 1),
-                );
-
-            assertEq(vh, p.callFunction("test2", 1));
-
-            vh = (
-                "c": ("type": "local", "value": NOTHING),
-                "frame": ("type": "closure", "value": 0),
-                "argv": ("type": "local", "value": NOTHING),
-                );
-
-            hash pvh = p.callFunction("test2", 0);
-            pvh.c.value = NOTHING;
-            assertEq(vh, pvh);
-            assertEq({}, p.callFunction("test2", -1));
-            assertEq({}, p.callFunction("test2", 2));
-        }
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            assertThrows("PARSE-EXCEPTION", "do not allow access", \p.parse(), ("get_local_vars(0);", ""));
-        }
-        {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-            assertThrows("PARSE-ERROR", "local variable.*already declared", \p.parse(), ("hash h; hash h;", ""));
         }
     }
 }

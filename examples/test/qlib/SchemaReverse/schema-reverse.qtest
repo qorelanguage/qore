@@ -14,9 +14,10 @@
 
 %exec-class Main
 
+
 #
 # NOTE: the SchemaReverse is automatic hash/string creator. So the reference
-#       (REF_...) constants must be more strict than in user code.
+#       (REF...) constants must be more strict than in user code.
 #       Example: if there is something like string or list, list should be used:
 #       ("columns" : ("id",), "unique" : True))...
 #
@@ -44,8 +45,8 @@ class Main inherits QUnit::Test {
     }
 
     private globalMakeSchema(string method) {
-        if (!m_ds)
-            return;
+	if (!m_ds)
+	    return;
         on_exit m_ds.commit();
         list sql = call_object_method(m_db, method, REF_SCHEMA);
         ListIterator it(sql);
@@ -55,18 +56,18 @@ class Main inherits QUnit::Test {
     }
 
     globalSetUp() {
-        try {
-            if (!m_options.connstr)
-                m_options.connstr = ENV.QORE_DB_CONNSTR ? ENV.QORE_DB_CONNSTR : (ENV.QORE_DB_CONNSTR_ORACLE ? ENV.QORE_DB_CONNSTR_ORACLE : ENV.QORE_DB_CONNSTR_PGSQL);
+	try {
+	    if (!m_options.connstr)
+		m_options.connstr = ENV.QORE_DB_CONNSTR ? ENV.QORE_DB_CONNSTR : (ENV.QORE_DB_CONNSTR_ORACLE ? ENV.QORE_DB_CONNSTR_ORACLE : ENV.QORE_DB_CONNSTR_PGSQL);
 
-            m_ds = new Datasource(m_options.connstr);
-            m_db = new Database(m_ds);
-        }
-        catch (hash ex) {
-            if (m_options.verbose)
+	    m_ds = new Datasource(m_options.connstr);
+	    m_db = new Database(m_ds);
+	}
+	catch (hash ex) {
+	    if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
-            return;
-        }
+	    return;
+	}
 
         REF_TABLE = (
             "columns" : (
@@ -98,7 +99,7 @@ class Main inherits QUnit::Test {
     }
 
     testSchemaReverseTable() {
-        if (!m_ds)
+	if (!m_ds)
             testSkip("no DB connection");
 
         TableReverse r(m_ds, "schema_reverse_t1");
@@ -107,7 +108,7 @@ class Main inherits QUnit::Test {
     }
 
     testSchemaReverseTables() {
-        if (!m_ds)
+	if (!m_ds)
             testSkip("no DB connection");
 
         TablesReverse r(m_ds, "schema_reverse_t1");
@@ -116,7 +117,7 @@ class Main inherits QUnit::Test {
     }
 
     testSchemaReverseSequence() {
-        if (!m_ds)
+	if (!m_ds)
             testSkip("no DB connection");
 
         SequenceReverse r(m_ds, "schema_reverse_seq");
@@ -125,7 +126,7 @@ class Main inherits QUnit::Test {
     }
 
     testSchemaReverseSequences() {
-        if (!m_ds)
+	if (!m_ds)
             testSkip("no DB connection");
 
         SequencesReverse r(m_ds, "schema_reverse_seq");

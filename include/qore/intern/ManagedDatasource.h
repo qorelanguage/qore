@@ -4,7 +4,7 @@
 
  Qore Programming Language
 
- Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+ Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,8 @@
 #ifndef _QORE_MANAGEDDATASOURCE_H
 #define _QORE_MANAGEDDATASOURCE_H
 
-#include "qore/intern/DatasourceStatementHelper.h"
-#include "qore/intern/QoreSQLStatement.h"
+#include <qore/intern/DatasourceStatementHelper.h>
+#include <qore/intern/QoreSQLStatement.h>
 
 #include <set>
 
@@ -170,9 +170,8 @@ public:
    DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
       // execute a commit if auto-commit is enabled and the resource is being released
       // and the connection was not aborted
-      if (cmd == DAH_RELEASE) {
+      if (cmd == DAH_RELEASE)
          autoCommit(xsink);
-      }
       return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };

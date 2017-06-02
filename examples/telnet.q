@@ -3,7 +3,7 @@
 
 # @file telnet.q example program using the TelnetClient module
 
-/*  telnet.q Copyright 2012 - 2016 Qore Technologies, s.r.o.
+/*  telnet.q Copyright 2012 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,6 @@
 
 # use the TelnetClient module
 %requires TelnetClient >= 1.0
-
-%requires ConnectionProvider
 
 class telnet {
     private {
@@ -91,13 +89,6 @@ class telnet {
 
         # get the connect string for the server (format: "host" or "host:port")
         server = shift ARGV;
-
-        {
-            string orig_server = server;
-            server = get_connection_url(server);
-            if (server != orig_server)
-                printf("using connection: %y url: %y\n", orig_server, server);
-        }
 
         try {
             # set up the terminal in the mode we want (Term class defined below)

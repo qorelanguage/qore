@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/FindNode.h"
+#include <qore/intern/FindNode.h>
 
 FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(NT_FIND) {
    exp = expr;

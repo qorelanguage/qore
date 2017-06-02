@@ -82,46 +82,11 @@
     |@ref shift_left_equals_operator "<<="|\c 23|@ref shift_left_equals_operator "shift-left-equals operator"|@code{.py} var <<= 0x2000@endcode
     |@ref shift_right_equals_operator ">>="|\c 23|@ref shift_right_equals_operator "shift-right-equals operator"|@code{.py} var >>= 0x2000@endcode
 
-    @section op_atomicity Operator Atomicity
-
-    All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator.
-
-    If more than one operator is used in an expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>a += 5</tt> is a thread-atomic action, but <tt>a += b--</tt> is not atomic, but rather made up of two atomic actions.
-
-    @section op_args Operator Arguments
-
+    @note All %Qore operators perform thread-atomic actions with respect to the immediate arguments of the operator. If the operators are used in a complex expression, the entire expression is not thread-atomic unless explicit user-level locking is used. For example: <tt>a += 5</tt> is a thread-atomic action, but <tt>a += b--</tt> is not atomic, but rather made up of two atomic actions.\n\n
     When an operator taking more than one argument is used with arguments of different data types, %Qore automatically converts one or both data types to a data type supported by the operator in order to evaluate the result, according to the precedence lists given for each operator. That is; when an operator operates on mixed types, the types listed first in the following sections have precedence over types listed farther down in the lists. The result type will always be equal to the final operation type after any conversions due to type precedence per operator. If no type of either argument matches a supported data type for the operator, both types will be converted to the highest precedence data type for the operator and then the operator will evaluate the result. For explicit type conversion, please see the boolean(), string(), date(), int(), float(), etc functions.
 
-    @section op_functional Lazy Evalution of Functional Operators
-
-    %Qore supports lazy evaluation of functional operators where possible in order to provide an efficient solution for processing large lists or nested functional operators.
-
-    The following operators support lazy evaluation directly:
-    - @ref map "map" (non-hash version): allows the @ref expressions "map expression" to be evaluated in place when nested with other functional operators or used with a @ref foreach "foreach statement"
-    - @ref select "select": allows the filtered result list to be created and iterated in place when nested with other functional operators or used with a @ref foreach "foreach statement" rather than returning a temporary list
-    - @ref keys "keys": allows the @ref hash "hash" or @ref object "object" to be iterated in place when nested with other functional operators or used with a @ref foreach "foreach statement" rather than returning a temporary list of hash keys or accessible object members
-
-    The following operators and statements support lazy evaluation for iteration:
-    - @ref map "map" (non-hash version): supports lazy evaluation in the @ref expressions "iterator expression" (and therefore nested lazy evaluation)
-    - @ref select "select": supports lazy evaluation in the @ref expressions "iterator expression" (and therefore nested lazy evaluation)
-    - @ref foldl "foldl": supports lazy evaluation in the @ref expressions "iterator expression"
-    - @ref foldr "foldr": supports lazy evaluation in the @ref expressions "iterator expression"
-    - @ref foreach "foreach": supports lazy evaluation in the @ref expressions "iterator expression"
-
-    @par Example
-    With lazy functional evaluation, the following code does not create a potentially long itermediate list with the @ref map "map" expression, but rather the @ref foldl "foldl" expression will operate directly on the expressions generated when iterating the value returned by <tt>get_iterator()</tt>:
-    @code{.py}
-# build a comma-separated string from an iterated expression
-string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == External);
-    @endcode
-
-    @section op_details Operator Details
-
     <hr>
-    @subsection backquote_operator Backquote Operator (``)
-
-    @par Sandbox Restrictions
-    @ref Qore::PO_NO_EXTERNAL_PROCESS
+    @section backquote_operator Backquote Operator (``)
 
     @par Synopsis
     Executes the shell command in a separate process and returns the stdout as a string. To perform the same action using a %Qore expression, see the backquote() function.
@@ -142,7 +107,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     @throw BACKQUOTE-ERROR An error occurred in fork() or creating the output pipe
 
     <hr>
-    @subsection hash_element_operator Hash Element or Object Member Expression Dereference Operator ({})
+    @section hash_element_operator Hash Element or Object Member Expression Dereference Operator ({})
 
     @par Synopsis
     Retrieves the value of hash key or object member by evaulating an expression.
@@ -164,7 +129,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
 
     <hr>
-    @subsection dot_operator Hash Element or Object Member Literal Dereference Operator (.)
+    @section dot_operator Hash Element or Object Member Literal Dereference Operator (.)
 
     @par Synopsis
     Retrieves the value of a hash key or object member using a literal identifier or an expression.
@@ -203,7 +168,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     @throw OBJECT-METHOD-EVAL-ON-NON-OBJECT Attempt to execute a method on a non-object
 
     <hr>
-    @subsection list_element_operator List, String, and Binary Dereference Operator ([])
+    @section list_element_operator List, String, and Binary Dereference Operator ([])
 
     @par Synopsis
     Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object. If the index value is not valid for the argument, @ref nothing is returned. Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.
@@ -231,7 +196,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions; if the first expression does not evaluate to either a list, string, or binary, then no value (@ref nothing) is returned.
 
     <hr>
-    @subsection pre_increment_operator Pre-Increment Operator (++)
+    @section pre_increment_operator Pre-Increment Operator (++)
 
     @par Synopsis
     Increments an lvalue and returns the incremented value; only works on integer and floating-point values.
@@ -253,7 +218,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection post_increment_operator Integer Post-Increment Operator (++)
+    @section post_increment_operator Integer Post-Increment Operator (++)
 
     @par Synopsis
     Increments an integer or floating-point lvalue and returns the value before the increment; if the \a lvalue is neither a floating-point value or an integer, it will be converted to an integer
@@ -275,7 +240,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection pre_decrement_operator Integer Pre-Decrement Operator (--)
+    @section pre_decrement_operator Integer Pre-Decrement Operator (--)
 
     @par Synopsis
     Decrements an lvalue and returns the incremented value; only works on integer and floating-point values.
@@ -297,7 +262,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection post_decrement_operator Integer Post-Decrement Operator (--)
+    @section post_decrement_operator Integer Post-Decrement Operator (--)
 
     @par Synopsis
     Decrements an integer or floating-point lvalue and returns the value before the decrement; if the \a lvalue is neither a floating-point value or an integer, it will be converted to an integer
@@ -319,10 +284,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection new New Object Operator (new)
-
-    @par Sandbox Restrictions
-    @ref Qore::PO_NO_NEW
+    @section new New Object Operator (new)
 
     @par Synopsis
     Creates an instance of a class by running the class' constructor on the new class (if any exists) and returns the new object.\n\n
@@ -346,10 +308,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     @note See class documentation for possible exceptions
 
     <hr>
-    @subsection background Background Operator (background)
-
-    @par Sandbox Restrictions
-    @ref Qore::PO_NO_THREAD_CONTROL
+    @section background Background Operator (background)
 
     @par Synopsis
     Start a background thread and return the TID (thread ID).
@@ -376,7 +335,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     @throw THREAD-CREATION-FAILURE If the thread table is full or if the operating system returns an error while starting the thread, this exception is thrown
 
     <hr>
-    @subsection delete Delete Operator (delete)
+    @section delete Delete Operator (delete)
 
     @par Synopsis
     The delete operator deletes the contents of an lvalue. If the delete operator is called on an object, the object will be destroyed unconditionally. The delete operator does not return any value.\n\n
@@ -402,7 +361,7 @@ delete h.("a", "b", "c");
     This operator does not throw any exceptions, however exceptions could be thrown in an object's destructor method when deleted by this operator.
 
     <hr>
-    @subsection remove Remove Operator (remove)
+    @section remove Remove Operator (remove)
 
     @par Synopsis
     The remove operator removes a value from a data structure, or, in the case the operand of the remove operator is a simple value, the value itself is removed from the variable and returned. The remove operator returns the value removed from the \a lvalue.\n\n
@@ -428,7 +387,7 @@ hash nh = remove h.("a", "b", "c");
     This operator does not throw any exceptions, however exception could be thrown in an object's destructor if it goes out of scope due to the action of this operator.
 
     <hr>
-    @subsection cast Cast Operator (cast<>())
+    @section cast Cast Operator (cast<>())
 
     @par Synopsis
     The cast<>() operator provides a way to tell the parser that the type of object is not actually the declared type but rather a subclass as given between the angle brackets.
@@ -450,7 +409,7 @@ hash nh = remove h.("a", "b", "c");
     @throw RUNTIME-CAST-ERROR The expression given does not evaluate to an object that can be cast to the given class
 
     <hr>
-    @subsection logical_negation_operator Logical Not Operator (!)
+    @section logical_negation_operator Logical Not Operator (!)
 
     @par Synopsis
     Reverses the logical sense of an expression (@ref Qore::True "True" becomes @ref Qore::False "False" and @ref Qore::False "False" becomes @ref Qore::True "True").
@@ -474,7 +433,7 @@ if (!exists error_code)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection binary_not_operator Binary Not Operator (~)
+    @section binary_not_operator Binary Not Operator (~)
 
     @par Synopsis
     The value of each bit in an integer is reversed (0 becomes 1, 1 becomes 0).
@@ -495,7 +454,7 @@ if (!exists error_code)
     This operator does not throw any exceptions
 
     <hr>
-    @subsection unary_minus_operator Unary Minus Operator (-)
+    @section unary_minus_operator Unary Minus Operator (-)
 
     @par Synopsis
     Changes the sign of numeric values.
@@ -520,7 +479,7 @@ if (!exists error_code)
     This operator does not throw any exceptions
 
     <hr>
-    @subsection unary_plus_operator Unary Plus Operator (+)
+    @section unary_plus_operator Unary Plus Operator (+)
 
     @par Synopsis
     Does nothing with numeric values, converts others to 0.
@@ -545,7 +504,7 @@ if (!exists error_code)
     This operator does not throw any exceptions
 
     <hr>
-    @subsection shift Shift Operator (shift)
+    @section shift Shift Operator (shift)
 
     @par Synopsis
     Removes the first element from a list and returns that element.  Throws a parse-time exception
@@ -568,7 +527,7 @@ if (!exists error_code)
     This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
-    @subsection pop Pop Operator (pop)
+    @section pop Pop Operator (pop)
 
     @par Synopsis
     Removes the last element from a list and returns that element.  Throws a parse-time exception
@@ -591,7 +550,7 @@ if (!exists error_code)
     This operator throws an exception if the \a lvalue is not a list.
 
     <hr>
-    @subsection chomp Chomp Operator (chomp)
+    @section chomp Chomp Operator (chomp)
 
     @par Synopsis
     Removes the end-of-line marker(s) (\c '\\n' or \c '\\r\\n') from a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the number of characters removed.\n\n
@@ -615,7 +574,7 @@ if (!exists error_code)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection trim Trim Operator (trim)
+    @section trim Trim Operator (trim)
 
     @par Synopsis
     Removes whitespace characters from the beginning and end of a string, or each string element in a list, or each hash key value in a hash (if the value is a string) and returns the value processed (string, list, or hash).\n\n
@@ -640,20 +599,19 @@ if (!exists error_code)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection map Map Operator (map)
+    @section map Map Operator (map)
 
     @par Synopsis
     Executes (or maps) an expression on a list and returns the result. An optional select expression can be given to filter elements out from the result list.\n\n
     If the first argument is a single element hash expression using curly brackets, then the @ref hmap "hash variant of the map operator" is used instead.\n\n
-    If the second argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
     If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
-    If possible, \a iterator_expression is evaluated using @ref op_functional "lazy functional evaluation".
 
     @par Return Type
     @ref any_type "any"
 
     @par Syntax
-    <tt><b>map</b></tt> \a map_expression, <em>iterator_expression [, select_expression]</em>
+    <tt><b>map</b></tt> \a map_expression, <em>list_expression [, select_expression]</em>
 
     @par Examples
     @code{.py}
@@ -668,7 +626,7 @@ map printf("%s\n", $1), hash.keyIterator();
     <b>Arguments Processed by map</b>
     |!Argument|!Processing
     |\a map_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed
-    |\a iterator_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"; if supported, this expression is evaluated using @ref op_functional "lazy functional evaluation"
+    |\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
     |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
@@ -677,22 +635,20 @@ map printf("%s\n", $1), hash.keyIterator();
 
     @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
 
-    @note the non-hash version of the <b><tt>map</tt></b> operator supports @ref op_functional "lazy functional evaluation" of itself and also of the \a iterator_expression
-
     <hr>
-    @subsection hmap Hash Map Operator (map)
+    @section hmap Hash Map Operator (map)
 
     @par Synopsis
     This variant of the map operator builds a hash from a list or iterator argument and can be differentiated from the standard list @ref map "map" operator by the use of curly brackets in the initial expression; in this case the hash version of the map operator is used.  This operator executes (or maps) an expression on a list and returns the result in form of a hash. An optional select expression can be given to filter elements out from the result hash.\n\n
     If the first argument is anything other than a single element hash expression using curly brackets, then the @ref map "list variant of the map operator" is used instead.\n\n
-    If the third argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the third argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
     If the third argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
 
     @par Return Type
     @ref hash in case of valid third expression, otherwise @ref nothing
 
     @par Syntax
-    <tt><b>map</b></tt> {\a key_expression,  : \a value_expression},  <em>iterator_expression [, select_expression]</em>
+    <tt><b>map</b></tt> {\a key_expression,  : \a value_expression},  <em>list_expression [, select_expression]</em>
 
     @par Examples
     @code{.py}
@@ -708,7 +664,7 @@ hash h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
     |!Argument|!Processing
     |\a key_expression|The expression to map on the list or iterator value which will result in the key for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed. The result of the expression is converted to a string to be used as the hash key for the current element
     |\a value_expression|The expression to map on the list which will result in the value for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed
-    |\a iterator_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
+    |\a list_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
     |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
@@ -718,16 +674,15 @@ hash h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
     @since %Qore 0.8.12 this variant of the map operator exists which builds a hash from a list or iterator source
 
     <hr>
-    @subsection foldl Fold Left Operator (foldl)
+    @section foldl Fold Left Operator (foldl)
 
     @par Synopsis
     Folds an operation on a list from left to right and returns the result. The result of each individual operation is used as the first argument in the foldl expression for the next element in the list. The first operation of the fold is made by executing the fold expression on the first and second elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list.\n\n
-    If the second argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foldl</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit arguments <tt>$1</tt> and <tt>$2</tt> in \a expression are the container values returned by @ref Qore::AbstractBidirectionalIterator::getValue() "AbstractBidirectionalIterator::getValue()".\n\n
-    If the \a iterator_expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the evaluated argument is returned immediately with no processing by the <b><tt>foldl</tt></b> expression.\n\n
-    If possible, \a iterator_expression is evaluated using @ref op_functional "lazy functional evaluation".
+    If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foldl</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit arguments <tt>$1</tt> and <tt>$2</tt> in \a expression are the container values returned by @ref Qore::AbstractBidirectionalIterator::getValue() "AbstractBidirectionalIterator::getValue()".
+    If the \a list_expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the evaluated argument is returned immediately with no processing by the fold expression.
 
     @par Syntax
-    <tt><b>foldl</b></tt> \a expression, \a iterator_expression
+    <tt><b>foldl</b></tt> \a expression, \a list_expression
 
     @par Return Type
     @ref any_type "any"
@@ -745,23 +700,20 @@ string str = foldl $1 + ", " + $2, list;
     <b>Arguments Processed by foldl</b>
     |!Argument|!Processing
     |\a expression|The expression to fold on the list; the implicit argument <tt>$1</tt> represents the result of the last operation (or the first element in the list when beginning the fold), and <tt>$2</tt> represents the next element of the list.
-    |\a iterator_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process; if possible, this expression is evaluated using @ref op_functional "lazy functional evaluation".
+    |\a list_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
-    @note the <b><tt>foldl</tt></b> operator supports @ref op_functional "lazy functional evaluation" of the \a iterator_expression
-
-<hr>
-    @subsection foldr Fold Right Operator (foldr)
+    <hr>
+    @section foldr Fold Right Operator (foldr)
 
     @par Synopsis
     Folds an operation on a list from right to left and returns the result. The result of each individual operation is used as the first argument in the foldr expression for the next element in the list in reverse order. The first operation of the right fold is made by executing the fold expression on the last and penultimate elements of the list, from this point onwards, the result of each successive operation is used as the first argument for the next operation, the second argument being the next element in the list in reverse order.\n\n
-    If the second argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator" class, the <b><tt>foldr</tt></b> operator iterates the object by calling @ref Qore::AbstractBidirectionalIterator::prev() "AbstractBidirectionalIterator::prev()", and the implicit arguments <tt>$1</tt> and <tt>$2</tt> in \a expression are the container values returned by @ref Qore::AbstractBidirectionalIterator::getValue() "AbstractBidirectionalIterator::getValue()".\n\n
-    If the \a iterator_expression does not evaluate to a list or an object inheriting @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator", then the evaluated argument is returned immediately with no processing by the <b><tt>foldr</tt></b> expression.\n\n
-    If possible, \a iterator_expression is evaluated using @ref op_functional "lazy functional evaluation".
+    If the second argument (\a list_expression) is an object inheriting the @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator" class, the <b><tt>foldr</tt></b> operator iterates the object by calling @ref Qore::AbstractBidirectionalIterator::prev() "AbstractBidirectionalIterator::prev()", and the implicit arguments <tt>$1</tt> and <tt>$2</tt> in \a expression are the container values returned by @ref Qore::AbstractBidirectionalIterator::getValue() "AbstractBidirectionalIterator::getValue()".
+    If the \a list_expression does not evaluate to a list or an object inheriting @ref Qore::AbstractBidirectionalIterator "AbstractBidirectionalIterator", then the evaluated argument is returned immediately with no processing by the fold expression.
 
     @par Syntax
-    <tt><b>foldr</b></tt> \a expression, \a iterator_expression
+    <tt><b>foldr</b></tt> \a expression, \a list_expression
 
     @par Return Type
     @ref any_type "any"
@@ -775,23 +727,20 @@ foldr $1 - $2, (10, 4, 1);
     <b>Arguments Processed by foldr</b>
     |!Argument|!Processing
     |\a expression|The expression to fold on the list; the implicit argument <tt>$1</tt> represents the result of the last operation (or the last element in the list when beginning the fold), and <tt>$2</tt> represents the next element of the list in reverse order.
-    |\a iterator_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process; if possible, this expression is evaluated using @ref op_functional "lazy functional evaluation".
+    |\a list_expression|The list, @ref Qore::AbstractIterator "AbstractIterator" object or other value according to the rules above to process
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
-    @note the <b><tt>foldr</tt></b> operator supports @ref op_functional "lazy functional evaluation" of the \a iterator_expression
-
     <hr>
-    @subsection select Select From List Operator (select)
+    @section select Select From List Operator (select)
 
     @par Synopsis
     Selects elements from a list that meet the given criteria and returns the new list.\n\n
-    If the first argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>select</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in \a expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()"; in this case the operator always returns a list (which may be empty if \a expression returns @ref Qore::False "False" for all elements in the iterator object or if the iterator object is empty), and the value of the object in the list returned is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
-    If the list expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the select expression is evaluated using the value of the list expression as an argument, if it evaluates to @ref Qore::True "True", then the value is returned, otherwise, no value is returned.\n\n
-    If possible, \a expression is evaluated using @ref op_functional "lazy functional evaluation".
+    If the first argument (\a list_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>select</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in \a expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()"; in this case the operator always returns a list (which may be empty if \a expression returns @ref Qore::False "False" for all elements in the iterator object or if the iterator object is empty), and the value of the object in the list returned is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the list expression does not evaluate to a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then the select expression is evaluated using the value of the list expression as an argument, if it evalutes to true, then the value is returned, otherwise, no value is returned.
 
     @par Syntax
-    <tt><b>select</b></tt> \a iterator_expression, \a expression
+    <tt><b>select</b></tt> \a list_expression, \a expression
 
     @par Return Type
     @ref any_type "any"
@@ -804,17 +753,15 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
 
     <b>Arguments Processed by select</b>
     |!Argument|!Processing
-    |\a iterator_expression|The list to process or an object inheriting @ref Qore::AbstractIterator "AbstractIterator"
-    |\a expression|The expression will be evaluated on each element of the list, the implicit argument <tt>$1</tt> represents current element of the list (or the iterator object itself when \a iterator_expression is an object inheriting @ref Qore::AbstractIterator "AbstractIterator"); only if the expression evaluates to @ref Qore::True "True" will the element appear in the result list
+    |\a list_expression|The list to process or an object inheriting @ref Qore::AbstractIterator "AbstractIterator"
+    |\a expression|The expression will be evaluated on each element of the list, the implicit argument <tt>$1</tt> represents current element of the list (or the iterator object itself when \a list_expression is an object inheriting @ref Qore::AbstractIterator "AbstractIterator"); only if the expression evaluates to @ref Qore::True "True" will the element appear in the result list
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by the expression executed by this operator).
 
     @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
 
-    @note the <b><tt>select</tt></b> operator supports @ref op_functional "lazy functional evaluation" of itself and also of the \a iterator_expression
-
     <hr>
-    @subsection elements Elements Operator (elements)
+    @section elements Elements Operator (elements)
 
     @par Synopsis
     Returns the number of elements in a list, the number of keys in a hash, the number of characters (not bytes) in a string, or the number of bytes in a binary object.
@@ -840,7 +787,7 @@ select (1, 2, 3, 4, 5, 6), !($1 % 2);
     @see @ref <value>::size()
 
     <hr>
-    @subsection keys Keys Operator (keys)
+    @section keys Keys Operator (keys)
 
     @par Synopsis
     Returns a list representing the keys in a hash.
@@ -868,7 +815,7 @@ foreach string key in (keys hash)
     - @ref <object>::keys()
 
     <hr>
-    @subsection multiplication_operator Multiply Operator (*)
+    @section multiplication_operator Multiply Operator (*)
 
     @par Synopsis
     Multiplies two arguments.
@@ -892,7 +839,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection division_operator Divide Operator (/)
+    @section division_operator Divide Operator (/)
 
     @par Synopsis
     Divides a number by another.
@@ -916,7 +863,7 @@ foreach string key in (keys hash)
     @throw DIVISION-BY-ZERO division by zero error
 
     <hr>
-    @subsection modulo_operator Modulo Operator (%)
+    @section modulo_operator Modulo Operator (%)
 
     @par Synopsis
     Gives the integer remainder after division of one number by another.
@@ -937,7 +884,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection plus_operator Plus (Addition and Concatentation) Operator (+)
+    @section plus_operator Plus (Addition and Concatentation) Operator (+)
 
     @par Synopsis
     Numeric addition, list, string, binary, and hash concatenation operator.
@@ -968,7 +915,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection minus_operator Minus Operator (-)
+    @section minus_operator Minus Operator (-)
 
     @par Synopsis
     With @ref float "float", @ref integer "integer", or @ref number "number" arguments, subtracts one number from another.\n\n
@@ -1000,7 +947,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection shift_right_operator Shift Right Operator (>>)
+    @section shift_right_operator Shift Right Operator (>>)
 
     @par Synopsis
     Shifts bits in an integer towards zero (divides an integer by a power of 2)
@@ -1021,7 +968,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection shift_left_operator Shift Left Operator (<<)
+    @section shift_left_operator Shift Left Operator (<<)
 
     @par Synopsis
     Shifts bits in an integer towards infinity (multiplies an integer by a power of 2)
@@ -1042,7 +989,7 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection instanceof Class Instance Operator (instanceof)
+    @section instanceof Class Instance Operator (instanceof)
 
     @par Synopsis
     Tests if an expression is an instance of a given class or not.
@@ -1066,7 +1013,7 @@ if (obj instanceof Qore::Mutex)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection exists Exists Operator (exists)
+    @section exists Exists Operator (exists)
 
     @par Synopsis
     Tests if an expression represents a value or not.
@@ -1090,7 +1037,7 @@ if (exists a)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_less_than_operator Less Than Operator (<)
+    @section logical_less_than_operator Less Than Operator (<)
 
     @par Synopsis
     Tests if a value is less than another; types are converted if necessary (ex: <tt>("1" < 2)</tt> is @ref Qore::True "True").
@@ -1118,7 +1065,7 @@ if (x < y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_greater_than_operator Greater Than Operator (>)
+    @section logical_greater_than_operator Greater Than Operator (>)
 
     @par Synopsis
     Tests if a value is greater than another; types are converted if necessary (ex: <tt>("2" > 1)</tt> is @ref Qore::True "True").
@@ -1146,7 +1093,7 @@ if (x > y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_equality_operator Equals Operator (==)
+    @section logical_equality_operator Equals Operator (==)
 
     @par Synopsis
     Tests if a value is equal to another; types are converted if necessary (ex: <tt>("1" == 1)</tt> is @ref Qore::True "True"). For absolute equals, where types must also be equal to return true, see the @ref logical_absolute_equality_operator.
@@ -1180,7 +1127,7 @@ if (x == y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_inequality_operator Not Equals Operator (!=)
+    @section logical_inequality_operator Not Equals Operator (!=)
 
     @par Synopsis
     Tests if a value is not equal to another; types are converted if necessary (ex: <tt>("1" != 1)</tt> is @ref Qore::False "False").
@@ -1214,7 +1161,7 @@ if (x != y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_less_than_or_equals_operator Less Than Or Equals Operator (<=)
+    @section logical_less_than_or_equals_operator Less Than Or Equals Operator (<=)
 
     @par Synopsis
     Tests if a value is less than or equals to another value; types are converted if necessary (ex: <tt>("1" <= 2)</tt> is @ref Qore::True "True").
@@ -1242,7 +1189,7 @@ if (x <= y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_greater_than_or_equals_operator Greater Than Or Equals Operator (>=)
+    @section logical_greater_than_or_equals_operator Greater Than Or Equals Operator (>=)
 
     @par Synopsis
     Tests if a value is greater than or equals to another value; types are converted if necessary (ex: <tt>("2" >= 1)</tt> is @ref Qore::True "True").
@@ -1270,7 +1217,7 @@ if (x >= y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_comparison_operator Comparison (<=>) Operator
+    @section logical_comparison_operator Comparison (<=>) Operator
 
     @par Synopsis
     Tests if the left-hand value is less than, equal, or greater than the right-hand value; types are converted if necessary (ex: ("1" <=> 2) returns -1).
@@ -1309,7 +1256,7 @@ switch (x <=> y) {
     This operator throws NAN-COMPARE-ERROR if any of the operands is NaN.
 
     <hr>
-    @subsection logical_absolute_equality_operator Absolute Equals Operator (===)
+    @section logical_absolute_equality_operator Absolute Equals Operator (===)
 
     @par Synopsis
     Checks two values for equality without doing any data type conversions; if the types do not match, then the result is @ref Qore::False "False".
@@ -1333,7 +1280,7 @@ if (x === y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_absolute_inequality_operator Absolute Not Equals Operator (!==)
+    @section logical_absolute_inequality_operator Absolute Not Equals Operator (!==)
 
     @par Synopsis
     Checks two values for inequality without doing any data type conversions. If the data types do not match, then returns @ref Qore::True "True".
@@ -1357,7 +1304,7 @@ if (x !== y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection regex_match_operator Regular Expression Match Operator (=~)
+    @section regex_match_operator Regular Expression Match Operator (=~)
 
     @par Synopsis
     Checks for a regular expression match; returns @ref Qore::True "True" if the expression matches the string, @ref Qore::False "False" if not. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
@@ -1382,7 +1329,7 @@ if (str =~ /hello/)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection regex_no_match_operator Regular Expression No Match Operator (!~)
+    @section regex_no_match_operator Regular Expression No Match Operator (!~)
 
     @par Synopsis
     Checks for a regular expression non match; returns @ref Qore::True "True" if the expression does not match the string, @ref Qore::False "False" if it does. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
@@ -1407,7 +1354,7 @@ if (str !~ /hello/)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection regex_subst_operator Regular Expression Substitution Operator
+    @section regex_subst_operator Regular Expression Substitution Operator
 
     @par Synopsis
     Looks for a regular expression match in a string, and, if found, substitutes the matched string with a new string. Subpattern backreferences are supported in the target string, <tt>$1</tt>=first subpattern, <tt>$2</tt>=second subpattern, etc... See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
@@ -1432,7 +1379,7 @@ str =~ s/(\w+) +(\w+)/$2, $1/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection regex_extract_operator Regular Expression Pattern Extraction Operator
+    @section regex_extract_operator Regular Expression Pattern Extraction Operator
 
     @par Synopsis
     Matches regular expression patterns (enclosed in parentheses) in a string and returns a list giving the text matched for each pattern. If the regular expression does not match, then no value (@ref nothing) is returned. See @ref qore_regex_options for the meaning of the \c i, \c s, \c x, and \c m options after the regular expression.\n\n
@@ -1457,7 +1404,7 @@ list =~ x/(.*)\.(.*)/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection transliteration_operator Transliteration Operator
+    @section transliteration_operator Transliteration Operator
 
     @par Synopsis
     Makes character substitutions in an lvalue; character ranges can also be used.
@@ -1478,7 +1425,7 @@ list =~ x/(.*)\.(.*)/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection bitwise_and_operator Bitwise/Binary And Operator (&)
+    @section bitwise_and_operator Bitwise/Binary And Operator (&)
 
     @par Synopsis
     Performs a bitwise (binary) AND operation on two integers.
@@ -1499,7 +1446,7 @@ list =~ x/(.*)\.(.*)/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection bitwise_or_operator Bitwise/Binary Or Operator (|)
+    @section bitwise_or_operator Bitwise/Binary Or Operator (|)
 
     @par Synopsis
     Performs a bitwise (binary) OR operation on two integers.
@@ -1520,7 +1467,7 @@ list =~ x/(.*)\.(.*)/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection bitwise_xor_operator Bitwise/Binary Xor Operator (^)
+    @section bitwise_xor_operator Bitwise/Binary Xor Operator (^)
 
     @par Synopsis
     Performs a bitwise (binary) XOR operation on two integers.
@@ -1541,7 +1488,7 @@ list =~ x/(.*)\.(.*)/;
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_and_operator Logical And Operator (&&)
+    @section logical_and_operator Logical And Operator (&&)
 
     @par Synopsis
     Checks to see if two expressions are @ref Qore::True "True" with logical short-circuiting.
@@ -1565,7 +1512,7 @@ if (x && y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection logical_or_operator Logical Or Operator (||)
+    @section logical_or_operator Logical Or Operator (||)
 
     @par Synopsis
     Returns @ref Qore::True "True" if either of the arguments are @ref Qore::True "True" with logical short-circuiting.
@@ -1589,7 +1536,7 @@ if (x || y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection conditional_operator Conditional Operator (? :)
+    @section conditional_operator Conditional Operator (? :)
 
     @par Synopsis
     Evaluates and returns the value of one of two expressions depending on the value of a conditional expression.
@@ -1610,7 +1557,7 @@ if (x || y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection null_coalescing_operator Null Coalescing Operator (??)
+    @section null_coalescing_operator Null Coalescing Operator (??)
 
     @par Synopsis
     Evaluates the first operand and checks for a value (i. e. not @ref nothing or @ref null).  If it evaluates to a value, then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
@@ -1634,7 +1581,7 @@ if (x || y)
 
 
     <hr>
-    @subsection value_coalescing_operator Value Coalescing Operator (?*)
+    @section value_coalescing_operator Value Coalescing Operator (?*)
 
     @par Synopsis
     Evaluates the first operand and checks for a value (@ref Qore::True "True" or @ref Qore::False "False"). If it evaluates to @ref Qore::True "True", then the value of the first operand is returned, otherwise the second operand is evaluated and returned.  When chained, the first argument with a value is returned.
@@ -1658,7 +1605,7 @@ if (x || y)
 
 
     <hr>
-    @subsection comma_operator Comma Operator (,)
+    @section comma_operator Comma Operator (,)
 
     @par Synopsis
     Makes a list from more than one element.
@@ -1679,7 +1626,7 @@ if (x || y)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection unshift Unshift Operator (unshift)
+    @section unshift Unshift Operator (unshift)
 
     @par Synopsis
     Inserts an element into the first position of a list, moves all other elements up one position and returns the list processed. Throws an exception if the \a lvalue is not a list.
@@ -1698,7 +1645,7 @@ if (x || y)
     |All|Inserts the value of \a expression as the first element in the list given by \a lvalue. All other elements in the list are moved forward. If \a expression evaluates to a list, this list will be appended as the last element of \a lvalue. To concatenate lists, use the @ref plus_operator "plus operator".
 
     <hr>
-    @subsection push Push Operator (push)
+    @section push Push Operator (push)
 
     @par Synopsis
     Adds one element to the end of a list and returns the list processed. Throws a parse-time exception
@@ -1719,7 +1666,7 @@ if (x || y)
     |All|Appends the value of the \a expression as the last element in the list given by \a lvalue. If \a expression evaluates to a list, this list will be appended as the last element of \a lvalue. To concatenate lists, use the @ref plus_operator "plus operator".
 
     <hr>
-    @subsection splice Splice Operator (splice)
+    @section splice Splice Operator (splice)
 
     @par Synopsis
     Removes and optionally inserts elements in lists, strings, and binary objects and returns the \a lvalue after processing. For a similar operator that returns the values removed, see the @ref extract "extract operator".\n\n
@@ -1745,7 +1692,7 @@ if (x || y)
     |\a substitution_expression|For list splice, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
 
     <hr>
-    @subsection extract Extract Operator (extract)
+    @section extract Extract Operator (extract)
 
     @par Synopsis
     Removes and optionally inserts elements in lists and strings. For a similar operator that removes values from an lvalue and returns the \a lvalue (instead of the value removed), see the @ref splice "splice operator".\n\n
@@ -1772,7 +1719,7 @@ if (x || y)
     |\a substitution_expression|For list extract, an optional element or list to substitute for the removed elements (to insert a list in a single element's position, make sure that the list to be inserted is the first and only element of another list used as the argument in this position; in other words, pass a list within a single-element list). For string splice, an optional string to substitute for the removed characters.  For binary splice, string or binary data to substitute for any removed bytes.
 
     <hr>
-    @subsection assignment_operator Assignment Operator (=)
+    @section assignment_operator Assignment Operator (=)
 
     @par Synopsis
     Assigns a value to an lvalue and returns the value assigned.
@@ -1791,7 +1738,7 @@ if (x || y)
     |All|Assigns the value of \a expression to \a lvalue
 
     <hr>
-    @subsection plus_equals_operator Plus Equals Operator (+=)
+    @section plus_equals_operator Plus Equals Operator (+=)
 
     @par Synopsis
     Increments and concatentates an lvalue with the value of an expression depending on the data type of the \a lvalue, unless the \a lvalue is @ref nothing, in which case this operator acts like the assignment operator (simply assigns the value of the right hand side to the \a lvalue).
@@ -1824,7 +1771,7 @@ if (x || y)
     |\a lvalue (all other types)|the \a lvalue's type will be converted to an integer, and the \a expression will be evaluated and converted to an integer if necessary, and then the result will be added to the \a lvalue.
 
     <hr>
-    @subsection minus_equals_operator Minus Equals Operator (-=)
+    @section minus_equals_operator Minus Equals Operator (-=)
 
     @par Synopsis
     For a float or integer argument, decrements the value of an \a lvalue by the value of an \a expression. However if the \a lvalue is a hash or object and the \a expression is a string, removes the key represented by the string from the hash or object.
@@ -1854,7 +1801,7 @@ if (x || y)
     |\a lvalue (all other types)|the \a lvalue's type will be converted to an integer (if necessary), and the \a expression will be evaluated and converted to an integer (if necessary), and then the result will be subtracted from the \a lvalue
 
     <hr>
-    @subsection and_equals_operator And Equals Operator (&=)
+    @section and_equals_operator And Equals Operator (&=)
 
     @par Synopsis
     Performs a bitwise (binary) AND operation on an \a lvalue using the value of an \a expression and returns the new value.
@@ -1873,7 +1820,7 @@ if (x || y)
     |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary and'ed to the \a lvalue
 
     <hr>
-    @subsection or_equals_operator Or Equals Operator (|=)
+    @section or_equals_operator Or Equals Operator (|=)
 
     @par Synopsis
     Performs a bitwise (binary) OR operation on an \a lvalue using the value of an \a expression and returns the new value.
@@ -1892,7 +1839,7 @@ if (x || y)
     |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be binary or'ed to the \a lvalue
 
     <hr>
-    @subsection modulo_equals_operator Modulo Equals Operator (%=)
+    @section modulo_equals_operator Modulo Equals Operator (%=)
 
     @par Synopsis
     Performs a modulo calculation on an lvalue using the value of an expression and returns the new value.
@@ -1911,7 +1858,7 @@ if (x || y)
     |All|the \a lvalue's type will be converted to an integer if necessary, and the \a expression will be evaluated and converted to an integer as well if necessary, and then the result will be used to divide the \a lvalue's value and the remainder will be saved to the \a lvalue
 
     <hr>
-    @subsection multiply_equals_operator Multiply Equals Operator (*=)
+    @section multiply_equals_operator Multiply Equals Operator (*=)
 
     @par Synopsis
     Performs a multiplication operation on an lvalue using the value of an expression and returns the value assigned.
@@ -1930,7 +1877,7 @@ if (x || y)
     |All|The type precedence from highest to lowest is @ref number "number", @ref float "float" float, and @ref integer "int", other types are converted to @ref integer "int". The \a expression will be evaluated and multiplied by the \a lvalue, and the result will be saved to the \a lvalue.
 
     <hr>
-    @subsection divide_equals_operator Divide Equals Operator (/=)
+    @section divide_equals_operator Divide Equals Operator (/=)
 
     @par Synopsis
     Performs a division operation on an lvalue using the value of an expression and returns the value assigned.
@@ -1951,7 +1898,7 @@ if (x || y)
     @throw DIVISION-BY-ZERO If the divisor expression evaluates to zero, this exception is thrown
 
     <hr>
-    @subsection xor_equals_operator Xor Equals Operator (^=)
+    @section xor_equals_operator Xor Equals Operator (^=)
 
     @par Synopsis
     Performs an exclusive-or operation on an lvalue using the value of an expression.
@@ -1970,7 +1917,7 @@ if (x || y)
     |All|Values are converted to integers if necessary. The \a expression will be evaluated and exclusive-or'ed with the \a lvalue, and the result will be saved to the \a lvalue
 
     <hr>
-    @subsection shift_left_equals_operator Shift Left Equals Operator (\<\<=)
+    @section shift_left_equals_operator Shift Left Equals Operator (\<\<=)
 
     @par Synopsis
     Performs a shift-left operation on an lvalue using the value of an expression and returns the value assigned.
@@ -1989,7 +1936,7 @@ if (x || y)
     |All|Values are converted to integers if necessary. The \a expression will be evaluated and this value will determine how many bits the \a lvalue will be shifted left. The result will be saved to the \a lvalue.
 
     <hr>
-    @subsection shift_right_equals_operator Shift Right Equals Operator (\>\>=)
+    @section shift_right_equals_operator Shift Right Equals Operator (\>\>=)
 
     @par Synopsis
     Performs a shift-right operation on an lvalue using the value of an expression and returns the value assigned.

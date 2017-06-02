@@ -6,7 +6,6 @@
 %new-style
 %strict-args
 
-%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm

@@ -34,7 +34,7 @@
 #define _QORE_QC_AUTOWRITELOCK_H
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_RWLock.h"
+#include <qore/intern/QC_RWLock.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOWRITELOCK;
 DLLLOCAL extern QoreClass* QC_AUTOWRITELOCK;

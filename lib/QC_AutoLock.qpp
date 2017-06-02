@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_AutoLock.h"
-#include "qore/intern/QC_Mutex.h"
+#include <qore/intern/QC_AutoLock.h>
+#include <qore/intern/QC_Mutex.h>
 
 //! A helper class for the @ref Qore::Thread::Mutex "Mutex" class for exception-safe @ref Qore::Thread::Mutex "Mutex" handling
 /** AutoLock objects, when used along with a @ref Qore::Thread::Mutex "Mutex" object, allow %Qore programmers to safely acquire and release a @ref Qore::Thread::Mutex "Mutex" lock, even if exceptions are thrown or @ref return "return statements" are executed in the block where the AutoLock object is created.

@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QoreListIterator.h"
+#include <qore/intern/QoreListIterator.h>
 
 //! This class an iterator class for lists
 /** Call ListIterator::next() to iterate through the list; do not use the iterator if ListIterator::next() returns @ref False.

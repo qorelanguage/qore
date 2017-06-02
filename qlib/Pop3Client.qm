@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Pop3Client.qm POP3 client module definition
 
-/*  Pop3Client.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
+/*  Pop3Client.qm Copyright 2013 - 2015 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,28 +31,41 @@
 # need MailMessage classes
 %requires MailMessage >= 1.0
 
-# requires the ConnectionProvider module
-%requires(reexport) ConnectionProvider >= 1.0
-
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
-%strict-args
-%require-types
-%enable-all-warnings
 
 module Pop3Client {
-    version = "1.5";
+    version = "1.4";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
+/*  Version History
+    * 2015-11-11 v1.4: David Nichols <david@qore.org>
+      + converted to new-style
+
+    * 2014-02-04 v1.3: David Nichols <david@qore.org>
+      + added socket instrumention support from Qore 0.8.9
+
+    * 2013-05-22 v1.2: David Nichols <david@qore.org>
+      + uncommented the "connected" debug message
+
+    * 2012-11-03 v1.1: David Nichols <david@qore.org>
+      + added the logPassword() methods and masked password by default in the debug log
+
+    * 2012-09-04 v1.0: David Nichols <david@qore.org>
+      + doc updates only
+
+    * 2012-06-12 v1.0: David Nichols <david@qore.org>
+      + initial release
+
+    based on:
+    - http://tools.ietf.org/html/rfc1939 (POP3)
+*/
+
 /** @mainpage Pop3Client Module
-
-    @tableofcontents
-
-    @section pop3clientintro Pop3Client Module Introduction
 
     The %Pop3Client module provides the Pop3Client class for retrieving emails from a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server, with or without TLS/SSL encryption.
 
@@ -60,18 +73,12 @@ module Pop3Client {
 
     All the public symbols in the module are defined in the Pop3Client namespace.
 
-    The main classes are:
+    The main class is:
     - @ref Pop3Client::Pop3Client "Pop3Client": provides an interface to a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server for retrieving emails
-    - @ref Pop3Client::Pop3Connection "Pop3Connection": provides a connection object to a POP3 server (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     @par Example:
     @code{.py}
-#!/usr/bin/env qore
-
-%new-style
-%strict-args
-%require-types
-%enable-all-warnings
+#!/usr/bin/env qore -n
 
 %requires Pop3Client
 
@@ -89,28 +96,6 @@ map printf("%s: From: %s (size: %d bytes, attachments: %d)\n", $1.key, $1.value.
 if (!h)
     printf("no messages\n");
     @endcode
-
-    @note based on http://tools.ietf.org/html/rfc1939 (POP3)
-
-    @section pop3client_relnotes Pop3Client Module Release Notes
-
-    @subsection pop3client_v1_5 Pop3Client 1.5
-    - added the @ref Pop3Client::Pop3Connection "Pop3Connection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-
-    @subsection pop3client_v1_4 Pop3Client 1.4
-    - converted to @ref new-style "%new-style"
-
-    @subsection pop3client_v1_3 Pop3Client 1.3
-    - added socket instrumention support from Qore 0.8.9
-
-    @subsection pop3client_v1_2 Pop3Client 1.2
-    - uncommented the "connected" debug message
-
-    @subsection pop3client_v1_1 Pop3Client 1.1
-    - added the logPassword() methods and masked password by default in the debug log
-
-    @subsection pop3client_v1_0 Pop3Client 1.0
-    - initial release
 */
 
 #! the main namespace for the Pop3Client module
@@ -119,7 +104,7 @@ if (!h)
     See examples/pop3client.q for an example program using this module
 
     All the public symbols in the module are defined in this namespace
-*/
+ */
 public namespace Pop3Client {
     #! 15 second read timeout
     public const DefaultReadTimeout = 15s;
@@ -139,8 +124,8 @@ public namespace Pop3Client {
         - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set the TLS/SSL flag manually by calling @ref Pop3Client::Pop3Client::tls(bool) "Pop3Client::tls(bool)".
         - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"
 
-        This class will not mark messages for deletion automatically; to mark messages for deletion, call the @ref Pop3Client::Pop3Client::del() "Pop3Client::del()" method with the message ID to delete or a list of message IDs.  Note that some POP3 servers (for example gmail), will mark the messages as read anyway and make them unavailable on the next request after disconnecting even if the messages were not marked for deletion manually.  To avoid this, set the \c "noquit" flag by calling @ref Pop3Client::Pop3Client::noquit(bool) "Pop3Client::noquit(bool)".  This will suppress the \c "QUIT" message when disconnecting which should keep any compiant POP3 server from committing any changes related to the current POP3 session.
-    */
+        This class will not mark messages for deletion automatically; to mark messages for deletion, call the @ref Pop3Client::Pop3Client::del() "Pop3Client::del()" method with the message ID to delete or a list of message IDs.  Note that some SMTP servers (for example gmail), will mark the messages as read anyway and make them unavailable on the next request after disconnecting even if the messages were not marked for deletion manually.  To avoid this, set the \c "noquit" flag by calling @ref Pop3Client::Pop3Client::noquit(bool) "Pop3Client::noquit(bool)".  This will suppress the \c "QUIT" message when disconnecting which should keep any compiant SMTP server from committing any changes related to the current POP3 session.
+     */
     public class Pop3Client {
         #! @cond nodoc
         private {
@@ -379,7 +364,7 @@ pop3.connect();
             @note
             - It is not necessary to call this method explicitly; connections are made implicitly by calling a method that requires a connection
             - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
-            - This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            - This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
          */
@@ -432,7 +417,7 @@ hash h = pop3.stat();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         hash stat() {
             AutoLock am(mutex);
@@ -456,7 +441,7 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         *hash list() {
             AutoLock am(mutex);
@@ -476,7 +461,7 @@ pop3.del(msgid);
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(softstring msg) {
             AutoLock am(mutex);
@@ -494,7 +479,7 @@ pop3.del(msgid);
 pop3.del(msgidlist);
             @endcode
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         del(list l) {
             AutoLock am(mutex);
@@ -513,7 +498,7 @@ pop3.noop();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         noop() {
             AutoLock am(mutex);
@@ -531,7 +516,7 @@ pop3.reset();
 
             @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         reset() {
             AutoLock am(mutex);
@@ -629,7 +614,7 @@ date timeout = pop3.getConnectTimeoutDate();
 pop3.forceDisconnect();
             @endcode
 
-            @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+            @note This method communicates with the SMTP server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
          */
         forceDisconnect() {
             AutoLock am(mutex);
@@ -940,62 +925,5 @@ pop3.clearStats();
             }
         }
         #! @endcond
-    }
-
-    #! class for POP3 connections; returns an object of class @ref Pop3Client for receiving or polling for emails
-    /** supports the following runtime options in getImpl() for connection logging:
-        - \c "log": a closure accepting a single string for logging
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-        @since %Pop3Client 1.5
-    */
-    public class Pop3Connection inherits ConnectionProvider::AbstractConnection {
-        #! creates the Pop3Connection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-        }
-
-        #! returns \c "pop3"
-        string getType() {
-            return "pop3";
-        }
-
-        #! returns runtime options
-        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        */
-        *hash getRuntimeOptions() {
-            return (
-                "log": True,
-                "dbglog": True,
-            );
-        }
-
-        #! returns a @ref Pop3Client object
-        /** @param connect if @ref Qore::True "True", then @ref Pop3Client::Pop3Client::connect() is called
-            @param rtopts supports the following runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-            @return a @ref Pop3Client object
-        */
-        private Pop3Client getImpl(bool connect = True, *hash rtopts) {
-            Pop3Client sc(url, rtopts.log, rtopts.dbglog);
-            if (connect)
-                sc.connect();
-            return sc;
-        }
-
-        #! static constructor
-        static Pop3Connection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new Pop3Connection(name, desc, url, monitor, opts, urlh);
-        }
     }
 }

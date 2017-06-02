@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QoreListHashIterator.h"
+#include <qore/intern/QoreListHashIterator.h>
 
 //! This class an iterator class for lists of hashes as returned by Qore::SQL::Datasource::selectRows() and Qore::SQL::DatasourcePool::selectRows(), both of which return lists of columns where each list entry is a hash of the current column values
 /** Call ListHashIterator::next() to iterate through the lists of column values; do not use the iterator if ListHashIterator::next() returns @ref False.

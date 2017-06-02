@@ -33,7 +33,7 @@
 
 #define _QORE_SCOPEDOBJECTCALLNODE_H
 
-#include "qore/intern/FunctionCallNode.h"
+#include <qore/intern/FunctionCallNode.h>
 
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:

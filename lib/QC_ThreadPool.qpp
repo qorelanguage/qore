@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ThreadPool.h"
+#include <qore/intern/ThreadPool.h>
 
 static void tpt_start_thread(ExceptionSink* xsink, ThreadPoolThread* tpt) {
    tpt->worker(xsink);

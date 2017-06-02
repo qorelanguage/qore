@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/SummarizeStatement.h"
-#include "qore/intern/StatementBlock.h"
+#include <qore/intern/SummarizeStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 int SummarizeStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
@@ -102,7 +102,7 @@ int SummarizeStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // initialize statement block
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
 
    // save local variables
    if (lvars)

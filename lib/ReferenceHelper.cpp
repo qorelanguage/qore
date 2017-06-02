@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include "qore/intern/ReferenceHelper.h"
+#include <qore/intern/ReferenceHelper.h>
 
 ReferenceHelper::ReferenceHelper(const ReferenceNode *ref, AutoVLock &vl, ExceptionSink *xsink) {
    xsink->raiseException("RUNTIME-TYPE-ERROR", "this module uses an outdated, unsafe, and removed API (ReferenceHelper); the module must be updated to use the new type 'QoreTypeSafeReferenceHelper' instead");

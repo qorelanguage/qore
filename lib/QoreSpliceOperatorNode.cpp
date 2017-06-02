@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/qore_program_private.h"
+#include <qore/intern/qore_program_private.h>
 
 QoreString QoreSpliceOperatorNode::splice_str("splice operator expression");
 
@@ -60,13 +60,13 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
-         QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
-         QoreTypeInfo::getThisType(expTypeInfo, *desc);
-         desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
-         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
+	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
+	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
+	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
       }
       else
-         returnTypeInfo = typeInfo = expTypeInfo;
+	 returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression
@@ -80,7 +80,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
       if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-         QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'splice' operator is ");
+	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'splice' operator is ");
    }
 
    // check new value expression, if any
@@ -145,11 +145,7 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
       printd(5, "op_splice() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
    }
-   else if (vt == NT_STRING) {
-      QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
-      printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
-   }
-   else if (vt == NT_STRING) {
+   else {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
       printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
    }

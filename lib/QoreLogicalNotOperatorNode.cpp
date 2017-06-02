@@ -1,9 +1,9 @@
 /*
   QoreLogicalNotOperatorNode.cpp
-
+ 
   Qore Programming Language
-
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+ 
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,6 @@ AbstractQoreNode* QoreLogicalNotOperatorNode::parseInitImpl(LocalVar* oflag, int
       }
    }
    typeInfo = boolTypeInfo;
-
+   
    return this;
 }

@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_Mutex.h"
-#include "qore/intern/QC_AbstractSmartLock.h"
+#include <qore/intern/QC_Mutex.h>
+#include <qore/intern/QC_AbstractSmartLock.h>
 
 //! A class providing an implementation for a simple thread lock
 /** @par Overview

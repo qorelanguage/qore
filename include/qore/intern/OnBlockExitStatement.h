@@ -33,7 +33,7 @@
 
 #define _QORE_ONBLOCKEXIT_STATEMENT_H
 
-#include "qore/intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class OnBlockExitStatement : public AbstractStatement {
 private:

@@ -32,9 +32,9 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QoreDir.h"
+#include <qore/intern/QoreDir.h>
 
-#include "qore/intern/qore_qd_private.h"
+#include <qore/intern/qore_qd_private.h>
 
 const QoreEncoding *QoreDir::getEncoding() const {
    return priv->getEncoding();

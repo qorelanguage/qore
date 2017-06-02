@@ -1155,11 +1155,10 @@ end";
                             try {
                                 defval = date(defval);
                             }
-                            catch (hash ex) {
-                                # ignore INVALID-DATE; keep text (ex: "CURRENT_TIMESTAMP")
-                                if (ex.err != "INVALID-DATE")
-                                    rethrow;
+                            catch () {
+                                # ignore exceptions (ex: "CURRENT_TIMESTAMP")
                             }
+                            break;
                         }
                         # don't know what to do with Type::Binary ???
                         default: break;

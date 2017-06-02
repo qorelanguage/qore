@@ -1,0 +1,109 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/SalesforceRestClient.qm
+
+%requires qore >= 0.8.12
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%exec-class SalesforceTest
+
+class SalesforceTest inherits QUnit::Test {
+    public {}
+
+    private {
+        SalesforceRestClient rc;
+
+        # command-line options
+        const MyOpts = Opts + (
+            "client_id":      "i,client_id=s",
+            "client_secret":  "s,client_secret=s",
+            "user":           "u,username=s",
+            "pass":           "p,password=s",
+            "timeout":        "t,timeout=i",
+            );
+
+        const OptionColumn = 22;
+
+        const AcctNo1 = "DEL_TEST_1";
+        const AcctName1 = "My Test Account 1";
+
+        const AcctNo2 = "DEL_TEST_2";
+    }
+
+    constructor() : Test("SalesforceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("Salesforce.com REST", \salesForceRestTests());
+
+        try {
+            setupConnection();
+        }
+        catch (hash ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-i,--client_id=ARG", "set Salesforce.com consumer key", OptionColumn);
+        printOption("-p,--pass=ARG", "set Salesforce.com password", OptionColumn);
+        printOption("-s,--client_secret=ARG", "set Salesforce.com consumer secret", OptionColumn);
+        printOption("-t,--timeout=ARG", "set Salesforce.com timeout in seconds", OptionColumn);
+        printOption("-u,--user=ARG", "set Salesforce.com user name", OptionColumn);
+    }
+
+    setupConnection() {
+        hash opt;
+        opt.client_id = m_options.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
+        if (!opt.client_id)
+            error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
+        opt.client_secret = m_options.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
+        if (!opt.client_secret)
+            error("missing --client_secret option or SALESFORCE_CONSUMER_SECRET environment variable");
+        opt.username = m_options.user ?? ENV.SALESFORCE_USER;
+        if (!opt.username)
+            error("missing --username option or SALESFORCE_USER environment variable");
+        opt.password = m_options.pass ?? ENV.SALESFORCE_PASS;
+        if (!opt.password)
+            error("missing --password option or SALESFORCE_PASS environment variable");
+        if (opt.timeout)
+            opt.connect_timeout = opt.timeout;
+
+        rc = new SalesforceRestClient(opt);
+    }
+
+    error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    salesForceRestTests() {
+        if (!rc) testSkip("no Salesforce.com connection");
+
+        assertEq(Type::String, rc.getApi().type());
+
+        hash h = rc.get("sobjects");
+        assertEq(Type::List, h.body.sobjects.type());
+
+        # create a bulk job
+        h = rc.bulkJobCreate(BulkJobInsert, "Account", BulkJobCsv).jobInfo;
+        assertEq(Type::Hash, h.type());
+        assertEq(Type::String, h.id.type());
+
+        # close the bulk job
+        hash ch = rc.bulkJobClose(h.id);
+        assertEq(h.jobInfo.id, ch.id);
+
+        rc.logout();
+        assertEq(NOTHING, rc.getToken());
+    }
+}

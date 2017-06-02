@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ExecArgList.h"
+#include <qore/intern/ExecArgList.h>
 
 #include <string.h>
 #include <stdlib.h>

@@ -32,7 +32,7 @@
 #ifndef _QORE_VARREFNODE_H
 #define _QORE_VARREFNODE_H
 
-#include "qore/intern/FunctionCallNode.h"
+#include <qore/intern/FunctionCallNode.h>
 
 class VarRefNewObjectNode;
 class LocalVar;
@@ -79,14 +79,6 @@ protected:
          return ref.id->parseGetTypeInfo();
       if (type == VT_GLOBAL)
          return ref.var->parseGetTypeInfo();
-      return 0;
-   }
-
-   DLLLOCAL virtual const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
-      if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
-         return ref.id->parseGetTypeInfoForInitialAssignment();
-      if (type == VT_GLOBAL)
-         return ref.var->parseGetTypeInfoForInitialAssignment();
       return 0;
    }
 

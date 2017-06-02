@@ -32,13 +32,13 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/ql_thread.h"
-#include "qore/intern/QC_TimeZone.h"
-#include "qore/intern/qore_program_private.h"
-#include "qore/intern/QC_AbstractThreadResource.h"
+#include <qore/intern/ql_thread.h>
+#include <qore/intern/QC_TimeZone.h>
+#include <qore/intern/qore_program_private.h>
+#include <qore/intern/QC_AbstractThreadResource.h>
 
 #include <pthread.h>
-#include "qore/intern/QC_TimeZone.h"
+#include <qore/intern/QC_TimeZone.h>
 
 extern QoreClass* QC_TIMEZONE;
 
@@ -386,34 +386,6 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #endif
 }
 
-//! Returns a call stack for current TID (thread ID). As it is called always inside thread then no locking is applied as in @ref get_all_thread_call_stacks.
-/**
-    @par Platform Availability:
-    @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
-
-    @return a call stack for current TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
-
-    @par Example:
-    @code{.py}
-list cs = get_thread_call_stack();
-  foreach hash l in (cs)
-    if (l.type != "new-thread")
-      printf(" %d: %s() called at %s:%d (%s function)\n", ++i, l.function, l.file, l.line, l.type);
-    else
-      printf(" %d: *** thread started by background operator ***\n", ++i);
-}
-    @endcode
-
-    @since %Qore 0.8.13
-*/
-list get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   return getCallStack()->getCallStack();
-#else
-   return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for runtime thread stack tracing; check Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE before calling");
-#endif
-}
-
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
 /** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
 
@@ -545,8 +517,6 @@ nothing mark_thread_resources() [dom=THREAD_CONTROL] {
 //! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
 /** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
 
-    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started or @ref nothing to clear any thread initialization code
-
     @return @ref True if there was already user initialization code set, @ref False if not
 
     @par Example:
@@ -555,12 +525,8 @@ set_thread_init(sub () { var = 123; });
     @endcode
 
     @note the code will be run for all new threads, but is not run by this function for the current thread
-
-    @see @ref Qore::Program::setThreadInit()
-
-    @since %Qore 0.8.13 added the ability to remove the thread initialization code by passing @ref nothing to this function
 */
-bool set_thread_init(*code init) [dom=THREAD_CONTROL] {
+bool set_thread_init(code init) [dom=THREAD_CONTROL] {
    return qore_program_private::setThreadInit(*getProgram(), init, xsink);
 }
 

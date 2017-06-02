@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_SSLCertificate.h"
+#include <qore/intern/QC_SSLCertificate.h>
 
 //! SSLCertificate objects allow %Qore code to work with X.509 certificate data
 /** 

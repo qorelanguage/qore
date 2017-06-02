@@ -103,4 +103,3 @@ http://www.anthrax.com/,US,Anthrax,anthrax.jpg,2012-12-29T14:02:53,395
         testAssertion("case2: CsvFileWriter and CsvStringWriter results match", \f2.read(), (-1,), new TestResultValue(sw2.getContent()));
     }
 }
-

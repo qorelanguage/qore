@@ -1,9 +1,5 @@
 /** @page lvalue_references References
 
-    @tableofcontents
-
-    @section references_overview Overview of References
-
     References allow for addressing other lvalues, including complex lvalue expressions, with an alias called a reference.  References to lvalues are defined by placing a \c "\" character in front of an expression that gives an lvalue, such as in the following examples:
     @code{.py}
 reference r1 = \a;
@@ -25,33 +21,4 @@ lastorder.numberofitems = lastorder.items.size();
     @note Local variables that are referenced are automatically converted to a special type of local variable that is protected by a mutual-exclusion thread lock so that the reference can be safely used in background threads.  The lvalue represented by the local variable will exist beyond its local scope; as long as the reference to the lvalue exists, the local variable's lvalue will exist and remain valid.
 
     @since %Qore 0.8.5 universal lvalue references are supported; previously references could only be used with arguments to a function or method call or the like.  As of %Qore 0.8.5+, references can be used anywhere in %Qore in any expression, even with references to local variables in background expressions and in closure argument lists.
-
-    @section reference_types Reference Type Restrictions
-
-    The following reference type restrictions exist:
-    - @ref reference_type "reference": requires a reference when assigned
-    - @ref reference_or_nothing_type "*reference": requires either a reference or @ref nothing
-
-    Once assigned, a reference is permanently assigned to the lvalue; there is currently no way to "unreference"
-    a reference.
-
-    The @ref reference_or_nothing_type "*reference" has special behavior when used as an argument type
-    restriction.  In this case, if no value is assigned to the reference in the call, the local variable
-    can be assigned to any value in the code block, even if the called did not pass a value to the reference.
-    This allows variables of "*reference" type to be used even without a reference assigned.
-
-    Consider the following example:
-    @code{.py}
-sub ref(*reference r) {
-    r = {};
-}
-
-hash h;
-# in this case, the reference in "ref()" updates the local variable in "ref()"
-ref();
-# in this case, the reference updates top-level local variable "h"
-ref(\h);
-    @endcode
-
-    The above code is valid and will work as described in the comments above.
 */

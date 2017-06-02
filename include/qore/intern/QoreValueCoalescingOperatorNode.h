@@ -59,6 +59,12 @@ public:
       return value_coalescing_str.getBuffer();
    }
 
+   DLLLOCAL virtual bool hasEffect() const {
+      // FIXME: check with David how this works.
+      return true;
+//      return ::node_has_effect(e[1]) || ::node_has_effect(e[2]);
+   }
+
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       return copyBackgroundExplicit<QoreValueCoalescingOperatorNode>(xsink);
    }

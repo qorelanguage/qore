@@ -34,7 +34,7 @@
 #define _QORE_QC_AUTOGATE_H
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_Gate.h"
+#include <qore/intern/QC_Gate.h>
 
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
 DLLLOCAL extern QoreClass* QC_AUTOGATE;

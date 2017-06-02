@@ -33,9 +33,9 @@
 
 #define _QORE_DOWHILESTATEMENT_H
 
-#include "qore/intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
-#include "qore/intern/WhileStatement.h"
+#include <qore/intern/WhileStatement.h>
 
 class DoWhileStatement : public WhileStatement {
 private:

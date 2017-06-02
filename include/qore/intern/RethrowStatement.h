@@ -33,7 +33,7 @@
 
 #define _QORE_RETHROWSTATEMENT_H
 
-#include "qore/intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 class RethrowStatement : public AbstractStatement {
 private:

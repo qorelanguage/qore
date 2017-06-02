@@ -29,10 +29,11 @@
   information.
 */
 
-#include "qore/Qore.h"
-#include "qore/intern/ssl_constants.h"
-#include "qore/intern/QC_FtpClient.h"
-#include "qore/intern/QC_Queue.h"
+#include <qore/Qore.h>
+#include <qore/intern/ssl_constants.h>
+
+#include <qore/intern/QC_FtpClient.h>
+#include <qore/intern/QC_Queue.h>
 
 //! The FtpClient class allows %Qore code to communicate with FTP servers with the FTP and FTPS protocols
 /** The constructor takes an optional URL with the following format:\n
@@ -328,32 +329,6 @@ nothing FtpClient::put(string local_path, *string remote_path) [dom=FILESYSTEM] 
    f->put(local_path->getBuffer(), remote_path ? remote_path->getBuffer() : 0, xsink);
 }
 
-//! Transfers the content of an @ref InputStream to the FTP server; if any errors occur, an exception is thrown
-/** @param is The intput stream to send to the FTP server
-    @param remote_path The name of the file on the server
-
-    @par Events:
-    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
-
-    @par Example:
-    @code{.py}
-ftp.put(new FileInputStream("/tmp/file-1.txt"), "file.txt");
-    @endcode
-
-    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
-    @throw FTP-FILE-OPEN-ERROR Could not open local file for reading
-    @throw FTP-FILE-PUT-ERROR Could not determine file size of local file (stat() failed)
-    @throw FTP-PUT-ERROR An error occurred while sending the file
-
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
-
-    @see FtpClient::putData()
- */
-nothing FtpClient::put(Qore::InputStream[InputStream] is, string remote_path) {
-   SimpleRefHolder<InputStream> isHolder(is);
-   f->put(is, remote_path->getBuffer(), xsink);
-}
-
 //! Renames/moves a file or directory; if any errors occur, an exception is thrown
 /** @param from The original file path on the server to rename/move
     @param to The new path on the server
@@ -399,32 +374,6 @@ ftp.get("file.txt", "/tmp/file-1.txt");
  */
 nothing FtpClient::get(string remote_path, *string local_path) [dom=FILESYSTEM] {
    f->get(remote_path->getBuffer(), local_path ? local_path->getBuffer() : 0, xsink);
-}
-
-//! Gets a file from the FTP server and writes it to an OutputStream; if any errors occur, an exception is thrown
-/** @param remote_path The path on the server to the file to get
-    @param os The output stream to write the file to
-
-    @par Events:
-    @ref EVENT_FTP_SEND_MESSAGE, @ref EVENT_FTP_MESSAGE_RECEIVED, @ref EVENT_PACKET_READ, @ref EVENT_PACKET_SENT
-
-    @par Example:
-    @code{.py}
-ftp.get("file.txt", new FileOutputStream("/tmp/file-1.txt"));
-    @endcode
-
-    @throw FTP-RECEIVE-ERROR Incomplete message received on control port
-    @throw FTP-FILE-OPEN-ERROR Could not create the local file
-    @throw FTP-GET-ERROR There was an error retrieving the file
-
-    @note see FtpClient::connect() for additional exceptions that could be thrown when connections are implicitly established
-
-    @see FtpClient::getAsString(), FtpClient::getAsData()
-    @since %Qore 0.8.13
- */
-nothing FtpClient::get(string remote_path, Qore::OutputStream[OutputStream] os) {
-   SimpleRefHolder<OutputStream> osHolder(os);
-   f->get(remote_path->getBuffer(), os, xsink);
 }
 
 //! Transfers string data to the FTP server and saves it as a file on the remote machine; if any errors occur, an exception is thrown

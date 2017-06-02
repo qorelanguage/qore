@@ -1,16 +1,8 @@
 #!/usr/bin/env qore
-# -*- mode: qore; indent-tabs-mode: nil -*-
-
 %new-style
-%enable-all-warnings
-%require-types
-%strict-args
-
 %exec-class Main
-
 %requires SchemaReverse
 %requires SqlUtil
-%requires DatasourceProvider
 
 const VERSION = "0.1";
 
@@ -115,7 +107,7 @@ class Main {
             error("NO-CONNECTION-STRING", "Please specify qore DB connection string");
         }
 
-        m_ds = new Datasource(get_ds_string(connstr));
+        m_ds = new Datasource(connstr);
 
         if (m_opts.schema) {
             cout("Exporting full schema: %s", m_opts.schema);
@@ -153,7 +145,7 @@ class Main {
 
         printf("# %s\n", vsprintf(msg, argv));
     }
-
+    
     static error(string errcode, string msg) {
         stderr.printf("%s: %s\n", errcode, msg);
         exit(1);

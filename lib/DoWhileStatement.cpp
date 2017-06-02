@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/DoWhileStatement.h"
-#include "qore/intern/StatementBlock.h"
+#include <qore/intern/DoWhileStatement.h>
+#include <qore/intern/StatementBlock.h>
 
 int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
@@ -61,7 +61,7 @@ int DoWhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    pflag &= (~PF_TOP_LEVEL);
 
    if (code)
-      code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+      code->parseInitImpl(oflag, pflag);
    if (cond) {
       const QoreTypeInfo *argTypeInfo = 0;
       cond = cond->parseInit(oflag, pflag, lvids, argTypeInfo);

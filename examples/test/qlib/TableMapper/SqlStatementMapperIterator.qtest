@@ -1,7 +1,6 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %new-style
@@ -10,7 +9,6 @@
 %strict-args
 
 %requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
 %exec-class Main
@@ -63,7 +61,8 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
 }
 
 # dummy datasource-like class for FakeAbstractTable
-class FakeDatasource inherits Qore::SQL::AbstractDatasource {
+class FakeDatasource inherits Qore::SQL::AbstractDatasource
+{
     *string getPassword() {}
     *string getOSEncoding() {}
     *string getDBName() {}
@@ -96,40 +95,41 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     constructor() : SqlUtil::AbstractTable(new FakeDatasource(), "foo_table") {}
     AbstractIterator getRowIterator(hash h) { return new FakeSQLStatement(); }
 
-    string getRenameSqlImpl(string new_name) {}
-    AbstractPrimaryKey getPrimaryKeyImpl(any a) {}
+    string getRenameSqlImpl(string new_name)  {}
+    AbstractPrimaryKey getPrimaryKeyImpl(any a)  {}
     Constraints getConstraintsImpl(any a)  { return new Constraints(); }
-    AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {}
-    nothing setupTableImpl(hash desc, *hash opt) {}
-    bool uniqueIndexCreatesConstraintImpl(any a) {}
-    ForeignConstraints getForeignConstraintsImpl(*hash opt) {}
-    bool checkExistenceImpl(any a) {}
-    AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {}
-    AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {}
-    Indexes getIndexesImpl(any a) {}
-    AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {}
-    Columns describeImpl() { return new Columns(("a": NOTHING, "b": NOTHING)); }
-    AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {}
-    AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {}
-    *list getAlignSqlImpl(AbstractTable t, *hash opt) {}
-    Triggers getTriggersImpl(any a) {}
-    string getCreateTableSqlImpl(*hash opt) {}
-    bool tryInsertImpl(string sql, hash row) {}
-    bool supportsTablespacesImpl(any a) {}
-    *string getSqlValueImpl(any v) {}
-    AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {}
-    hash getQoreTypeMapImpl(any a) {}
-    *hash doReturningImpl(hash opt, reference sql, list args) {}
-    hash getTypeMapImpl(any a) {}
-    bool constraintsLinkedToIndexesImpl(any a) {}
-    bool emptyImpl(any a) {}
-    *list getCreateMiscSqlImpl(*hash opt, bool cache) {}
-    string getCreateSqlImpl(list l) {}
-    bool hasArrayBind(any a) {}
-    nothing doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {}
-    nothing copyImpl(AbstractTable old) {}
+    AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt)  {}
+    nothing setupTableImpl(hash desc, *hash opt)  {}
+    bool uniqueIndexCreatesConstraintImpl(any a)  {}
+    ForeignConstraints getForeignConstraintsImpl(*hash opt)  {}
+    bool checkExistenceImpl(any a)  {}
+    AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt)  {}
+    AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True)  {}
+    Indexes getIndexesImpl(any a)  {}
+    AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt)  {}
+    Columns describeImpl(any a)  {}
+    AbstractTrigger addTriggerImpl(string tname, string src, *hash opt)  {}
+    AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt)  {}
+    *list getAlignSqlImpl(AbstractTable t, *hash opt)  {}
+    Triggers getTriggersImpl(any a)  {}
+    string getCreateTableSqlImpl(*hash opt)  {}
+    bool tryInsertImpl(string sql, hash row)  {}
+    bool supportsTablespacesImpl(any a)  {}
+    *string getSqlValueImpl(any v)  {}
+    AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt)  {}
+    hash getQoreTypeMapImpl(any a)  {}
+    *hash doReturningImpl(hash opt, reference sql, list args)  {}
+    hash getTypeMapImpl(any a)  {}
+    bool constraintsLinkedToIndexesImpl(any a)  {}
+    bool emptyImpl(any a)  {}
+    *list getCreateMiscSqlImpl(*hash opt, bool cache)  {}
+    string getCreateSqlImpl(list l)  {}
+    bool hasArrayBind(any a)  {}
+    nothing doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh)  {}
+    nothing copyImpl(AbstractTable old)  {}
     nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {}
 }
+
 
 class Main inherits QUnit::Test {
 

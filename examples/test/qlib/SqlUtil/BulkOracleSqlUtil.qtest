@@ -96,7 +96,7 @@ class OracleTest inherits SqlTestBase {
             "char": (
                 "value": "hello",
                 "size": "20",
-                "expect": rpad("hello", 20),
+                "expect": rpad ("hello", 20),
             ),
             "number": (
                 "size": 15,

@@ -29,7 +29,6 @@ public class ParseDirectiveTest inherits QUnit::Test {
         addTestCase("correct %requires", \correctRequires());
         addTestCase("%exec-class tests", \execClass());
         addTestCase("%exec-class crlf", \execClassCrlf());
-        addTestCase("%strong-encapsulation", \strongEncapsulation());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -151,33 +150,5 @@ $y = 9;
     execClassCrlf() {
         Program p(PO_NEW_STYLE);
         p.parse("%exec-class T\r\nclass T {}\r\n", "exec-class-clrf");
-    }
-
-    strongEncapsulation() {
-        testEncapsulation("namespace N; const N::c = 1;", "namespace constant");
-        testEncapsulation("namespace N; class N::C;", "namespace class");
-        testEncapsulation("namespace N; our int N::i = 0;", "namespace global var");
-        testEncapsulation("namespace N; sub N::t() {}", "namespace function");
-        testEncapsulation("namespace N { namespace N1; const N1::c = 0; }", "nested namespace constant");
-        testEncapsulation("namespace N { namespace N1; sub N1::f() {} }", "nested namespace function");
-        testEncapsulation("namespace N { namespace N1; class N1::C {} }", "nested namespace class");
-        testEncapsulation("class C; static C::i() {}", "class method");
-    }
-
-    testEncapsulation(string code, string label) {
-        {
-            Program p(PO_NEW_STYLE);
-            assertEq(NOTHING, p.parse(code, ""), "positive: " + label);
-        }
-
-        {
-            Program p(PO_NEW_STYLE | PO_STRONG_ENCAPSULATION);
-            assertThrows("PARSE-EXCEPTION", "PO_STRONG_ENCAPSULATION", \p.parse(), (code, ""), "negative: " + label);
-        }
-
-        {
-            Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "PO_STRONG_ENCAPSULATION", \p.parse(), ("%strong-encapsulation\n" + code, ""), "negative po: " + label);
-        }
     }
 }

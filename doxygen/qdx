@@ -6,10 +6,6 @@
 %require-types
 %strict-args
 
-%requires qore >= 0.8.13
-
-%requires Qdx
-
 %exec-class qdx
 
 const opts = (
@@ -117,16 +113,16 @@ class qdx {
 
         printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
 
-        InputStreamLineIterator i(new FileInputStream(fn), NOTHING, NOTHING, False);
+        File inf();
+        inf.open2(fn);
 
-        StreamWriter w(new FileOutputStream(ofn));
+        File of();
+        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
 
         # get tags substitution string
         string tags = o.tag ? o.tag.join(" ") : "";
 
-        while (i.next()) {
-            string line = i.getValue();
-
+        while ((*string line = inf.readLine()).val()) {
             if (line =~ /{module}/)
                 line = replace(line, "{module}", name);
             else if (line =~ /{input}/)
@@ -138,24 +134,28 @@ class qdx {
             else if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
 
-            w.write(line);
+            of.write(line);
         }
     }
 
     doDox(string fn, string ofn) {
         printf("processing %y -> %y\n", fn, ofn);
 
-        DocumentTableInputStreamLineIterator i(new FileInputStream(fn), NOTHING, NOTHING, False);
+        File inf();
+        inf.open2(fn);
 
-        StreamWriter w(new FileOutputStream(ofn));
+        File of();
+        of.open2(ofn, O_CREAT | O_TRUNC | O_WRONLY);
 
-        while (i.next()) {
-            string line = i.getValue();
+        DocumentTableHelper dth();
+
+        while ((*string line = inf.readLine()).val()) {
+            line = dth.process(line);
 
             if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
 
-            w.write(line);
+            of.write(line);
         }
     }
 
@@ -172,22 +172,60 @@ class qdx {
     }
 
     postProcessIntern(string ifn, bool tex) {
-        DocumentTableInputStreamLineIterator i(new FileInputStream(ifn), NOTHING, NOTHING, False);
-
-        FileInputStream inf(ifn);
-        InputStreamLineIterator ins = tex
-            ? new QorePostProcessingInputStreamLineIterator(inf)
-            : new QorePostProcessingTexInputStreamLineIterator(inf);
+        File inf();
+        inf.open2(ifn);
 
         string ofn = ifn + ".new";
 
         printf("processing API file %s\n", ifn);
 
-        StreamWriter w(new FileOutputStream(ofn));
+        File of();
+        of.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
 
         on_success rename(ofn, ifn);
 
-        map w.write($1), ins;
+        DocumentTableHelper dth();
+
+        while (exists (*string line = inf.readLine())) {
+            line = dth.process(line);
+
+            if (tex) {
+                line =~ s/\\_\\-\\_\\-1\\_\\-/[/g;
+                line =~ s/\\_\\-\\_\\-2\\_\\-/]/g;
+                line =~ s/\\_\\-\\_\\-4\\_\\-/./g;
+                line =~ s/\\_\\-\\_\\-5\\_\\-/-/g;
+                line =~ s/\\_\\-\\_\\-6\\_\\-/\$/g;
+                line =~ s/\\_\\-\\_\\-7\\_\\-/*/g; #//;
+            }
+
+            line =~ s/__1_/[/g;
+            line =~ s/__2_/]/g;
+            line =~ s/__3_/*/g;
+            line =~ s/__4_/./g;
+            line =~ s/__5_/-/g;
+            if (o.keepdollar)
+                line =~ s/__6_/$/g;
+            else
+                line =~ s/__6_//g;
+            line =~ s/__7_ /*/g; #//;
+            line =~ s/__8_/$/g;
+
+            # remove "inline" tags
+            line =~ s/\[inline\]//g;
+            line =~ s/, inline\]/]/g;
+            line =~ s/\[inline, /[/g;
+
+            line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
+            line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
+            line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//\>$1\&lt;$2\&gt;$3<\//g;
+            line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::\&lt;$1\&gt;:/g;
+            line =~ s/'Qore::zzz8([a-z]+)zzz9'/'\&lt;$1\&gt;'/g;
+            line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
+            line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::\&lt;$1\&gt;::$2($3)'/g;
+            line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
+
+            of.print(line);
+        }
     }
 
     fixParam(reference line) {
@@ -203,15 +241,16 @@ class qdx {
         }
     }
 
-    string getComment(string comment, InputStreamLineIterator ins, bool fix_param = False) {
+    string getComment(string comment, File inf, bool fix_param = False) {
         comment =~ s/^[ \t]+//g;
         if (fix_param)
             fixParam(\comment);
 
         DocumentTableHelper dth();
 
-        while (ins.next()) {
-            string line = ins.getValue();
+        while (exists (*string line = inf.readLine())) {
+            #line =~ s/\$/__6_/g; #/;
+
             if (fix_param)
                 fixParam(\line);
 
@@ -222,22 +261,23 @@ class qdx {
                 break;
             }
 
-            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in particular places, for example
+            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be outout in particular places, for example
             line =~ s/<!--%.*%-->//g;
 
             comment += line;
         }
+        #printf("comment: %s", comment);
         return comment;
     }
 
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
-        FileInputStream inf(fn);
-        # need to use an unbuffered StreamReader here
-        InputStreamLineIterator ins(new StreamReader(inf), NOTHING, False);
+        File inf();
+        inf.open2(fn);
 
-        StreamWriter w(new FileOutputStream(nn));
+        File of();
+        of.open2(nn, O_CREAT|O_WRONLY|O_TRUNC);
 
         printf("processing %y -> %y\n", fn, nn);
 
@@ -264,8 +304,9 @@ class qdx {
         # namespace stack
         list nss = ();
 
-        while (ins.next()) {
-            string line = ins.getValue();
+        while (exists (*string line = inf.readLine())) {
+            #printf("line: %s", line);
+
             line =~ s/\$\.//g;
             line =~ s/([^\/\*])\*([a-zA-Z])/$1__7_ $2/g;
             #line =~ s/\$/__6_/g;
@@ -277,7 +318,7 @@ class qdx {
             if (in_doc) {
                 if (line =~ /\*\//)
                     in_doc = False;
-                w.write(line);
+                of.print(line);
                 continue;
             }
 
@@ -286,16 +327,16 @@ class qdx {
                 continue;
 
             # see if the line is the start of a doxygen block comment
-            if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
-                line = getComment(line, ins);
-                w.write(line);
+            if (line =~ /^[[:blank:]]*\/\*\*/) {
+                line = getComment(line, inf);
+                of.print(line);
                 continue;
             }
 
             if (line =~ /^[[:blank:]]*\/\*/){ #/){
                 if (line !~ /\*\//)
                     in_doc = True;
-                w.write(line);
+                of.print(line);
                 continue;
             }
 
@@ -322,9 +363,8 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && line !~ /}/ && ins.next()) {
-                    line = ins.getValue();
-                }
+                while (line.val() && line !~ /}/)
+                    line = inf.readLine();
                 continue;
             }
 
@@ -358,7 +398,7 @@ class qdx {
 
             # skip lines that are only comments
             if (line =~ /^[[:blank:]]*\/\//) {
-                w.write(line);
+                of.write(line);
                 continue;
             }
 
@@ -380,6 +420,10 @@ class qdx {
                 # add {} to any inline empty class declaration
                 if (line =~ /;[ \t]*/) #/)
                     line =~ s/;[ \t]*/ {};/; #/;# this comment is only needed for emacs' broken qore-mode :(
+
+                #printf("x: %y line: %y\n", xl, line);
+                #of.print(line);
+                #continue;
             }
 
             # temporary string variable
@@ -401,7 +445,7 @@ class qdx {
                 if (sc)
                     line =~ s/;/ {}/;
 
-                w.write(line);
+                of.print(line);
                 continue;
             }
             else {
@@ -425,7 +469,7 @@ class qdx {
                             delete class_name;
                     }
 
-                    w.write(line);
+                    of.print(line);
                     continue;
                 }
                 else if (class_name) {
@@ -442,7 +486,7 @@ class qdx {
                     }
 
                     if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
-                        w.printf("private:\n%s\npublic:\n", xs);
+                        of.printf("private:\n%s\npublic:\n", xs);
                         continue;
                     }
                     else if (!ppc) {
@@ -494,7 +538,7 @@ class qdx {
                         if (mod == "private") {
                             if (!mpp) {
                                 mpp = True;
-                                w.write("\nprivate:\n");
+                                of.printf("\nprivate:\n");
                             }
                         }
                         #line = regex_subst(line, mod, "");
@@ -506,7 +550,7 @@ class qdx {
                 }
             }
 
-            w.write(line);
+            of.print(line);
 
             if (mpp) {
                 if (line =~ /{/)
@@ -515,42 +559,34 @@ class qdx {
                     --mpc;
 
                 if (!mpc) {
-                    w.write("\npublic:\n");
+                    of.print("\npublic:\n");
                     mpp = False;
                 }
             }
         }
     }
 
-    private readUntilCloseBracket(FileInputStream inf) {
+    private readUntilCloseBracket(File inf) {
         int cnt = 1;
         string quote;
         bool need = True;
         int regex = 0;
-
-        StreamReader sr(inf);
-        *string fc = sr.readString(1);
-        if (!exists fc)
-            return;
-
-        string c = fc;
-        need = False;
-
+        string c;
         while (True) {
-            if (need) {
-                c = sr.readString(1);
-            }
+            if (need)
+                c = inf.read(1);
             else
                 need = True;
 
             if (regex) {
                 if (c == "\\")
-                    sr.readString(1);
+                    inf.read(1);
                 if (c == "/")
                     --regex;
                 continue;
             }
 
+            #printf("%s", c);
             if (c == "'" || c == '"') {
                 if (quote.val()) {
                     if (c == quote)
@@ -562,15 +598,15 @@ class qdx {
             }
             if (quote.val()) {
                 if (c == "\\" && quote != "'")
-                    sr.readString(1);
+                    inf.read(1);
                 continue;
             }
             if (c == "!" || c == "=") {
-                c = sr.readString(1);
+                c = inf.read(1);
                 if (c == "~") {
                     regex = 1;
                     while (True) {
-                        c = sr.readString(1);
+                        c = inf.read(1);
                         if (c == "s")
                             ++regex;
                         else if (c == "/")
@@ -583,26 +619,25 @@ class qdx {
             if (c == "{")
                 ++cnt;
             else if (c == "}") {
-                if (!--cnt) {
+                if (!--cnt)
                     return;
-                }
             }
             else if (c == "$") {#"){
-                c = sr.readString(1);
+                c = inf.read(1);
                 if (c != "#")
                     need = False;
             }
             else if (c == "#") {
                 # read until EOL
-                sr.readLine();
+                inf.readLine();
             }
             else if (c == "/") {
-                c = sr.readString(1);
+                c = inf.read(1);
                 if (c == "*") {
                     # read until close block comment
                     bool star = False;
                     while (True) {
-                        c = sr.readString(1);
+                        c = inf.read(1);
                         if (star) {
                             if (c == "/")
                                 break;
@@ -617,5 +652,57 @@ class qdx {
                     need = False;
             }
         }
+    }
+}
+
+class DocumentTableHelper {
+    private {
+        bool css = False;
+        bool inTable = False;
+    }
+
+    # no public members
+    public {}
+
+    string process(string line) {
+        if (line =~ /@page/) {
+            #printf("PAGE: css: %n %s", css, line);#exit(1);
+            css = False;
+        }
+        #printf("XXX %s", line);
+
+        if (line !~ /^(\s)*\|/) {
+            if (inTable) {
+                inTable = False;
+                return "    </table>\n" + line;
+            }
+            return line;
+        }
+
+        string str;
+
+        if (!inTable) {
+            if (!css) {
+                str = "    @htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n";
+                css = True;
+            }
+            str += "    <table>\n";
+        }
+
+        inTable = True;
+
+        str += "      <tr>\n";
+
+        trim line;
+        splice line, 0, 1;
+        foreach *string cell in (split("|", line)) {
+            trim cell;
+            if (cell =~ /^!/)
+                str += sprintf("        <td class=\"qore\"><b>%s</b></td>\n", substr(cell, 1));
+            else
+                str += sprintf("        <td>%s</td>\n", cell);
+        }
+        str += "      </tr>\n";
+        return str;
     }
 }

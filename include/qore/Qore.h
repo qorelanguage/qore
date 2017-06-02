@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,12 +39,10 @@
 
 // include configuration first if compiling the library
 #ifdef _QORE_LIB_INTERN
-#include "qore/intern/config.h"
+#include <qore/intern/config.h>
 #endif
 
 #include <qore/common.h>
-#include <qore/AbstractException.h>
-#include <qore/QoreStandardException.h>
 #include <qore/QoreCounter.h>
 
 //! global background thread counter (for threads started explicitly by Qore)
@@ -178,7 +176,6 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_DISABLE_OPENSSL_INIT       (1 << 1)  //!< do not initialize the openssl library (= is initialized before the qore library is initialized)
 #define QLO_DISABLE_OPENSSL_CLEANUP    (1 << 2)  //!< do not perform cleanup on the openssl library (= is cleaned up manually)
 #define QLO_DISABLE_GARBAGE_COLLECTION (1 << 3)  //!< disable garbage collection / recursive object reference detection
-#define QLO_DO_NOT_SEED_RNG            (1 << 4)  //!< disable seeding the random number generator when the Qore library is initialized
 
 //! do not perform any initialization or cleanup of the openssl library (= is performed outside of the qore library)
 #define QLO_DISABLE_OPENSSL_INIT_CLEANUP (QLO_DISABLE_OPENSSL_INIT|QLO_DISABLE_OPENSSL_CLEANUP)
@@ -187,7 +184,7 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_CLEANUP_MASK (QLO_DISABLE_OPENSSL_CLEANUP)
 
 //! initializes the Qore library
-/** @param license the license that the library will be used under; note that if the license type is QL_LGPL or QL_MIT, then modules tagged with QL_GPL cannot be loaded
+/** @param license the license that the library will be used under; note that if the license type is QL_LGPL or QL_MIT, then modules tagged with QL_GPL cannot be loaded 
     @param default_encoding the default character encoding for the library, if 0 then the environment variables QORE_CHARSET and LANG will be processed, in that order, to determine the default character encoding.  If no character encoding can be determined from either of these environment variables, UTF-8 will be used as the default.
     @param show_module_errors if true then any errors loading qore modules will be output to stdout
     @param init_options a binary "or" sum of the qore library options
@@ -222,7 +219,7 @@ DLLEXPORT bool qore_check_option(int opt);
 
 // include private definitions if compiling the library
 #ifdef _QORE_LIB_INTERN
-#include "qore/intern/QoreLibIntern.h"
+#include <qore/intern/QoreLibIntern.h>
 #endif
 
 #endif  // _QORE_QORE_H
