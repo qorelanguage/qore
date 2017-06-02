@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -463,7 +463,7 @@ Mapper mapv(DataMap);
                     }
                     if (h.value.typeCode() != NT_HASH)
                         error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    foreach string k in (h.value.keyIterator()) {
+                    foreach string k in (keys h.value) {
                         if (!OutputKeys{k})
                             error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
                     }
@@ -478,7 +478,7 @@ Mapper mapv(DataMap);
 
             mapc = mapv;
             hash ck = optionKeys();
-            foreach string k in (opts.keyIterator()) {
+            foreach string k in (keys opts) {
                 if (!ck{k})
                     error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
             }
@@ -519,7 +519,7 @@ Mapper mapv(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map checkMapField($1, \mapc.$1), mapc.keyIterator();
+            map checkMapField($1, \mapc.$1), keys mapc;
             mapd = mapc;
             if (identh) {
                 identl = keys identh;
@@ -648,7 +648,7 @@ Mapper mapv(DataMap);
 
             # check for contradictory definitions and assign values according to the output definition
             if (outf) {
-                foreach string ok in (outf.keyIterator()) {
+                foreach string ok in (keys outf) {
                     # ignore the "desc" key
                     if (ok == "desc")
                         continue;
@@ -667,7 +667,7 @@ Mapper mapv(DataMap);
             hash vk = validKeys();
             hash vt = validTypes();
 
-            foreach string hk in (fh.keyIterator())
+            foreach string hk in (keys fh)
                 if (!vk{hk})
                     error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
 
@@ -960,7 +960,7 @@ Mapper mapv(DataMap);
             map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
             # iterate through dynamic target fields
-            map mapFieldIntern(\h, $1, rec, False, 0), mapd.keyIterator();
+            map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
 
             # increment record count
             ++count;
