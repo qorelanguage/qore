@@ -275,7 +275,6 @@ public:
          return 0;
       }
 
-
       ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
       ReferenceHolder<QoreListNode> int_nl(xsink);
       ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode : 0, xsink);
@@ -411,12 +410,12 @@ public:
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
       int rc = checkMemberAccess(mem, class_ctx, internal_member);
       if (!rc)
-	 return 0;
+         return 0;
 
       if (rc == QOA_PRIV_ERROR)
-	 doPrivateException(mem, xsink);
+         doPrivateException(mem, xsink);
       else
-	 doPublicException(mem, xsink);
+         doPublicException(mem, xsink);
       return -1;
    }
 
@@ -579,9 +578,41 @@ public:
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
-   // always called in the rsection lock
+   // always called in the write lock
+   DLLLOCAL virtual bool eligibleForScan() {
+      assert(rml.checkWriteExclusive());
+      {
+         AutoLocker al(rlck);
+         // if the object is no longer valid, then we don't do any special proessing here and return true
+         if (status != OS_OK)
+            return true;
+         // if we are already waiting for a deferred scan, then we return false
+         if (deferred_scan)
+            return false;
+         // if the outside ref count is 0, then we return true
+         if (!rrefs)
+            return true;
+         // otherwise we set for a deferred scan
+         deferred_scan = true;
+         if (!rset)
+            return false;
+         // if we have an rset, then we need to invalidate it and ensure that
+         // rrefs does not go to zero until this is done
+         rref_wait = true;
+      }
+
+      removeInvalidateRSetIntern();
+      AutoLocker al(rlck);
+      rref_wait = false;
+      if (rref_waiting)
+         rcond.broadcast();
+
+      return false;
+   }
+
+   // always called in the rsection lock or in the write lock
    DLLLOCAL virtual bool needsScan(bool scan_now) {
-      assert(rml.hasRSectionLock());
+      assert(rml.checkRSectionExclusive());
       // the status cannot change while this lock is held
       if (!getScanCount() || status != OS_OK)
          return false;
@@ -807,31 +838,9 @@ public:
       }
    }
 
-   DLLLOCAL void stay_locked() {
+   DLLLOCAL void stayLocked() {
       vl.set(pobj->obj, &pobj->rml);
       pobj = 0;
-   }
-};
-
-class qore_object_recursive_lock_handoff_helper {
-private:
-   qore_object_private* pobj;
-   bool locked;
-
-public:
-   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
-      // try to lock current object
-      locked = !pobj->rml.trywrlock();
-   }
-
-   DLLLOCAL ~qore_object_recursive_lock_handoff_helper() {
-      // unlock current object
-      if (locked)
-         pobj->rml.unlock();
-   }
-
-   DLLLOCAL operator bool() const {
-      return locked;
    }
 };
 

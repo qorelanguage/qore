@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,17 +53,17 @@ struct qore_avl_private {
 
    DLLLOCAL ~qore_avl_private() {
       if (notify_list)
-	 delete notify_list;
+         delete notify_list;
    }
 
    DLLLOCAL void add(QoreObject *obj, const char *mem) {
       //printd(5, "qore_avl_private::add(%p, '%s')\n", obj, mem);
       if (!notify_list)
-	 notify_list = new qore_notify_list_t;
+         notify_list = new qore_notify_list_t;
       else {
-	 for (qore_notify_list_t::iterator i = notify_list->begin(), e = notify_list->end(); i != e; ++i)
-	    if ((*notify_list)[0].obj == obj && (*notify_list)[0].member != mem)
-	       return;
+         for (qore_notify_list_t::iterator i = notify_list->begin(), e = notify_list->end(); i != e; ++i)
+            if ((*notify_list)[0].obj == obj && (*notify_list)[0].member != mem)
+               return;
       }
 
       notify_list->push_back(qore_obj_notification_s(obj, mem));
@@ -81,9 +81,9 @@ AutoVLock::~AutoVLock() {
       ExceptionSink xsink2;
 
       for (qore_notify_list_t::iterator i = priv->notify_list->begin(), e = priv->notify_list->end(); i != e; ++i) {
-	 // run member notifications regardless of exception status
-	 //printd(5, "posting notification to object %p, member %s\n", i->obj, i->member.c_str());
-	 i->obj->execMemberNotification(i->member.c_str(), &xsink2);
+         // run member notifications regardless of exception status
+         //printd(5, "posting notification to object %p, member %s\n", i->obj, i->member.c_str());
+         i->obj->execMemberNotification(i->member.c_str(), &xsink2);
       }
       xsink->assimilate(xsink2);
    }
@@ -99,8 +99,8 @@ void AutoVLock::del() {
    if (lock.isSet()) {
       lock.unlockAndClear();
       if (o) {
-	 o->tDeref();
-	 o = 0;
+         o->tDeref();
+         o = 0;
       }
    }
    assert(!o);
@@ -110,7 +110,7 @@ void AutoVLock::clear() {
    if (lock.isSet()) {
       lock.clear();
       if (o)
-	 o = 0;
+         o = 0;
    }
    assert(!o);
 }
@@ -155,9 +155,9 @@ int VLock::waitOn(AbstractSmartLock *asl, VLock *vl, ExceptionSink *xsink, int t
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
-	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
+         xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
       else
-	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
+         xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
       rc = -1;
    }
 
@@ -182,9 +182,9 @@ int VLock::waitOn(AbstractSmartLock *asl, QoreCondition *cond, VLock *vl, Except
       // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
       // (even if it really wouldn't technically deadlock at this point due to the timeout)
       if (timeout_ms)
-	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
+         xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", vl->tid, tid, asl->getName());
       else
-	 xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
+         xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", vl->tid, tid);
       rc = -1;
    }
 
@@ -207,14 +207,14 @@ int VLock::waitOn(AbstractSmartLock *asl, vlock_map_t &vmap, ExceptionSink *xsin
       AbstractSmartLock *vl_wait = i->second->waiting_on;
       //printd(5, "VLock::waitOn(asl=%p, vmap size=%d) vl_wait=%p other_tid=%d\n", asl, vmap.size(), vl_wait, i->second->tid);
       if (vl_wait && find(vl_wait)) {
-	 // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
-	 // (even if it really wouldn't technically deadlock at this point due to the timeout)
-	 if (timeout_ms)
-	    xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", i->second->tid, tid, asl->getName());
-	 else
-	    xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", i->second->tid, tid);
-	 rc = -1;
-	 break;
+         // NOTE: we throw an exception here anyway as a deadlock is a programming mistake and therefore should be visible to the programmer
+         // (even if it really wouldn't technically deadlock at this point due to the timeout)
+         if (timeout_ms)
+            xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d would deadlock on the same resources; this represents a programming error so even though a %s method was called with a timeout and therefore would not technically deadlock at this point, this exception is thrown anyway.", i->second->tid, tid, asl->getName());
+         else
+            xsink->raiseException("THREAD-DEADLOCK", "TID %d and %d have deadlocked trying to acquire the same resources", i->second->tid, tid);
+         rc = -1;
+         break;
       }
    }
 
@@ -269,6 +269,6 @@ int VLock::pop(AbstractSmartLock *g) {
 AbstractSmartLock *VLock::find(class AbstractSmartLock *g) const {
    for (abstract_lock_list_t::const_iterator i = begin(), e = end(); i != e; ++i)
       if (*i == g)
-	 return g;
+         return g;
    return 0;
 }
