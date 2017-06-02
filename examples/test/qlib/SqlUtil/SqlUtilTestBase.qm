@@ -145,6 +145,20 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(("id", "id_1"), table.select(sh).("id", "id_1").keys());
         assertEq(("id", "id_1"), table.selectRows(sh)[0].("id", "id_1").keys());
         assertEq(("id", "id_1"), table.selectRow(sh).("id", "id_1").keys());
+
+        # tests for issue #1909
+        sh = (
+            "columns": "t0.*",
+            "join": join_inner(table, "t1", ("id": "id")),
+            "limit": 1,
+            "alias": "t0",
+        );
+        {
+            list cols = table.describe().keys();
+            assertEq(cols, table.select(sh).keys());
+            assertEq(cols, table.selectRows(sh)[0].keys());
+            assertEq(cols, table.selectRow(sh).keys());
+        }
     }
 
     updateTest() {
