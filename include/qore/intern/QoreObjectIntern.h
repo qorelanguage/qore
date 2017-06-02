@@ -578,41 +578,9 @@ public:
 
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
-   // always called in the write lock
-   DLLLOCAL virtual bool eligibleForScan() {
-      assert(rml.checkWriteExclusive());
-      {
-         AutoLocker al(rlck);
-         // if the object is no longer valid, then we don't do any special proessing here and return true
-         if (status != OS_OK)
-            return true;
-         // if we are already waiting for a deferred scan, then we return false
-         if (deferred_scan)
-            return false;
-         // if the outside ref count is 0, then we return true
-         if (!rrefs)
-            return true;
-         // otherwise we set for a deferred scan
-         deferred_scan = true;
-         if (!rset)
-            return false;
-         // if we have an rset, then we need to invalidate it and ensure that
-         // rrefs does not go to zero until this is done
-         rref_wait = true;
-      }
-
-      removeInvalidateRSetIntern();
-      AutoLocker al(rlck);
-      rref_wait = false;
-      if (rref_waiting)
-         rcond.broadcast();
-
-      return false;
-   }
-
-   // always called in the rsection lock or in the write lock
+   // always called in the rsection lock
    DLLLOCAL virtual bool needsScan(bool scan_now) {
-      assert(rml.checkRSectionExclusive());
+      assert(rml.hasRSectionLock());
       // the status cannot change while this lock is held
       if (!getScanCount() || status != OS_OK)
          return false;

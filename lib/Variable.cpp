@@ -266,8 +266,6 @@ LValueHelper::~LValueHelper() {
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
    }
 
-   // if we found an object that didn't need a scan, then clear associated data
-
    // first free any locks
    vl.del();
 

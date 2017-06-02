@@ -37,7 +37,6 @@
 
 // forward references
 class qore_rsection_priv;
-class LValueHelper;
 
 class RNotifier {
 private:
@@ -167,10 +166,6 @@ public:
       return (rs_tid == tid || write_tid == tid);
    }
 
-   DLLLOCAL bool checkWriteExclusive(int tid = gettid()) {
-      return write_tid = tid;
-   }
-
    DLLLOCAL int rSectionTid() const {
       return rs_tid;
    }
@@ -199,10 +194,6 @@ public:
 
    DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
       return static_cast<qore_rsection_priv*>(priv)->checkRSectionExclusive(tid);
-   }
-
-   DLLLOCAL bool checkWriteExclusive(int tid = gettid()) {
-      return static_cast<qore_rsection_priv*>(priv)->checkWriteExclusive(tid);
    }
 
    DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
