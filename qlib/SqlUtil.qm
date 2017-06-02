@@ -102,6 +102,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_3_3 SqlUtil v1.3.3
     - fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
+    - implemented the @ref select_option_alias "alias" select option to fix a bug that prohibited only columns from the main query to be selected when joins are used (<a href="https://github.com/qorelanguage/qore/issues/1909">issue 1909</a>)
 
     @subsection sqlutilv1_3_2 SqlUtil v1.3.2
     - fixed schema alignment skips column with name "driver" (<a href="https://github.com/qorelanguage/qore/issues/1684">issue 1684</a>)
@@ -340,6 +341,7 @@ hash soh = (
     @endcode
 
     The select option hash argument has the following keys; all of which are optional:
+    - @ref select_option_alias "alias": an optional string providing a table alias for the main table
     - @ref select_option_comment "comment": an optional string with with comment used in select statement
     - @ref select_option_hint "hint": an optional string with with hint used in select statement (platform dependent)
     - @ref select_option_columns "columns": describes the output columns and any output column operations; if not present, then all columns are returned directly in the output
@@ -354,13 +356,25 @@ hash soh = (
     - @ref select_option_superquery "superquery": (@ref hash_type "hash") specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
     - @ref select_option_forupdate "forupdate": (@ref bool_type "bool") adds a \c "for update" clause to a select query
 
-    @anchor select_option_comment
-    @par Select Option "comment"
+    @subsubsection select_option_alias Select Option "alias"
+    This option provides a table alias for the main table when @ref select_option_join "join" options are also used.
+
+    <b>Alias Example:</b>
+    @code{.py}
+hash sh = (
+    "columns": ("t1.*", "t2.customer_name"),
+    "join": join_inner(table2, "t2", ("id": "altid"))),
+    "alias": "t1",
+);
+*list rows = table.selectRows(sh);
+    @endcode
+
+    @subsubsection select_option_comment Select Option "comment"
     The comment does not have any impact to data returned from the statement but it can help with statement finding and optimizations.
 
     <b>Comment Example:</b>
     @code{.py}
-table.selectRows( ("comment" : "foo bar") );
+table.selectRows(("comment": "foo bar"));
     @endcode
     will produce select statement like this:
     @code{.py}
@@ -368,27 +382,29 @@ select /* foo bar *<!--%%-->/ ...
     @endcode
     @warning Oracle: using different comments in the same SQL can lead to new optimizer statement hard parsing.
 
-    @anchor select_option_hint
-    @par Select Option "hint"
+    @subsubsection select_option_hint Select Option "hint"
     In database query operations, various SQL implementations use hints as additions to the SQL standard that instruct the database engine on how to execute the query. For example, a hint may tell the engine to use as little memory as possible (even if the query will run slowly), or to use or not to use an index (even if the query optimizer would decide otherwise).
 
     <b>Hint Example:</b>
     @code{.py}
-table.selectRows( ("hint" : "full(t1)") );
+table.selectRows(("hint": "full(t1)"));
     @endcode
     will produce select statement like this:
     @code{.py}
 select /*+ full(a) *<!--%%-->/ ...
     @endcode
-    The string is taken as is and it's up to user to handle correct aliases in join functions etc.
+    The string is taken as-is and it's up to the caller to handle correct aliases in join functions etc.
     @note Hints are platform dependent. Curently only Oracle and some versions of PostgreSQL hints are supported in Sqlutil module.
     @warning Use hints only when you know what you are doing.
 
-    @anchor select_option_columns
-    @par Select Option "columns"
+    @subsubsection select_option_columns Select Option "columns"
     <b>Columns Example:</b>
     @code{.py}
-list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"));
+list columns = (
+    "id", "name", "started",
+    cop_as("warnings", "warning_count"),
+    cop_as("errors", "error_count"),
+);
 *list rows = table.selectRows(("columns": columns, "where": ("type": "user")));
     @endcode
     By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash". \n\n
@@ -401,13 +417,23 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     <b>A String in Dot Notation</b>\n
     This format is for use with @ref select_option_join "joins"; ex: \c "q.name"
     @code{.py}
-*list rows = table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner(table2, "t2", ("id": "altid"))));
+hash sh = (
+    "columns": ("t1.id", "t2.customer_name"),
+    "join": join_inner(table2, "t2", ("id": "altid"))),
+    "alias": "t1",
+);
+*list rows = table.selectRows(sh);
     @endcode \n
     <b>A Column Operation Specified by a Column Operator Function</b>\n
     ex: <tt>cop_as("column_name", "column_alias")</tt> \n
     See @ref sql_cop_funcs "column operator function" for more information on column operator functions
     @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_as("warnings", "warning_count"), cop_as("errors", "error_count"))));
+list columns = (
+    "id",
+    cop_as("warnings", "warning_count"),
+    cop_as("errors", "error_count"),
+);
+*list rows = table.selectRows(("columns": columns));
     @endcode
     For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable\n\n
     <b>The Value \c "*", Meaning All Columns</b>\n
@@ -419,22 +445,30 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     <b>An \c "*" in Dot Notation</b>\n
     ex: \c "q.*"
     @code{.py}
-*list rows = table.selectRows(("columns": ("table.id", "t2.*"), "join": join_inner(table2, "t2", ("id": "altid"))));
+hash sh = (
+    "columns": ("table.id", "t2.*"),
+    "join": join_inner(table2, "t2", ("id": "altid")),
+);
+*list rows = table.selectRows(sh);
     @endcode
 
-    @anchor select_option_where
-    @par Select Option "where"
+    @subsubsection select_option_where Select Option "where"
     <b>Where Example:</b>
     @code{.py}
 *list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     The hash value assigned to this key describes how the \c "where" clause in the query is built.  Because the \c "where" clause logic is common to many SQL methods, this topic is covered in a separate section.  See @ref where_clauses for a detailed description of the value of this key.
 
-    @anchor select_option_orderby
-    @par Select Option "orderby"
+    @subsubsection select_option_orderby Select Option "orderby"
     <b>Orderby Example:</b>
     @code{.py}
-*list rows = table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date"));
+hash sh = (
+    "where": (
+        "account_type": "CUSTOMER",
+    ),
+    "orderby": "created_date",
+);
+*list rows = table.selectRows(sh);
     @endcode
     This option is a list of the following values:
     - a simple string giving a column name; ex: \c "name"
@@ -444,33 +478,47 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @note
     - By using the @ref select_option_offset "offset option" the results will be automatically ordered according to the primary key of the table
 
-    @anchor select_option_desc
-    @par Select Option "desc"
+    @subsubsection select_option_desc Select Option "desc"
     <b>Desc Example:</b>
     @code{.py}
-*list rows = table.selectRows(("where": ("account_type": "CUSTOMER"), "orderby": "created_date", "desc": True));
+hash sh = (
+    "where": (
+        "account_type": "CUSTOMER",
+    ),
+    "orderby": "created_date",
+    "desc": True,
+);
+*list rows = table.selectRows(sh);
     @endcode
     If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
 
     @note per-column descending options can be given by prepending a \c "-" character to the column name in the @ref select_option_orderby "orderby option list"
 
-    @anchor select_option_limit
-    @par Select Option "limit"
+    @subsubsection select_option_limit Select Option "limit"
     <b>Limit Example:</b>
     @code{.py}
-*list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+hash sh = (
+    "where": ("type": "user"),
+    "limit": 100,
+    "offset": 200
+);
+*list rows = table.selectRows(sh);
     @endcode
     This option will limit the number of rows returned.
     @note
     - This option is required if the @ref select_option_offset "offset option" is non-zero
     - If this option is present and an @ref select_option_orderby "orderby option" is also present, then at least a subset of the @ref select_option_orderby "orderby" columns must correspond to a unique key of the table or an exception is raised
 
-    @anchor select_option_offset
-    @par Select Option "offset"
+    @subsubsection select_option_offset Select Option "offset"
     <b>Offset Example:</b>
     @code{.py}
-*list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+hash sh = (
+    "where": ("type": "user"),
+    "limit": 100,
+    "offset": 200
+);
+*list rows = table.selectRows(sh);
     @endcode
     This option specifies the row number offset for the rows returned where the first row is at offset zero.
     @note
@@ -478,43 +526,73 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     - Additionally, this option requires the presence of the @ref select_option_limit "limit option", or an exception will be thrown.
     @see @ref sql_paging
 
-    @anchor select_option_join
-    @par Select Option "join"
+    @subsubsection select_option_join Select Option "join"
     <b>Join Example:</b>
     @code{.py}
-*list rows = table.selectRows(("columns": ("name", "version", "id", cop_as("st.value", "source"), cop_as("st.value", "offset")),
-                                    "join": join_left(function_instance_tags, "st", NOTHING, ("st.tag": "_source"))
-                                            + join_left(function_instance_tags, "lt", NOTHING, ("st.tag": "_offset"))));
+hash sh = (
+    "columns": (
+        "name", "version", "id",
+        cop_as("st.value", "source"),
+        cop_as("st.value", "offset"),
+    ),
+    "join": join_left(function_instance_tags, "st", NOTHING, ("st.tag": "_source"))
+            + join_left(function_instance_tags, "lt", NOTHING, ("st.tag": "_offset")),
+);
+*list rows = table.selectRows(sh);
     @endcode
     To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
 
     @see @ref joins for more examples
 
-    @anchor select_option_groupby
-    @par Select Option "groupby"
+    @subsubsection select_option_groupby Select Option "groupby"
     <b>Groupby Example:</b>
     @code{.py}
-*list rows = table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type"));
+hash sh = (
+    "columns": (
+        cop_as(cop_max("service_type"), "type"),
+        cop_count(),
+    ),
+    "groupby": "service_type",
+);
+*list rows = table.selectRows(sh);
     @endcode
     The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
     The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifiers for the \c "groupby"
     key are strings giving column names, optionally in dot notation or positive column numbers.
 
-    @anchor select_option_having
-    @par Select Option "having"
+    @subsubsection select_option_having Select Option "having"
     <b>Having Example:</b>
     @code{.py}
-*list rows = table.selectRows(("columns": (cop_as(cop_max("service_type"), "type"), cop_count()), "groupby": "service_type", "having": ("service_type": (COP_COUNT, op_ge(100)))));
+hash sh = (
+    "columns": (
+        cop_as(cop_max("service_type"), "type"),
+        cop_count(),
+    ),
+    "groupby": "service_type",
+    "having": (
+        "service_type": (COP_COUNT, op_ge(100)),
+    ),
+);
+*list rows = table.selectRows(sh);
     @endcode
     The \c "having" option allows for query results with aggregate SQL column operator functions to be filtered by user-defined criteria.
     The \c "having" hash key should be assigned to a hash where each key is a column specifier (optionally in dot notation) and the values are lists with two elements; the first element must be a @ref sql_cops "column operator code", and the second element is a column operator description normally provided by using a @ref sql_cop_funcs "column operator function" as in the above example.
 
-    @anchor select_option_superquery
-    @par Select Option "superquery"
+    @subsubsection select_option_superquery Select Option "superquery"
     <b>Superquery Example:</b>
     @code{.py}
-*list rows = table.selectRows("columns": ("serviceid", "service_methodid", cop_as(cop_over(cop_max("service_methodid"), "serviceid"), "max_methodid")), "superquery": ("columns": ("serviceid", "service_methodid"), "where": ("max_methodid": op_ceq("service_methodid"))));
+hash sh = (
+    "columns": (
+        "serviceid", "service_methodid",
+        cop_as(cop_over(cop_max("service_methodid"), "serviceid"), "max_methodid"),
+    ),
+    "superquery": (
+        "columns": ("serviceid", "service_methodid"),
+        "where": ("max_methodid": op_ceq("service_methodid")),
+    ),
+);
+*list rows = table.selectRows(sh);
     @endcode
     The \c "superquery" option allows for the rest of the query arguments to define a subquery where as the hash arguments assigned to the \c "superquery" key define the select made from the subquery.  In the example above, the \c "OVER" sql windowing function is used and then rows matching the \c "max_methodid)" result value are selected.\n\n
     The above example results in an SQL command equivalent to the following:
@@ -523,14 +601,17 @@ list columns = ("id", "name", "started", cop_as("warnings", "warning_count"), co
     @endcode
     @note that MySQL does not support SQL windowing functions so the above example would fail on MySQL.
 
-    @anchor select_option_forupdate
-    @par Select Option "forupdate"
+    @subsubsection select_option_forupdate Select Option "forupdate"
     <b>For Update Example:</b>
     @code{.py}
 on_success ds.commit();
 on_error ds.rollback();
 
-*list rows = table.selectRows("columns": ("serviceid", "service_methodid"), "forupdate": True);
+hash sh = (
+    "columns": ("serviceid", "service_methodid"),
+    "forupdate": True,
+)
+*list rows = table.selectRows(sh);
     @endcode
     \n The \c "forupdate" option allows for the rows selected to be locked for updating; to release the locks, call commit() or rollback() on the underlying datasource object.
   The above example results in an SQL commit equivalent to the following:
@@ -1750,8 +1831,8 @@ new Database(ds).rebuildIndex("ix_foo_bar");
     Compute statistics for enumerated tables only.
     @code{.py}
 hash opts = (
-        "tables" : ( "workflows", "workflow_instance"),
-    );
+    "tables": ("workflows", "workflow_instance"),
+);
 db.computeStatistics(opts);
     @endcode
 
@@ -7815,6 +7896,7 @@ Table table("pgsql:user/pass@db%host", "table");
 
             #! default select options
             /** the possible keys for select options are as follows (all keys are optional):
+                - @ref select_option_alias "alias": provides a table alias for the main table
                 - @ref select_option_columns "columns": describes the output columns and any output column operations
                 - @ref select_option_where "where": describes how any \c "where" clause will be built
                 - @ref select_option_orderby "orderby": describes the ordering of the results
@@ -7828,6 +7910,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - @ref select_option_forupdate "forupdate": allows for the rows selected to be locked for updating
              */
             const SelectOptions = (
+                "alias": Type::String,
                 "comment": Type::String,
                 "hint": Type::String,
                 "columns": Type::NothingType,
@@ -11758,12 +11841,18 @@ string sql = table.getSelectSql(sh, \args);
             # resolve any table names in joins first
             foreach string k in (qh.join.keyIterator()) {
                 if (qh.join{k}.table.typeCode() == NT_STRING)
-                        qh.join{k}.table = opt.tablecode ? opt.tablecode(ds, qh.join{k}.table) : new Table(ds, qh.join{k}.table).getTable();
+                    qh.join{k}.table = opt.tablecode ? opt.tablecode(ds, qh.join{k}.table) : new Table(ds, qh.join{k}.table).getTable();
             }
 
             # make a hash of aliases to tables when using joins
-            hash jch;
-            map jch{$1.alias ? $1.alias : $1.table.getName()} = $1.table, qh.join.iterator();
+            hash jch = map {$1.alias ?? $1.table.getName(): $1.table}, qh.join.iterator();
+
+            # issue #1909: add an alias for the main table if present
+            if (qh.alias) {
+                if (jch{qh.alias})
+                    throw "SELECT-ERROR", sprintf("alias %y provided for the main table is also used in a join clause; known aliases in joins: %y", qh.alias, (map {$1.key: $1.value.getName()}, jch.pairIterator()));
+                jch{qh.alias} = self;
+            }
 
             # if we have a "superquery" argument, then we need to track which columns are in this subquery
             hash mch;
@@ -11820,6 +11909,8 @@ string sql = table.getSelectSql(sh, \args);
             }
 
             string sql = sprintf("select %s%s from %s", comment, cstr, getFromIntern(from, qh));
+            if (qh.alias)
+                sql += " " + qh.alias;
 
             # process join specifications
             foreach any js in (qh.join.iterator()) {
@@ -11858,7 +11949,7 @@ string sql = table.getSelectSql(sh, \args);
                 else {
                     getPrimaryKeyUnlocked();
                     getForeignConstraintsUnlocked();
-                    jtn = getSqlName();
+                    jtn = qh.alias ?? getSqlName();
                 }
 
                 # create "join on" clause
