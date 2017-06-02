@@ -192,7 +192,8 @@ int ObjCountRec::getDifference() {
 
 LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
    RuntimeReferenceHelper rh(ref, xsink);
-   doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
+   if (!*xsink)
+      doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
 LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
@@ -218,6 +219,7 @@ LValueHelper::~LValueHelper() {
    // then we don't need to scan this time either
    bool obj_chg = before;
    bool obj_ref = false;
+
    if (!(*vl.xsink)) {
       // see if we have any object count changes
       if (!ocvec.empty()) {
@@ -233,7 +235,7 @@ LValueHelper::~LValueHelper() {
                bool after = needs_scan(*v);
                if (before) {
                   if (!after)
-                     inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+                  inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
                }
                else if (after) {
                   if (!obj_chg)
@@ -250,7 +252,7 @@ LValueHelper::~LValueHelper() {
                if (dt)
                   inc_container_obj(ocvec[i].con, dt);
 
-               //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
+            //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
             }
          }
       }
@@ -261,7 +263,6 @@ LValueHelper::~LValueHelper() {
          robj->tRef();
          obj_ref = true;
       }
-
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
    }
 
@@ -326,8 +327,6 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    if (getType() == NT_LIST) {
       ensureUnique();
       l = reinterpret_cast<QoreListNode*>(getValue());
-
-      ocvec.push_back(ObjCountRec(l));
    }
    else {
       if (for_remove)
@@ -345,10 +344,47 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
       saveTemp(getValue());
       assignIntern((l = new QoreListNode));
-      ocvec.push_back(ObjCountRec(l));
    }
 
+   ocvec.push_back(ObjCountRec(l));
+
    resetPtr(l->get_entry_ptr(ind));
+   return 0;
+}
+
+int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
+   QoreHashNode* h;
+   if (t == NT_HASH) {
+      ensureUnique();
+      h = reinterpret_cast<QoreHashNode*>(getValue());
+   }
+   else {
+      if (for_remove)
+         return -1;
+
+      // if the variable's value is not already a hash or an object, then make it a hash
+      // but first make sure the lvalue can be converted to a hash
+      if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
+         var_type_err(typeInfo, "hash", vl.xsink);
+         clearPtr();
+         return -1;
+      }
+
+      //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
+      saveTemp(getValue());
+      assignIntern((h = new QoreHashNode));
+   }
+
+   ocvec.push_back(ObjCountRec(h));
+
+   //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+   AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem) : h->getKeyValuePtr(mem);
+   if (!ptr) {
+      assert(for_remove);
+      return -1;
+   }
+
+   resetPtr(ptr);
    return 0;
 }
 
@@ -366,47 +402,12 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
       return -1;
 
    qore_type_t t = getType();
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(getValue()) : 0;
-   QoreHashNode* h = 0;
+   if (t != NT_OBJECT)
+      return doHashLValue(t, mem->c_str(), for_remove);
+
+   QoreObject* o = reinterpret_cast<QoreObject*>(getValue());
 
    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
-
-   if (!o) {
-      if (t == NT_HASH) {
-         ensureUnique();
-         h = reinterpret_cast<QoreHashNode*>(getValue());
-
-         ocvec.push_back(ObjCountRec(h));
-      }
-      else {
-         if (for_remove)
-            return -1;
-
-         // if the variable's value is not already a hash or an object, then make it a hash
-         // but first make sure the lvalue can be converted to a hash
-         if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
-            var_type_err(typeInfo, "hash", vl.xsink);
-            clearPtr();
-            return -1l;
-         }
-
-         //printd(5, "LValueHelper::doHashObjLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
-         saveTemp(getValue());
-         assignIntern((h = new QoreHashNode));
-
-         ocvec.push_back(ObjCountRec(h));
-      }
-
-      //printd(5, "LValueHelper::doHashObjLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-      AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem->getBuffer()) : h->getKeyValuePtr(mem->getBuffer());
-      if (!ptr) {
-         assert(for_remove);
-         return -1;
-      }
-
-      resetPtr(ptr);
-      return 0;
-   }
 
    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
 
@@ -461,6 +462,11 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
+
+      // clear ocvec when we get to an object
+      ocvec.clear();
+      clearPtr();
+
       if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
          return -1;
 

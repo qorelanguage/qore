@@ -466,15 +466,14 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
       return -1;
 
    // do lock handoff
-   AutoVLock& vl = lvh.getAutoVLock();
-   qore_object_lock_handoff_helper qolhm(const_cast<qore_object_private*>(this), vl);
+   qore_object_lock_handoff_helper qolhh(const_cast<qore_object_private*>(this), lvh.vl);
 
    if (status == OS_DELETED) {
       xsink->raiseException("OBJECT-ALREADY-DELETED", "write attempted to member \"%s\" in an already-deleted object", key);
       return -1;
    }
 
-   qolhm.stay_locked();
+   qolhh.stayLocked();
 
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
@@ -1124,7 +1123,7 @@ AbstractQoreNode* QoreObject::getMemberValueNoMethod(const char* key, AutoVLock 
 
    AbstractQoreNode* rv = priv->data->getKeyValue(key);
    if (rv && rv->isReferenceCounted()) {
-      qolhm.stay_locked();
+      qolhm.stayLocked();
    }
    return rv;
 }
@@ -1276,7 +1275,7 @@ AbstractQoreNode** QoreObject::getExistingValuePtr(const char* mem, AutoVLock *v
 
    AbstractQoreNode** rv = odata ? odata->getExistingValuePtr(mem) : 0;
    if (rv) {
-      qolhm.stay_locked();
+      qolhm.stayLocked();
    }
 
    return rv;

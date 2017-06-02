@@ -453,6 +453,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreString.cpp
     lib/QoreObject.cpp
     lib/RSet.cpp
+    lib/RSection.cpp
     lib/QoreListNode.cpp
     lib/QoreValueList.cpp
     lib/qore-main.cpp
