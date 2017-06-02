@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -537,5 +537,47 @@ DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* 
 
 //! finds a memory sequence in a larger memory sequence
 DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len);
+
+//! performs environment variable substitution on the string argument
+/** return 0 for OK, -1 if an error occurred (mismatched parens, etc)
+
+    @since %Qore 0.8.13
+ */
+DLLEXPORT int q_env_subst(QoreString& str);
+
+//! converts a string to a double in a locale-independent way
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT double q_strtod(const char* str);
+
+//! returns true if the Qore library has been shut down
+/** @since %Qore 0.8.13
+ */
+DLLEXPORT bool q_libqore_shutdown();
+
+//! retrieves a hash of all thread local variables and their values for the given stack frame in the current thread's QoreProgram object
+/** @param frame the stack frame starting from 0 (the current frame)
+    @param xsink for Qore-language exceptions
+
+    @return a hash of local variables and their values; if the frame does not exist, an empty hash is returned; if a Qore-language exception is thrown, then nullptr is returned
+
+    @note the current thread must be a valid Qore thread with a current QoreProgram context or the results are undefined (i.e. expect a crash)
+
+    @since %Qore 0.8.13
+*/
+DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink);
+
+//! sets the value of the given thread-local variable (which may be a closure-bound variable as well) in the current stack frame for the current thread's QoreProgram object
+/** @param name the name of the variable
+    @param val the value to assign; the value will be referenced for the assignment if one is made
+    @param xsink for Qore-language exceptions
+
+    @return 0 = OK or -1 a Qore-language exception occurred making the assignment (ex: incompatible types) or variable not found
+
+    @note pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+ */
+DLLEXPORT int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+
+DLLLOCAL void q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
 
 #endif // _QORE_QORELIB_H
