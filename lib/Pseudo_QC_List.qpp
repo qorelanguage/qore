@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreListIterator.h>
-#include <qore/intern/RangeIterator.h>
+#include "qore/intern/QoreListIterator.h"
+#include "qore/intern/RangeIterator.h"
 
 extern QoreClass* QC_LISTITERATOR;
 extern QoreClass* QC_RANGEITERATOR;
