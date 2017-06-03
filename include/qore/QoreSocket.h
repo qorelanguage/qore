@@ -1736,6 +1736,13 @@ public:
    */
    DLLEXPORT void acceptAllCertificates(bool accept_all = true);
 
+   //! returns the current value of the "accept all certificates" flag
+   /** @return the current value of the "accept all certificates" flag; if true, accepts self-signed certs, if false, then not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT bool getAcceptAllCertificates() const;
+
    DLLLOCAL static void doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink);
 
    //! sets the event queue (not part of the library's pubilc API), must be already referenced before call

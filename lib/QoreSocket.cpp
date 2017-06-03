@@ -2126,11 +2126,15 @@ void QoreSocket::setSslVerifyMode(int mode) {
 }
 
 int QoreSocket::getSslVerifyMode() const {
-   return priv->getSslVerifyMode();
+   return priv->ssl_verify_mode;
 }
 
 void QoreSocket::acceptAllCertificates(bool accept_all) {
    priv->acceptAllCertificates(accept_all);
+}
+
+bool QoreSocket::getAcceptAllCertificates() const {
+   return priv->ssl_accept_all_certs;
 }
 
 QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {

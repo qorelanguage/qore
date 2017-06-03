@@ -2871,7 +2871,7 @@ bool Socket::pendingHttpChunkedBody() {
    return s->pendingHttpChunkedBody();
 }
 
-//! set the SSL verification mode
+//! sets the SSL verification mode
 /** @par Example:
     @code{.py}
 sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
@@ -2883,6 +2883,7 @@ sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
     @param mode the SSL verfication mode, see @ref ssl_mode_constants for more information
 
     @see
+    - @ref Qore::Socket::getAcceptAllCertificates() "Socket::getAcceptAllCertificates()"
     - @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
     - @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates()"
 
@@ -2901,6 +2902,7 @@ int mode = sock.getSslVerifyMode();
     @return the SSL verfication mode, see @ref ssl_mode_constants for more information
 
     @see
+    - @ref Qore::Socket::getAcceptAllCertificates() "Socket::getAcceptAllCertificates()"
     - @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
     - @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates()"
 
@@ -2921,6 +2923,7 @@ sock.acceptAllCertificates();
     @param accept_all if @ref Qore::True "True", then self-signed certificates are accepted, if @ref Qore::False "False", then they are not
 
     @see
+    - @ref Qore::Socket::getAcceptAllCertificates() "Socket::getAcceptAllCertificates()"
     - @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
     - @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
 
@@ -2928,4 +2931,23 @@ sock.acceptAllCertificates();
 */
 Socket::acceptAllCertificates(bool accept_all = True) {
     s->acceptAllCertificates(accept_all);
+}
+
+//! returns the current value of the "accept all certificates" flag
+/** @par Example:
+    @code{.py}
+bool b = sock.getAcceptAllCertificates();
+    @endcode
+
+    @return the current value of the "accept all certificates" flag; if @ref Qore::True "True", then self-signed certificates are accepted, if @ref Qore::False "False", then they are not
+
+    @see
+    - @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates()"
+    - @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
+    - @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
+
+    @since %Qore 0.8.13
+*/
+bool Socket::getAcceptAllCertificates() [flags=CONSTANT] {
+    return s->getAcceptAllCertificates();
 }

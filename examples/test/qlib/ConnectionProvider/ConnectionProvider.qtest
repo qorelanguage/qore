@@ -41,6 +41,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
 
         server.acceptAllCertificates(False);
+        assertEq(False, server.getAcceptAllCertificates());
         client.disconnect();
         assertThrows("SOCKET-SSL-ERROR", \client.connect());
         assertEq("SOCKET-SSL-ERROR", server.waitException().err);
@@ -75,6 +76,10 @@ class TestSslServer {
 
     acceptAllCertificates(bool accept_all = True) {
         sock.acceptAllCertificates(accept_all);
+    }
+
+    bool getAcceptAllCertificates() {
+        return sock.getAcceptAllCertificates();
     }
 
     private:internal listen() {

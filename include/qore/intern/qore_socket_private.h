@@ -3365,10 +3365,6 @@ struct qore_socket_private {
          ssl->setVerifyMode(ssl_verify_mode, ssl_accept_all_certs);
    }
 
-   DLLLOCAL int getSslVerifyMode() const {
-      return ssl_verify_mode;
-   }
-
    DLLLOCAL void acceptAllCertificates(bool accept_all = true) {
       ssl_accept_all_certs = accept_all;
       if (ssl)

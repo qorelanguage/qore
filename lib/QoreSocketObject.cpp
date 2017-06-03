@@ -625,3 +625,8 @@ void QoreSocketObject::acceptAllCertificates(bool accept_all) {
    AutoLocker al(priv->m);
    priv->socket->acceptAllCertificates(accept_all);
 }
+
+bool QoreSocketObject::getAcceptAllCertificates() const {
+   AutoLocker al(priv->m);
+   return priv->socket->getAcceptAllCertificates();
+}

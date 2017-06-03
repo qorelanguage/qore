@@ -206,6 +206,7 @@ public:
    DLLEXPORT void setSslVerifyMode(int mode);
    DLLEXPORT int getSslVerifyMode() const;
    DLLEXPORT void acceptAllCertificates(bool accept_all = true);
+   DLLEXPORT bool getAcceptAllCertificates() const;
 };
 
 #endif // _QORE_QORE_SOCKET_OBJECT_H
