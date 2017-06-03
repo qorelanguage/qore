@@ -288,7 +288,7 @@ SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock) : s(sock
 void SSLSocketHelperHelper::error() {
    ssl->deref();
    if (s->ssl)
-      s->ssl = 0;
+      s->ssl = nullptr;
 }
 
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
@@ -331,6 +331,11 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
    SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
 
    SSL_set_fd(ssl, sd);
+
+   // set verification mode
+   if (qs.ssl_verify_mode != SSL_VERIFY_NONE)
+      setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs);
+
    return 0;
 }
 
@@ -463,6 +468,22 @@ long SSLSocketHelper::verifyPeerCertificate() const {
    long rc = SSL_get_verify_result(ssl);
    X509_free(cert);
    return rc;
+}
+
+static int q_ssl_verify_accept_all(int preverify_ok, X509_STORE_CTX* x509_ctx) {
+   //printd(5, " q_ssl_verify_accept_all() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+   // accept all certificates
+   return 1;
+}
+
+static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ctx) {
+   //printd(5, " q_ssl_verify_accept_default() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+   return preverify_ok;
+}
+
+void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs) {
+   printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d\n", mode, (int)accept_all_certs);
+   SSL_set_verify(ssl, mode, accept_all_certs ? q_ssl_verify_accept_all : q_ssl_verify_accept_default);
 }
 
 SocketSource::SocketSource() : priv(new qore_socketsource_private) {
@@ -1895,12 +1916,14 @@ QoreSocket* QoreSocket::accept(SocketSource* source, ExceptionSink* xsink) {
 QoreSocket* QoreSocket::acceptSSL(SocketSource* source, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    QoreSocket* s = accept(source, xsink);
    if (!s)
-      return 0;
+      return nullptr;
 
+   s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+   s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
    if (s->priv->upgradeServerToSSLIntern("acceptSSL", cert, pkey, -1, xsink)) {
       assert(*xsink);
       delete s;
-      return 0;
+      return nullptr;
    }
 
    return s;
@@ -1925,7 +1948,7 @@ int QoreSocket::acceptAndReplace(SocketSource* source) {
 QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
    int rc = priv->accept_internal(xsink, 0, timeout_ms);
    if (rc < 0)
-      return 0;
+      return nullptr;
    QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
    if (!priv->socketname.empty())
       s->priv->socketname = priv->socketname;
@@ -1936,11 +1959,13 @@ QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
 QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    std::unique_ptr<QoreSocket> s(accept(timeout_ms, xsink));
    if (!s.get())
-      return 0;
+      return nullptr;
 
+   s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+   s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
    if (s->priv->upgradeServerToSSLIntern("acceptSSL", cert, pkey, timeout_ms, xsink)) {
       assert(*xsink);
-      return 0;
+      return nullptr;
    }
 
    return s.release();
@@ -2094,6 +2119,18 @@ void QoreSocket::clearStats() {
 
 bool QoreSocket::pendingHttpChunkedBody() const {
    return priv->pendingHttpChunkedBody();
+}
+
+void QoreSocket::setSslVerifyMode(int mode) {
+   priv->setSslVerifyMode(mode);
+}
+
+int QoreSocket::getSslVerifyMode() const {
+   return priv->getSslVerifyMode();
+}
+
+void QoreSocket::acceptAllCertificates(bool accept_all) {
+   priv->acceptAllCertificates(accept_all);
 }
 
 QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {

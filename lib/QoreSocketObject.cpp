@@ -610,3 +610,18 @@ bool QoreSocketObject::pendingHttpChunkedBody() const {
    AutoLocker al(priv->m);
    return priv->socket->pendingHttpChunkedBody();
 }
+
+void QoreSocketObject::setSslVerifyMode(int mode) {
+   AutoLocker al(priv->m);
+   priv->socket->setSslVerifyMode(mode);
+}
+
+int QoreSocketObject::getSslVerifyMode() const {
+   AutoLocker al(priv->m);
+   return priv->socket->getSslVerifyMode();
+}
+
+void QoreSocketObject::acceptAllCertificates(bool accept_all) {
+   AutoLocker al(priv->m);
+   priv->socket->acceptAllCertificates(accept_all);
+}

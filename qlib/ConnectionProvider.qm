@@ -556,11 +556,14 @@ string connstr = get_connection(str);
 
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
+        - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "timeout": transfer timeout to use in milliseconds
-        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
+        - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
+        - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
+        - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
 
         @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
     */
@@ -573,6 +576,9 @@ string connstr = get_connection(str);
                 "proxy": True,
                 "timeout": True,
                 "connect_timeout": True,
+                "ssl_cert_path": True,
+                "ssl_key_password": True,
+                "ssl_key_path": True,
                 );
 
             #! HttpConnection default options
@@ -601,6 +607,14 @@ string connstr = get_connection(str);
         */
         private Qore::HTTPClient getImpl(bool connect = True, *hash rtopts) {
             HTTPClient sc(("url": url) + opts);
+            # set certificate if present
+            if (opts.ssl_cert_path) {
+                sc.setCertificate(ReadOnlyFile::readTextFile(opts.ssl_cert_path));
+            }
+            # set private key if present
+            if (opts.ssl_key_path) {
+                sc.setPrivateKey(ReadOnlyFile::readTextFile(opts.ssl_key_path), opts.ssl_key_password);
+            }
             if (connect)
                 sc.connect();
 
@@ -609,11 +623,14 @@ string connstr = get_connection(str);
 
         #! gets options
         /** @return returns a hash with the following supported options:
+            - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
+            - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
+            - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
+            - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
             - \c "timeout": transfer timeout to use in milliseconds
-            - \c "connect_timeout": connection timeout to use in milliseconds
 
             @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
         */
@@ -622,6 +639,10 @@ string connstr = get_connection(str);
         }
 
         #! returns default options
+        /** @return default options as follows:
+            - \c "connect_timeout": (@ref relative_dates "relative date/time value") 45 seconds
+            - \c "timeout": (@ref relative_dates "relative date/time value") 45 seconds
+        */
         *hash getDefaultOptions() {
             return DefaultOptions;
         }

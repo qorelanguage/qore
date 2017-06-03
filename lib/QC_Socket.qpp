@@ -66,6 +66,61 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
    return rc;
 }
 
+/** @defgroup ssl_mode_constants SSL Verification Mode Constants
+    These are integer contants to be used with @ref Qore::Socket::setSslMode() "Socket::setSslMode()"
+*/
+//@{
+//! Do not verify the peer's certificate
+/** @par Server Mode
+    The server will not send a client certificate request to the client, so the client will not send a certificate
+
+    @par Client Mode
+    If not using an anonymous cipher (by default disabled), the server will send a certificate which will be
+    checked.  The handshake will be continued regardless of the verification result.
+*/
+const SSL_VERIFY_NONE = SSL_VERIFY_NONE;
+
+//! Verify the peer's certificate
+/** @par Server Mode
+    The server sends a client certificate request to the client.  The certificate returned (if any) is checked.
+    If the verification process fails, the TLS/SSL handshake is immediately terminated with an alert message
+    containing the reason for the verification failure.  The behaviour can be controlled by the additional
+    @ref Qore::SSL_VERIFY_FAIL_IF_NO_PEER_CERT and @ref Qore::SSL_VERIFY_CLIENT_ONCE flags.
+
+    @par Client Mode
+    The server certificate is verified. If the verification process fails, the TLS/SSL handshake is immediately
+    terminated with an alert message containing the reason for the verification failure. If no server
+    certificate is sent, because an anonymous cipher is used, @ref Qore::SSL_VERIFY_PEER is ignored.
+
+    @see
+    - @ref Qore::SSL_VERIFY_FAIL_IF_NO_PEER_CERT
+    - @ref Qore::SSL_VERIFY_CLIENT_ONCE
+*/
+const SSL_VERIFY_PEER = SSL_VERIFY_PEER;
+
+//! Require a client certificate in server mode
+/** @par Server Mode
+    If the client did not return a certificate, the TLS/SSL handshake is immediately terminated with a
+    "handshake failure" alert.  This flag must be used together with @ref Qore::SSL_VERIFY_PEER (combined
+    with binary or).
+
+    @par Client Mode
+    Ignored
+*/
+const SSL_VERIFY_FAIL_IF_NO_PEER_CERT = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
+
+//! Only request a client certificate once in server mode
+/** @par Server Mode
+    Only request a client certificate on the initial TLS/SSL handshake. Do not ask for a client certificate
+    again in case of a renegotiation. This flag must be used together with @ref Qore::SSL_VERIFY_PEER
+    (combined with binary or).
+
+    @par Client Mode
+    Ignored
+*/
+const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
+//@}
+
 /** @defgroup x509_verification_constants X.509 Verification Constants
     These are string contants for values returned by the following methods:
     - FtpClient::verifyPeerCertificate()
@@ -2814,4 +2869,63 @@ bool b = sock.pendingHttpChunkedBody();
 */
 bool Socket::pendingHttpChunkedBody() {
    return s->pendingHttpChunkedBody();
+}
+
+//! set the SSL verification mode
+/** @par Example:
+    @code{.py}
+sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+    @endcode
+
+    If there is no SSL connection in place, then the mode is saved and will be used automatically
+    for future SSL sessions automatically.
+
+    @param mode the SSL verfication mode, see @ref ssl_mode_constants for more information
+
+    @see
+    - @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
+    - @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates()"
+
+    @since %Qore 0.8.13
+*/
+Socket::setSslVerifyMode(int mode) {
+    s->setSslVerifyMode((int)mode);
+}
+
+//! returns the current SSL verification mode
+/** @par Example:
+    @code{.py}
+int mode = sock.getSslVerifyMode();
+    @endcode
+
+    @return the SSL verfication mode, see @ref ssl_mode_constants for more information
+
+    @see
+    - @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
+    - @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates()"
+
+    @since %Qore 0.8.13
+*/
+int Socket::getSslVerifyMode() [flags=CONSTANT] {
+    return s->getSslVerifyMode();
+}
+
+//! with peer verification enabled, all certificates are accepted regardless of the validity of the Certificate Authority
+/** @par Example:
+    @code{.py}
+# require a certificate from the peer, but accept all certificates, even self-signed ones
+sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+sock.acceptAllCertificates();
+    @endcode
+
+    @param accept_all if @ref Qore::True "True", then self-signed certificates are accepted, if @ref Qore::False "False", then they are not
+
+    @see
+    - @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
+    - @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
+
+    @since %Qore 0.8.13
+*/
+Socket::acceptAllCertificates(bool accept_all = True) {
+    s->acceptAllCertificates(accept_all);
 }

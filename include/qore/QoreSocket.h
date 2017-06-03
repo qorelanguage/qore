@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -1712,6 +1712,29 @@ public:
 
    //! returns true if a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read
    DLLEXPORT bool pendingHttpChunkedBody() const;
+
+   //! sets the SSL verification mode
+   /** If no SSL connection is in place, then the mode is saved for use with future SSL connections.
+
+       @param mode see the \c mode parameter of SSL_set_verify() for details
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT void setSslVerifyMode(int mode);
+
+   //! returns the SSL verification mode
+   /** @return see the \c mode parameter of SSL_set_verify() for details
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT int getSslVerifyMode() const;
+
+   //! with peer verification enabled, all certificates are accepted regardless of the validity of the Certificate Authority
+   /** @param accept_all if true, accepts self-signed certs, if false, then not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT void acceptAllCertificates(bool accept_all = true);
 
    DLLLOCAL static void doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink);
 
