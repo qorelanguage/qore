@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -703,28 +703,71 @@ public:
    DLLEXPORT QoreString* reverse() const;
 
    //! remove trailing whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_trailing(const char* chars = 0);
 
    //! remove leading whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_leading(const char* chars = 0);
 
    //! remove leading and trailing whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim(const char* chars = 0);
 
    //! remove trailing characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_trailing(char c);
 
    //! remove a single trailing character if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_single_trailing(char c);
 
    //! remove leading characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_leading(char c);
 
    //! remove a single leading character if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_single_leading(char c);
 
    //! remove leading and trailing characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim(char c);
+
+   //! removes leading and trailing whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trim(ExceptionSink* xsink, const QoreString* chars = nullptr);
+
+   //! removes leading whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trimLeading(ExceptionSink* xsink, const QoreString* chars = nullptr);
+
+   //! removes trailing whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trimTrailing(ExceptionSink* xsink, const QoreString* chars = nullptr);
 
    //! return Unicode code point for character offset, string must be UTF-8
    /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), an unpredictable value will be returned

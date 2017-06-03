@@ -25,6 +25,7 @@ class StringTest inherits QUnit::Test {
         addTestCase("Chomp and trim test", \testChompAndTrim());
         addTestCase("Float strings test", \testFloat());
         addTestCase("String conversion test", \testConversions());
+        addTestCase("trim", \testTrim());
         set_return_value(main());
     }
 
@@ -110,10 +111,10 @@ class StringTest inherits QUnit::Test {
         assertEq(str, convert_encoding(nstr, "UTF-8"), "convert_encoding()");
 
         str = "příliš žluťoučký kůň úpěl ďábelské ódy";
-        assertEq(str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
+        assertEq("prilis zlutoucky kun upel dabelske ody", str.unaccent(), "<string>::unaccent()");
         string ustr = str.upr();
-        assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
-        assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+        assertEq("PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", ustr, "<string>::upr()");
+        assertEq("příliš žluťoučký kůň úpěl ďábelské ódy", ustr.lwr(), "<string>::lwr()");
     }
 
     testUtf16() {
@@ -174,6 +175,96 @@ class StringTest inherits QUnit::Test {
         assertTrue(d.equalPartial(substr(d, 2)));
         assertTrue(d.equalPartial(substr(d, 2, 1)));
         assertTrue(d.equalPartial(substr(d, 2, -1)));
+
+        a = convert_encoding("abcd\n", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\n", "UTF16BE");
+        assertEq("abcd", trim(a, "12\n3"));
+        a = convert_encoding("abcd\n", "UTF16BE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\n", "UTF16BE");
+        assertEq("abcd", rtrim(a, "12\n3"));
+        a = convert_encoding("\nabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\nabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a, "12\n3"));
+        a = convert_encoding("abcd\n", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("abcd\r\n", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\r\n", "UTF16BE");
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = convert_encoding("abcd\r\n", "UTF16BE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\r\n", "UTF16BE");
+        assertEq("abcd", rtrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\r\nabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a, "12\r\n3"));
+        a = convert_encoding("abcd\r\n", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("abcd\r", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\r", "UTF16BE");
+        assertEq("abcd", trim(a, "12\r3"));
+        a = convert_encoding("abcd\r", "UTF16BE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\r", "UTF16BE");
+        assertEq("abcd", rtrim(a, "12\r3"));
+        a = convert_encoding("\rabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\rabcd", "UTF16BE");
+        assertEq("abcd", ltrim(a, "12\r3"));
+        a = convert_encoding("abcd\r", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("abcd\n", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\n", "UTF16LE");
+        assertEq("abcd", trim(a, "12\n3"));
+        a = convert_encoding("abcd\n", "UTF16LE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\n", "UTF16LE");
+        assertEq("abcd", rtrim(a, "12\n3"));
+        a = convert_encoding("\nabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\nabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a, "12\n3"));
+        a = convert_encoding("abcd\n", "UTF16LE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("abcd\r\n", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\r\n", "UTF16LE");
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = convert_encoding("abcd\r\n", "UTF16LE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\r\n", "UTF16LE");
+        assertEq("abcd", rtrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\r\nabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a, "12\r\n3"));
+        a = convert_encoding("abcd\r\n", "UTF16LE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("abcd\r", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("abcd\r", "UTF16LE");
+        assertEq("abcd", trim(a, "12\r3"));
+        a = convert_encoding("abcd\r", "UTF16LE");
+        assertEq("abcd", rtrim(a));
+        a = convert_encoding("abcd\r", "UTF16LE");
+        assertEq("abcd", rtrim(a, "12\r3"));
+        a = convert_encoding("\rabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a));
+        a = convert_encoding("\rabcd", "UTF16LE");
+        assertEq("abcd", ltrim(a, "12\r3"));
+        a = convert_encoding("abcd\r", "UTF16LE");
+        assertEq("abcd", trim a);
     }
 
     testASCIIUTF8Equality() {
@@ -441,5 +532,52 @@ class StringTest inherits QUnit::Test {
 
     testConversions() {
         assertEq("", string(NULL));
+    }
+
+    testTrim() {
+        string a = "abcd\n";
+        assertEq("abcd", trim(a));
+        a = "abcd\n";
+        assertEq("abcd", trim(a, "12\n3"));
+        a = "abcd\n";
+        assertEq("abcd", rtrim(a));
+        a = "abcd\n";
+        assertEq("abcd", rtrim(a, "12\n3"));
+        a = "\nabcd";
+        assertEq("abcd", ltrim(a));
+        a = "\nabcd";
+        assertEq("abcd", ltrim(a, "12\n3"));
+        a = "abcd\n";
+        assertEq("abcd", trim a);
+
+        a = "abcd\r\n";
+        assertEq("abcd", trim(a));
+        a = "abcd\r\n";
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = "abcd\r\n";
+        assertEq("abcd", rtrim(a));
+        a = "abcd\r\n";
+        assertEq("abcd", rtrim(a, "12\r\n3"));
+        a = "\r\nabcd";
+        assertEq("abcd", ltrim(a));
+        a = "\r\nabcd";
+        assertEq("abcd", ltrim(a, "12\r\n3"));
+        a = "abcd\r\n";
+        assertEq("abcd", trim a);
+
+        a = "abcd\r";
+        assertEq("abcd", trim(a));
+        a = "abcd\r";
+        assertEq("abcd", trim(a, "12\r3"));
+        a = "abcd\r";
+        assertEq("abcd", rtrim(a));
+        a = "abcd\r";
+        assertEq("abcd", rtrim(a, "12\r3"));
+        a = "\rabcd";
+        assertEq("abcd", ltrim(a));
+        a = "\rabcd";
+        assertEq("abcd", ltrim(a, "12\r3"));
+        a = "abcd\r";
+        assertEq("abcd", trim a);
     }
 }

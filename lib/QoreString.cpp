@@ -52,7 +52,9 @@
 #endif
 
 // to be used for trim
-static char default_whitespace[] = { ' ', '\t', '\n', '\r', '\v', '\0' };
+static intvec_t default_whitespace = {
+   ' ', '\t', '\n', '\r', '\v',
+};
 
 struct code_table {
       char symbol;
@@ -635,25 +637,8 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
 }
 
 unsigned int qore_string_private::getUnicodePointFromBytePos(qore_size_t offset, unsigned& clen, ExceptionSink* xsink) const {
-   if (getEncoding() == QCS_UTF8) {
-      clen = QCS_UTF8->getByteLen(buf + offset, buf + len, 1, xsink);
-      if (*xsink)
-	 return 0;
-
-      return get_unicode_from_utf8(buf + offset, clen);
-   }
-
-   assert(!getEncoding()->isMultiByte());
-   clen = 1;
-   QoreString tmp(QCS_UTF8);
-   if (convert_encoding_intern(buf + offset, 1, getEncoding(), tmp, QCS_UTF8, xsink))
-      return 0;
-
-   qore_size_t bl = QCS_UTF8->getByteLen(tmp.priv->buf, tmp.priv->buf + tmp.priv->len, 1, xsink);
-   if (*xsink)
-      return 0;
-
-   return get_unicode_from_utf8(tmp.priv->buf, bl);
+   clen = charset->getByteLen(buf + offset, buf + len, 1, xsink);
+   return charset->getUnicode(buf + offset);
 }
 
 int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
@@ -867,6 +852,91 @@ int qore_string_private::concatUnicode(unsigned code) {
 
    concat(ns);
    return 0;
+}
+
+int qore_string_private::trimLeading(ExceptionSink* xsink, const intvec_t& cvec) {
+   qore_size_t i = 0;
+
+   // trim default whitespace
+   while (i < len) {
+      // get unicode code point of first character in string
+      unsigned clen;
+      int c = getUnicodePointFromBytePos(i, clen, xsink);
+      if (*xsink)
+         return -1;
+      // see if the character is in the character vector
+      if (!inVector(c, cvec))
+         break;
+      i += clen;
+   }
+
+   memmove(buf, buf + i, len + 1 - i);
+   len -= i;
+   return 0;
+}
+
+int qore_string_private::trimLeading(ExceptionSink* xsink, const qore_string_private* chars) {
+   if (!len)
+      return 0;
+
+   if (!chars)
+      return trimLeading(xsink, default_whitespace);
+
+   // get a list of unicode points for the characters in chars
+   intvec_t cvec;
+   if (chars->getUnicodeCharArray(cvec, xsink))
+      return -1;
+
+   return trimLeading(xsink, cvec);
+}
+
+int qore_string_private::trimTrailing(ExceptionSink* xsink, const intvec_t& cvec) {
+   // get length of string in characters
+   size_t i = charset->getLength(buf, buf + len, xsink);
+   if (*xsink)
+      return -1;
+   assert(i);
+
+   while (i) {
+      --i;
+      // get byte offset for the last character
+      qore_size_t bpos = charset->getByteLen(buf, buf + len, i, xsink);
+      if (*xsink)
+         return -1;
+      unsigned clen;
+      // get the unicode point for the last character in the string
+      int c = getUnicodePointFromBytePos(bpos, clen, xsink);
+      if (*xsink)
+         return -1;
+      // see if the character is in the character vector
+      if (!inVector(c, cvec))
+         break;
+      terminate(bpos);
+   }
+
+   return 0;
+}
+
+int qore_string_private::trimTrailing(ExceptionSink* xsink, const qore_string_private* chars) {
+   if (!len)
+      return 0;
+
+   if (!chars)
+      return trimTrailing(xsink, default_whitespace);
+
+   // get a list of unicode points for the characters in chars
+   intvec_t cvec;
+   if (chars->getUnicodeCharArray(cvec, xsink))
+      return -1;
+
+   return trimTrailing(xsink, cvec);
+}
+
+void qore_string_private::terminate(size_t size) {
+   if (size > len)
+      check_char(size);
+   len = size;
+   buf[size] = '\0';
 }
 
 QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
@@ -1262,10 +1332,7 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
 }
 
 void QoreString::terminate(qore_size_t size) {
-   if (size > priv->len)
-      priv->check_char(size);
-   priv->len = size;
-   priv->buf[size] = '\0';
+   priv->terminate(size);
 }
 
 void QoreString::reserve(qore_size_t size) {
@@ -2722,6 +2789,19 @@ void QoreString::trim(char c) {
    trim_leading(c);
 }
 
+int QoreString::trim(ExceptionSink* xsink, const QoreString* chars) {
+   qore_string_private* pchars = chars ? chars->priv : nullptr;
+   return priv->trimLeading(xsink, pchars) || priv->trimTrailing(xsink, pchars);
+}
+
+int QoreString::trimLeading(ExceptionSink* xsink, const QoreString* chars) {
+   return priv->trimLeading(xsink, chars ? chars->priv : nullptr);
+}
+
+int QoreString::trimTrailing(ExceptionSink* xsink, const QoreString* chars) {
+   return priv->trimTrailing(xsink, chars ? chars->priv : nullptr);
+}
+
 // remove trailing chars
 void QoreString::trim_trailing(const char* chars) {
    if (!priv->len)
@@ -2729,7 +2809,7 @@ void QoreString::trim_trailing(const char* chars) {
 
    char* p = priv->buf + priv->len - 1;
    if (!chars) // use an alternate path here so we can check for embedded nulls as well
-      while (p >= priv->buf && strnchr(default_whitespace, sizeof(default_whitespace), *p))
+      while (p >= priv->buf && qore_string_private::inVector(*p, default_whitespace))
          --p;
    else
       while (p >= priv->buf && strchr(chars, *p))
@@ -2745,7 +2825,7 @@ void QoreString::trim_leading(const char* chars) {
 
    qore_size_t i = 0;
    if (!chars)
-      while (i < priv->len && strnchr(default_whitespace, sizeof(default_whitespace), priv->buf[i]))
+      while (i < priv->len && qore_string_private::inVector(priv->buf[i], default_whitespace))
          ++i;
    else
       while (i < priv->len && strchr(chars, priv->buf[i]))
