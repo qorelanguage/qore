@@ -136,6 +136,11 @@
       - @ref Qore::Socket::setSslVerifyMode()
     - updated methods:
       - @ref Qore::TreeMap::get() new parameter to return also unmatched part suffix
+      - @ref Qore::HTTPClient::constructor() added support for the following options:
+        - \c ssl_cert_path: allows an X.509 client certificate to be set in the constructor
+        - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
+        - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
+        - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
     - new pseudo-methods:
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)

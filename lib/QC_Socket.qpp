@@ -67,7 +67,8 @@ static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsi
 }
 
 /** @defgroup ssl_mode_constants SSL Verification Mode Constants
-    These are integer contants to be used with @ref Qore::Socket::setSslMode() "Socket::setSslMode()"
+    These are integer contants to be used with @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
+    and are returned by @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
 */
 //@{
 //! Do not verify the peer's certificate
@@ -106,6 +107,8 @@ const SSL_VERIFY_PEER = SSL_VERIFY_PEER;
 
     @par Client Mode
     Ignored
+
+    @note must be used with @ref Qore::SSL_VERIFY_PEER (combined with binary or)
 */
 const SSL_VERIFY_FAIL_IF_NO_PEER_CERT = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
 
@@ -117,6 +120,8 @@ const SSL_VERIFY_FAIL_IF_NO_PEER_CERT = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
 
     @par Client Mode
     Ignored
+
+    @note must be used with @ref Qore::SSL_VERIFY_PEER (combined with binary or)
 */
 const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
 //@}
@@ -2874,7 +2879,7 @@ bool Socket::pendingHttpChunkedBody() {
 //! sets the SSL verification mode
 /** @par Example:
     @code{.py}
-sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+sock.setSslVerifyMode(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
     @endcode
 
     If there is no SSL connection in place, then the mode is saved and will be used automatically
@@ -2916,7 +2921,7 @@ int Socket::getSslVerifyMode() [flags=CONSTANT] {
 /** @par Example:
     @code{.py}
 # require a certificate from the peer, but accept all certificates, even self-signed ones
-sock.setSslVerify(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+sock.setSslVerifyMode(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
 sock.acceptAllCertificates();
     @endcode
 

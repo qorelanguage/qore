@@ -563,6 +563,7 @@ string connstr = get_connection(str);
         - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
         - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
         - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
+        - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
         - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
 
         @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
@@ -579,6 +580,7 @@ string connstr = get_connection(str);
                 "ssl_cert_path": True,
                 "ssl_key_password": True,
                 "ssl_key_path": True,
+                "ssl_verify_cert": True,
                 );
 
             #! HttpConnection default options
@@ -595,7 +597,7 @@ string connstr = get_connection(str);
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
-            @param opts connection options
+            @param opts connection options (@see getOptions() for valid options)
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
         */
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
@@ -607,14 +609,6 @@ string connstr = get_connection(str);
         */
         private Qore::HTTPClient getImpl(bool connect = True, *hash rtopts) {
             HTTPClient sc(("url": url) + opts);
-            # set certificate if present
-            if (opts.ssl_cert_path) {
-                sc.setCertificate(ReadOnlyFile::readTextFile(opts.ssl_cert_path));
-            }
-            # set private key if present
-            if (opts.ssl_key_path) {
-                sc.setPrivateKey(ReadOnlyFile::readTextFile(opts.ssl_key_path), opts.ssl_key_password);
-            }
             if (connect)
                 sc.connect();
 
@@ -630,6 +624,7 @@ string connstr = get_connection(str);
             - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
             - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
             - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
+            - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options

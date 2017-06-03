@@ -40,10 +40,21 @@ public class ConnectionProviderTest inherits QUnit::Test {
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
 
+        # turn on certificate verification in the server
         server.acceptAllCertificates(False);
         assertEq(False, server.getAcceptAllCertificates());
         client.disconnect();
+        # verify that exceptions are raised in the server & client when connecting
         assertThrows("SOCKET-SSL-ERROR", \client.connect());
+        assertEq("SOCKET-SSL-ERROR", server.waitException().err);
+
+        # turn off certificate verification in the server
+        server.acceptAllCertificates(True);
+        # verify server certificate in the client
+        opts.ssl_verify_cert = True;
+        hc = new HttpConnection("name", "desc", url, True, opts, urlh);
+        # verify that exceptions are raised in the server & client when connecting
+        assertThrows("SOCKET-SSL-ERROR", \hc.get());
         assertEq("SOCKET-SSL-ERROR", server.waitException().err);
     }
 }
@@ -104,6 +115,10 @@ class TestSslServer {
 
     *hash waitException() {
         return q.get();
+    }
+
+    int queueSize() {
+        return q.size();
     }
 
     int getPort() {
