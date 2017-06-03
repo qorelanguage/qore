@@ -188,7 +188,9 @@ bool QoreEncoding::isAsciiCompat() const {
 }
 
 unsigned QoreEncoding::getUnicode(const char* p) const {
-   if (priv->ascii_compat && this != QCS_UTF8) {
+   if (!priv->get_unicode) {
+      assert(priv->ascii_compat);
+      assert(this != QCS_UTF8);
       if ((unsigned char)*p < 128)
          return *p;
 
