@@ -579,7 +579,7 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
    n = opts->getKeyValue("ssl_key_password");
    if (n) {
       if (n->getType() != NT_STRING) {
-         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_path\" key in the options hash; got type \"%s\" instead", get_type_name(n));
+         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_password\" key in the options hash; got type \"%s\" instead", get_type_name(n));
          return -1;
       }
       key_password = static_cast<const QoreStringNode*>(n)->c_str();
