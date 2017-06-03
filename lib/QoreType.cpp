@@ -66,6 +66,7 @@ qore_type_t get_next_type_id() {
 
 // 0 = equal, 1 = not equal
 bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink *xsink) {
+   assert(xsink);
    if (is_nothing(l)) {
       if (is_nothing(r))
          return 0;
