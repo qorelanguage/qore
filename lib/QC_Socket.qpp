@@ -35,6 +35,8 @@
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/ssl_constants.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/QoreSSLCertificate.h"
+#include "qore/QoreSSLPrivateKey.h"
 
 #include <errno.h>
 #include <string.h>
