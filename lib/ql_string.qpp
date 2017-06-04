@@ -201,7 +201,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
                xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
-               return 0;
+               return nullptr;
             }
             if (p == tstr)
                break;
@@ -210,7 +210,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             tstr = p + 1;
          }
          // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()));
 
          ststr = p + tquote->strlen();
          // see if we are at the end of the string
@@ -222,7 +222,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          // or a separator string comes next
          if (len < pl || memcmp(tpattern, ststr, pl)) {
             xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
-            return 0;
+            return nullptr;
          }
          ststr += pl;
          len -= pl;
@@ -231,16 +231,16 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
       const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
-         if (trim_unquoted)
-            se->trim();
+         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
+         if (trim_unquoted && se->trim(xsink))
+            return nullptr;
          l->push(se);
          break;
       }
 
-      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, sep->getEncoding());
-      if (trim_unquoted)
-         se->trim();
+      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
+      if (trim_unquoted && se->trim(xsink))
+         return nullptr;
       l->push(se);
       len -= (p - ststr);
       ststr = p + pl;
@@ -258,7 +258,7 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, in
       if (!p.isNothing()) {
 	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
 	 if (*xsink)
-	    return 0;
+	    return nullptr;
 
 	 str->concat(*t);
       }

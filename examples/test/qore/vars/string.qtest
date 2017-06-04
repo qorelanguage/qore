@@ -265,6 +265,28 @@ class StringTest inherits QUnit::Test {
         assertEq("abcd", ltrim(a, "12\r3"));
         a = convert_encoding("abcd\r", "UTF16LE");
         assertEq("abcd", trim a);
+
+        assertEq("ABCD", toupper(a));
+        assertEq("ABCD", a.upr());
+        assertEq("abcd", tolower(toupper(a)));
+        assertEq("abcd", a.upr().lwr());
+        assertEq(("a", "cd"), split(convert_encoding("b", "UTF16LE"), a));
+        assertEq(("a", "cd"), a.split(convert_encoding("b", "UTF16LE")));
+
+        string lstr = convert_encoding("a,b,c", "UTF16LE");
+        assertEq(("a", "b", "c"), split(convert_encoding(",", "UTF16LE"), lstr));
+        assertEq(("a", "b", "c"), lstr.split(convert_encoding(",", "UTF16LE")));
+        lstr = convert_encoding("a,'b,c,d',e", "UTF16LE");
+        assertEq(("a", "b,c,d", "e"), split(convert_encoding(",", "UTF16LE"), lstr, convert_encoding("'", "UTF16LE")));
+        assertEq(("a", "b,c,d", "e"), lstr.split(convert_encoding(",", "UTF16LE"), convert_encoding("'", "UTF16LE")));
+
+        # test currently unsupported operations
+        assertThrows("UNSUPPORTED-ENCODING", \html_encode(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \html_decode(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \encode_url(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \encode_uri_request(), a);
+        assertThrows("UNSUPPORTED-ENCODING", sub (string str) { str.equalPartialPath(str); }, a);
+        assertThrows("UNSUPPORTED-ENCODING", sub (string str) { str.toInt(16); }, a);
     }
 
     testASCIIUTF8Equality() {
