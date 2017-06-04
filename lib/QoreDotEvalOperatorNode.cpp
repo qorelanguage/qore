@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreClassIntern.h"
 
 QoreString QoreDotEvalOperatorNode::name("dot eval expression");
 
@@ -50,14 +50,14 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    if (op->getType() == NT_HASH) {
       const AbstractQoreNode* ref = check_call_ref(op->getInternalNode(), m->getName());
       if (ref)
-	 return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
+         return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
    }
 
    if (op->getType() != NT_OBJECT) {
       // FIXME: inefficient
       ReferenceHolder<> nop(op.getReferencedValue(), xsink);
       if (m->isPseudo())
-	 return m->execPseudo(*nop, xsink);
+         return m->execPseudo(*nop, xsink);
 
       return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
    }
@@ -81,28 +81,28 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (!qc) {
       // if the left side has a type and it's not an object, then we try to match pseudo-methods
       if (QoreTypeInfo::hasType(typeInfo)
-	  && !QoreTypeInfo::parseAccepts(objectTypeInfo, typeInfo)) {
-	 // check for pseudo-methods
-	 bool possible_match;
-	 meth = pseudo_classes_find_method(typeInfo, mname, qc, possible_match);
+         && !QoreTypeInfo::parseAccepts(objectTypeInfo, typeInfo)) {
+         // check for pseudo-methods
+         bool possible_match;
+         meth = pseudo_classes_find_method(typeInfo, mname, qc, possible_match);
 
-	 if (meth) {
-	    m->setPseudo();
-	    // save method for optimizing calls later
-	    m->parseSetClassAndMethod(qc, meth);
+         if (meth) {
+            m->setPseudo();
+            // save method for optimizing calls later
+            m->parseSetClassAndMethod(qc, meth);
 
-	    // check parameters, if any
-	    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
-	    expTypeInfo = returnTypeInfo;
+            // check parameters, if any
+            lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+            expTypeInfo = returnTypeInfo;
 
-	    return this;
-	 }
-	 else if (!possible_match && !QoreTypeInfo::parseAccepts(hashTypeInfo, typeInfo)) {
-	    // issue an error if there was no match and it's not a hash
-	    QoreStringNode* edesc = new QoreStringNode;
-	    edesc->sprintf("no pseudo-method <%s>.%s() can be found", QoreTypeInfo::getName(typeInfo), mname);
-	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-	 }
+            return this;
+         }
+         else if (!possible_match && !QoreTypeInfo::parseAccepts(hashTypeInfo, typeInfo)) {
+            // issue an error if there was no match and it's not a hash
+            QoreStringNode* edesc = new QoreStringNode;
+            edesc->sprintf("no pseudo-method <%s>.%s() can be found", QoreTypeInfo::getName(typeInfo), mname);
+            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+         }
       }
 
 #ifdef DEBUG
@@ -121,19 +121,18 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    if (!m)
       return this;
 
-   bool m_priv = false;
-   meth = qore_class_private::parseFindMethodTree(*qc, mname, m_priv);
+   qore_class_private* class_ctx = parse_get_class_priv();
+   if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
+      class_ctx = 0;
+   // method access is already checked here
+   meth = qore_class_private::get(*qc)->parseFindAnyMethod(mname, class_ctx);
 
-   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (private: %s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", m_priv ? "true" : "false");
-   // FIXME
+   //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) class_ctx: %p (%s)\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
    const QoreListNode* args = m->getArgs();
    if (!strcmp(mname, "copy")) {
       if (args && args->size())
-	 parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
-
-      if (meth && meth->parseIsPrivate() && (!oflag || !qore_class_private::parseCheckCompatibleClass(qc, getParseClass())))
-	 parse_error(loc, "illegal call to private %s::copy() method", qc->getName());
+         parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
       // do not save method pointer for copy methods
       expTypeInfo = returnTypeInfo = qc->getTypeInfo();
@@ -147,42 +146,36 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
       return this;
    }
 
-   // if a normal method is not found, then look for a static method
-   if (!meth)
-      meth = qore_class_private::parseFindStaticMethodTree(*qc, mname, m_priv);
-
    if (!meth) {
       if (!qc->parseHasMethodGate()) {
-	 // check if it could be a pseudo-method call
-	 meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
-	 if (meth)
-	    m->setPseudo();
-	 else
-	    raiseNonExistentMethodCallWarning(qc, mname);
+         // check if it could be a pseudo-method call
+         meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
+         if (meth)
+            m->setPseudo();
+         else
+            raiseNonExistentMethodCallWarning(qc, mname);
       }
 
       if (!meth) {
 #ifdef DEBUG
          typeInfo = 0;
-	 AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
-	 assert(n == m);
+         AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
+         assert(n == m);
 #else
-	 m->parseInit(oflag, pflag, lvids, typeInfo);
+         m->parseInit(oflag, pflag, lvids, typeInfo);
 #endif
-	 return this;
+         return this;
       }
    }
 
-   if (m_priv && !qore_class_private::parseCheckPrivateClassAccess(*qc))
-      parse_error(loc, "illegal call to private method %s::%s()", qc->getName(), mname);
-   else // save method for optimizing calls later
-      m->parseSetClassAndMethod(qc, meth);
+   // save method for optimizing calls later
+   m->parseSetClassAndMethod(qc, meth);
 
    // check parameters, if any
    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
    expTypeInfo = returnTypeInfo;
 
-   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && meth->parseIsPrivate() ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
+   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::parseGetAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
 
    return this;
 }
@@ -190,6 +183,11 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    if (m->getArgs()) {
       parse_error("argument given to call reference");
+      return this;
+   }
+
+   if (!strcmp(m->getName(), "copy")) {
+      parse_error("cannot make a call reference to a copy() method");
       return this;
    }
 
