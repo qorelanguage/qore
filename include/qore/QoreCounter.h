@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2005 - 2015 David Nichols
+  Copyright (C) 2005 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -65,8 +65,12 @@ public:
    /** a Qore-language exception will be raised here if QoreCounter::destructor() has already been run before calling this function.
 
        @param xsink any Qore-language exception thrown will be added here
+
+       @return the current value after the decrement
+
+       @since %Qore 0.8.13 the current value is returned
     */
-   DLLEXPORT void dec(ExceptionSink* xsink);
+   DLLEXPORT int dec(ExceptionSink* xsink);
 
    //! blocks the calling thread until the counter reaches 0
    /** a Qore-language exception will be raised here if QoreCounter::destructor() is run while threads are still blocked
