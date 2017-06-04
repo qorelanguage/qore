@@ -33,7 +33,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RWLock.h>
+#include "qore/intern/RWLock.h"
 
 #include <assert.h>
 
