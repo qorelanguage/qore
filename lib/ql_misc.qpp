@@ -1014,7 +1014,7 @@ nothing parseURL() [flags=RUNTIME_NOOP] {
     @par Example:
     @code{.py}
 int rc;
-string files = files = backquote("ls", \rc);
+string files = backquote("ls", \rc);
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe

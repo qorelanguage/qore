@@ -165,13 +165,13 @@
       - @ref Qore::parse_int()
       - @ref Qore::set_global_var_value()
       - @ref Qore::set_local_var_value()
-    - updated functions:
-      - @ref Qore::ceil(int/float/number num, int prec = 0)
-      - @ref Qore::floor(int/float/number num, int prec = 0)
-      - @ref Qore::get_local_vars(int frame)
-      - @ref Qore::mkdir(string path, softint mode = 0777, bool parents = False)
-      - @ref Qore::round(int/float/number num, int prec = 0)
-      - @ref Qore::set_thread_init()
+    - updated functions/methods:
+      - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
+      - @ref Qore::ceil() "ceil()": now allows the precision to be specified
+      - @ref Qore::floor() "floor()": now allows the precision to be specified
+      - @ref Qore::mkdir() "mkdir()": now allows parent directories to be created in the same call
+      - @ref Qore::round() "round()": now allows the precision to be specified
+      - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
@@ -260,6 +260,7 @@
         - fixed a bug that prohibited only columns from the main query to be selected when joins are used (<a href="https://github.com/qorelanguage/qore/issues/1909">issue 1909</a>)
       - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>:
         - fixed a bug in flush messages in the \c InboundTableMapper class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
+    - fixed the process return code in the output reference in @ref Qore::backquote() "backquote()" on Unix/Linux platforms (<a href="https://github.com/qorelanguage/qore/issues/1884">issue 1884</a>)
     - fixed a bug where connections were not immediately released back to the @ref Qore::SQL::DatasourcePool "DatasourcePool" in case of an \c SQLSTATEMENT-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/1836">issue 1836</a>)
     - eliminated a spurious exception in the @ref Qore::SQL::SQLStatement "SQLStatement" class in case of a @ref Qore::SQL::DatasourcePool "DatasourcePool" timeout (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)
     - fixed a crash when the incorrect type was passed to a parameter declared @ref reference_or_nothing_type "*reference" (<a href="https://github.com/qorelanguage/qore/issues/1815">issue 1815</a>)
