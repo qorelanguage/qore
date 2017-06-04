@@ -258,7 +258,10 @@ bool QoreValue::isEqualHard(const QoreValue n) const {
       case NT_NULL:
 	 return true;
    }
-   return !compareHard(v.n, n.v.n, 0);
+   ExceptionSink xsink;
+   bool rv = !compareHard(v.n, n.v.n, &xsink);
+   xsink.clear();
+   return rv;
 }
 
 void QoreValue::sanitize() {
