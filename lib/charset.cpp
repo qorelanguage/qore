@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 
+#include <qore/intern/qore_encoding_private.h>
 #include <qore/intern/qore_string_private.h>
 
 #include <stdio.h>
@@ -53,13 +54,6 @@ static qore_size_t UTF8_getByteLen(const char* p, const char* end, qore_size_t l
 static qore_size_t UTF8_getCharPos(const char* p, const char* e, bool& invalid);
 static unsigned UTF8_getUnicode(const char* p);
 
-/*
-static qore_size_t UTF16_getLength(const char* p, const char* end, bool& invalid);
-static qore_size_t UTF16_getByteLen(const char* p, const char* end, qore_size_t l, bool& invalid);
-static qore_size_t UTF16_getCharPos(const char* p, const char* e, bool& invalid);
-static unsigned UTF16_getUnicode(const char* p);
-*/
-
 static qore_size_t UTF16LE_getLength(const char* p, const char* end, bool& invalid);
 static qore_size_t UTF16LE_getByteLen(const char* p, const char* end, qore_size_t l, bool& invalid);
 static qore_size_t UTF16LE_getCharPos(const char* p, const char* e, bool& invalid);
@@ -74,28 +68,6 @@ encoding_map_t QoreEncodingManager::emap;
 const_encoding_map_t QoreEncodingManager::amap;
 QoreThreadLock QoreEncodingManager::mutex;
 QoreEncodingManager QEM;
-
-struct qore_encoding_private {
-   mbcs_get_unicode_t get_unicode;
-   unsigned char minwidth;
-   bool ascii_compat;
-
-   DLLLOCAL qore_encoding_private(unsigned char n_minwidth = 1, mbcs_get_unicode_t gu = 0, bool ac = true) : get_unicode(gu), minwidth(n_minwidth), ascii_compat(ac) {
-   }
-
-   DLLLOCAL unsigned getMinCharWidth() const {
-      return minwidth;
-   }
-
-   DLLLOCAL bool isAsciiCompat() const {
-      return ascii_compat;
-   }
-
-   DLLLOCAL unsigned getUnicode(const char* p) const {
-      assert(get_unicode);
-      return get_unicode(p);
-   }
-};
 
 QoreEncoding::QoreEncoding(const char* n_code, const char* n_desc, unsigned char n_minwidth, unsigned char n_maxwidth, mbcs_length_t l, mbcs_end_t e, mbcs_pos_t p, mbcs_charlen_t c, mbcs_get_unicode_t gu, bool n_ascii_compat) : code(n_code), desc(n_desc ? n_desc : ""), flength(l), fend(e), fpos(p), fcharlen(c), maxwidth(n_maxwidth), priv(new qore_encoding_private(n_minwidth, gu, n_ascii_compat)) {
 }
@@ -187,7 +159,12 @@ bool QoreEncoding::isAsciiCompat() const {
    return priv->isAsciiCompat();
 }
 
-unsigned QoreEncoding::getUnicode(const char* p) const {
+int QoreEncoding::getUnicode(const char* p, const char* end, unsigned& clen, ExceptionSink* xsink) const {
+   // get character length & check validity
+   clen = (unsigned)getByteLen(p, end, 1, xsink);
+   if (*xsink)
+      return -1;
+
    if (!priv->get_unicode) {
       assert(priv->ascii_compat);
       assert(this != QCS_UTF8);
@@ -197,12 +174,12 @@ unsigned QoreEncoding::getUnicode(const char* p) const {
       QoreString tmp(QCS_UTF8);
       ExceptionSink xsink;
       if (qore_string_private::convert_encoding_intern(p, 1, this, tmp, QCS_UTF8, &xsink)) {
+         // cannot happen since getByteLen() above succeeded
          assert(false);
-         xsink.clear();
-         return 0;
+         return -1;
       }
 
-      return QCS_UTF8->getUnicode(tmp.c_str());
+      return UTF8_getUnicode(tmp.c_str());
    }
    return priv->getUnicode(p);
 }
@@ -602,12 +579,13 @@ static unsigned UTF8_getUnicode(const char* p) {
       // check for a 3-byte sequence
       if ((*p) & 0x20) {
          // check for a 4-byte sequence
-         if ((*p) & 0x10)
+         if ((*p) & 0x10) {
             // 4-byte char
             return (((unsigned)(p[0] & 0x07)) << 18)
                     | (((unsigned)(p[1] & 0x3f)) << 12)
                     | ((((unsigned)p[2] & 0x3f)) << 6)
                     | (((unsigned)p[3] & 0x3f));
+         }
          // 3-byte char
          return ((p[0] & 0x0f) << 12)
                  | ((p[1] & 0x3f) << 6)
@@ -634,8 +612,9 @@ static unsigned UTF16LE_getUnicode(const char* p) {
    unsigned code_unit = (((unsigned char)p[1]) << 8) + ((unsigned char)p[0]);
    if (code_unit >= 0xd800 && code_unit <= 0xdbff) {
       unsigned code_unit_2 = (((unsigned char)p[3]) << 8) + ((unsigned char)p[2]);
-      if (code_unit_2 >= 0xdc00 && code_unit_2 <= 0xdfff)
+      if (code_unit_2 >= 0xdc00 && code_unit_2 <= 0xdfff) {
          return (code_unit << 10) + code_unit_2 - 0x35fdc00;
+      }
    }
    return code_unit;
 }
@@ -701,8 +680,9 @@ static unsigned UTF16BE_getUnicode(const char* p) {
    unsigned code_unit = (((unsigned char)p[0]) << 8) + ((unsigned char)p[1]);
    if (code_unit >= 0xd800 && code_unit <= 0xdbff) {
       unsigned code_unit_2 = (((unsigned char)p[2]) << 8) + ((unsigned char)p[3]);
-      if (code_unit_2 >= 0xdc00 && code_unit_2 <= 0xdfff)
+      if (code_unit_2 >= 0xdc00 && code_unit_2 <= 0xdfff) {
          return (code_unit << 10) + code_unit_2 - 0x35fdc00;
+      }
    }
    return code_unit;
 }

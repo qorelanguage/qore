@@ -772,27 +772,24 @@ public:
    //! return Unicode code point for character offset, string must be UTF-8
    /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), an unpredictable value will be returned
        @param offset the offset in characters (not bytes) in the string (negative offset means that many characters from the end of the string)
-       @return the unicode code for the character
+       @return the unicode code for the character or -1 in case of an error
    */
    DLLEXPORT unsigned int getUnicodePointFromUTF8(qore_offset_t offset = 0) const;
 
    //! return Unicode code point for the single character at the given character (not byte) offset in the string
-   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
-
-       @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
+   /** @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return the unicode code for the character
+       @return the unicode code for the character or -1 in case of an error
    */
    DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const;
 
    //! return Unicode code point for the given byte offset
-   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
-       @param offset the offset in bytes in the string
+   /** @param offset the offset in bytes in the string
        @param len the length of the character in bytes in the source string in the original encoding
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return the unicode code for the character at the given byte offset
+       @return the unicode code for the character at the given byte offset or -1 in case of an error
 
        @since Qore 0.8.8
    */
