@@ -42,7 +42,10 @@ protected:
    bool broken_int;
 
 public:
-   DLLLOCAL QoreAssignmentOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right), broken_int(false) {
+   DLLLOCAL QoreAssignmentOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(sline, eline, n_left, n_right), broken_int(false) {
+   }
+
+   DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right), broken_int(false) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

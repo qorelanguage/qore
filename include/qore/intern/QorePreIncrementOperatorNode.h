@@ -64,7 +64,10 @@ protected:
    }
 
 public:
-   DLLLOCAL QorePreIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
+   DLLLOCAL QorePreIncrementOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(sline, eline, n_exp) {
+   }
+
+   DLLLOCAL QorePreIncrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {

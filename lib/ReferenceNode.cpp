@@ -85,7 +85,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
 	    assert(!nl);
 	    return 0;
 	 }
-	 return new QoreSquareBracketsOperatorNode(nl, rh.getReferencedValue());
+	 return new QoreSquareBracketsOperatorNode(get_runtime_location(), nl, rh.getReferencedValue());
       }
    }
 

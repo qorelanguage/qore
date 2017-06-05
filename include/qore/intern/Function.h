@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -856,6 +856,8 @@ public:
 
    DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
       parseCheckReturnType();
+
+      //printd(5, "QoreFunction::parseGetUniqueReturnTypeInfo() this: %p '%s' rt: %d srt: %d psrt: %d vs: %d pvs: %d\n", this, name.c_str(), parse_get_parse_options() & PO_REQUIRE_TYPES, same_return_type, parse_same_return_type, vlist.size(), pending_vlist.size());
 
       if (parse_get_parse_options() & PO_REQUIRE_TYPES) {
          if (!nn_same_return_type || !parse_same_return_type)

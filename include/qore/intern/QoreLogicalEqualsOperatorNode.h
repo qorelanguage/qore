@@ -55,7 +55,10 @@ protected:
    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalEqualsOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(sline, eline, n_left, n_right), pfunc(0) {
+   }
+
+   DLLLOCAL QoreLogicalEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, n_left, n_right), pfunc(0) {
    }
 
    DLLLOCAL ~QoreLogicalEqualsOperatorNode() {

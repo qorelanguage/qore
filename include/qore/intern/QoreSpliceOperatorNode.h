@@ -56,12 +56,25 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSpliceOperatorNode(AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
-                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) : lvalue_exp(n_lvalue_exp),
-                                                                                                  offset_exp(n_offset_exp),
-                                                                                                  length_exp(n_length_exp),
-                                                                                                  new_exp(n_new_exp),
-                                                                                                  returnTypeInfo(0) {
+   DLLLOCAL QoreSpliceOperatorNode(int sline, int eline,
+                                   AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
+                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :
+      LValueOperatorNode(sline, eline),
+      lvalue_exp(n_lvalue_exp),
+      offset_exp(n_offset_exp),
+      length_exp(n_length_exp),
+      new_exp(n_new_exp),
+      returnTypeInfo(0) {
+   }
+   DLLLOCAL QoreSpliceOperatorNode(const QoreProgramLocation& loc,
+                                   AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
+                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :
+      LValueOperatorNode(loc),
+      lvalue_exp(n_lvalue_exp),
+      offset_exp(n_offset_exp),
+      length_exp(n_length_exp),
+      new_exp(n_new_exp),
+      returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -83,7 +96,7 @@ public:
       ReferenceHolder<> n_nw(copy_and_resolve_lvar_refs(new_exp, xsink), xsink);
       if (*xsink)
          return 0;
-      return new QoreSpliceOperatorNode(n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
+      return new QoreSpliceOperatorNode(get_runtime_location(), n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
    }
 };
 

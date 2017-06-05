@@ -46,7 +46,9 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreLogicalNotOperatorNode(AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp) {
+   DLLLOCAL QoreLogicalNotOperatorNode(int sline, int eline, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(sline, eline, n_exp) {
+   }
+   DLLLOCAL QoreLogicalNotOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp) {
    }
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;

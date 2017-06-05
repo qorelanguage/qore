@@ -37,9 +37,11 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreIntPlusEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QorePlusEqualsOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreIntPlusEqualsOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QorePlusEqualsOperatorNode(sline, eline, n_left, n_right) {
+   }
+
+   DLLLOCAL QoreIntPlusEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QorePlusEqualsOperatorNode(loc, n_left, n_right) {
    }
 };
 
 #endif
-

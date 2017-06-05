@@ -41,9 +41,11 @@ protected:
    virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QorePreDecrementOperatorNode(AbstractQoreNode *n_exp) : QorePreIncrementOperatorNode(n_exp) {
+   DLLLOCAL QorePreDecrementOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QorePreIncrementOperatorNode(sline, eline, n_exp) {
+   }
+
+   DLLLOCAL QorePreDecrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QorePreIncrementOperatorNode(loc, n_exp) {
    }
 };
 
 #endif
-

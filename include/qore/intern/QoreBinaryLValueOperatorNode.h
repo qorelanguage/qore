@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreBinaryLValueOperatorNode.h
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -42,7 +42,10 @@ protected:
 public:
    const QoreTypeInfo *ti; // typeinfo of lhs
 
-   DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right), ti(0) {
+   DLLLOCAL QoreBinaryLValueOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(sline, eline, n_left, n_right), ti(0) {
+   }
+
+   DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right), ti(0) {
    }
 };
 
@@ -54,7 +57,10 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreBinaryIntLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right) {
+   DLLLOCAL QoreBinaryIntLValueOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(sline, eline, n_left, n_right) {
+   }
+
+   DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right) {
    }
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

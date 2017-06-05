@@ -207,5 +207,5 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
 }
 
 QoreOperatorNode *QoreDotEvalOperatorNode::copyBackground(ExceptionSink *xsink) const {
-   return new QoreDotEvalOperatorNode(copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
+   return new QoreDotEvalOperatorNode(get_runtime_location(), copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
 }

@@ -43,7 +43,10 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreValueCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(e0, e1), typeInfo(0) {
+   DLLLOCAL QoreValueCoalescingOperatorNode(int sline, int eline, AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(sline, eline, e0, e1), typeInfo(0) {
+   }
+
+   DLLLOCAL QoreValueCoalescingOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, e0, e1), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;

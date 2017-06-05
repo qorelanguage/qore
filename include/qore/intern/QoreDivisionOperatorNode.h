@@ -55,7 +55,10 @@ protected:
    DLLLOCAL QoreValue bigIntDivision(ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreDivisionOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), typeInfo(0), pfunc(0) {
+   DLLLOCAL QoreDivisionOperatorNode(int sline, int eline, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(sline, eline, n_left, n_right), typeInfo(0), pfunc(0) {
+   }
+
+   DLLLOCAL QoreDivisionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right), typeInfo(0), pfunc(0) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
