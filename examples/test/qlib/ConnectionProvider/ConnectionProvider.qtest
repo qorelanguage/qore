@@ -9,76 +9,119 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/ConnectionProvider.qm
 
 %exec-class ConnectionProviderTest
 
+const CertPath = normalize_dir(get_script_dir() + DirSep + "mycert.pem");
+const KeyPath = normalize_dir(get_script_dir() + DirSep + "mykey.pem");
+const KeyPassword = "password";
+
 public class ConnectionProviderTest inherits QUnit::Test {
     constructor() : Test("ConnectionProvider Test", "1.0") {
-        addTestCase("urlp test", \urlProviderTest());
-        addTestCase("urlp neg test", \urlProviderNegativeTest());
-        addTestCase("filesystem", \filesystemConnectionTest());
+        addTestCase("http", \httpConnectionTest());
 
-        # Return for compatibility with test harness that checks return value.
+        # Return for compatibility with a test harness that checks the return value
         set_return_value(main());
     }
 
-    urlProviderTest() {
-        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        mp.parse("sub doenv() { ENV.QORE_CONNECTION_PROVIDERS = '" + get_script_dir() + "./TestConnectionProvider.qm'; }", "");
-        mp.callFunction("doenv");
-        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
+    httpConnectionTest() {
+        TestSslServer server();
+        on_exit
+            server.stop();
+        string url = "https://localhost:" + server.getPort();
+        hash urlh = parse_url(url);
+        hash opts = (
+            "ssl_cert_path": CertPath,
+            "ssl_key_path": KeyPath,
+            "ssl_key_password": KeyPassword,
+        );
+        HttpConnection hc("name", "desc", url, True, opts, urlh);
+        HTTPClient client = hc.get();
+        assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
 
-        Program p();
-        p.loadModule("ConnectionProvider");
-        p.parse("string sub test(string str) { return get_connection_url(str); }", "");
-        assertEq("test://user:pass@x", p.callFunction("test", "X"));
-        assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "Y"));
+        # turn on certificate verification in the server
+        server.acceptAllCertificates(False);
+        assertEq(False, server.getAcceptAllCertificates());
+        client.disconnect();
+        # verify that exceptions are raised in the server & client when connecting
+        assertThrows("SOCKET-SSL-ERROR", \client.connect());
+        assertEq("SOCKET-SSL-ERROR", server.waitException().err);
 
-        p.parse("AbstractConnection sub get_obj(string str) { return get_connection(str); }", "");
-        p.parse("hash sub get_conn() { return get_connections(); }", "");
-        p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
-        any obj = p.callFunction("get_obj", "X");
-        assertEq(Type::Object, obj.type());
-        assertEq("test://user@x", obj.getInfo().url);
-        assertEq(NOTHING, obj.getInfo().url_hash.password);
-        assertEq("test://user:pass@x", obj.getInfo(True).url);
-        assertEq("pass", obj.getInfo(True).url_hash.password);
-        assertEq(Type::Hash, p.callFunction("get_conn").type());
-        assertEq(Type::Hash, p.callFunction("get_hash").type());
+        # turn off certificate verification in the server
+        server.acceptAllCertificates(True);
+        # verify server certificate in the client
+        opts.ssl_verify_cert = True;
+        hc = new HttpConnection("name", "desc", url, True, opts, urlh);
+        # verify that exceptions are raised in the server & client when connecting
+        assertThrows("SOCKET-SSL-ERROR", \hc.get());
+        assertEq("SOCKET-SSL-ERROR", server.waitException().err);
+    }
+}
+
+class TestSslServer {
+    private:internal {
+        Socket sock();
+        Queue q();
+        bool exit;
     }
 
-    urlProviderNegativeTest() {
-        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
+    constructor() {
+        sock.setCertificate(ReadOnlyFile::readTextFile(CertPath));
+        sock.setPrivateKey(ReadOnlyFile::readTextFile(KeyPath), KeyPassword);
+        sock.setSslVerifyMode(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+        sock.acceptAllCertificates(True);
 
-        Program p();
-        p.loadModule("ConnectionProvider");
-        p.parse("string sub test(string str) { return get_connection_url(str); }", "");
-        assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "X"));
-        assertEq("X://x", p.callFunction("test", "X://x"));
+        if (sock.bind("localhost:0"))
+            throw "BIND-ERROR", strerror();
+
+        if (sock.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        background listen();
     }
 
-    filesystemConnectionTest() {
-        Program p();
-        p.loadModule("ConnectionProvider");
-        p.loadModule("Util");
+    stop() {
+        exit = True;
+    }
 
-        p.parse("FilesystemConnection sub get_conn() {
-    string dir = tmp_location() + '/' + get_random_string() + '/' + get_random_string();
-    string url = 'file://' + dir;
-    return new FilesystemConnection('test', 'desc', url, False, NOTHING, parse_url(url));
-}", "");
+    acceptAllCertificates(bool accept_all = True) {
+        sock.acceptAllCertificates(accept_all);
+    }
 
-        object o = p.callFunction("get_conn");
-        hash h = o.ping();
-        assertEq("test", h.name);
-        assertEq("desc", h.desc);
-        assertEq(False, h.ok);
+    bool getAcceptAllCertificates() {
+        return sock.getAcceptAllCertificates();
+    }
 
-        o.opts.readonly = True;
-        h = o.ping();
-        assertEq("test", h.name);
-        assertEq("desc", h.desc);
-        assertEq(True, h.ok);
+    private:internal listen() {
+        while (!exit) {
+            try {
+                *Socket a = sock.acceptSSL(100ms);
+                if (a) {
+                    #printf("got %y\n", a.verifyPeerCertificate());
+                    q.push(a.verifyPeerCertificate());
+                }
+            }
+            catch (hash ex) {
+                #printf("got ex: %s: %s\n", ex.err, ex.desc);
+                q.push(ex);
+            }
+        }
+    }
+
+    *string wait() {
+        return q.get();
+    }
+
+    *hash waitException() {
+        return q.get();
+    }
+
+    int queueSize() {
+        return q.size();
+    }
+
+    int getPort() {
+        return sock.getSocketInfo().port;
     }
 }
