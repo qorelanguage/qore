@@ -303,6 +303,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
+	include/qore/intern/qore_encoding_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
 	include/qore/intern/QoreLValue.h \

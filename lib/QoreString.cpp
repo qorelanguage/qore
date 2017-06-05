@@ -52,7 +52,9 @@
 #endif
 
 // to be used for trim
-static char default_whitespace[] = { ' ', '\t', '\n', '\r', '\v', '\0' };
+static intvec_t default_whitespace = {
+   ' ', '\t', '\n', '\r', '\v',
+};
 
 struct code_table {
       char symbol;
@@ -405,118 +407,124 @@ void qore_string_private::concatUTF8FromUnicode(unsigned code) {
       concat((char)code);
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query) {
+   if (!charset->isAsciiCompat()) {
+      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot decode a URI to non-ASCII-compatible encoding \"%s\"", charset->getCode());
+      return -1;
+   }
+
    bool in_query = false;
 
    const char* url = str.buf;
    while (*url) {
       int x1 = getHex(url);
       if (x1 >= 0) {
-	 // see if a multi-byte char is starting
-	 if ((x1 & 0xc0) == 0xc0) {
-	    int x2 = getHex(url);
-	    if (x2 == -1) {
-	       xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 character but only one byte was provided");
-	       return -1;
-	    }
-	    // check for a 3-byte sequence
-	    if (x1 & 0x20) {
-	       int x3 = getHex(url);
-	       if (x3 == -1) {
-		  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
-		  return -1;
-	       }
+         // see if a multi-byte char is starting
+         if ((x1 & 0xc0) == 0xc0) {
+            int x2 = getHex(url);
+            if (x2 == -1) {
+               xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 character but only one byte was provided");
+               return -1;
+            }
+            // check for a 3-byte sequence
+            if (x1 & 0x20) {
+               int x3 = getHex(url);
+               if (x3 == -1) {
+                  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
+                  return -1;
+               }
 
-	       // check for a 4-byte sequence
-	       if (x1 & 0x10) {
-		  int x4 = getHex(url);
-		  if (x4 == -1) {
-		     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte UTF-8 character but only three bytes were provided");
-		     return -1;
-		  }
-		  if (!(x2 & 0x80 && x3 & 0x80 && x4 & 0x80)) {
-		     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte UTF-8 character");
-		     return -1;
-		  }
+               // check for a 4-byte sequence
+               if (x1 & 0x10) {
+                  int x4 = getHex(url);
+                  if (x4 == -1) {
+                     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte UTF-8 character but only three bytes were provided");
+                     return -1;
+                  }
+                  if (!(x2 & 0x80 && x3 & 0x80 && x4 & 0x80)) {
+                     xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte UTF-8 character");
+                     return -1;
+                  }
 
-		  // if utf8 then concat directly
-		  if (getEncoding() == QCS_UTF8) {
-		     concat((char)x1);
-		     concat((char)x2);
-		     concat((char)x3);
-		     concat((char)x4);
-		  }
-		  else {
-		     unsigned cp = (((unsigned)(x1 & 0x07)) << 18)
-			| (((unsigned)(x2 & 0x3f)) << 12)
-			| ((((unsigned)x3 & 0x3f)) << 6)
-			| (((unsigned)x4 & 0x3f));
-		     if (concatUnicode(cp, xsink))
-			return -1;
-		  }
-		  continue;
-	       }
-	       // 3-byte sequence
-	       if (!(x2 & 0x80 && x3 & 0x80)) {
-		  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte UTF-8 character");
-		  return -1;
-	       }
+                  // if utf8 then concat directly
+                  if (getEncoding() == QCS_UTF8) {
+                     concat((char)x1);
+                     concat((char)x2);
+                     concat((char)x3);
+                     concat((char)x4);
+                  }
+                  else {
+                     unsigned cp = (((unsigned)(x1 & 0x07)) << 18)
+                        | (((unsigned)(x2 & 0x3f)) << 12)
+                        | ((((unsigned)x3 & 0x3f)) << 6)
+                        | (((unsigned)x4 & 0x3f));
+                     if (concatUnicode(cp, xsink))
+                        return -1;
+                  }
+                  continue;
+               }
+               // 3-byte sequence
+               if (!(x2 & 0x80 && x3 & 0x80)) {
+                  xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte UTF-8 character");
+                  return -1;
+               }
 
-	       // if utf8 then concat directly
-	       if (getEncoding() == QCS_UTF8) {
-		  concat((char)x1);
-		  concat((char)x2);
-		  concat((char)x3);
-	       }
-	       else {
-		  unsigned cp = (((unsigned)(x1 & 0x0f)) << 12)
-		     | (((unsigned)(x2 & 0x3f)) << 6)
-		     | (((unsigned)x3 & 0x3f));
+               // if utf8 then concat directly
+               if (getEncoding() == QCS_UTF8) {
+                  concat((char)x1);
+                  concat((char)x2);
+                  concat((char)x3);
+               }
+               else {
+                  unsigned cp = (((unsigned)(x1 & 0x0f)) << 12)
+                     | (((unsigned)(x2 & 0x3f)) << 6)
+                     | (((unsigned)x3 & 0x3f));
 
-		  if (concatUnicode(cp, xsink))
-		     return -1;
-	       }
-	       continue;
-	    }
-	    // 2-byte sequence
-	    if (!(x2 & 0x80)) {
-	       xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 character");
-	       return -1;
-	    }
+                  if (concatUnicode(cp, xsink))
+                     return -1;
+               }
+               continue;
+            }
+            // 2-byte sequence
+            if (!(x2 & 0x80)) {
+               xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 character");
+               return -1;
+            }
 
-	    // if utf8 then concat directly
-	    if (getEncoding() == QCS_UTF8) {
-	       concat((char)x1);
-	       concat((char)x2);
-	    }
-	    else {
-	       unsigned cp = (((unsigned)(x1 & 0x1f)) << 6)
-		  | ((unsigned)(x2 & 0x3f));
-	       if (concatUnicode(cp, xsink))
-		  return -1;
-	    }
-	    continue;
-	 }
-	 // single byte
-	 concat(x1);
-	 continue;
+            // if utf8 then concat directly
+            if (getEncoding() == QCS_UTF8) {
+               concat((char)x1);
+               concat((char)x2);
+            }
+            else {
+               unsigned cp = (((unsigned)(x1 & 0x1f)) << 6)
+                  | ((unsigned)(x2 & 0x3f));
+               if (concatUnicode(cp, xsink))
+                  return -1;
+            }
+            continue;
+         }
+         // single byte
+         concat(x1);
+         continue;
       }
 
       if (detect_query) {
-	 if (!in_query) {
-	    if ((*url) == '?')
-	       in_query = true;
-	 }
-	 else {
-	    if ((*url) == '+') {
-	       ++url;
-	       concat(' ');
-	       continue;
-	    }
-	    else if ((*url) == '#') {
-	       in_query = false;
-	    }
-	 }
+         if (!in_query) {
+            if ((*url) == '?')
+               in_query = true;
+         }
+         else {
+            if ((*url) == '+') {
+               ++url;
+               concat(' ');
+               continue;
+            }
+            else if ((*url) == '#') {
+               in_query = false;
+            }
+         }
       }
 
       concat(*(url++));
@@ -524,55 +532,61 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
    return 0;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str) {
    assert(str.len);
+
+   if (!charset->isAsciiCompat()) {
+      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"", charset->getCode());
+      return -1;
+   }
 
    int state = QUS_PATH;
 
    const unsigned char* p = (const unsigned char*)str.buf;
    while (*p) {
       if ((*p) == '%')
-	 concat("%25");
+         concat("%25");
       else if (*p > 127) {
-	 qore_size_t len = q_UTF8_get_char_len((const char*)p, str.len - ((const char*)p - str.buf));
-	 if (len <= 0) {
-	    xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
-	    return -1;
-	 }
-	 // add UTF-8 percent-encoded characters
-	 for (qore_size_t i = 0; i < len; ++i)
-	    sprintf("%%%X", (unsigned)p[i]);
-	 p += len;
-	 continue;
+         qore_size_t len = q_UTF8_get_char_len((const char*)p, str.len - ((const char*)p - str.buf));
+         if (len <= 0) {
+            xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
+            return -1;
+         }
+         // add UTF-8 percent-encoded characters
+         for (qore_size_t i = 0; i < len; ++i)
+            sprintf("%%%X", (unsigned)p[i]);
+         p += len;
+         continue;
       }
       else if (state == QUS_PATH) {
-	 if ((*p) == '?') {
-	    state = QUS_QUERY;
-	    concat(*p);
-	 }
-	 else if ((*p) == '#') {
-	    state = QUS_FRAGMENT;
-	    concat(*p);
-	 }
-	 else if ((*p) == ' ')
-	    concat("%20");
-	 else
-	    concat(*p);
+         if ((*p) == '?') {
+            state = QUS_QUERY;
+            concat(*p);
+         }
+         else if ((*p) == '#') {
+            state = QUS_FRAGMENT;
+            concat(*p);
+         }
+         else if ((*p) == ' ')
+            concat("%20");
+         else
+            concat(*p);
       }
       else if (state == QUS_QUERY) {
-	 if ((*p) == ' ')
-	    concat('+');
-	 else if ((*p) == '+')
-	    concat("%2b");
-	 else
-	    concat(*p);
+         if ((*p) == ' ')
+            concat('+');
+         else if ((*p) == '+')
+            concat("%2b");
+         else
+            concat(*p);
       }
       else {
-	 assert(state == QUS_PATH);
-	 if ((*p) == ' ')
-	    concat("%20");
-	 else
-	    concat(*p);
+         assert(state == QUS_PATH);
+         if ((*p) == ' ')
+            concat("%20");
+         else
+            concat(*p);
       }
 
       ++p;
@@ -635,27 +649,11 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
 }
 
 unsigned int qore_string_private::getUnicodePointFromBytePos(qore_size_t offset, unsigned& clen, ExceptionSink* xsink) const {
-   if (getEncoding() == QCS_UTF8) {
-      clen = QCS_UTF8->getByteLen(buf + offset, buf + len, 1, xsink);
-      if (*xsink)
-	 return 0;
-
-      return get_unicode_from_utf8(buf + offset, clen);
-   }
-
-   assert(!getEncoding()->isMultiByte());
-   clen = 1;
-   QoreString tmp(QCS_UTF8);
-   if (convert_encoding_intern(buf + offset, 1, getEncoding(), tmp, QCS_UTF8, xsink))
-      return 0;
-
-   qore_size_t bl = QCS_UTF8->getByteLen(tmp.priv->buf, tmp.priv->buf + tmp.priv->len, 1, xsink);
-   if (*xsink)
-      return 0;
-
-   return get_unicode_from_utf8(tmp.priv->buf, bl);
+   // gets the unicode code point
+   return charset->getUnicode(buf + offset, buf + len, clen, xsink);
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
    //printd(5, "qore_string_private::concatEncode() '%s' code: 0x%x\n", str.getBuffer(), code);
 
@@ -669,17 +667,27 @@ int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& st
       return *xsink ? -1 : 0;
    }
 
+   if (!charset->isAsciiCompat()) {
+       xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode to non-ASCII-compatible encoding \"%s\"", charset->getCode());
+       return -1;
+   }
+
    qore_string_private* p = 0;
    TempEncodingHelper cstr;
 
    // convert encoding if we are not going to encode all non-ascii characters anyway
    if (!(code & CE_NONASCII)) {
       if (!cstr.set(&str, getEncoding(), xsink))
-	 return -1;
+         return -1;
       p = cstr->priv;
    }
-   else
+   else {
+      if (!str.priv->charset->isAsciiCompat()) {
+         xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode from non-ASCII-compatible encoding \"%s\"", str.priv->charset->getCode());
+         return -1;
+      }
       p = str.priv;
+   }
 
    //printd(5, "qore_string_private::concatEncode() p: %p '%s' len: %d\n", p, p->buf, p->len);
 
@@ -688,38 +696,38 @@ int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& st
       // see if we are dealing with a non-ascii character
       const unsigned char c = p->buf[i];
       if ((c & 0x80)) {
-	 unsigned len = 0;
-	 unsigned cp = p->getUnicodePointFromBytePos(i, len, xsink);
-	 if ((code & CE_HTML)) {
-	    if (*xsink)
-	       return -1;
-	    assert(len);
-	    assert(cp);
-	    // see if it's an known special character
-	    smap_t::iterator si = smap.find(cp);
-	    //printd(5, "qore_string_private::concatEncode() i: %u c: %u cp: %u len: %u found: %s (%s)\n", i, c, cp, len, si != smap.end() ? "true" : "false", getEncoding()->getCode());
-	    if (si != smap.end()) {
-	       sprintf("&%s;", si->second.c_str());
-	       i += len - 1;
-	       continue;
-	    }
-	 }
+         unsigned len = 0;
+         unsigned cp = p->getUnicodePointFromBytePos(i, len, xsink);
+         if (*xsink)
+            return -1;
+         if ((code & CE_HTML)) {
+            assert(len);
+            assert(cp);
+            // see if it's an known special character
+            smap_t::iterator si = smap.find(cp);
+            //printd(5, "qore_string_private::concatEncode() i: %u c: %u cp: %u len: %u found: %s (%s)\n", i, c, cp, len, si != smap.end() ? "true" : "false", getEncoding()->getCode());
+            if (si != smap.end()) {
+               sprintf("&%s;", si->second.c_str());
+               i += len - 1;
+               continue;
+            }
+         }
 
-	 if (code & CE_NONASCII) {
-	    // otherwise just output the character entity
-	    sprintf("&#%u;", cp);
-	    i += len - 1;
-	    continue;
-	 }
+         if (code & CE_NONASCII) {
+            // otherwise just output the character entity
+            sprintf("&#%u;", cp);
+            i += len - 1;
+            continue;
+         }
       }
       else if (((code & CE_HTML) && HTML_ASCII(c))
-	       || ((code & CE_XML) && XML_ASCII(c))) {
-	 smap_t::iterator it = smap.find(c);
-	 assert(it != smap.end());
-	 concat('&');
-	 concat(it->second.c_str());
-	 concat(';');
-	 continue;
+               || ((code & CE_XML) && XML_ASCII(c))) {
+         smap_t::iterator it = smap.find(c);
+         assert(it != smap.end());
+         concat('&');
+         concat(it->second.c_str());
+         concat(';');
+         continue;
       }
 
       concat(p->buf[i]);
@@ -727,6 +735,7 @@ int qore_string_private::concatEncode(ExceptionSink* xsink, const QoreString& st
    return 0;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code) {
    // if it's not a null string
    if (!str.priv->len)
@@ -739,6 +748,10 @@ int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& st
    }
 
    const QoreEncoding* enc = getEncoding();
+   if (!enc->isAsciiCompat()) {
+       xsink->raiseException("UNSUPPORTED-ENCODING", "cannot decode to non-ASCII-compatible encoding \"%s\"", enc->getCode());
+       return -1;
+   }
 
    TempEncodingHelper cstr(str, enc, xsink);
    if (!cstr)
@@ -762,26 +775,26 @@ int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& st
       // concatenate translated character
       // check for unicode character references
       if ((*(s + 1) == '#')) {
-	 if (code & CD_NUM_REF) {
-	    s += 2;
-	    // find end of character sequence
-	    const char* e = strchr(s, ';');
-	    // if not found or the number is too big, then don't try to decode it
-	    if (e && (e - s) < 8) {
-	       unsigned code;
-	       if (*s == 'x')
-		  code = strtoul(s + 1, 0, 16);
-	       else
-		  code = strtoul(s, 0, 10);
+         if (code & CD_NUM_REF) {
+            s += 2;
+            // find end of character sequence
+            const char* e = strchr(s, ';');
+            // if not found or the number is too big, then don't try to decode it
+            if (e && (e - s) < 8) {
+               unsigned code;
+               if (*s == 'x')
+                  code = strtoul(s + 1, 0, 16);
+               else
+                  code = strtoul(s, 0, 10);
 
-	       if (!concatUnicode(code)) {
-		  i = e - p->buf;
-		  continue;
-	       }
-	       // error occurred, so back out
-	       s -= 2;
-	    }
-	 }
+               if (!concatUnicode(code)) {
+                  i = e - p->buf;
+                  continue;
+               }
+               // error occurred, so back out
+               s -= 2;
+            }
+         }
       }
       else if (isascii(*(s + 1)) && (code & CD_XHTML)) {
          s += 1;
@@ -794,20 +807,20 @@ int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& st
             //printd(0, "entity: %s\n", entity.c_str());
             emap_t::iterator it = emap.find(entity);
             if (it != emap.end()) {
-	       bool ok = dall;
-	       // if XML only
-	       if (!ok && !(code & CD_HTML))
-		  ok = it->second < 0x80;
-	       // if HTML only
-	       else if (!ok && !(code & CD_XML))
-		  ok = it->second != 0x27;
-	       else
-		  ok = true;
-	       if (ok && !concatUnicode(it->second)) {
-		  i = e - p->buf;
-		  continue;
-	       }
-	    }
+               bool ok = dall;
+               // if XML only
+               if (!ok && !(code & CD_HTML))
+                  ok = it->second < 0x80;
+               // if HTML only
+               else if (!ok && !(code & CD_XML))
+                  ok = it->second != 0x27;
+               else
+                  ok = true;
+               if (ok && !concatUnicode(it->second)) {
+                  i = e - p->buf;
+                  continue;
+               }
+            }
          }
          // not found or error occurred concatenating char, so back out
          s -= 1;
@@ -815,13 +828,13 @@ int qore_string_private::concatDecode(ExceptionSink* xsink, const QoreString& st
 
       // concatentate ASCII characters directly
       if ((unsigned char)(*s) < 0x80) {
-	 concat(*s);
-	 continue;
+         concat(*s);
+         continue;
       }
       // concatenate character as a single unit
       size_t cl = enc->getByteLen(s, p->buf + p->len, 1, xsink);
       if (*xsink)
-	 return -1;
+         return -1;
       concat_intern(s, cl);
       i += cl - 1;
    }
@@ -869,6 +882,91 @@ int qore_string_private::concatUnicode(unsigned code) {
    return 0;
 }
 
+int qore_string_private::trimLeading(ExceptionSink* xsink, const intvec_t& cvec) {
+   qore_size_t i = 0;
+
+   // trim default whitespace
+   while (i < len) {
+      // get unicode code point of first character in string
+      unsigned clen;
+      int c = getUnicodePointFromBytePos(i, clen, xsink);
+      if (*xsink)
+         return -1;
+      // see if the character is in the character vector
+      if (!inVector(c, cvec))
+         break;
+      i += clen;
+   }
+
+   memmove(buf, buf + i, len + 1 - i);
+   len -= i;
+   return 0;
+}
+
+int qore_string_private::trimLeading(ExceptionSink* xsink, const qore_string_private* chars) {
+   if (!len)
+      return 0;
+
+   if (!chars)
+      return trimLeading(xsink, default_whitespace);
+
+   // get a list of unicode points for the characters in chars
+   intvec_t cvec;
+   if (chars->getUnicodeCharArray(cvec, xsink))
+      return -1;
+
+   return trimLeading(xsink, cvec);
+}
+
+int qore_string_private::trimTrailing(ExceptionSink* xsink, const intvec_t& cvec) {
+   // get length of string in characters
+   size_t i = charset->getLength(buf, buf + len, xsink);
+   if (*xsink)
+      return -1;
+   assert(i);
+
+   while (i) {
+      --i;
+      // get byte offset for the last character
+      qore_size_t bpos = charset->getByteLen(buf, buf + len, i, xsink);
+      if (*xsink)
+         return -1;
+      unsigned clen;
+      // get the unicode point for the last character in the string
+      int c = getUnicodePointFromBytePos(bpos, clen, xsink);
+      if (*xsink)
+         return -1;
+      // see if the character is in the character vector
+      if (!inVector(c, cvec))
+         break;
+      terminate(bpos);
+   }
+
+   return 0;
+}
+
+int qore_string_private::trimTrailing(ExceptionSink* xsink, const qore_string_private* chars) {
+   if (!len)
+      return 0;
+
+   if (!chars)
+      return trimTrailing(xsink, default_whitespace);
+
+   // get a list of unicode points for the characters in chars
+   intvec_t cvec;
+   if (chars->getUnicodeCharArray(cvec, xsink))
+      return -1;
+
+   return trimTrailing(xsink, cvec);
+}
+
+void qore_string_private::terminate(size_t size) {
+   if (size > len)
+      check_char(size);
+   len = size;
+   buf[size] = '\0';
+}
+
 QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
    va_list args;
 
@@ -908,9 +1006,9 @@ QoreString::QoreString(const char* str) : priv(new qore_string_private) {
    priv->buf = (char*)malloc(priv->allocated * sizeof(char));
    if (str) {
       while (str[priv->len]) {
-	 priv->check_char(priv->len);
-	 priv->buf[priv->len] = str[priv->len];
-	 priv->len++;
+         priv->check_char(priv->len);
+         priv->buf[priv->len] = str[priv->len];
+         priv->len++;
       }
       priv->check_char(priv->len);
       priv->buf[priv->len] = '\0';
@@ -927,9 +1025,9 @@ QoreString::QoreString(const char* str, const QoreEncoding* new_qorecharset) : p
    priv->buf = (char*)malloc(priv->allocated * sizeof(char));
    if (str) {
       while (str[priv->len]) {
-	 priv->check_char(priv->len);
-	 priv->buf[priv->len] = str[priv->len];
-	 priv->len++;
+         priv->check_char(priv->len);
+         priv->buf[priv->len] = str[priv->len];
+         priv->len++;
       }
       priv->check_char(priv->len);
       priv->buf[priv->len] = '\0';
@@ -1027,7 +1125,7 @@ QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {
    qore_tm info;
    d->getInfo(info);
    priv->len = ::sprintf(priv->buf, "%04d%02d%02d%02d%02d%02d", info.year, info.month,
-			 info.day, info.hour, info.minute, info.second);
+                         info.day, info.hour, info.minute, info.second);
    priv->charset = QCS_DEFAULT;
 }
 
@@ -1220,6 +1318,7 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    return !memcmp(a->getBuffer(), b->getBuffer(), b->size());
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) const {
    // empty strings are always equal even if the character encoding is different
    if (!priv->len) {
@@ -1236,8 +1335,14 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
 
    // optionally convert both strings to the same encoding
    const QoreEncoding* enc = priv->getEncoding();
-   if (enc == QCS_USASCII)
+   if (enc == QCS_USASCII || !enc->isAsciiCompat())
       enc = str.priv->getEncoding();
+
+   if (!enc->isAsciiCompat()) {
+      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot perform path matching on non-ASCII-compatible encoding \"%s\"", enc->getCode());
+      return false;
+   }
+
    TempEncodingHelper a(this, enc, xsink);
    if (xsink && *xsink)
       return false;
@@ -1262,10 +1367,7 @@ bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) c
 }
 
 void QoreString::terminate(qore_size_t size) {
-   if (size > priv->len)
-      priv->check_char(size);
-   priv->len = size;
-   priv->buf[size] = '\0';
+   priv->terminate(size);
 }
 
 void QoreString::reserve(qore_size_t size) {
@@ -1360,7 +1462,7 @@ void QoreString::set(const char* str, const QoreEncoding* new_qorecharset) {
    priv->charset = new_qorecharset;
    if (!str) {
       if (priv->buf)
-	 priv->buf[0] = '\0';
+         priv->buf[0] = '\0';
    }
    else
       concat(str);
@@ -1594,7 +1696,7 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
 
       // remove BOM bytes (invisible non-breaking space) at the beginning of a string when converting to UTF-8
       if (nccs == QCS_UTF8 && targ->priv->len >= 3 && (unsigned char)targ->priv->buf[0] == 0xef && (unsigned char)targ->priv->buf[1] == 0xbb && (unsigned char)targ->priv->buf[2] == 0xbf) {
-         printd(0, "QoreString::convertEncoding() found BOM, removing\n");
+         printd(5, "QoreString::convertEncoding() found BOM, removing\n");
          targ->splice_simple(0, 3);
       }
    }
@@ -1615,6 +1717,7 @@ static void base64_concat(QoreString& str, unsigned char c, qore_size_t& linelen
 // endian-agnostic binary object -> base64 string function
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatBase64(const char* bbuf, qore_size_t size, qore_size_t maxlinelen) {
    //printf("bbuf=%p, size=" QSD "\n", bbuf, size);
    if (!size)
@@ -1636,9 +1739,9 @@ void QoreString::concatBase64(const char* bbuf, qore_size_t size, qore_size_t ma
 
       // check end
       if ((endbuf - p) == 1) {
-	 base64_concat(*this, c, linelen, maxlinelen);
-	 concat("==");
-	 break;
+         base64_concat(*this, c, linelen, maxlinelen);
+         concat("==");
+         break;
       }
 
       // byte 2: get 4 bits to make next 6-bit unit
@@ -1651,9 +1754,9 @@ void QoreString::concatBase64(const char* bbuf, qore_size_t size, qore_size_t ma
       c = (p[1] & 15) << 2;
 
       if ((endbuf - p) == 2) {
-	 base64_concat(*this, c, linelen, maxlinelen);
-	 concat('=');
-	 break;
+         base64_concat(*this, c, linelen, maxlinelen);
+         concat('=');
+         break;
       }
 
       // byte 3: get high 2 bits to make next 6-bit unit
@@ -1690,6 +1793,7 @@ void QoreString::concatBase64(const char* bbuf, qore_size_t size) {
 
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatHex(const char* binbuf, qore_size_t size) {
    //printf("priv->buf=%p, size=" QSD "\n", binbuf, size);
    if (!size)
@@ -1719,27 +1823,29 @@ void QoreString::concatAndHTMLEncode(const QoreString* str, ExceptionSink* xsink
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLEncode(const char* str) {
    // if it's not a null string
    if (str) {
       qore_size_t i = 0;
       // iterate through new string
       while (str[i]) {
-	 // concatenate translated character
-	 qore_size_t j;
-	 for (j = 0; j < NUM_HTML_CODES; j++)
-	    if (str[i] == html_codes[j].symbol) {
-	       concat(html_codes[j].code);
-	       break;
-	    }
-	 // otherwise concatenate untranslated symbol
-	 if (j == NUM_HTML_CODES)
-	    concat(str[i]);
-	 ++i;
+         // concatenate translated character
+         qore_size_t j;
+         for (j = 0; j < NUM_HTML_CODES; j++)
+            if (str[i] == html_codes[j].symbol) {
+               concat(html_codes[j].code);
+               break;
+            }
+         // otherwise concatenate untranslated symbol
+         if (j == NUM_HTML_CODES)
+            concat(str[i]);
+         ++i;
       }
    }
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const QoreString* str) {
    if (!str || !str->priv->len)
       return;
@@ -1747,12 +1853,14 @@ void QoreString::concatAndHTMLDecode(const QoreString* str) {
    concatAndHTMLDecode(str->getBuffer(), str->priv->len);
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const char* str) {
    if (str)
       concatAndHTMLDecode(str, ::strlen(str));
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
    if (!slen)
       return;
@@ -1762,67 +1870,68 @@ void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
    qore_size_t i = 0;
    while (str[i]) {
       if (str[i] != '&') {
-	 concat(str[i++]);
-	 continue;
+         concat(str[i++]);
+         continue;
       }
 
       // concatenate translated character
       const char* s = str + i;
       // check for unicode character references
       if (*(s + 1) == '#') {
-	 s += 2;
-	 // find end of character sequence
-	 const char* e = strchr(s, ';');
-	 // if not found or the number is too big, then don't try to decode it
-	 if (e && (e - s) < 8) {
-	    unsigned code;
-	    if (*s == 'x')
-	       code = strtoul(s + 1, 0, 16);
-	    else
-	       code = strtoul(s, 0, 10);
+         s += 2;
+         // find end of character sequence
+         const char* e = strchr(s, ';');
+         // if not found or the number is too big, then don't try to decode it
+         if (e && (e - s) < 8) {
+            unsigned code;
+            if (*s == 'x')
+               code = strtoul(s + 1, 0, 16);
+            else
+               code = strtoul(s, 0, 10);
 
-	    if (!concatUnicode(code)) {
-	       i = e - str + 1;
-	       continue;
-	    }
-	    // error occurred, so back out
-	    s -= 2;
-	 }
+            if (!concatUnicode(code)) {
+               i = e - str + 1;
+               continue;
+            }
+            // error occurred, so back out
+            s -= 2;
+         }
       }
       else if (isascii(*(s + 1))) {
-	 s += 1;
-	 // find end of character sequence
-	 const char* e = strchr(s, ';');
-	 // if not found or the number is too big, then don't try to decode it
-	 if (e && (e - s) < 16) {
-	    // find unicode code point
-	    std::string entity(s, e - s);
-	    //printd(0, "entity: %s\n", entity.c_str());
-	    emap_t::iterator it = emap.find(entity);
-	    if (it != emap.end() && !concatUnicode(it->second)) {
-	       i = e - str + 1;
-	       continue;
-	    }
-	 }
-	 // not found or error occurred concatenating char, so back out
-	 s -= 1;
+         s += 1;
+         // find end of character sequence
+         const char* e = strchr(s, ';');
+         // if not found or the number is too big, then don't try to decode it
+         if (e && (e - s) < 16) {
+            // find unicode code point
+            std::string entity(s, e - s);
+            //printd(0, "entity: %s\n", entity.c_str());
+            emap_t::iterator it = emap.find(entity);
+            if (it != emap.end() && !concatUnicode(it->second)) {
+               i = e - str + 1;
+               continue;
+            }
+         }
+         // not found or error occurred concatenating char, so back out
+         s -= 1;
       }
       concat(str[i++]);
    }
 }
 
 // deprecated, does not support RFC-3986
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatDecodeUrl(const char* url) {
   if (!url)
       return;
 
    while (*url) {
       if (*url == '%' && isxdigit(*(url + 1)) && isxdigit(*(url + 2))) {
-	 char x[3] = { *(url + 1), *(url + 2), '\0' };
-	 char code = strtol(x, 0, 16);
-	 concat(code);
-	 url += 3;
-	 continue;
+         char x[3] = { *(url + 1), *(url + 2), '\0' };
+         char code = strtol(x, 0, 16);
+         concat(code);
+         url += 3;
+         continue;
       }
       concat(*url);
       ++url;
@@ -1832,6 +1941,7 @@ void QoreString::concatDecodeUrl(const char* url) {
 // assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
 int QoreString::concatDecodeUrl(const QoreString& url_str, ExceptionSink* xsink) {
    assert(xsink);
+
    TempEncodingHelper str(url_str, priv->getEncoding(), xsink);
    if (*xsink)
       return -1;
@@ -1845,6 +1955,11 @@ int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, boo
    if (!url.size())
       return 0;
 
+   if (!priv->charset->isAsciiCompat()) {
+      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"", priv->charset->getCode());
+      return -1;
+   }
+
    TempEncodingHelper str(url, QCS_UTF8, xsink);
    if (*xsink)
       return -1;
@@ -1852,26 +1967,26 @@ int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, boo
    const unsigned char* p = (const unsigned char*)str->getBuffer();
    while (*p) {
       if ((*p) == '%')
-	 concat("%25");
+         concat("%25");
       else if ((*p) == ' ')
-	 concat("%20");
+         concat("%20");
       else if (*p > 127) {
-	 qore_size_t len = q_UTF8_get_char_len((const char*)p, str->size() - ((const char*)p - str->getBuffer()));
-	 if (len <= 0) {
-	    xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
-	    return -1;
-	 }
-	 // add UTF-8 percent-encoded characters
-	 for (qore_size_t i = 0; i < len; ++i)
-	    sprintf("%%%X", (unsigned)p[i]);
-	 p += len;
-	 continue;
+         qore_size_t len = q_UTF8_get_char_len((const char*)p, str->size() - ((const char*)p - str->getBuffer()));
+         if (len <= 0) {
+            xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
+            return -1;
+         }
+         // add UTF-8 percent-encoded characters
+         for (qore_size_t i = 0; i < len; ++i)
+            sprintf("%%%X", (unsigned)p[i]);
+         p += len;
+         continue;
       }
       else if (encode_all && url_reserved.find(*p) != url_reserved.end()) {
-	 sprintf("%%%X", (unsigned)*p);
+         sprintf("%%%X", (unsigned)*p);
       }
       else
-	 concat(*p);
+         concat(*p);
 
       ++p;
    }
@@ -2034,7 +2149,7 @@ int QoreString::snprintf(size_t size, const char* fmt, ...) {
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_t length) const {
    printd(5, "QoreString::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  offset, length, priv->buf, this, priv->len);
+          offset, length, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
    if (offset < 0)
@@ -2063,7 +2178,7 @@ int QoreString::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset) const {
    printd(5, "QoreString::substr_simple(offset=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  offset, priv->buf, this, priv->len);
+          offset, priv->buf, this, priv->len);
 
    qore_size_t n_offset;
    if (offset < 0)
@@ -2082,7 +2197,7 @@ int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset
    assert(xsink);
    QORE_TRACE("QoreString::substr_complex(offset, length)");
    printd(5, "QoreString::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-	  offset, length, priv->buf, this, priv->len);
+          offset, length, priv->buf, this, priv->len);
 
    char* pend = priv->buf + priv->len;
    if (offset < 0) {
@@ -2389,6 +2504,7 @@ int QoreString::compareSoft(const QoreString* str, ExceptionSink* xsink) const {
    return !rc ? 0 : 1;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatEscape(const char* str, char c, char esc_char) {
    // if it's not a null string
    if (str) {
@@ -2412,7 +2528,13 @@ void QoreString::concatEscape(const char* str, char c, char esc_char) {
    }
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink) {
+   if (!priv->charset->isAsciiCompat()) {
+      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot process escapes for non-ASCII-compatible encoding \"%s\"", priv->charset->getCode());
+      return;
+   }
+
    // if it's not a null string
    if (str && str->priv->len) {
       TempEncodingHelper cstr(str, priv->getEncoding(), xsink);
@@ -2458,12 +2580,14 @@ qore_size_t QoreString::length() const {
    return priv->len;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concat(const DateTime *d) {
    qore_tm info;
    d->getInfo(info);
    sprintf("%04d%02d%02d%02d%02d%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatISO8601DateTime(const DateTime *d) {
    qore_tm info;
    d->getInfo(currentTZ(), info);
@@ -2530,6 +2654,7 @@ QoreString* QoreString::copy() const {
    return new QoreString(*this);
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::tolwr() {
    char* c = priv->buf;
    while (*c) {
@@ -2538,6 +2663,7 @@ void QoreString::tolwr() {
    }
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::toupr() {
    char* c = priv->buf;
    while (*c) {
@@ -2567,6 +2693,7 @@ const char* QoreString::c_str() const {
    return priv->buf;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::addch(char c, unsigned times) {
    priv->check_char(priv->len + times); // more data will follow the padding
    memset(priv->buf + priv->len, c, times);
@@ -2574,6 +2701,7 @@ void QoreString::addch(char c, unsigned times) {
    priv->buf[priv->len] = 0;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int QoreString::insertch(char c, qore_size_t pos, unsigned times) {
    //printd(5, "QoreString::insertch(c: %c pos: " QLLD " times: %d) this: %p\n", c, pos, times, this);
    if (pos > priv->len || !times)
@@ -2588,6 +2716,7 @@ int QoreString::insertch(char c, qore_size_t pos, unsigned times) {
    return 0;
 }
 
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int QoreString::insert(const char* str, qore_size_t pos) {
    if (pos > priv->len)
       return -1;
@@ -2621,7 +2750,7 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    char* endp = priv->buf + priv->len;
    qore_size_t clen = priv->getEncoding()->getLength(priv->buf, endp, invalid);
    if (invalid)
-      return 0;
+      return -1;
 
    //printd(0, "splice_complex(offset=" QSD ") clen=" QSD "\n", offset, clen);
    if (offset < 0) {
@@ -2636,33 +2765,32 @@ unsigned int QoreString::getUnicodePointFromUTF8(qore_offset_t offset) const {
    if (offset) {
       offset = priv->getEncoding()->getByteLen(priv->buf, endp, offset, invalid);
       if (invalid)
-         return 0;
+         return -1;
    }
 
    qore_size_t bl = priv->getEncoding()->getByteLen(priv->buf + offset, endp, 1, invalid);
    if (invalid)
-      return 0;
+      return -1;
 
    return get_unicode_from_utf8(priv->buf + offset, bl);
 }
 
 unsigned int QoreString::getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const {
-   if (offset >= 0 || !priv->getEncoding()->isMultiByte()) {
-      if (offset < 0) {
-         offset = priv->len + offset;
-         if (offset < 0)
-            offset = 0;
-      }
-      qore_size_t bl = priv->getEncoding()->getByteLen(priv->buf, priv->buf + priv->len, offset, xsink);
+   if (offset < 0) {
+      // get string length in characters
+      qore_offset_t clen = (qore_offset_t)priv->getEncoding()->getLength(priv->buf, priv->buf + priv->len, xsink);
       if (*xsink)
-         return 0;
-
-      unsigned len;
-      return getUnicodePointFromBytePos(bl, len, xsink);
+         return -1;
+      offset = clen + offset;
+      if (offset < 0)
+         offset = 0;
    }
+   qore_size_t bl = priv->getEncoding()->getByteLen(priv->buf, priv->buf + priv->len, offset, xsink);
+   if (*xsink)
+      return -1;
 
-   assert(priv->getEncoding() == QCS_UTF8);
-   return getUnicodePointFromUTF8(offset);
+   unsigned len;
+   return getUnicodePointFromBytePos(bl, len, xsink);
 }
 
 unsigned int QoreString::getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const {
@@ -2722,6 +2850,19 @@ void QoreString::trim(char c) {
    trim_leading(c);
 }
 
+int QoreString::trim(ExceptionSink* xsink, const QoreString* chars) {
+   qore_string_private* pchars = chars ? chars->priv : nullptr;
+   return priv->trimLeading(xsink, pchars) || priv->trimTrailing(xsink, pchars);
+}
+
+int QoreString::trimLeading(ExceptionSink* xsink, const QoreString* chars) {
+   return priv->trimLeading(xsink, chars ? chars->priv : nullptr);
+}
+
+int QoreString::trimTrailing(ExceptionSink* xsink, const QoreString* chars) {
+   return priv->trimTrailing(xsink, chars ? chars->priv : nullptr);
+}
+
 // remove trailing chars
 void QoreString::trim_trailing(const char* chars) {
    if (!priv->len)
@@ -2729,7 +2870,7 @@ void QoreString::trim_trailing(const char* chars) {
 
    char* p = priv->buf + priv->len - 1;
    if (!chars) // use an alternate path here so we can check for embedded nulls as well
-      while (p >= priv->buf && strnchr(default_whitespace, sizeof(default_whitespace), *p))
+      while (p >= priv->buf && qore_string_private::inVector(*p, default_whitespace))
          --p;
    else
       while (p >= priv->buf && strchr(chars, *p))
@@ -2745,7 +2886,7 @@ void QoreString::trim_leading(const char* chars) {
 
    qore_size_t i = 0;
    if (!chars)
-      while (i < priv->len && strnchr(default_whitespace, sizeof(default_whitespace), priv->buf[i]))
+      while (i < priv->len && qore_string_private::inVector(priv->buf[i], default_whitespace))
          ++i;
    else
       while (i < priv->len && strchr(chars, priv->buf[i]))

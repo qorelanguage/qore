@@ -73,9 +73,9 @@ struct qore_qf_private {
    Queue* cb_queue;
 
    DLLLOCAL qore_qf_private(const QoreEncoding* cs) : is_open(false),
-						      special_file(false),
-						      charset(cs),
-						      cb_queue(0) {
+                                                      special_file(false),
+                                                      charset(cs),
+                                                      cb_queue(0) {
    }
 
    DLLLOCAL ~qore_qf_private() {
@@ -90,16 +90,16 @@ struct qore_qf_private {
 
       int rc;
       if (is_open) {
-	 if (special_file)
-	    rc = -1;
-	 else {
-	    rc = ::close(fd);
-	    is_open = false;
-	    do_close_event_unlocked();
-	 }
+         if (special_file)
+            rc = -1;
+         else {
+            rc = ::close(fd);
+            is_open = false;
+            do_close_event_unlocked();
+         }
       }
       else
-	 rc = 0;
+         rc = 0;
       return rc;
    }
 
@@ -107,32 +107,32 @@ struct qore_qf_private {
       close_intern();
 
       if (!flags)
-	 flags = O_RDONLY;
+         flags = O_RDONLY;
 
 #ifdef _Q_WINDOWS
       // open files in binary mode by default on Windows
       if (!(flags & O_TEXT))
-	 flags |= O_BINARY;
+         flags |= O_BINARY;
 #endif
 
       do_open_event_unlocked(fn, flags, mode, cs);
 
       fd = ::open(fn, flags, mode);
       if (fd < 0)
-	 return fd;
+         return fd;
 
       do_opened_event_unlocked(fn, flags, mode, cs);
 
       filename = fn;
       if (cs)
-	 charset = cs;
+         charset = cs;
       is_open = true;
       return 0;
    }
 
    DLLLOCAL int open(const char* fn, int flags, int mode, const QoreEncoding* cs) {
       if (!fn || special_file)
-	 return -1;
+         return -1;
 
       AutoLocker al(m);
       return open_intern(fn, flags, mode, cs);
@@ -141,7 +141,7 @@ struct qore_qf_private {
    // returns -1 for exception
    DLLLOCAL int check_read_open(ExceptionSink* xsink) const {
       if (is_open)
-	 return 0;
+         return 0;
 
       xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
       return -1;
@@ -150,7 +150,7 @@ struct qore_qf_private {
    // returns -1 for exception
    DLLLOCAL int check_write_open(ExceptionSink* xsink) const {
       if (is_open)
-	 return 0;
+         return 0;
 
       xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
       return -1;
@@ -159,7 +159,7 @@ struct qore_qf_private {
    // returns -1 for exception
    DLLLOCAL int check_open(ExceptionSink* xsink) const {
       if (is_open)
-	 return 0;
+         return 0;
 
       xsink->raiseException("FILE-OPERATION-ERROR", "file has not been opened");
       return -1;
@@ -173,7 +173,7 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
-	 return false;
+         return false;
 
       return isDataAvailableIntern(timeout_ms, "isDataAvailable", xsink);
    }
@@ -187,7 +187,7 @@ struct qore_qf_private {
    DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
       //printd(5, "select() to: %d read: %d mname: '%s'\n", timeout_ms, read, mname);
       if (check_open(xsink))
-	 return -1;
+         return -1;
 
 #if defined HAVE_POLL
       return poll_intern(timeout_ms, read, mname, xsink);
@@ -236,16 +236,16 @@ struct qore_qf_private {
          FD_ZERO(&sfs);
          FD_SET(fd, &sfs);
 
-	 tv.tv_sec  = timeout_ms / 1000;
-	 tv.tv_usec = (timeout_ms % 1000) * 1000;
+         tv.tv_sec  = timeout_ms / 1000;
+         tv.tv_usec = (timeout_ms % 1000) * 1000;
 
-	 rc = read ? ::select(fd + 1, &sfs, 0, 0, &tv) : ::select(fd + 1, 0, &sfs, 0, &tv);
-	 if (rc >= 0 || errno != EINTR)
-	    break;
+         rc = read ? ::select(fd + 1, &sfs, 0, 0, &tv) : ::select(fd + 1, 0, &sfs, 0, &tv);
+         if (rc >= 0 || errno != EINTR)
+            break;
       }
       if (rc == -1) {
          rc = 0;
-	 xsink->raiseException("FILE-SELECT-ERROR", "select(2) returned an error in call to File::%s()", mname);
+         xsink->raiseException("FILE-SELECT-ERROR", "select(2) returned an error in call to File::%s()", mname);
       }
 
       return rc;
@@ -263,7 +263,7 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_open(xsink))
-	 return -1;
+         return -1;
 
       return ios->set(fd, action, xsink);
    }
@@ -272,7 +272,7 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_open(xsink))
-	 return -1;
+         return -1;
 
       return ios->get(fd, xsink);
    }
@@ -282,14 +282,14 @@ struct qore_qf_private {
    DLLLOCAL qore_size_t read(void *buf, qore_size_t bs) const {
       qore_offset_t rc;
       while (true) {
-	 rc = ::read(fd, buf, bs);
-	 // try again if we were interrupted by a signal
-	 if (rc >= 0 || errno != EINTR)
-	    break;
+         rc = ::read(fd, buf, bs);
+         // try again if we were interrupted by a signal
+         if (rc >= 0 || errno != EINTR)
+            break;
       }
 
       if (rc > 0)
-	 do_read_event_unlocked(rc, rc, bs);
+         do_read_event_unlocked(rc, rc, bs);
 
       return rc;
    }
@@ -298,14 +298,14 @@ struct qore_qf_private {
    DLLLOCAL qore_size_t write(const void* buf, qore_size_t len, ExceptionSink* xsink = 0) const {
       qore_offset_t rc;
       while (true) {
-	 rc = ::write(fd, buf, len);
-	 // try again if we are interrupted by a signal
-	 if (rc >= 0 || errno != EINTR)
-	    break;
+         rc = ::write(fd, buf, len);
+         // try again if we are interrupted by a signal
+         if (rc >= 0 || errno != EINTR)
+            break;
       }
 
       if (rc > 0)
-	 do_write_event_unlocked(rc, rc, len);
+         do_write_event_unlocked(rc, rc, len);
       else if (xsink && rc < 0)
          xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QSD " byte%s to File", len, len == 1 ? "" : "s");
 
@@ -316,35 +316,12 @@ struct qore_qf_private {
    DLLLOCAL int readChar() const {
       unsigned char ch = 0;
       if (read(&ch, 1) != 1)
-	 return -1;
+         return -1;
       return (int)ch;
    }
 
    // private function, unlocked
-   DLLLOCAL int readUnicode(int* n_len = 0) const {
-#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      char buf[charset->getMaxCharWidth()];
-#else
-      assert(charset->getMaxCharWidth() <= 4);
-      char buf[4];
-#endif
-      if (read(buf, 1) != 1)
-	 return -1;
-
-      int len = (int)charset->getCharLen(buf, 1);
-      if (len < 0) {
-	 len = -len;
-	 for (int i = 1; i < len; ++i) {
-	    if (read(&buf[i], 1) != 1)
-	       return -1;
-	 }
-      }
-
-      if (n_len)
-	 *n_len = len;
-
-      return charset->getUnicode(buf);
-   }
+   DLLLOCAL int readUnicode(int* n_len = 0) const;
 
    DLLLOCAL qore_offset_t readData(void* dest, qore_size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
       // wait for data
@@ -380,49 +357,49 @@ struct qore_qf_private {
       char* bbuf = 0;
 
       while (true) {
-	 // wait for data
-	 if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
+         // wait for data
+         if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
             if (!*xsink)
                xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
-	    br = 0;
-	    break;
-	 }
+            br = 0;
+            break;
+         }
 
-	 qore_offset_t rc;
-	 while (true) {
-	    rc = ::read(fd, buf, bs);
-	    // try again if we were interrupted by a signal
-	    if (rc >= 0)
-	       break;
+         qore_offset_t rc;
+         while (true) {
+            rc = ::read(fd, buf, bs);
+            // try again if we were interrupted by a signal
+            if (rc >= 0)
+               break;
             if (errno != EINTR) {
                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in File::%s()", br, mname);
                break;
             }
-	 }
-	 //printd(5, "readBlock(fd: %d, buf: %p, bs: %d) rc: %d\n", fd, buf, bs, rc);
-	 if (rc <= 0)
-	    break;
+         }
+         //printd(5, "readBlock(fd: %d, buf: %p, bs: %d) rc: %d\n", fd, buf, bs, rc);
+         if (rc <= 0)
+            break;
 
-	 // enlarge bbuf (ensure buffer is 1 byte bigger than needed)
-	 bbuf = (char* )realloc(bbuf, br + rc + 1);
-	 // append buffer to bbuf
-	 memcpy(bbuf + br, buf, rc);
-	 br += rc;
+         // enlarge bbuf (ensure buffer is 1 byte bigger than needed)
+         bbuf = (char* )realloc(bbuf, br + rc + 1);
+         // append buffer to bbuf
+         memcpy(bbuf + br, buf, rc);
+         br += rc;
 
-	 do_read_event_unlocked(rc, br, size);
+         do_read_event_unlocked(rc, br, size);
 
-	 if (size > 0) {
-	    if (size - br < bs)
-	       bs = size - br;
-	    if (br >= (qore_size_t)size)
-	       break;
-	 }
+         if (size > 0) {
+            if (size - br < bs)
+               bs = size - br;
+            if (br >= (qore_size_t)size)
+               break;
+         }
       }
       free(buf);
       if (*xsink) {
-	 if (bbuf)
-	    free(bbuf);
-	 return 0;
+         if (bbuf)
+            free(bbuf);
+         return 0;
       }
       size = br;
       return bbuf;
@@ -539,25 +516,25 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-	 // skip BOM
-	 if (ch == 0xfeff)
-	    continue;
-	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
-	    charset = QCS_UTF16LE;
-	    continue;
-	 }
+         // skip BOM
+         if (ch == 0xfeff)
+            continue;
+         else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+            charset = QCS_UTF16LE;
+            continue;
+         }
 
-	 str.concatUnicode(ch);
+         str.concatUnicode(ch);
 
          if (rc == -1)
-	    rc = 0;
+            rc = 0;
 
-	 char c = str[str.size() - 1];
+         char c = str[str.size() - 1];
 
          if (c == '\r') {
             // see if next byte is \n' if we're not connected to a terminal device
             if (!tty) {
-	       int len = 0;
+               int len = 0;
                ch = readUnicode(&len);
                if (ch >= 0) {
                   if (ch == '\n') {
@@ -596,15 +573,15 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-	 // skip BOM
-	 if (ch == 0xfeff)
-	    continue;
-	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
-	    charset = QCS_UTF16LE;
-	    continue;
-	 }
+         // skip BOM
+         if (ch == 0xfeff)
+            continue;
+         else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+            charset = QCS_UTF16LE;
+            continue;
+         }
 
-	 str.concatUnicode(ch);
+         str.concatUnicode(ch);
 
          if (rc == -1)
             rc = 0;
@@ -631,17 +608,17 @@ struct qore_qf_private {
       int ch, rc = -1;
 
       while ((ch = readUnicode()) >= 0) {
-	 // skip BOM
-	 if (ch == 0xfeff)
-	    continue;
-	 else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
-	    charset = QCS_UTF16LE;
-	    continue;
-	 }
+         // skip BOM
+         if (ch == 0xfeff)
+            continue;
+         else if (ch == 0xfffe && charset == QCS_UTF16 && str.empty()) {
+            charset = QCS_UTF16LE;
+            continue;
+         }
 
-	 str.concatUnicode(ch);
+         str.concatUnicode(ch);
 
-	 if (rc == -1)
+         if (rc == -1)
             rc = 0;
 
          if (ch == bytes[pos]) {
@@ -756,92 +733,92 @@ struct qore_qf_private {
    DLLLOCAL void setEventQueue(Queue* cbq, ExceptionSink* xsink) {
       AutoLocker al(m);
       if (cb_queue)
-	 cb_queue->deref(xsink);
+         cb_queue->deref(xsink);
       cb_queue = cbq;
    }
 
    DLLLOCAL void cleanup(ExceptionSink* xsink) {
       AutoLocker al(m);
       if (cb_queue) {
-	 // close the file before the delete message is put on the queue
-	 // the file would be closed anyway in the destructor
-	 close_intern();
+         // close the file before the delete message is put on the queue
+         // the file would be closed anyway in the destructor
+         close_intern();
 
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         cb_queue->pushAndTakeRef(h);
 
-	 // deref and remove event queue
-	 cb_queue->deref(xsink);
-	 cb_queue = 0;
+         // deref and remove event queue
+         cb_queue->deref(xsink);
+         cb_queue = 0;
       }
    }
 
    DLLLOCAL void do_open_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_OPEN_FILE), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 h->setKeyValue("filename", new QoreStringNode(fn), 0);
-	 h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
-	 h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
-	 h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_OPEN_FILE), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("filename", new QoreStringNode(fn), 0);
+         h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
+         h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
+         h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
+         cb_queue->pushAndTakeRef(h);
       }
    }
 
    DLLLOCAL void do_opened_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FILE_OPENED), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 h->setKeyValue("filename", new QoreStringNode(fn), 0);
-	 h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
-	 h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
-	 h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FILE_OPENED), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("filename", new QoreStringNode(fn), 0);
+         h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
+         h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
+         h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
+         cb_queue->pushAndTakeRef(h);
       }
    }
 
    DLLLOCAL void do_close_event_unlocked() const {
       if (cb_queue) {
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         cb_queue->pushAndTakeRef(h);
       }
    }
 
    DLLLOCAL void do_read_event_unlocked(int bytes_read, int total_read, int bufsize) const {
       // post bytes read on event queue, if any
       if (cb_queue) {
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_READ), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
-	 h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
-	 h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_READ), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
+         h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
+         h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
+         cb_queue->pushAndTakeRef(h);
       }
    }
 
    DLLLOCAL void do_write_event_unlocked(int bytes_written, int total_written, int bufsize) const {
       // post bytes sent on event queue, if any
       if (cb_queue) {
-	 QoreHashNode* h = new QoreHashNode;
-	 h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN), 0);
-	 h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-	 h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-	 h->setKeyValue("written", new QoreBigIntNode(bytes_written), 0);
-	 h->setKeyValue("total_written", new QoreBigIntNode(total_written), 0);
-	 h->setKeyValue("total_to_write", new QoreBigIntNode(bufsize), 0);
-	 cb_queue->pushAndTakeRef(h);
+         QoreHashNode* h = new QoreHashNode;
+         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN), 0);
+         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
+         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("written", new QoreBigIntNode(bytes_written), 0);
+         h->setKeyValue("total_written", new QoreBigIntNode(total_written), 0);
+         h->setKeyValue("total_to_write", new QoreBigIntNode(bufsize), 0);
+         cb_queue->pushAndTakeRef(h);
       }
    }
 
@@ -849,12 +826,12 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
-	 return 0;
+         return 0;
 
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
-	 xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
-	 return 0;
+         xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
+         return 0;
       }
 
       return stat_to_list(sbuf);
@@ -864,12 +841,12 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
-	 return 0;
+         return 0;
 
       struct stat sbuf;
       if (fstat(fd, &sbuf)) {
-	 xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
-	 return 0;
+         xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
+         return 0;
       }
 
       return stat_to_hash(sbuf);
@@ -880,18 +857,18 @@ struct qore_qf_private {
       AutoLocker al(m);
 
       if (check_read_open(xsink))
-	 return 0;
+         return 0;
 
       struct statvfs vfs;
 #ifdef HAVE_SYS_STATVFS_H
       if (fstatvfs(fd, &vfs)) {
-	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
-	 return 0;
+         xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
+         return 0;
       }
 #else
       if (q_fstatvfs(filename.c_str(), &vfs)) {
-	 xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
-	 return 0;
+         xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
+         return 0;
       }
 #endif
 

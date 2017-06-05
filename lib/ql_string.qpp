@@ -201,7 +201,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
                xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
-               return 0;
+               return nullptr;
             }
             if (p == tstr)
                break;
@@ -210,7 +210,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             tstr = p + 1;
          }
          // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()));
 
          ststr = p + tquote->strlen();
          // see if we are at the end of the string
@@ -222,7 +222,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          // or a separator string comes next
          if (len < pl || memcmp(tpattern, ststr, pl)) {
             xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
-            return 0;
+            return nullptr;
          }
          ststr += pl;
          len -= pl;
@@ -231,16 +231,16 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
       const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
-         if (trim_unquoted)
-            se->trim();
+         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
+         if (trim_unquoted && se->trim(xsink))
+            return nullptr;
          l->push(se);
          break;
       }
 
-      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, sep->getEncoding());
-      if (trim_unquoted)
-         se->trim();
+      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
+      if (trim_unquoted && se->trim(xsink))
+         return nullptr;
       l->push(se);
       len -= (p - ststr);
       ststr = p + pl;
@@ -258,7 +258,7 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, in
       if (!p.isNothing()) {
 	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
 	 if (*xsink)
-	    return 0;
+	    return nullptr;
 
 	 str->concat(*t);
       }
@@ -1335,14 +1335,10 @@ nothing chomp() [flags=RUNTIME_NOOP] {
     @code{.py}
 string tstr = trim(str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trim(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the start and end of a reference to an lvalue containing a string and returns string after processing (also see the @ref trim "trim operator")
@@ -1359,21 +1355,17 @@ string trim(string str, *string chars) [flags=CONSTANT] {
     @code{.py}
 trim(\str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 *string trim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim(tchars);
-   return rv->refSelf();
+   return rv->trim(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1395,14 +1387,10 @@ nothing trim() [flags=RUNTIME_NOOP] {
 string tstr = ltrim(" ABC ");
 # returns string "ABC "
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string ltrim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim_leading(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trimLeading(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the start of a reference to an lvalue containing a string and returns string after processing
@@ -1419,21 +1407,17 @@ string ltrim(string str, *string chars) [flags=CONSTANT] {
     @code{.py}
 ltrim(\str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 *string ltrim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim_leading(tchars);
-   return rv->refSelf();
+   return rv->trimLeading(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! Removes byte characters from the end of a string and returns the new string
@@ -1453,10 +1437,8 @@ string tstr = rtrim(str);
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string rtrim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim_trailing(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trimTrailing(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the end of a reference to an lvalue containing a string and returns string after processing
@@ -1481,13 +1463,11 @@ rtrim(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim_trailing(tchars);
-   return rv->refSelf();
+   return rv->trimTrailing(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -319,6 +319,7 @@ bool <string>::intp() [flags=CONSTANT] {
     @endcode
 
     @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
+    @throw UNSUPPORTED-ENCODING only ASCII-compatible encodings are currently supported
 
     @see <value>::toInt()
     @see Qore::int(string str, int base = 10)
@@ -328,6 +329,8 @@ bool <string>::intp() [flags=CONSTANT] {
 int <string>::toInt(int base=10) [flags=RET_VALUE_ONLY] {
     if (base < 0 || base == 1 || base > 36)
         return xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
+    if (!str->getEncoding()->isAsciiCompat())
+        return xsink -> raiseException("UNSUPPORTED-ENCODING", "cannot convert string in non-ASCII-compatible encoding \"%s\" to an integer", str->getEncoding()->getCode());
     return strtoll(str -> getBuffer(), 0, (int)base);
 }
 
