@@ -548,8 +548,8 @@ my hash $h = $i.getValue();
                     break;
                 }
                 case "tab2space": {
-                    if (i.value.typeCode() != NT_INT)
-                        throw errname, sprintf("expecting an int value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                    if (i.value.typeCode() != NT_INT || i.value < 0)
+                        throw errname, sprintf("expecting a non-negative int value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                 }
             }
         }
@@ -898,8 +898,8 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         else
             opts.eol = "\n";
 
-        if (exists opts.tab2space && opts.tab2space.typeCode() != NT_INT)
-            throw errname, sprintf("expecting an int value to option \"tab2space\"; got %y (type %s) instead", opts.tab2space, opts.tab2space.type());
+        if (exists opts.tab2space && (opts.tab2space.typeCode() != NT_INT || opts.tab2space < 0))
+            throw errname, sprintf("expecting a non-negative int value to option \"tab2space\"; got %y (type %s) instead", opts.tab2space, opts.tab2space.type());
 
         return opts;
     }
