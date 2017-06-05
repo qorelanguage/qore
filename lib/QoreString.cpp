@@ -407,7 +407,7 @@ void qore_string_private::concatUTF8FromUnicode(unsigned code) {
       concat((char)code);
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query) {
    if (!charset->isAsciiCompat()) {
       xsink->raiseException("UNSUPPORTED-ENCODING", "cannot decode a URI to non-ASCII-compatible encoding \"%s\"", charset->getCode());
@@ -532,7 +532,7 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
    return 0;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str) {
    assert(str.len);
 
@@ -1318,7 +1318,7 @@ bool QoreString::equalPartialSoft(const QoreString& str, ExceptionSink* xsink) c
    return !memcmp(a->getBuffer(), b->getBuffer(), b->size());
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 bool QoreString::equalPartialPath(const QoreString& str, ExceptionSink* xsink) const {
    // empty strings are always equal even if the character encoding is different
    if (!priv->len) {
@@ -1717,7 +1717,7 @@ static void base64_concat(QoreString& str, unsigned char c, qore_size_t& linelen
 // endian-agnostic binary object -> base64 string function
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatBase64(const char* bbuf, qore_size_t size, qore_size_t maxlinelen) {
    //printf("bbuf=%p, size=" QSD "\n", bbuf, size);
    if (!size)
@@ -1793,7 +1793,7 @@ void QoreString::concatBase64(const char* bbuf, qore_size_t size) {
 
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatHex(const char* binbuf, qore_size_t size) {
    //printf("priv->buf=%p, size=" QSD "\n", binbuf, size);
    if (!size)
@@ -1823,7 +1823,7 @@ void QoreString::concatAndHTMLEncode(const QoreString* str, ExceptionSink* xsink
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLEncode(const char* str) {
    // if it's not a null string
    if (str) {
@@ -1845,7 +1845,7 @@ void QoreString::concatAndHTMLEncode(const char* str) {
    }
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const QoreString* str) {
    if (!str || !str->priv->len)
       return;
@@ -1853,14 +1853,14 @@ void QoreString::concatAndHTMLDecode(const QoreString* str) {
    concatAndHTMLDecode(str->getBuffer(), str->priv->len);
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const char* str) {
    if (str)
       concatAndHTMLDecode(str, ::strlen(str));
 }
 
 // FIXME: this is slow, each concatenated character gets terminated as well
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
    if (!slen)
       return;
@@ -1920,7 +1920,7 @@ void QoreString::concatAndHTMLDecode(const char* str, size_t slen) {
 }
 
 // deprecated, does not support RFC-3986
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatDecodeUrl(const char* url) {
   if (!url)
       return;
@@ -2504,7 +2504,7 @@ int QoreString::compareSoft(const QoreString* str, ExceptionSink* xsink) const {
    return !rc ? 0 : 1;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatEscape(const char* str, char c, char esc_char) {
    // if it's not a null string
    if (str) {
@@ -2528,7 +2528,7 @@ void QoreString::concatEscape(const char* str, char c, char esc_char) {
    }
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatEscape(const QoreString* str, char c, char esc_char, ExceptionSink* xsink) {
    if (!priv->charset->isAsciiCompat()) {
       xsink->raiseException("UNSUPPORTED-ENCODING", "cannot process escapes for non-ASCII-compatible encoding \"%s\"", priv->charset->getCode());
@@ -2580,14 +2580,14 @@ qore_size_t QoreString::length() const {
    return priv->len;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concat(const DateTime *d) {
    qore_tm info;
    d->getInfo(info);
    sprintf("%04d%02d%02d%02d%02d%02d", info.year, info.month, info.day, info.hour, info.minute, info.second);
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatISO8601DateTime(const DateTime *d) {
    qore_tm info;
    d->getInfo(currentTZ(), info);
@@ -2654,7 +2654,7 @@ QoreString* QoreString::copy() const {
    return new QoreString(*this);
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::tolwr() {
    char* c = priv->buf;
    while (*c) {
@@ -2663,7 +2663,7 @@ void QoreString::tolwr() {
    }
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::toupr() {
    char* c = priv->buf;
    while (*c) {
@@ -2693,7 +2693,7 @@ const char* QoreString::c_str() const {
    return priv->buf;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::addch(char c, unsigned times) {
    priv->check_char(priv->len + times); // more data will follow the padding
    memset(priv->buf + priv->len, c, times);
@@ -2701,7 +2701,7 @@ void QoreString::addch(char c, unsigned times) {
    priv->buf[priv->len] = 0;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int QoreString::insertch(char c, qore_size_t pos, unsigned times) {
    //printd(5, "QoreString::insertch(c: %c pos: " QLLD " times: %d) this: %p\n", c, pos, times, this);
    if (pos > priv->len || !times)
@@ -2716,7 +2716,7 @@ int QoreString::insertch(char c, qore_size_t pos, unsigned times) {
    return 0;
 }
 
-// FIXME: does not work with non-ASCII-comparible encodings such as UTF-16*
+// FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int QoreString::insert(const char* str, qore_size_t pos) {
    if (pos > priv->len)
       return -1;
