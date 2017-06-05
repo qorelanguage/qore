@@ -201,6 +201,10 @@
       - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - \c UTF-16 fixes:
+      - fixed a bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
+      - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
+      - fixed @ref Qore::trim(), @ref Qore::ltrim(), @ref Qore::rtrim() and the @ref trim "trim" operator with strings with \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1775">issue 1775</a>)
     - fixed a bug where @ref break "break" and @ref continue "continue" statements were accepted outside of loops (<a href="https://github.com/qorelanguage/qore/issues/976">issue 976</a>)
     - fixed a bug compiling on Solaris SPARC with g++ where \c MPFR_DECL_INIT() is compiled incorrectly with -O1 or greater (<a href="https://github.com/qorelanguage/qore/issues/958">issue 958</a>)
     - fixed a bug causing an infinite loop in decompression functions (<a href="https://github.com/qorelanguage/qore/issues/966">issue 966</a>)
@@ -220,8 +224,6 @@
     - fixed a bug where @ref Qore::int(softint) "int(number)" returned rounded value instead of the integer part (while @ref Qore::int(softint) "int(float)" behaved correctly; also cf. initializing a softint value from a number vs. from a float) (<a href="https://github.com/qorelanguage/qore/issues/1463">issue 1463</a>)
     - @ref Qore::File::read() "File::read()" now uses character semantics for the length argument (<a href="https://github.com/qorelanguage/qore/issues/1548">issue 1548</a>)
     - fixed a bug with strongly-typed lvalue assignments with classes created in different @ref Qore::Program "Program" objects (<a href="https://github.com/qorelanguage/qore/issues/1551">issue 1551</a>)
-    - fixed bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
-    - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
     - fixed a bug where an ASCII string and the same string in a different encoding and with diacritics could incorrectly be marked as equal (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
     - fixed bugs in @ref Qore::HTTPClient "HTTPClient" methods where string message bodies were not converted to the object's @ref character_encoding "character encoding" before transmission (<a href="https://github.com/qorelanguage/qore/issues/1813">issue 1813</a>)
     - fixed a bug in the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" assignment restrictions; previously any value was accepted, now only references are accepted as the initial assignment values (<a href="https://github.com/qorelanguage/qore/issues/1819">issue 1819</a>)

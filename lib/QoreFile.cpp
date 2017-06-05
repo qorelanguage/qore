@@ -31,6 +31,32 @@
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
 #include "qore/intern/qore_qf_private.h"
+#include "qore/intern/qore_encoding_private.h"
+
+int qore_qf_private::readUnicode(int* n_len) const {
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+   char buf[charset->getMaxCharWidth()];
+#else
+   assert(charset->getMaxCharWidth() <= 4);
+   char buf[4];
+#endif
+   if (read(buf, 1) != 1)
+      return -1;
+
+   int len = (int)charset->getCharLen(buf, 1);
+   if (len < 0) {
+      len = -len;
+      for (int i = 1; i < len; ++i) {
+         if (read(&buf[i], 1) != 1)
+            return -1;
+      }
+   }
+
+   if (n_len)
+      *n_len = len;
+
+   return qore_encoding_private::get(*charset)->getUnicode(buf);
+}
 
 QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
 }
