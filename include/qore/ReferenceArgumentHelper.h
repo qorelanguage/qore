@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,18 +33,22 @@
 
 #define _QORE_REFERENCEARGUMENTHELPER_H
 
-//! allows a reference to be passed as an argument to Qore code
-/** this class creates a fake local variable and then creates a reference the local
+//! Allows a reference to be passed as an argument to Qore code
+/** @class ReferenceArgumentHelper ReferenceArgumentHelper.h qore/ReferenceArgumentHelper.h
+
+    This class creates a fake local variable and then creates a reference the local
     variable that can be used in an argument list to be passed to a function.
     Then the ReferenceArgumentHelper::getOutputValue() function can be called to
     retrieve the value of the local variable after the Qore-language code has been
     executed.  This allows values to be passed by reference to Qore-language code
     and then the value of the variable read back out and processed.
     @code
+    #include <qore/ReferenceArgumentHelper.h>
+    // ...
     // create an argument list
-    ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+    ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
     // instantiate "val" as a reference as the only argument in the argument list
-    ReferenceArgumentHelper lvh("arg0", val, &xsink);
+    ReferenceArgumentHelper lvh(val, &xsink);
     args->push(lvh.getArg());
 
     // execute method "m_fixup" and discard any return value
@@ -53,10 +57,10 @@
     // return the value of the reference after executing the method
     return lvh.getOutputValue();
     @endcode
- */ 
+ */
 class ReferenceArgumentHelper {
    private:
-      struct lvih_intern *priv;
+      struct lvih_intern* priv;
 
       //! this function is not implemented; it is here as a private function in order to prohibit it from being used
       DLLLOCAL ReferenceArgumentHelper(const ReferenceArgumentHelper&);
@@ -67,25 +71,25 @@ class ReferenceArgumentHelper {
    public:
       //! creates a fake local variable assigned to "val" and creates a reference to the local variable
       /**
-	 @param val the value to assign to the local variable
-	 @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+         @param val the value to assign to the local variable
+         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
        */
-      DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink);
+      DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
 
       //! frees all memory still managed by the object
       DLLEXPORT ~ReferenceArgumentHelper();
 
       //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
       /**
-	 @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+         @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
       */
-      DLLEXPORT AbstractQoreNode *getArg() const;
+      DLLEXPORT AbstractQoreNode* getArg() const;
 
       //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
       /**
-	 @return the value of the reference and leaves the reference empty, the caller owns the reference returned
+         @return the value of the reference and leaves the reference empty, the caller owns the reference returned
        */
-      DLLEXPORT AbstractQoreNode *getOutputValue();
+      DLLEXPORT AbstractQoreNode* getOutputValue();
 };
 
 #endif

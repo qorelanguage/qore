@@ -107,7 +107,7 @@ public:
    }
 
    //! Read one line.
-   /** @param eol end-of-line symbol, if missing and the character encoding is ASCII-compatible, then '\n', '\r' and '\r\n' are supported), otherwise if missing, and the character encoding is not ASCII-compatible, then '\n' is assumed
+   /** @param eol end-of-line symbol, if missing and the character encoding is ASCII-compatible, then \c "\n", \c "\r", or \c "\r\n" are supported), otherwise if missing, and the character encoding is not ASCII-compatible, then \c "\n" is assumed
        @param trim whether to trim the EOL symbols
        @param xsink exception sink
 

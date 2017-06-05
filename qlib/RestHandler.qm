@@ -309,6 +309,7 @@ Content-Length: 36
 
     @subsection rh_1_2 RestHandler v1.2
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - added @ref RestHandler::RestHandler::handleExternalRequest "RestHandler::handleExternalRequest()" to allow for REST API methods to be called internally (i.e. without an HTTP call)
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -828,6 +829,124 @@ public namespace RestHandler {
             return "/";
         }
 
+        #! processes REST API calls outside the HTTP server
+        /** Requests will be dispatched to REST classes registered with this object
+
+            @param method the HTTP method; if the the method is unknown, an \c UNKNOWN-REST-METHOD exception is raised
+            @param path the URI path for the call
+            @param body the arguments to the call; note that arguments are combined with any arguments provided in \a path
+            @param cx simulated HTTP call context hash
+
+            @return the response value of the REST method
+
+            @throw UNKNOWN-REST-METHOD the HTTP method is unknown / unsupported
+            @throw INVALID-URI-PATH URI cannot be parsed
+            @throw INVALID-REST-ARGS invalid REST action
+            @throw REST-CLASS-ERROR invalid / unknown REST class in URI path
+            @throw REST-ERROR an error response was returned from the REST handler for the given method
+
+            @note
+            - the \c arg key of the exception hash in the exceptions above contains the HTTP status code of the response
+            - exceptions thrown internally by REST handlers are returned directly; no \c 409 status code is added in the \c arg key of the exception hash
+
+            @since %RestHandler 1.2
+         */
+        any handleExternalRequest(string method, string path, *hash body, hash cx = {}) {
+            if (!Methods{method})
+                throw "UNKNOWN-REST-METHOD", sprintf("unsupported HTTP method %y given in REST call %y; known methods: %y", method, path, Methods), 400;
+
+            # REST call context hash
+            cx += (
+                "hdr": (
+                    "method": method,
+                ),
+                "url": ("path": path),
+                "body": body,
+            );
+
+            # get object and args
+            hash ah = parse_uri_query(path);
+
+            *hash args;
+            if (ah.params) {
+                if (ah.params.typeCode() != NT_HASH)
+                    throw "INVALID-URI-PATH", sprintf("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params), 400;
+                args = ah.params;
+            }
+
+            if (!body)
+                body = args;
+
+            if (body)
+                map args.$1 = body.$1, keys body, !exists args.$1;
+
+            # make method name
+            string mn;
+
+            {
+                any action;
+                if (args.action)
+                    action = remove args.action;
+                else if (body.action)
+                    action = body.action;
+
+                if (action) {
+                    if (action.typeCode() != NT_STRING)
+                        throw "INVALID-REST-ARGS", sprintf("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, action.type()), 400;
+                    mn = action;
+                    cx.orig_method = mn;
+                    # ensure first letter of the action is in upper case
+                    splice mn, 0, 1, mn[0].upr();
+                    cx.rest_method = mn;
+                    mn = Methods{method} + mn;
+                }
+                else
+                    mn = Methods{method};
+            }
+
+            cx.rest_action_method = mn;
+
+            # remove leading slash from method name
+            if (ah.method =~ /^\//)
+                splice ah.method, 0, 1;
+
+            # get class chain
+            *list cl;
+            if (ah.method) {
+                # combine continuous "/" chars into a single one
+                ah.method =~ s/\/\/+/\//g;
+                cl = ah.method.split("/");
+            }
+
+            # get initial class
+            *string cls = shift cl;
+
+            AbstractRestClass rcls;
+
+            if (!cls)
+                rcls = self;
+            else {
+                if (!ch{cls}) {
+                    *AbstractRestClass c = subClass(cls, cx, args);
+                    if (!c)
+                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 409;
+                    rcls = c;
+                }
+                else
+                    rcls = ch{cls};
+            }
+
+            # dummy HttpListenerInterface object
+            DummyListenerInterface listener();
+            # socket object needed for call; will not be used
+            Socket s();
+
+            hash rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
+            if (rv.code < 200 || rv.code >= 300)
+                throw "REST-ERROR", rv.body, rv.code;
+            return rv.body;
+        }
+
         #! called by the HTTP server to handle incoming HTTP requests
         /** Requests will be dispatched to REST classes registered with this object
 
@@ -976,9 +1095,6 @@ public namespace RestHandler {
                         rcls = ch{cls};
                 }
 
-                # check method
-                if (!Methods.(hdr.method))
-                    return RestHandler::make501("cannot handle HTTP method %y; valid methods: %y", hdr.method, Methods.keys());
                 rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
             catch (hash ex) {
@@ -1090,6 +1206,24 @@ public namespace RestHandler {
                 "body": body,
                 "hdr": hdr,
                 );
+        }
+    }
+}
+
+# private, unexported namespace
+namespace Priv {
+    # dummy HttpListenerInterface class
+    class DummyListenerInterface inherits HttpListenerInterface {
+        addUserThreadContext(hash uctx) {
+        }
+
+        any removeUserThreadContext(*string k) {
+        }
+
+        log(string fmt) {
+        }
+
+        logError(string fmt) {
         }
     }
 }

@@ -41,20 +41,17 @@
 #include <string.h>
 
 class QoreParserLocation {
-private:
-   bool explicit_first;
-
 public:
-   int first_line, last_line;
+   int first_line;
+   int last_line;
+   int first_col;
+   int last_col;
 
-   // method defined in scanner.ll
-   DLLLOCAL QoreParserLocation();
-   // method defined in scanner.ll
-   DLLLOCAL void updatePosition(int f);
-   DLLLOCAL void setExplicitFirst(int f) {
-      first_line = f;
-      explicit_first = true;
-   }
+   QoreParserLocation() :
+      first_line(0),
+      last_line(0),
+      first_col(0),
+      last_col(0) {}
 };
 
 struct TryModuleError {

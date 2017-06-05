@@ -95,5 +95,11 @@ public class LogicTest inherits QUnit::Test {
         assertEq(0, True ^ True & False);
         assertFalse(True || x() && False);
         assertTrue(True || x() && True);
+
+        {
+            Program pgm(PO_BROKEN_LOGIC_PRECEDENCE);
+            pgm.parse("%correct-logic-precedence\nint sub get() { return True | False & False; }", "");
+            assertEq(1, pgm.callFunction("get"));
+        }
     }
 }

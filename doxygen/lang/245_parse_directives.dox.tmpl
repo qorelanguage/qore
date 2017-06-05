@@ -27,6 +27,12 @@
     |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
     |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
+    |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse options
+    |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse options
+    |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse options
+    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse options
+    |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse options
+    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse options
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -42,6 +48,7 @@
     |@ref lockdown "%lockdown"|Made up of @ref no-external-access "%no-external-access", @ref no-threads "%no-threads", and @ref no-io "%no-io"; equivalent to parse option @ref Qore::PO_LOCKDOWN and the \c --lockdown command line option
     |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>-</tt><tt>-lock-options</tt> command line option)
     |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>-</tt><tt>-lock-warnings</tt> command line option)
+    |@ref loose-args "%loose-args"|reverts the effect of the @ref strict-args "%strict-args" parse options
     |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
     |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
     |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>-</tt><tt>-no-class-defs</tt> command line option
@@ -102,7 +109,10 @@
     - @ref static_class_variables "static class variables" (when parsing in class code)
     - @ref variable_declarations "global variables"
     - (non-class) @ref constants "constants" \n\n
-    Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
+
+    @note
+    - when using this option (or @ref new-style "%new-style) the lack of \c "$" characters in variable names makes it necessary to declare local variables before using them
+    - ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
 
     @since %Qore 0.8.1
 
@@ -243,6 +253,8 @@
     @par Description:
     Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime.
 
+    @see @ref correct-int-assignments "%correct-int-assignments"
+
     @since %Qore 0.8.12
 
     <hr>
@@ -259,6 +271,8 @@
 
     @par Description:
     Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid.
+
+    @see @ref correct-list-parsing "%correct-list-parsing"
 
     @since %Qore 0.8.12
 
@@ -277,6 +291,8 @@
     @par Description:
     Use old pre-0.8.12 precedence where the \ref logical_and_operator "&&" had the same precedence as \ref logical_or_operator "||" and all three bitwise operators (
     \ref bitwise_and_operator "&", \ref bitwise_or_operator "|", \ref bitwise_xor_operator "^") shared the same precedence.
+
+    @see @ref correct-logic-precedence "%correct-logic-precedence"
 
     @since %Qore 0.8.12
 
@@ -340,6 +356,8 @@ i+ =4;
     @endcode
     When this parse directive is set; the above code is accepted.
 
+    @see @ref correct-operators "%correct-operators"
+
     @since %Qore 0.8.12
 
     <hr>
@@ -358,6 +376,120 @@ i+ =4;
     Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13; when this option is in effect, the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions are ignored and have no type restrictions.
 
     @since %Qore 0.8.3
+
+    <hr>
+    @section correct-int-assignments %broken-int-assignments
+
+    @par Parse Directive:
+    n/a
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-int-assignments "%broken-int-assignments" parse option.
+
+    @see @ref broken-int-assignments "%broken-int-assignments"
+
+    @since %Qore 0.8.12.10
+
+    <hr>
+    @section correct-list-parsing %correct-list-parsing
+
+    @par Parse Directive:
+    n/a
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-list-parsing "%broken-list-parsing" parse option.
+
+    @see @ref broken-list-parsing "%broken-list-parsing"
+
+    @since %Qore 0.8.12.10
+
+    <hr>
+    @section correct-logic-precedence %correct-logic-precedence
+
+    @par Parse Directive:
+    n/a
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse option.
+
+    @see @ref broken-logic-precedence "%broken-logic-precedence"
+
+    @since %Qore 0.8.12.10
+
+    <hr>
+    @section correct-loop-statement %correct-loop-statement
+
+    @par Parse Directive:
+    <tt>%%correct-loop-statement</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-loop-statement "%broken-loop-statement" parse option.
+
+    @see @ref broken-loop-statement "%broken-loop-statement"
+
+    @since %Qore 0.8.13
+
+    <hr>
+    @section correct-operators %correct-operators
+
+    @par Parse Directive:
+    <tt>%%correct-operators</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-operators "%broken-operators" parse option.
+
+    @see @ref broken-operators "%broken-operators"
+
+    @since %Qore 0.8.12.10
+
+    <hr>
+    @section correct-references %correct-references
+
+    @par Parse Directive:
+    <tt>%%correct-references</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-references "%broken-references" parse option.
+
+    @see @ref broken-operators "%broken-references"
+
+    @since %Qore 0.8.13
 
     <hr>
     @section define %define
@@ -602,6 +734,23 @@ i+ =4;
     Prohibits further changes to the warning mask.
 
     <hr>
+    @section loose-args %loose-args
+
+    @par Parse Directive:
+    n/a
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref strict-args "%strict-args" parse option.
+
+    @see @ref loose-args "%loose-args"
+
+    <hr>
     @section new-style %new-style
 
     @par Parse Directive:
@@ -618,7 +767,9 @@ i+ =4;
 
     @see @ref old-style "%old-style"
 
-    @note %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
+    @note
+    - %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
+    - when using this option (or @ref allow-bare-refs "%allow-bare-refs) the lack of \c "$" characters in variable names makes it necessary to declare local variables before using them
 
     @since %Qore 0.8.1
 
@@ -1342,6 +1493,8 @@ if (str)
     Additionally, If a function, method, or @ref code_type "code" call is made with excess arguments not handled by the target, a
     \c CALL-WITH-TYPE-ERRORS exception is thrown.  In case calls are made to user code over a @ref Qore::Program "Program" barrier,
     the parse options of the target code determine if this exception is raised;
+
+    @see @ref loose-args "%loose-args"
 
     <hr>
     @section strict-bool-eval %strict-bool-eval

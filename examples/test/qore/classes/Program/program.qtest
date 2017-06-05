@@ -175,6 +175,12 @@ class ProgramTest inherits QUnit::Test {
 
             assertEq(NOTHING, p.run());
         }
+
+        {
+            Program p(PO_NEW_STYLE|PO_BROKEN_INT_ASSIGNMENTS);
+            p.parse("%correct-int-assignments\nany h = {}; int i = h;", "");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
+        }
     }
 
     constantExpressionTest() {
@@ -213,8 +219,33 @@ class ProgramTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertEq(NOTHING, p.parse("%loose-args\nhours();", ""));
+        }
+
+        {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_BROKEN_OPERATORS);
             assertEq(NOTHING, p.parse("int i; i+ =1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_BROKEN_OPERATORS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("%correct-operators\nint i; int i+ =1;", ""));
         }
     }
 
