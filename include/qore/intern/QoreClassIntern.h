@@ -2320,7 +2320,7 @@ public:
 
       //printd(5, "parseAddConstant() this: %p cls: %p const: %s access: %d\n", this, cls, cname.c_str(), access);
 
-      pend_constlist.parseAdd(cname, val, constlist, access, name.c_str());
+      pend_constlist.parseAdd(loc, cname, val, constlist, access, name.c_str());
    }
 
    DLLLOCAL bool parseHasVar(const char* vn) {

@@ -1748,7 +1748,7 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation& 
    if (cpub && !pub && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
 
-   return pendConstant.parseAdd(cname, vh.release(), 0, cpub);
+   return pendConstant.parseAdd(loc, cname, vh.release(), 0, cpub);
 }
 
 // only called while parsing before addition to namespace tree, no locking needed

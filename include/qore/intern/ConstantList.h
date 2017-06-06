@@ -114,7 +114,7 @@ public:
       builtin : 1     // builtin vs user
       ;
 
-   DLLLOCAL ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+   DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
    DLLLOCAL void deref() {
@@ -238,7 +238,7 @@ public:
    // do not delete the object returned by this function
    DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, ClassAccess access = Public);
 
-   DLLLOCAL cnemap_t::iterator parseAdd(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, bool pub = false, ClassAccess access = Public);
+   DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, bool pub = false, ClassAccess access = Public);
 
    DLLLOCAL ConstantEntry* findEntry(const char* name);
 
@@ -272,7 +272,7 @@ public:
    DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
    // add a constant to a list with duplicate checking (pub & priv + pending)
-   DLLLOCAL void parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname);
+   DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname);
 
    DLLLOCAL void parseInit();
    DLLLOCAL QoreHashNode* getInfo();

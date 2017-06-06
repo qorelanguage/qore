@@ -726,6 +726,7 @@ protected:
    }
 
 public:
+   QoreProgramLocation loc;
    char* name;
    unsigned char type;
    union {
@@ -734,14 +735,16 @@ public:
       AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : name(n), type(MI_Member)  {
+   DLLLOCAL MemberInfo(const QoreProgramLocation& loc, char* n, QoreMemberInfo* mi) : loc(loc), name(n), type(MI_Member)  {
       u.memberInfo = mi;
       if (!(mi && mi->parseHasTypeInfo()) && parse_check_parse_option(PO_REQUIRE_TYPES))
          parse_error("member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
-   DLLLOCAL MemberInfo(char* n, AbstractQoreNode* exp) : name(n), type(MI_Constant) {
+
+   DLLLOCAL MemberInfo(const QoreProgramLocation& loc, char* n, AbstractQoreNode* exp) : loc(loc), name(n), type(MI_Constant) {
       u.exp = exp;
    }
+
    DLLLOCAL ~MemberInfo() {
       if (name)
          free(name);
@@ -758,6 +761,7 @@ public:
             break;
       }
    }
+
    DLLLOCAL member_pair_t getPair() {
       assert(type == MI_Member);
       member_pair_t m = std::make_pair(name, u.memberInfo);
@@ -765,6 +769,7 @@ public:
       u.memberInfo = 0;
       return m;
    }
+
    DLLLOCAL var_pair_t getVarPair() {
       assert(type == MI_Var);
       var_pair_t m = std::make_pair(name, u.varInfo);
@@ -772,6 +777,7 @@ public:
       u.varInfo = 0;
       return m;
    }
+
    DLLLOCAL AbstractQoreNode* takeExp() {
       assert(type == MI_Constant);
       AbstractQoreNode* rv = u.exp;
@@ -788,6 +794,7 @@ struct ClassVarInfo : public MemberInfo {
       if (!(vi && vi->parseHasTypeInfo()) && parse_check_parse_option(PO_REQUIRE_TYPES))
          parse_error("class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
+
    DLLLOCAL char* takeName() {
       char* n = name;
       name = 0;
@@ -815,7 +822,7 @@ public:
       if (member->type == MI_Member)
          mmap.addNoCheck(member->getPair());
       else if (member->type == MI_Constant)
-         cmap.parseAdd(member->name, member->takeExp());
+         cmap.parseAdd(member->loc, member->name, member->takeExp());
       else
          vmap.addNoCheck(member->getVarPair());
 
@@ -854,7 +861,7 @@ public:
          }
 
          // add new constant to list
-         cmap.parseAdd(member->name, member->takeExp());
+         cmap.parseAdd(member->loc, member->name, member->takeExp());
          delete member;
       }
       else {
@@ -2344,102 +2351,113 @@ classvardecl:
 
 member2:
         qtypedef SELF_REF ';' {
+           QoreProgramLocation loc(@1.first_line, @2.last_line);
            int fl = $1 ? @1.first_line : @2.first_line;
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @2.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @2.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
+              parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SELF_REF '=' exp ';' {
+           QoreProgramLocation loc(@1.first_line, @4.last_line);
            int fl = $1 ? @1.first_line : @2.first_line;
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
+              parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SELF_REF '(' myexp ')' ';' {
+           QoreProgramLocation loc(@1.first_line, @5.last_line);
            int fl = $1 ? @1.first_line : @2.first_line;
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
            ScopedObjectCallNode* new_call = 0;
 
            if (!$1)
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "cannot call constructor without declaring the class");
+              parse_error(loc, "cannot call constructor without declaring the class");
            else if (t)
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+              parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
            else
               new_call = new ScopedObjectCallNode(QoreProgramLocation(@1.first_line, @5.last_line), new NamedScope(strdup($1->getClassName())), make_args($4));
 
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
 
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
+              parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | uncqtypedef IDENTIFIER ';' {
+           QoreProgramLocation loc(@1.first_line, @2.last_line);
            int fl = @1.first_line;
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @2.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @2.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @2.last_line), "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
+              parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
         | uncqtypedef IDENTIFIER '=' exp ';' {
+           QoreProgramLocation loc(@1.first_line, @4.last_line);
            int fl = @1.first_line;
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
+              parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
+           QoreProgramLocation loc(@1.first_line, @5.last_line);
            int fl = @1.first_line;
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
            ScopedObjectCallNode* new_call = 0;
 
            if (!$1)
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "cannot call constructor without declaring the class");
+              parse_error(loc, "cannot call constructor without declaring the class");
            else if (t)
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+              parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
            else
-              new_call = new ScopedObjectCallNode(QoreProgramLocation(@1.first_line, @5.last_line), new NamedScope(strdup($1->getClassName())), make_args($4));
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args($4));
 
-           $$ = new MemberInfo($2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(fl, @4.last_line, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
 
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
+              parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
         | IDENTIFIER ';' {
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
            int fl = @1.first_line;
-           $$ = new MemberInfo($1, new QoreMemberInfo(fl, @1.last_line));
+           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(fl, @1.last_line));
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
+              parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
         }
         | IDENTIFIER '=' exp ';' {
+           QoreProgramLocation loc(@1.first_line, @3.last_line);
            int fl = @1.first_line;
-           $$ = new MemberInfo($1, new QoreMemberInfo(fl, @3.last_line, $3));
+           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(fl, @3.last_line, $3));
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @3.last_line), "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
+              parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
         }
         | classvardecl {
            $$ = $1;
         }
         | unscoped_const_decl {
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
            if ($1->pub)
-              parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "cannot change class constant scope for constant '%s' within a public or private declaration block", $1->name.ostr);
-           $$ = new MemberInfo($1->name.takeName(), $1->value);
+              parse_error(loc, "cannot change class constant scope for constant '%s' within a public or private declaration block", $1->name.ostr);
+           $$ = new MemberInfo(loc, $1->name.takeName(), $1->value);
            delete $1;
         }
         ;
 
 member:
         SELF_REF {
-           $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @1.last_line));
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
+           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(@1.first_line, @1.last_line));
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
+              parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
         | SELF_REF SCOPED_REF {
-           $$ = new MemberInfo($1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));
+           QoreProgramLocation loc(@1.first_line, @2.last_line);
+           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(@1.first_line, @2.last_line, $2));
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @2.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
+              parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
         ;
 
