@@ -51,9 +51,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreCastOperatorNode(int sline, int eline, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(sline, eline, n_exp), path(new NamedScope(str)), qc(0) {
-   }
-
    DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), path(new NamedScope(str)), qc(0) {
    }
 

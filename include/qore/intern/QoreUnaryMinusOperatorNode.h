@@ -48,9 +48,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreUnaryMinusOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(sline, eline, n_exp), returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreUnaryMinusOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), returnTypeInfo(0) {
    }
 
@@ -69,7 +66,7 @@ public:
       return copyBackgroundExplicit<QoreUnaryMinusOperatorNode>(xsink);
    }
 
-   DLLLOCAL static AbstractQoreNode *makeNode(int sline, int eline, AbstractQoreNode *exp);
+   DLLLOCAL static AbstractQoreNode *makeNode(const QoreProgramLocation& loc, AbstractQoreNode *exp);
 };
 
 #endif

@@ -42,9 +42,6 @@ protected:
 public:
    const QoreTypeInfo *ti; // typeinfo of lhs
 
-   DLLLOCAL QoreBinaryLValueOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(sline, eline, n_left, n_right), ti(0) {
-   }
-
    DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right), ti(0) {
    }
 };

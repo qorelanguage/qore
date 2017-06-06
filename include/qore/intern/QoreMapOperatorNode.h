@@ -60,9 +60,6 @@ protected:
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreMapOperatorNode(int sline, int eline, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(sline, eline, l, r), returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(0) {
    }
 

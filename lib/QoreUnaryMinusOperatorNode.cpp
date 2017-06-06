@@ -126,7 +126,7 @@ AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int
 }
 
 // static function
-AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(int sline, int eline, AbstractQoreNode *v) {
+AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(const QoreProgramLocation& loc, AbstractQoreNode *v) {
    if (v) {
       assert(v->is_unique());
       if (v->getType() == NT_NUMBER) {
@@ -151,5 +151,5 @@ AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(int sline, int eline, Abs
 	 return v;
       }
    }
-   return new QoreUnaryMinusOperatorNode(sline, eline, v);
+   return new QoreUnaryMinusOperatorNode(loc, v);
 }

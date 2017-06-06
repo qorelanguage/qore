@@ -59,9 +59,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QorePostIncrementOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(sline, eline, n_exp), ti(0) {
-   }
-
    DLLLOCAL QorePostIncrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp), ti(0) {
    }
 

@@ -53,9 +53,6 @@ protected:
    DLLLOCAL bool bigIntLessThanOrEquals(ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalLessThanOrEqualsOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(sline, eline, n_left, n_right), pfunc(0) {
-   }
-
    DLLLOCAL QoreLogicalLessThanOrEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(loc, n_left, n_right), pfunc(0) {
    }
 

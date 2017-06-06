@@ -78,8 +78,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSingleExpressionOperatorNode(int sline, int eline, AbstractQoreNode* n_exp) : T(sline, eline), exp(n_exp) {
-   }
    DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
    }
    DLLLOCAL AbstractQoreNode* getExp() {

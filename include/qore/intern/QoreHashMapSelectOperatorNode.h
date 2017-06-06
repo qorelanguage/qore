@@ -62,13 +62,6 @@ protected:
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   /*
-    * Constructor
-    */
-   DLLLOCAL QoreHashMapSelectOperatorNode(int sline, int eline, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2, AbstractQoreNode* p3) :
-      QoreNOperatorNodeBase<4>(sline, eline, p0, p1, p2, p3), returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreHashMapSelectOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2, AbstractQoreNode* p3) :
       QoreNOperatorNodeBase<4>(loc, p0, p1, p2, p3), returnTypeInfo(0) {
    }

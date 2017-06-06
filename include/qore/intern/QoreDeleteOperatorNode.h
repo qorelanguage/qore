@@ -46,8 +46,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDeleteOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(sline, eline, n_exp) {
-   }
    DLLLOCAL QoreDeleteOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;

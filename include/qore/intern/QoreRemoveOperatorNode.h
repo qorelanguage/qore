@@ -48,8 +48,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreRemoveOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(sline, eline, n_exp), returnTypeInfo(0) {
-   }
    DLLLOCAL QoreRemoveOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp), returnTypeInfo(0) {
    }
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;

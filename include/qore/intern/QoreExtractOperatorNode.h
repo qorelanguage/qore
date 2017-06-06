@@ -56,17 +56,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreExtractOperatorNode(int sline, int eline,
-                                    AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
-                                    AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :
-      LValueOperatorNode(sline, eline),
-      lvalue_exp(n_lvalue_exp),
-      offset_exp(n_offset_exp),
-      length_exp(n_length_exp),
-      new_exp(n_new_exp),
-      returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreExtractOperatorNode(const QoreProgramLocation& loc,
                                     AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
                                     AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :

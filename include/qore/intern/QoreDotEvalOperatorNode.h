@@ -51,9 +51,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDotEvalOperatorNode(int sline, int eline, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(sline, eline), left(n_left), m(n_m), returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreDotEvalOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(loc), left(n_left), m(n_m), returnTypeInfo(0) {
    }
 

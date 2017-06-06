@@ -71,9 +71,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreQuestionMarkOperatorNode(int sline, int eline, AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(sline, eline, e0, e1, e2), typeInfo(0) {
-   }
-
    DLLLOCAL QoreQuestionMarkOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(loc, e0, e1, e2), typeInfo(0) {
    }
 

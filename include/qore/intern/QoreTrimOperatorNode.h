@@ -48,9 +48,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreTrimOperatorNode(int sline, int eline, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(sline, eline, n_exp), returnTypeInfo(0) {
-   }
-
    DLLLOCAL QoreTrimOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp), returnTypeInfo(0) {
    }
 

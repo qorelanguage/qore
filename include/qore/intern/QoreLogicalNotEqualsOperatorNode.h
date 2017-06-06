@@ -53,9 +53,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreLogicalNotEqualsOperatorNode(int sline, int eline, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalEqualsOperatorNode(sline, eline, n_left, n_right) {
-   }
-
    DLLLOCAL QoreLogicalNotEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalEqualsOperatorNode(loc, n_left, n_right) {
    }
 
