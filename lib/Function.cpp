@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -853,6 +853,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    const AbstractQoreFunctionVariant* pvariant = 0;
    unsigned num_args = argTypeInfo.size();
 
+   // if "%strict-args" is in force
+   bool strict_args = getProgram()->getParseOptions64() & PO_STRICT_ARGS;
+
    //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = 0;
@@ -867,22 +870,35 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
 	 AbstractFunctionSignature* sig = (*i)->getSignature();
 
-	 //printd(5, "QoreFunction::parseFindVariant() this: %p checking %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+         //printd(5, "QoreFunction::parseFindVariant() this: %p checking %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 
 	 if (!variant && !sig->getParamTypes() && pmatch == -1) {
-	    match = pmatch = nperfect = 0;
-	    variant = *i;
+            // see if the call has any arguments if "%strict-args" is in force
+            bool has_type = false;
+            if (strict_args) {
+               for (unsigned i = 0; i < num_args; ++i) {
+                  if (QoreTypeInfo::hasType(argTypeInfo[i])) {
+                     has_type = true;
+                     break;
+                  }
+               }
+            }
 
-	    if (!npv)
-	       pvariant = variant;
-	    else
-	       pvariant = 0;
+            if (!has_type) {
+               match = pmatch = nperfect = 0;
+               variant = *i;
 
-	    ++npv;
+               if (!npv)
+                  pvariant = variant;
+               else
+                  pvariant = 0;
 
-	    //printd(5, "QoreFunction::parseFindVariant() this: %p matched with no args %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+               ++npv;
 
-	    continue;
+               //printd(5, "QoreFunction::parseFindVariant() this: %p matched with no args %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+
+               continue;
+            }
 	 }
 
 	 // skip variants with signatures with fewer possible elements than the best match already
@@ -897,7 +913,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
 	       const QoreTypeInfo* a = (num_args && num_args > pi) ? argTypeInfo[pi] : 0;
 
-	       //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
+               //printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
 
 	       int rc = QTI_UNASSIGNED;
 	       if (QoreTypeInfo::hasType(t)) {
@@ -920,7 +936,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	       if (rc == QTI_UNASSIGNED) {
 		  bool may_not_match = false;
 		  rc = QoreTypeInfo::parseAccepts(t, a, may_not_match);
-		  //printd(5, "QoreFunction::parseFindVariant() %s(%s) rc: %d may_not_match: %d\n", getName(), sig->getSignatureText(), rc, may_not_match);
+                  //printd(5, "QoreFunction::parseFindVariant() %s(%s) rc: %d may_not_match: %d\n", getName(), sig->getSignatureText(), rc, may_not_match);
 		  if (may_not_match && !variant_missing_types)
 		     variant_missing_types = true;
 		  if (rc == QTI_IDENT)
@@ -942,7 +958,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 		  //}
 	    }
 
-	    //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_missing_types: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect);
+            //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_missing_types: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_missing_types, variant_pmatch, variant_nperfect, nperfect);
 	    if (!ok)
 	       continue;
 
@@ -975,7 +991,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 		  match = count;
 		  nperfect = variant_nperfect;
 		  if (!variant_missing_types ) {
-		     //printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
+                     //printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
 		     variant = *i;
 		  }
 		  else
@@ -1164,7 +1180,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 	 warn_excess_args(this, argTypeInfo, sig);
    }
 
-   //printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll);
+   //printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld num_args: %d\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll, num_args);
    return variant;
 }
 
@@ -1646,6 +1662,8 @@ int QoreFunction::addPendingVariant(AbstractQoreFunctionVariant* variant) {
 }
 
 void QoreFunction::parseCommit() {
+   parseCheckReturnType();
+
    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
       vlist.push_back(*i);
 
