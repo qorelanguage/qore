@@ -264,6 +264,7 @@
         - fixed a bug that prohibited only columns from the main query to be selected when joins are used (<a href="https://github.com/qorelanguage/qore/issues/1909">issue 1909</a>)
       - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>:
         - fixed a bug in flush messages in the \c InboundTableMapper class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
+    - fixed a bug that could cause spurious parse-time exceptions to be thrown when matching call variants with multiple return types for the same callable object (<a href="https://github.com/qorelanguage/qore/issues/1928">issue 1928</a>)
     - fixed the process return code in the output reference in @ref Qore::backquote() "backquote()" on Unix/Linux platforms (<a href="https://github.com/qorelanguage/qore/issues/1884">issue 1884</a>)
     - fixed a bug where connections were not immediately released back to the @ref Qore::SQL::DatasourcePool "DatasourcePool" in case of an \c SQLSTATEMENT-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/1836">issue 1836</a>)
     - eliminated a spurious exception in the @ref Qore::SQL::SQLStatement "SQLStatement" class in case of a @ref Qore::SQL::DatasourcePool "DatasourcePool" timeout (<a href="https://github.com/qorelanguage/qore/issues/1832">issue 1832</a>)

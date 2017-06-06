@@ -68,6 +68,7 @@
          yylloc->last_col = col;                                             \
          yylloc->last_line = yylineno;                                       \
       }                                                                      \
+      update_parse_line_location(yylloc->first_line, yylloc->last_line);     \
    }
 
 int yyparse(yyscan_t yyscanner);
