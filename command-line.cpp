@@ -933,7 +933,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
 
       // parse immediate argument if any
       if (eval_arg) {
-	 QoreString str("printf(\"%N\n\", (");
+	 QoreString str("printf(\"%N\\n\", (");
 	 str.concat(eval_arg);
 	 str.concat("));");
 	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);

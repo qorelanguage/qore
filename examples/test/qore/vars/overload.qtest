@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -76,13 +77,28 @@ int sub f6(int i) {
 }
 
 public class OverloadTest inherits QUnit::Test {
+    public {
+        const Api = "hash sub p() { return {}; }*hash sub p(string a) {return {};}any sub p(string a, string b) { return 1; }";
+    }
+
     constructor() : Test("Overload test", "1.0") {
         addTestCase("Values test", \testValues());
         addTestCase("Variables test", \testVariables());
+        addTestCase("issue 1928", \issue1928());
         addTestCase("Overload test", \testOverload());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue1928() {
+        Program p(PO_NEW_STYLE);
+        p.parsePending(Api, "");
+        p.parse("sub t() {}", "");
+        p.parse("int sub t1(){string vstr = ''; string p1 = vstr + ''; any x = ''; int rv = p(x, p1); return rv;}", "");
+        p.parse("hash sub t2(){any a1 = ''; any a2; hash rv = p(a1, a2); return rv;}", "");
+        assertEq(1, p.callFunction("t1"));
+        assertEq({}, p.callFunction("t2"));
     }
 
     testValues() {
