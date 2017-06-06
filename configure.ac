@@ -1788,6 +1788,13 @@ else
 fi
 AC_SUBST([myprefix])
 
+# libdir that is set for Makefile in Makefile.am, but not set for configure in
+# configure.ac. This way (for example) config.status generates qore.pc from qore.pc.in
+# that points to incorrect libdir (using .../lib instead of .../lib64 on x64 machines,
+# for example). --PQ 03-Aug-2016
+libdir="\${exec_prefix}/lib${LIBSUFFIX}"
+AC_SUBST([libdir])
+
 if test "${prefix}" = "NONE"; then
    prefix=${myprefix}
 fi
