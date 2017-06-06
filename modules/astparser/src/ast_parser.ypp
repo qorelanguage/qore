@@ -73,7 +73,9 @@ typedef void* yyscan_t;
 
 %pure-parser
 %lex-param {yyscan_t yyscanner}
-%parse-param {yyscan_t yyscanner} {AstParseErrorLog* errorLog} {ASTTree* parseTree}
+%parse-param {yyscan_t yyscanner}
+%parse-param {AstParseErrorLog* errorLog}
+%parse-param {ASTTree* parseTree}
 %locations
 %error-verbose
 
