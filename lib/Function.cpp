@@ -919,9 +919,6 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    const AbstractQoreFunctionVariant* pvariant = nullptr;
    unsigned num_args = argTypeInfo.size();
 
-   // if "%strict-args" is in force
-   bool strict_args = getProgram()->getParseOptions64() & PO_STRICT_ARGS;
-
    //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = 0;
