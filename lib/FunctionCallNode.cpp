@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,10 +64,10 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
    return o->evalMethodValue(c_str, args, xsink);
 }
 
-static void invalid_access(QoreFunction* func) {
+static void invalid_access(const QoreProgramLocation& loc, QoreFunction* func) {
    // func will always be non-zero with builtin functions
    const char* class_name = func->className();
-   parse_error("parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   parse_error(loc, "parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
 static void warn_retval_ignored(const QoreProgramLocation& loc, QoreFunction* func) {
@@ -161,7 +161,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
             int64 dflags = variant->getFunctionality();
             //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p dflags: " QLLD " fdflags: " QLLD "\n", this, func->className() ? func->className() : "", func->getName(), variant, dflags, func->parseGetUniqueFunctionality());
             if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
-               invalid_access(func);
+               invalid_access(loc, func);
             int64 flags = variant->getFlags();
             check_flags(loc, func, flags, pflag);
          }
@@ -171,7 +171,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
          int64 dflags = func->parseGetUniqueFunctionality();
          if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
-            invalid_access(func);
+            invalid_access(loc, func);
          check_flags(loc, func, func->parseGetUniqueFlags(), pflag);
       }
 
@@ -228,7 +228,7 @@ void SelfFunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids,
 AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
    assert(!returnTypeInfo);
    if (!oflag) {
-      parse_error("cannot call method '%s' outside of class code", getName());
+      parse_error(loc, "cannot call method '%s' outside of class code", getName());
       return this;
    }
 
@@ -243,7 +243,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
             printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
             is_copy = true;
             if (args)
-               parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
+               parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
          }
          else {
             assert(!qc);
@@ -290,7 +290,7 @@ int SelfFunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* 
 // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
 QoreString* SelfFunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString* rv = new QoreString();
+   QoreString* rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -298,9 +298,9 @@ QoreString* SelfFunctionCallNode::getAsString(bool& del, int foff, ExceptionSink
 AbstractQoreNode* SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    AbstractQoreNode* rv;
    if (ns.size() == 1)
-      rv = new ParseSelfMethodReferenceNode(ns.takeName());
+      rv = new ParseSelfMethodReferenceNode(loc, ns.takeName());
    else
-      rv = new ParseScopedSelfMethodReferenceNode(ns.copy());
+      rv = new ParseScopedSelfMethodReferenceNode(loc, ns.copy());
    deref();
    return rv;
 }
@@ -318,7 +318,7 @@ int FunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* xsin
 // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
 QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString* rv = new QoreString();
+   QoreString* rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -345,8 +345,8 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       bool in_closure;
       LocalVar* id = find_local_var(c_str, in_closure);
       if (id) {
-         VarRefNode* vrn = new VarRefNode(takeName(), id, in_closure);
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(vrn, takeArgs());
+         VarRefNode* vrn = new VarRefNode(loc, takeName(), id, in_closure);
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, vrn, takeArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -358,7 +358,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
 
       AbstractQoreNode* n = 0;
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
-         n = new SelfVarrefNode(takeName(), loc);
+         n = new SelfVarrefNode(loc, takeName());
       }
       else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, qore_class_private::get(*qc)))) {
          //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
@@ -372,12 +372,12 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
          if (vi) {
             assert(qc);
             returnTypeInfo = vi->getTypeInfo();
-            n = new StaticClassVarRefNode(c_str, *oqc, *vi);
+            n = new StaticClassVarRefNode(loc, c_str, *oqc, *vi);
          }
       }
 
       if (n) {
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -386,15 +386,15 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
          SelfFunctionCallNode* sfcn = 0;
          if (!strcmp(c_str, "copy")) {
             if (args) {
-               parse_error("no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+               parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
                return this;
             }
-            sfcn = new SelfFunctionCallNode(takeName(), 0);
+            sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
          }
          else {
             const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
             if (m)
-               sfcn = new SelfFunctionCallNode(takeName(), takeArgs(), m, parse_get_class());
+               sfcn = new SelfFunctionCallNode(loc, takeName(), takeArgs(), m, parse_get_class());
          }
          if (sfcn) {
             deref();
@@ -420,7 +420,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    if (abr) {
       Var* v = qore_root_ns_private::parseFindGlobalVar(c_str);
       if (v)
-         n = new GlobalVarRefNode(takeName(), v);
+         n = new GlobalVarRefNode(loc, takeName(), v);
    }
 
    // see if a constant can be resolved
@@ -431,7 +431,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    }
 
    if (n) {
-      CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
+      CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
       deref();
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
@@ -454,11 +454,11 @@ void FunctionCallNode::parseInitFinalizedCall(LocalVar* oflag, int pflag, int& l
 }
 
 AbstractQoreNode* FunctionCallNode::makeReferenceNodeAndDerefImpl() {
-   return new UnresolvedCallReferenceNode(takeName());
+   return new UnresolvedCallReferenceNode(loc, takeName());
 }
 
 AbstractQoreNode* ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
-   return new UnresolvedProgramCallReferenceNode(takeName());
+   return new UnresolvedProgramCallReferenceNode(loc, takeName());
 }
 
 AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -470,10 +470,10 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
          // check if parse options allow access to this class
          int64 cflags = oc->getDomain();
          if (cflags && qore_program_private::parseAddDomain(getProgram(), cflags))
-            parseException("ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+            parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
          // check if the class has pending changes and is used in a constant initialization expression
          if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
-            parseException("ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
+            parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
       }
       delete name;
       name = 0;
@@ -503,9 +503,9 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
    if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
       if (variant)
-         parse_error("illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
+         parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
       else
-         parse_error("illegal external access to private constructor of class %s", oc->getName());
+         parse_error(loc, "illegal external access to private constructor of class %s", oc->getName());
    }
 
    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
@@ -528,11 +528,11 @@ QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink* x
 
 AbstractQoreNode* StaticMethodCallNode::makeReferenceNodeAndDeref() {
    if (args) {
-      parse_error("argument given to static method call reference");
+      parse_error(loc, "argument given to static method call reference");
       return this;
    }
 
-   UnresolvedStaticMethodCallReferenceNode* rv = new UnresolvedStaticMethodCallReferenceNode(takeScope());
+   UnresolvedStaticMethodCallReferenceNode* rv = new UnresolvedStaticMethodCallReferenceNode(loc, takeScope());
    deref();
    return rv;
 }
@@ -558,7 +558,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          // checks access already
          method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
          if (method && !method->isStatic() && !strcmp(method->getName(), "copy")) {
-            parseException("INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
+            parseException(loc, "INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
             return this;
          }
          //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %smethod: %p\n", scope->ostr, pc->getName(), qc->getName(), method);
@@ -575,7 +575,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          // see if this is a function call to a function defined in a namespace
          const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
          if (f) {
-            FunctionCallNode* fcn = new FunctionCallNode(f, takeArgs(), 0);
+            FunctionCallNode* fcn = new FunctionCallNode(loc, f, takeArgs(), 0);
             deref();
             fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
             return fcn;
@@ -587,31 +587,30 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
       if (abr) {
          Var* v = qore_root_ns_private::parseFindGlobalVar(*scope);
          if (v)
-            n = new GlobalVarRefNode(strdup(scope->getIdentifier()), v);
+            n = new GlobalVarRefNode(loc, strdup(scope->getIdentifier()), v);
       }
 
       if (!n)
-         n = qore_root_ns_private::parseFindReferencedConstantValue(*scope, typeInfo, false);
+         n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, false);
 
       if (n) {
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(n, takeArgs());
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }
 
-      parse_error("cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
+      parse_error(loc, "cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
       return this;
    }
 
    // check class capabilities against parse options
    if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain())) {
-      parseException("INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
+      parseException(loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
       return this;
    }
 
    if (!method->isStatic()) {
-      SelfFunctionCallNode* sfcn = new SelfFunctionCallNode(scope->takeName(), takeArgs(), method, qc);
-      //SelfFunctionCallNode* sfcn = new SelfFunctionCallNode(scope->takeName(), takeArgs(), qc);
+      SelfFunctionCallNode* sfcn = new SelfFunctionCallNode(loc, scope->takeName(), takeArgs(), method, qc);
       deref();
       sfcn->parseInit(oflag, pflag, lvids, typeInfo);
       return sfcn;

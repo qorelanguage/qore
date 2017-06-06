@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
@@ -402,7 +402,7 @@ protected:
    }
 
 public:
-   DLLLOCAL RuntimeConstantRefNode(ConstantEntry* n_ce) : ParseNode(NT_RTCONSTREF, true, false), ce(n_ce) {
+   DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation& loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
       assert(ce->saved_node);
    }
 

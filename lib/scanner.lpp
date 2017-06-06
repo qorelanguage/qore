@@ -1552,8 +1552,8 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
 \'[^\']*\'                              yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
-\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(-1); return IMPLICIT_ARG_REF;
-\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
+\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(QoreProgramLocation(yylloc->first_line, yylloc->last_line), -1); return IMPLICIT_ARG_REF;
+\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(QoreProgramLocation(yylloc->first_line, yylloc->last_line), strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
 \$#                                     return IMPLICIT_ELEMENT;
 \?\?                                    return NULL_COALESCING;
 \?\*                                    return VALUE_COALESCING;

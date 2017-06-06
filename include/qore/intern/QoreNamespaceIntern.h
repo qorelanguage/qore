@@ -331,7 +331,7 @@ public:
    DLLLOCAL QoreNamespace* parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
    DLLLOCAL QoreClass* parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
-   DLLLOCAL AbstractQoreNode* parseCheckScopedReference(const NamedScope& ns, unsigned& m, const QoreTypeInfo*& typeInfo, bool abr) const;
+   DLLLOCAL AbstractQoreNode* parseCheckScopedReference(const QoreProgramLocation& loc, const NamedScope& ns, unsigned& m, const QoreTypeInfo*& typeInfo, bool abr) const;
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo);
    DLLLOCAL QoreNamespace* parseFindLocalNamespace(const char* nname);
@@ -375,7 +375,7 @@ public:
       ns.priv->addNamespace(nns->priv);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseResolveReferencedClassConstant(QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL static AbstractQoreNode* parseResolveReferencedClassConstant(const QoreProgramLocation& loc, QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL static ConstantList& getConstantList(const QoreNamespace* ns) {
       return ns->priv->constant;
@@ -1155,7 +1155,7 @@ protected:
          return 0;
       }
 
-      return i->second.obj->makeCallReference();
+      return i->second.obj->makeCallReference(get_runtime_location());
    }
 
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
@@ -1247,11 +1247,11 @@ protected:
 
    DLLLOCAL void addConstant(qore_ns_private& ns, const char* cname, AbstractQoreNode* value, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL AbstractQoreNode* parseFindReferencedConstantValueIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
+   DLLLOCAL AbstractQoreNode* parseFindReferencedConstantValueIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error);
 
    DLLLOCAL AbstractQoreNode* parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode* parseResolveReferencedScopedReferenceIntern(const NamedScope& name, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL AbstractQoreNode* parseResolveReferencedScopedReferenceIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL void parseAddConstantIntern(QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool pub);
 
@@ -1704,16 +1704,16 @@ public:
       return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseFindReferencedConstantValue(const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error) {
-      return getRootNS()->rpriv->parseFindReferencedConstantValueIntern(name, typeInfo, error);
+   DLLLOCAL static AbstractQoreNode* parseFindReferencedConstantValue(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error) {
+      return getRootNS()->rpriv->parseFindReferencedConstantValueIntern(loc, name, typeInfo, error);
    }
 
    DLLLOCAL static AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo) {
       return getRootNS()->rpriv->parseResolveBarewordIntern(loc, bword, typeInfo);
    }
 
-   DLLLOCAL static AbstractQoreNode* parseResolveReferencedScopedReference(const NamedScope& name, const QoreTypeInfo*& typeInfo) {
-      return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(name, typeInfo);
+   DLLLOCAL static AbstractQoreNode* parseResolveReferencedScopedReference(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo*& typeInfo) {
+      return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(loc, name, typeInfo);
    }
 
    DLLLOCAL static QoreClass* parseFindClass(const QoreProgramLocation& loc, const char* name) {

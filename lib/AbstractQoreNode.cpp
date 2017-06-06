@@ -467,7 +467,7 @@ static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, Excep
    if (na)
       na = crlr_list_copy(na, xsink);
 
-   return new FunctionCallNode(n->getFunction(), na, n->getProgram());
+   return new FunctionCallNode(n->loc, n->getFunction(), na, n->getProgram());
 }
 
 static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
@@ -497,7 +497,7 @@ static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, 
       args = args_holder.release();
    }
 
-   return new StaticMethodCallNode(m->getMethod(), args);
+   return new StaticMethodCallNode(m->loc, m->getMethod(), args);
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
@@ -515,7 +515,7 @@ static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, Exce
       args = args_holder.release();
    }
 
-   return new CallReferenceCallNode(exp.release(), args);
+   return new CallReferenceCallNode(n->loc, exp.release(), args);
 }
 
 static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {

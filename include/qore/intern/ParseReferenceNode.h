@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,7 @@ public:
    //! creates the ReferenceNode object with the given lvalue expression
    /** @param exp must be a parse expression for an lvalue
     */
-   DLLLOCAL ParseReferenceNode(AbstractQoreNode* exp) : ParseNode(NT_PARSEREFERENCE, true, false), lvexp(exp) {
+   DLLLOCAL ParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp) {
    }
 
    //! concatenate the verbose string representation of the value to an existing QoreString
@@ -120,7 +120,7 @@ protected:
    }
 
 public:
-   DLLLOCAL IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
+   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
 
    // returns a runtime reference
    DLLLOCAL virtual ReferenceNode* evalToRef(ExceptionSink* xsink) const {

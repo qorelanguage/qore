@@ -48,13 +48,7 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   // populated automatically on creation
-   QoreProgramLocation loc;
-
-   DLLLOCAL QoreOperatorNode(int start_line, int end_line, bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv), loc(start_line, end_line) {
-   }
-
-   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv), loc(loc) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -120,9 +114,6 @@ protected:
    AbstractQoreNode* left, * right;
 
 public:
-   DLLLOCAL QoreBinaryOperatorNode(int sline, int eline, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(sline, eline), left(n_left), right(n_right) {
-   }
-
    DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
    }
 
@@ -190,9 +181,6 @@ public:
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreBoolBinaryOperatorNode(int sline, int eline, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(sline, eline, n_left, n_right) {
-   }
-
    DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
@@ -203,9 +191,6 @@ public:
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreIntBinaryOperatorNode(int sline, int eline, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(sline, eline, n_left, n_right) {
-   }
-
    DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
@@ -223,9 +208,6 @@ public:\
 
 class LValueOperatorNode : public QoreOperatorNode {
 public:
-   DLLLOCAL LValueOperatorNode(int sline, int eline) : QoreOperatorNode(sline, eline) {
-   }
-
    DLLLOCAL LValueOperatorNode(const QoreProgramLocation& loc) : QoreOperatorNode(loc) {
    }
 
@@ -254,15 +236,6 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreNOperatorNodeBase(int sline, int eline, AbstractQoreNode* a0, ...) : T(sline, eline) {
-      e[0] = a0;
-      va_list ap;
-      va_start(ap, a0);
-      for (unsigned int i = 1; i < N; ++i)
-         e[i] = va_arg(ap, AbstractQoreNode*);
-      va_end(ap);
-   }
-
    DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation& loc, AbstractQoreNode* a0, ...) : T(loc) {
       e[0] = a0;
       va_list ap;

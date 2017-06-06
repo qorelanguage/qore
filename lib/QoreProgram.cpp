@@ -1007,7 +1007,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    }
 
    // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(qf, const_cast<QoreListNode*>(args), this);
+   fc = new FunctionCallNode(get_runtime_location(), qf, const_cast<QoreListNode*>(args), this);
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary

@@ -46,7 +46,7 @@ int VarRefNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *VarRefNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -165,7 +165,7 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
    assert(type == VT_GLOBAL);
    if (ref.var->hasTypeInfo()) {
       QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
-      VarRefNewObjectNode* rv = new VarRefNewObjectNode(takeName(), ref.var, make_args(args), pti ? 0 : ref.var->getTypeInfo(), pti);
+      VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), ref.var, make_args(args), pti ? 0 : ref.var->getTypeInfo(), pti);
       deref();
       return rv;
    }
@@ -225,12 +225,12 @@ bool VarRefNode::scanMembers(RSetHelper& rsh) {
    return false;
 }
 
-GlobalVarRefNode::GlobalVarRefNode(char *n, const QoreTypeInfo* typeInfo) : VarRefNode(n, 0, false, true) {
+GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, const QoreTypeInfo* typeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
    ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(name, typeInfo);
 }
 
-GlobalVarRefNode::GlobalVarRefNode(char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(n, 0, false, true) {
+GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
    ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, parseTypeInfo);
 }
