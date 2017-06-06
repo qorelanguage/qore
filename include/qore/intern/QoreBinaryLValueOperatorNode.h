@@ -74,7 +74,7 @@ public:
       checkLValue(left, pflag);
 
       // make sure left side can take an integer value
-      check_lvalue_int(mti, name);
+      check_lvalue_int(loc, mti, name);
 
       mti = 0;
       // FIXME: check for invalid operation - type cannot be converted to integer

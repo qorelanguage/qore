@@ -42,7 +42,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (*xsink)
          return 0;
 
-      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(doPartialEval(tree->left, self, lvalue_id, xsink), tree->getOp(), nn ? nn.release() : nothing()));
+      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(get_runtime_location(), doPartialEval(tree->left, self, lvalue_id, xsink), tree->getOp(), nn ? nn.release() : nothing()));
       return t->left ? t.release() : 0;
    }
 

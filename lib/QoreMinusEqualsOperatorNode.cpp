@@ -53,7 +53,7 @@ AbstractQoreNode *QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, in
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
       if (QoreTypeInfo::returnsSingle(ti)) {
-	 check_lvalue_int(ti, "-=");
+	 check_lvalue_int(loc, ti, "-=");
 	 ti = bigIntTypeInfo;
 	 return makeSpecialization<QoreIntMinusEqualsOperatorNode>();
       }

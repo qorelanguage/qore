@@ -51,7 +51,7 @@ protected:
       typeInfo = ti;
 
       // make sure left side can take an integer or floating-point value
-      check_lvalue_int_float_number(ti, name);
+      check_lvalue_int_float_number(loc, ti, name);
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

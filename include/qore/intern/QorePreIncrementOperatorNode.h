@@ -52,7 +52,7 @@ protected:
       checkLValue(exp, pflag);
 
       // make sure left side can take an integer or floating-point value
-      check_lvalue_int_float_number(outTypeInfo, name);
+      check_lvalue_int_float_number(loc, outTypeInfo, name);
 
       // save return type
       typeInfo = outTypeInfo;

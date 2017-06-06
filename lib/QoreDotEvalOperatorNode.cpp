@@ -189,7 +189,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
 AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    if (m->getArgs()) {
-      parse_error("argument given to call reference");
+      parse_error(loc, "argument given to call reference");
       return this;
    }
 

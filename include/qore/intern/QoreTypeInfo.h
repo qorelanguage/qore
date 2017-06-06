@@ -1014,13 +1014,13 @@ public:
       return ti ? ti->nonNumericValue() : false;
    }
 
-   DLLLOCAL void doNonNumericWarning(const char* preface) const;
-   DLLLOCAL void doNonBooleanWarning(const char* preface) const;
+   DLLLOCAL void doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const;
+   DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const;
 
    // static version of method, checking for null pointer
-   DLLLOCAL static void doNonNumericWarning(const QoreTypeInfo* ti, const char* preface);
+   DLLLOCAL static void doNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface);
    // static version of method, checking for null pointer
-   DLLLOCAL static void doNonBooleanWarning(const QoreTypeInfo* ti, const char* preface);
+   DLLLOCAL static void doNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface);
 
    // returns false if there is no type or if the type can be converted to a string value, true if otherwise
    DLLLOCAL bool nonStringValue() const {

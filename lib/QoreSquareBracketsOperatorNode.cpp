@@ -53,7 +53,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
 	    QoreTypeInfo::getThisType(lti, *edesc);
 	    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-	    qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+	    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
 	 }
       }
       else {
@@ -69,7 +69,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	    QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(lti, *edesc);
 	    edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-	    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
 	    returnTypeInfo = nothingTypeInfo;
 	 }
       }
@@ -86,7 +86,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");
-	    qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+	    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 
    // see if both arguments are constants, then eval immediately and substitute this node with the result

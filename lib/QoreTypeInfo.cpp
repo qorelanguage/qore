@@ -629,30 +629,30 @@ qore_type_result_e QoreTypeInfo::runtimeMatchClassIntern(const QoreClass* n_qc) 
    return rc;
 }
 
-void QoreTypeInfo::doNonNumericWarning(const char* preface) const {
-   QoreTypeInfo::doNonNumericWarning(this, preface);
+void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreTypeInfo::doNonNumericWarning(this, loc, preface);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const char* preface) const {
-   QoreTypeInfo::doNonBooleanWarning(this, preface);
+void QoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreTypeInfo::doNonBooleanWarning(this, loc, preface);
 }
 
 void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
    QoreTypeInfo::doNonStringWarning(this, loc, preface);
 }
 
-void QoreTypeInfo::doNonNumericWarning(const QoreTypeInfo* ti, const char* preface) {
+void QoreTypeInfo::doNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
    QoreStringNode* desc = new QoreStringNode(preface);
    QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const QoreTypeInfo* ti, const char* preface) {
+void QoreTypeInfo::doNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
    QoreStringNode* desc = new QoreStringNode(preface);
    QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 void QoreTypeInfo::doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {

@@ -30,7 +30,11 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), left(l), right(r) {
+QoreTreeNode::QoreTreeNode(int sline, int eline, AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), loc(sline, eline), op(o), returnTypeInfo(0), left(l), right(r) {
+   //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
+}
+
+QoreTreeNode::QoreTreeNode(const QoreProgramLocation& loc, AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), loc(loc), op(o), returnTypeInfo(0), left(l), right(r) {
    //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
 }
 

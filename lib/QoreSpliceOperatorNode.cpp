@@ -54,7 +54,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
    checkLValue(lvalue_exp, pflag);
    //if (lvalue_exp && check_lvalue(lvalue_exp))
-   //   parse_error("the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
+   //   parse_error(loc, "the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
 
    if (QoreTypeInfo::hasType(expTypeInfo)) {
       if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
@@ -63,7 +63,7 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
 	 QoreTypeInfo::getThisType(expTypeInfo, *desc);
 	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
       else
 	 returnTypeInfo = typeInfo = expTypeInfo;
@@ -73,14 +73,14 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    expTypeInfo = 0;
    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
    if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-      QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the offset expression (2nd position) with the 'splice' operator is ");
+      QoreTypeInfo::doNonNumericWarning(expTypeInfo, loc, "the offset expression (2nd position) with the 'splice' operator is ");
 
    // check length expression, if any
    if (length_exp) {
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
       if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, "the length expression (3nd position) with the 'splice' operator is ");
+	 QoreTypeInfo::doNonNumericWarning(expTypeInfo, loc, "the length expression (3nd position) with the 'splice' operator is ");
    }
 
    // check new value expression, if any

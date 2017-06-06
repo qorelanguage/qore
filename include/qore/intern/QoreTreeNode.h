@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,9 @@
 #define _QORE_QORETREENODE_H
 
 class QoreTreeNode : public ParseNode {
+public:
+   QoreProgramLocation loc;
+
 protected:
    Operator *op;
    const QoreTypeInfo *returnTypeInfo;
@@ -51,7 +54,9 @@ public:
    AbstractQoreNode *left;
    AbstractQoreNode *right;
 
-   DLLLOCAL QoreTreeNode(AbstractQoreNode *l, Operator *op, AbstractQoreNode *r = 0);
+   DLLLOCAL QoreTreeNode(int sline, int eline, AbstractQoreNode *l, Operator *op, AbstractQoreNode *r = 0);
+
+   DLLLOCAL QoreTreeNode(const QoreProgramLocation& loc, AbstractQoreNode *l, Operator *op, AbstractQoreNode *r = 0);
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
    // the ExceptionSink is only needed for QoreObject where a method may be executed

@@ -221,8 +221,10 @@ DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(const QoreProgramLocation& loc, const char* fmt, ...);
+DLLLOCAL void parse_error(int sline, int eline, const char* fmt, ...);
 DLLLOCAL void parse_error(const char* fmt, ...);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, const char* fmt, ...);
+DLLLOCAL void parseException(int sline, int eline, const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const char* err, QoreStringNode* desc);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
@@ -326,10 +328,10 @@ enum qore_call_t {
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
 DLLLOCAL int check_lvalue(AbstractQoreNode* n, bool assign = true);
-DLLLOCAL int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_float(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
 
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
@@ -837,7 +839,7 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* 
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
 // checks for illegal $self assignments in an object context
-DLLLOCAL void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid);
+DLLLOCAL void check_self_assignment(const QoreProgramLocation& loc, AbstractQoreNode* n, LocalVar* selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 
