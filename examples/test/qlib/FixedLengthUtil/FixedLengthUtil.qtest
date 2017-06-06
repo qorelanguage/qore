@@ -108,6 +108,8 @@ class Test inherits QUnit::Test {
             ("type": "type1", "record": ("col1": "99999", "col2": "dddd")),
             );
 
+        const HashDataTS = (("type": "type1", "record": ("col1": 11111, "col2": "b\tb")),);
+
         const GlobalOptions = (
             "encoding"     : "UTF-8",
             "eol"          : "\n",
@@ -158,6 +160,10 @@ class Test inherits QUnit::Test {
         addTestCase("FixedLengthUtil padding test #1", \test_padding_1());
         addTestCase("FixedLengthUtil padding test #2", \test_padding_2());
         addTestCase("FixedLengthUtil padding test #3", \test_padding_3());
+        addTestCase("FixedLengthUtil value-too-large test", \test_value_too_large());
+        addTestCase("FixedLengthUtil truncate tests", \test_truncate());
+        addTestCase("FixedLengthUtil tabs-to-spaces reader tests", \test_reading_data_with_tabs());
+        addTestCase("FixedLengthUtil tabs-to-spaces writer tests", \test_writing_data_with_tabs());
         set_return_value(main());
     }
 
@@ -208,5 +214,77 @@ class Test inherits QUnit::Test {
     test_padding_3() {
         FixedLengthDataWriter pw3(PADDING_SPEC);
         testAssertionValue("file content check - padding of floats", pw3.write(PADDING_DATA3), PADDING_OUTPUT3);
+    }
+
+    test_value_too_large() {
+        list data1 = HashData;
+        data1[2].record.col2 += data1[2].record.col2;
+        FixedLengthDataWriter w (Specs, GlobalWriterOptions);
+        assertThrows ("FIELD-INPUT-ERROR", NOTHING, sub () { w.write(data1); }, (), "throw value too large");
+    }
+
+    test_truncate() {
+        list data1 = HashData;
+        data1[2].record.col2 += data1[2].record.col2;
+        {
+            hash specs = Specs;
+            specs.type1.col2.truncate = True;
+            FixedLengthDataWriter w (specs, GlobalWriterOptions);
+            assertEq (StrData, w.write(data1), "truncate - field option");
+        }
+        {
+            hash gopts = GlobalWriterOptions + ("truncate": True);
+            FixedLengthDataWriter w (Specs, gopts);
+            assertEq (StrData, w.write(data1), "truncate - global option");
+        }
+    }
+
+    test_reading_data_with_tabs() {
+        string str = "11111b\tb \n";
+        {
+            FixedLengthDataIterator i (str, Specs, GlobalOptions);
+            assertTrue (i.next(), "tabs to spaces - reader default case - line present");
+            assertEq (HashDataTS[0], i.getValue(), "tabs to spaces - reader default case - line content check");
+        }
+        for (int i=0; i<10; i++) {
+            hash specs = Specs;
+            specs.type1.col2.tab2space = i;
+            specs.type1.col2.truncate = True;
+            list data1 = HashDataTS;
+            data1[0].record.col2 = substr ("b" + strmul(' ', i) + "b", 0, specs.type1.col2.length);
+            FixedLengthDataIterator r (str, specs, GlobalOptions);
+            assertTrue (r.next(), sprintf ("tabs to spaces - reader field option - case #%d - line present", i));
+            assertEq (data1[0], r.getValue(), sprintf ("tabs to spaces - reader field option - case #%d - line content check", i));
+        }
+        for (int i=0; i<10; i++) {
+            hash gopts = GlobalOptions + ("tab2space": i, "truncate": True);
+            list data1 = HashDataTS;
+            data1[0].record.col2 = substr ("b" + strmul(' ', i) + "b", 0, Specs.type1.col2.length);
+            FixedLengthDataIterator r (str, Specs, gopts);
+            assertTrue (r.next(), sprintf ("tabs to spaces - reader global option - case #%d - line present", i));
+            assertEq (data1[0], r.getValue(), sprintf ("tabs to spaces - reader global option - case #%d - line content check", i));
+        }
+    }
+
+    test_writing_data_with_tabs() {
+        {
+            string str = "11111b\tb \n";
+            FixedLengthDataWriter w (Specs, GlobalWriterOptions);
+            assertEq (str, w.write (HashDataTS), "tabs to spaces - writer default case");
+        }
+        for (int i=0; i<10; i++) {
+            hash specs = Specs;
+            specs.type1.col2.tab2space = i;
+            specs.type1.col2.truncate = True;
+            string str = "11111" + substr ("b" + strmul(' ', i) + "b  ", 0, Specs.type1.col2.length) + "\n";
+            FixedLengthDataWriter w (specs, GlobalWriterOptions);
+            assertEq (str, w.write (HashDataTS), sprintf ("tabs to spaces - writer field option - case #%d", i));
+        }
+        for (int i=0; i<10; i++) {
+            hash gopts = GlobalWriterOptions + ("tab2space": i, "truncate": True);
+            string str = "11111" + substr ("b" + strmul(' ', i) + "b  ", 0, Specs.type1.col2.length) + "\n";
+            FixedLengthDataWriter w (Specs, gopts);
+            assertEq (str, w.write (HashDataTS), sprintf ("tabs to spaces - writer global option - case #%d", i));
+        }
     }
 }

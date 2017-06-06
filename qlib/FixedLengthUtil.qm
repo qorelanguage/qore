@@ -73,6 +73,8 @@ module FixedLengthUtil {
     - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
     - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
     - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
+    - \c "truncate": The flag controls whether to truncate an output field value if its bigger than its specified \a length. Default is \c "False".
+    - \c "tab2space": Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
 
     @section fixedlengthspec Specification Hash
 
@@ -128,8 +130,10 @@ const Specs = (
     | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
     | \c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined
-    | \c regex|string|the regular expressionto use to apply to input data lines when determining the record type
+    | \c regex|string|the regular expression to use to apply to input data lines when determining the record type
     | \c default|string|In writer the value is default output value when value is not specified in record data.
+    | \c truncate|boolean|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False".
+    | \c tab2space|integer|Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
 
     @subsection fixedlengthspectypes Field Data Types
 
@@ -265,6 +269,8 @@ w.write(data);
       - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator" and @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator"
       - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter" and @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter"
     - added @ref FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
+    - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
+    - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
 
     @subsection fixedlengthutil_v1_0 Version 1.0.1
     - fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
@@ -409,7 +415,7 @@ my hash $h = $i.getValue();
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
             }
-            result.record{col} = transform(line.substr(pos, field.length), field);
+            result.record{col} = transform(line.substr(pos, field.length), field + {'name': col});
             pos += field.length;
         }
         return result;
@@ -430,6 +436,16 @@ my hash $h = $i.getValue();
             case "string": {
                 if (value.typeCode() == NT_STRING) {
                     trim value;
+                    # Convert tabs to spaces
+                    if (exists type.tab2space || exists m_opts.tab2space) {
+                        value = replace (value, "\t", strmul(' ', type.tab2space ?? m_opts.tab2space));
+                    }
+                    # Validate and truncate if configured to do so
+                    if ((int len = value.length()) > type.length) {
+                        if (!(type.truncate ?? m_opts.truncate))
+                            throw "FIELD-VALUE-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, type.name, type.length);
+                        splice value, type.length;
+                    }
                     return m_opts.encoding && value.encoding() != m_opts.encoding ? convert_encoding(value, m_opts.encoding) : value;
                 }
                 return string(value, m_opts.encoding);
@@ -535,6 +551,11 @@ my hash $h = $i.getValue();
                     if (i.value.typeCode() != NT_STRING)
                         throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                     # TODO: check here
+                    break;
+                }
+                case "tab2space": {
+                    if (i.value.typeCode() != NT_INT || i.value < 0)
+                        throw errname, sprintf("expecting a non-negative int value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                     break;
                 }
             }
@@ -884,6 +905,9 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         else
             opts.eol = "\n";
 
+        if (exists opts.tab2space && (opts.tab2space.typeCode() != NT_INT || opts.tab2space < 0))
+            throw errname, sprintf("expecting a non-negative int value to option \"tab2space\"; got %y (type %s) instead", opts.tab2space, opts.tab2space.type());
+
         return opts;
     }
 
@@ -949,10 +973,20 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
                     break;
             }
 
+            # Convert tabs to spaces
+            if (exists fh.tab2space || exists m_opts.tab2space) {
+                value = replace (value, "\t", strmul(' ', fh.tab2space ?? m_opts.tab2space));
+            }
+
             int len = value.length();
-            # Validate
-            if (len > fh.length)
-                throw "FIELD-INPUT-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, field, fh.length);
+            # Validate and truncate if configured to do so
+            if (len > fh.length) {
+                if (!(fh.truncate ?? m_opts.truncate))
+                    throw "FIELD-INPUT-ERROR", sprintf("Value %y (len %d) too large to pack into field: %s (len %d)", value, len, field, fh.length);
+                splice value, fh.length;
+                len = value.length();
+            }
+
             # do output justification
             int spacingsize = fh.length - len;
             if (spacingsize) {
