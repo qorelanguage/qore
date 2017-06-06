@@ -350,7 +350,7 @@ AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* of
       parse_error(loc, "reference to object member '%s' when not in an object context", method);
    else {
       qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
-      method = qore_class_private::parseResolveSelfMethod(*class_ctx, nscope);
+      method = qore_class_private::parseResolveSelfMethod(*class_ctx, loc, nscope);
       delete nscope;
       nscope = 0;
    }
@@ -531,7 +531,7 @@ UnresolvedStaticMethodCallReferenceNode::~UnresolvedStaticMethodCallReferenceNod
 AbstractQoreNode* UnresolvedStaticMethodCallReferenceNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    typeInfo = callReferenceTypeInfo;
 
-   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *scope, false);
    if (!qc) {
       // see if this is a function call to a function defined in a namespace
       const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);

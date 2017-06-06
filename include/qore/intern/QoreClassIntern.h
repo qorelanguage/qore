@@ -2307,9 +2307,9 @@ public:
       pend_constlist.assimilate(cmap, constlist, "class", name.c_str());
    }
 
-   DLLLOCAL void parseAddConstant(const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
+   DLLLOCAL void parseAddConstant(const QoreProgramLocation& loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
       if (parseHasVar(cname.c_str())) {
-         parse_error("'%s' has already been declared as a static variable in class '%s' and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str(), name.c_str());
+         parse_error(loc, "'%s' has already been declared as a static variable in class '%s' and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str(), name.c_str());
          val->deref(0);
          return;
       }
@@ -2930,7 +2930,7 @@ public:
 
    // class initialization
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme, const qore_class_private* class_ctx);
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(NamedScope* nme);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, NamedScope* nme);
 
    // class initialization
    DLLLOCAL const QoreMethod* parseFindSelfMethod(const char* nme);
@@ -2946,8 +2946,8 @@ public:
       return qc.priv->getHash();
    }
 
-   DLLLOCAL static void parseAddConstant(QoreClass& qc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
-      qc.priv->parseAddConstant(cname, val, access);
+   DLLLOCAL static void parseAddConstant(QoreClass& qc, const QoreProgramLocation& loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
+      qc.priv->parseAddConstant(loc, cname, val, access);
    }
 
    DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
@@ -3100,8 +3100,8 @@ public:
       return qc.parseResolveSelfMethod(nme, &qc);
    }
 
-   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(qore_class_private& qc, NamedScope* nme) {
-      return qc.parseResolveSelfMethod(nme);
+   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(qore_class_private& qc, const QoreProgramLocation& loc, NamedScope* nme) {
+      return qc.parseResolveSelfMethod(loc, nme);
    }
 
    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation& loc) {

@@ -120,14 +120,15 @@ static AbstractQoreNode* makeErrorTree(AbstractQoreNode* left, AbstractQoreNode*
 // for constant definitions
 class ConstNode {
 public:
+   QoreProgramLocation loc;
    NamedScope name;
    AbstractQoreNode* value;
    bool pub;
 
-  DLLLOCAL ConstNode(int sline, int eline, char* n, AbstractQoreNode* v, bool p = false) : name(n), value(v), pub(p) {
+  DLLLOCAL ConstNode(const QoreProgramLocation& loc, char* n, AbstractQoreNode* v, bool p = false) : loc(loc), name(n), value(v), pub(p) {
       // see if constant definitions are allowed
       if (parse_check_parse_option(PO_NO_CONSTANT_DEFS))
-         parse_error(QoreProgramLocation(sline, eline), "illegal constant definition \"%s\" (conflicts with parse option PO_NO_CONSTANT_DEFS)", n);
+         parse_error(loc, "illegal constant definition \"%s\" (conflicts with parse option PO_NO_CONSTANT_DEFS)", n);
    }
    DLLLOCAL AbstractQoreNode* takeValue() {
       AbstractQoreNode* rv = value;
@@ -144,13 +145,14 @@ public:
 
 class ObjClassDef {
 public:
+   QoreProgramLocation loc;
    NamedScope *name;
    QoreClass* oc;
 
-   DLLLOCAL ObjClassDef(NamedScope *n, QoreClass* o) : name(n), oc(o) {
+   DLLLOCAL ObjClassDef(const QoreProgramLocation& loc, NamedScope *n, QoreClass* o) : loc(loc), name(n), oc(o) {
    }
 
-   DLLLOCAL ObjClassDef(char* n, QoreClass* o) : name(new NamedScope(n)), oc(o) {
+   DLLLOCAL ObjClassDef(const QoreProgramLocation& loc, char* n, QoreClass* o) : loc(loc), name(new NamedScope(n)), oc(o) {
    }
 
    DLLLOCAL ~ObjClassDef() {
@@ -160,9 +162,10 @@ public:
 
 class ParseUserFunctionBase {
 public:
+   QoreProgramLocation loc;
    UserFunctionVariant* variant;
 
-   DLLLOCAL ParseUserFunctionBase(UserFunctionVariant* v) : variant(v) {
+   DLLLOCAL ParseUserFunctionBase(const QoreProgramLocation& loc, UserFunctionVariant* v) : loc(loc), variant(v) {
    }
 
    DLLLOCAL ~ParseUserFunctionBase() {
@@ -179,7 +182,7 @@ class ParseUserFunction : public ParseUserFunctionBase {
 public:
    char* name;
 
-   DLLLOCAL ParseUserFunction(char* n_name, UserFunctionVariant* n_variant) : ParseUserFunctionBase(n_variant), name(n_name) {
+   DLLLOCAL ParseUserFunction(const QoreProgramLocation& loc, char* n_name, UserFunctionVariant* n_variant) : ParseUserFunctionBase(loc, n_variant), name(n_name) {
    }
 
    DLLLOCAL ~ParseUserFunction() {
@@ -204,7 +207,7 @@ class ParseScopedUserFunction : public ParseUserFunctionBase {
 public:
    NamedScope name;
 
-   DLLLOCAL ParseScopedUserFunction(char* n_name, UserFunctionVariant* n_variant) : ParseUserFunctionBase(n_variant), name(n_name) {
+   DLLLOCAL ParseScopedUserFunction(const QoreProgramLocation& loc, char* n_name, UserFunctionVariant* n_variant) : ParseUserFunctionBase(loc, n_variant), name(n_name) {
    }
 
    DLLLOCAL void add(qore_ns_private& ns) {
@@ -219,9 +222,10 @@ public:
 };
 
 struct GVarDecl {
+   QoreProgramLocation loc;
    bool pub;
 
-   DLLLOCAL GVarDecl(bool p) : pub(p) {
+   DLLLOCAL GVarDecl(const QoreProgramLocation& loc, bool p) : loc(loc), pub(p) {
    }
 
    DLLLOCAL virtual ~GVarDecl() {
@@ -237,7 +241,7 @@ struct GVarSingleDecl : public GVarDecl {
    const QoreTypeInfo* typeInfo;
    QoreParseTypeInfo* parseTypeInfo;
 
-   DLLLOCAL GVarSingleDecl(char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(p), name(n), typeInfo(ti), parseTypeInfo(pti) {
+   DLLLOCAL GVarSingleDecl(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(loc, p), name(n), typeInfo(ti), parseTypeInfo(pti) {
       if (bare) {
          if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
             parse_error("global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
@@ -287,7 +291,7 @@ struct GVarSingleDecl : public GVarDecl {
 struct GVarListDecl : public GVarDecl {
    QoreListNode* l;
 
-   DLLLOCAL GVarListDecl(QoreListNode* list, bool p) : GVarDecl(p), l(list) {
+   DLLLOCAL GVarListDecl(const QoreProgramLocation& loc, QoreListNode* list, bool p) : GVarDecl(loc, p), l(list) {
       bool bareok = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
       ListIterator li(l);
@@ -488,11 +492,12 @@ static inline MethodVariantBase* newMethodVariant(const char* name, int mod, int
 }
 
 struct MethodDef {
+   QoreProgramLocation loc;
    MethodVariantBase* m;
    NamedScope name;
    bool static_flag;
 
-   DLLLOCAL MethodDef(int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) : m(0), name(n), static_flag(mod & OFM_STATIC) {
+   DLLLOCAL MethodDef(const QoreProgramLocation& loc, int mod, char* n, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) : loc(loc), m(0), name(n), static_flag(mod & OFM_STATIC) {
       if (checkMethod(name.getIdentifier(), bcal, returnTypeInfo)) {
          if (params)
             params->deref(0);
@@ -513,7 +518,7 @@ struct MethodDef {
       if (m) {
          // if there are any errors, the function below will delete memory
          // the following method takes ownership of "m" unconditionally
-         qore_root_ns_private::parseAddMethodToClass(name, m, static_flag);
+         qore_root_ns_private::parseAddMethodToClass(loc, name, m, static_flag);
          m = 0;
       }
       delete this;
@@ -521,7 +526,7 @@ struct MethodDef {
 
    DLLLOCAL void add(qore_ns_private& ns) {
       // the following method takes ownership of "m" unconditionally
-      ns.parseAddMethodToClass(name, m, static_flag);
+      ns.parseAddMethodToClass(loc, name, m, static_flag);
       m = 0;
    }
 };
@@ -591,8 +596,8 @@ struct NSNode {
    } n;
 
    DLLLOCAL NSNode(ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
-   DLLLOCAL NSNode(ConstNode  *c) { type = NSN_CONST; n.cn = c; }
-   DLLLOCAL NSNode(QoreNamespace  *s) { type = NSN_NS; n.ns = s; }
+   DLLLOCAL NSNode(ConstNode *c) { type = NSN_CONST; n.cn = c; }
+   DLLLOCAL NSNode(QoreNamespace *s) { type = NSN_NS; n.ns = s; }
    DLLLOCAL NSNode(ParseUserFunction* f) : type(NSN_FUNC) {
       n.func = f;
    }
@@ -641,11 +646,11 @@ struct NSNode {
    DLLLOCAL void add(qore_ns_private& ns) {
       switch (type) {
          case NSN_OCD:
-            ns.parseAddPendingClass(*(n.ocd->name), n.ocd->oc);
+            ns.parseAddPendingClass(n.ocd->loc, *(n.ocd->name), n.ocd->oc);
             delete n.ocd;
             break;
          case NSN_CONST:
-            ns.parseAddConstant(n.cn->name, n.cn->value, n.cn->pub);
+            ns.parseAddConstant(n.cn->loc, n.cn->name, n.cn->value, n.cn->pub);
             delete n.cn;
             break;
          case NSN_NS:
@@ -1570,21 +1575,22 @@ top_level_command:
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | class_def {
-           qore_root_ns_private::parseAddClass(*($1->name), $1->oc);
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
+           qore_root_ns_private::parseAddClass(loc, *($1->name), $1->oc);
 
            // see if class definitions are allowed
            if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-              parse_error("illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+              parse_error(loc, "illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
            delete $1;
         }
         | scoped_const_decl {
            // see if strong encapsulation is enabled
            check_strong_encapsulation("constant", $1->name.ostr);
-           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
+           qore_root_ns_private::parseAddConstant(QoreProgramLocation(@1.first_line, @1.last_line), *getRootNS(), $1->name, $1->value, $1->pub);
            delete $1;
         }
         | unscoped_const_decl {
-           qore_root_ns_private::parseAddConstant(*getRootNS(), $1->name, $1->value, $1->pub);
+           qore_root_ns_private::parseAddConstant(QoreProgramLocation(@1.first_line, @1.last_line), *getRootNS(), $1->name, $1->value, $1->pub);
            delete $1;
         }
         | outofline_methoddef {
@@ -1608,10 +1614,11 @@ top_level_command:
            qore_program_private::addStatement(*(getProgram()), $2);
         }
         | top_namespace_decl {
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
            qore_root_ns_private::parseAddNamespace($1);
            // see if ns declaration is legal
            if (parse_check_parse_option(PO_NO_NAMESPACE_DEFS))
-              parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "illegal namespace definition \"%s\" (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
+              parse_error(loc, "illegal namespace definition \"%s\" (conflicts with parse option PO_NO_NAMESPACE_DEFINITION)", $1->getName());
         }
         | TOK_MODULE '{' module_decls '}' {
            QoreModuleDefContext* qmd = get_module_def_context();
@@ -1679,54 +1686,55 @@ gvardecl:
            // see if strong encapsulation is enabled
            check_strong_encapsulation("global variable", $4);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
-           $$ = new GVarSingleDecl($4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
            delete $3;
         }
         | ppub TOK_OUR SCOPED_REF {
            // see if strong encapsulation is enabled
            check_strong_encapsulation("global variable", $3);
-           $$ = new GVarSingleDecl($3, 0, 0, $1, true);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @3.last_line), $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
-           $$ = new GVarSingleDecl($4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
            delete $3;
         }
         | ppub TOK_OUR IDENTIFIER {
-           $$ = new GVarSingleDecl($3, 0, 0, $1, true);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @3.last_line), $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR qtypedef SCOPED_VREF {
            // see if strong encapsulation is enabled
            check_strong_encapsulation("global variable", $4);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
-           $$ = new GVarSingleDecl($4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
            delete $3;
         }
         | ppub TOK_OUR qtypedef VAR_REF {
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
-           $$ = new GVarSingleDecl($4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
+           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
            delete $3;
         }
         | ppub TOK_OUR '(' list ')' {
-           $$ = new GVarListDecl($4, $1);
+           $$ = new GVarListDecl(QoreProgramLocation(@1.first_line, @5.last_line), $4, $1);
         }
         ;
 
 top_namespace_decl:
         nsc_modifiers TOK_NAMESPACE '{' namespace_decls '}' {
-           qore_ns_private* p = new qore_ns_private;
+           QoreProgramLocation loc(@1.first_line, @5.last_line);
+           qore_ns_private* p = new qore_ns_private(loc);
            check_nsmod($1, *p);
            $4->add(*p);
            delete $4;
            $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE ';' {
-           qore_ns_private* p = new qore_ns_private;
+           qore_ns_private* p = new qore_ns_private(QoreProgramLocation(@1.first_line, @2.last_line));
            check_nsmod($1, *p);
            $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE '{' '}' {
-           qore_ns_private* p = new qore_ns_private;
+           qore_ns_private* p = new qore_ns_private(QoreProgramLocation(@1.first_line, @2.last_line));
            check_nsmod($1, *p);
            $$ = p->ns;
         }
@@ -1784,19 +1792,19 @@ namespace_decl:
 
 unscoped_const_decl:
         TOK_CONST IDENTIFIER '=' exp ';' {
-           $$ = new ConstNode(@1.first_line, @4.last_line, $2, $4);
+           $$ = new ConstNode(QoreProgramLocation(@1.first_line, @4.last_line), $2, $4);
         }
         | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' {
-           $$ = new ConstNode(@1.first_line, @5.last_line, $3, $5, true);
+           $$ = new ConstNode(QoreProgramLocation(@1.first_line, @5.last_line), $3, $5, true);
         }
         ;
 
 scoped_const_decl:
         TOK_CONST SCOPED_REF '=' exp ';' {
-           $$ = new ConstNode(@1.first_line, @4.last_line, $2, $4);
+           $$ = new ConstNode(QoreProgramLocation(@1.first_line, @4.last_line), $2, $4);
         }
         | TOK_PUBLIC TOK_CONST SCOPED_REF '=' exp ';' {
-           $$ = new ConstNode(@1.first_line, @4.last_line, $3, $5, true);
+           $$ = new ConstNode(QoreProgramLocation(@1.first_line, @4.last_line), $3, $5, true);
         }
         ;
 
@@ -2113,13 +2121,13 @@ class_def:
         nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
            check_classmod($1, *($5));
            qore_class_private::parseSetBaseClassList(*($5), $3);
-           $$ = new ObjClassDef($2, $5);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @6.last_line), $2, $5);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
            // see if strong encapsulation is enabled
            check_strong_encapsulation("class", $2->ostr);
            check_classmod($1, *($5));
-           $$ = new ObjClassDef($2, $5);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @6.last_line), $2, $5);
            qore_class_private::parseSetBaseClassList(*($5), $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list ';' {
@@ -2127,7 +2135,7 @@ class_def:
            QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
-           $$ = new ObjClassDef($2, qc);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @3.last_line), $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
            // see if strong encapsulation is enabled
@@ -2135,7 +2143,7 @@ class_def:
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
-           $$ = new ObjClassDef($2, qc);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @3.last_line), $2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
@@ -2143,7 +2151,7 @@ class_def:
            QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
-           $$ = new ObjClassDef($2, qc);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @5.last_line), $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
            // see if strong encapsulation is enabled
@@ -2151,7 +2159,7 @@ class_def:
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
            check_classmod($1, *qc);
-           $$ = new ObjClassDef($2, qc);
+           $$ = new ObjClassDef(QoreProgramLocation(@1.first_line, @5.last_line), $2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
         }
         ;
@@ -2230,7 +2238,7 @@ class_attributes:
         }
         | unscoped_const_decl {
            $$ = new QoreClass;
-           qore_class_private::parseAddConstant(*($$), $1->getName(), $1->takeValue(), Public);
+           qore_class_private::parseAddConstant(*($$), QoreProgramLocation(@1.first_line, @1.last_line), $1->getName(), $1->takeValue(), Public);
            delete $1;
         }
         | class_attributes inline_methoddef {
@@ -2253,7 +2261,7 @@ class_attributes:
            delete $2;
         }
         | class_attributes unscoped_const_decl {
-           qore_class_private::parseAddConstant(*($$), $2->getName(), $2->takeValue(), Public);
+           qore_class_private::parseAddConstant(*($$), QoreProgramLocation(@1.first_line, @1.last_line), $2->getName(), $2->takeValue(), Public);
            $$ = $1;
            delete $2;
         }
@@ -2512,48 +2520,54 @@ inline_methoddef:
 
 outofline_methoddef:
         method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
+           QoreProgramLocation loc(@1.first_line, @8.last_line);
            if ($1 & OFM_ABSTRACT) {
               if ($8)
-                 parse_error(QoreProgramLocation(@1.first_line, @8.last_line), "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+                 parse_error(loc, "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
               else
-                 parse_error(QoreProgramLocation(@1.first_line, @8.last_line), "'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+                 parse_error(loc, "'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
            }
 
-           $$ = new MethodDef($1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
+           $$ = new MethodDef(loc, $1, $2, @4.first_line, @4.last_line, $4, $6, $7, $8);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
+           QoreProgramLocation loc(@1.first_line, @8.last_line);
            if ($1 & OFM_ABSTRACT) {
               if ($8)
-                 parse_error(QoreProgramLocation(@1.first_line, @8.last_line), "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
+                 parse_error(loc, "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
               else
-                 parse_error(QoreProgramLocation(@1.first_line, @8.last_line), "'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
+                 parse_error(loc, "'abstract' can only be used with no implementation (terminate the declaration with ';' instead of '{}')");
            }
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
            delete $2;
 
-           $$ = new MethodDef($1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
+           $$ = new MethodDef(loc, $1, $3, @5.first_line, @5.last_line, $5, $7, rt, $8);
         }
         | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
+           QoreProgramLocation loc(@1.first_line, @7.last_line);
            if (!($1 & OFM_ABSTRACT))
-              parse_error(QoreProgramLocation(@1.first_line, @7.last_line), "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
-           $$ = new MethodDef($1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
+              parse_error(loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+           $$ = new MethodDef(loc, $1, $2, @4.first_line, @4.last_line, $4, $6, $7, 0);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
+           QoreProgramLocation loc(@1.first_line, @7.last_line);
            if (!($1 & OFM_ABSTRACT))
-              parse_error(QoreProgramLocation(@1.first_line, @7.last_line), "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
+              parse_error(loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
            delete $2;
 
-           $$ = new MethodDef($1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
+           $$ = new MethodDef(loc, $1, $3, @5.first_line, @5.last_line, $5, $7, rt, 0);
         }
         | SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
-           $$ = new MethodDef(0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
+           QoreProgramLocation loc(@1.first_line, @7.last_line);
+           $$ = new MethodDef(loc, 0, $1, @3.first_line, @3.last_line, $3, $5, $6, $7);
         }
         | uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($1), ParserTypeStruct::getTypeInfo($1));
            delete $1;
 
-           $$ = new MethodDef(0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
+           QoreProgramLocation loc(@1.first_line, @7.last_line);
+           $$ = new MethodDef(loc, 0, $2, @4.first_line, @4.last_line, $4, $6, rt, $7);
         }
         ;
 
@@ -2634,7 +2648,7 @@ sub_def:
         TOK_SUB ident_openparen myexp ')' return_value block {
            int ar = get_pop_argv_ref();
            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
-           $$ = new ParseUserFunction($2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
+           $$ = new ParseUserFunction(QoreProgramLocation(@1.first_line, @6.last_line), $2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
         }
         | uncqtypedef TOK_SUB ident_openparen myexp ')' block {
            int ar = get_pop_argv_ref();
@@ -2643,7 +2657,7 @@ sub_def:
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($1), ParserTypeStruct::getTypeInfo($1));
            delete $1;
 
-           $$ = new ParseUserFunction($3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
+           $$ = new ParseUserFunction(QoreProgramLocation(@1.first_line, @6.last_line), $3, new UserFunctionVariant($6, @4.first_line, @4.last_line, $4, rt, false, flags));
         }
         | method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
            check_funcmod($1);
@@ -2652,7 +2666,7 @@ sub_def:
            if ($1 & OFM_DEPRECATED)
               flags |= QC_DEPRECATED;
 
-           $$ = new ParseUserFunction($3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags));
+           $$ = new ParseUserFunction(QoreProgramLocation(@1.first_line, @7.last_line), $3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
         }
@@ -2666,7 +2680,7 @@ sub_def:
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
            delete $2;
 
-           $$ = new ParseUserFunction($4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags));
+           $$ = new ParseUserFunction(QoreProgramLocation(@1.first_line, @7.last_line), $4, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
         }
@@ -2676,7 +2690,7 @@ scoped_sub_def:
         TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
            int ar = get_pop_argv_ref();
            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
-           $$ = new ParseScopedUserFunction($2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, flags));
+           $$ = new ParseScopedUserFunction(QoreProgramLocation(@1.first_line, @7.last_line), $2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, flags));
         }
         | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
            int ar = get_pop_argv_ref();
@@ -2685,7 +2699,7 @@ scoped_sub_def:
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($1), ParserTypeStruct::getTypeInfo($1));
            delete $1;
 
-           $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, false, flags));
+           $$ = new ParseScopedUserFunction(QoreProgramLocation(@1.first_line, @7.last_line), $3, new UserFunctionVariant($7, @5.first_line, @5.last_line, $5, rt, false, flags));
         }
         | method_modifiers TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
            check_funcmod($1);
@@ -2694,7 +2708,7 @@ scoped_sub_def:
            if ($1 & OFM_DEPRECATED)
               flags |= QC_DEPRECATED;
 
-           $$ = new ParseScopedUserFunction($3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags));
+           $$ = new ParseScopedUserFunction(QoreProgramLocation(@1.first_line, @8.last_line), $3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
         }
@@ -2708,7 +2722,7 @@ scoped_sub_def:
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
            delete $2;
 
-           $$ = new ParseScopedUserFunction($4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags));
+           $$ = new ParseScopedUserFunction(QoreProgramLocation(@1.first_line, @8.last_line), $4, new UserFunctionVariant($8, @6.first_line, @6.last_line, $6, rt, $1 & OFM_SYNCED, flags));
            if ($1 & OFM_PUBLIC)
               $$->setPublic();
         }

@@ -2510,9 +2510,9 @@ const QoreMethod* qore_class_private::parseFindSelfMethod(const char* nme) {
    return parseFindAnyMethod(nme, this);
 }
 
-const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
+const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLocation& loc, NamedScope* nme) {
    // first find class
-   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*nme, true);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *nme, true);
    if (!qc)
       return 0;
 

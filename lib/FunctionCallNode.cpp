@@ -266,7 +266,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
       else {
          assert(!qc);
          // possible only if old-style is in effect
-         qc = qore_root_ns_private::parseFindScopedClassWithMethod(ns, true);
+         qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, ns, true);
          // parse exception raised if !qc
          if (!qc)
             return this;
@@ -541,7 +541,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    assert(!typeInfo);
    bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*scope, false);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *scope, false);
 
    const QoreClass* pc = oflag && abr ? QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo()) : 0;
 
