@@ -328,7 +328,7 @@ public:
 
    DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
 
-   DLLLOCAL QoreNamespace* resolveNameScope(const NamedScope& name) const;
+   DLLLOCAL QoreNamespace* resolveNameScope(const QoreProgramLocation& loc, const NamedScope& name) const;
    DLLLOCAL QoreNamespace* parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
    DLLLOCAL QoreClass* parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
