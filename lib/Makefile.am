@@ -185,6 +185,7 @@ libqore_la_SOURCES = \
 	QoreString.cpp \
 	QoreObject.cpp \
 	RSet.cpp \
+	RSection.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \

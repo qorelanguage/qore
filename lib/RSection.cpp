@@ -1,6 +1,6 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/* -*- indent-tabs-mode: nil -*- */
 /*
-  QC_Counter.h
+  RSection.cpp
 
   Qore Programming Language
 
@@ -29,24 +29,44 @@
   information.
 */
 
-#ifndef _QORE_CLASS_COUNTER_H
+#include <qore/Qore.h>
+#include <qore/intern/RSection.h>
 
-#define _QORE_CLASS_COUNTER_H
+// does not block if there is an rsection conflict, returns -1 if the lock cannot be acquired and sets a notification
+int qore_rsection_priv::tryRSectionLockNotifyWaitRead(RNotifier* rn) {
+    assert(has_notify);
 
-#include <qore/QoreCounter.h>
-#include <qore/AbstractPrivateData.h>
+    int tid = gettid();
 
-DLLEXPORT extern qore_classid_t CID_COUNTER;
-DLLLOCAL extern QoreClass* QC_COUNTER;
+    AutoLocker al(l);
+    assert(write_tid != tid);
 
-DLLLOCAL QoreClass *initCounterClass(QoreNamespace& ns);
+    // if we already have the rsection, then return
+    if (rs_tid == tid)
+        return 0;
 
-class Counter : public AbstractPrivateData, public QoreCounter {
-   protected:
-      DLLLOCAL virtual ~Counter() {}
+    while (true) {
+        // if the write lock is acquired, then wait
+        if (write_tid != -1) {
+            ++read_waiting;
+            read_cond.wait(l);
+            --read_waiting;
+            continue;
+        }
 
-   public:
-      DLLLOCAL Counter(int nc = 0) : QoreCounter(nc) {}
-};
+        // if another thread is holding the rsection lock, then we have to abort & rollback
+        if (rs_tid != -1) {
+            setNotificationIntern(rn);
+            return -1;
+        }
 
-#endif // _QORE_CLASS_COUNTER_H
+        break;
+    }
+
+    // grab the read lock
+    ++readers;
+
+    // grab the rsection
+    rs_tid = tid;
+    return 0;
+}

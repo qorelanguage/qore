@@ -453,6 +453,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreString.cpp
     lib/QoreObject.cpp
     lib/RSet.cpp
+    lib/RSection.cpp
     lib/QoreListNode.cpp
     lib/QoreValueList.cpp
     lib/qore-main.cpp
@@ -691,29 +692,29 @@ if (DOXYGEN_FOUND)
 
     add_dependencies(libqore QORE_DOX_FILES)
 
-# TODO/FIXME    add_dependencies(libqore docs)
     # library
-    message(STATUS "Doxyfile for library")
+    message(STATUS "Preparing Doxyfile for library")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib @ONLY)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html)
     add_custom_target(docs-lib
         ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html
         COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
     )
-# TODO/FIXME    add_dependencies(docs docs-lib)
+    add_dependencies(docs docs-lib)
+
     # lang
-    message(STATUS "Doxyfile for lang")
+    message(STATUS "Preparing Doxyfile for lang")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lang/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang @ONLY)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html)
     add_custom_target(docs-lang
         ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
     )
-# TODO/FIXME    add_dependencies(docs docs-lang)
+    add_dependencies(docs docs-lang)
 endif (DOXYGEN_FOUND)
 # end of documentation
 
@@ -725,7 +726,53 @@ add_subdirectory(modules/astparser)
 # NOTE: anything below will be installed into versioned dirs!
 set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # modules must go after docs target - it's depending on it
-qore_user_modules("${QMOD}")
 
-message(STATUS "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
-message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")
+# qlib modules + their documentation
+# ---
+# modules here are divided to groups in the order of dependence
+# and then sorted alphabetically inside the groups
+
+# base modules
+qore_user_module("qlib/DatasourceProvider.qm" "")
+qore_user_module("qlib/Mapper.qm" "")
+qore_user_module("qlib/Qdx.qm" "")
+qore_user_module("qlib/Qorize.qm" "")
+qore_user_module("qlib/Util.qm" "")
+qore_user_module("qlib/WebSocketUtil.qm" "")
+
+# base 2 modules
+qore_user_module("qlib/ConnectionProvider.qm" "Util")
+qore_user_module("qlib/CsvUtil.qm" "Util")
+qore_user_module("qlib/Diff.qm" "Util")
+qore_user_module("qlib/FilePoller.qm" "Util")
+qore_user_module("qlib/FixedLengthUtil.qm" "Util")
+qore_user_module("qlib/Mime.qm" "Util")
+qore_user_module("qlib/QUnit.qm" "Util")
+qore_user_module("qlib/SqlUtil.qm" "Util")
+
+# base 3 modules
+qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
+qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime")
+qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
+
+# base 4 modules
+qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
+qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
+qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
+qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
+qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
+qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
+
+message(STATUS "Implicit link libraries and flags detected for C++: ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
+message(WARNING "Please do not use CMake for production/real builds. CMake support is experimental and it does not contain all required setup.")

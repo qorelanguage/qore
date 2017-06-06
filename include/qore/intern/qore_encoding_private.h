@@ -1,12 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_Socket.h
+  qore_encoding_private.h
 
   Qore Programming Language
 
   Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
-
-  provides a thread-safe interface to the QoreSocket object
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,51 +29,37 @@
   information.
 */
 
-#ifndef _QORE_CLASS_SOCKET_H
+#ifndef _QORE_INTERN_QORE_ENCODING_PRIVATE_H
+#define _QORE_INTERN_QORE_ENCODING_PRIVATE_H
 
-#define _QORE_CLASS_SOCKET_H
+struct qore_encoding_private {
+   mbcs_get_unicode_t get_unicode;
+   unsigned char minwidth;
+   bool ascii_compat;
 
-DLLLOCAL QoreClass* initSocketClass(QoreNamespace& qorens);
-DLLEXPORT extern qore_classid_t CID_SOCKET;
-DLLEXPORT extern QoreClass* QC_SOCKET;
-
-#include <qore/QoreSocket.h>
-#include <qore/AbstractPrivateData.h>
-#include <qore/QoreThreadLock.h>
-#include <qore/QoreSocketObject.h>
-#include "qore/intern/QC_SSLCertificate.h"
-#include "qore/intern/QC_SSLPrivateKey.h"
-
-class my_socket_priv {
-public:
-   QoreSocket* socket;
-   QoreSSLCertificate* cert;
-   QoreSSLPrivateKey* pk;
-   mutable QoreThreadLock m;
-
-   DLLLOCAL my_socket_priv(QoreSocket* s, QoreSSLCertificate* c = nullptr, QoreSSLPrivateKey* p = nullptr) : socket(s), cert(c), pk(p) {
+   DLLLOCAL qore_encoding_private(unsigned char n_minwidth = 1, mbcs_get_unicode_t gu = 0, bool ac = true) : get_unicode(gu), minwidth(n_minwidth), ascii_compat(ac) {
    }
 
-   DLLLOCAL my_socket_priv() : socket(new QoreSocket), cert(nullptr), pk(nullptr) {
+   DLLLOCAL unsigned getMinCharWidth() const {
+      return minwidth;
    }
 
-   DLLLOCAL ~my_socket_priv() {
-      if (cert)
-         cert->deref();
-      if (pk)
-         pk->deref();
-
-      delete socket;
+   DLLLOCAL bool isAsciiCompat() const {
+      return ascii_compat;
    }
 
-   //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore
-   DLLLOCAL void setAccept(QoreObject* o) {
-      socket->setAccept(o);
+   DLLLOCAL unsigned getUnicode(const char* p) const {
+      assert(get_unicode);
+      return get_unicode(p);
    }
 
-   DLLLOCAL static void setAccept(QoreSocketObject& sock, QoreObject* o) {
-      sock.priv->setAccept(o);
+   DLLLOCAL static qore_encoding_private* get(QoreEncoding& enc) {
+      return enc.priv;
+   }
+
+   DLLLOCAL static const qore_encoding_private* get(const QoreEncoding& enc) {
+      return enc.priv;
    }
 };
 
-#endif // _QORE_CLASS_QORESOCKET_H
+#endif

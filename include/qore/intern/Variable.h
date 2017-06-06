@@ -53,6 +53,7 @@ enum qore_var_t {
 #include <memory>
 #include <set>
 
+// forward references
 class Var;
 class ScopedObjectCallNode;
 class QoreSquareBracketsOperatorNode;
@@ -389,6 +390,7 @@ protected:
    }
 
    DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
+   DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove);
    DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
    DLLLOCAL int makeInt(const char* desc);
@@ -407,6 +409,7 @@ private:
    typedef std::vector<AbstractQoreNode*> nvec_t;
    nvec_t tvec;
    lvid_set_t* lvid_set = nullptr;
+   // to track object count changes
    ocvec_t ocvec;
 
    // flag if the changed value was a container before the assignment
@@ -492,7 +495,7 @@ public:
          val = 0;
       v = 0;
       typeInfo = 0;
-      before = 0;
+      before = false;
    }
 
    DLLLOCAL operator bool() const {

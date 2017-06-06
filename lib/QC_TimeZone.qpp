@@ -55,7 +55,7 @@ TimeZone tz("Europe/Prague");
 TimeZone::constructor(string region) {
    bool is_path = (!region->empty() && region->getBuffer()[0] == '.') || q_absolute_path(region->getBuffer());
    if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM))
-      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot cretae a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
+      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
    const AbstractQoreZoneInfo *zone = is_path
       ? QTZM.findLoadRegionFromPath(region->getBuffer(), xsink)
       : QTZM.findLoadRegion(region->getBuffer(), xsink);
