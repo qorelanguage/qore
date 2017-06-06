@@ -1,0 +1,57 @@
+#! /usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class RoundTest
+
+public class RoundTest inherits QUnit::Test {
+    constructor() : Test("RoundTest", "1.1") {
+        addTestCase("Round without precision test", \testZeroPrecision(), NOTHING);
+        addTestCase("Positive precision test", \testPositivePrecision(), NOTHING);
+        addTestCase("Negative precision test", \testNegativePrecision(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testZeroPrecision() {
+        testAssertion("test round(6538738)",         \round(), (6538738), 6538738);
+        testAssertion("test round(-27457456938463)", \round(), (-27457456938463), -27457456938463);
+        testAssertion("test round(-2745745693846n)", \round(), (-2745745693846n), -2745745693846n);
+
+        testAssertion("test round( 27.5000001  )", \round(), ( 27.5000001  ), 28.0);
+        testAssertion("test round( 27.5        )", \round(), ( 27.5        ), 28.0);
+        testAssertion("test round(-27.5        )", \round(), (-27.5        ), -28.0);
+        testAssertion("test round( 27.4999999  )", \round(), ( 27.4999999  ), 27.0);
+        testAssertion("test round(-27.49999999n)", \round(), (-27.49999999n, 0), -27n);
+    }
+
+    testPositivePrecision() {
+        assertEq      ( 2345.345,       round( 2345.34454,       3));
+        assertEq      (-2345.3445,      round(-2345.34454,       4));
+        assertEq      (-2345.34454,     round(-2345.34454,       5));
+        assertNumberEq( 2345.344548n,   round( 2345.3445475543n, 6), 10e-36);
+        assertNumberEq(-2345.3445476n,  round(-2345.3445475543n, 7), 10e-36);
+        assertNumberEq( 2345.34454755n, round( 2345.3445475543n, 8), 10e-36);
+    }
+
+    testNegativePrecision() {
+        testAssertion("test round( 54174, -2)", \round(), ( 54174, -2), 54200);
+        testAssertion("test round( 54174, -4)", \round(), ( 54174, -4), 50000);
+        testAssertion("test round(-54174, -4)", \round(), (-54174, -4), -50000);
+        testAssertion("test round( 54174, -5)", \round(), ( 54174, -5), 100000);
+        testAssertion("test round( 54174, -6)", \round(), ( 54174, -6), 0);
+        testAssertion("test round(-54174, -9)", \round(), (-54174, -9), 0);
+
+        testAssertion("test round(             54174.24,  -3)", \round(), (             54174.24,  -3),              54000.0);
+        testAssertion("test round(        5262654174.23n, -5)", \round(), (        5262654174.23n, -5),         5262700000n);
+        testAssertion("test round(     -262654174983,     -7)", \round(), (     -262654174983,     -7),      -262650000000);
+        testAssertion("test round(-26265417498326484n,   -11)", \round(), (-26265417498326484n,   -11), -26265400000000000n);
+    }
+}

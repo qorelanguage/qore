@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
@@ -83,7 +83,7 @@ make_version() {
 }
 
 # see if git is available
-if build="$($(dirname '$0')/getrev.sh 2>/dev/null)"; then
+if build=`$dir/getrev.sh 2>/dev/null`; then
     make_file
     ok=1
 else

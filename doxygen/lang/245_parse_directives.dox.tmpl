@@ -15,6 +15,7 @@
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
+    |@ref allow-debugging "%allow-debugging"|Allows debugging actions that could be insecure such as reading the thread local variable stack <br><br>Since %Qore 0.8.13
     |@ref allow-injection "%allow-injection"|Allows code and dependency injections into the given @ref Qore::Program "Program" object
     |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
     |@ref append-module-path "%append-module-path"|Appends the given directories to qore's module path; also performs environment variable substitution <br><br>Since %Qore 0.8.6
@@ -23,11 +24,15 @@
     |@ref broken-int-assignments "%broken-int-assignments"|Use old pre-0.8.12 broken @ref int_type "int" and @ref softint_type "softint" runtime handling where type errors were ignored at runtime
     |@ref broken-list-parsing "%broken-list-parsing"|Use old pre-0.8.12 broken list parsing where certain lists without parentheses would be rewritten to make top-level statements like <tt>list l = 1, 2, 3;</tt> valid
     |@ref broken-logic-precedence "%broken-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
+    |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
+    |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
     |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse options
     |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse options
     |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse options
+    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse options
     |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse options
+    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse options
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -70,6 +75,7 @@
     |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>-</tt><tt>-no-thread-info</tt> command line option
     |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>-</tt><tt>-no-thread-control</tt> and <tt>-</tt><tt>-no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>-</tt><tt>-no-threads</tt> command line option
     |@ref no-top-level "%no-top-level"|Disallows any further top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>-</tt><tt>-no-top-level</tt> command line option
+    |@ref no-uncontrolled-apis "%no-uncontrolled-apis"|Disallows access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
     |@ref perl-bool-eval "%perl-bool-eval"|Set to mimic perl's boolean evaluation; this is the default with qore >= 0.8.6; prior to this version, by default qore used strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True". <br><br>As of %Qore 0.8.6+, this parse option is only needed if @ref strict-bool-eval "%strict-bool-eval" is set. <br><br>When this option is set, boolean evaluation follows the same rules as <value>::val(); see also @ref strict-bool-eval "%strict-bool-eval"<br><br>Since %Qore 0.8.6
     |@ref push-parse-options "%push-parse-options"|Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed
     |@ref require-dollar "%require-dollar"|Resets the default %Qore behavior where the use of the \c "$" character in variable names, method calls, and object member references is required; use after @ref allow-bare-refs "%allow-bare-refs" to reset the default parsing behavior <br><br>Since %Qore 0.8.4
@@ -79,7 +85,8 @@
     |@ref requires "%requires"<tt>[(reexport)] <em>feature</em> [\<\|\<=\|=\|\>=\|\> <em>version</em>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>This directive must be used to load modules providing parse support (i.e. modules providing classes, constants, functions, etc that are resolved at parse time).<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised. <br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref try-module "%try-module" for a similar parse directive that allows module loading errors to be handled at runtime
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments and if a non-list lvalue is passed to the @ref push, @ref pop, or @ref shift <br><br>Since %Qore 0.8.0
-    |@ref strict-bool-eval "strict-bool-eval"|Sets qore's default strict mathematic boolean evaluation mode, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True"; this was how qore behaved by default prior to v0.8.6. <br><br>Equivalent to parse option @ref Qore::PO_STRICT_BOOLEAN_EVAL and the <tt>-pstrict-bool-eval</tt> command line option. <br><br>See also @ref perl-bool-eval "%perl-bool-eval"<br><br>Since %Qore 0.8.6
+    |@ref strict-bool-eval "%strict-bool-eval"|Sets qore's default strict mathematic boolean evaluation mode, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True"; this was how qore behaved by default prior to v0.8.6. <br><br>Equivalent to parse option @ref Qore::PO_STRICT_BOOLEAN_EVAL and the <tt>-pstrict-bool-eval</tt> command line option. <br><br>See also @ref perl-bool-eval "%perl-bool-eval"<br><br>Since %Qore 0.8.6
+    |@ref strong-encapsulation "%strong-encapsulation"|Disallows out-of-line class and namespace declarations. <br><br>Since %Qore 0.8.13
     |@ref try-module "%try-module" (@ref variable_declarations "var_decl") <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>If an error occurs loading the module, then the @ref variable_declarations "variable" declared after <tt>%%try-module</tt> is instantiated with the exception information, and the code up to the @ref endtry "%endtry" parse declaration is parsed into the program, allowing for the qore script/program to handle module loading errors at parse time for modules that must be loaded at parse time.<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised that is handled like any other load error.<br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref requires "%requires" for a similar declaration that does not allow for parse-time module loading error handling.<br><br>Since %Qore 0.8.6
 
     <hr>
@@ -102,11 +109,34 @@
     - @ref static_class_variables "static class variables" (when parsing in class code)
     - @ref variable_declarations "global variables"
     - (non-class) @ref constants "constants" \n\n
-    Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
+
+    @note
+    - when using this option (or @ref new-style "%new-style) the lack of \c "$" characters in variable names makes it necessary to declare local variables before using them
+    - ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set.
 
     @since %Qore 0.8.1
 
     @see @ref require-dollar "%require-dollar"
+
+    <hr>
+    @section allow-debugging %%allow-debugging
+
+    @par Parse Directive:
+    <tt>%%allow-debugging</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ALLOW_DEBUGGING
+
+    @par Description:
+    Allows debugging actions that could be insecure such as reading the thread local variable stack.
+    Currently allows the following functions to be used:
+    - @ref Qore::get_local_vars()
+    - @ref Qore::set_local_var_value()
+
+    @since %Qore 0.8.13
 
     <hr>
     @section allow-injection %%allow-injection
@@ -267,6 +297,24 @@
     @since %Qore 0.8.12
 
     <hr>
+    @section broken-loop-statement %broken-loop-statement
+
+    @par Parse Directive:
+    <tt>%%broken-loop-statement</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-broken-loop-statement</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_LOOP_STATEMENT
+
+    @par Description:
+    Use old pre-0.8.13 handling of break/continue: continue statements in a switch behave like a break statement,
+    both @ref break "break" and @ref continue "continue" behave like @ref return "return" when used outside of a loop.
+
+    @since %Qore 0.8.13
+
+    <hr>
     @section broken-operators %broken-operators
 
     @par Parse Directive:
@@ -311,6 +359,23 @@ i+ =4;
     @see @ref correct-operators "%correct-operators"
 
     @since %Qore 0.8.12
+
+    <hr>
+    @section broken-references %broken-references
+
+    @par Parse Directive:
+    <tt>%%broken-references</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pbroken-references</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_REFERENCES
+
+    @par Description:
+    Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13; when this option is in effect, the @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions are ignored and have no type restrictions.
+
+    @since %Qore 0.8.3
 
     <hr>
     @section correct-int-assignments %broken-int-assignments
@@ -370,6 +435,25 @@ i+ =4;
     @since %Qore 0.8.12.10
 
     <hr>
+    @section correct-loop-statement %correct-loop-statement
+
+    @par Parse Directive:
+    <tt>%%correct-loop-statement</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-loop-statement "%broken-loop-statement" parse option.
+
+    @see @ref broken-loop-statement "%broken-loop-statement"
+
+    @since %Qore 0.8.13
+
+    <hr>
     @section correct-operators %correct-operators
 
     @par Parse Directive:
@@ -387,6 +471,25 @@ i+ =4;
     @see @ref broken-operators "%broken-operators"
 
     @since %Qore 0.8.12.10
+
+    <hr>
+    @section correct-references %correct-references
+
+    @par Parse Directive:
+    <tt>%%correct-references</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-references "%broken-references" parse option.
+
+    @see @ref broken-operators "%broken-references"
+
+    @since %Qore 0.8.13
 
     <hr>
     @section define %define
@@ -664,7 +767,9 @@ i+ =4;
 
     @see @ref old-style "%old-style"
 
-    @note %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
+    @note
+    - %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style".
+    - when using this option (or @ref allow-bare-refs "%allow-bare-refs) the lack of \c "$" characters in variable names makes it necessary to declare local variables before using them
 
     @since %Qore 0.8.1
 
@@ -763,7 +868,7 @@ i+ =4;
     @ref Qore::PO_NO_EXTERNAL_ACCESS
 
     @par Description:
-    This option is made up of @ref no-process-control "%no-process-control", @ref no-network "%no-network", @ref no-filesystem "%no-filesystem", @ref no-database "%no-database", @ref no-external-info "%no-external-info", and @ref no-modules "%no-modules"
+    This option is made up of @ref no-process-control "%no-process-control", @ref no-network "%no-network", @ref no-filesystem "%no-filesystem", @ref no-database "%no-database", @ref no-external-info "%no-external-info", @ref no-modules "%no-modules", and @ref no-uncontrolled-apis "%no-uncontrolled-apis"
 
     @see @ref lockdown "%lockdown"
 
@@ -922,7 +1027,7 @@ i+ =4;
     @ref Qore::PO_NO_IO
 
     @par Description:
-    Made up of @ref no-gui "%no-gui" | @ref no-terminal-io "%no-terminal-io" | @ref no-filesystem "%no-filesystem" | @ref no-network "%no-network" | @ref no-database "%no-database"
+    Made up of @ref no-gui "%no-gui" | @ref no-terminal-io "%no-terminal-io" | @ref no-filesystem "%no-filesystem" | @ref no-network "%no-network" | @ref no-database "%no-database" | @ref no-uncontrolled-apis "%no-uncontrolled-apis"
 
     <hr>
     @section no-locale-control %no-locale-control
@@ -1192,6 +1297,21 @@ i+ =4;
     Disallows top level code from this point on, any top level statements before this directive are still allowed and become part of the @ref Qore::Program "Program" context.
 
     <hr>
+    @section no-uncontrolled-apis %no-uncontrolled-apis
+
+    @par Parse Directive:
+    <tt>%no-uncontrolled-apis</tt>
+
+    @par Command Line:
+    <tt>-p=no-uncontrolled-apis</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_UNCONTROLLED_APIS
+
+    @par Description:
+    Disallows access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls.
+
+    <hr>
     @section perl-bool-eval %perl-bool-eval
 
     @par Parse Directive:
@@ -1405,6 +1525,23 @@ if (str)
     @see @ref perl-bool-eval "perl-bool-eval"
 
     @since %Qore 0.8.6
+
+    <hr>
+    @section strong-encapsulation %strong-encapsulation
+
+    @par Parse Directive:
+    <tt>%%strong-encapsulation</tt>
+
+    @par Command Line:
+    <tt>-pstrong-encapsulation</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_STRONG_ENCAPSULATION
+
+    @par Description:
+    Disallows out-of-line namespace and class declarations which break encapsulation by allowing changes to existing namespaces and classes by external code.
+
+    @since %Qore 0.8.13
 
     <hr>
     @section try-module %try-module
