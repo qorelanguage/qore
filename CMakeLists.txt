@@ -607,7 +607,12 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
     set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
 endif ()
 
-add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+if (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED lib/single-compilation-unit.cpp)
+else (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+endif (SINGLE_COMPILATION_UNIT)
+
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
