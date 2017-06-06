@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,15 +48,14 @@ protected:
 public:
    DLLLOCAL QoreLogicalNotOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp) {
    }
+
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return LogicalNot_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {

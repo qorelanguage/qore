@@ -36,6 +36,9 @@
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 
+// type of logical operator function
+typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
+
 class QoreOperatorNode : public ParseNode {
 protected:
    bool ref_rv;
@@ -67,7 +70,7 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const = 0;
 };
 
-template <class T>
+template <class T = QoreOperatorNode>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
    AbstractQoreNode* exp;
@@ -98,8 +101,12 @@ public:
       return rv;
    }
 
+   DLLLOCAL virtual bool hasEffect() const {
+      return ::node_has_effect(exp);
+   }
+
    template <class O>
-   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return 0;
@@ -137,6 +144,12 @@ public:
       return rv;
    }
 
+   DLLLOCAL AbstractQoreNode* swapLeft(AbstractQoreNode* n_left) {
+      AbstractQoreNode* old_l = left;
+      left = n_left;
+      return old_l;
+   }
+
    DLLLOCAL AbstractQoreNode* swapRight(AbstractQoreNode* n_right) {
       AbstractQoreNode* old_r = right;
       right = n_right;
@@ -159,8 +172,12 @@ public:
       return right;
    }
 
+   DLLLOCAL virtual bool hasEffect() const {
+      return ::node_has_effect(left) || ::node_has_effect(right);
+   }
+
    template <class O>
-   DLLLOCAL QoreOperatorNode* copyBackgroundExplicit(ExceptionSink* xsink) const {
+   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
       ReferenceHolder<> n_left(copy_and_resolve_lvar_refs(left, xsink), xsink);
       if (*xsink)
          return 0;
@@ -182,10 +199,6 @@ public:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return boolTypeInfo;
    }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
 };
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
@@ -198,10 +211,6 @@ public:
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return bigIntTypeInfo;
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 };
 
@@ -267,56 +276,96 @@ public:
        assert(i < N);
        return e[i];
     }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      for (unsigned int i = 0; i < N; ++i)
+         if (::node_has_effect(e[i]))
+            return true;
+      return false;
+   }
 };
 
 // include operator headers
-#include <qore/intern/QoreDeleteOperatorNode.h>
-#include <qore/intern/QoreRemoveOperatorNode.h>
-#include <qore/intern/QoreSpliceOperatorNode.h>
-#include <qore/intern/QoreExtractOperatorNode.h>
-#include <qore/intern/QoreCastOperatorNode.h>
-#include <qore/intern/QoreUnaryMinusOperatorNode.h>
-#include <qore/intern/QoreLogicalNotOperatorNode.h>
-#include <qore/intern/QoreDotEvalOperatorNode.h>
-#include <qore/intern/QoreLogicalEqualsOperatorNode.h>
-#include <qore/intern/QoreLogicalNotEqualsOperatorNode.h>
-#include <qore/intern/QoreModuloOperatorNode.h>
-#include <qore/intern/QoreBinaryLValueOperatorNode.h>
-#include <qore/intern/QoreAssignmentOperatorNode.h>
-#include <qore/intern/QorePlusEqualsOperatorNode.h>
-#include <qore/intern/QoreIntPlusEqualsOperatorNode.h>
-#include <qore/intern/QoreMinusEqualsOperatorNode.h>
-#include <qore/intern/QoreIntMinusEqualsOperatorNode.h>
-#include <qore/intern/QoreOrEqualsOperatorNode.h>
-#include <qore/intern/QoreAndEqualsOperatorNode.h>
-#include <qore/intern/QoreModuloEqualsOperatorNode.h>
-#include <qore/intern/QoreMultiplyEqualsOperatorNode.h>
-#include <qore/intern/QoreDivideEqualsOperatorNode.h>
-#include <qore/intern/QoreXorEqualsOperatorNode.h>
-#include <qore/intern/QoreShiftLeftEqualsOperatorNode.h>
-#include <qore/intern/QoreShiftRightEqualsOperatorNode.h>
-#include <qore/intern/QorePostIncrementOperatorNode.h>
-#include <qore/intern/QoreIntPostIncrementOperatorNode.h>
-#include <qore/intern/QorePostDecrementOperatorNode.h>
-#include <qore/intern/QoreIntPostDecrementOperatorNode.h>
-#include <qore/intern/QorePreIncrementOperatorNode.h>
-#include <qore/intern/QoreIntPreIncrementOperatorNode.h>
-#include <qore/intern/QorePreDecrementOperatorNode.h>
-#include <qore/intern/QoreIntPreDecrementOperatorNode.h>
-#include <qore/intern/QoreLogicalLessThanOperatorNode.h>
-#include <qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h>
-#include <qore/intern/QoreLogicalGreaterThanOperatorNode.h>
-#include <qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h>
-#include <qore/intern/QoreDivisionOperatorNode.h>
-#include <qore/intern/QoreQuestionMarkOperatorNode.h>
-#include <qore/intern/QoreMapOperatorNode.h>
-#include <qore/intern/QoreMapSelectOperatorNode.h>
-#include <qore/intern/QoreHashMapOperatorNode.h>
-#include <qore/intern/QoreHashMapSelectOperatorNode.h>
-#include <qore/intern/QoreNullCoalescingOperatorNode.h>
-#include <qore/intern/QoreValueCoalescingOperatorNode.h>
-#include <qore/intern/QoreChompOperatorNode.h>
-#include <qore/intern/QoreTrimOperatorNode.h>
-#include <qore/intern/QoreSquareBracketsOperatorNode.h>
+#include "qore/intern/QoreDeleteOperatorNode.h"
+#include "qore/intern/QoreRemoveOperatorNode.h"
+#include "qore/intern/QoreSpliceOperatorNode.h"
+#include "qore/intern/QoreExtractOperatorNode.h"
+#include "qore/intern/QoreCastOperatorNode.h"
+#include "qore/intern/QoreKeysOperatorNode.h"
+#include "qore/intern/QoreUnaryMinusOperatorNode.h"
+#include "qore/intern/QoreUnaryPlusOperatorNode.h"
+#include "qore/intern/QoreLogicalNotOperatorNode.h"
+#include "qore/intern/QoreDotEvalOperatorNode.h"
+#include "qore/intern/QoreLogicalEqualsOperatorNode.h"
+#include "qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h"
+#include "qore/intern/QoreLogicalNotEqualsOperatorNode.h"
+#include "qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h"
+#include "qore/intern/QoreModuloOperatorNode.h"
+#include "qore/intern/QoreBinaryAndOperatorNode.h"
+#include "qore/intern/QoreBinaryOrOperatorNode.h"
+#include "qore/intern/QoreBinaryXorOperatorNode.h"
+#include "qore/intern/QoreBinaryNotOperatorNode.h"
+#include "qore/intern/QoreShiftLeftOperatorNode.h"
+#include "qore/intern/QoreShiftRightOperatorNode.h"
+#include "qore/intern/QoreExistsOperatorNode.h"
+#include "qore/intern/QoreElementsOperatorNode.h"
+#include "qore/intern/QoreInstanceOfOperatorNode.h"
+#include "qore/intern/QoreHashObjectDereferenceOperatorNode.h"
+#include "qore/intern/QoreRegexMatchOperatorNode.h"
+#include "qore/intern/QoreRegexNMatchOperatorNode.h"
+#include "qore/intern/QoreRegexExtractOperatorNode.h"
+#include "qore/intern/QoreRegexSubstOperatorNode.h"
+#include "qore/intern/QoreTransliterationOperatorNode.h"
+#include "qore/intern/QoreBinaryLValueOperatorNode.h"
+#include "qore/intern/QoreAssignmentOperatorNode.h"
+#include "qore/intern/QoreListAssignmentOperatorNode.h"
+#include "qore/intern/QorePlusEqualsOperatorNode.h"
+#include "qore/intern/QoreIntPlusEqualsOperatorNode.h"
+#include "qore/intern/QoreMinusEqualsOperatorNode.h"
+#include "qore/intern/QoreIntMinusEqualsOperatorNode.h"
+#include "qore/intern/QoreOrEqualsOperatorNode.h"
+#include "qore/intern/QoreAndEqualsOperatorNode.h"
+#include "qore/intern/QoreModuloEqualsOperatorNode.h"
+#include "qore/intern/QoreMultiplyEqualsOperatorNode.h"
+#include "qore/intern/QoreDivideEqualsOperatorNode.h"
+#include "qore/intern/QoreXorEqualsOperatorNode.h"
+#include "qore/intern/QoreShiftLeftEqualsOperatorNode.h"
+#include "qore/intern/QoreShiftRightEqualsOperatorNode.h"
+#include "qore/intern/QorePostIncrementOperatorNode.h"
+#include "qore/intern/QoreIntPostIncrementOperatorNode.h"
+#include "qore/intern/QorePostDecrementOperatorNode.h"
+#include "qore/intern/QoreIntPostDecrementOperatorNode.h"
+#include "qore/intern/QorePreIncrementOperatorNode.h"
+#include "qore/intern/QoreIntPreIncrementOperatorNode.h"
+#include "qore/intern/QorePreDecrementOperatorNode.h"
+#include "qore/intern/QoreIntPreDecrementOperatorNode.h"
+#include "qore/intern/QoreLogicalLessThanOperatorNode.h"
+#include "qore/intern/QoreLogicalGreaterThanOrEqualsOperatorNode.h"
+#include "qore/intern/QoreLogicalGreaterThanOperatorNode.h"
+#include "qore/intern/QoreLogicalLessThanOrEqualsOperatorNode.h"
+#include "qore/intern/QoreDivisionOperatorNode.h"
+#include "qore/intern/QoreQuestionMarkOperatorNode.h"
+#include "qore/intern/QoreMapOperatorNode.h"
+#include "qore/intern/QoreMapSelectOperatorNode.h"
+#include "qore/intern/QoreHashMapOperatorNode.h"
+#include "qore/intern/QoreHashMapSelectOperatorNode.h"
+#include "qore/intern/QoreFoldlOperatorNode.h"
+#include "qore/intern/QoreSelectOperatorNode.h"
+#include "qore/intern/QoreNullCoalescingOperatorNode.h"
+#include "qore/intern/QoreValueCoalescingOperatorNode.h"
+#include "qore/intern/QoreChompOperatorNode.h"
+#include "qore/intern/QoreTrimOperatorNode.h"
+#include "qore/intern/QoreSquareBracketsOperatorNode.h"
+#include "qore/intern/QoreShiftOperatorNode.h"
+#include "qore/intern/QoreUnshiftOperatorNode.h"
+#include "qore/intern/QorePopOperatorNode.h"
+#include "qore/intern/QorePushOperatorNode.h"
+#include "qore/intern/QoreLogicalAndOperatorNode.h"
+#include "qore/intern/QoreLogicalOrOperatorNode.h"
+#include "qore/intern/QoreLogicalComparisonOperatorNode.h"
+#include "qore/intern/QorePlusOperatorNode.h"
+#include "qore/intern/QoreMinusOperatorNode.h"
+#include "qore/intern/QoreMultiplicationOperatorNode.h"
+#include "qore/intern/QoreBackgroundOperatorNode.h"
 
 #endif

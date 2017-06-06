@@ -1,0 +1,127 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/ConnectionProvider.qm
+
+%exec-class ConnectionProviderTest
+
+const CertPath = normalize_dir(get_script_dir() + DirSep + "mycert.pem");
+const KeyPath = normalize_dir(get_script_dir() + DirSep + "mykey.pem");
+const KeyPassword = "password";
+
+public class ConnectionProviderTest inherits QUnit::Test {
+    constructor() : Test("ConnectionProvider Test", "1.0") {
+        addTestCase("http", \httpConnectionTest());
+
+        # Return for compatibility with a test harness that checks the return value
+        set_return_value(main());
+    }
+
+    httpConnectionTest() {
+        TestSslServer server();
+        on_exit
+            server.stop();
+        string url = "https://localhost:" + server.getPort();
+        hash urlh = parse_url(url);
+        hash opts = (
+            "ssl_cert_path": CertPath,
+            "ssl_key_path": KeyPath,
+            "ssl_key_password": KeyPassword,
+        );
+        HttpConnection hc("name", "desc", url, True, opts, urlh);
+        HTTPClient client = hc.get();
+        assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
+
+        # turn on certificate verification in the server
+        server.acceptAllCertificates(False);
+        assertEq(False, server.getAcceptAllCertificates());
+        client.disconnect();
+        # verify that exceptions are raised in the server & client when connecting
+        assertThrows("SOCKET-SSL-ERROR", \client.connect());
+        assertEq("SOCKET-SSL-ERROR", server.waitException().err);
+
+        # turn off certificate verification in the server
+        server.acceptAllCertificates(True);
+        # verify server certificate in the client
+        opts.ssl_verify_cert = True;
+        hc = new HttpConnection("name", "desc", url, True, opts, urlh);
+        # verify that exceptions are raised in the server & client when connecting
+        assertThrows("SOCKET-SSL-ERROR", \hc.get());
+        assertEq("SOCKET-SSL-ERROR", server.waitException().err);
+    }
+}
+
+class TestSslServer {
+    private:internal {
+        Socket sock();
+        Queue q();
+        bool exit;
+    }
+
+    constructor() {
+        sock.setCertificate(ReadOnlyFile::readTextFile(CertPath));
+        sock.setPrivateKey(ReadOnlyFile::readTextFile(KeyPath), KeyPassword);
+        sock.setSslVerifyMode(SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+        sock.acceptAllCertificates(True);
+
+        if (sock.bind("localhost:0"))
+            throw "BIND-ERROR", strerror();
+
+        if (sock.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        background listen();
+    }
+
+    stop() {
+        exit = True;
+    }
+
+    acceptAllCertificates(bool accept_all = True) {
+        sock.acceptAllCertificates(accept_all);
+    }
+
+    bool getAcceptAllCertificates() {
+        return sock.getAcceptAllCertificates();
+    }
+
+    private:internal listen() {
+        while (!exit) {
+            try {
+                *Socket a = sock.acceptSSL(100ms);
+                if (a) {
+                    #printf("got %y\n", a.verifyPeerCertificate());
+                    q.push(a.verifyPeerCertificate());
+                }
+            }
+            catch (hash ex) {
+                #printf("got ex: %s: %s\n", ex.err, ex.desc);
+                q.push(ex);
+            }
+        }
+    }
+
+    *string wait() {
+        return q.get();
+    }
+
+    *hash waitException() {
+        return q.get();
+    }
+
+    int queueSize() {
+        return q.size();
+    }
+
+    int getPort() {
+        return sock.getSocketInfo().port;
+    }
+}

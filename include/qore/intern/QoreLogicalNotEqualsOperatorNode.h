@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,18 +37,18 @@ class QoreLogicalNotEqualsOperatorNode : public QoreLogicalEqualsOperatorNode {
 protected:
    DLLLOCAL static QoreString logical_not_equals_str;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       QoreValue rv = QoreLogicalEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
       if (*xsink)
          return QoreValue();
       return !rv.v.b;
    }
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
       AbstractQoreNode *rv = QoreLogicalEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
       // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
       if (rv != this)
-         return rv->getAsBool() ? (AbstractQoreNode *)&False : (AbstractQoreNode *)&True;
+         return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
       return rv;
    }
 
@@ -57,30 +57,28 @@ public:
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const {
       del = false;
       return &logical_not_equals_str;
    }
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
       str.concat(&logical_not_equals_str);
       return 0;
    }
 
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return logical_not_equals_str.getBuffer();
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
-   }
-
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       return copyBackgroundExplicit<QoreLogicalNotEqualsOperatorNode>(xsink);
    }
 
-   DLLLOCAL static bool softEqual(const AbstractQoreNode *left, const AbstractQoreNode *right, ExceptionSink *xsink);
+   DLLLOCAL static bool softNotEqual(const QoreValue left, const QoreValue right, ExceptionSink* xsink) {
+      return !QoreLogicalEqualsOperatorNode::softEqual(left, right, xsink);
+   }
 };
 
 #endif

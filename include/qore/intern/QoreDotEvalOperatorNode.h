@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,14 +51,14 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDotEvalOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(loc), left(n_left), m(n_m), returnTypeInfo(0) {
+   DLLLOCAL QoreDotEvalOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(loc), left(n_left), m(n_m), returnTypeInfo(nullptr) {
    }
 
    DLLLOCAL ~QoreDotEvalOperatorNode() {
       if (left)
-	 left->deref(0);
+         left->deref(nullptr);
       if (m)
-	 m->deref(0);
+         m->deref(nullptr);
    }
 
    DLLLOCAL const AbstractQoreNode *getExpression() const {
@@ -66,7 +66,7 @@ public:
    }
 
    DLLLOCAL void replaceExpression(AbstractQoreNode *n_left) {
-      left->deref(0);
+      left->deref(nullptr);
       left = n_left;
    }
 

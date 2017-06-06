@@ -30,25 +30,17 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, ExceptionSink* xsink) const {
+IntermediateParseReferenceNode::IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(exp), self(o), lvalue_id(lvid), cls(n_cls) {
+}
+
+AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const {
    qore_type_t ntype = n->getType();
 
    //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d\n", this, get_type_name(n), ntype);
 
-   if (ntype == NT_TREE) {
-      QoreTreeNode* tree = reinterpret_cast<QoreTreeNode*>(n);
-      assert(tree->getOp() == OP_OBJECT_REF);
-      ReferenceHolder<> nn(tree->right->eval(xsink), xsink);
-      if (*xsink)
-         return 0;
-
-      SimpleRefHolder<QoreTreeNode> t(new QoreTreeNode(get_runtime_location(), doPartialEval(tree->left, self, lvalue_id, xsink), tree->getOp(), nn ? nn.release() : nothing()));
-      return t->left ? t.release() : 0;
-   }
-
    if (ntype == NT_SELF_VARREF) {
       assert(!self);
-      self = runtime_get_stack_object();
+      runtime_get_object_and_class(self, qc);
       lvalue_id = self;
       return n->refSelf();
    }
@@ -74,18 +66,35 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
    }
 
    if (ntype == NT_OPERATOR) {
-      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-      if (op) {
-	 ValueEvalRefHolder rh(op->getRight(), xsink);
-	 if (*xsink)
-	    return 0;
+      {
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+         if (op) {
+            ValueEvalRefHolder rh(op->getRight(), xsink);
+            if (*xsink)
+               return 0;
 
-	 AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, xsink);
-	 if (*xsink) {
-	    assert(!nl);
-	    return 0;
-	 }
-	 return new QoreSquareBracketsOperatorNode(get_runtime_location(), nl, rh.getReferencedValue());
+            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+            if (*xsink) {
+               assert(!nl);
+               return 0;
+            }
+            return new QoreSquareBracketsOperatorNode(get_runtime_location(), nl, rh.getReferencedValue());
+         }
+      }
+      {
+         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n);
+         if (op) {
+            ValueEvalRefHolder rh(op->getRight(), xsink);
+            if (*xsink)
+               return 0;
+
+            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+            if (*xsink) {
+               assert(!nl);
+               return 0;
+            }
+            return new QoreHashObjectDereferenceOperatorNode(get_runtime_location(), nl, rh.getReferencedValue());
+         }
       }
    }
 
@@ -96,17 +105,18 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
 ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
    QoreObject* self = 0;
    const void* lvalue_id = 0;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, xsink);
+   const qore_class_private* qc = 0;
+   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
    //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p lvalue_id: %p\n", this, nv, lvexp, lvalue_id);
-   return nv ? new ReferenceNode(nv, self, lvalue_id) : 0;
+   return nv ? new ReferenceNode(nv, self, lvalue_id, qc) : 0;
 }
 
 IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(ExceptionSink* xsink) const {
    QoreObject* self = 0;
    const void* lvalue_id = 0;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, xsink);
-   //printd(5, "ParseReferenceNode::evalToIntermediate() this: %p nv: %p lvexp: %p lvalue_id: %p\n", this, nv, lvexp, lvalue_id);
-   return nv ? new IntermediateParseReferenceNode(nv, self, lvalue_id) : 0;
+   const qore_class_private* qc = 0;
+   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
+   return nv ? new IntermediateParseReferenceNode(nv, self, lvalue_id, qc) : 0;
 }
 
 AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -134,20 +144,23 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
          reinterpret_cast<VarRefNode*>(n)->setThreadSafe();
          break;
       }
-      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-      if (op) {
-	 n = op->getLeft();
-	 continue;
+      assert(ntype == NT_OPERATOR);
+      {
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+         if (op) {
+            n = op->getLeft();
+            continue;
+         }
       }
-      assert(ntype == NT_TREE);
-      // must be a tree
-      n = reinterpret_cast<QoreTreeNode*>(n)->left;
+      assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
+      QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<QoreHashObjectDereferenceOperatorNode*>(n);
+      n = op->getLeft();
    }
 
    return this;
 }
 
-ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, self, lvalue_id)) {
+ReferenceNode::ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id, const qore_class_private* cls) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, self, lvalue_id, cls)) {
 }
 
 ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(*old.priv)) {
@@ -155,6 +168,11 @@ ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REF
 
 ReferenceNode::~ReferenceNode() {
    delete priv;
+}
+
+ReferenceNode* ReferenceNode::refRefSelf() const {
+   ref();
+   return const_cast<ReferenceNode*>(this);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

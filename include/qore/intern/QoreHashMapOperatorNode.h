@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREHASHMAPOPERATORNODE_H
 #define _QORE_QOREHASHMAPOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/AbstractIteratorHelper.h"
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
@@ -55,16 +55,11 @@ protected:
       return returnTypeInfo;
    }
 
-   inline DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
    DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
-      QoreNOperatorNodeBase<3>(loc, p0, p1, p2), returnTypeInfo(0) {
+      QoreNOperatorNodeBase<3>(loc, p0, p1, p2), returnTypeInfo(nullptr) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

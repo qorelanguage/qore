@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
   information.
 */
 
-#ifndef _QORE_QOREMODULAEQUALSOPERATORNODE_H
-#define _QORE_QOREMODULAEQUALSOPERATORNODE_H
+#ifndef _QORE_QOREMODULOEQUALSOPERATORNODE_H
+#define _QORE_QOREMODULOEQUALSOPERATORNODE_H
 
 class QoreModuloEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
 OP_COMMON

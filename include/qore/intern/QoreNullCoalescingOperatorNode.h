@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,11 +57,6 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return null_coalescing_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check expressions to return a correct value
-      return true;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
