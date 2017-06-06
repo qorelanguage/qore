@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -105,6 +105,8 @@ public:
    DLLLOCAL const char* getCipherVersion() const;
    DLLLOCAL X509* getPeerCertificate() const;
    DLLLOCAL long verifyPeerCertificate() const;
+
+   DLLLOCAL void setVerifyMode(int mode, bool accept_all_certs);
 };
 
 class SSLSocketReferenceHelper {
