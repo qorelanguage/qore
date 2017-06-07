@@ -1561,7 +1561,7 @@ public:
    DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
    // inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
 
    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bool toplevel) const;
 
@@ -1612,7 +1612,7 @@ public:
    DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
 
    // inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
    // inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
@@ -1830,7 +1830,7 @@ public:
 // private QoreClass implementation
 class qore_class_private {
 public:
-   QoreProgramLocation loc;      // location of original declaration
+   QoreProgramLocation loc;      // location of declaration
    std::string name;             // the name of the class
    QoreClass* cls;               // parent class
    qore_ns_private* ns;          // parent namespace
@@ -2711,7 +2711,7 @@ public:
    // performs class initialization; finds a static method in the class hierarchy at parse time, optionally initializes classes
    DLLLOCAL const QoreMethod* parseFindStaticMethodIntern(const char* mname, const qore_class_private* class_ctx);
 
-   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme, const qore_class_private* class_ctx);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const QoreProgramLocation& loc, const char* nme, const qore_class_private* class_ctx);
 
    // returns a non-static method if it exists in class hierarchy and has been committed to the class
    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
@@ -2930,7 +2930,7 @@ public:
    DLLLOCAL const QoreMethod* parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx);
 
    // class initialization
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const char* nme, const qore_class_private* class_ctx);
+   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, const char* nme, const qore_class_private* class_ctx);
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, NamedScope* nme);
 
    // class initialization
@@ -3095,14 +3095,6 @@ public:
    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
    DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, ClassAccess& access, bool check = false) {
       return qc->priv->parseFindStaticVar(vname, nqc, access, check);
-   }
-
-   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(qore_class_private& qc, const char* nme) {
-      return qc.parseResolveSelfMethod(nme, &qc);
-   }
-
-   DLLLOCAL static const QoreMethod* parseResolveSelfMethod(qore_class_private& qc, const QoreProgramLocation& loc, NamedScope* nme) {
-      return qc.parseResolveSelfMethod(loc, nme);
    }
 
    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation& loc) {

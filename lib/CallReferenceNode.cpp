@@ -326,7 +326,7 @@ AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, i
    else {
       assert(!method.empty());
       qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
-      meth = qore_class_private::parseResolveSelfMethod(*class_ctx, method.c_str());
+      meth = class_ctx->parseResolveSelfMethod(loc, method.c_str(), class_ctx);
       method.clear();
    }
    return this;
@@ -350,7 +350,7 @@ AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* of
       parse_error(loc, "reference to object member '%s' when not in an object context", method);
    else {
       qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
-      method = qore_class_private::parseResolveSelfMethod(*class_ctx, loc, nscope);
+      method = class_ctx->parseResolveSelfMethod(loc, nscope);
       delete nscope;
       nscope = 0;
    }

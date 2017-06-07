@@ -63,10 +63,40 @@ class ExceptionLocationTest inherits QUnit::Test {
             assertEq("<run-time-loaded: H>", ex.file);
 
             ex = getEx(\p.parse(), "int i\n = 1;\n", "I");
-            #printf("%s\n", get_exception_string(ex));
             assertEq(1, ex.line);
             assertEq(2, ex.endline);
             assertEq("<run-time-loaded: I>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\nconstructor() {\nX::a();}\n}", "J");
+            assertEq(3, ex.line);
+            assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: J>", ex.file);
+
+            ex = getEx(\p.parse(), "class B inherits\nB {}\n", "J");
+            assertEq(1, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: J>", ex.file);
+
+            ex = getEx(\p.parse(), "class B1 inherits B {} class B inherits\nB1 {}\n", "K");
+            assertEq(1, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: K>", ex.file);
+
+            ex = getEx(\p.parse(), "class B1 {\n} class B inherits\nB1, private B1 {}\n", "L");
+            assertEq(1, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: L>", ex.file);
+
+            ex = getEx(\p.parse(), "class B1 {\n} class B inherits\nB1 {constructor() : B1(int i = \n2) {}}\n", "M");
+            assertEq(3, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: M>", ex.file);
+
+            ex = getEx(\p.parse(), "class B1 {\nfinal x() {}\n}\nclass B inherits B1 {x() {\n}\n}", "N");
+            printf("%s\n", get_exception_string(ex));
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: N>", ex.file);
         }
     }
 

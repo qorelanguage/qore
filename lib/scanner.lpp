@@ -632,7 +632,7 @@ static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
    AbstractQoreNode *v = 0;
    if (!arg.empty()) {
       bool ok;
-      v = qore_parse_get_define_value(str.getBuffer(), arg, ok);
+      v = qore_parse_get_define_value(get_loc(yylloc), str.getBuffer(), arg, ok);
       if (!ok)
          return;
    }

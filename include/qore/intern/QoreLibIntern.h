@@ -181,7 +181,7 @@ struct QoreProgramLineLocation {
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
 protected:
-   DLLLOCAL explicit QoreProgramLocation(const char* f) : QoreProgramLineLocation(0, 0), file(f), source(0), offset(0) {
+   DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
    }
 
 public:
@@ -190,7 +190,7 @@ public:
    int offset;
 
    // "blank" constructor
-   DLLLOCAL QoreProgramLocation() : file(0), source(0), offset(0) {
+   DLLLOCAL QoreProgramLocation() : file(nullptr), source(nullptr), offset(0) {
    }
 
    // sets file position info from thread-local parse information
@@ -204,8 +204,8 @@ public:
 
    DLLLOCAL void clear() {
       start_line = end_line = -1;
-      file = 0;
-      source = 0;
+      file = nullptr;
+      source = nullptr;
       offset = 0;
    }
 
@@ -215,7 +215,7 @@ public:
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
-   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>") {
+   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>", 1, 1) {
    }
 };
 
@@ -830,7 +830,7 @@ DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL extern bool q_disable_gc;
 
-DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, bool& ok);
+DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok);
 
 #ifndef HAVE_INET_NTOP
 DLLLOCAL const char* inet_ntop(int af, const void* src, char* dst, size_t size);

@@ -247,18 +247,8 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
          }
          else {
             assert(!qc);
-            /*
-            if (qc) {
-               method = qore_class_private::get(*qc)->parseResolveSelfMethod(ns.ostr, class_ctx);
-               if (!method) {
-                  parse_error("cannot resolve call '%s::%s()' to any accessible method", qc->getName(), ns.ostr);
-                  return this;
-               }
-            }
-            else
-            */
             // raises a parse exception if it fails
-            method = class_ctx->parseResolveSelfMethod(ns.ostr, class_ctx);
+            method = class_ctx->parseResolveSelfMethod(loc, ns.ostr, class_ctx);
             if (!method)
                return this;
          }
@@ -271,7 +261,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
          if (!qc)
             return this;
          // raises a parse exception if it fails
-         method = const_cast<qore_class_private*>(qore_class_private::get(*qc))->parseResolveSelfMethod(ns.getIdentifier(), class_ctx);
+         method = const_cast<qore_class_private*>(qore_class_private::get(*qc))->parseResolveSelfMethod(loc, ns.getIdentifier(), class_ctx);
          if (!method)
             return this;
       }
