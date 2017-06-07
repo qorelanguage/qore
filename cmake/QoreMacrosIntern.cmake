@@ -155,6 +155,13 @@ return 0;
 }"
 HAVE_RNDN)
 
+check_cxx_source_compiles("
+#include <mpfr.h>
+int main(void){
+mpfr_rnd_t test = MPFR_RNDN;
+return 0;
+}"
+HAVE_MPFR_RNDN)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -277,7 +284,6 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
        execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		       OUTPUT_VARIABLE GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
-       string(CONCAT GIT_REV_FILE_OUTPUT "#define BUILD \"" ${GIT_REV} "\"")
        file(WRITE ${CMAKE_BINARY_DIR}/include/qore/intern/git-revision.h "#define BUILD \"${GIT_REV}\"")
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")

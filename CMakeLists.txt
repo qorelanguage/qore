@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(qore-language)
 
@@ -188,41 +188,6 @@ set(PSEUDO_QPP_SRC
     lib/Pseudo_QC_Callref.qpp
 )
 
-set(QMOD
-    qlib/Qdx.qm
-    qlib/BulkSqlUtil.qm
-    qlib/ConnectionProvider.qm
-    qlib/CsvUtil.qm
-    qlib/DatasourceProvider.qm
-    qlib/Diff.qm
-    qlib/FixedLengthUtil.qm
-    qlib/FreetdsSqlUtil.qm
-    qlib/HttpServer.qm
-    qlib/HttpServerUtil.qm
-    qlib/MailMessage.qm
-    qlib/Mapper.qm
-    qlib/Mime.qm
-    qlib/MysqlSqlUtil.qm
-    qlib/OracleSqlUtil.qm
-    qlib/PgsqlSqlUtil.qm
-    qlib/Pop3Client.qm
-    qlib/QUnit.qm
-    qlib/Qorize.qm
-    qlib/RestClient.qm
-    qlib/RestHandler.qm
-    qlib/Schema.qm
-    qlib/SchemaReverse.qm
-    qlib/SmtpClient.qm
-    qlib/SqlUtil.qm
-    qlib/TableMapper.qm
-    qlib/TelnetClient.qm
-    qlib/Util.qm
-    qlib/WebSocketClient.qm
-    qlib/WebSocketHandler.qm
-    qlib/WebSocketUtil.qm
-    qlib/WebUtil.qm
-)
-
 set(QORE_BIN_FILES
     doxygen/qdx
     bin/qget
@@ -316,14 +281,14 @@ qore_iconv_translit_check()
 qore_openssl_checks()
 qore_mpfr_checks()
 
-qore_check_headers_cxx(fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h sys/select.h poll.h grp.h)
+qore_check_headers_cxx(arpa/inet.h cxxabi.h dlfcn.h fcntl.h getopt.h glob.h grp.h iconv.h inttypes.h memory.h netdb.h netinet/in.h netinet/tcp.h poll.h pwd.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/select.h sys/socket.h sys/socket.h sys/stat.h sys/statvfs.h sys/time.h sys/types.h sys/un.h sys/wait.h termios.h umem.h unistd.h vfork.h winsock2.h ws2tcpip.h)
 
 qore_search_libs(LIBQORE_LIBS setsockopt socket)
 qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
 qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBQORE_LIBS})
-qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem)
+qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
 qore_func_strerror_r()
 qore_gethost_checks()
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -607,7 +572,12 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
     set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
 endif ()
 
-add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+if (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED lib/single-compilation-unit.cpp)
+else (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+endif (SINGLE_COMPILATION_UNIT)
+
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
