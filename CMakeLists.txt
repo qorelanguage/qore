@@ -188,41 +188,6 @@ set(PSEUDO_QPP_SRC
     lib/Pseudo_QC_Callref.qpp
 )
 
-set(QMOD
-    qlib/Qdx.qm
-    qlib/BulkSqlUtil.qm
-    qlib/ConnectionProvider.qm
-    qlib/CsvUtil.qm
-    qlib/DatasourceProvider.qm
-    qlib/Diff.qm
-    qlib/FixedLengthUtil.qm
-    qlib/FreetdsSqlUtil.qm
-    qlib/HttpServer.qm
-    qlib/HttpServerUtil.qm
-    qlib/MailMessage.qm
-    qlib/Mapper.qm
-    qlib/Mime.qm
-    qlib/MysqlSqlUtil.qm
-    qlib/OracleSqlUtil.qm
-    qlib/PgsqlSqlUtil.qm
-    qlib/Pop3Client.qm
-    qlib/QUnit.qm
-    qlib/Qorize.qm
-    qlib/RestClient.qm
-    qlib/RestHandler.qm
-    qlib/Schema.qm
-    qlib/SchemaReverse.qm
-    qlib/SmtpClient.qm
-    qlib/SqlUtil.qm
-    qlib/TableMapper.qm
-    qlib/TelnetClient.qm
-    qlib/Util.qm
-    qlib/WebSocketClient.qm
-    qlib/WebSocketHandler.qm
-    qlib/WebSocketUtil.qm
-    qlib/WebUtil.qm
-)
-
 set(QORE_BIN_FILES
     doxygen/qdx
     bin/qget
