@@ -40,13 +40,13 @@
 #include <cmath>
 
 // FIXME: xxx set parse location
-static void duplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig) {
-   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
+static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
+   parseException(sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
 // FIXME: xxx set parse location
-static void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const AbstractFunctionSignature* sig2) {
-   parseException("DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
+static void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const UserSignature* sig2) {
+   parseException(sig2->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 
 QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const {
@@ -405,7 +405,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
 void UserSignature::pushParam(QoreOperatorNode* t, bool needs_types) {
    QoreAssignmentOperatorNode* op = dynamic_cast<QoreAssignmentOperatorNode*>(t);
    if (!op) {
-      parse_error("invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getTypeName());
+      parse_error(loc, "invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getTypeName());
       return;
    }
 
@@ -433,7 +433,7 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs)
 
    //if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
    if (!bare_refs)
-      parse_error("parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
+      parse_error(loc, "parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
    return;
 }
 
@@ -663,7 +663,7 @@ static void do_call_str(QoreString &desc, const QoreFunction* func, const type_v
    desc.concat(')');
 }
 
-static void warn_excess_args(QoreFunction* func, const type_vec_t& argTypeInfo, AbstractFunctionSignature* sig) {
+static void warn_excess_args(const QoreProgramLocation& loc, QoreFunction* func, const type_vec_t& argTypeInfo, AbstractFunctionSignature* sig) {
    unsigned nargs = argTypeInfo.size();
    unsigned nparams = sig->numParams();
 
@@ -680,12 +680,12 @@ static void warn_excess_args(QoreFunction* func, const type_vec_t& argTypeInfo, 
    //if (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
    if (parse_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
       desc->concat("; this is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
-      qore_program_private::makeParseException(getProgram(), "CALL-WITH-TYPE-ERRORS", desc);
+      qore_program_private::makeParseException(getProgram(), loc, "CALL-WITH-TYPE-ERRORS", desc);
    }
    else {
       // raise warning
       desc->concat("; excess arguments will be ignored; to disable this warning, use '%%disable-warning excess-args' in your code");
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
    }
 }
 
@@ -1285,19 +1285,19 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                break;
          }
       }
-      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
    }
    else if (variant) {
       int64 flags = variant->getFlags();
       if (flags & (QC_NOOP | QC_RUNTIME_NOOP)) {
          QoreStringNode* desc = getNoopError(this, aqf, variant);
          desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
       }
 
       AbstractFunctionSignature* sig = variant->getSignature();
       if (!(flags & QC_USES_EXTRA_ARGS) && num_args > sig->numParams())
-         warn_excess_args(this, argTypeInfo, sig);
+         warn_excess_args(loc, this, argTypeInfo, sig);
    }
 
    /*
@@ -1513,7 +1513,7 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, Qor
    return evalIntern(uveh.getArgv(), self, xsink);
 }
 
-int QoreFunction::parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig) {
+int QoreFunction::parseCheckDuplicateSignatureCommitted(UserSignature* sig) {
    const AbstractFunctionSignature* vs = 0;
    int rc = parseCompareResolvedSignature(vlist, sig, vs);
    if (rc == QTI_NOT_EQUAL)
@@ -1579,7 +1579,7 @@ int QoreFunction::parseCompareResolvedSignature(const VList& vlist, const Abstra
 }
 
 int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant) {
-   AbstractFunctionSignature* sig = variant->getSignature();
+   UserSignature* sig = reinterpret_cast<UserSignature*>(variant->getSignature());
 
    // check for duplicate parameter signatures
    unsigned vnp = sig->numParams();
@@ -1603,7 +1603,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
 
       // the 2 signatures have the same number of parameters with type information
       if (!tp) {
-         duplicateSignatureException(className(), getName(), sig);
+         duplicateSignatureException(className(), getName(), vs);
          return -1;
       }
 
@@ -1674,7 +1674,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
       }
       if (dup) {
          if (ambiguous)
-            ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
+            ambiguousDuplicateSignatureException(className(), getName(), vs, sig);
          else
             duplicateSignatureException(className(), getName(), sig);
          return -1;
@@ -1741,7 +1741,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
       }
       if (dup) {
          if (ambiguous)
-            ambiguousDuplicateSignatureException(className(), getName(), (*i)->getSignature(), sig);
+            ambiguousDuplicateSignatureException(className(), getName(), uvsig, sig);
          else
             duplicateSignatureException(className(), getName(), sig);
          return -1;

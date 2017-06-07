@@ -186,16 +186,19 @@ class QoreClosureParseNode;
 
 class QoreModuleDefContext {
 protected:
-   DLLLOCAL void initClosure(AbstractQoreNode*& c, const char* n);
+   DLLLOCAL void initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n);
 
 public:
    typedef std::set<std::string> strset_t;
    typedef std::map<std::string, std::string> strmap_t;
 
-   AbstractQoreNode* init_c, // the initialization closure
-      * del_c;               // the destructor closure
+   AbstractQoreNode* init_c = nullptr, // the initialization closure
+      * del_c = nullptr;               // the destructor closure
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0) {
+   QoreProgramLocation init_loc,
+      del_loc;
+
+   DLLLOCAL QoreModuleDefContext() {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
@@ -211,7 +214,7 @@ public:
    // set of tag definitions
    strmap_t vmap;
 
-   DLLLOCAL void set(const char* key, const AbstractQoreNode* val);
+   DLLLOCAL void set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val);
 
    DLLLOCAL const char* get(const char* str) const {
       strmap_t::const_iterator i = vmap.find(str);

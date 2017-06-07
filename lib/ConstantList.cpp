@@ -170,7 +170,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       return 0;
 
    if (in_init) {
-      parse_error("recursive constant reference found to constant '%s'", name.c_str());
+      parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
       return 0;
    }
 
@@ -332,7 +332,7 @@ void ConstantList::parseDeleteAll() {
 cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
    // first check if the constant has already been defined
    if (cnemap.find(name) != cnemap.end()) {
-      parse_error("constant \"%s\" has already been defined", name);
+      parse_error(loc, "constant \"%s\" has already been defined", name);
       value->deref(0);
       return cnemap.end();
    }

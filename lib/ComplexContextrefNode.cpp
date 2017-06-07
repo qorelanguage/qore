@@ -105,7 +105,7 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
    typeInfo = 0;
 
    if (!getCVarStack()) {
-      parse_error("complex context reference \"%s:%s\" encountered out of context", name, member);
+      parse_error(loc, "complex context reference \"%s:%s\" encountered out of context", name, member);
       return this;
    }
 
@@ -121,7 +121,7 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
       cur_stack_offset++;
    }
    if (!found)
-      parse_error("\"%s\" does not match any current context", name);
+      parse_error(loc, "\"%s\" does not match any current context", name);
    else
       stack_offset = cur_stack_offset;
 

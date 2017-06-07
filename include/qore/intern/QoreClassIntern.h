@@ -1014,21 +1014,21 @@ public:
    QoreParseTypeInfo* parseTypeInfo;
    ClassAccess access;
 
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
-      typeInfo(n_typeinfo), exp(e), loc(nfl, nll), parseTypeInfo(n_parseTypeInfo), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
+      typeInfo(n_typeinfo), exp(e), loc(loc), parseTypeInfo(n_parseTypeInfo), access(n_access) {
    }
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(n_typeinfo), exp(e),
-         loc(nfl, nll), parseTypeInfo(0), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(n_typeinfo), exp(e),
+         loc(loc), parseTypeInfo(0), access(n_access) {
    }
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(nfl, nll),
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(loc),
          parseTypeInfo(new QoreParseTypeInfo(n)), access(n_access) {
    }
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, const QoreClass* qc, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(qc->getTypeInfo()), exp(e),
-         loc(nfl, nll), parseTypeInfo(0), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreClass* qc, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(qc->getTypeInfo()), exp(e),
+         loc(loc), parseTypeInfo(0), access(n_access) {
    }
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(nfl, nll), parseTypeInfo(0), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(loc), parseTypeInfo(0), access(n_access) {
    }
-   DLLLOCAL QoreMemberInfoBase(int nfl, int nll, ClassAccess n_access = Public) : typeInfo(0), exp(0), loc(nfl, nll), parseTypeInfo(0), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, ClassAccess n_access = Public) : typeInfo(0), exp(0), loc(loc), parseTypeInfo(0), access(n_access) {
    }
 
    DLLLOCAL ~QoreMemberInfoBase() {
@@ -1073,22 +1073,22 @@ public:
    // class pointer in case member was imported from a base class
    const qore_class_private* qc;
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, n_typeInfo, n_parseTypeInfo, e, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e, n_access), qc(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, n_typeInfo, e, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_typeInfo, e, n_access), qc(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, n, e, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n, e, n_access), qc(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, const QoreClass* tqc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, tqc, e, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreClass* tqc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, tqc, e, n_access), qc(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, e, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, e, n_access), qc(0) {
    }
 
-   DLLLOCAL QoreMemberInfo(int nfl, int nll, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_access), qc(0) {
    }
 
    DLLLOCAL bool local() const {
@@ -1124,14 +1124,14 @@ public:
    QoreLValueGeneric val;
    bool finalized;
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
-      QoreMemberInfoBase(nfl, nll, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
+   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
+      QoreMemberInfoBase(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, n_access), finalized(false) {
+   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_access), finalized(false) {
    }
 
-   DLLLOCAL QoreVarInfo(int nfl, int nll, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(nfl, nll, e, n_access), finalized(false) {
+   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, e, n_access), finalized(false) {
    }
 
    DLLLOCAL ~QoreVarInfo() {
@@ -2293,7 +2293,7 @@ public:
    DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = 0) {
       assert(!vars.inList(vname));
 
-      vars.addNoCheck(strdup(vname), new QoreVarInfo(0, 0, vTypeInfo, 0, value, access));
+      vars.addNoCheck(strdup(vname), new QoreVarInfo(QoreProgramLocation(), vTypeInfo, 0, value, access));
    }
 
    DLLLOCAL void parseAssimilateConstants(ConstantList &cmap, ClassAccess access) {
@@ -2427,7 +2427,7 @@ public:
 
    DLLLOCAL void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
       assert(!members.inList(mem));
-      members.addNoCheck(strdup(mem), new QoreMemberInfo(0, 0, n_typeinfo, 0, initial_value, access));
+      members.addNoCheck(strdup(mem), new QoreMemberInfo(QoreProgramLocation(), n_typeinfo, 0, initial_value, access));
       if (access == Public && !has_public_memdecl)
          has_public_memdecl = true;
    }
