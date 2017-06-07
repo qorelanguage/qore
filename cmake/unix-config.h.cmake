@@ -1,7 +1,6 @@
 
 
 /* headers */
-
 #cmakedefine HAVE_FCNTL_H
 #cmakedefine HAVE_INTTYPES_H
 #cmakedefine HAVE_NETDB_H
@@ -11,7 +10,9 @@
 #cmakedefine HAVE_STRING_H
 #cmakedefine HAVE_STRINGS_H
 #cmakedefine HAVE_SYS_SOCKET_H
+#cmakedefine HAVE_SYS_STAT_H
 #cmakedefine HAVE_SYS_TIME_H
+#cmakedefine HAVE_SYS_TYPES_H
 #cmakedefine HAVE_UNISTD_H
 #cmakedefine HAVE_CXXABI_H
 #cmakedefine HAVE_ARPA_INET_H
@@ -31,14 +32,25 @@
 #cmakedefine HAVE_POLL_H
 #cmakedefine HAVE_GRP_H
 #cmakedefine HAVE_UMEM_H
+#cmakedefine HAVE_DLFCN_H
+#cmakedefine HAVE_ICONV_H
+#cmakedefine HAVE_MEMORY_H
+#cmakedefine HAVE_STDBOOL_H
+#cmakedefine HAVE_VFORK_H
 
 /* functions */
+#cmakedefine HAVE_ALARM
 #cmakedefine HAVE_BZERO
 #cmakedefine HAVE_FLOOR
+#cmakedefine HAVE_FORK
+#cmakedefine HAVE_VFORK
+#cmakedefine HAVE_WORKING_FORK
+#cmakedefine HAVE_WORKING_VFORK
 #cmakedefine HAVE_GETHOSTBYADDR
 #cmakedefine HAVE_GETHOSTBYNAME
 #cmakedefine HAVE_GETHOSTNAME
 #cmakedefine HAVE_GETTIMEOFDAY
+#cmakedefine HAVE_TBBMALLOC
 #cmakedefine HAVE_MEMMOVE
 #cmakedefine HAVE_MEMSET
 #cmakedefine HAVE_MKFIFO
@@ -46,6 +58,7 @@
 #cmakedefine HAVE_REGCOMP
 #cmakedefine HAVE_SELECT
 #cmakedefine HAVE_SOCKET
+#cmakedefine HAVE_POLL
 #cmakedefine HAVE_SETSOCKOPT
 #cmakedefine HAVE_GETSOCKOPT
 #cmakedefine HAVE_STRCASECMP
@@ -54,6 +67,8 @@
 #cmakedefine HAVE_STRERROR
 #cmakedefine HAVE_STRSPN
 #cmakedefine HAVE_STRSTR
+#cmakedefine HAVE_DOPRNT
+#cmakedefine HAVE_VPRINTF
 #cmakedefine HAVE_ATOLL
 #cmakedefine HAVE_STRTOL
 #cmakedefine HAVE_STRTOLL
@@ -112,10 +127,10 @@
 #cmakedefine HAVE_GETHOSTBYNAME_R
 #cmakedefine HAVE_STRTOIMAX
 #cmakedefine HAVE_STRERROR_R
+#cmakedefine HAVE_DECL_STRERROR_R
 #cmakedefine STRERROR_R_CHAR_P
 
 /* OpenSSL */
-
 #cmakedefine HAVE_OPENSSL_SHA512
 #cmakedefine HAVE_OPENSSL_SHA
 #cmakedefine HAVE_OPENSSL_CONST
@@ -128,6 +143,7 @@
 #cmakedefine HAVE_MPFR_SPRINTF
 #cmakedefine HAVE_MPFR_BUILDOPT_TLS_P
 #cmakedefine HAVE_MPFR_EXP_T
+#cmakedefine HAVE_MPFR_RNDN
 #cmakedefine HAVE_RNDN
 
 /* backtrace */
@@ -141,6 +157,8 @@
 #cmakedefine HAVE_SOLARIS_STYLE_GETHOST
 #cmakedefine HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
 #cmakedefine HAVE_GETHOSTBYNAME_R_RETURN_INT
+#cmakedefine HAVE_DECL_GETHOSTBYADDR_R
+#cmakedefine HAVE_DECL_GETHOSTBYNAME_R
 
 /* stl hash_map and list */
 #cmakedefine HAVE_EXT_HASH_MAP
@@ -152,6 +170,14 @@
 #cmakedefine HAVE_QORE_HASH_MAP
 #cmakedefine HAVE_QORE_SLIST
 #cmakedefine HAVE_UNORDERED_MAP
+#cmakedefine HASH_NAMESPACE
+#cmakedefine HASH_MAP_INCLUDE
+#cmakedefine HASH_SET_INCLUDE
+#cmakedefine HASH_TYPE
+#cmakedefine LIST_NAMESPACE
+#cmakedefine LIST_SET_INCLUDE
+#cmakedefine SLIST_INCLUDE
+#cmakedefine SLIST_TYPE
 
 /* CPU:s */
 #cmakedefine CPU_X86_64
@@ -160,15 +186,28 @@
 /* OS:s */
 #cmakedefine SOLARIS
 #cmakedefine DARWIN
+#cmakedefine HPUX
 
 /* the rest */
+#cmakedefine HAVE_CXX11
 #cmakedefine NEED_DLFCN_WRAPPER
 #cmakedefine NEED_ICONV_TRANSLIT
+#cmakedefine HAVE_ATOMIC_COMPILE_ONLY
+#cmakedefine HAVE_LIBATOMIC
+#cmakedefine HAVE_LLVM_BUG_22050
+#cmakedefine HAVE_LSTAT_EMPTY_STRING_BUG
 #cmakedefine HAVE_LOCAL_VARIADIC_ARRAYS
 #cmakedefine HAVE_NAMESPACES
 #cmakedefine HAVE_STRUCT_FLOCK
 #cmakedefine HAVE_GCC_VISIBILITY
 #cmakedefine HAVE_SIGNAL_HANDLING
+#cmakedefine HAVE_STAT_EMPTY_STRING_BUG
+#cmakedefine HAVE_STRUCT_STAT_ST_BLKSIZE
+#cmakedefine HAVE_STRUCT_STAT_ST_BLOCKS
+#cmakedefine HAVE_STRUCT_STAT_ST_RDEV
+#cmakedefine HAVE_ST_BLOCKS
+#cmakedefine HAVE_PTHREAD
+
 #cmakedefine QORE_RUNTIME_THREAD_STACK_TRACE
 
 #cmakedefine ZONEINFO_LOCATION "@ZONEINFO_LOCATION@"
