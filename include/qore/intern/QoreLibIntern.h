@@ -168,7 +168,8 @@ enum prog_loc_e { RunTimeLocation = 0, ParseLocation = 1 };
 struct QoreProgramLineLocation {
    int start_line, end_line;
 
-   DLLLOCAL QoreProgramLineLocation(int sline, int eline) : start_line(sline), end_line(eline) {
+   // if sline is 0 and eline is > 0 then set sline to 1
+   DLLLOCAL QoreProgramLineLocation(int sline, int eline) : start_line(sline ? sline : (eline ? 1 : 0)), end_line(eline) {
    }
 
    DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {

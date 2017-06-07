@@ -1830,6 +1830,7 @@ public:
 // private QoreClass implementation
 class qore_class_private {
 public:
+   QoreProgramLocation loc;      // location of original declaration
    std::string name;             // the name of the class
    QoreClass* cls;               // parent class
    qore_ns_private* ns;          // parent namespace

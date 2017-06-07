@@ -75,9 +75,13 @@ int yyparse(yyscan_t yyscanner);
 
 #define isoctaldigit(x) (x >= '0' && x <= '7')
 
-static void check_broken_op(YYLTYPE *yylloc, const char* got, const char* expected) {
+static QoreProgramLocation get_loc(YYLTYPE* yylloc) {
+   return QoreProgramLocation(yylloc->first_line, yylloc->last_line);
+}
+
+static void check_broken_op(YYLTYPE* yylloc, const char* got, const char* expected) {
    if (!parse_check_parse_option(PO_BROKEN_OPERATORS))
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "broken operator expression found; got \"%s\"; expected: \"%s\"; multi-character operators separated by whitespace are only allowed if %broken-operators (PO_BROKEN_OPERATORS) is set", got, expected);
+      parse_error(get_loc(yylloc), "broken operator expression found; got \"%s\"; expected: \"%s\"; multi-character operators separated by whitespace are only allowed if %broken-operators (PO_BROKEN_OPERATORS) is set", got, expected);
 }
 
 static int ascii_to_octal(char c) {
@@ -347,12 +351,12 @@ static char* remove_quotes(char* str) {
    return str + 1;
 }
 
-static int check_reexport(YYLTYPE *yylloc, const char* directive, char*& cn, bool& reexport) {
+static int check_reexport(YYLTYPE* yylloc, const char* directive, char*& cn, bool& reexport) {
    if (*cn != '(')
       return 0;
    char* p = strchr(cn, ')');
    if (!p) {
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing end parenthesis in %%%s directive", directive);
+      parse_error(get_loc(yylloc), "missing end parenthesis in %%%s directive", directive);
       return -1;
    }
 
@@ -360,14 +364,14 @@ static int check_reexport(YYLTYPE *yylloc, const char* directive, char*& cn, boo
    *p = '\0';
    cn = p + 1;
    if (strcmp(ropt, "reexport")) {
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "unrecognized %%%s option '%s'; expected 'reexport'", directive, ropt);
+      parse_error(get_loc(yylloc), "unrecognized %%%s option '%s'; expected 'reexport'", directive, ropt);
       return -1;
    }
 
    reexport = true;
    cn = trim_inplace(cn);
    if (!cn) {
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%%s", directive);
+      parse_error(get_loc(yylloc), "missing argument to %%%s", directive);
       return -1;
    }
    return 0;
@@ -405,11 +409,11 @@ static inline DateTimeNode *makeMicroseconds(int us) {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
 }
 
-static int64 parse_get_integer(YYLTYPE *yylloc, const char* str) {
+static int64 parse_get_integer(YYLTYPE* yylloc, const char* str) {
    errno = 0;
    int64 rv = strtoll(str, 0, 10);
    if (errno == ERANGE)
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+      parse_error(get_loc(yylloc), "numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
    return rv;
 }
 
@@ -605,7 +609,7 @@ static char* make_cast(const char* s) {
    return str.giveBuffer();
 }
 
-static void qore_parse_define(YYLTYPE *yylloc, const char* pstr) {
+static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
    QoreString str(pstr);
    // trim trailing and leading whitespace
    str.trim();
@@ -621,7 +625,7 @@ static void qore_parse_define(YYLTYPE *yylloc, const char* pstr) {
    }
    // check define string
    if (str.empty()) {
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%define");
+      parse_error(get_loc(yylloc), "missing argument to %%define");
       return;
    }
 
@@ -636,11 +640,11 @@ static void qore_parse_define(YYLTYPE *yylloc, const char* pstr) {
    qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
 }
 
-static bool parse_is_defined(YYLTYPE *yylloc, const char* pstr, bool def = true) {
+static bool parse_is_defined(YYLTYPE* yylloc, const char* pstr, bool def = true) {
    QoreString str(pstr);
    str.trim();
    if (str.empty()) {
-      parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%if%sdef", def ? "" : "n");
+      parse_error(get_loc(yylloc), "missing argument to %%if%sdef", def ? "" : "n");
       return false;
    }
    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
@@ -661,6 +665,14 @@ static bool is_identifier(const char *str) {
         }
     }
     return true;
+}
+
+static void parse_set_parse_options(YYLTYPE* yylloc, int64 po) {
+   qore_program_private::get(*getProgram())->parseSetParseOptions(get_loc(yylloc), po);
+}
+
+static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
+   qore_program_private::get(*getProgram())->parseDisableParseOptions(get_loc(yylloc), po);
 }
 
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
@@ -703,124 +715,124 @@ RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
 RTIME           PT(-?[0-9]+[HMSu])+
 
 %%
-^%no-global-vars{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_GLOBAL_VARS);
-^%no-subroutine-defs{WS}*$              getProgram()->parseSetParseOptions(PO_NO_SUBROUTINE_DEFS);
-^%no-threads{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_THREADS);
-^%no-thread-classes{WS}*$               getProgram()->parseSetParseOptions(PO_NO_THREAD_CLASSES);
-^%no-thread-control{WS}*$               getProgram()->parseSetParseOptions(PO_NO_THREAD_CONTROL);
-^%no-thread-info{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_THREAD_INFO);
-^%no-top-level{WS}*$                    getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
-^%no-class-defs{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_CLASS_DEFS);
-^%no-namespace-defs{WS}*$               getProgram()->parseSetParseOptions(PO_NO_NAMESPACE_DEFS);
-^%no-external-process{WS}*$             getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_PROCESS);
-^%no-external-info{WS}*$                getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_INFO);
-^%no-external-access{WS}*$              getProgram()->parseSetParseOptions(PO_NO_EXTERNAL_ACCESS);
-^%no-filesystem{WS}*$                   getProgram()->parseSetParseOptions(PO_NO_FILESYSTEM);
-^%no-io{WS}*$                           getProgram()->parseSetParseOptions(PO_NO_IO);
-^%lockdown{WS}*$                        getProgram()->parseSetParseOptions(PO_LOCKDOWN);
+^%no-global-vars{WS}*$                  parse_set_parse_options(yylloc, PO_NO_GLOBAL_VARS);
+^%no-subroutine-defs{WS}*$              parse_set_parse_options(yylloc, PO_NO_SUBROUTINE_DEFS);
+^%no-threads{WS}*$                      parse_set_parse_options(yylloc, PO_NO_THREADS);
+^%no-thread-classes{WS}*$               parse_set_parse_options(yylloc, PO_NO_THREAD_CLASSES);
+^%no-thread-control{WS}*$               parse_set_parse_options(yylloc, PO_NO_THREAD_CONTROL);
+^%no-thread-info{WS}*$                  parse_set_parse_options(yylloc, PO_NO_THREAD_INFO);
+^%no-top-level{WS}*$                    parse_set_parse_options(yylloc, PO_NO_TOP_LEVEL_STATEMENTS);
+^%no-class-defs{WS}*$                   parse_set_parse_options(yylloc, PO_NO_CLASS_DEFS);
+^%no-namespace-defs{WS}*$               parse_set_parse_options(yylloc, PO_NO_NAMESPACE_DEFS);
+^%no-external-process{WS}*$             parse_set_parse_options(yylloc, PO_NO_EXTERNAL_PROCESS);
+^%no-external-info{WS}*$                parse_set_parse_options(yylloc, PO_NO_EXTERNAL_INFO);
+^%no-external-access{WS}*$              parse_set_parse_options(yylloc, PO_NO_EXTERNAL_ACCESS);
+^%no-filesystem{WS}*$                   parse_set_parse_options(yylloc, PO_NO_FILESYSTEM);
+^%no-io{WS}*$                           parse_set_parse_options(yylloc, PO_NO_IO);
+^%lockdown{WS}*$                        parse_set_parse_options(yylloc, PO_LOCKDOWN);
 ^%lock-options{WS}*$                    getProgram()->lockOptions();
-^%lock-warnings{WS}*$                   getProgram()->parseSetParseOptions(PO_LOCK_WARNINGS);
-^%no-locale-control{WS}*$               getProgram()->parseSetParseOptions(PO_NO_LOCALE_CONTROL);
-^%no-process-control{WS}*$              getProgram()->parseSetParseOptions(PO_NO_PROCESS_CONTROL);
-^%no-constant-defs{WS}*$                getProgram()->parseSetParseOptions(PO_NO_CONSTANT_DEFS);
-^%no-new{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_NEW);
-^%no-network{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_NETWORK);
-^%no-child-restrictions{WS}*$           getProgram()->parseSetParseOptions(PO_NO_CHILD_PO_RESTRICTIONS);
-^%allow-injection{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_INJECTION);
-^%no-database{WS}*$                     getProgram()->parseSetParseOptions(PO_NO_DATABASE);
-^%no-gui{WS}*$                          getProgram()->parseSetParseOptions(PO_NO_GUI);
-^%no-terminal-io{WS}*$                  getProgram()->parseSetParseOptions(PO_NO_TERMINAL_IO);
-^%no-modules{WS}*$                      getProgram()->parseSetParseOptions(PO_NO_MODULES);
-^%require-our{WS}*$                     getProgram()->parseSetParseOptions(PO_REQUIRE_OUR);
-^%require-types{WS}*$                   getProgram()->parseSetParseOptions(PO_REQUIRE_TYPES);
-^%require-prototypes{WS}*$              getProgram()->parseSetParseOptions(PO_REQUIRE_PROTOTYPES);
-^%strict-args{WS}*$                     getProgram()->parseSetParseOptions(PO_STRICT_ARGS);
-^%allow-bare-refs{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_BARE_REFS);
-^%require-dollar{WS}*$                  getProgram()->parseDisableParseOptions(PO_ALLOW_BARE_REFS);
-^%assume-local{WS}*$                    getProgram()->parseSetParseOptions(PO_ASSUME_LOCAL);
-^%assume-global{WS}*$                   getProgram()->parseDisableParseOptions(PO_ASSUME_LOCAL);
-^%new-style{WS}*$                       getProgram()->parseSetParseOptions(PO_NEW_STYLE);
-^%old-style{WS}*$                       getProgram()->parseDisableParseOptions(PO_NEW_STYLE);
-^%perl-bool-eval{WS}*$                  getProgram()->parseDisableParseOptions(PO_STRICT_BOOLEAN_EVAL);
-^%strict-bool-eval{WS}*$                getProgram()->parseSetParseOptions(PO_STRICT_BOOLEAN_EVAL);
-^%strong-encapsulation{WS}*$            getProgram()->parseSetParseOptions(PO_STRONG_ENCAPSULATION);
-^%no-uncontrolled-apis{WS}*$            getProgram()->parseSetParseOptions(PO_NO_UNCONTROLLED_APIS);
-^%allow-debugging{WS}*$                 getProgram()->parseSetParseOptions(PO_ALLOW_DEBUGGING);
-^%broken-list-parsing{WS}*$             getProgram()->parseSetParseOptions(PO_BROKEN_LIST_PARSING);
-^%broken-logic-precedence{WS}*$         getProgram()->parseSetParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
-^%broken-loop-statement{WS}*$           getProgram()->parseSetParseOptions(PO_BROKEN_LOOP_STATEMENT);
-^%broken-int-assignments{WS}*$          getProgram()->parseSetParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
-^%broken-operators{WS}*$                getProgram()->parseSetParseOptions(PO_BROKEN_OPERATORS);
-^%correct-list-parsing{WS}*$            getProgram()->parseDisableParseOptions(PO_BROKEN_LIST_PARSING);
-^%correct-logic-precedence{WS}*$        getProgram()->parseDisableParseOptions(PO_BROKEN_LOGIC_PRECEDENCE);
-^%correct-loop-statement{WS}*$          getProgram()->parseDisableParseOptions(PO_BROKEN_LOOP_STATEMENT);
-^%correct-int-assignments{WS}*$         getProgram()->parseDisableParseOptions(PO_BROKEN_INT_ASSIGNMENTS);
-^%correct-operators{WS}*$               getProgram()->parseDisableParseOptions(PO_BROKEN_OPERATORS);
-^%loose-args{WS}*$                      getProgram()->parseDisableParseOptions(PO_STRICT_ARGS);
-^%broken-references{WS}*$               getProgram()->parseSetParseOptions(PO_BROKEN_REFERENCES);
-^%correct-references{WS}*$              getProgram()->parseDisableParseOptions(PO_BROKEN_REFERENCES);
+^%lock-warnings{WS}*$                   parse_set_parse_options(yylloc, PO_LOCK_WARNINGS);
+^%no-locale-control{WS}*$               parse_set_parse_options(yylloc, PO_NO_LOCALE_CONTROL);
+^%no-process-control{WS}*$              parse_set_parse_options(yylloc, PO_NO_PROCESS_CONTROL);
+^%no-constant-defs{WS}*$                parse_set_parse_options(yylloc, PO_NO_CONSTANT_DEFS);
+^%no-new{WS}*$                          parse_set_parse_options(yylloc, PO_NO_NEW);
+^%no-network{WS}*$                      parse_set_parse_options(yylloc, PO_NO_NETWORK);
+^%no-child-restrictions{WS}*$           parse_set_parse_options(yylloc, PO_NO_CHILD_PO_RESTRICTIONS);
+^%allow-injection{WS}*$                 parse_set_parse_options(yylloc, PO_ALLOW_INJECTION);
+^%no-database{WS}*$                     parse_set_parse_options(yylloc, PO_NO_DATABASE);
+^%no-gui{WS}*$                          parse_set_parse_options(yylloc, PO_NO_GUI);
+^%no-terminal-io{WS}*$                  parse_set_parse_options(yylloc, PO_NO_TERMINAL_IO);
+^%no-modules{WS}*$                      parse_set_parse_options(yylloc, PO_NO_MODULES);
+^%require-our{WS}*$                     parse_set_parse_options(yylloc, PO_REQUIRE_OUR);
+^%require-types{WS}*$                   parse_set_parse_options(yylloc, PO_REQUIRE_TYPES);
+^%require-prototypes{WS}*$              parse_set_parse_options(yylloc, PO_REQUIRE_PROTOTYPES);
+^%strict-args{WS}*$                     parse_set_parse_options(yylloc, PO_STRICT_ARGS);
+^%allow-bare-refs{WS}*$                 parse_set_parse_options(yylloc, PO_ALLOW_BARE_REFS);
+^%require-dollar{WS}*$                  parse_disable_parse_options(yylloc, PO_ALLOW_BARE_REFS);
+^%assume-local{WS}*$                    parse_set_parse_options(yylloc, PO_ASSUME_LOCAL);
+^%assume-global{WS}*$                   parse_disable_parse_options(yylloc, PO_ASSUME_LOCAL);
+^%new-style{WS}*$                       parse_set_parse_options(yylloc, PO_NEW_STYLE);
+^%old-style{WS}*$                       parse_disable_parse_options(yylloc, PO_NEW_STYLE);
+^%perl-bool-eval{WS}*$                  parse_disable_parse_options(yylloc, PO_STRICT_BOOLEAN_EVAL);
+^%strict-bool-eval{WS}*$                parse_set_parse_options(yylloc, PO_STRICT_BOOLEAN_EVAL);
+^%strong-encapsulation{WS}*$            parse_set_parse_options(yylloc, PO_STRONG_ENCAPSULATION);
+^%no-uncontrolled-apis{WS}*$            parse_set_parse_options(yylloc, PO_NO_UNCONTROLLED_APIS);
+^%allow-debugging{WS}*$                 parse_set_parse_options(yylloc, PO_ALLOW_DEBUGGING);
+^%broken-list-parsing{WS}*$             parse_set_parse_options(yylloc, PO_BROKEN_LIST_PARSING);
+^%broken-logic-precedence{WS}*$         parse_set_parse_options(yylloc, PO_BROKEN_LOGIC_PRECEDENCE);
+^%broken-loop-statement{WS}*$           parse_set_parse_options(yylloc, PO_BROKEN_LOOP_STATEMENT);
+^%broken-int-assignments{WS}*$          parse_set_parse_options(yylloc, PO_BROKEN_INT_ASSIGNMENTS);
+^%broken-operators{WS}*$                parse_set_parse_options(yylloc, PO_BROKEN_OPERATORS);
+^%correct-list-parsing{WS}*$            parse_disable_parse_options(yylloc, PO_BROKEN_LIST_PARSING);
+^%correct-logic-precedence{WS}*$        parse_disable_parse_options(yylloc, PO_BROKEN_LOGIC_PRECEDENCE);
+^%correct-loop-statement{WS}*$          parse_disable_parse_options(yylloc, PO_BROKEN_LOOP_STATEMENT);
+^%correct-int-assignments{WS}*$         parse_disable_parse_options(yylloc, PO_BROKEN_INT_ASSIGNMENTS);
+^%correct-operators{WS}*$               parse_disable_parse_options(yylloc, PO_BROKEN_OPERATORS);
+^%loose-args{WS}*$                      parse_disable_parse_options(yylloc, PO_STRICT_ARGS);
+^%broken-references{WS}*$               parse_set_parse_options(yylloc, PO_BROKEN_REFERENCES);
+^%correct-references{WS}*$              parse_disable_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%push-parse-options{WS}*$              push_parse_options();
-^%append-include-path{WS}*$             { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%append-include-path"); }
+^%append-include-path{WS}*$             { parse_error(get_loc(yylloc), "missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
 <append_path_state>[^\n\r]+             {
                                            set_include_path(yytext);
                                            BEGIN(INITIAL);
                                         }
-^%append-module-path{WS}*$              { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%append-module-path"); }
+^%append-module-path{WS}*$              { parse_error(get_loc(yylloc), "missing argument to %%append-module-path"); }
 ^%append-module-path{WS}+               BEGIN(append_module_state);
 <append_module_state>[^\n\r]+           {
                                            append_module_path(yytext);
                                            BEGIN(INITIAL);
                                         }
-^%set-time-zone{WS}*$                   { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%set-time-zone"); }
+^%set-time-zone{WS}*$                   { parse_error(get_loc(yylloc), "missing argument to %%set-time-zone"); }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
 <set_zone>[^\n\r]+                      {
                                            yytext = trim_inplace(yytext);
                                            if (!yytext)
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "empty argument to %set-time-zone");
+                                              parse_error(get_loc(yylloc), "empty argument to %set-time-zone");
                                            else
                                               getProgram()->parseSetTimeZone(yytext);
                                            BEGIN(INITIAL);
                                         }
 ^%enable-all-warnings{WS}*$             {
                                            if (getProgram()->setWarningMask(-1))
-                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable all warnings");
                                         }
 ^%disable-all-warnings{WS}*$            {
                                            if (getProgram()->setWarningMask(0))
-                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable all warnings");
                                         }
-^%disable-warning{WS}*$                 { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%disable-warning"); }
+^%disable-warning{WS}*$                 { parse_error(get_loc(yylloc), "missing argument to %%disable-warning"); }
 ^%disable-warning{WS}+                  BEGIN(disable_warning);
 <disable_warning>[^\n\r]+               {
                                            char* cn = trim(yytext);
                                            //printd(5, "scanner: disable warning '%s'\n", cn);
                                            int code = get_warning_code(cn);
                                            if (!code)
-                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot disable unknown warning '%s'", cn);
                                            else if (getProgram()->disableWarning(code))
-                                              qore_program_private::makeParseWarning(getProgram(), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot disable warning '%s'", cn);
                                            //printd(5, "scanner: disable warning '%s' code=%d\n", cn, code);
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
-^%enable-warning{WS}*$                  { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%enable-warning"); }
+^%enable-warning{WS}*$                  { parse_error(get_loc(yylloc), "missing argument to %%enable-warning"); }
 ^%enable-warning{WS}+                   BEGIN(enable_warning);
 <enable_warning>[^\n\r]+                {
                                            char* cn = trim(yytext);
                                            //printd(5, "scanner: enable warning '%s'\n", cn);
                                            int code = get_warning_code(cn);
                                            if (!code)
-                                              qore_program_private::makeParseWarning(getProgram(), QoreProgramLocation(yylloc->first_line, yylloc->last_line), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_UNKNOWN_WARNING, "UNKNOWN-WARNING", "cannot enable unknown warning '%s'", cn);
                                            else if (getProgram()->enableWarning(code))
-                                              qore_program_private::makeParseWarning(getProgram(), QoreProgramLocation(yylloc->first_line, yylloc->last_line), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
+                                              qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
-^%exec-class{WS}*$                      { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%exec-class"); }
+^%exec-class{WS}*$                      { parse_error(get_loc(yylloc), "missing argument to %%exec-class"); }
 ^%exec-class{WS}+                       BEGIN(exec_class_state);
 ^%try-module{WS}*$                      {
-                                           parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%try-module");
+                                           parse_error(get_loc(yylloc), "missing argument to %%try-module");
                                            BEGIN(p_skip_to_endtry);
                                         }
 ^%try-module                            BEGIN(try_module);
@@ -833,7 +845,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            // if it's not whitespace and not an open paren, then throw an error
                                            if (str.size() && str[0] != '(' && str[0] != ' '
                                                && str[0] != '\t' && str[0] != '\n' && str[0] != '\r') {
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "invalid %%try-module declaration c: %c", str[0]);
+                                              parse_error(get_loc(yylloc), "invalid %%try-module declaration c: %c", str[0]);
                                               ok = false;
                                            }
                                            else {
@@ -841,7 +853,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               QoreString var;
                                               bool require_dollar = !(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS);
                                               if (str.empty()) {
-                                                 parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%try-module");
+                                                 parse_error(get_loc(yylloc), "missing argument to %%try-module");
                                                  ok = false;
                                               }
                                               else {
@@ -849,13 +861,13 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  const char* op = strchr(p, '(');
                                                  if (op) {
                                                     if (op != p) {
-                                                       parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                        ok = false;
                                                     }
                                                     ++p;
                                                     const char* cp = strchr(p, ')');
                                                     if (!cp) {
-                                                       parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                        ok = false;
                                                     }
                                                     else {
@@ -864,14 +876,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                        var.trim("\t ");
 
                                                        if (var.empty()) {
-                                                          parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                          parse_error(get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                           ok = false;
                                                        }
                                                        else {
                                                           // remove preface from string leaving only the rest
                                                           str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
                                                           if (!is_identifier(var.getBuffer())) {
-                                                             parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module (%s)'", require_dollar ? "$" : "", var.c_str(), str.c_str());
+                                                             parse_error(get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module (%s)'", require_dollar ? "$" : "", var.c_str(), str.c_str());
                                                              ok = false;
                                                           }
                                                        }
@@ -887,9 +899,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                  str.trim();
                                                  if (str.empty()) {
                                                     if (var.empty())
-                                                       parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
+                                                       parse_error(get_loc(yylloc), "%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
                                                     else
-                                                       parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(get_loc(yylloc), "%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                     BEGIN(INITIAL);
                                                  }
                                                  else {
@@ -939,12 +951,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   // ignore
 }
 ^%endtry{WS}*$                          parse_try_module_dec();
-^%requires{WS}*$                        { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%requires"); }
+^%requires{WS}*$                        { parse_error(get_loc(yylloc), "missing argument to %%requires"); }
 ^%requires                              BEGIN(requires);
 <requires>[^\n\r]+                      {
                                            char* cn = trim_inplace(yytext);
                                            if (!cn)
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%requires");
+                                              parse_error(get_loc(yylloc), "missing argument to %%requires");
                                            else {
                                               bool reexport = false;
                                               if (!check_reexport(yylloc, "requires", cn, reexport)) {
@@ -957,7 +969,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            }
                                            BEGIN(INITIAL);
                                         }
-^%module-cmd{WS}*$                      { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%module-cmd"); }
+^%module-cmd{WS}*$                      { parse_error(get_loc(yylloc), "missing argument to %%module-cmd"); }
 ^%module-cmd                            BEGIN(module_cmd);
 <module_cmd>{WS}*                       // ignore white space
 <module_cmd>[^\n\r]+                    {
@@ -966,12 +978,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            const char* p = str.getBuffer();
                                            const char* op = strchr(p, '(');
                                            if (!op)
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
+                                              parse_error(get_loc(yylloc), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
                                            else {
                                               p = op + 1;
                                               const char* cp = strchr(p, ')');
                                               if (!cp)
-                                                 parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
+                                                 parse_error(get_loc(yylloc), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
                                               else {
                                                  // get module name
                                                  QoreString module(p, cp - p);
@@ -990,14 +1002,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            }
                                            BEGIN(INITIAL);
                                         }
-^%define{WS}*$                          { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%define"); }
+^%define{WS}*$                          { parse_error(get_loc(yylloc), "missing argument to %%define"); }
 ^%define{WS}+                           BEGIN(p_def);
 <p_def>{WS}*                            // ignore white space
 <p_def>[^\n\r]+                         {
                                            qore_parse_define(yylloc, yytext);
                                            BEGIN(INITIAL);
                                         }
-^%ifdef{WS}*$                           { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%ifdef"); }
+^%ifdef{WS}*$                           { parse_error(get_loc(yylloc), "missing argument to %%ifdef"); }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
 <p_ifdef>{
    [^\n\r]+$                            {
@@ -1013,7 +1025,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            }
                                         }
 }
-^%ifndef{WS}*$                           { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%ifndef"); }
+^%ifndef{WS}*$                           { parse_error(get_loc(yylloc), "missing argument to %%ifndef"); }
 ^%ifndef{WS}+                            BEGIN(p_ifndef);
 <p_ifndef>{
    [^\n\r]+$                            {
@@ -1031,7 +1043,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 }
 ^%else{WS}*$                            {
                                               if (!parse_cond_else()) {
-                                                 parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "%%else found without %%if");
+                                                 parse_error(get_loc(yylloc), "%%else found without %%if");
                                               }
                                               else {
                                                  BEGIN(p_skip_to_endif);
@@ -1090,14 +1102,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
    \n                                   // ignore
 }
 ^%endif{WS}*$                           parse_cond_pop();
-^%include{WS}*$                         { parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%include"); }
+^%include{WS}*$                         { parse_error(get_loc(yylloc), "missing argument to %%include"); }
 ^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
    [^\n\r]+                             {
                                            char* cn = trim(yytext);
                                            //printf("setting class name to: '%s'\n", cn);
                                            getProgram()->setExecClass(cn);
-                                           getProgram()->parseSetParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+                                           parse_set_parse_options(yylloc, PO_NO_TOP_LEVEL_STATEMENTS);
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
@@ -1116,11 +1128,11 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            QoreProgram* pgm = getProgram();
 
                                            if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
+                                              parse_error(get_loc(yylloc), "cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
                                               BEGIN(INITIAL);
                                            }
                                            else if (fname->empty()) {
-                                              parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing argument to %%include", yytext);
+                                              parse_error(get_loc(yylloc), "missing argument to %%include", yytext);
                                               BEGIN(INITIAL);
                                            }
                                            else {
@@ -1138,7 +1150,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               else {
                                                  //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
                                                  if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
-                                                    parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "cannot include \"%s\"; is not a regular file", fn);
+                                                    parse_error(get_loc(yylloc), "cannot include \"%s\"; is not a regular file", fn);
                                                     BEGIN(INITIAL);
                                                  }
                                                  else {
@@ -1146,7 +1158,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                     yyin = fopen(fn, "r");
 
                                                     if (!yyin) {
-                                                       parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "cannot open include file \"%s\"", fn);
+                                                       parse_error(get_loc(yylloc), "cannot open include file \"%s\"", fn);
                                                        yyin = save_yyin;
                                                        BEGIN(INITIAL);
                                                     }
@@ -1557,8 +1569,8 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \%\%                                    return TOK_CONTEXT_ROW;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
 \'[^\']*\'                              yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
-\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(QoreProgramLocation(yylloc->first_line, yylloc->last_line), -1); return IMPLICIT_ARG_REF;
-\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(QoreProgramLocation(yylloc->first_line, yylloc->last_line), strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
+\$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(get_loc(yylloc), -1); return IMPLICIT_ARG_REF;
+\$[0-9][0-9]*                           yylval->implicit_arg = new QoreImplicitArgumentNode(get_loc(yylloc), strtol(yytext + 1, 0, 0)); return IMPLICIT_ARG_REF;
 \$#                                     return IMPLICIT_ELEMENT;
 \?\?                                    return NULL_COALESCING;
 \?\*                                    return VALUE_COALESCING;
@@ -1631,7 +1643,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                                     break;
                                               }
                                               if (c == EOF) {
-                                                 parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "open block comment at EOF");
+                                                 parse_error(get_loc(yylloc), "open block comment at EOF");
                                                  QORE_FLEX_DO_EOF;
                                                  break;
                                               }
@@ -1644,13 +1656,13 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
    m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
-   [^sxmt\/]                            parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing regular expression after =~"); BEGIN(INITIAL);
+   [^sxmt\/]                            parse_error(get_loc(yylloc), "missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
    m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
-   [^m\/]                               parse_error(QoreProgramLocation(yylloc->first_line, yylloc->last_line), "missing regular expression after !~"); BEGIN(INITIAL);
+   [^m\/]                               parse_error(get_loc(yylloc), "missing regular expression after !~"); BEGIN(INITIAL);
 }
 =\~                                     BEGIN(regex_googleplex); return REGEX_MATCH;
 \!\~                                    BEGIN(regex_negative_universe); return REGEX_NMATCH;

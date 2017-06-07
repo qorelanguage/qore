@@ -908,7 +908,7 @@ protected:
       for (unsigned i = 0; i < nscope.size() - 1; ++i) {
          fns = fns->priv->parseFindLocalNamespace(nscope[i]);
          if (!fns) {
-            parse_error("cannot find namespace '%s::' in '%s()' as a child of namespace '%s::'", nscope[i], nscope.ostr, ns.name.c_str());
+            parse_error(v->getUserVariantBase()->getUserSignature()->getParseLocation(), "cannot find namespace '%s::' in '%s()' as a child of namespace '%s::'", nscope[i], nscope.ostr, ns.name.c_str());
             return -1;
          }
       }

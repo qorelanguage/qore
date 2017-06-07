@@ -336,7 +336,7 @@ FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, Abstr
    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
    if (!pub && v->isModulePublic() && parse_check_parse_option(PO_IN_MODULE))
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
+      qore_program_private::makeParseWarning(getProgram(), v->getUserVariantBase()->getUserSignature()->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
 
    FunctionEntry* fe = func_list.findNode(fname);
 
@@ -1919,11 +1919,6 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
          continue;
       }
       if (cns) {
-         /*
-         if (in_mod && !cns->priv->pub)
-            qmc.error("cannot merge existing private namespace '%s' with new public namespace of the same name; namespace '%s::%s' is declared both with and without the 'public' keyword", cns->getName(), name.c_str(), i->first.c_str());
-         */
-
          cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
          continue;
       }

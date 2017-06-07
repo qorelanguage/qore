@@ -866,15 +866,15 @@ bool QoreProgram::existsFunction(const char* name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   priv->setParseOptions((int64)po);
+   priv->parseSetParseOptions(QoreProgramLocation(), (int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   priv->setParseOptions(po);
+   priv->parseSetParseOptions(QoreProgramLocation(), po);
 }
 
 void QoreProgram::parseDisableParseOptions(int64 po) {
-   priv->disableParseOptions(po);
+   priv->parseDisableParseOptions(QoreProgramLocation(), po);
 }
 
 // DEPRECATED

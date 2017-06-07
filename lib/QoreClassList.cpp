@@ -191,19 +191,19 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
       if (ns.classList.find(i->first)) {
-         parse_error("class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
+         parse_error(qore_class_private::get(*i->second)->loc, "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
          n.remove(i);
       }
       else if (find(i->first)) {
-         parse_error("class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+         parse_error(qore_class_private::get(*i->second)->loc, "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
          n.remove(i);
       }
       else if (ns.nsl.find(i->first)) {
-         parse_error("cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
+         parse_error(qore_class_private::get(*i->second)->loc, "cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
          n.remove(i);
       }
       else if (ns.pendNSL.find(i->first)) {
-         parse_error("cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, ns.name.c_str());
+         parse_error(qore_class_private::get(*i->second)->loc, "cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, ns.name.c_str());
          n.remove(i);
       }
       else {

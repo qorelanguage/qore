@@ -646,6 +646,7 @@ struct NSNode {
    DLLLOCAL void add(qore_ns_private& ns) {
       switch (type) {
          case NSN_OCD:
+            //printd(5, "ocd: %s %d-%d c: %d-%d\n", n.ocd->oc->getName(), n.ocd->loc.start_line, n.ocd->loc.end_line, qore_class_private::get(*n.ocd->oc)->loc.start_line, qore_class_private::get(*n.ocd->oc)->loc.end_line);
             ns.parseAddPendingClass(n.ocd->loc, *(n.ocd->name), n.ocd->oc);
             delete n.ocd;
             break;
@@ -1100,14 +1101,20 @@ public:
 
    DLLLOCAL MethodNode(char* mname, MethodVariantBase *v, bool n_static) : name(mname), m(v), static_flag(n_static) {
    }
+
    DLLLOCAL ~MethodNode() {
       free(name);
       delete m;
    }
+
    DLLLOCAL void addAndDelete(QoreClass* qc) {
       qore_class_private::addUserMethod(*qc, name, m, static_flag);
       m = 0;
       delete this;
+   }
+
+   DLLLOCAL const QoreProgramLocation& getLoc() const {
+      return m->getUserVariantBase()->getUserSignature()->getParseLocation();
    }
 };
 
@@ -1582,12 +1589,11 @@ top_level_command:
            $1->add(*(qore_ns_private::get(*(getRootNS()))));
         }
         | class_def {
-           QoreProgramLocation loc(@1.first_line, @1.last_line);
-           qore_root_ns_private::parseAddClass(loc, *($1->name), $1->oc);
+           qore_root_ns_private::parseAddClass($1->loc, *($1->name), $1->oc);
 
            // see if class definitions are allowed
            if (parse_check_parse_option(PO_NO_CLASS_DEFS))
-              parse_error(loc, "illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+              parse_error($1->loc, "illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
            delete $1;
         }
         | scoped_const_decl {
@@ -1733,7 +1739,7 @@ gvardecl:
 
 top_namespace_decl:
         nsc_modifiers TOK_NAMESPACE '{' namespace_decls '}' {
-           QoreProgramLocation loc(@1.first_line, @5.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
            qore_ns_private* p = new qore_ns_private(loc);
            check_nsmod(loc, $1, *p);
            $4->add(*p);
@@ -1741,13 +1747,13 @@ top_namespace_decl:
            $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE ';' {
-           QoreProgramLocation loc(@1.first_line, @2.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @2.last_line);
            qore_ns_private* p = new qore_ns_private(loc);
            check_nsmod(loc, $1, *p);
            $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE '{' '}' {
-           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @4.last_line);
            qore_ns_private* p = new qore_ns_private(loc);
            check_nsmod(loc, $1, *p);
            $$ = p->ns;
@@ -2145,13 +2151,13 @@ myexp:  /* empty */  { $$ = 0; }
 
 class_def:
         nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
-           QoreProgramLocation loc(@1.first_line, @6.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
            check_classmod(loc, $1, *($5));
            qore_class_private::parseSetBaseClassList(*($5), $3);
            $$ = new ObjClassDef(loc, $2, $5);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
-           QoreProgramLocation loc(@1.first_line, @6.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "class", $2->ostr);
            check_classmod(loc, $1, *($5));
@@ -2159,37 +2165,41 @@ class_def:
            qore_class_private::parseSetBaseClassList(*($5), $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list ';' {
-           QoreProgramLocation loc(@1.first_line, @3.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @3.last_line);
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
+           qore_class_private::get(*qc)->loc = loc;
            check_classmod(loc, $1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
            $$ = new ObjClassDef(loc, $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
-           QoreProgramLocation loc(@1.first_line, @3.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @3.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "class", $2->ostr);
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
+           qore_class_private::get(*qc)->loc = loc;
            check_classmod(loc, $1, *qc);
            $$ = new ObjClassDef(loc, $2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
-           QoreProgramLocation loc(@1.first_line, @5.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
+           qore_class_private::get(*qc)->loc = loc;
            check_classmod(loc, $1, *qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
            $$ = new ObjClassDef(loc, $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
-           QoreProgramLocation loc(@1.first_line, @5.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "class", $2->ostr);
            // class name is set automatically from name saved in scanner
            QoreClass* qc = new QoreClass;
+           qore_class_private::get(*qc)->loc = loc;
            check_classmod(loc, $1, *qc);
            $$ = new ObjClassDef(loc, $2, qc);
            qore_class_private::parseSetBaseClassList(*qc, $3);
@@ -2251,49 +2261,60 @@ superclass:
 class_attributes:
         inline_methoddef {
            $$ = new QoreClass;
+           qore_class_private::get(*$$)->loc = $1->getLoc();
            $1->addAndDelete($$);
         }
         | internal_member_list {
            $$ = new QoreClass;
+           qore_class_private::get(*$$)->loc = QoreProgramLocation(@1.first_line, @1.last_line);
            $1->merge($$, Internal);
            delete $1;
         }
         | private_member_list {
            $$ = new QoreClass;
+           qore_class_private::get(*$$)->loc = QoreProgramLocation(@1.first_line, @1.last_line);
            $1->merge($$, Private);
            delete $1;
         }
         | public_member_list {
            $$ = new QoreClass;
+           qore_class_private::get(*$$)->loc = QoreProgramLocation(@1.first_line, @1.last_line);
            $1->merge($$, Public);
            delete $1;
         }
         | unscoped_const_decl {
            $$ = new QoreClass;
-           qore_class_private::parseAddConstant(*($$), QoreProgramLocation(@1.first_line, @1.last_line), $1->getName(), $1->takeValue(), Public);
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
+           qore_class_private::get(*$$)->loc = loc;
+           qore_class_private::parseAddConstant(*($$), loc, $1->getName(), $1->takeValue(), Public);
            delete $1;
         }
         | class_attributes inline_methoddef {
+           qore_class_private::get(*$1)->loc.end_line = @2.last_line;
            $2->addAndDelete($1);
            $$ = $1;
         }
         | class_attributes internal_member_list {
+           qore_class_private::get(*$1)->loc.end_line = @2.last_line;
            $2->merge($1, Internal);
            $$ = $1;
            delete $2;
         }
         | class_attributes private_member_list {
+           qore_class_private::get(*$1)->loc.end_line = @2.last_line;
            $2->merge($1, Private);
            $$ = $1;
            delete $2;
         }
         | class_attributes public_member_list {
+           qore_class_private::get(*$1)->loc.end_line = @2.last_line;
            $2->merge($1, Public);
            $$ = $1;
            delete $2;
         }
         | class_attributes unscoped_const_decl {
-           qore_class_private::parseAddConstant(*($$), QoreProgramLocation(@1.first_line, @1.last_line), $2->getName(), $2->takeValue(), Public);
+           qore_class_private::get(*$1)->loc.end_line = @2.last_line;
+           qore_class_private::parseAddConstant(*($$), QoreProgramLocation(@2.first_line, @2.last_line), $2->getName(), $2->takeValue(), Public);
            $$ = $1;
            delete $2;
         }
@@ -2517,7 +2538,7 @@ ident_openparen:
 
 inline_methoddef:
         nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
-           QoreProgramLocation loc(@1.first_line, @7.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @7.last_line);
            if ($1 & OFM_ABSTRACT) {
               if ($7)
                  parse_error(loc, "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
@@ -2528,7 +2549,7 @@ inline_methoddef:
            $$ = new MethodNode($2, new_method_variant(loc, $2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7), $1 & OFM_STATIC);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
-           QoreProgramLocation loc(@1.first_line, @7.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @7.last_line);
            if ($1 & OFM_ABSTRACT) {
               if ($7)
                  parse_error(loc, "'abstract' can only be used with no implementation (remove the body and terminate the declaration with ';' or remove the 'abstract')");
@@ -2543,14 +2564,14 @@ inline_methoddef:
            $$ = new MethodNode($3, new_method_variant(loc, $3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7), $1 & OFM_STATIC);
         }
         | nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value ';' {
-           QoreProgramLocation loc(@1.first_line, @6.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
            if (!($1 & OFM_ABSTRACT))
               parse_error(loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
            check_method(loc, $2, $5, $6);
            $$ = new MethodNode($2, new_method_variant(loc, $2, $1, @3.first_line, @3.last_line, $3, $5, $6, 0), $1 & OFM_STATIC);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
-           QoreProgramLocation loc(@1.first_line, @6.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
            if (!($1 & OFM_ABSTRACT))
               parse_error(loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
            RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));

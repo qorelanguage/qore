@@ -187,7 +187,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    }
 
    if (!strcmp(m->getName(), "copy")) {
-      parse_error("cannot make a call reference to a copy() method");
+      parse_error(loc, "cannot make a call reference to a copy() method");
       return this;
    }
 
