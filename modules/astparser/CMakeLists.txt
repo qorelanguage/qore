@@ -56,8 +56,8 @@ add_flex_bison_dependency(ast_scanner ast_parser)
 
 qore_wrap_qpp(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
 add_custom_target(ASTPARSER_QPP_GENERATED_FILES DEPENDS qpp ${ASTPARSER_QPP_SOURCES})
-add_custom_target(ASTPARSER_BISON_GENERATED_FILES DEPENDS ${BISON_astparser_OUTPUTS})
-add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_astscanner_OUTPUTS})
+add_custom_target(ASTPARSER_BISON_GENERATED_FILES DEPENDS ${BISON_ast_parser_OUTPUTS})
+add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_ast_scanner_OUTPUTS})
 
 # prepare astparser module target
 set(astparser_module_name "astparser")
