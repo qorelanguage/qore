@@ -155,6 +155,13 @@ return 0;
 }"
 HAVE_RNDN)
 
+check_cxx_source_compiles("
+#include <mpfr.h>
+int main(void){
+mpfr_rnd_t test = MPFR_RNDN;
+return 0;
+}"
+HAVE_MPFR_RNDN)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
