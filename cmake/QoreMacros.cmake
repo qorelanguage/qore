@@ -181,10 +181,10 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
         message(STATUS "")
-        message(STATUS "uninstall target: make uninstall")
+        message(STATUS "Module ${_module_name} uninstall target: make uninstall")
         message(STATUS "")
     else()
-        message(WARNING "Uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
+        message(WARNING "Module ${_module_name} uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
     endif()
 
     # docs
@@ -202,14 +202,14 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             add_dependencies(docs ${_module_name})
 
             message(STATUS "")
-            message(STATUS "documentation target: make docs")
+            message(STATUS "Module ${_module_name} documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            message(WARNING "User module doxygen template file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
 
     else (DOXYGEN_FOUND)
-        message(WARNING "Doxygen not found. Documentation won't be built")
+        message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
 ENDMACRO (QORE_BINARY_MODULE)
 
@@ -328,12 +328,12 @@ MACRO (QORE_DIST _version)
     add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
     message(STATUS "")
-    message(STATUS "tarbal creation target: make dist")
+    message(STATUS "Tarball creation target: make dist")
     message(STATUS "")
 
 ENDMACRO (QORE_DIST)
 
-# prints a sumamry of configuration
+# prints a summary of configuration
 MACRO (QORE_CONFIG_INFO)
     MESSAGE(STATUS "")
     MESSAGE(STATUS "-----------------------------")
@@ -344,9 +344,9 @@ MACRO (QORE_CONFIG_INFO)
         MESSAGE(STATUS "Archs: ${CMAKE_OSX_ARCHITECTURES}")
     ENDIF (APPLE)
     MESSAGE(STATUS "Compiler: ${CMAKE_CXX_COMPILER} - ${CMAKE_CXX_COMPILER_ID}")
-    MESSAGE(STATUS "FLags deb: ${CMAKE_CXX_FLAGS_DEBUG}")
-    MESSAGE(STATUS "FLags rel: ${CMAKE_CXX_FLAGS}")
-    MESSAGE(STATUS "FLags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    MESSAGE(STATUS "CXX Flags debug: ${CMAKE_CXX_FLAGS_DEBUG}")
+    MESSAGE(STATUS "CXX Flags release: ${CMAKE_CXX_FLAGS}")
+    MESSAGE(STATUS "CXX Flags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
     MESSAGE(STATUS "-----------------------------")
 ENDMACRO (QORE_CONFIG_INFO)
 
