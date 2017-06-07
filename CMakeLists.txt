@@ -696,6 +696,14 @@ if (DOXYGEN_FOUND)
     )
     add_dependencies(docs docs-lang)
 endif (DOXYGEN_FOUND)
+
+add_custom_target(install-docs
+    COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    COMMAND cp -r . ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
+)
+add_dependencies(install-docs docs)
 # end of documentation
 
 # astparser module
