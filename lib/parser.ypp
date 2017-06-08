@@ -1636,7 +1636,7 @@ top_level_command:
         | TOK_MODULE '{' module_decls '}' {
            QoreModuleDefContext* qmd = get_module_def_context();
            if (!qmd)
-              qore_program_private::makeParseWarning(getProgram(), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "module definitions are ignored when not defining a module");
+              qore_program_private::makeParseWarning(getProgram(), QoreProgramLocation(@1.first_line, @4.last_line), QP_WARN_MODULE_ONLY, "MODULE-ONLY", "module definitions are ignored when not defining a module");
            else {
               QoreUserModuleDefContextHelper* uqmd = static_cast<QoreUserModuleDefContextHelper*>(qmd);
               uqmd->close();

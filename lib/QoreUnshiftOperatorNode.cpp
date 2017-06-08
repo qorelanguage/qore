@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ AbstractQoreNode* QoreUnshiftOperatorNode::parseInitImpl(LocalVar* oflag, int pf
             edesc->sprintf("'%s' operator is ", getTypeName());
             QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
             edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", getTypeName());
-            qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
          }
       }
       else
@@ -83,7 +83,7 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    // value is not a list, so throw exception
    if (val.getType() != NT_LIST) {
       // no need to check for PO_STRICT_ARGS; this exception was always thrown
-      xsink->raiseException("UNSHIFT-ERROR", "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
+      xsink->raiseException(loc, "UNSHIFT-ERROR", nullptr, "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
       return QoreValue();
    }
 
