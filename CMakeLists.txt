@@ -675,9 +675,9 @@ if (DOXYGEN_FOUND)
     # library
     message(STATUS "Preparing Doxyfile for library")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib @ONLY)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html)
     add_custom_target(docs-lib
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/library/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
@@ -687,9 +687,9 @@ if (DOXYGEN_FOUND)
     # lang
     message(STATUS "Preparing Doxyfile for lang")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lang/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang @ONLY)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html)
     add_custom_target(docs-lang
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/lang/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
@@ -698,8 +698,8 @@ if (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 
 add_custom_target(install-docs
-    COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/share/doc/qore
-    COMMAND cp -r . ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/* ${CMAKE_INSTALL_PREFIX}/share/doc/qore
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
     COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
 )

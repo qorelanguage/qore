@@ -230,7 +230,6 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
 
         # prepare directories for the documentation
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
-        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/modules/${f})
 
         # prepare needed vars
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
@@ -246,6 +245,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         # add CMake target for the documentation
         if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
@@ -256,6 +256,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             )
         else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
