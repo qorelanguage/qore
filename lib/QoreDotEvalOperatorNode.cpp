@@ -153,7 +153,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          if (meth)
             m->setPseudo();
          else
-            raiseNonExistentMethodCallWarning(qc, mname);
+            raise_nonexistent_method_call_warning(loc, qc, mname);
       }
 
       if (!meth) {

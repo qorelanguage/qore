@@ -600,7 +600,7 @@ public:
    }
 };
 
-DLLLOCAL void raiseNonExistentMethodCallWarning(const QoreClass* qc, const char* method);
+DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation& loc, const QoreClass* qc, const char* method);
 
 /*
 class abstract_assignment_helper {

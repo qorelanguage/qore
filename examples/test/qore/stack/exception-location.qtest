@@ -93,10 +93,96 @@ class ExceptionLocationTest inherits QUnit::Test {
             assertEq("<run-time-loaded: M>", ex.file);
 
             ex = getEx(\p.parse(), "class B1 {\nfinal x() {}\n}\nclass B inherits B1 {x() {\n}\n}", "N");
-            printf("%s\n", get_exception_string(ex));
             assertEq(4, ex.line);
             assertEq(4, ex.endline);
             assertEq("<run-time-loaded: N>", ex.file);
+
+            ex = getEx(\p.parse(), "class B1 {\n}\nclass B inherits B1 {\nconstructor() : B2() {\n}\n}\n", "O");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: O>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\nconstructor() : B2() {\n}\n}\n", "P");
+            assertEq(2, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: P>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\ncopy(B b, B b2) {\n}\n}\n", "Q");
+            assertEq(2, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: Q>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\ncopy(int i) {\n}\n}\n", "R");
+            assertEq(2, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: R>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\npublic {\nint i =\n(int j = 2);\n}\n}\n", "S");
+            assertEq(3, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: S>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\npublic {\nstatic int i =\n(int j = 2);\n}\n}\n", "T");
+            assertEq(3, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: T>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\npublic {\nstatic int i =\n'hi';\n}\n}\n", "U");
+            assertEq(3, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: U>", ex.file);
+
+            ex = getEx(\p.parse(), "final class B1 {\n}\nclass B inherits B1 {\n}\n", "V");
+            assertEq(3, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: V>", ex.file);
+
+            ex = getEx(\p.parse(), "class B {\nmethodGate(int i) {\n}\n}\n", "W");
+            assertEq(2, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: W>", ex.file);
+
+            ex = getEx(\p.parse(), "A::X::method() {\nx = 1;\n}\n", "X");
+            assertEq(1, ex.line);
+            assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: X>", ex.file);
+
+            ex = getEx(\p.parse(), "const A::X::P\n= 1;\n", "Y");
+            assertEq(1, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: Y>", ex.file);
+
+            ex = getEx(\p.parse(), "const A = 1;\nsub t() {\nA{'hi'}\n= 2;\n}\n", "Z");
+            assertEq(3, ex.line);
+            assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: Z>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nstring a = '' =~ tr/a-/;\n}\n", "A1");
+            assertEq(2, ex.line);
+            assertEq(2, ex.endline);
+            assertEq("<run-time-loaded: A1>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nswitch (1) {\ndefault:\ndefault:\n}\n}\n", "A2");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: A2>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nswitch (1) {\ncase = 2:\n}\n}\n", "A3");
+            assertEq(3, ex.line);
+            assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: A3>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nswitch (1) {\ncase (int i = 3):\n}\n}\n", "A4");
+            assertEq(3, ex.line);
+            assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: A4>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nswitch (1) {\ncase 2:\ncase 2:\n}\n}\n", "A4");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: A4>", ex.file);
+
+            #printf("%s\n", get_exception_string(ex));
         }
     }
 

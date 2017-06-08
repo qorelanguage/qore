@@ -81,7 +81,7 @@ void qore_method_private::parseInit() {
                desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
                QoreTypeInfo::getThisType(t, *desc);
                desc->concat(" is not compatible with 'string'");
-               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+               qore_program_private::makeParseException(getProgram(), sig->getParseLocation(), "PARSE-TYPE-ERROR", desc);
             }
          }
       }
@@ -465,8 +465,8 @@ struct SelfLocalVarParseHelper {
    DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
 };
 
-void raiseNonExistentMethodCallWarning(const QoreClass* qc, const char* method) {
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existent method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
+void raise_nonexistent_method_call_warning(const QoreProgramLocation& loc, const QoreClass* qc, const char* method) {
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existent method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
 }
 
 class VRMutexHelper {
@@ -2840,7 +2840,7 @@ int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool
 int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
    if (thisclass->getID() == qc->getID()) {
       thisclass->priv->scl->valid = false;
-      parse_error("class '%s' cannot inherit itself", thisclass->getName());
+      parse_error(thisclass->priv->loc, "class '%s' cannot inherit itself", thisclass->getName());
       return -1;
    }
 
@@ -2851,7 +2851,7 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
          return 0;
       if (i->first->getID() == thisclass->getID()) {
          thisclass->priv->scl->valid = false;
-         parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
+         parse_error(thisclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
          return -1;
       }
       i++;
@@ -4609,7 +4609,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
    ParseCodeInfoHelper rtih("constructor", nothingTypeInfo);
 
    if (bcal && !parent_class.hasParentClass()) {
-      parse_error("base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
+      parse_error(signature.getParseLocation(), "base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
       delete bcal;
       bcal = 0;
    }
@@ -4682,7 +4682,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 
    // make sure there is max one parameter in the copy method
    if (signature.numParams() > 1)
-      parse_error("maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
+      parse_error(signature.getParseLocation(), "maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
 
    // push return type on stack (no return value can be used)
    ParseCodeInfoHelper rtih("copy", nothingTypeInfo);
@@ -4702,7 +4702,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
                desc->concat(", but the object's parameter was defined expecting ");
                typeInfo->getThisType(*desc);
                desc->concat(" instead");
-               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+               qore_program_private::makeParseException(getProgram(), signature.getParseLocation(), "PARSE-TYPE-ERROR", desc);
             }
          }
       }

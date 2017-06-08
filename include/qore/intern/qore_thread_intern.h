@@ -273,11 +273,11 @@ DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
-DLLLOCAL bool parse_cond_pop();
-DLLLOCAL bool parse_cond_test();
+DLLLOCAL bool parse_cond_pop(const QoreProgramLocation& loc);
+DLLLOCAL bool parse_cond_test(const QoreProgramLocation& loc);
 DLLLOCAL void push_parse_options();
 DLLLOCAL void parse_try_module_inc();
-DLLLOCAL bool parse_try_module_dec();
+DLLLOCAL bool parse_try_module_dec(const QoreProgramLocation& loc);
 DLLLOCAL unsigned parse_try_module_get();
 DLLLOCAL void parse_try_module_set(unsigned c);
 

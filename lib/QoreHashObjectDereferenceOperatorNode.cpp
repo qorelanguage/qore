@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s (%s) r: %p %s\n", lti, QoreTypeInfo::getName(lti), QoreTypeInfo::getUniqueReturnClass(lti) ? QoreTypeInfo::getUniqueReturnClass(lti)->getName() : "n/a", rti, QoreTypeInfo::getName(rti));
 
    if (for_assignment && left && check_lvalue(left))
-      parse_error("expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
+      parse_error(loc, "expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
 
    if (QoreTypeInfo::hasType(lti)) {
       bool can_be_obj = QoreTypeInfo::parseAccepts(objectTypeInfo, lti);

@@ -929,7 +929,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 <p_skip_to_endtry>{
    ^%endtry{WS}*$                       {
-                                           if (parse_try_module_dec()) {
+                                           if (parse_try_module_dec(get_loc(yylloc))) {
                                               //printd(5, "p_skip_to_endtry: found %%endtry (%s) (final)\n", yytext);
                                               BEGIN(INITIAL);
                                            }
@@ -950,7 +950,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
    \n                                   // ignore
 }
-^%endtry{WS}*$                          parse_try_module_dec();
+^%endtry{WS}*$                          parse_try_module_dec(get_loc(yylloc));
 ^%requires{WS}*$                        { parse_error(get_loc(yylloc), "missing argument to %%requires"); }
 ^%requires                              BEGIN(requires);
 <requires>[^\n\r]+                      {
@@ -1051,7 +1051,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 <p_skip_to_endif>{
    ^%endif{WS}*$                        {
-                                           if (parse_cond_pop()) {
+                                           if (parse_cond_pop(get_loc(yylloc))) {
                                               printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
                                               BEGIN(INITIAL);
                                            }
@@ -1075,12 +1075,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <p_skip_to_endif_or_else>{
    ^%else{WS}*$                         {
                                            //printd(5, "p_skip_to_endif_or_else: found %else\n");
-                                           if (parse_cond_test()) {
+                                           if (parse_cond_test(get_loc(yylloc))) {
                                               BEGIN(INITIAL);
                                            }
                                         }
    ^%endif{WS}*$                        {
-                                           if (parse_cond_pop()) {
+                                           if (parse_cond_pop(get_loc(yylloc))) {
                                               //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
                                               BEGIN(INITIAL);
                                            }
@@ -1101,7 +1101,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
    \n                                   // ignore
 }
-^%endif{WS}*$                           parse_cond_pop();
+^%endif{WS}*$                           parse_cond_pop(get_loc(yylloc));
 ^%include{WS}*$                         { parse_error(get_loc(yylloc), "missing argument to %%include"); }
 ^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
@@ -1651,16 +1651,16 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                         }
 <regex_googleplex>{
    s\/                                  yylval->RegexSubst = new QoreRegexSubst; BEGIN(regex_subst1); return REGEX_SUBST_BEGIN;
-   x\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_extract_state); return REGEX_EXTRACT_BEGIN;
-   tr\/                                 yylval->Trans = new QoreTransliteration; BEGIN(regex_trans1); return REGEX_TRANS_BEGIN;
-   m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
-   \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   x\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_extract_state); return REGEX_EXTRACT_BEGIN;
+   tr\/                                 yylval->Trans = new QoreTransliteration(get_loc(yylloc)); BEGIN(regex_trans1); return REGEX_TRANS_BEGIN;
+   m\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   \/                                   yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error(get_loc(yylloc), "missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
-   \/                                   yylval->Regex      = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   m\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   \/                                   yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error(get_loc(yylloc), "missing regular expression after !~"); BEGIN(INITIAL);
 }
