@@ -698,8 +698,7 @@ if (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 
 add_custom_target(install-docs
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/share/doc/qore
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/* ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/ ${CMAKE_INSTALL_PREFIX}/share/doc/qore
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
     COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
 )
