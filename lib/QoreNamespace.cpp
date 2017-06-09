@@ -1050,7 +1050,7 @@ AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QorePro
       return rv->refSelf();
    }
 
-   rv = parseFindOnlyConstantValueIntern(bword, typeInfo);
+   rv = parseFindOnlyConstantValueIntern(loc, bword, typeInfo);
 
    if (rv)
       return rv->refSelf();
@@ -1249,7 +1249,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
 // called in 2nd stage of parsing to resolve constant references
 AbstractQoreNode* qore_root_ns_private::parseFindReferencedConstantValueIntern(const QoreProgramLocation& loc, const NamedScope& scname, const QoreTypeInfo*& typeInfo, bool error) {
    if (scname.size() == 1) {
-      AbstractQoreNode* rv = parseFindConstantValueIntern(scname.ostr, typeInfo, error);
+      AbstractQoreNode* rv = parseFindConstantValueIntern(loc, scname.ostr, typeInfo, error);
       return rv ? rv->refSelf() : 0;
    }
 
@@ -1396,15 +1396,16 @@ const QoreClass* qore_root_ns_private::runtimeFindClassIntern(const NamedScope& 
    assert(name.size() > 1);
 
    // iterate all namespaces with the initial name and look for the match
-   const QoreClass* c = 0;
+   const QoreClass* c = nullptr;
    NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
    while (nmi.next()) {
       if ((c = nmi.get()->runtimeMatchClass(name, ns)))
          return c;
    }
 
-   return 0;
+   return nullptr;
 }
+
 const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
    assert(name.size() > 1);
 
@@ -1416,13 +1417,13 @@ const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedS
          return f;
    }
 
-   return 0;
+   return nullptr;
 }
 
 const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope) {
    assert(nscope.size() > 1);
 
-   const QoreFunction* f = 0;
+   const QoreFunction* f = nullptr;
    unsigned match = 0;
 
    {
@@ -1452,7 +1453,7 @@ const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const Named
       }
    }
 
-   return 0;
+   return nullptr;
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {

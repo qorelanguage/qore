@@ -182,7 +182,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* makeReferenceNodeAndDeref() {
       if (args) {
-         parse_error("argument given to call reference");
+         parse_error(loc, "argument given to call reference");
          return this;
       }
 

@@ -244,7 +244,6 @@ DLLLOCAL QoreProgramLocation get_runtime_location();
 DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
-DLLLOCAL void update_parse_line_location(int start_line, int end_line);
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();

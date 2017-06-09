@@ -179,11 +179,11 @@ public:
    DLLLOCAL void doDoubleDeclarationError() {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
+         parse_error(loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
          assert(!typeInfo);
       }
       if (typeInfo) {
-         parse_error("global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
+         parse_error(loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
          assert(!parseTypeInfo);
       }
    }

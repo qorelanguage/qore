@@ -136,9 +136,9 @@ public:
 
    DLLLOCAL int parseInit(ClassNs ptr);
 
-   DLLLOCAL AbstractQoreNode* get(const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
+   DLLLOCAL AbstractQoreNode* get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
       if (in_init) {
-         parse_error("recursive constant reference found to constant '%s'", name.c_str());
+         parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
          constantTypeInfo = nothingTypeInfo;
          return 0;
       }

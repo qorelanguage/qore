@@ -960,7 +960,7 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-static inline int parse_get_nibble(char c) {
+static int parse_get_nibble(const QoreProgramLocation& loc, char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -968,12 +968,12 @@ static inline int parse_get_nibble(char c) {
    if (c >= 'a' && c <= 'f')
       return c - 87;
 
-   parseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   parseException(loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
    return -1;
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode* parseHex(const char* buf, int len) {
+BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
@@ -982,7 +982,7 @@ BinaryNode* parseHex(const char* buf, int len) {
 
    const char* end = buf + len;
    while (buf < end) {
-      int b = parse_get_nibble(*buf);
+      int b = parse_get_nibble(loc, *buf);
       if (b < 0) {
 	 free(binbuf);
 	 return 0;
@@ -997,7 +997,7 @@ BinaryNode* parseHex(const char* buf, int len) {
       }
 #endif
 
-      int l = parse_get_nibble(*buf);
+      int l = parse_get_nibble(loc, *buf);
       if (l < 0) {
 	 free(binbuf);
 	 return 0;

@@ -64,13 +64,13 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    bool in_closure;
    if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
-	 parse_error(loc, "type definition given for existing local variable '%s'", id->getName());
+         parse_error(loc, "type definition given for existing local variable '%s'", id->getName());
 
       ref.id = id;
       if (in_closure)
          setClosureIntern();
       else
-	 type = VT_LOCAL;
+         type = VT_LOCAL;
 
       printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id, in_closure);
    }
@@ -111,7 +111,7 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
       bool nd;
       QoreValue nv = r->evalValue(nd, xsink);
       if (needs_deref)
-	 discard(v.getInternalNode(), xsink);
+         discard(v.getInternalNode(), xsink);
       needs_deref = nd;
       return v = nv;
    }
@@ -121,7 +121,7 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
 
 AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
    if (pflag & PF_CONST_EXPRESSION) {
-      parseException("ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
+      parseException(loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
       return 0;
    }
 
@@ -129,8 +129,8 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
-	 ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
-	 ++lvids;
+         ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
+         ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
    }
@@ -285,10 +285,10 @@ void VarRefDeclNode::makeGlobal() {
 void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
    if (qc) {
       // throw an exception if trying to instantiate a class with abstract method variants
-      qore_class_private::parseCheckAbstractNew(*const_cast<QoreClass*>(qc));
+      qore_class_private::get(*const_cast<QoreClass*>(qc))->parseCheckAbstractNew(loc);
 
       if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
-	 parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
+         parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
       // FIXME: make common code with ScopedObjectCallNode
       const QoreMethod *constructor = qc ? qc->parseGetConstructor() : 0;
@@ -298,10 +298,10 @@ void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation&
       //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
       if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
-	 if (variant)
-	    parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
-	 else
-	    parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
+         if (variant)
+            parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
+         else
+            parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
       }
 
       //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);

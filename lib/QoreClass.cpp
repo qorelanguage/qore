@@ -437,7 +437,7 @@ DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) cons
       AbstractMethod::checkAbstract(name, i.first.c_str(), i.second->pending_vlist, desc);
    }
 
-   //printd(5, "AbstractMethodMap::parseCheckAbstractNew() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+   //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
    return desc;
 }
 
@@ -451,10 +451,10 @@ int AbstractMethodMap::runtimeCheckInstantiateClass(const char* name, ExceptionS
 }
 
 // we check if there are any abstract method variants still in the committed lists
-void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
+void AbstractMethodMap::parseCheckAbstractNew(const QoreProgramLocation& loc, const char* name) const {
    QoreStringNode* desc = checkAbstract(name);
    if (desc)
-      parseException("ABSTRACT-CLASS-ERROR", desc);
+      parseException(loc, "ABSTRACT-CLASS-ERROR", desc);
 }
 
 // FIXME: check private method variant access at runtime
@@ -754,7 +754,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    QoreProgram* pgm = getProgram();
    if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
-      parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
+      parseException(loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
 
    // signature string - also processed in parseCommit()
    QoreString csig;
@@ -3311,11 +3311,11 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
    if (f->isAbstract()) {
       if (initialized) {
-         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
          return -1;
       }
       if (n_static) {
-         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
          return -1;
       }
    }
@@ -3326,7 +3326,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    // check for illegal static method
    if (n_static) {
       if ((con || dst || checkSpecialStaticIntern(mname))) {
-         parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
          return -1;
       }
    }
@@ -3334,7 +3334,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    bool cpy = dst || con ? false : !strcmp(mname, "copy");
    // check for illegal method overloads
    if (sys && (con || cpy)) {
-      parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
+      parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
       return -1;
    }
 
@@ -3351,7 +3351,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    // we cannot initialize the class here
    QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
-      parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
+      parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
    }
 

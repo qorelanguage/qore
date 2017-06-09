@@ -1011,13 +1011,13 @@ protected:
       return !fe ? 0 : fe->getFunction();
    }
 
-   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const char* fname) {
+   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const QoreProgramLocation& loc, const char* fname) {
       QORE_TRACE("qore_root_ns_private::parseResolveFunctionIntern()");
 
       const QoreFunction* f = parseFindFunctionIntern(fname);
       if (!f)
          // cannot find function, throw exception
-         parse_error("function '%s()' cannot be found", fname);
+         parse_error(loc, "function '%s()' cannot be found", fname);
 
       return f;
    }
@@ -1117,19 +1117,19 @@ protected:
       return 0;
    }
 
-   DLLLOCAL AbstractQoreNode* parseFindOnlyConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo) {
+   DLLLOCAL AbstractQoreNode* parseFindOnlyConstantValueIntern(const QoreProgramLocation& loc, const char* cname, const QoreTypeInfo*& typeInfo) {
       qore_ns_private* ns;
       ConstantEntry* ce = parseFindOnlyConstantEntryIntern(cname, ns);
       if (!ce)
-         return 0;
+         return nullptr;
 
       //printd(5, "qore_root_ns_private::parseFindOnlyConstantValueIntern() const: %s ns: %p %s\n", cname, ns, ns->name.c_str());
 
       NamespaceParseContextHelper nspch(ns);
-      return ce->get(typeInfo, this);
+      return ce->get(loc, typeInfo, this);
    }
 
-   DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
+   DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const QoreProgramLocation& loc, const char* cname, const QoreTypeInfo*& typeInfo, bool error) {
       // look up class constants first
       QoreClass* pc = parse_get_class();
       if (pc) {
@@ -1138,13 +1138,13 @@ protected:
             return rv;
       }
 
-      AbstractQoreNode* rv = parseFindOnlyConstantValueIntern(cname, typeInfo);
+      AbstractQoreNode* rv = parseFindOnlyConstantValueIntern(loc, cname, typeInfo);
 
       if (rv)
          return rv;
 
       if (error)
-         parse_error("constant '%s' cannot be resolved in any namespace", cname);
+         parse_error(loc, "constant '%s' cannot be resolved in any namespace", cname);
 
       return 0;
    }
@@ -1673,8 +1673,8 @@ public:
       rns.addConstant(ns, cname, value, typeInfo);
    }
 
-   DLLLOCAL static const QoreFunction* parseResolveFunction(const char* fname) {
-      return getRootNS()->rpriv->parseResolveFunctionIntern(fname);
+   DLLLOCAL static const QoreFunction* parseResolveFunction(const QoreProgramLocation& loc, const char* fname) {
+      return getRootNS()->rpriv->parseResolveFunctionIntern(loc, fname);
    }
 
    // called during parsing (plock already grabbed)
@@ -1701,8 +1701,8 @@ public:
       rns.rpriv->parseRollback();
    }
 
-   DLLLOCAL static AbstractQoreNode* parseFindConstantValue(const char* name, const QoreTypeInfo*& typeInfo, bool error) {
-      return getRootNS()->rpriv->parseFindConstantValueIntern(name, typeInfo, error);
+   DLLLOCAL static AbstractQoreNode* parseFindConstantValue(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo*& typeInfo, bool error) {
+      return getRootNS()->rpriv->parseFindConstantValueIntern(loc, name, typeInfo, error);
    }
 
    DLLLOCAL static AbstractQoreNode* parseFindReferencedConstantValue(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool error) {

@@ -224,11 +224,7 @@ DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 
 // the following functions are implemented in support.cc
 DLLLOCAL void parse_error(const QoreProgramLocation& loc, const char* fmt, ...);
-DLLLOCAL void parse_error(const char* fmt, ...);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, const char* fmt, ...);
-DLLLOCAL void parseException(int sline, int eline, const char* err, const char* fmt, ...);
-DLLLOCAL void parseException(const char* err, const char* fmt, ...);
-DLLLOCAL void parseException(const char* err, QoreStringNode* desc);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
 
 DLLLOCAL QoreString* findFileInPath(const char* file, const char* path);
@@ -448,7 +444,7 @@ DLLLOCAL extern QoreThreadLock lck_gmtime;
 DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, ExceptionSink* xsink);
-DLLLOCAL BinaryNode* parseHex(const char* buf, int len);
+DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len);
 DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);

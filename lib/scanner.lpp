@@ -68,7 +68,6 @@
          yylloc->last_col = col;                                             \
          yylloc->last_line = yylineno;                                       \
       }                                                                      \
-      update_parse_line_location(yylloc->first_line, yylloc->last_line);     \
    }
 
 int yyparse(yyscan_t yyscanner);
@@ -1555,7 +1554,7 @@ cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); retu
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
 {HEX_CONST}                             yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
-{BINARY}                                yylval->binary = parseHex(yytext + 1, strlen(yytext + 1) - 1); return BINARY;
+{BINARY}                                yylval->binary = parseHex(get_loc(yylloc), yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
 \${WORD}                                yylval->string = strdup(yytext + 1); return VAR_REF;
 class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }

@@ -1144,12 +1144,6 @@ void update_parse_location(const QoreProgramLocation& loc) {
    thread_data.get()->parse_loc = loc;
 }
 
-void update_parse_line_location(int start_line, int end_line) {
-   ThreadData* td = thread_data.get();
-   td->parse_loc.start_line = start_line;
-   td->parse_loc.end_line = end_line;
-}
-
 const char* get_parse_code() {
    return (thread_data.get())->parse_code;
 }

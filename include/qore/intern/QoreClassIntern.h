@@ -175,7 +175,7 @@ struct AbstractMethodMap : amap_t {
    DLLLOCAL QoreStringNode* checkAbstract(const char* cname) const;
 
    // we check if there are any abstract method variants still in the committed lists
-   DLLLOCAL void parseCheckAbstractNew(const char* name) const;
+   DLLLOCAL void parseCheckAbstractNew(const QoreProgramLocation& loc, const char* name) const;
 
    // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
    DLLLOCAL int runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const;
@@ -1933,9 +1933,9 @@ public:
       return ahm.runtimeCheckInstantiateClass(name.c_str(), xsink);
    }
 
-   DLLLOCAL void parseCheckAbstractNew() {
+   DLLLOCAL void parseCheckAbstractNew(const QoreProgramLocation& loc) {
       parseInit();
-      ahm.parseCheckAbstractNew(name.c_str());
+      ahm.parseCheckAbstractNew(loc, name.c_str());
    }
 
    DLLLOCAL void setNamespace(qore_ns_private* n) {
@@ -2228,7 +2228,7 @@ public:
       //printd(5, "parseCheckVar() %s cls: %p (%s)\n", dname, sclass, sclass ? sclass->getName() : "n/a");
       if (!ovi) {
          if (parseHasConstant(dname)) {
-            parse_error("'%s' has already been declared as a constant in class '%s' and therefore cannot be also declared as a static class variable in the same class with the same name", dname, name.c_str());
+            parse_error(vi->loc, "'%s' has already been declared as a constant in class '%s' and therefore cannot be also declared as a static class variable in the same class with the same name", dname, name.c_str());
             return -1;
          }
          return 0;
@@ -3015,10 +3015,6 @@ public:
 
    DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
       return qc.priv->runtimeCheckInstantiateClass(xsink);
-   }
-
-   DLLLOCAL static void parseCheckAbstractNew(QoreClass& qc) {
-      qc.priv->parseCheckAbstractNew();
    }
 
    DLLLOCAL static void parseInit(QoreClass& qc) {

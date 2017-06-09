@@ -503,7 +503,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
    if (!first && lvids) {
-      parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
+      parseException(loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();

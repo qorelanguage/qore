@@ -415,7 +415,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 
    // see if a constant can be resolved
    if (!n) {
-      n = qore_root_ns_private::parseFindConstantValue(c_str, returnTypeInfo, false);
+      n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, false);
       if (n)
          n->ref();
    }
@@ -427,7 +427,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    }
 
    // resolves the function
-   func = qore_root_ns_private::parseResolveFunction(c_str);
+   func = qore_root_ns_private::parseResolveFunction(loc, c_str);
    free(c_str);
    c_str = 0;
 
@@ -477,7 +477,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
    if (oc) {
       // parse init the class and check if we're trying to instantiate an abstract class
-      qore_class_private::parseCheckAbstractNew(*const_cast<QoreClass*>(oc));
+      qore_class_private::get(*const_cast<QoreClass*>(oc))->parseCheckAbstractNew(loc);
 
       // initialize class immediately, in case the class will be instantiated immediately after during parsing
       // to be assigned to a constant
