@@ -667,9 +667,28 @@ public:
    DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
 
    // finds a function or class method variant if possible
-   /** @since %Qore 0.8.13
+   /** @param name the function or class method name; may also be namespace-justified
+       @param params a list of string parameters giving the types to match
+       @param xsink any errors finding the code are stored as Qore-language exceptions here; possible errors are as follows:
+       - \c FIND-CALL-ERROR: \a name cannot be resolved, invalid parameter (member of \a params has a non-string value, string cannot be resolved to a valid type)
+       - \c INVALID-FUNCTION-ACCESS: the resolved code is not accessible in the current QoreProgram's context
+
+       @since %Qore 0.8.13
    */
    DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+
+   // finds all variants of a function or class method and returns a list of the results
+   /** @param name the function or class method name; may also be namespace-justified
+
+       @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
+       - \c desc: a string description of the call which includes the name and the full text call signature
+       - \c params: a QoreValueList object that gives the params in a format that can be used by runtimeFindCall()
+
+       @note the caller owns the reference count returned for non-nullptr values
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 

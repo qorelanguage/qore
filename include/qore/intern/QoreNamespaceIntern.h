@@ -1702,6 +1702,8 @@ public:
 
    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
+   DLLLOCAL QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
+
    DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
       return rns.rpriv->getGlobalVars();
    }

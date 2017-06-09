@@ -33,20 +33,16 @@
 
 #define _QORE_REFERENCEARGUMENTHELPER_H
 
-//! Allows a reference to be passed as an argument to Qore code
-/** @class ReferenceArgumentHelper ReferenceArgumentHelper.h qore/ReferenceArgumentHelper.h
-
-    This class creates a fake local variable and then creates a reference the local
+//! allows a reference to be passed as an argument to Qore code
+/** this class creates a fake local variable and then creates a reference the local
     variable that can be used in an argument list to be passed to a function.
     Then the ReferenceArgumentHelper::getOutputValue() function can be called to
     retrieve the value of the local variable after the Qore-language code has been
     executed.  This allows values to be passed by reference to Qore-language code
     and then the value of the variable read back out and processed.
     @code
-    #include <qore/ReferenceArgumentHelper.h>
-    // ...
     // create an argument list
-    ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink);
+    ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
     // instantiate "val" as a reference as the only argument in the argument list
     ReferenceArgumentHelper lvh(val, &xsink);
     args->push(lvh.getArg());
@@ -107,7 +103,7 @@ public:
    //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
    /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
     */
-   DLLEXPORT AbstractQoreNode *getArg() const;
+   DLLEXPORT AbstractQoreNode* getArg() const;
 
    //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
    /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
@@ -117,7 +113,7 @@ public:
    //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
    /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
 
-       @sice %Qore 0.8.13
+       @since %Qore 0.8.13
     */
    DLLEXPORT QoreValue getOutputQoreValue();
 };

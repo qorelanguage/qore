@@ -60,8 +60,8 @@ typedef std::vector<LocalVar*> lvar_vec_t;
 
 class AbstractFunctionSignature {
 protected:
-   unsigned short num_param_types,    // number of parameters that have type information
-      min_param_types;                // minimum number of parameters with type info (without default args)
+   unsigned short num_param_types = 0,    // number of parameters that have type information
+      min_param_types = 0;                // minimum number of parameters with type info (without default args)
 
    const QoreTypeInfo* returnTypeInfo;
    type_vec_t typeList;
@@ -72,16 +72,19 @@ protected:
    std::string str;
 
 public:
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = 0) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo) {
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr) : returnTypeInfo(n_returnTypeInfo) {
    }
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : num_param_types(0), min_param_types(0), returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
+
+   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
    }
+
    DLLLOCAL virtual ~AbstractFunctionSignature() {
       // delete all default argument expressions
       for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i)
          if (*i)
-            (*i)->deref(0);
+            (*i)->deref(nullptr);
    }
+
    // called at parse time to include optional type resolution
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
 
@@ -801,6 +804,8 @@ public:
    }
 #endif
 
+   DLLLOCAL QoreValueList* runtimeGetCallVariants() const;
+
    DLLLOCAL qore_ns_private* getNamespace() const {
       return ns;
    }
@@ -818,7 +823,7 @@ public:
    }
 
    DLLLOCAL virtual const QoreClass* getClass() const {
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL void ref() {
@@ -832,7 +837,7 @@ public:
 
    DLLLOCAL const char* className() const {
       const QoreClass* qc = getClass();
-      return qc ? qc->getName() : 0;
+      return qc ? qc->getName() : nullptr;
    }
 
    DLLLOCAL void addAncestor(QoreFunction* ancestor, ClassAccess access) {

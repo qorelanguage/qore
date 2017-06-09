@@ -696,6 +696,57 @@ static int check_extra_args(AbstractFunctionSignature* sig, const type_vec_t& ar
    return 0;
 }
 
+QoreValueList* QoreFunction::runtimeGetCallVariants() const {
+   ReferenceHolder<QoreValueList> rv(new QoreValueList, nullptr);
+
+   const char* class_name = className();
+   int64 ppo = runtime_get_parse_options();
+
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      // get code flags for the variant
+      int64 vflags = (*i)->getFlags();
+
+      // get parse options
+      int64 po = (*i)->getParseOptions(ppo);
+      // if we should ignore "noop" variants
+      bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+
+      // ignore "runtime noop" variants if necessary
+      if (strict_args && (vflags & QC_RUNTIME_NOOP))
+         continue;
+
+      // check functionality flags to see if the variant is accessible
+      int64 vfflags = (*i)->getFunctionality();
+      if ((vfflags & po & ~PO_POSITIVE_OPTIONS)
+          || ((vfflags & PO_POSITIVE_OPTIONS)
+              && (((vfflags & PO_POSITIVE_OPTIONS) & po) != (vfflags & PO_POSITIVE_OPTIONS))))
+         continue;
+
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, nullptr);
+
+      SimpleRefHolder<QoreStringNode> desc(new QoreStringNode);
+
+      AbstractFunctionSignature* sig = (*i)->getSignature();
+      assert(sig);
+
+      // add "desc" key
+      h->setKeyValue("desc", new QoreStringNodeMaker("%s%s%s(%s)",
+                     class_name ? class_name : "", class_name ? "::" : "", getName(),
+                     sig->getSignatureText()), nullptr);
+
+      // add "params" key
+      ReferenceHolder<QoreValueList> params(new QoreValueList, nullptr);
+      for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+         params->push(new QoreStringNode(QoreTypeInfo::getName(sig->getParamTypeInfo(pi))));
+      }
+      h->setKeyValue("params", params.release(), nullptr);
+
+      rv->push(h.release());
+   }
+
+   return rv->empty() ? nullptr : rv.release();
+}
+
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const {
    // the lowest match length with the highest score wins
@@ -932,9 +983,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
          if (strict_args && (vflags & QC_RUNTIME_NOOP))
             continue;
 
-         // does the variant accept extra arguments?
-         bool uses_extra_args = vflags & QC_USES_EXTRA_ARGS;
-
          sig = (*i)->getSignature();
          assert(sig);
 
@@ -1005,9 +1053,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
       xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
    }
    else if (variant) {
-      QoreProgram* pgm = getProgram();
-      assert(pgm);
-
       // get runtime parse options
       int64 po = variant->getParseOptions(ppo);
 

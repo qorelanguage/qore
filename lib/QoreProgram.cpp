@@ -946,6 +946,13 @@ const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const c
    return qore_root_ns_private::get(*RootNS)->runtimeFindCall(name, params, xsink);
 }
 
+QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
+}
+
 void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
    if (stepBreakpoint != DBG_SB_STOPPED) {
       if (attachFlag > 0) {

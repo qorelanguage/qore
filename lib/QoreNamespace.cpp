@@ -1729,6 +1729,48 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
    return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
 }
 
+QoreValueList* qore_root_ns_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+   // function or method
+   const QoreFunction* qf = nullptr;
+
+   // class context
+   const QoreClass* qc = nullptr;
+
+   // resolve call to function or method
+   if (!strstr(name, "::")) {
+      const qore_ns_private* ns;
+      qf = runtimeFindFunctionIntern(name, ns);
+
+      if (!qf)
+         return nullptr;
+   }
+   else {
+      const QoreMethod* method = nullptr;
+
+      NamedScope scope(name);
+      qc = parseFindScopedClassWithMethod(scope, false);
+      if (qc) {
+         qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
+         method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);
+         if (method)
+            qf = method->getFunction();
+         else
+            qc = nullptr;
+      }
+
+      if (!method) {
+         // see if this is a function call to a function defined in a namespace
+         const qore_ns_private* ns;
+         qf = runtimeFindFunctionIntern(scope, ns);
+         if (!qf)
+            return nullptr;
+      }
+   }
+
+   assert(qf);
+   return qf->runtimeGetCallVariants();
+}
+
 void qore_ns_private::parseInitGlobalVars() {
    var_list.parseInit();
    nsl.parseInitGlobalVars();
