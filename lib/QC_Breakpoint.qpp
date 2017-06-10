@@ -62,7 +62,7 @@ const BreakpointPolicyReject = BKP_PO_REJECT;
     @par Example:
     @code{.py}
 
-    Program p(PO_ATTACH);
+    Program p = Program::getProgram();
     .....
     Breakpoint b = new Breakpoint();
     b.setPolicy(BreakpointPolicyNone);

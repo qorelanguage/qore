@@ -40,8 +40,6 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
-const int PO_ATTACH = -1;   // it makes not sense in C++ API
-
 
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
@@ -658,7 +656,7 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    Use @ref PO_ATTACH to attach currently running program
+    Use @ref Program::getProgram function to attach currently running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -670,18 +668,17 @@ Program pgm();
     @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
 Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
-   if (po != PO_ATTACH && (po & PO_SYSTEM_OPS)) {
+   if (po & PO_SYSTEM_OPS) {
       xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
       return;
    }
 
    QoreProgram* pgm;
    pgm = getProgram();
-   if (po == PO_ATTACH) {
-      pgm->ref();
-   } else {
-      pgm = new QoreProgram(pgm, po);
-   }
+   pgm = new QoreProgram(pgm, po);
+   pgm->registerQoreObject(self, xsink);
+   assert(!xsink->isEvent());
+
    self->setPrivate(CID_PROGRAM, pgm);
 }
 
@@ -697,7 +694,13 @@ Program::copy() {
 /**
  */
 Program::destructor() {
-   p->waitForTerminationAndDeref(xsink);
+   p->unregisterQoreObject(self, xsink);
+   if (p->is_unique()) {
+      p->waitForTerminationAndDeref(xsink);
+   } else {
+      // if the underlying object is created from C++ then it has reference and cannot be terminated
+      p->deref();
+   }
 }
 
 //! Parses the string argument and adds the code to the Program object
@@ -1760,4 +1763,45 @@ string Program::findFunctionStatementId(string function) {
    if (!s)
       return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for function \"%s\"", function->c_str());
    return p->getStatementId(s);
+}
+
+//! Get program id
+/**
+   @see
+      @ref Program::getProgramId()
+
+   @since %Qore 0.8.13
+ */
+string Program::getProgramId() [flags=RET_VALUE_ONLY;] {
+   return p->getProgramId();
+}
+
+//! Get instance of program id
+/**
+   @see
+      @ref Program::resolveProgramId()
+
+   @since %Qore 0.8.13
+ */
+static Program Program::resolveProgramId(string programId) {
+   QoreProgram* pgm = QoreProgram::resolveProgramId(programId->c_str());
+   if (!pgm)
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId \"%s\"", programId->c_str());
+   return QoreProgram::getQoreObject(pgm);
+}
+
+//! Get instance of current program
+/**
+   @since %Qore 0.8.13
+ */
+static Program Program::getProgram() [flags=RET_VALUE_ONLY;] {
+   return QoreProgram::getQoreObject(getProgram());
+}
+
+//! Get instance of all programs
+/**
+   @since %Qore 0.8.13
+ */
+static list Program::getAllPrograms() [flags=RET_VALUE_ONLY;] {
+   return QoreProgram::getAllQoreObjects();
 }

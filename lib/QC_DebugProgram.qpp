@@ -104,7 +104,7 @@ const DebugBlockContinue = RC_CONTINUE;
 
     }
 
-    Program p(PO_ATTACH);
+    Program p = Program::getProgram();
     dbg.addProgram(p);
 
     pgm.parse(code);
@@ -147,7 +147,7 @@ DebugProgram::destructor() {
  */
 nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
-   dpgm->addProgram(pgm, HARD_QORE_VALUE_OBJECT(args, 0));
+   dpgm->addProgram(pgm);
 }
 
 //! Remove program from debugging
@@ -159,6 +159,13 @@ nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
    dpgm->removeProgram(pgm);
 }
 
+//! Get all programs being debugged
+/**
+ *
+ */
+list DebugProgram::getAllPrograms() {
+   return dpgm->getAllProgramObjects();
+}
 //! Executed when new thread is attached to program being debugged
 /**
  *

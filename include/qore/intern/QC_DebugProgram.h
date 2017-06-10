@@ -45,18 +45,10 @@ DLLLOCAL QoreClass *initDebugProgramClass(QoreNamespace& ns);
 class QoreDebugProgramWithQoreObject: public QoreDebugProgram {
 private:
    QoreObject* qo;
-   typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
-   qore_program_to_object_map_t qore_program_to_object_map;
 
    DLLLOCAL void callMethod(const char* name, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, ThreadDebugEnum &sb, ExceptionSink* xsink, ExceptionSink &xsink2) {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink2);
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-      if (i == qore_program_to_object_map.end()) {
-         return;
-      }
-      i->second->ref();
-      args->push(i->second);
-      //l->push(QoreProgram);
+      args->push(QoreProgram::getQoreObject(pgm));
       for (int i=0; i<paramCount; i++) {
          printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, param: %d/%d, type: %s\n", name, this, i, paramCount, params[i]?params[i]->getTypeName():"n/a");
          args->push(params[i]);
@@ -78,21 +70,6 @@ private:
 public:
    DLLLOCAL QoreDebugProgramWithQoreObject(QoreObject* n_qo): qo(n_qo) {
       printd(5, "QoreDebugProgramWithCoreObject::QoreDebugProgramWithCoreObject() this: %p, qo: %p\n", this, n_qo);
-   }
-
-   // hide parent methods
-   DLLLOCAL void addProgram(QoreProgram *pgm) = delete;
-   DLLLOCAL void addProgram(QoreProgram *pgm, QoreObject* o) {
-      // for backcall we need link to QoreObject
-      //AutoLocker al(tlock);
-      printd(5, "QoreDebugProgramWithCoreObject::addProgram() this: %p, pgm: %p, o: %p\n", this, pgm, o);
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-      if (i != qore_program_to_object_map.end()) {
-         assert(i->second == o);  // already exists
-      } else {
-         qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, o));
-      }
-      QoreDebugProgram::addProgram(pgm);
    }
    DLLLOCAL virtual void onAttach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       printd(5, "QoreDebugProgramWithCoreObject::onAttach() this: %p, pgm: %p\n", this, pgm);
@@ -157,7 +134,6 @@ public:
       }
       v.discard(&xsink2);
    }
-
 };
 
 

@@ -80,6 +80,7 @@ public:
 
    DLLEXPORT void addProgram(QoreProgram *pgm);
    DLLEXPORT void removeProgram(QoreProgram *pgm);
+   DLLEXPORT QoreListNode* getAllProgramObjects();
 
    DLLEXPORT virtual void onAttach(QoreProgram *pgm, ThreadDebugEnum &sb, ExceptionSink* xsink) {
       printd(5, "QoreDebugProgram::onAttach() this: %p\n", this);

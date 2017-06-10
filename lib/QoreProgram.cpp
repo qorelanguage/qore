@@ -160,6 +160,9 @@ QoreHashNode* ParseOptionMaps::getStringToCodeMap() const {
 //public symbols
 const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
+qore_program_private::qore_program_to_object_map_t qore_program_private::qore_program_to_object_map;
+QoreRWLock qore_program_private::lck_programMap;
+
 
 qore_program_private::~qore_program_private() {
    printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -168,6 +171,14 @@ qore_program_private::~qore_program_private() {
    // wait till all debug calls are finished, no new calls possible as dpgm->removeProgram() set dpmg to NULL
    debug_program_counter.waitForZero();
    deleteAllBreakpoints();
+   QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
+   qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
+   if (i == qore_program_to_object_map.end()) {
+      assert(false);
+   } else {
+      assert(i->second == 0);
+      qore_program_to_object_map.erase(i);
+   }
    assert(!parseSink);
    assert(!warnSink);
    assert(!pendingParseSink);
@@ -1673,6 +1684,10 @@ void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
    priv->removeProgram(pgm);
 }
 
+QoreListNode* QoreDebugProgram::getAllProgramObjects() {
+   return priv->getAllProgramObjects();
+}
+
 void QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
    printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
    priv->breakProgramThread(pgm, tid);
@@ -1750,6 +1765,34 @@ AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) cons
 
 const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
    return priv->runtimeFindCall(name, params, xsink);
+}
+
+QoreStringNode* QoreProgram::getProgramId() const {
+   return priv->getProgramId();
+}
+
+QoreProgram* QoreProgram::resolveProgramId(const char *programId) {
+   return qore_program_private::resolveProgramId(programId);
+}
+
+void QoreProgram::registerQoreObject(QoreObject *o, ExceptionSink* xsink) const {
+   priv->registerQoreObject(o, xsink);
+}
+
+void QoreProgram::unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) const {
+   priv->unregisterQoreObject(o, xsink);
+}
+
+QoreObject* QoreProgram::findQoreObject() const {
+   return priv->findQoreObject();
+}
+
+QoreObject* QoreProgram::getQoreObject(QoreProgram* pgm) {
+   return qore_program_private::getQoreObject(pgm);
+}
+
+QoreListNode* QoreProgram::getAllQoreObjects() {
+   return qore_program_private::getAllQoreObjects();
 }
 
 void QoreBreakpoint::unassignAllStatements() {

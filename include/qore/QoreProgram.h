@@ -775,6 +775,34 @@ public:
     */
    DLLEXPORT AbstractStatement* resolveStatementId(const char *statementId) const;
 
+   //! get the program id
+   /**
+      @return the program id which consists of pointer of QoreProgram instance
+    */
+   DLLEXPORT QoreStringNode* getProgramId() const;
+
+   //! get the program from program id
+   /**
+      @param programId created by @ref Program::getProgramId
+
+      @return the original program or null if program cannot be resolved
+    */
+   DLLEXPORT static QoreProgram* resolveProgramId(const char *programId);
+
+   //! register link to Qore script object
+   DLLEXPORT void registerQoreObject(QoreObject *o, ExceptionSink* xsink) const;
+
+   //! unregister link to Qore script object
+   DLLEXPORT void unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) const;
+
+   //! find Qore script object related to QoreProgram instance
+   DLLEXPORT QoreObject* findQoreObject() const;
+
+   //! get QoreObject of QoreProgram
+   DLLEXPORT static QoreObject* getQoreObject(QoreProgram* pgm);
+
+   //! list all programs as QoreObject list
+   DLLEXPORT static QoreListNode* getAllQoreObjects();
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates
