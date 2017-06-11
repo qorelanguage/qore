@@ -127,7 +127,7 @@ class ProgramTest inherits QUnit::Test {
 
 	# make sure recursive constant definitions are handled
 	try {
-	    a.parse("const A = B; const B = A; any a = A;", "rec");
+	    a.parse("const A = B; const B = A;", "rec");
 	}
 	catch (hash ex) {
 	    assertEq("PARSE-EXCEPTION", ex.err);
