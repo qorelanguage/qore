@@ -113,10 +113,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(ds->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(ds));
 }
 
 //! Creates the SQLStatement object based on the given DatasourcePool object that provides the connection to the database
@@ -141,10 +138,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(dsp->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(dsp));
 }
 
 //! Closes the statement if it is open and destroys the object

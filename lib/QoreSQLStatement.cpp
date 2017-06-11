@@ -98,12 +98,12 @@ public:
    }
 };
 
-QoreSQLStatement::~QoreSQLStatement() {
-   assert(!priv->data);
+QoreSQLStatement::QoreSQLStatement(Datasource* ds, void* data, DatasourceStatementHelper* dsh, unsigned char status) : SQLStatement(ds, data), dsh(dsh->helperRefSelf()), status(status) {
+   qore_ds_private::get(*ds)->setKeepLock();
 }
 
-void QoreSQLStatement::init(DatasourceStatementHelper* n_dsh) {
-   dsh = n_dsh;
+QoreSQLStatement::~QoreSQLStatement() {
+   assert(!priv->data);
 }
 
 int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int stat, const char* action) {
