@@ -121,6 +121,7 @@
       - @ref Qore::PO_BROKEN_REFERENCES "PO_BROKEN_REFERENCES": reverts @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to pre-%Qore-0.8.13 behavior where they would have no effect
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
+      - @ref Qore::SQL::RESULTSET "RESULTSET": specifies that an @ref Qore::SQL::SQLStatement "SQLStatement" object should be returned from a result set output variable in an SQL query
       - @ref Qore::SSL_VERIFY_NONE "SSL_VERIFY_NONE": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: do not verify peer certificates
       - @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: verify peer certificates
       - @ref Qore::SSL_VERIFY_FAIL_IF_NO_PEER_CERT "SSL_VERIFY_FAIL_IF_NO_PEER_CERT": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: fail if the client does not provide a certificate (server mode only)

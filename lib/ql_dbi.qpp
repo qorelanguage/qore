@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 namespace Qore::SQL;
 
 //! Returns a @ref datasource_hash "datasource hash" of the components of a datasource string
-/** 
+/**
     @param ds a string describing the datasource with the following syntax:\n
     <tt>[</tt><em>driver</em><tt>:][</tt><em>user</em><tt>]:[/</tt><em>pass</em><tt>]\@</tt><em>db</em><tt>[(</tt><em>charset</em><tt>)][%</tt><em>host</em><tt>[:</tt><em>port</em><tt>][{</tt><em>option</em><tt>=</tt><em>val</em><tt>[,...]}]</tt> \n
     where all elements except <tt>\@</tt><em>db</em> are optional
@@ -55,13 +55,13 @@ hash parseDatasource(string ds) [flags=RET_VALUE_ONLY,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseDatasource() [flags=NOOP,DEPRECATED] {
 }
 
 //! Returns a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
-/** 
+/**
     @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 
     @deprecated use dbi_get_driver_list() instead; camel-case function names were deprecated in %Qore 0.8.12
@@ -71,7 +71,7 @@ nothing parseDatasource() [flags=NOOP,DEPRECATED] {
 }
 
 //! Returns a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
-/** 
+/**
     @param driver the name of the driver; if the given driver is not loaded then the function returns @ref nothing
 
     @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
@@ -84,13 +84,13 @@ nothing parseDatasource() [flags=NOOP,DEPRECATED] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getDBIDriverCapabilityList() [flags=NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver is not already loaded
-/** 
+/**
     @param driver the name of the driver; if the given driver is not already loaded then this function returns @ref nothing
 
     @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver is not already loaded
@@ -256,7 +256,12 @@ const CLOB = "clob";
 //! for binding BLOB values
 const BLOB = "blob";
 
-//! fod binding date/time values
+//! for binding date/time values
 const DATE = "date";
+
+//! for binding result set placeholders (@ref Qore::SQL::SQLStatement "SQLStatement" output values)
+/** @since %Qore 0.8.13
+*/
+const RESULTSET = "resultset";
 //@}
 

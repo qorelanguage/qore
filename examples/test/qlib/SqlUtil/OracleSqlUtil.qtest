@@ -227,6 +227,7 @@ class OracleTest inherits SqlTestBase {
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
             addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("result set placeholder", \testResultSetPlaceholder());
         }
 
         set_return_value(main());
@@ -337,6 +338,13 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         *hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRIVER");
         assertEq(True, exists c, "column 'driver' must exist in the table");
+    }
+
+    testResultSetPlaceholder() {
+        if (!table)
+            testSkip("no DB connection");
+
+
     }
 
     private usageIntern() {

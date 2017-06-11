@@ -35,6 +35,9 @@
 SQLStatement::SQLStatement() : priv(new sql_statement_private) {
 }
 
+SQLStatement::SQLStatement(Datasource* ds, void* data) : priv(new sql_statement_private(ds, data)) {
+}
+
 SQLStatement::~SQLStatement() {
    delete priv;
 }
