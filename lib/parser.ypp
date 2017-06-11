@@ -233,7 +233,7 @@ struct GVarDecl {
 
    DLLLOCAL virtual void add(qore_ns_private& ns) = 0;
 
-   DLLLOCAL virtual AbstractQoreNode* makeVar(const QoreProgramLocation& loc) = 0;
+   DLLLOCAL virtual AbstractQoreNode* makeVar() = 0;
 };
 
 struct GVarSingleDecl : public GVarDecl {
@@ -242,6 +242,7 @@ struct GVarSingleDecl : public GVarDecl {
    QoreParseTypeInfo* parseTypeInfo;
 
    DLLLOCAL GVarSingleDecl(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(loc, p), name(n), typeInfo(ti), parseTypeInfo(pti) {
+      //printd(5, "GVarSingleDecl::GVarSingleDecl() '%s' %d-%d\n", n, loc.start_line, loc.end_line);
       if (bare) {
          if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
             parse_error(loc, "global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
@@ -267,16 +268,16 @@ struct GVarSingleDecl : public GVarDecl {
 
    DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
       QoreParseTypeInfo* rv = parseTypeInfo;
-      parseTypeInfo = 0;
+      parseTypeInfo = nullptr;
       return rv;
    }
 
    DLLLOCAL virtual void add(qore_ns_private& ns) {
-      ns.parseAddGlobalVarDecl(takeName(), typeInfo, takeParseTypeInfo(), pub);
+      ns.parseAddGlobalVarDecl(loc, takeName(), typeInfo, takeParseTypeInfo(), pub);
       delete this;
    }
 
-   DLLLOCAL virtual AbstractQoreNode* makeVar(const QoreProgramLocation& loc) {
+   DLLLOCAL virtual AbstractQoreNode* makeVar() {
       GlobalVarRefNode* gv = typeInfo
          ? new GlobalVarRefNode(loc, takeName(), typeInfo)
          : new GlobalVarRefNode(loc, takeName(), takeParseTypeInfo());
@@ -335,16 +336,16 @@ struct GVarListDecl : public GVarDecl {
          qore_type_t t = get_node_type(n);
          if (t == NT_BAREWORD) {
             BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
-            ns.parseAddGlobalVarDecl(b->takeString(), 0, 0, pub);
+            ns.parseAddGlobalVarDecl(loc, b->takeString(), 0, 0, pub);
          }
          else if (t == NT_VARREF) {
             VarRefNode* vrn = reinterpret_cast<VarRefNode*>(n);
             if (!vrn->explicitScope()) {
                VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
                if (vrdn)
-                  ns.parseAddGlobalVarDecl(vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
+                  ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
                else
-                  ns.parseAddGlobalVarDecl(vrn->takeName(), 0, 0, pub);
+                  ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub);
             }
          }
       }
@@ -352,7 +353,7 @@ struct GVarListDecl : public GVarDecl {
       delete this;
    }
 
-   DLLLOCAL virtual AbstractQoreNode* makeVar(const QoreProgramLocation& loc) {
+   DLLLOCAL virtual AbstractQoreNode* makeVar() {
       l->setVariableList();
       ListIterator li(l);
       while (li.next()) {
@@ -723,7 +724,7 @@ typedef std::pair<char*, QoreVarInfo*> var_pair_t;
 
 struct MemberInfo {
 protected:
-   DLLLOCAL MemberInfo() {
+   DLLLOCAL MemberInfo(const QoreProgramLocation& loc) : loc(loc) {
    }
 
 public:
@@ -736,10 +737,10 @@ public:
       AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(const QoreProgramLocation& loc, char* n, QoreMemberInfo* mi) : loc(loc), name(n), type(MI_Member)  {
+   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : loc(mi->loc), name(n), type(MI_Member)  {
       u.memberInfo = mi;
       if (!(mi && mi->parseHasTypeInfo()) && parse_check_parse_option(PO_REQUIRE_TYPES))
-         parse_error(loc, "member '%s' declared without type information, but parse options require type information for all declarations", name);
+         parse_error(mi->loc, "member '%s' declared without type information, but parse options require type information for all declarations", name);
    }
 
    DLLLOCAL MemberInfo(const QoreProgramLocation& loc, char* n, AbstractQoreNode* exp) : loc(loc), name(n), type(MI_Constant) {
@@ -788,12 +789,12 @@ public:
 };
 
 struct ClassVarInfo : public MemberInfo {
-   DLLLOCAL ClassVarInfo(const QoreProgramLocation& loc, char* n, QoreVarInfo* vi) {
+   DLLLOCAL ClassVarInfo(char* n, QoreVarInfo* vi) : MemberInfo(vi->loc) {
       name = n;
       type = MI_Var;
       u.varInfo = vi;
       if (!(vi && vi->parseHasTypeInfo()) && parse_check_parse_option(PO_REQUIRE_TYPES))
-         parse_error(loc, "class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
+         parse_error(vi->loc, "class static variable '%s' declared without type information, but parse options require type information for all declarations", name);
    }
 
    DLLLOCAL char* takeName() {
@@ -1697,7 +1698,7 @@ ppub:   /* empty */
 
 gvardecl:
         ppub TOK_OUR uncqtypedef SCOPED_REF {
-           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @4.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "global variable", $4);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
@@ -1705,22 +1706,22 @@ gvardecl:
            delete $3;
         }
         | ppub TOK_OUR SCOPED_REF {
-           QoreProgramLocation loc(@1.first_line, @3.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @3.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "global variable", $3);
            $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
-           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @4.last_line);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
            $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
            delete $3;
         }
         | ppub TOK_OUR IDENTIFIER {
-           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @3.last_line), $3, 0, 0, $1, true);
+           $$ = new GVarSingleDecl(QoreProgramLocation($1 ? @1.first_line : @2.first_line, @3.last_line), $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR qtypedef SCOPED_VREF {
-           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @4.last_line);
            // see if strong encapsulation is enabled
            check_strong_encapsulation(loc, "global variable", $4);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
@@ -1729,11 +1730,11 @@ gvardecl:
         }
         | ppub TOK_OUR qtypedef VAR_REF {
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
-           $$ = new GVarSingleDecl(QoreProgramLocation(@1.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
+           $$ = new GVarSingleDecl(QoreProgramLocation($1 ? @1.first_line : @2.first_line, @4.last_line), $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
            delete $3;
         }
         | ppub TOK_OUR '(' list ')' {
-           $$ = new GVarListDecl(QoreProgramLocation(@1.first_line, @5.last_line), $4, $1);
+           $$ = new GVarListDecl(QoreProgramLocation($1 ? @1.first_line : @2.first_line, @5.last_line), $4, $1);
         }
         ;
 
@@ -2375,22 +2376,22 @@ public_member_list
 classvardecl:
         TOK_STATIC uncqtypedef IDENTIFIER ';' {
            QoreProgramLocation loc(@1.first_line, @3.last_line);
-           $$ = new ClassVarInfo(loc, $3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2)));
+           $$ = new ClassVarInfo($3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2)));
            delete $2;
         }
         | TOK_STATIC IDENTIFIER ';' {
            QoreProgramLocation loc(@1.first_line, @2.last_line);
-           $$ = new ClassVarInfo(loc, $2, new QoreVarInfo(loc));
+           $$ = new ClassVarInfo($2, new QoreVarInfo(loc));
         }
         | TOK_STATIC uncqtypedef IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @5.last_line);
-           $$ = new ClassVarInfo(loc, $3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2), $5));
+           $$ = new ClassVarInfo($3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2), $5));
            //printd(5, "new QoreVarInfo = %p (empty: %d)\n", $$->u.varInfo, $$->u.varInfo->empty());
            delete $2;
         }
         | TOK_STATIC IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @4.last_line);
-           $$ = new ClassVarInfo(loc, $2, new QoreVarInfo(loc, $4));
+           $$ = new ClassVarInfo($2, new QoreVarInfo(loc, $4));
         }
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
            QoreProgramLocation loc(@1.first_line, @6.last_line);
@@ -2402,7 +2403,7 @@ classvardecl:
            else
               new_call = new ScopedObjectCallNode(QoreProgramLocation(@1.first_line, @6.last_line), new NamedScope(strdup($2->getClassName())), make_args($5));
 
-           $$ = new ClassVarInfo(loc, $3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2), new_call));
+           $$ = new ClassVarInfo($3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2), new_call));
 
            delete $2;
         }
@@ -2411,14 +2412,14 @@ classvardecl:
 member2:
         qtypedef SELF_REF ';' {
            QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @2.last_line);
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SELF_REF '=' exp ';' {
            QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @4.last_line);
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
@@ -2435,7 +2436,7 @@ member2:
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args($4));
 
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
 
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -2443,14 +2444,14 @@ member2:
         }
         | uncqtypedef IDENTIFIER ';' {
            QoreProgramLocation loc(@1.first_line, @2.last_line);
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
         | uncqtypedef IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @4.last_line);
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);
@@ -2467,7 +2468,7 @@ member2:
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args($4));
 
-           $$ = new MemberInfo(loc, $2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
 
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -2475,13 +2476,13 @@ member2:
         }
         | IDENTIFIER ';' {
            QoreProgramLocation loc(@1.first_line, @1.last_line);
-           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(loc));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc));
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
         }
         | IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @3.last_line);
-           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(loc, $3));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc, $3));
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
         }
@@ -2500,13 +2501,13 @@ member2:
 member:
         SELF_REF {
            QoreProgramLocation loc(@1.first_line, @1.last_line);
-           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(loc));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc));
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
         | SELF_REF SCOPED_REF {
            QoreProgramLocation loc(@1.first_line, @2.last_line);
-           $$ = new MemberInfo(loc, $1, new QoreMemberInfo(loc, $2));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc, $2));
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
@@ -2872,7 +2873,8 @@ alt_hash:
         }
         ;
 
-exp_c:  scalar
+exp_c:
+        scalar
         { $$ = $1; }
         | BINARY
         { $$ = $1; }
@@ -2884,31 +2886,33 @@ exp_c:  scalar
            if (!$1 && !strcmp($2, "argv"))
               inc_argv_ref();
 
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @2.last_line);
            if ($1)
-              $$ = new VarRefDeclNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
+              $$ = new VarRefDeclNode(loc, $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
            else
-              $$ = new VarRefNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, get_var_type());
+              $$ = new VarRefNode(loc, $2, get_var_type());
 
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @2.last_line), "reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
+              parse_error(loc, "reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SCOPED_VREF {
-           if (!$1 && !strcmp($2, "argv"))
-              inc_argv_ref();
-
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @2.last_line);
            if ($1)
-              $$ = new VarRefDeclNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
+              $$ = new VarRefDeclNode(loc, $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
            else
-              $$ = new VarRefNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, get_var_type());
+              $$ = new VarRefNode(loc, $2, get_var_type());
 
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-              parse_error(QoreProgramLocation(@1.first_line, @2.last_line), "reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
+              parse_error(loc, "reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | uncqtypedef IDENTIFIER {
-           $$ = new VarRefDeclNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
+           QoreProgramLocation loc(@1.first_line, @2.last_line);
+           $$ = new VarRefDeclNode(loc, $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1));
            delete $1;
+           if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
+              parse_error(loc, "local variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $2);
         }
         | TOK_MY uncqtypedef IDENTIFIER {
            VarRefDeclNode* v = new VarRefDeclNode(QoreProgramLocation(@1.first_line, @3.last_line), $3, VT_LOCAL, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2));
@@ -2984,7 +2988,7 @@ exp_c:  scalar
            $$ = $3;
         }
         | gvardecl {
-           $$ = $1->makeVar(QoreProgramLocation(@1.first_line, @1.last_line));
+           $$ = $1->makeVar();
         }
         | IDENTIFIER
         {
@@ -3310,8 +3314,8 @@ exp_c:  scalar
         }
         ;
 
-exp
-    : exp_c
+exp:
+    exp_c
     | list                              { $$ = $1; }
     | alt_hash                          { $$ = $1; }
     | '{' '}'                           { $$ = new QoreParseHashNode(QoreProgramLocation(@1.first_line, @2.last_line), true); }
@@ -3369,8 +3373,8 @@ exp
     | exp DOT_KW_IDENTIFIER             { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1, $2); }
     ;
 
-exp_n
-    : exp_c
+exp_n:
+    exp_c
     | list_n                            { $$ = $1; }
     | exp_n PLUS_EQUALS exp               { $$ = new QorePlusEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n MINUS_EQUALS exp              { $$ = new QoreMinusEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }

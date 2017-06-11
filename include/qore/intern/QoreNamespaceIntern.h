@@ -54,7 +54,7 @@ struct GVEntryBase {
    DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
    }
 
-   DLLLOCAL GVEntryBase(char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
+   DLLLOCAL GVEntryBase(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
 
    DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
    }
@@ -364,7 +364,7 @@ public:
    DLLLOCAL void parseInitGlobalVars();
 
    DLLLOCAL void checkGlobalVarDecl(Var* v, const NamedScope& vname);
-   DLLLOCAL void parseAddGlobalVarDecl(char* name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
+   DLLLOCAL void parseAddGlobalVarDecl(const QoreProgramLocation& loc, char* name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub);
 
    DLLLOCAL void setPublic();
 
@@ -1264,8 +1264,8 @@ protected:
 
    DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
 
-   DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const NamedScope& name, const QoreTypeInfo* typeInfo);
-   DLLLOCAL Var* parseAddGlobalVarDefIntern(const NamedScope& name, QoreParseTypeInfo* typeInfo);
+   DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL Var* parseAddGlobalVarDefIntern(const QoreProgramLocation& loc, const NamedScope& name, QoreParseTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseCheckImplicitGlobalVarIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo);
 
@@ -1757,12 +1757,12 @@ public:
       return rns.rpriv->runtimeGetCallReference(name, xsink);
    }
 
-   DLLLOCAL static Var* parseAddResolvedGlobalVarDef(const NamedScope& vname, const QoreTypeInfo* typeInfo) {
-      return getRootNS()->rpriv->parseAddResolvedGlobalVarDefIntern(vname, typeInfo);
+   DLLLOCAL static Var* parseAddResolvedGlobalVarDef(const QoreProgramLocation& loc, const NamedScope& vname, const QoreTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseAddResolvedGlobalVarDefIntern(loc, vname, typeInfo);
    }
 
-   DLLLOCAL static Var* parseAddGlobalVarDef(const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
-      return getRootNS()->rpriv->parseAddGlobalVarDefIntern(vname, typeInfo);
+   DLLLOCAL static Var* parseAddGlobalVarDef(const QoreProgramLocation& loc, const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
+      return getRootNS()->rpriv->parseAddGlobalVarDefIntern(loc, vname, typeInfo);
    }
 
    DLLLOCAL static Var* parseCheckImplicitGlobalVar(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo) {

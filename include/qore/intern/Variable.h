@@ -99,7 +99,6 @@ class RSetHelper;
 class Var : protected QoreReferenceCounter {
 private:
    const QoreProgramLocation loc;      // location of the initial definition
-   unsigned char type;
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
    mutable QoreVarRWLock rwl;
@@ -111,7 +110,7 @@ private:
    DLLLOCAL void del(ExceptionSink* xsink);
 
    // not implemented
-   DLLLOCAL Var(const Var&);
+   Var(const Var&) = delete;
 
 protected:
    DLLLOCAL ~Var() { delete parseTypeInfo; }
@@ -125,16 +124,16 @@ protected:
       }
 
 public:
-   DLLLOCAL Var(const char* n_name) : loc(ParseLocation), val(QV_Node), name(n_name), parseTypeInfo(0), typeInfo(0), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(nullptr), typeInfo(nullptr), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(ParseLocation), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(ParseLocation), val(n_typeInfo), name(n_name), parseTypeInfo(0), typeInfo(n_typeInfo), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(0), typeInfo(ref->typeInfo), pub(false), finalized(false) {
+   DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(nullptr), typeInfo(ref->typeInfo), pub(false), finalized(false) {
       ref->ROreference();
       val.v.setPtr(ref, ro);
    }
@@ -176,7 +175,7 @@ public:
 
    DLLLOCAL QoreValue eval() const;
 
-   DLLLOCAL void doDoubleDeclarationError() {
+   DLLLOCAL void doDoubleDeclarationError(const QoreProgramLocation& loc) {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
          parse_error(loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
@@ -188,43 +187,20 @@ public:
       }
    }
 
-   DLLLOCAL void parseCheckAssignType(QoreParseTypeInfo *n_parseTypeInfo) {
-      std::unique_ptr<QoreParseTypeInfo> ti(n_parseTypeInfo);
-
-      //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-      if (!n_parseTypeInfo)
-         return;
-
-      if (val.type == QV_Ref) {
-         val.v.getPtr()->parseCheckAssignType(n_parseTypeInfo);
-         return;
-      }
-
-      // here we know that n_typeInfo is not null
-      // if no previous type was declared, take the new type
-      if (parseTypeInfo || typeInfo) {
-         doDoubleDeclarationError();
-         return;
-      }
-
-      parseTypeInfo = ti.release();
-      assert(!val.removeNode(true));
-   }
-
-   DLLLOCAL void checkAssignType(const QoreTypeInfo *n_typeInfo) {
+   DLLLOCAL void checkAssignType(const QoreProgramLocation& loc, const QoreTypeInfo *n_typeInfo) {
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       if (!QoreTypeInfo::hasType(n_typeInfo))
          return;
 
       if (val.type == QV_Ref) {
-         val.v.getPtr()->checkAssignType(n_typeInfo);
+         val.v.getPtr()->checkAssignType(loc, n_typeInfo);
          return;
       }
 
       // here we know that n_typeInfo is not null
       // if no previous type was declared, take the new type
       if (parseTypeInfo || typeInfo) {
-         doDoubleDeclarationError();
+         doDoubleDeclarationError(loc);
          return;
       }
 

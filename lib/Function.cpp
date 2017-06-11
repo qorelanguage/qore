@@ -355,7 +355,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
    if (params->getType() == NT_VARREF) {
-      pushParam(reinterpret_cast<VarRefNode*>(params), 0, needs_types);
+      pushParam(reinterpret_cast<VarRefNode*>(params), nullptr, needs_types);
       return;
    }
 
@@ -389,7 +389,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
       else if (t == NT_BAREWORD)
          pushParam(reinterpret_cast<BarewordNode*>(n), needs_types, bare_refs);
       else if (t == NT_VARREF)
-         pushParam(reinterpret_cast<VarRefNode*>(n), 0, needs_types);
+         pushParam(reinterpret_cast<VarRefNode*>(n), nullptr, needs_types);
       else {
          if (n)
             param_error();
@@ -431,7 +431,6 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs)
    if (needs_types)
       parse_error(loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
 
-   //if (!(getProgram()->getParseOptions64() & PO_ALLOW_BARE_REFS))
    if (!bare_refs)
       parse_error(loc, "parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
    return;

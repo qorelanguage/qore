@@ -129,7 +129,7 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
    // if it is a new variable being declared
    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
       if (!ref.id) {
-         ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag & PF_TOP_LEVEL);
+         ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag);
          ++lvids;
       }
       //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
@@ -182,7 +182,7 @@ void VarRefNode::makeGlobal() {
    assert(type == VT_UNRESOLVED || !ref.id);
 
    type = VT_GLOBAL;
-   ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, 0);
+   ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, nullptr);
    new_decl = true;
 }
 
@@ -227,12 +227,12 @@ bool VarRefNode::scanMembers(RSetHelper& rsh) {
 
 GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, const QoreTypeInfo* typeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
-   ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(name, typeInfo);
+   ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(loc, name, typeInfo);
 }
 
 GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
-   ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, parseTypeInfo);
+   ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, parseTypeInfo);
 }
 
 void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
@@ -276,9 +276,9 @@ void VarRefDeclNode::makeGlobal() {
 
    type = VT_GLOBAL;
    if (parseTypeInfo)
-      ref.var = qore_root_ns_private::parseAddGlobalVarDef(name, takeParseTypeInfo());
+      ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, takeParseTypeInfo());
    else
-      ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(name, typeInfo);
+      ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(loc, name, typeInfo);
    new_decl = true;
 }
 

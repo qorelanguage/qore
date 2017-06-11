@@ -215,13 +215,18 @@ public:
       return true;
    }
 
-   DLLLOCAL void checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
+   DLLLOCAL int checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
-         if (check_lvalue(exp, assignment))
+         if (check_lvalue(exp, assignment)) {
             parse_error(loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
-         else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL)
+            return -1;
+         }
+         else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL) {
             parse_error(loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            return -1;
+         }
       }
+      return 0;
    }
 };
 

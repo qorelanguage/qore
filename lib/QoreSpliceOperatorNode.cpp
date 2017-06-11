@@ -52,21 +52,19 @@ AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
-   checkLValue(lvalue_exp, pflag);
-   //if (lvalue_exp && check_lvalue(lvalue_exp))
-   //   parse_error(loc, "the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
-
-   if (QoreTypeInfo::hasType(expTypeInfo)) {
-      if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
-            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
-            && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
-         QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
-         QoreTypeInfo::getThisType(expTypeInfo, *desc);
-         desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+   if (!checkLValue(lvalue_exp, pflag)) {
+      if (QoreTypeInfo::hasType(expTypeInfo)) {
+         if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
+             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
+             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
+            QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
+            QoreTypeInfo::getThisType(expTypeInfo, *desc);
+            desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
+            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         }
+         else
+            returnTypeInfo = typeInfo = expTypeInfo;
       }
-      else
-         returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression

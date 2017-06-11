@@ -41,7 +41,7 @@ ContextRowNode::~ContextRowNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ContextRowNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context row reference '%%' (%p)", this);
+   qstr.sprintf("context row reference '%%%%' (%p)", this);
    return 0;
 }
 
@@ -65,6 +65,6 @@ QoreValue ContextRowNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink)
 AbstractQoreNode *ContextRowNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = hashTypeInfo;
    if (!getCVarStack())
-      parse_error(loc, "context row reference \"%%\" encountered out of context");
+      parse_error(loc, "context row reference \"%%%%\" encountered out of context");
    return this;
 }
