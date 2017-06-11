@@ -688,7 +688,7 @@ public:
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name) const;
+   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
@@ -753,12 +753,12 @@ public:
    /** find statement related to particular function
     *
     */
-   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName);
+   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const;
 
-   /** find statement related to particular method
+   /** find statement related to particular method, TODO: remove
     *
     */
-   DLLEXPORT AbstractStatement* findMethodStatement(const char* className, const char* methodName) const;
+   DLLEXPORT AbstractStatement* findMethodStatement(const char* className, const char* methodName, const QoreValueList* params, ExceptionSink* xsink) const;
 
    //! get the statement id
    /**

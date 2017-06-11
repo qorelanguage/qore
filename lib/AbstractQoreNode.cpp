@@ -652,7 +652,7 @@ bool needs_scan(const AbstractQoreNode* n) {
       case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
       case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
       case NT_OBJECT: return true;
-      case NT_VALUE_LIST: assert(false); return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+      case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
       case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
       case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
    }
@@ -666,7 +666,7 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
       case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
       case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
       case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
-      case NT_VALUE_LIST: assert(false); qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
+      case NT_VALUE_LIST: /*assert(false);*/ qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
       default: assert(false);
    }
 }

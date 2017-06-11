@@ -702,6 +702,7 @@ QoreValueList* QoreFunction::runtimeGetCallVariants() const {
    const char* class_name = className();
    int64 ppo = runtime_get_parse_options();
 
+   printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, class_name: %s\n", this, class_name);
    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       // get code flags for the variant
       int64 vflags = (*i)->getFlags();
@@ -712,15 +713,19 @@ QoreValueList* QoreFunction::runtimeGetCallVariants() const {
       bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
 
       // ignore "runtime noop" variants if necessary
-      if (strict_args && (vflags & QC_RUNTIME_NOOP))
+      if (strict_args && (vflags & QC_RUNTIME_NOOP)) {
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip runtime noop, vflags: 0x%x\n", this, vflags);
          continue;
+      }
 
       // check functionality flags to see if the variant is accessible
       int64 vfflags = (*i)->getFunctionality();
       if ((vfflags & po & ~PO_POSITIVE_OPTIONS)
           || ((vfflags & PO_POSITIVE_OPTIONS)
-              && (((vfflags & PO_POSITIVE_OPTIONS) & po) != (vfflags & PO_POSITIVE_OPTIONS))))
+              && (((vfflags & PO_POSITIVE_OPTIONS) & po) != (vfflags & PO_POSITIVE_OPTIONS)))) {
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip functionality, vfflags: 0x%x\n", this, vfflags);
          continue;
+      }
 
       ReferenceHolder<QoreHashNode> h(new QoreHashNode, nullptr);
 
@@ -730,14 +735,18 @@ QoreValueList* QoreFunction::runtimeGetCallVariants() const {
       assert(sig);
 
       // add "desc" key
-      h->setKeyValue("desc", new QoreStringNodeMaker("%s%s%s(%s)",
-                     class_name ? class_name : "", class_name ? "::" : "", getName(),
-                     sig->getSignatureText()), nullptr);
+      QoreStringNodeMaker* sm = new QoreStringNodeMaker("%s%s%s(%s)",
+            class_name ? class_name : "", class_name ? "::" : "", getName(),
+            sig->getSignatureText());
+      printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, desc: %s, numparams: %d\n", this, sm->c_str(), sig->numParams());
+      h->setKeyValue("desc", sm, nullptr);
 
       // add "params" key
-      ReferenceHolder<QoreValueList> params(new QoreValueList, nullptr);
+      ReferenceHolder<QoreListNode> params(new QoreListNode, nullptr);
       for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-         params->push(new QoreStringNode(QoreTypeInfo::getName(sig->getParamTypeInfo(pi))));
+         QoreStringNode* s = new QoreStringNode(QoreTypeInfo::getName(sig->getParamTypeInfo(pi)));
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, param %d: %s\n", this, pi, s->c_str());
+         params->push(s);
       }
       h->setKeyValue("params", params.release(), nullptr);
 
@@ -754,7 +763,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
    int match = -1;
    const AbstractQoreFunctionVariant* variant = nullptr;
 
-   //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+   printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    // perfect match score
    unsigned nargs = args ? args->size() : 0;
@@ -777,7 +786,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
       if (!aqf)
          break;
 
-      //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+      printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
          // skip checking variant if we are only looking for user variants and this variant is builtin

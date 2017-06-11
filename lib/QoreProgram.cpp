@@ -1720,8 +1720,9 @@ AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) co
    return priv->getStatementFromIndex(fileName, line);
 }
 
-AbstractStatement* QoreProgram::findMethodStatement(const char* className, const char* methodName) const {
-   ExceptionSink xsink;
+// TODO: remove
+AbstractStatement* QoreProgram::findMethodStatement(const char* className, const char* methodName, const QoreValueList* params, ExceptionSink *xsink) const {
+
    QoreClass* cl = qore_root_ns_private::runtimeFindClass(*(priv->RootNS), className);
    if (!cl)
       return 0;
@@ -1730,29 +1731,14 @@ AbstractStatement* QoreProgram::findMethodStatement(const char* className, const
    return 0;
 }
 
-AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName) {
-   const QoreFunction* u;
-   const qore_ns_private* ns = 0;
-   {
-      ExceptionSink xsink;
-      ProgramRuntimeParseAccessHelper pah(&xsink, this);
-      if (xsink) {
-         xsink.clear();
-         return 0;
-      }
-
-      u = qore_root_ns_private::runtimeFindFunction(*(priv->RootNS), functionName, ns);
-      if (!u)
-         return 0;
-      const qore_class_private* class_ctx = 0;  // TODO: class methods, support also private
-      const AbstractQoreFunctionVariant* uv = u->runtimeFindVariant(&xsink, 0 /* TODO: how to define and pass args to find variant */, true, class_ctx);
-      if (!uv)
-         return 0;
-      const UserVariantBase* uvb = uv->getUserVariantBase();
-      if (!uvb)
-         return 0;
-      return uvb->getStatementBlock();
-   }
+AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const {
+   const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
+   if (!uv)
+      return 0;
+   const UserVariantBase* uvb = uv->getUserVariantBase();
+   if (!uvb)
+      return 0;
+   return uvb->getStatementBlock();
 }
 
 QoreStringNode* QoreProgram::getStatementId(const AbstractStatement* statement) const {
@@ -1793,6 +1779,14 @@ QoreObject* QoreProgram::getQoreObject(QoreProgram* pgm) {
 
 QoreListNode* QoreProgram::getAllQoreObjects() {
    return qore_program_private::getAllQoreObjects();
+}
+
+const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+   return priv->runtimeFindCall(name, params, xsink);
+}
+
+QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
+   return priv->runtimeFindCallVariants(name, xsink);
 }
 
 void QoreBreakpoint::unassignAllStatements() {
