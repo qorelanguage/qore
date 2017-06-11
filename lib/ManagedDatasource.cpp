@@ -44,11 +44,15 @@ DatasourceActionHelper::~DatasourceActionHelper() {
          bool keep_lock = qore_ds_private::get(ds)->keepLock();
 
          // FIXME: check connection aborted handling if exec could have been executed after connection reset
-         if (ds.wasConnectionAborted()
-             || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
+         if (ds.wasConnectionAborted())
             cmd = DAH_RELEASE;
-         else if (cmd == DAH_NOCHANGE && keep_lock)
-            cmd = DAH_ACQUIRE;
+         else if (new_transaction) {
+            if (cmd == DAH_NOCHANGE && ds.isInTransaction() && keep_lock)
+               cmd = DAH_ACQUIRE;
+            else if ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())
+               cmd = DAH_RELEASE;
+         }
+
          ds.endDBAction(cmd, new_transaction);
       }
    }
