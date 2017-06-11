@@ -289,6 +289,12 @@ int QoreSQLStatement::exec(const QoreListNode* args, ExceptionSink* xsink) {
    if (!dba)
       return -1;
 
+   // statements from output buffers have no SQL
+   if (str.empty()) {
+       xsink->raiseException("SQLSTATEMENT-ERROR", "the current statement has no SQL to execute");
+       return -1;
+   }
+
    if (checkStatus(xsink, dba, STMT_PREPARED, "exec"))
       return -1;
 
