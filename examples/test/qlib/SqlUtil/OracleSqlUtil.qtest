@@ -182,8 +182,6 @@ class OracleTest inherits SqlTestBase {
             #bfile
             #long
             );
-
-        const ResultSetSql = "begin open :rs for select id, def_test1, def_test2 from oracle_test; end;";
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
@@ -229,7 +227,6 @@ class OracleTest inherits SqlTestBase {
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
             addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
-            addTestCase("result set placeholder", \testResultSetPlaceholder());
         }
 
         set_return_value(main());
@@ -342,45 +339,8 @@ class OracleTest inherits SqlTestBase {
         assertEq(True, exists c, "column 'driver' must exist in the table");
     }
 
-    testResultSetPlaceholder() {
-        if (!table)
-            testSkip("no DB connection");
-
-        Datasource ds = table.getDatasource();
-
-        assertEq(False, ds.currentThreadInTransaction());
-        {
-            hash h = ds.select(ResultSetSql, RESULTSET);
-            assertEq(Type::Object, h.rs.type());
-            assertEq(True, h.rs instanceof SQLStatement);
-            assertEq(True, ds.currentThreadInTransaction());
-            assertThrows("DATASOURCE-TRANSACTION-EXCEPTION", \throw_thread_resource_exceptions());
-        }
-
-        {
-            on_exit ds.rollback();
-
-            SQLStatement stmt = ds.select(ResultSetSql, RESULTSET).rs;
-            assertEq({}, stmt.getOutput());
-            list l = stmt.fetchRows();
-            assertEq(2, l.size());
-            assertEq(NOTHING, stmt.getSQL());
-
-            # cannot get output - status = "defined"
-            assertThrows("SQLSTATEMENT-ERROR", \stmt.getOutput());
-
-            # cannot execute such a statement again; there is no SQL
-            assertThrows("SQLSTATEMENT-ERROR", \stmt.exec());
-        }
-
-        {
-            on_exit ds.rollback();
-
-            SQLStatement stmt = ds.select(ResultSetSql, RESULTSET).rs;
-            # check iterator
-            int cnt = foldl $1 + $2, (map $1.id.toInt(), stmt);
-            assertEq(5, cnt);
-        }
+    private string getResultSetSql() {
+        return "begin open :rs for select id, def_test1, def_test2 from oracle_test; end;";
     }
 
     private usageIntern() {
