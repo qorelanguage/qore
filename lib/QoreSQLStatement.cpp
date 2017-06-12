@@ -99,7 +99,7 @@ public:
 };
 
 QoreSQLStatement::QoreSQLStatement(Datasource* ds, void* data, DatasourceStatementHelper* dsh, unsigned char status) : SQLStatement(ds, data), dsh(dsh->helperRefSelf()), status(status) {
-   qore_ds_private::get(*ds)->setKeepLock();
+   qore_ds_private::get(*ds)->setStatementKeepLock(this);
 }
 
 QoreSQLStatement::~QoreSQLStatement() {

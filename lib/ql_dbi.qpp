@@ -259,7 +259,7 @@ const BLOB = "blob";
 //! for binding date/time values
 const DATE = "date";
 
-//! for binding result set placeholders (@ref Qore::SQL::SQLStatement "SQLStatement" output values)
+//! for binding @ref resultset_output_binding "result set" placeholders (@ref Qore::SQL::SQLStatement "SQLStatement" output values)
 /** @since %Qore 0.8.13
 */
 const RESULTSET = "resultset";

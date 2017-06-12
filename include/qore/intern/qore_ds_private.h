@@ -276,13 +276,15 @@ struct qore_ds_private {
       return -1;
    }
 
-   DLLLOCAL void setKeepLock() {
+   DLLLOCAL void setStatementKeepLock(QoreSQLStatement* stmt) {
       assert(!keep_lock);
       keep_lock = true;
       if (!in_transaction)
          in_transaction = true;
       if (!active_transaction)
          active_transaction = true;
+
+      addStatement(stmt);
    }
 
    DLLLOCAL bool keepLock() {

@@ -87,6 +87,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("BulkUpsert", \bulkUpsertTest());
         addTestCase("fetchColumns", \fetchColumnsTest());
         addTestCase("Delete", \deleteTest());
+        addTestCase("result set placeholder", \resultSetPlaceholderTest());
     }
 
     globalTearDown() {
@@ -834,5 +835,85 @@ public class SqlTestBase inherits QUnit::Test {
 
         count = table.del(("id" : -1));
         assertEq (0, count, "del(('id' : -1))");
+    }
+
+    private abstract string getResultSetSql();
+
+    resultSetPlaceholderTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        # test with a Datasource
+        Datasource ds = table.getDatasource();
+        ds.commit();
+
+        placeholderTest(ds, "DATASOURCE-TRANSACTION-EXCEPTION");
+
+        # repeat tests with a DatasourcePool
+        DatasourcePool dsp;
+        {
+            # create the pool with min = max = 1
+            hash ch = ds.getConfigHash();
+            ch.options += (
+                "min": 1,
+                "max": 1,
+            );
+            dsp = new DatasourcePool(ch);
+        }
+
+        placeholderTest(dsp, "DATASOURCEPOOL-LOCK-EXCEPTION");
+    }
+
+    private placeholderTest(AbstractDatasource ds, string err) {
+        string resultSetSql = getResultSetSql();
+
+        # test capabilities
+        assertEq(DBI_CAP_HAS_RESULTSET_OUTPUT, dbi_get_driver_capabilities(ds.getDriverName()) & DBI_CAP_HAS_RESULTSET_OUTPUT);
+        assertEq("HasResultsetOutput", (map $1, dbi_get_driver_capability_list(ds.getDriverName()), $1 == "HasResultsetOutput")[0]);
+
+        assertEq(False, ds.currentThreadInTransaction());
+        {
+            hash h = ds.select(resultSetSql, RESULTSET);
+            assertEq(Type::Object, h.rs.type());
+            # make sure we got an SQLStatement output variable
+            assertEq(True, h.rs instanceof SQLStatement);
+            # make sure the transaction lock has been acquired
+            assertEq(True, ds.currentThreadInTransaction());
+            # make sure the statement is marked active
+            assertEq(True, h.rs.active());
+            # make sure a thread resource has been acquired
+            assertThrows(err, \throw_thread_resource_exceptions());
+        }
+
+        {
+            on_exit ds.rollback();
+
+            SQLStatement stmt = ds.select(resultSetSql, RESULTSET).rs;
+            # make sure there is no output
+            assertEq({}, stmt.getOutput());
+            list l = stmt.fetchRows();
+            # test output of select
+            assertEq(2, l.size());
+            # verify that no SQL is present for the statement
+            assertEq(NOTHING, stmt.getSQL());
+            # cannot get output - status = "defined"
+            assertThrows("SQLSTATEMENT-ERROR", \stmt.getOutput());
+            # cannot execute such a statement again; there is no SQL
+            assertThrows("SQLSTATEMENT-ERROR", \stmt.exec());
+        }
+
+        {
+            on_exit ds.rollback();
+
+            SQLStatement stmt = ds.select(resultSetSql, RESULTSET).rs;
+            # check iterator
+            int cnt = foldl $1 + $2, (map $1.id.toInt(), stmt);
+            assertEq(3, cnt);
+            # ensure that statement is active
+            assertEq(True, stmt.active());
+            # ensure that the statement is registered with the datasource and is closed when the transaction is committed
+            ds.commit();
+            assertEq(False, stmt.active());
+        }
     }
 }
