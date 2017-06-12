@@ -843,6 +843,9 @@ public class SqlTestBase inherits QUnit::Test {
         if (!table)
             testSkip("no DB connection");
 
+        if (!(dbi_get_driver_capabilities(table.getDriverName()) & DBI_CAP_HAS_RESULTSET_OUTPUT))
+            testSkip("does not support result set output binds");
+
         # test with a Datasource
         Datasource ds = table.getDatasource();
         ds.commit();
