@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,10 @@ protected:
    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, n_left, n_right), pfunc(nullptr) {
+   }
+
+   DLLLOCAL ~QoreLogicalEqualsOperatorNode() {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

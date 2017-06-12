@@ -162,7 +162,7 @@ unsigned qore_num_warnings = NUM_WARNINGS;
 void qore_program_private_base::setDefines() {
    for (ParseOptionMaps::pomap_t::iterator i = pomaps.pomap.begin(), e = pomaps.pomap.end(); i != e; ++i) {
       if ((pwo.parse_options & i->first) == i->first) {
-	 dmap[i->second] = &True;
+         dmap[i->second] = &True;
       }
    }
 }
@@ -258,7 +258,7 @@ void qore_program_private_base::newProgram() {
       assert(v);
       // skip boolean options defined as False
       if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode*>(v)->getValue())
-	 continue;
+         continue;
 
       dmap[cli.getName()] = v->refSelf();
    }
@@ -343,9 +343,9 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          if (!ptid) {
             l = new QoreListNode;
             qore_root_ns_private::clearConstants(*RootNS, **l);
-	    // mark the program so that only code from this thread can run during data destruction
-	    ptid = gettid();
-	    clr = true;
+            // mark the program so that only code from this thread can run during data destruction
+            ptid = gettid();
+            clr = true;
          }
       }
    }
@@ -360,15 +360,15 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       // clear thread init code reference if any
       {
-	 ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+         ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
 
-	 {
-	    AutoLocker al(tlock);
+         {
+            AutoLocker al(tlock);
 
-	    // clear thread init code reference
-	    old = thr_init;
-	    thr_init = 0;
-	 }
+            // clear thread init code reference
+            old = thr_init;
+            thr_init = 0;
+         }
       }
 
       // clear thread data if base object
@@ -384,12 +384,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       // now clear the original map
       {
-	 AutoLocker al(tlock);
-	 pgm_data_map.clear();
-	 tclear = 0;
+         AutoLocker al(tlock);
+         pgm_data_map.clear();
+         tclear = 0;
 
-	 if (twaiting)
-	    tcond.broadcast();
+         if (twaiting)
+            tcond.broadcast();
       }
 #ifdef HAVE_SIGNAL_HANDLING
       {
@@ -547,7 +547,7 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    if (!*xsink) {
       runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
       if (!*xsink)
-	 runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+         runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
    }
 }
 
@@ -568,7 +568,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       // acquire safe access to parse structures in the source program
       ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
       if (*xsink)
-	 return;
+         return;
       c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
    }
 
@@ -627,7 +627,7 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    {
       ProgramRuntimeParseAccessHelper pah(xsink, pgm);
       if (*xsink)
-	 return;
+         return;
       v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
    }
 
@@ -866,15 +866,15 @@ bool QoreProgram::existsFunction(const char* name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   priv->setParseOptions((int64)po);
+   priv->parseSetParseOptions(QoreProgramLocation(), (int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   priv->setParseOptions(po);
+   priv->parseSetParseOptions(QoreProgramLocation(), po);
 }
 
 void QoreProgram::parseDisableParseOptions(int64 po) {
-   priv->disableParseOptions(po);
+   priv->parseDisableParseOptions(QoreProgramLocation(), po);
 }
 
 // DEPRECATED
@@ -997,7 +997,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    {
       ProgramRuntimeParseAccessHelper pah(xsink, this);
       if (*xsink)
-	 return 0;
+         return 0;
       qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
    }
 
@@ -1007,7 +1007,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    }
 
    // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(qf, const_cast<QoreListNode*>(args), this);
+   fc = new FunctionCallNode(get_runtime_location(), qf, const_cast<QoreListNode*>(args), this);
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary
@@ -1085,21 +1085,21 @@ void QoreProgram::parseFileAndRun(const char* filename) {
    if (!xsink.isEvent()) {
       // get class name
       if (priv->exec_class) {
-	 if (!priv->exec_class_name.empty())
-	    runClass(priv->exec_class_name.c_str(), &xsink);
-	 else {
-	    char* c, *bn = q_basenameptr(filename);
-	    if (!(c = strrchr(bn, '.')))
-	       runClass(filename, &xsink);
-	    else {
-	       QoreString qcn; // for possible class name
-	       qcn.concat(bn, c - bn);
-	       runClass(qcn.getBuffer(), &xsink);
-	    }
-	 }
+         if (!priv->exec_class_name.empty())
+            runClass(priv->exec_class_name.c_str(), &xsink);
+         else {
+            char* c, *bn = q_basenameptr(filename);
+            if (!(c = strrchr(bn, '.')))
+               runClass(filename, &xsink);
+            else {
+               QoreString qcn; // for possible class name
+               qcn.concat(bn, c - bn);
+               runClass(qcn.getBuffer(), &xsink);
+            }
+         }
       }
       else
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1112,7 +1112,7 @@ void QoreProgram::parseAndRun(FILE* fp, const char* name) {
       parse(fp, name, &xsink);
 
       if (!xsink.isEvent())
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1125,7 +1125,7 @@ void QoreProgram::parseAndRun(const char* str, const char* name) {
       parse(str, name, &xsink);
 
       if (!xsink.isEvent())
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1213,7 +1213,7 @@ void QoreProgram::parseSetTimeZone(const char* zone) {
    return priv->parseSetTimeZone(zone);
 }
 
-AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, bool& ok) {
+AbstractQoreNode* qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok) {
    ok = true;
    char c = arg[0];
    // see if a string is being defined
@@ -1221,9 +1221,9 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
       // make sure the string is terminated in the same way
       char e = arg[arg.strlen() - 1];
       if (c != e || arg.strlen() == 1) {
-	 parse_error("'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
-	 ok = false;
-	 return 0;
+         parse_error(loc, "'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
+         ok = false;
+         return 0;
       }
 
       // string is OK, remove quotes
@@ -1244,17 +1244,17 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
    bool flt = false;
    while (*p) {
       if (*p == '.') {
-	 if (flt) {
-	    parse_error("'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
-	    ok = false;
-	    return 0;
-	 }
-	 flt = true;
+         if (flt) {
+            parse_error(loc, "'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
+            ok = false;
+            return 0;
+         }
+         flt = true;
       }
       else if (isalpha(*p)) {
-	 parse_error("'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
-	 ok = false;
-	 return 0;
+         parse_error(loc, "'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
+         ok = false;
+         return 0;
       }
       ++p;
    }
@@ -1291,7 +1291,7 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
       arg.trim();
 
       bool ok;
-      AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
+      AbstractQoreNode* v = qore_parse_get_define_value(qoreCommandLineLocation, str, arg, ok);
       if (!ok)
          break;
       priv->parseDefine(qoreCommandLineLocation, str, v);

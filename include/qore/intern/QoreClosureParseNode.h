@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,7 @@ private:
    DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
 
 public:
-   DLLLOCAL QoreClosureParseNode(UserClosureFunction* n_uf, bool n_lambda = false);
+   DLLLOCAL QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda = false);
 
    DLLLOCAL ~QoreClosureParseNode() {
       delete uf;
@@ -124,6 +124,7 @@ public:
    }
 };
 
+/*
 class QoreClosureParseNodeBackground : public ParseNode {
 protected:
    QoreClosureParseNode* closure;
@@ -141,12 +142,14 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreClosureParseNodeBackground(QoreClosureParseNode* c) : ParseNode(NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
+   DLLLOCAL QoreClosureParseNodeBackground(const QoreProgramLocation& loc, QoreClosureParseNode* c) : ParseNode(loc, NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
    }
+
    DLLLOCAL ~QoreClosureParseNodeBackground() {
       assert(!cvec);
       assert(!closure);
    }
+
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          if (cvec) {
@@ -171,5 +174,6 @@ public:
       return closure->getTypeName();
    }
 };
+*/
 
 #endif

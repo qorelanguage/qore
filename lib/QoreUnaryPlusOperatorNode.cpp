@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -101,7 +101,7 @@ AbstractQoreNode *QoreUnaryPlusOperatorNode::parseInitImpl(LocalVar *oflag, int 
             QoreStringNode* edesc = new QoreStringNode("the expression with the unary plus '+' operator is ");
             QoreTypeInfo::getThisType(eti, *edesc);
             edesc->concat(" and so this expression will always return 0; the unary plus '+' operator only returns a value with integers, floats, numbers, and relative date/time values");
-            qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+            qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
          }
       }
    }

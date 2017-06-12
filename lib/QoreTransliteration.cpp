@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,19 +38,12 @@
 #include <ctype.h>
 
 // constructor used when parsing
-QoreTransliteration::QoreTransliteration() {
-   //printd(5, "QoreTransliteration::QoreTransliteration() this=%p\n", this);
-   source = new QoreString;
-   target = new QoreString;
-   sr = tr = false;
+QoreTransliteration::QoreTransliteration(const QoreProgramLocation& loc) : loc(loc) {
+   //printd(5, "QoreTransliteration::QoreTransliteration() this: %p\n", this);
 }
 
 QoreTransliteration::~QoreTransliteration() {
-   //printd(5, "QoreTransliteration::~QoreTransliteration() this=%p\n", this);
-   if (source)
-      delete source;
-   if (target)
-      delete target;
+   //printd(5, "QoreTransliteration::~QoreTransliteration() this: %p\n", this);
 }
 
 void QoreTransliteration::setTargetRange() {
@@ -63,27 +56,27 @@ void QoreTransliteration::setSourceRange() {
 
 void QoreTransliteration::finishSource() {
    if (sr)
-      parse_error("no end character for character range at end of source pattern in transliteration");
+      parse_error(loc, "no end character for character range at end of source pattern in transliteration");
 }
 
 void QoreTransliteration::finishTarget() {
    if (tr)
-      parse_error("no end character for character range at end of target pattern in transliteration");
+      parse_error(loc, "no end character for character range at end of target pattern in transliteration");
 }
 
-void QoreTransliteration::doRange(class QoreString *str, char end) {
-   if (!str->strlen()) {
-      parse_error("no start character for character range in transliteration");
+void QoreTransliteration::doRange(QoreString& str, char end) {
+   if (!str.strlen()) {
+      parse_error(loc, "no start character for character range in transliteration");
       return;
    }
-   char start = str->getBuffer()[str->strlen() - 1];
-   str->terminate(str->strlen() - 1);
+   char start = str.c_str()[str.strlen() - 1];
+   str.terminate(str.strlen() - 1);
    if (start > end) {
-      parse_error("invalid range '%c' - '%c' in transliteration operator", start, end);
+      parse_error(loc, "invalid range '%c' - '%c' in transliteration operator", start, end);
       return;
    }
    do
-      str->concat(start++);
+      str.concat(start++);
    while (start <= end);
 }
 
@@ -93,7 +86,7 @@ void QoreTransliteration::concatSource(char c) {
       sr = false;
    }
    else
-      source->concat(c);
+      source.concat(c);
 }
 
 void QoreTransliteration::concatTarget(char c) {
@@ -102,28 +95,28 @@ void QoreTransliteration::concatTarget(char c) {
       tr = false;
    }
    else
-      target->concat(c);
+      target.concat(c);
 }
 
-QoreStringNode *QoreTransliteration::exec(const QoreString *str, ExceptionSink *xsink) const {
+QoreStringNode* QoreTransliteration::exec(const QoreString* str, ExceptionSink* xsink) const {
    //printd(5, "source='%s' target='%s' ('%s')\n", source->getBuffer(), target->getBuffer(), str->getBuffer());
    TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
    if (*xsink)
-      return 0;
+      return nullptr;
 
-   QoreStringNode *ns = new QoreStringNode;
-   for (qore_size_t i = 0; i < tstr->strlen(); i++) {
-      char c = tstr->getBuffer()[i];
-      const char *p = strchr(source->getBuffer(), c);
+   SimpleRefHolder<QoreStringNode> ns(new QoreStringNode);
+   for (qore_size_t i = 0; i < tstr->strlen(); ++i) {
+      char c = (**tstr)[i];
+      const char *p = strchr(source.c_str(), c);
       if (p) {
-	 qore_size_t pos = p - source->getBuffer();
-	 if (target->strlen() <= pos)
-	    pos = target->strlen() - 1;
-	 ns->concat(target->getBuffer()[pos]);
+         qore_size_t pos = p - source.c_str();
+         if (target.strlen() <= pos)
+            pos = target.strlen() - 1;
+         ns->concat(target[pos]);
       }
       else
-	 ns->concat(c);
+         ns->concat(c);
    }
 
-   return ns;
+   return ns.release();
 }

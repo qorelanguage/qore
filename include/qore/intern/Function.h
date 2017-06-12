@@ -179,8 +179,8 @@ protected:
    DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
    DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
 
-   DLLLOCAL static void param_error() {
-      parse_error("parameter list contains non-variable reference expressions");
+   DLLLOCAL void param_error() {
+      parse_error(loc, "parameter list contains non-variable reference expressions");
    }
 
 public:
@@ -808,7 +808,7 @@ public:
    }
 
    // returns 0 for OK, -1 for error
-   DLLLOCAL int parseCheckDuplicateSignatureCommitted(AbstractFunctionSignature* sig);
+   DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserSignature* sig);
 
    DLLLOCAL const char* getName() const {
       return name.c_str();
@@ -882,6 +882,8 @@ public:
 
    DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
       parseCheckReturnType();
+
+      //printd(5, "QoreFunction::parseGetUniqueReturnTypeInfo() this: %p '%s' rt: %d srt: %d psrt: %d vs: %d pvs: %d\n", this, name.c_str(), parse_get_parse_options() & PO_REQUIRE_TYPES, same_return_type, parse_same_return_type, vlist.size(), pending_vlist.size());
 
       if (parse_get_parse_options() & PO_REQUIRE_TYPES) {
          if (!nn_same_return_type || !parse_same_return_type)

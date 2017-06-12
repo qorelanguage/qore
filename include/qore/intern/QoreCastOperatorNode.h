@@ -47,11 +47,11 @@ protected:
       return qc ? qc->getTypeInfo() : objectTypeInfo;
    }
 
-   DLLLOCAL QoreCastOperatorNode(QoreClass* q, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(0), qc(q) {
+   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, QoreClass* q, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), path(0), qc(q) {
    }
 
 public:
-   DLLLOCAL QoreCastOperatorNode(char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(new NamedScope(str)), qc(0) {
+   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), path(new NamedScope(str)), qc(0) {
    }
 
    DLLLOCAL virtual ~QoreCastOperatorNode() {
@@ -73,7 +73,7 @@ public:
          return 0;
       assert(!path);
       assert(qc);
-      return new QoreCastOperatorNode(qc, n_exp.release());
+      return new QoreCastOperatorNode(loc, qc, n_exp.release());
    }
 };
 

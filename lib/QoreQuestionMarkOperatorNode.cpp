@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ AbstractQoreNode* QoreQuestionMarkOperatorNode::parseInitImpl(LocalVar* oflag, i
    e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
    if (QoreTypeInfo::nonNumericValue(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      QoreTypeInfo::doNonBooleanWarning(leftTypeInfo, "the initial expression with the '?:' operator is ");
+      QoreTypeInfo::doNonBooleanWarning(leftTypeInfo, loc, "the initial expression with the '?:' operator is ");
 
    leftTypeInfo = 0;
    e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);

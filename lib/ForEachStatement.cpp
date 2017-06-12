@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,20 +67,20 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
    while (true) {
       {
-	 // get first value
-	 ValueOptionalRefHolder iv(xsink);
-	 if (f->getNext(iv, xsink))
-	    break;
-	 if (*xsink)
-	    break;
+         // get first value
+         ValueOptionalRefHolder iv(xsink);
+         if (f->getNext(iv, xsink))
+            break;
+         if (*xsink)
+            break;
 
-	 LValueHelper n(var, xsink);
-	 if (!n)
-	    break;
+         LValueHelper n(var, xsink);
+         if (!n)
+            break;
 
-	 // assign variable to current value
-	 if (n.assign(iv.takeReferencedValue(), "<foreach lvalue assignment>"))
-	    break;
+         // assign variable to current value
+         if (n.assign(iv.takeReferencedValue(), "<foreach lvalue assignment>"))
+            break;
       }
 
       // set offset in thread-local data for "$#"
@@ -88,14 +88,14 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
       // execute "foreach" body
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
 
       if (rc == RC_RETURN)
-	 break;
+         break;
       else if (rc == RC_CONTINUE)
-	 rc = 0;
+         rc = 0;
    }
 
    return rc;
@@ -132,13 +132,13 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
 
    while (true) {
       {
-	 LValueHelper n(var, xsink);
-	 if (!n)
-	    return 0;
+         LValueHelper n(var, xsink);
+         if (!n)
+            return 0;
 
-	 // assign variable to current value in list
-	 if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
-	    return 0;
+         // assign variable to current value in list
+         if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
+            return 0;
       }
 
       // set offset in thread-local data for "$#"
@@ -147,38 +147,38 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
       // execute "for" body
       rc = code->execImpl(return_value, xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       // get value of foreach variable
       AbstractQoreNode* nv = var->eval(xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       // assign new value to temporary variable for later assignment to referenced lvalue
       if (l_tlist)
-	 reinterpret_cast<QoreListNode*>(*ln)->push(nv);
+         reinterpret_cast<QoreListNode*>(*ln)->push(nv);
       else
-	 ln = nv;
+         ln = nv;
 
       if (rc == RC_BREAK) {
-	 // assign remaining values to list unchanged
-	 if (l_tlist)
-	    while (++i < l_tlist->size())
-	       reinterpret_cast<QoreListNode*>(*ln)->push(l_tlist->get_referenced_entry(i));
+         // assign remaining values to list unchanged
+         if (l_tlist)
+            while (++i < l_tlist->size())
+               reinterpret_cast<QoreListNode*>(*ln)->push(l_tlist->get_referenced_entry(i));
 
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
 
       if (rc == RC_RETURN)
-	 break;
+         break;
       else if (rc == RC_CONTINUE)
-	 rc = 0;
+         rc = 0;
       i++;
 
       // break out of loop if appropriate
       if (!l_tlist || i == l_tlist->size())
-	 break;
+         break;
    }
 
    // write the value back to the lvalue
@@ -204,7 +204,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    qore_type_t t = get_node_type(var);
    if (t != NT_VARREF && t != NT_SELF_VARREF)
-      parse_error("foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
+      parse_error(loc, "foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
 
    if (list) {
       argTypeInfo = 0;

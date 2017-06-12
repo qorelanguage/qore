@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ ContextModList::~ContextModList() {
    while ((i = begin()) != end()) {
       //printd(5, "CML::~CML() %d (%p)\n", (*i)->getType(), (*i)->c.exp);
       if (*i)
-	 delete *i;
+         delete *i;
       erase(i);
    }
 }
@@ -69,32 +69,32 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
    where_exp = sort_ascending = sort_descending = 0;
    if (mods) {
       for (cxtmod_list_t::iterator i = mods->begin(); i != mods->end(); i++) {
-	 switch ((*i)->type) {
-	    case CM_WHERE_NODE:
-	       if (!where_exp) {
-		  where_exp = (*i)->c.exp;
-		  (*i)->c.exp = 0;
-	       }
-	       else
-		  parseException("CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
-	       break;
-	    case CM_SORT_ASCENDING:
-	       if (!sort_ascending && !sort_descending) {
-		  sort_ascending = (*i)->c.exp;
-		  (*i)->c.exp = 0;
-	       }
-	       else
-		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
-	       break;
-	    case CM_SORT_DESCENDING:
-	       if (!sort_descending && !sort_ascending) {
-		  sort_descending = (*i)->c.exp;
-		  (*i)->c.exp = 0;
-	       }
-	       else
-		  parseException("CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
-	       break;
-	 }
+         switch ((*i)->type) {
+            case CM_WHERE_NODE:
+               if (!where_exp) {
+                  where_exp = (*i)->c.exp;
+                  (*i)->c.exp = 0;
+               }
+               else
+                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
+               break;
+            case CM_SORT_ASCENDING:
+               if (!sort_ascending && !sort_descending) {
+                  sort_ascending = (*i)->c.exp;
+                  (*i)->c.exp = 0;
+               }
+               else
+                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+               break;
+            case CM_SORT_DESCENDING:
+               if (!sort_descending && !sort_ascending) {
+                  sort_descending = (*i)->c.exp;
+                  (*i)->c.exp = 0;
+               }
+               else
+                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+               break;
+         }
       }
       delete mods;
    }
@@ -133,13 +133,13 @@ int ContextStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
       printd(4, "ContextStatement::exec() iteration %d/%d\n", context->pos, context->max_pos);
       if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || *xsink) {
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
       else if (rc == RC_RETURN)
-	 break;
+         break;
       else if (rc == RC_CONTINUE)
-	 rc = 0;
+         rc = 0;
    }
 
    return rc;
@@ -154,7 +154,7 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    pflag &= (~PF_TOP_LEVEL);
 
    if (!exp && !getCVarStack())
-      parse_error("subcontext statement out of context");
+      parse_error(loc, "subcontext statement out of context");
 
    const QoreTypeInfo *argTypeInfo = 0;
 

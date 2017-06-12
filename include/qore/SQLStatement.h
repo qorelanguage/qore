@@ -32,8 +32,6 @@
 #ifndef _QORE_SQLSTATEMENT_H
 #define _QORE_SQLSTATEMENT_H
 
-class DatasourceStatementHelper;
-
 //! This is the public class for DBI drivers supporting Qore's new prepared statement API
 /** @see DBIDriver
  */
@@ -46,6 +44,9 @@ private:
 
 public:
    DLLLOCAL SQLStatement();
+
+   DLLLOCAL SQLStatement(Datasource* ds, void* data);
+
    DLLLOCAL ~SQLStatement();
 
    //! returns the private DBI-specific data structure for this object

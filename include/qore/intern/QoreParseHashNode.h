@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -131,7 +131,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreParseHashNode(bool curly = false) : ParseNode(NT_PARSE_HASH, true), curly(curly) {
+   DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
    }
 
    DLLLOCAL ~QoreParseHashNode() {
@@ -182,6 +182,10 @@ public:
 
    DLLLOCAL bool isCurly() const {
       return curly;
+   }
+
+   DLLLOCAL void updateLastLine(int last_line) {
+      loc.end_line = last_line;
    }
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;

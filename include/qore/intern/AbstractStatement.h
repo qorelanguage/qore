@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@
 #define PF_TOP_LEVEL             (1 << 5) //!< parsing at the top-level of the program
 #define PF_BREAK_OK              (1 << 6)
 #define PF_CONTINUE_OK           (1 << 7)
+#define PF_NO_TOP_LEVEL_LVARS    (1 << 8)
 
 // all definitions in this file are private to the library and subject to change
 
@@ -100,11 +101,11 @@ DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
     @param typeInfo the declared type of the variable
     @param is_auto true if it's an automatic variable (already assigned - ex: parameter var or "self"/"argv")
     @param n_refs reference count
-    @param top_level true if a local variable with global scope
+    @param pflag parse flags
 
     @return the LocalVar ptr (caller owns the pointer returned)
 */
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, bool top_level = false);
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
 
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 

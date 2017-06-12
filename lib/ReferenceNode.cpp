@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-IntermediateParseReferenceNode::IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(exp), self(o), lvalue_id(lvid), cls(n_cls) {
+IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(loc, exp), self(o), lvalue_id(lvid), cls(n_cls) {
 }
 
 AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const {
@@ -53,7 +53,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
          lvalue_id = cvv->getLValueId();
          //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
-         return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
+         return new VarRefImmediateNode(loc, strdup(name), cvv, v->ref.id->getTypeInfo());
       }
 
       if (v->getType() == VT_LOCAL_TS) {
@@ -61,40 +61,40 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
          ClosureVarValue* cvv = thread_find_closure_var(name);
          lvalue_id = cvv->getLValueId();
          //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure(ts) lvalue_id: %p\n", this, name, lvalue_id);
-         return new VarRefImmediateNode(strdup(name), cvv, v->ref.id->getTypeInfo());
+         return new VarRefImmediateNode(loc, strdup(name), cvv, v->ref.id->getTypeInfo());
       }
    }
 
    if (ntype == NT_OPERATOR) {
       {
-	 QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-	 if (op) {
-	    ValueEvalRefHolder rh(op->getRight(), xsink);
-	    if (*xsink)
-	       return 0;
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+         if (op) {
+            ValueEvalRefHolder rh(op->getRight(), xsink);
+            if (*xsink)
+               return 0;
 
-	    AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
-	    if (*xsink) {
-	       assert(!nl);
-	       return 0;
-	    }
-	    return new QoreSquareBracketsOperatorNode(nl, rh.getReferencedValue());
-	 }
+            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+            if (*xsink) {
+               assert(!nl);
+               return 0;
+            }
+            return new QoreSquareBracketsOperatorNode(loc, nl, rh.getReferencedValue());
+         }
       }
       {
-	 QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n);
-	 if (op) {
-	    ValueEvalRefHolder rh(op->getRight(), xsink);
-	    if (*xsink)
-	       return 0;
+         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n);
+         if (op) {
+            ValueEvalRefHolder rh(op->getRight(), xsink);
+            if (*xsink)
+               return 0;
 
-	    AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
-	    if (*xsink) {
-	       assert(!nl);
-	       return 0;
-	    }
-	    return new QoreHashObjectDereferenceOperatorNode(nl, rh.getReferencedValue());
-	 }
+            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+            if (*xsink) {
+               assert(!nl);
+               return 0;
+            }
+            return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.getReferencedValue());
+         }
       }
    }
 
@@ -116,7 +116,7 @@ IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(Exception
    const void* lvalue_id = 0;
    const qore_class_private* qc = 0;
    AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
-   return nv ? new IntermediateParseReferenceNode(nv, self, lvalue_id, qc) : 0;
+   return nv ? new IntermediateParseReferenceNode(loc, nv, self, lvalue_id, qc) : 0;
 }
 
 AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -130,7 +130,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
       return this;
 
    if (check_lvalue(lvexp)) {
-      parse_error("the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
+      parse_error(loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
       return this;
    }
    // check lvalue, and convert "normal" local vars to thread-safe local vars
@@ -146,11 +146,11 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
       }
       assert(ntype == NT_OPERATOR);
       {
-	 QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-	 if (op) {
-	    n = op->getLeft();
-	    continue;
-	 }
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+         if (op) {
+            n = op->getLeft();
+            continue;
+         }
       }
       assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
       QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<QoreHashObjectDereferenceOperatorNode*>(n);

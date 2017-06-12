@@ -134,28 +134,34 @@ void QoreModuleContext::commit() {
    mcnl.mcnl_t::clear();
 }
 
-void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
+void QoreModuleDefContext::set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val) {
    qore_type_t t = get_node_type(val);
 
    // special handling for "init" and "del"
    if (!strcmp(key, "init")) {
       if (init_c)
-	 parse_error("module key 'init' was given multiple times");
-      else // check type when code is committed
-	 init_c = val->refSelf();
+         parse_error(loc, "module key 'init' was given multiple times");
+      else {
+         // check type when code is committed
+         init_c = val->refSelf();
+         init_loc = loc;
+      }
    }
    else if (!strcmp(key, "del")) {
       if (del_c)
-	 parse_error("module key 'del' was given multiple times");
-      else // check type when code is committed
-	 del_c = val->refSelf();
+         parse_error(loc, "module key 'del' was given multiple times");
+      else {
+         // check type when code is committed
+         del_c = val->refSelf();
+         del_loc = loc;
+      }
    }
    else if (vset.find(key) == vset.end())
-      parse_error("module key '%s' is invalid", key);
+      parse_error(loc, "module key '%s' is invalid", key);
    else if (vmap.find(key) != vmap.end())
-      parse_error("module key '%s' was given multiple times", key);
+      parse_error(loc, "module key '%s' was given multiple times", key);
    else if (t != NT_STRING)
-      parse_error("module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
+      parse_error(loc, "module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
    else
       vmap[key] = reinterpret_cast<const QoreStringNode*>(val)->getBuffer();
 }
@@ -163,19 +169,19 @@ void QoreModuleDefContext::set(const char* key, const AbstractQoreNode* val) {
 // called only during parsing
 void QoreModuleDefContext::parseInit() {
    if (init_c)
-      initClosure(init_c, "init");
+      initClosure(init_loc, init_c, "init");
    if (del_c)
-      initClosure(del_c, "del");
+      initClosure(del_loc, del_c, "del");
 }
 
-void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
+void QoreModuleDefContext::initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n) {
    // initialize closure
    int lvids = 0;
    const QoreTypeInfo* typeInfo = 0;
    // check for local variables at the top level - this can only happen if the expresion is not a closure
    c = c->parseInit(0, 0, lvids, typeInfo);
    if (lvids) {
-      parseException("ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
+      parseException(loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();
@@ -183,7 +189,7 @@ void QoreModuleDefContext::initClosure(AbstractQoreNode*& c, const char* n) {
 
    qore_type_t t = get_node_type(c);
    if (t != NT_CLOSURE && t != NT_FUNCREF)
-      parse_error("the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
+      parse_error(loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
@@ -253,15 +259,15 @@ void UniqueDirectoryList::addDirList(const char* str) {
 #ifdef _Q_WINDOWS
       // don't match ':' as the second character in a path as a path separator
       if (p == str + 1) {
-	 p = (char*)strchr(p + 1, ':');
-	 if (!p)
-	    break;
+         p = (char*)strchr(p + 1, ':');
+         if (!p)
+            break;
       }
 #endif
       if (p != str) {
-	 *p = '\0';
-	 // add string to list
-	 push_back(str);
+         *p = '\0';
+         // add string to list
+         push_back(str);
       }
       str = p + 1;
    }
@@ -308,8 +314,8 @@ QoreUserModule::~QoreUserModule() {
       if (!xsink) {
          ReferenceHolder<> cn(del->eval(&xsink), &xsink);
          assert(!xsink);
-	 assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-	 reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
+         assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
+         reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
          del->deref(&xsink);
       }
    }
@@ -353,9 +359,9 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
    QMM.trySetUserModuleDependency(this);
 }
 
-void QoreBuiltinModule::issueParseCmd(QoreString& cmd) {
+void QoreBuiltinModule::issueParseCmd(const QoreProgramLocation& loc, QoreString& cmd) {
    if (!module_parse_cmd) {
-      parseException("PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
+      parseException(loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
       return;
    }
 
@@ -498,16 +504,16 @@ static void check_qore_version(const char* name, mod_op_e op, version_list_t& ve
    unsigned max = version.size() > 3 ? version.size() : 3;
    for (unsigned i = 0; i < max; ++i) {
       int mv = (!i ? QORE_VERSION_MAJOR :
-		(i == 1 ? QORE_VERSION_MINOR :
-		 (i == 2 ? QORE_VERSION_SUB : 0)));
+                (i == 1 ? QORE_VERSION_MINOR :
+                 (i == 2 ? QORE_VERSION_SUB : 0)));
       int rv = (i >= version.size() ? 0 : version[i]);
       int res = check_component(op, mv, rv, i == (max - 1));
       if (res == MVC_FAIL) {
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), *version);
-	 return;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), *version);
+         return;
       }
       if (res == MVC_FINAL_OK)
-	 break;
+         break;
    }
 }
 
@@ -519,11 +525,11 @@ static void check_module_version(QoreAbstractModule* mi, mod_op_e op, version_li
       int rv = (i >= version.size() ? 0 : version[i]);
       int res = check_component(op, mv, rv, i == (max - 1));
       if (res == MVC_FAIL) {
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(mi->getName()), "loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), *version);
-	 return;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(mi->getName()), "loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), *version);
+         return;
       }
       if (res == MVC_FINAL_OK)
-	 break;
+         break;
    }
 }
 
@@ -532,7 +538,7 @@ static void qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, v
    if (version) {
       check_module_version(mi, op, *version, xsink);
       if (xsink)
-	 return;
+         return;
    }
 
    if (pgm)
@@ -544,7 +550,7 @@ void QoreModuleManager::getUniqueName(QoreString& nname, const char* name, const
    while (true) {
       nname.sprintf("!!%s-%s-%d", prefix, name, ver++);
       if (!findModuleUnlocked(nname.getBuffer()))
-	 break;
+         break;
       nname.clear();
    }
 }
@@ -570,7 +576,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    // check for special "qore" feature
    if (!strcmp(name, "qore")) {
       if (version)
-	 check_qore_version(name, op, *version, xsink);
+         check_qore_version(name, op, *version, xsink);
       return;
    }
 
@@ -585,7 +591,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       assert(!src);
       // only loaded & injected modules can be reloaded
       if (!mi || !mi->isInjected())
-	 return;
+         return;
 
       // rename module and make private
       map.erase(mmi);
@@ -602,17 +608,17 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 
       QoreAbstractModule* nmi = loadUserModuleFromPath(xsink, mi->getFileName(), mi->getOrigName(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
       if (xsink) {
-	 mmi = map.find(mi->getName());
-	 assert(mmi != map.end());
-	 map.erase(mmi);
-	 mi->resetName();
-	 mi->setPrivate(false);
-	 addModule(mi);
+         mmi = map.find(mi->getName());
+         assert(mmi != map.end());
+         map.erase(mmi);
+         mi->resetName();
+         mi->setPrivate(false);
+         addModule(mi);
       }
       else {
          assert(umset.find(mi->getName()) == umset.end());
-	 nmi->setLink(mi);
-	 trySetUserModuleDependency(mi);
+         nmi->setLink(mi);
+         trySetUserModuleDependency(mi);
       }
       return;
    }
@@ -622,19 +628,19 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       //printd(5, "QoreModuleManager::loadModuleIntern() '%s' pgm has feature\n" , name);
 
       if (load_opt & QMLO_INJECT)
-	 xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded", name);
+         xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded", name);
 
       // check version if necessary
       if (version) {
-	 // if no module is found, then this is a builtin feature
-	 if (!mi)
-	    check_qore_version(name, op, *version, xsink);
-	 else
-	    check_module_version(mi, op, *version, xsink);
+         // if no module is found, then this is a builtin feature
+         if (!mi)
+            check_qore_version(name, op, *version, xsink);
+         else
+            check_module_version(mi, op, *version, xsink);
       }
 
       if (mi)
-	 trySetUserModuleDependency(mi);
+         trySetUserModuleDependency(mi);
       return;
    }
 
@@ -648,17 +654,17 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
 
    if (mi) {
       if (!(load_opt & QMLO_REINJECT)) {
-	 if (load_opt & QMLO_INJECT)
-	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded; to reinject a module, call Program::loadApplyToUserModule() with the reinject flag set to True", name);
-	 else {
-	    //printd(5, "QoreModuleManager::loadModuleIntern() name: %s inject: %d, reinject: %d found: %p (%s, %s) injected: %d reinjected: %d\n", name, load_opt & QMLO_INJECT, load_opt & QMLO_REINJECT, mi, mi->getName(), mi->getFileName(), mi->isInjected(), mi->isReInjected());
+         if (load_opt & QMLO_INJECT)
+            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded; to reinject a module, call Program::loadApplyToUserModule() with the reinject flag set to True", name);
+         else {
+            //printd(5, "QoreModuleManager::loadModuleIntern() name: %s inject: %d, reinject: %d found: %p (%s, %s) injected: %d reinjected: %d\n", name, load_opt & QMLO_INJECT, load_opt & QMLO_REINJECT, mi, mi->getName(), mi->getFileName(), mi->isInjected(), mi->isReInjected());
 
-	    qore_check_load_module_intern(mi, op, version, pgm, xsink);
-	    // make sure to add reexport info if the module should be reexported
-	    if (reexport && !xsink)
-	       ModuleReExportHelper mrh(mi, true);
-	 }
-	 return;
+            qore_check_load_module_intern(mi, op, version, pgm, xsink);
+            // make sure to add reexport info if the module should be reexported
+            if (reexport && !xsink)
+               ModuleReExportHelper mrh(mi, true);
+         }
+         return;
       }
    }
 
@@ -668,8 +674,8 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    if (src) {
       mi = loadUserModuleFromSource(xsink, name, name, pgm, src, reexport, pholder.release());
       if (xsink) {
-	 assert(!mi);
-	 return;
+         assert(!mi);
+         return;
       }
       assert(mi);
       qore_check_load_module_intern(mi, op, version, pgm, xsink);
@@ -681,36 +687,36 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       // see if it's a user or binary module
       size_t len = strlen(name);
       if (len > 5 && !strcasecmp(".qmod", name + len - 5)) {
-	 if (mpgm) {
-	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
-	    return;
-	 }
-	 if (load_opt & QMLO_REINJECT) {
-	    xsink.raiseException("LOAD-MODULE-ERROR", "cannot reinject module '%s' because reinjection is not currently supported for binary modules", name);
-	    return;
-	 }
+         if (mpgm) {
+            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
+            return;
+         }
+         if (load_opt & QMLO_REINJECT) {
+            xsink.raiseException("LOAD-MODULE-ERROR", "cannot reinject module '%s' because reinjection is not currently supported for binary modules", name);
+            return;
+         }
 
-	 mi = loadBinaryModuleFromPath(xsink, name, 0, pgm, reexport);
+         mi = loadBinaryModuleFromPath(xsink, name, 0, pgm, reexport);
       }
       else {
-	 QoreString n(name);
-	 qore_offset_t i = n.rfind('.');
-	 if (i > 0)
-	    n.terminate(i);
+         QoreString n(name);
+         qore_offset_t i = n.rfind('.');
+         if (i > 0)
+            n.terminate(i);
 #ifdef _Q_WINDOWS
-	 i = n.rfindAny("\\/");
+         i = n.rfindAny("\\/");
 #else
-	 i = n.rfind(QORE_DIR_SEP);
+         i = n.rfind(QORE_DIR_SEP);
 #endif
-	 if (i >= 0)
-	    n.replace(0, i + 1, (const char*)0);
+         if (i >= 0)
+            n.replace(0, i + 1, (const char*)0);
 
-	 mi = loadUserModuleFromPath(xsink, name, n.getBuffer(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
+         mi = loadUserModuleFromPath(xsink, name, n.getBuffer(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
       }
 
       if (xsink) {
-	 assert(!mi);
-	 return;
+         assert(!mi);
+         return;
       }
 
       assert(mi);
@@ -726,56 +732,56 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
    while (w != moduleDirList.end()) {
       // try to find module with supported api tags
       for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {
-	 // build path to binary module
-	 str.clear();
-	 str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
+         // build path to binary module
+         str.clear();
+         str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
 
-	 // make new extension string
-	 if (ai < qore_mod_api_list_len)
-	    str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
-	 else
-	    str.concat(".qmod");
+         // make new extension string
+         if (ai < qore_mod_api_list_len)
+            str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
+         else
+            str.concat(".qmod");
 
-	 //printd(5, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
-	 if (!stat(str.getBuffer(), &sb)) {
-	    printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
-	    if (mpgm) {
-	       xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
-	       return;
-	    }
+         //printd(5, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
+         if (!stat(str.getBuffer(), &sb)) {
+            printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
+            if (mpgm) {
+               xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
+               return;
+            }
 
-	    mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport);
-	    if (xsink) {
-	       assert(!mi);
-	       return;
-	    }
+            mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport);
+            if (xsink) {
+               assert(!mi);
+               return;
+            }
 
-	    assert(mi);
-	    qore_check_load_module_intern(mi, op, version, pgm, xsink);
-	    return;
-	 }
+            assert(mi);
+            qore_check_load_module_intern(mi, op, version, pgm, xsink);
+            return;
+         }
 
-	 // build path to user module
-	 str.clear();
-	 str.sprintf("%s" QORE_DIR_SEP_STR "%s.qm", (*w).c_str(), name);
+         // build path to user module
+         str.clear();
+         str.sprintf("%s" QORE_DIR_SEP_STR "%s.qm", (*w).c_str(), name);
 
-	 //printd(5, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
-	 if (!stat(str.getBuffer(), &sb)) {
-	    // see if this is a relative path; if so normalize it; we cannot send a relative path to loadUserModuleFromPath()
-	    // since it will try to normalize the path using the current program's directory as the cwd
-	    if (!q_absolute_path(str.getBuffer()))
-	       q_normalize_path(str);
-	    printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
-	    mi = loadUserModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
-	    if (xsink) {
-	       assert(!mi);
-	       return;
-	    }
+         //printd(5, "ModuleManager::loadModule(%s) trying user module: %s\n", name, str.getBuffer());
+         if (!stat(str.getBuffer(), &sb)) {
+            // see if this is a relative path; if so normalize it; we cannot send a relative path to loadUserModuleFromPath()
+            // since it will try to normalize the path using the current program's directory as the cwd
+            if (!q_absolute_path(str.getBuffer()))
+               q_normalize_path(str);
+            printd(5, "ModuleManager::loadModule(%s) found user module: %s\n", name, str.getBuffer());
+            mi = loadUserModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
+            if (xsink) {
+               assert(!mi);
+               return;
+            }
 
-	    assert(mi);
-	    qore_check_load_module_intern(mi, op, version, pgm, xsink);
-	    return;
-	 }
+            assert(mi);
+            qore_check_load_module_intern(mi, op, version, pgm, xsink);
+            return;
+         }
       }
 
       ++w;
@@ -813,39 +819,39 @@ void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, 
 
       QoreString op;
       do {
-	 if (!qore_isblank(*p))
-	    op.concat(*p);
-	 ++p;
+         if (!qore_isblank(*p))
+            op.concat(*p);
+         ++p;
       } while (*p == '<' || *p == '>' || *p == '=' || qore_isblank(*p));
 
       // get version operator
       mod_op_e mo;
 
       if (!op.compare("<"))
-	 mo = MOD_OP_LT;
+         mo = MOD_OP_LT;
       else if (!op.compare("<="))
-	 mo = MOD_OP_LE;
+         mo = MOD_OP_LE;
       else if (!op.compare("=") || !op.compare("=="))
-	 mo = MOD_OP_EQ;
+         mo = MOD_OP_EQ;
       else if (!op.compare(">="))
-	 mo = MOD_OP_GE;
+         mo = MOD_OP_GE;
       else if (!op.compare(">"))
-	 mo = MOD_OP_GT;
+         mo = MOD_OP_GT;
       else {
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "cannot parse module operator '%s'; expecting one of: '<', '<=', '=', '>=', or '>'", op.getBuffer());
-	 return;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "cannot parse module operator '%s'; expecting one of: '<', '<=', '=', '>=', or '>'", op.getBuffer());
+         return;
       }
 
       version_list_t iv;
       char ec = iv.set(p);
       if (ec) {
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "only numeric digits and '.' characters are allowed in module/feature version specifications, got '%c'", ec);
-	 return;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "only numeric digits and '.' characters are allowed in module/feature version specifications, got '%c'", ec);
+         return;
       }
 
       if (!iv.size()) {
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "empty version specification given in feature/module request");
-	 return;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "empty version specification given in feature/module request");
+         return;
       }
 
       AutoLocker al(mutex); // make sure checking and loading are atomic
@@ -891,16 +897,16 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
    // see if a module with this name is already registered
    if (omi) {
       if (!(load_opt & QMLO_REINJECT)) {
-	 // if the module is the same, then do not return an error unless trying to inject
-	 if (mi->equalTo(omi)) {
-	    if (load_opt & QMLO_INJECT) {
-	       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already loaded therefore cannot be used for injection unless the reinject flag is set", mi->getFileName(), name);
-	       return 0;
-	    }
-	    return omi;
-	 }
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", mi->getFileName(), name, omi->getFileName());
-	 return 0;
+         // if the module is the same, then do not return an error unless trying to inject
+         if (mi->equalTo(omi)) {
+            if (load_opt & QMLO_INJECT) {
+               xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already loaded therefore cannot be used for injection unless the reinject flag is set", mi->getFileName(), name);
+               return 0;
+            }
+            return omi;
+         }
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", mi->getFileName(), name, omi->getFileName());
+         return 0;
       }
    }
 
@@ -979,7 +985,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    if (!p) {
       p = pgm;
       if (!p)
-	 p = getProgram();
+         p = getProgram();
    }
    const char* td = p ? p->parseGetScriptDir() : 0;
 
@@ -1045,7 +1051,7 @@ struct DLHelper {
 
    DLLLOCAL ~DLHelper() {
       if (ptr)
-	 dlclose(ptr);
+         dlclose(ptr);
    }
 
    DLLLOCAL void* release() {
@@ -1083,7 +1089,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
    if ((mi = findModuleUnlocked(name))) {
       // if the module is the same, then do not return an error
       if (mi->isPath(path))
-	 return mi;
+         return mi;
       xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
       return 0;
    }
@@ -1113,28 +1119,28 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
       QoreStringNode* str = new QoreStringNodeMaker("module '%s': feature '%s': API mismatch, module supports API %d.%d, however only version", path, name, *api_major, *api_minor);
 
       if (qore_mod_api_list_len > 1)
-	 str->concat('s');
+         str->concat('s');
       // add all supported api pairs to the string
       for (unsigned j = 0; j < qore_mod_api_list_len; ++j) {
-	 str->sprintf(" %d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
-	 if (j != qore_mod_api_list_len - 1) {
-	    if (qore_mod_api_list_len > 2) {
-	       if (j != qore_mod_api_list_len - 2)
-		  str->concat(",");
-	       else
-		  str->concat(", and");
-	    }
-	    else
-	       str->concat(" and");
-	 }
-	 if (j == qore_mod_api_list_len - 1) {
-	    str->concat(' ');
-	    if (qore_mod_api_list_len > 1)
-	       str->concat("are");
-	    else
-	       str->concat("is");
-	    str->concat(" supported");
-	 }
+         str->sprintf(" %d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
+         if (j != qore_mod_api_list_len - 1) {
+            if (qore_mod_api_list_len > 2) {
+               if (j != qore_mod_api_list_len - 2)
+                  str->concat(",");
+               else
+                  str->concat(", and");
+            }
+            else
+               str->concat(" and");
+         }
+         if (j == qore_mod_api_list_len - 1) {
+            str->concat(' ');
+            if (qore_mod_api_list_len > 1)
+               str->concat("are");
+            else
+               str->concat("is");
+            str->concat(" supported");
+         }
       }
 
       printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
@@ -1164,8 +1170,8 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
       case QL_LGPL: if (!module_license_str) license_str = "LGPL"; break;
       case QL_MIT: if (!module_license_str) license_str = "MIT"; break;
       default:
-	 xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
-	 return 0;
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
+         return 0;
    }
 
    if (qore_license != QL_GPL && license == QL_GPL) {
@@ -1226,10 +1232,10 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
       const char* dep = dep_list[0];
       //printd(5, "dep_list=%p (0=%s)\n", dep_list, dep);
       for (int j = 0; dep; dep = dep_list[++j]) {
-	 //printd(5, "loading module dependency=%s\n", dep);
-	 loadModuleIntern(xsink, dep, pgm);
-	 if (xsink)
-	    return 0;
+         //printd(5, "loading module dependency=%s\n", dep);
+         loadModuleIntern(xsink, dep, pgm);
+         if (xsink)
+            return 0;
       }
    }
 
@@ -1307,20 +1313,20 @@ void QoreModuleManager::delUser() {
 #ifdef DEBUG
    for (module_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
       if (i->second->isUser()) {
-	 printd(0, "QoreModuleManager::delUser() '%s' %p not yet removed\n", i->second->getName(), i->second);
+         printd(0, "QoreModuleManager::delUser() '%s' %p not yet removed\n", i->second->getName(), i->second);
 
-	 for (md_map_t::iterator i = md_map.begin(), e = md_map.end(); i != e; ++i) {
-	    QoreString str("[");
-	    for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-	       str.sprintf("'%s',", (*si).c_str());
-	    str.concat("]");
+         for (md_map_t::iterator i = md_map.begin(), e = md_map.end(); i != e; ++i) {
+            QoreString str("[");
+            for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+               str.sprintf("'%s',", (*si).c_str());
+            str.concat("]");
 
-	    printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
-	 }
+            printd(0, " + md_map '%s' -> %s\n", i->first.c_str(), str.getBuffer());
+         }
 
-	 rmd_map.show("rmd_map");
+         rmd_map.show("rmd_map");
 
-	 assert(false);
+         assert(false);
       }
    }
 #endif
@@ -1342,21 +1348,21 @@ void QoreModuleManager::cleanup() {
    assert(modset.empty());
 }
 
-void QoreModuleManager::issueParseCmd(const char* mname, QoreProgram* pgm, QoreString& cmd) {
+void QoreModuleManager::issueParseCmd(const QoreProgramLocation& loc, const char* mname, QoreProgram* pgm, QoreString& cmd) {
    ExceptionSink xsink;
 
    AutoLocker al(mutex); // make sure checking and loading are atomic
    loadModuleIntern(xsink, mname, pgm);
 
    if (xsink) {
-      parseException("PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
+      parseException(loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
       return;
    }
 
    QoreAbstractModule* mi = findModule(mname);
    assert(mi);
 
-   mi->issueParseCmd(cmd);
+   mi->issueParseCmd(loc, cmd);
 }
 
 QoreHashNode* ModuleManager::getModuleHash() {
@@ -1369,7 +1375,7 @@ QoreHashNode* QoreModuleManager::getModuleHash() {
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())
-	 h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
+         h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
    }
    return h;
 }
@@ -1384,7 +1390,7 @@ QoreListNode* QoreModuleManager::getModuleList() {
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())
-	 l->push(i->second->getHash(with_filename));
+         l->push(i->second->getHash(with_filename));
    }
    return l;
 }
@@ -1399,15 +1405,15 @@ char version_list_t::set(const char* v) {
    char* p = a = (char*)ver.getBuffer();
    while (*p) {
       if (*p == '.') {
-	 char save = *p;
-	 *p = '\0';
-	 push_back(atoi(a));
-	 //printd(5, "this=%p a=%s\n", this, a);
-	 *p = save;
-	 a = p + 1;
+         char save = *p;
+         *p = '\0';
+         push_back(atoi(a));
+         //printd(5, "this=%p a=%s\n", this, a);
+         *p = save;
+         a = p + 1;
       }
       else if (!isdigit(*p))
-	 return *p;
+         return *p;
       ++p;
    }
    //printd(5, "this=%p a=%s FINAL\n", this, a);

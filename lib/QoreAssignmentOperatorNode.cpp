@@ -55,7 +55,7 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    // check for illegal assignment to $self
    if (oflag)
-      check_self_assignment(left, oflag);
+      check_self_assignment(loc, left, oflag);
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, QoreTypeInfo::getName(ti), get_type_name(right), QoreTypeInfo::getName(r));
 

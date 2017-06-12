@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalOrOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalAndOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreLogicalOrOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalAndOperatorNode(loc, n_left, n_right) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

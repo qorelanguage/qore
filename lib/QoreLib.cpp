@@ -960,7 +960,7 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-static inline int parse_get_nibble(char c) {
+static int parse_get_nibble(const QoreProgramLocation& loc, char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -968,12 +968,12 @@ static inline int parse_get_nibble(char c) {
    if (c >= 'a' && c <= 'f')
       return c - 87;
 
-   parseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   parseException(loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
    return -1;
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode* parseHex(const char* buf, int len) {
+BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
@@ -982,7 +982,7 @@ BinaryNode* parseHex(const char* buf, int len) {
 
    const char* end = buf + len;
    while (buf < end) {
-      int b = parse_get_nibble(*buf);
+      int b = parse_get_nibble(loc, *buf);
       if (b < 0) {
 	 free(binbuf);
 	 return 0;
@@ -997,7 +997,7 @@ BinaryNode* parseHex(const char* buf, int len) {
       }
 #endif
 
-      int l = parse_get_nibble(*buf);
+      int l = parse_get_nibble(loc, *buf);
       if (l < 0) {
 	 free(binbuf);
 	 return 0;
@@ -2132,19 +2132,19 @@ void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
 }
 
 // checks for illegal "self" assignments in an object context
-void check_self_assignment(AbstractQoreNode* n, LocalVar* selfid) {
+void check_self_assignment(const QoreProgramLocation& loc, AbstractQoreNode* n, LocalVar* selfid) {
    qore_type_t ntype = n->getType();
 
    // if it's a variable reference
    if (ntype == NT_VARREF) {
       VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
       if (v->getType() == VT_LOCAL && v->ref.id == selfid)
-         parse_error("illegal assignment to 'self' in an object context");
+         parse_error(loc, "illegal assignment to 'self' in an object context");
       return;
    }
 }
 
-int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)) {
@@ -2152,40 +2152,40 @@ int check_lvalue_int(const QoreTypeInfo*& typeInfo, const char* name) {
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s will assign it an integer value", name);
-         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_number(const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a number value", name);
-      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_float(const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_float(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a float value", name);
-      qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)
@@ -2195,7 +2195,7 @@ int check_lvalue_int_float_number(const QoreTypeInfo*& typeInfo, const char* nam
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
-         qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
