@@ -831,7 +831,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%exec-class{WS}*$                      { parse_error(get_loc(yylloc), "missing argument to %%exec-class"); }
 ^%exec-class{WS}+                       BEGIN(exec_class_state);
 ^%try-reexport-module{WS}*$             {
-                                           parse_error("missing argument to %%try-reexport-module");
+                                           parse_error(get_loc(yylloc), "missing argument to %%try-reexport-module");
                                            BEGIN(p_skip_to_endtry);
                                         }
 ^%try-reexport-module                   {

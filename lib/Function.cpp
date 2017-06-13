@@ -818,7 +818,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
          //printd(5, "QoreFunction::runtimeFindVariant() count: %d match: %d match_len: %d np: %d v: %p\n", count, match,          match_len, sig->numParams(), variant);
 
-         if (count > match || (count == match && (match_len == -1 || (sig->numParams() < match_len)))) {
+         if (count > match || (count == match && (match_len == -1 || (sig->numParams() < (unsigned)match_len)))) {
             match = count;
             variant = *i;
             match_len = sig->numParams();
@@ -1052,7 +1052,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
             ++npv;
 
-            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < match_len))))) {
+            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < (unsigned)match_len))))) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
                if (variant_pmatch < pmatch) {
@@ -1191,7 +1191,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
             //printd(5, "QoreFunction::parseFindVariant() variant: %p count: %d match: %d pmatch: %d variant_pmatch: %d nperfect: %d variant_nperfect: %d match_len: %d\n", variant, count, match, pmatch, variant_pmatch, nperfect, variant_nperfect, match_len);
 
-            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < match_len))))) {
+            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < (unsigned)match_len))))) {
                // if we could possibly match less than another variant
                // then we have to match at runtime
                if (variant_pmatch < pmatch)

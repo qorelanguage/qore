@@ -604,10 +604,10 @@ public:
    DLLLOCAL int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
 
    DLLLOCAL int getUnicodeCharArray(intvec_t& vec, ExceptionSink* xsink) const {
-      qore_offset_t j = 0;
+      size_t j = 0;
       while (j < len) {
          unsigned clen;
-         int c = getUnicodePointFromBytePos(j, clen, xsink);
+         int c = getUnicodePointFromBytePos((qore_offset_t)j, clen, xsink);
          if (*xsink)
             return -1;
          vec.push_back(c);
