@@ -815,11 +815,22 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                         }
 ^%exec-class{WS}*$                      { parse_error("missing argument to %%exec-class"); }
 ^%exec-class{WS}+                       BEGIN(exec_class_state);
+^%try-reexport-module{WS}*$             {
+                                           parse_error("missing argument to %%try-reexport-module");
+                                           BEGIN(p_skip_to_endtry);
+                                        }
+^%try-reexport-module                   {
+                                           parse_set_try_reexport(true);
+                                           BEGIN(try_module);
+                                        }
 ^%try-module{WS}*$                      {
                                            parse_error("missing argument to %%try-module");
                                            BEGIN(p_skip_to_endtry);
                                         }
-^%try-module                            BEGIN(try_module);
+^%try-module                            {
+                                           parse_set_try_reexport(false);
+                                           BEGIN(try_module);
+                                        }
 <try_module>[^\n\r]+                    {
                                            parse_try_module_inc();
                                            QoreString str(yytext);
@@ -892,7 +903,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                     //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                     QoreProgram* pgm = getProgram();
                                                     ExceptionSink xsink;
-                                                    QMM.parseLoadModule(xsink, str.getBuffer(), pgm);
+                                                    QMM.parseLoadModule(xsink, str.getBuffer(), pgm, parse_get_try_reexport());
                                                     if (!xsink) {
                                                        BEGIN(p_skip_to_endtry);
                                                     }
