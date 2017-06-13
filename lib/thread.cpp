@@ -346,8 +346,8 @@ public:
    uintptr_t qmi;
 
    bool
-   foreign : 1,
-   try_reexport : 1; // true if the thread is a foreign thread
+      foreign : 1, // true if the thread is a foreign thread
+      try_reexport : 1;
 
    DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
       tid(ptid),
