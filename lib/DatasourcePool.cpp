@@ -33,6 +33,59 @@
 #include "qore/intern/qore_ds_private.h"
 #include <memory>
 
+DatasourcePoolActionHelper::~DatasourcePoolActionHelper() {
+   if (!ds)
+      return;
+
+   bool keep_lock = qore_ds_private::get(*ds)->keepLock();
+
+   if (cmd == DAH_RELEASE
+       || ds->wasConnectionAborted()
+       || (new_ds && (cmd == DAH_NOCHANGE) && !keep_lock))
+      dsp.freeDS(xsink);
+}
+
+// the first connection (opened in the DatasourcePool constructor) is passed with an xsink obj
+// because invalid options can cause an exception to be thrown
+Datasource* DatasourceConfig::get(DatasourceStatementHelper* dsh, ExceptionSink* xsink) const {
+   Datasource* ds = new Datasource(driver, dsh);
+
+   if (!user.empty())
+      ds->setPendingUsername(user.c_str());
+   if (!pass.empty())
+      ds->setPendingPassword(pass.c_str());
+   if (!db.empty())
+      ds->setPendingDBName(db.c_str());
+   if (!encoding.empty())
+      ds->setPendingDBEncoding(encoding.c_str());
+   if (!host.empty())
+      ds->setPendingHostName(host.c_str());
+
+   if (port)
+      ds->setPendingPort(port);
+
+   if (q) {
+      q->ref();
+      ds->setEventQueue(q, arg ? arg->refSelf() : nullptr, nullptr);
+   }
+
+   // set options
+   ConstHashIterator hi(opts);
+   while (hi.next()) {
+      // skip "min" and "max" options
+      if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
+         continue;
+
+      if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+         break;
+   }
+
+   // turn off autocommit
+   ds->setAutoCommit(false);
+
+   return ds;
+}
+
 DatasourcePool::DatasourcePool(ExceptionSink* xsink, DBIDriver* ndsl, const char* user, const char* pass,
 			       const char* db, const char* charset, const char* hostname, unsigned mn, unsigned mx, int port, const QoreHashNode* opts,
 			       Queue* q, AbstractQoreNode* a) :
@@ -98,7 +151,7 @@ DatasourcePool::~DatasourcePool() {
 void DatasourcePool::init(ExceptionSink* xsink) {
    assert(xsink);
    // ths initial Datasource creation could throw an exception if there is an error in a driver option, for example
-   std::unique_ptr<Datasource> ds(config.get(xsink));
+   std::unique_ptr<Datasource> ds(config.get(this, xsink));
    if (*xsink)
       return;
 
@@ -112,7 +165,7 @@ void DatasourcePool::init(ExceptionSink* xsink) {
    free_list.push_back(0);
 
    while (++cmax < min) {
-      ds.reset(config.get());
+      ds.reset(config.get(this));
       ds->open(xsink);
       if (*xsink)
          return;
@@ -361,7 +414,7 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 
       // see if we can open a new connection
       if (cmax < max) {
-	 ds = pool[cmax] = config.get();
+	 ds = pool[cmax] = config.get(this);
 
 	 tmap[tid] = cmax;
 	 tid_list[cmax++] = tid;

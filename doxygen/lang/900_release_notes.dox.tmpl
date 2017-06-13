@@ -96,6 +96,9 @@
       - @ref Qore::CRYPTO_ALG_RC5
       - @ref Qore::CRYPTO_ALG_RC5_CFB
       - @ref Qore::CRYPTO_ALG_RC5_OFB
+    - support for binding output placeholder buffers for @ref resultset_output_binding "result sets" that return an @ref Qore::SQL::SQLStatement "SQLStatement" object:
+      - new DBI capability constant @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT"
+      - new placeholder buffer specification constant @ref Qore::SQL::RESULTSET "RESULTSET"
     - new user modules:
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>
       - <a href="../../modules/DatasourceProvider/html/index.html">DatasourceProvider</a>
@@ -116,16 +119,19 @@
       - @ref strong-encapsulation "%strong-encapsulation": disallows out of line class and namespace declarations
       - @ref try-reexport-module "%try-reexport-module": conditionally loads a module in a @ref user_modules "user module" and allows for that module to be reexported as well
     - new constants:
+      - @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT": DBI capability for drivers that support returning an @ref Qore::SQL::SQLStatement "SQLStatement" object for a @ref resultset_output_binding "result set" when bound with the @ref Qore::SQL::RESULTSET "RESULTSET" placeholder specification
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
       - @ref Qore::PO_ALLOW_DEBUGGING "PO_ALLOW_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref Qore::PO_BROKEN_REFERENCES "PO_BROKEN_REFERENCES": reverts @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to pre-%Qore-0.8.13 behavior where they would have no effect
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
       - @ref Qore::PO_STRONG_ENCAPSULATION "PO_STRONG_ENCAPSULATION": disallows out of line class and namespace declarations
+      - @ref Qore::SQL::RESULTSET "RESULTSET": specifies that an @ref Qore::SQL::SQLStatement "SQLStatement" object should be returned from a @ref resultset_output_binding "result set" output variable in an SQL query
       - @ref Qore::SSL_VERIFY_NONE "SSL_VERIFY_NONE": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: do not verify peer certificates
       - @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: verify peer certificates
       - @ref Qore::SSL_VERIFY_FAIL_IF_NO_PEER_CERT "SSL_VERIFY_FAIL_IF_NO_PEER_CERT": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: fail if the client does not provide a certificate (server mode only)
       - @ref Qore::SSL_VERIFY_CLIENT_ONCE "SSL_VERIFY_CLIENT_ONCE": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: only require the client to send a certificate once (server mode only)
+      - see new cryptographic constants listed above
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - new methods:
       - @ref Qore::Program::getGlobalVars()

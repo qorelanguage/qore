@@ -38,6 +38,12 @@ struct sql_statement_private {
    Datasource* ds = nullptr;
    // private data for statement handle/ptr
    void* data = nullptr;
+
+   DLLLOCAL sql_statement_private() {
+   }
+
+   DLLLOCAL sql_statement_private(Datasource* ds, void* data) : ds(ds), data(data) {
+   }
 };
 
 #endif
