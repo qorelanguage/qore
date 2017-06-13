@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-QoreImplicitArgumentNode::QoreImplicitArgumentNode(int n_offset) : ParseNode(NT_IMPLICIT_ARG), offset(n_offset) {
+QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation& loc, int n_offset) : ParseNode(loc, NT_IMPLICIT_ARG), offset(n_offset) {
    if (!offset)
-      parse_error("implicit argument offsets must be greater than 0 (first implicit argument is $1)");
+      parse_error(loc, "implicit argument offsets must be greater than 0 (first implicit argument is $1)");
    else if (offset > 0)
       --offset;
 }

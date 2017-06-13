@@ -1049,42 +1049,66 @@ public:
       pwo.parse_options = po;
    }
 
-   DLLLOCAL void setParseOptions(int64 po, ExceptionSink* xsink = 0) {
+   DLLLOCAL int setParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
       if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
-         if (xsink)
-            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-         else
-            parse_error("parse options have been locked on this program object");
-         return;
+         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         return -1;
       }
 
       setParseOptionsIntern(po);
+      return 0;
    }
 
-   DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
+   DLLLOCAL int disableParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
       if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
-         if (xsink)
-            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-         else
-            parse_error("parse options have been locked on this program object");
-         return;
+         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         return -1;
       }
 
       disableParseOptionsIntern(po);
+      return 0;
    }
 
-   DLLLOCAL void replaceParseOptions(int64 po, ExceptionSink* xsink) {
+   DLLLOCAL int replaceParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       if (!(getProgram()->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
          xsink->raiseException("OPTION-ERROR", "the calling Program does not have the PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()");
-         return;
+         return -1;
       }
 
       //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
       replaceParseOptionsIntern(po);
+      return 0;
+   }
+
+   DLLLOCAL int parseSetParseOptions(const QoreProgramLocation& loc, int64 po) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+         parse_error(loc, "parse options have been locked on this program object");
+         return -1;
+      }
+
+      setParseOptionsIntern(po);
+      return 0;
+   }
+
+   DLLLOCAL int parseDisableParseOptions(const QoreProgramLocation& loc, int64 po) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+         parse_error(loc, "parse options have been locked on this program object");
+         return -1;
+      }
+
+      disableParseOptionsIntern(po);
+      return 0;
    }
 
    DLLLOCAL void parseSetTimeZone(const char* zone) {
@@ -1372,7 +1396,7 @@ public:
 
       // see if top level statements are allowed
       if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
-         parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+         parse_error(s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
    }
 
    DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0, bool inject = false);

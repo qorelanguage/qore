@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ AbstractQoreNode* QoreBackgroundOperatorNode::parseInitImpl(LocalVar* oflag, int
    typeInfo = bigIntTypeInfo;
 
    if (pflag & PF_CONST_EXPRESSION)
-      parseException("ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
+      parseException(loc, "ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
 
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);

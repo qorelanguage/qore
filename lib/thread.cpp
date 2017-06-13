@@ -160,9 +160,9 @@ struct ParseCountHelper {
       ++count;
    }
 
-   DLLLOCAL bool dec() {
+   DLLLOCAL bool dec(const QoreProgramLocation& loc) {
       if (!count) {
-         parse_error("unmatched %%endtry");
+         parse_error(loc, "unmatched %%endtry");
          return false;
       }
       return !--count;
@@ -170,7 +170,7 @@ struct ParseCountHelper {
 
    DLLLOCAL void purge() {
       if (count) {
-         parse_error("%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
+         parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
          count = 0;
       }
    }
@@ -195,9 +195,9 @@ struct ParseConditionalStack {
       return count;
    }
 
-   DLLLOCAL bool test() const {
+   DLLLOCAL bool test(const QoreProgramLocation& loc) const {
       if (!count) {
-         parse_error("%%else without %%ifdef");
+         parse_error(loc, "%%else without %%ifdef");
          return false;
       }
       if (markvec.empty())
@@ -205,9 +205,9 @@ struct ParseConditionalStack {
       return markvec.back() == (count - 1);
    }
 
-   DLLLOCAL bool pop() {
+   DLLLOCAL bool pop(const QoreProgramLocation& loc) {
       if (!count) {
-         parse_error("unmatched %%endif");
+         parse_error(loc, "unmatched %%endif");
          return false;
       }
       --count;
@@ -221,7 +221,7 @@ struct ParseConditionalStack {
 
    DLLLOCAL void purge() {
       if (count) {
-         parse_error("%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+         parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
          count = 0;
          markvec.clear();
       }
@@ -989,9 +989,9 @@ void parse_try_module_inc() {
    td->tm.inc();
 }
 
-bool parse_try_module_dec() {
+bool parse_try_module_dec(const QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
-   return td->tm.dec();
+   return td->tm.dec(loc);
 }
 
 unsigned parse_try_module_get() {
@@ -1011,25 +1011,25 @@ void parse_cond_push(bool mark) {
 
 bool parse_cond_else() {
    ThreadData* td = thread_data.get();
-   return td->pcs ? td->pcs->checkElse() : 0;
+   return td->pcs ? td->pcs->checkElse() : false;
 }
 
-bool parse_cond_pop() {
+bool parse_cond_pop(const QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error("unmatched %%endif");
+      parse_error(loc, "unmatched %%endif");
       return false;
    }
-   return td->pcs->pop();
+   return td->pcs->pop(loc);
 }
 
-bool parse_cond_test() {
+bool parse_cond_test(const QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error("%%else without %%ifdef");
+      parse_error(loc, "%%else without %%ifdef");
       return false;
    }
-   return td->pcs->test();
+   return td->pcs->test(loc);
 }
 
 void push_parse_options() {
@@ -1153,12 +1153,6 @@ QoreProgramLocation get_parse_location() {
 void update_parse_location(const QoreProgramLocation& loc) {
    //printd(5, "update_parse_location() setting %s:%d-%d src: %s%d\n", loc.file, loc.start_line, loc.end_line, loc.source ? loc.source : "(null)", loc.offset);
    thread_data.get()->parse_loc = loc;
-}
-
-void update_parse_line_location(int start_line, int end_line) {
-   ThreadData* td = thread_data.get();
-   td->parse_loc.start_line = start_line;
-   td->parse_loc.end_line = end_line;
 }
 
 const char* get_parse_code() {

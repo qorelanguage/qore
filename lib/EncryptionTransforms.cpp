@@ -102,7 +102,7 @@ public:
 
       ce = i->second;
 
-      if (iv && ce.iv_len > 0 && iv_len < ce.iv_len) {
+      if (iv && ce.iv_len > 0 && (int)iv_len < ce.iv_len) {
          xsink->raiseException(err, "cannot create a %scryption transformation object for algorithm '%s' with an initialization vector of size %d; %d bytes are required", do_crypt ? "en" : "de", cipher, iv_len, ce.iv_len);
          return;
       }

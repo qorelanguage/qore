@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,17 +51,20 @@ protected:
    }
 
 public:
-   DLLLOCAL CaseNodeRegex(QoreRegex *m_re, StatementBlock *blk);
+   DLLLOCAL CaseNodeRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk);
+
    DLLLOCAL virtual ~CaseNodeRegex() {
       delete re;
    }
+
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };
 
 class CaseNodeNegRegex : public CaseNodeRegex {
 public:
-   DLLLOCAL CaseNodeNegRegex(QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(m_re, blk) {
+   DLLLOCAL CaseNodeNegRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(loc, m_re, blk) {
    }
+
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);
 };
 

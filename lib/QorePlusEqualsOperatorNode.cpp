@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
       if (QoreTypeInfo::returnsSingle(ti)) {
-         check_lvalue_int(ti, "+=");
+         check_lvalue_int(loc, ti, "+=");
          ti = bigIntTypeInfo;
          return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
       }

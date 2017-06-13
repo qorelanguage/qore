@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,16 +41,21 @@ private:
    DLLLOCAL virtual bool isCaseNodeImpl() const;
 
 public:
+   QoreProgramLocation loc;
    AbstractQoreNode* val;
    StatementBlock* code;
-   CaseNode* next;
+   CaseNode* next = nullptr;
 
-   DLLLOCAL CaseNode(AbstractQoreNode* v, StatementBlock* c);
+   DLLLOCAL CaseNode(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c);
+
    DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
+
    DLLLOCAL virtual bool isDefault() const {
       return !val;
    }
+
    DLLLOCAL bool isCaseNode() const;
+
    DLLLOCAL virtual ~CaseNode();
 };
 

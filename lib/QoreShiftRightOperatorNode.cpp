@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -56,12 +56,12 @@ AbstractQoreNode* QoreShiftRightOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
    if (QoreTypeInfo::nonNumericValue(lti))
-      QoreTypeInfo::doNonNumericWarning(lti, "the left hand expression of the 'shift right' operator (>>) expression is ");
+      QoreTypeInfo::doNonNumericWarning(lti, loc, "the left hand expression of the 'shift right' operator (>>) expression is ");
    if (QoreTypeInfo::nonNumericValue(rti)) {
       QoreStringNode* desc = new QoreStringNode("the right hand side of the 'shift right' (>>) expression is ");
       QoreTypeInfo::getThisType(rti, *desc);
       desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
    // see if both arguments are constant values, then eval immediately and substitute this node with the result

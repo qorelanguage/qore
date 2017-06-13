@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,10 +48,7 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   // populated automatically on creation
-   QoreProgramLocation loc;
-
-   DLLLOCAL QoreOperatorNode(bool n_ref_rv = true) : ParseNode(NT_OPERATOR), ref_rv(n_ref_rv), loc(ParseLocation) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -78,7 +75,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSingleExpressionOperatorNode(AbstractQoreNode* n_exp) : exp(n_exp) {
+   DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
    }
    DLLLOCAL AbstractQoreNode* getExp() {
       return exp;
@@ -92,7 +89,7 @@ public:
       AbstractQoreNode* e = exp;
       exp = 0;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
-      O* rv = new O(e);
+      O* rv = new O(this->loc, e);
       if (!this->ref_rv)
          rv->ignoreReturnValue();
       return rv;
@@ -107,7 +104,7 @@ public:
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return 0;
-      return new O(n_exp.release());
+      return new O(this->loc, n_exp.release());
    }
 };
 
@@ -117,7 +114,7 @@ protected:
    AbstractQoreNode* left, * right;
 
 public:
-   DLLLOCAL QoreBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : left(n_left), right(n_right) {
+   DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
    }
 
    DLLLOCAL ~QoreBinaryOperatorNode() {
@@ -132,7 +129,7 @@ public:
       AbstractQoreNode* l = left,* r = right;
       left = right = 0;
       SimpleRefHolder<QoreBinaryOperatorNode> del(this);
-      U* rv = new U(l, r);
+      U* rv = new U(this->loc, l, r);
       if (!this->ref_rv)
          rv->ignoreReturnValue();
       return rv;
@@ -178,13 +175,13 @@ public:
       ReferenceHolder<> n_right(copy_and_resolve_lvar_refs(right, xsink), xsink);
       if (*xsink)
          return 0;
-      return new O(n_left.release(), n_right.release());
+      return new O(this->loc, n_left.release(), n_right.release());
    }
 };
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreBoolBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -194,7 +191,7 @@ public:
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreIntBinaryOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right) {
+   DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -211,17 +208,25 @@ public:\
 
 class LValueOperatorNode : public QoreOperatorNode {
 public:
+   DLLLOCAL LValueOperatorNode(const QoreProgramLocation& loc) : QoreOperatorNode(loc) {
+   }
+
    DLLLOCAL virtual bool hasEffect() const {
       return true;
    }
 
-   DLLLOCAL void checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
+   DLLLOCAL int checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
-         if (check_lvalue(exp, assignment))
-            parse_error("expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
-         else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL)
-            parse_error("illegal local variable modification with the background operator in %s", getTypeName());
+         if (check_lvalue(exp, assignment)) {
+            parse_error(loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+            return -1;
+         }
+         else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL) {
+            parse_error(loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            return -1;
+         }
       }
+      return 0;
    }
 };
 
@@ -236,7 +241,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreNOperatorNodeBase(AbstractQoreNode* a0, ...) {
+   DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation& loc, AbstractQoreNode* a0, ...) : T(loc) {
       e[0] = a0;
       va_list ap;
       va_start(ap, a0);

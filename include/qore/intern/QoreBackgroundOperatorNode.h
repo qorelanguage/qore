@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreBackgroundOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(n_exp) {
+   DLLLOCAL QoreBackgroundOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
    }
 
    DLLLOCAL virtual ~QoreBackgroundOperatorNode() {

@@ -22,7 +22,7 @@ public class GlobalsTest inherits QUnit::Test {
     segfault891() {
         Program p();
         p.replaceParseOptions(PO_NEW_STYLE);
-        assertThrows("PARSE-EXCEPTION", "global variable '::h' has already been declared in this Program object", sub() {
+        assertThrows("PARSE-EXCEPTION", "global variable '::h' has been", sub() {
             p.parse("our hash h = ('1': 1, '2': 2, '3': 3, '4': 4); our float h = 3;", "xxx");
         });
     }
