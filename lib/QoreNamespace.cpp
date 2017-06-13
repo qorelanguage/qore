@@ -1548,7 +1548,7 @@ bool qore_root_ns_private::parseResolveGlobalVarsIntern() {
 
       Var* v = tns->var_list.parseFindVar(n.getIdentifier());
       if (v) {
-         parse_error(loc, "global variable '%s::%s' has been %s multiple times in this Program object", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+         parse_error(loc, "global variable '%s::%s' has been %s this Program object multiple times", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
          retVal = false;
          continue;
       }
