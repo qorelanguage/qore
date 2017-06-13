@@ -293,6 +293,9 @@ DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
 
+DLLLOCAL void parse_set_try_reexport(bool tr);
+DLLLOCAL bool parse_get_try_reexport();
+
 DLLLOCAL void set_thread_tz(const AbstractQoreZoneInfo* tz);
 DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
 DLLLOCAL void clear_thread_tz();

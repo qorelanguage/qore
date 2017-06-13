@@ -339,6 +339,10 @@ class OracleTest inherits SqlTestBase {
         assertEq(True, exists c, "column 'driver' must exist in the table");
     }
 
+    private string getResultSetSql() {
+        return "begin open :rs for select id, def_test1, def_test2 from oracle_test; end;";
+    }
+
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);

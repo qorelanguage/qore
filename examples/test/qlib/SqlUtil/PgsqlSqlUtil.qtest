@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module pgsql
 %define NoPgsql
 %endtry
@@ -223,6 +223,11 @@ class PgsqlTest inherits SqlTestBase {
         assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
         sh."where".id = 4;
         assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {
