@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of str
-BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), finalized(false), str(c_str) {
+BarewordNode::BarewordNode(const QoreProgramLocation& loc, char *c_str) : ParseNoEvalNode(loc, NT_BAREWORD), finalized(false), str(c_str) {
 }
 
 BarewordNode::~BarewordNode() {

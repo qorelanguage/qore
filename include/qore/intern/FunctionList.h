@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   FunctionList.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -100,7 +100,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL ResolvedCallReferenceNode* makeCallReference() const;
+   DLLLOCAL ResolvedCallReferenceNode* makeCallReference(const QoreProgramLocation& loc) const;
 
    DLLLOCAL bool isPublic() const {
       return func->hasPublic();
@@ -113,7 +113,7 @@ public:
    DLLLOCAL bool hasBuiltin() const {
       return func->hasBuiltin();
    }
-   
+
    DLLLOCAL void updateNs(qore_ns_private* ns);
 };
 

@@ -51,7 +51,7 @@ protected:
       typeInfo = ti;
 
       // make sure left side can take an integer or floating-point value
-      check_lvalue_int_float_number(ti, name);
+      check_lvalue_int_float_number(loc, ti, name);
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -59,7 +59,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QorePostIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp), ti(0) {
+   DLLLOCAL QorePostIncrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp), ti(0) {
    }
 
    DLLLOCAL virtual bool hasEffect() const {

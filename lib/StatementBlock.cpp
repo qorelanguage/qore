@@ -263,8 +263,11 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, bool top_level) {
+LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, int pflag) {
    QoreProgram* pgm = getProgram();
+
+   if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS))
+      parseException(loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "cannot declare local variable '%s' in the top-level block; local variables in the top-level block of a Program object can only be declared in the very first parse transaction to the Program object", name);
 
    LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
@@ -297,7 +300,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
                         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
                      }
                   }
-                  else if (top_level || !vnode->isTopLevel()) {
+                  else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
                      QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
                      vnode->appendLocation(*desc);
                      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
@@ -311,7 +314,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
    }
 
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, &loc, n_refs, top_level);
+   new VNode(lv, &loc, n_refs, pflag & PF_TOP_LEVEL);
    return lv;
 }
 
@@ -498,12 +501,14 @@ void TopLevelStatementBlock::parseInit(int64 po) {
          push_top_level_local_var(lvars->lv[i], loc);
    }
 
-   int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
+   int pflag = PF_TOP_LEVEL;
+   if (!first)
+      pflag |= PF_NO_TOP_LEVEL_LVARS;
+   int lvids = parseInitIntern(0, pflag, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
    if (!first && lvids) {
-      parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();

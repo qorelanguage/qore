@@ -39,7 +39,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreShiftRightEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreShiftRightEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryIntLValueOperatorNode(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

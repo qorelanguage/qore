@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -77,7 +77,7 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
       QoreStringNode* edesc = new QoreStringNode("the left hand argument given to the 'instanceof' operator is ");
       QoreTypeInfo::getThisType(lti, *edesc);
       edesc->concat(", so this expression will always return False; the 'instanceof' operator can only return True with objects of the class on the right hand side");
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 
    // see the argument is a constant value, then eval immediately and substitute this node with the result

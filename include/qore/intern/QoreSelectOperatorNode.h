@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ protected:
    DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreSelectOperatorNode(AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(l, r), returnTypeInfo(0), iterator_func(0) {
+   DLLLOCAL QoreSelectOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

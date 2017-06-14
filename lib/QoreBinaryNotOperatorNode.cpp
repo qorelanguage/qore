@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ AbstractQoreNode* QoreBinaryNotOperatorNode::parseInitImpl(LocalVar* oflag, int 
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
    if (QoreTypeInfo::nonNumericValue(lti))
-      QoreTypeInfo::doNonNumericWarning(lti, "the operand of the 'binary not' operator (^) expression is ");
+      QoreTypeInfo::doNonNumericWarning(lti, loc, "the operand of the 'binary not' operator (^) expression is ");
 
    // see if the argument is a constant value, then eval immediately and substitute this node with the result
    if (exp && exp->is_value()) {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,9 +34,12 @@
 #define _QORE_PARSENODE_H
 
 class ParseNode : public SimpleQoreNode {
+public:
+   QoreProgramLocation loc;
+
 private:
    // not implemented
-   DLLLOCAL ParseNode& operator=(const ParseNode&);
+   ParseNode& operator=(const ParseNode&) = delete;
 
 protected:
    //! if the node has an effect when evaluated (changes something)
@@ -80,13 +83,13 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
 public:
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), effect(n_needs_eval), ref_rv(true), parse_init(false) {
+   DLLLOCAL ParseNode(const QoreProgramLocation& loc, qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_needs_eval), ref_rv(true), parse_init(false) {
       has_value_api = true;
    }
-   DLLLOCAL ParseNode(qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), effect(n_effect), ref_rv(true), parse_init(false) {
+   DLLLOCAL ParseNode(const QoreProgramLocation& loc, qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_effect), ref_rv(true), parse_init(false) {
       has_value_api = true;
    }
-   DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
+   DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
    }
    // parse types should never be copied
    DLLLOCAL virtual AbstractQoreNode* realCopy() const {
@@ -147,7 +150,7 @@ protected:
    }
 
 public:
-   DLLLOCAL ParseNoEvalNode(qore_type_t t) : ParseNode(t, false) {
+   DLLLOCAL ParseNoEvalNode(const QoreProgramLocation& loc, qore_type_t t) : ParseNode(loc, t, false) {
    }
 
    DLLLOCAL ParseNoEvalNode(const ParseNoEvalNode& old) : ParseNode(old) {

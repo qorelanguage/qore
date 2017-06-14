@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -153,7 +153,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          if (meth)
             m->setPseudo();
          else
-            raiseNonExistentMethodCallWarning(qc, mname);
+            raise_nonexistent_method_call_warning(loc, qc, mname);
       }
 
       if (!meth) {
@@ -182,12 +182,12 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
 AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    if (m->getArgs()) {
-      parse_error("argument given to call reference");
+      parse_error(loc, "argument given to call reference");
       return this;
    }
 
    if (!strcmp(m->getName(), "copy")) {
-      parse_error("cannot make a call reference to a copy() method");
+      parse_error(loc, "cannot make a call reference to a copy() method");
       return this;
    }
 
@@ -201,9 +201,9 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
 
    //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);
 
-   return new ParseObjectMethodReferenceNode(exp, meth);
+   return new ParseObjectMethodReferenceNode(loc, exp, meth);
 }
 
 QoreOperatorNode *QoreDotEvalOperatorNode::copyBackground(ExceptionSink *xsink) const {
-   return new QoreDotEvalOperatorNode(copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
+   return new QoreDotEvalOperatorNode(loc, copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
 }

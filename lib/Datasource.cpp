@@ -34,6 +34,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_dbi_private.h"
 #include "qore/intern/qore_ds_private.h"
+#include "qore/intern/QoreSQLStatement.h"
+#include "qore/intern/QC_SQLStatement.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,10 +56,16 @@ void qore_ds_private::statementExecuted(int rc) {
       active_transaction = true;
 }
 
-Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl)) {
+Datasource::Datasource(DBIDriver* ndsl, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(this, ndsl, dsh)) {
 }
 
-Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.priv, this)) {
+Datasource::Datasource(const Datasource& old, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(*old.priv, this, dsh)) {
+}
+
+Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl, nullptr)) {
+}
+
+Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.priv, this, nullptr)) {
 }
 
 Datasource::~Datasource() {
@@ -253,8 +261,8 @@ int Datasource::open(ExceptionSink* xsink) {
 
       rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
       if (!*xsink) {
-	 assert(priv->qorecharset);
-	 priv->isopen = true;
+         assert(priv->qorecharset);
+         priv->isopen = true;
       }
    }
    else
@@ -520,17 +528,17 @@ QoreStringNode* Datasource::getConfigString() const {
       const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
       const AbstractQoreNode* v = ov->getKeyValue("value");
       if (!v || v == &False)
-	 continue;
+         continue;
 
       if (first)
-	 str->concat(',');
+         str->concat(',');
       else {
-	 str->concat('{');
-	 first = true;
+         str->concat('{');
+         first = true;
       }
       str->concat(hi.getKey());
       if (v == &True)
-	 continue;
+         continue;
 
       QoreStringValueHelper sv(v);
       str->sprintf("=%s", sv->getBuffer());
@@ -547,4 +555,8 @@ void Datasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* x
 
 QoreHashNode* Datasource::getEventQueueHash(Queue*& q, int event_code) const {
    return priv->getEventQueueHash(q, event_code);
+}
+
+QoreObject* Datasource::getSQLStatementObjectForResultSet(void* stmt_private_data) {
+   return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(this, stmt_private_data, priv->dsh, STMT_EXECED));
 }

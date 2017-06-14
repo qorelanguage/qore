@@ -57,11 +57,8 @@ protected:
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   /*
-    * Constructor
-    */
-   DLLLOCAL QoreHashMapSelectOperatorNode(AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2, AbstractQoreNode* p3) :
-      QoreNOperatorNodeBase<4>(p0, p1, p2, p3), returnTypeInfo(0) {
+   DLLLOCAL QoreHashMapSelectOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2, AbstractQoreNode* p3) :
+      QoreNOperatorNodeBase<4>(loc, p0, p1, p2, p3), returnTypeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -85,7 +82,7 @@ public:
       ReferenceHolder<> n_e3(copy_and_resolve_lvar_refs(e[3], xsink), xsink);
       if (*xsink)
          return 0;
-      return new QoreHashMapSelectOperatorNode(n_e0.release(), n_e1.release(), n_e2.release(), n_e3.release());
+      return new QoreHashMapSelectOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release(), n_e3.release());
    }
 };
 

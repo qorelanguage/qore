@@ -3,7 +3,7 @@
   QoreDivideEqualsOperatorNode.h
 
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
@@ -40,9 +40,8 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreDivideEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreMultiplyEqualsOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreDivideEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreMultiplyEqualsOperatorNode(loc, n_left, n_right) {
    }
 };
 
 #endif
-

@@ -81,7 +81,7 @@ void qore_method_private::parseInit() {
                desc->sprintf("%s::%s(%s) has an invalid signature; the first argument declared as ", parent_class->getName(), func->getName(), sig->getSignatureText());
                QoreTypeInfo::getThisType(t, *desc);
                desc->concat(" is not compatible with 'string'");
-               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+               qore_program_private::makeParseException(getProgram(), sig->getParseLocation(), "PARSE-TYPE-ERROR", desc);
             }
          }
       }
@@ -437,7 +437,7 @@ DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) cons
       AbstractMethod::checkAbstract(name, i.first.c_str(), i.second->pending_vlist, desc);
    }
 
-   //printd(5, "AbstractMethodMap::parseCheckAbstractNew() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+   //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
    return desc;
 }
 
@@ -451,10 +451,10 @@ int AbstractMethodMap::runtimeCheckInstantiateClass(const char* name, ExceptionS
 }
 
 // we check if there are any abstract method variants still in the committed lists
-void AbstractMethodMap::parseCheckAbstractNew(const char* name) const {
+void AbstractMethodMap::parseCheckAbstractNew(const QoreProgramLocation& loc, const char* name) const {
    QoreStringNode* desc = checkAbstract(name);
    if (desc)
-      parseException("ABSTRACT-CLASS-ERROR", desc);
+      parseException(loc, "ABSTRACT-CLASS-ERROR", desc);
 }
 
 // FIXME: check private method variant access at runtime
@@ -465,8 +465,8 @@ struct SelfLocalVarParseHelper {
    DLLLOCAL ~SelfLocalVarParseHelper() { pop_local_var(); }
 };
 
-void raiseNonExistentMethodCallWarning(const QoreClass* qc, const char* method) {
-   qore_program_private::makeParseWarning(getProgram(), QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existent method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
+void raise_nonexistent_method_call_warning(const QoreProgramLocation& loc, const QoreClass* qc, const char* method) {
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_NONEXISTENT_METHOD_CALL, "NON-EXISTENT-METHOD-CALL", "call to non-existent method '%s::%s()'; this call will be evaluated at run-time, so if the method is called on an object of a subclass that implements this method, then it could be a valid call, however in any other case it will result in a run-time exception.  To avoid seeing this warning, use the cast<> operator (note that if the cast is invalid at run-time, a run-time exception will be raised) or turn off the warning by using '%%disable-warning non-existent-method-call' in your code", qc->getName(), method);
 }
 
 class VRMutexHelper {
@@ -682,7 +682,7 @@ void qore_class_private::initialize() {
    if (initialized)
       return;
 
-   qcp_set_t qcp_set;
+   qcp_set_t qcp_set = {this};
    initializeIntern(qcp_set);
 }
 
@@ -754,13 +754,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
 
    QoreProgram* pgm = getProgram();
    if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
-      parseException("ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
-
-   if (!qcp_set.insert(this).second) {
-      parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", name.c_str());
-      scl->valid = false;
-      return -1;
-   }
+      parseException(loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
 
    // signature string - also processed in parseCommit()
    QoreString csig;
@@ -1548,11 +1542,24 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          free(cstr);
          cstr = 0;
       }
+      if (cls == sclass) {
+         parse_error(cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
+         assert(cls->priv->scl);
+         cls->priv->scl->valid = false;
+         sclass = nullptr;
+      }
       //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
    }
    int rc = 0;
    // recursively add base classes to special method list
    if (sclass) {
+      if (!qcp_set.insert(sclass->priv).second) {
+         parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
+         if (sclass->priv->scl)
+            sclass->priv->scl->valid = false;
+         return -1;
+      }
+
       rc = sclass->priv->initializeIntern(qcp_set);
       if (!has_delete_blocker && sclass->has_delete_blocker())
          has_delete_blocker = true;
@@ -1563,7 +1570,7 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          cls->priv->parseImportMembers(*sclass->priv, access);
       }
       if (sclass->priv->final)
-         parse_error("class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
+         parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
    }
 
    return rc;
@@ -1636,7 +1643,7 @@ const QoreMethod* BCNode::parseFindStaticMethod(const char* name, const qore_cla
    return sclass->priv->parseFindStaticMethodIntern(name, class_ctx);
 }
 
-const QoreMethod* BCNode::parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const {
+const QoreMethod* BCNode::parseResolveSelfMethod(const QoreProgramLocation& loc, const char* name, const qore_class_private* class_ctx, bool allow_internal) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return 0;
@@ -1645,7 +1652,7 @@ const QoreMethod* BCNode::parseResolveSelfMethod(const char* name, const qore_cl
       return 0;
 
    sclass->priv->initialize();
-   return sclass->priv->parseResolveSelfMethodIntern(name, class_ctx);
+   return sclass->priv->parseResolveSelfMethodIntern(loc, name, class_ctx);
 }
 
 const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
@@ -1870,7 +1877,7 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
             if (!(*j)->sclass)
                continue;
             if ((*i)->sclass->getID() == (*j)->sclass->getID())
-               parse_error("class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+               parse_error(cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
          }
       }
    }
@@ -1973,9 +1980,9 @@ const QoreMethod* BCList::parseFindStaticMethod(const char* name, const qore_cla
    return 0;
 }
 
-const QoreMethod* BCList::parseResolveSelfMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) {
+const QoreMethod* BCList::parseResolveSelfMethod(const QoreProgramLocation& loc, const char* name, const qore_class_private* class_ctx, bool allow_internal) {
    for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseResolveSelfMethod(name, class_ctx, allow_internal);
+      const QoreMethod* m = (*i).parseResolveSelfMethod(loc, name, class_ctx, allow_internal);
       if (m)
          return m;
    }
@@ -2396,7 +2403,7 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
       priv->scl = new BCList;
    priv->scl->push_back(new BCNode(qc, true));
 
-   if (qc->priv->scl)
+   if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
       //qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
@@ -2475,7 +2482,7 @@ const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* 
 }
 
 // searches all methods, both pending and comitted
-const QoreMethod* qore_class_private::parseResolveSelfMethod(const char* nme, const qore_class_private* class_ctx) {
+const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLocation& loc, const char* nme, const qore_class_private* class_ctx) {
    initialize();
 
    const QoreMethod* m = 0;
@@ -2486,10 +2493,10 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(const char* nme, co
          m = 0;
    }
    if (!m)
-      m = parseResolveSelfMethodIntern(nme, class_ctx);
+      m = parseResolveSelfMethodIntern(loc, nme, class_ctx);
 
    if (!m) {
-      parse_error("no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", name.c_str(), nme, nme);
+      parse_error(loc, "no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", name.c_str(), nme, nme);
       return 0;
    }
    printd(5, "qore_class_private::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static: %d)\n", nme, name.c_str(), nme, m, m->isStatic());
@@ -2497,7 +2504,7 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(const char* nme, co
    const char* mname = m->getName();
    // make sure we're not calling a method that cannot be called directly
    if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy"))) {
-      parse_error("explicit calls to %s() methods are not allowed", nme);
+      parse_error(loc, "explicit calls to %s() methods are not allowed", nme);
       return 0;
    }
 
@@ -2510,19 +2517,19 @@ const QoreMethod* qore_class_private::parseFindSelfMethod(const char* nme) {
    return parseFindAnyMethod(nme, this);
 }
 
-const QoreMethod* qore_class_private::parseResolveSelfMethod(NamedScope* nme) {
+const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLocation& loc, NamedScope* nme) {
    // first find class
-   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(*nme, true);
+   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *nme, true);
    if (!qc)
       return 0;
 
    // see if class is base class of this class
    if (qc != cls && (!scl || !scl->isBaseClass(qc, true))) {
-      parse_error("'%s' is not a base class of '%s'", qc->getName(), name.c_str());
+      parse_error(loc, "'%s' is not a base class of '%s'", qc->getName(), name.c_str());
       return 0;
    }
 
-   return qc->priv->parseResolveSelfMethod(nme->getIdentifier(), this);
+   return qc->priv->parseResolveSelfMethod(loc, nme->getIdentifier(), this);
 }
 
 // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
@@ -2553,7 +2560,7 @@ const QoreMethod* qore_class_private::parseFindStaticMethodIntern(const char* mn
    return 0;
 }
 
-const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const char* nme, const qore_class_private* class_ctx) {
+const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QoreProgramLocation& loc, const char* nme, const qore_class_private* class_ctx) {
    const QoreMethod* m = parseFindLocalMethod(nme);
    if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
       return m;
@@ -2561,7 +2568,7 @@ const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const char* n
    if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
       return m;
    if (scl) {
-      m = scl->parseResolveSelfMethod(nme, class_ctx, this == class_ctx);
+      m = scl->parseResolveSelfMethod(loc, nme, class_ctx, this == class_ctx);
       if (m && doMethodAccess(m, qore_method_private::parseGetAccess(*m), class_ctx))
          return m;
    }
@@ -2833,7 +2840,7 @@ int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool
 int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
    if (thisclass->getID() == qc->getID()) {
       thisclass->priv->scl->valid = false;
-      parse_error("class '%s' cannot inherit itself", thisclass->getName());
+      parse_error(thisclass->priv->loc, "class '%s' cannot inherit itself", thisclass->getName());
       return -1;
    }
 
@@ -2844,7 +2851,7 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
          return 0;
       if (i->first->getID() == thisclass->getID()) {
          thisclass->priv->scl->valid = false;
-         parse_error("circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
+         parse_error(thisclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
          return -1;
       }
       i++;
@@ -3304,11 +3311,11 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
    if (f->isAbstract()) {
       if (initialized) {
-         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
          return -1;
       }
       if (n_static) {
-         parseException("ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
          return -1;
       }
    }
@@ -3319,7 +3326,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    // check for illegal static method
    if (n_static) {
       if ((con || dst || checkSpecialStaticIntern(mname))) {
-         parseException("ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
+         parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
          return -1;
       }
    }
@@ -3327,7 +3334,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    bool cpy = dst || con ? false : !strcmp(mname, "copy");
    // check for illegal method overloads
    if (sys && (con || cpy)) {
-      parseException("ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
+      parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
       return -1;
    }
 
@@ -3344,7 +3351,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    // we cannot initialize the class here
    QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
-      parseException("ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
+      parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
       return -1;
    }
 
@@ -4324,13 +4331,16 @@ int MethodFunctionBase::checkFinalVariant(const MethodFunctionBase* m, const Met
    if (!v->isFinal())
       return 0;
 
-   const AbstractFunctionSignature* sig = v->getSignature(), * vs = 0;
+   const AbstractFunctionSignature* sig = v->getSignature();
+   const AbstractFunctionSignature* vs = nullptr;
    int rc = parseCompareResolvedSignature(pending_vlist, sig, vs);
    if (rc == QTI_NOT_EQUAL)
       return 0;
 
    const char* stat = isStatic() ? "static " : "";
-   parse_error("'final' method %s%s::%s(%s) cannot be overridden in a child class with %s%s::%s(%s)", stat, m->qc->getName(), getName(), sig->getSignatureText(), stat, qc->getName(), getName(), vs->getSignatureText());
+   // can only be overridden with a user variant
+   assert(dynamic_cast<const UserSignature*>(vs));
+   parse_error(static_cast<const UserSignature*>(vs)->getParseLocation(), "child class method %s%s::%s(%s) cannot override parent class method final %s%s::%s(%s)", stat, qc->getName(), getName(), vs->getSignatureText(), stat, m->qc->getName(), getName(), sig->getSignatureText());
    return -1;
 }
 
@@ -4599,7 +4609,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
    ParseCodeInfoHelper rtih("constructor", nothingTypeInfo);
 
    if (bcal && !parent_class.hasParentClass()) {
-      parse_error("base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
+      parse_error(signature.getParseLocation(), "base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
       delete bcal;
       bcal = 0;
    }
@@ -4672,7 +4682,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 
    // make sure there is max one parameter in the copy method
    if (signature.numParams() > 1)
-      parse_error("maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
+      parse_error(signature.getParseLocation(), "maximum of one parameter may be defined in class copy methods (%d defined); this parameter will be assigned to the old object when the method is executed", signature.numParams());
 
    // push return type on stack (no return value can be used)
    ParseCodeInfoHelper rtih("copy", nothingTypeInfo);
@@ -4692,7 +4702,7 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
                desc->concat(", but the object's parameter was defined expecting ");
                typeInfo->getThisType(*desc);
                desc->concat(" instead");
-               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+               qore_program_private::makeParseException(getProgram(), signature.getParseLocation(), "PARSE-TYPE-ERROR", desc);
             }
          }
       }

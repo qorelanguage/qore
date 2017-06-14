@@ -14,7 +14,6 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
 
 %exec-class FreetdsTest
 
@@ -158,6 +157,11 @@ class FreetdsTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

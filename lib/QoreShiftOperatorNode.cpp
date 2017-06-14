@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ AbstractQoreNode* QoreShiftOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
          edesc->sprintf("'%s' operator is ", getTypeName());
          QoreTypeInfo::getThisType(expTypeInfo, *edesc);
          edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", getTypeName());
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
          returnTypeInfo = nothingTypeInfo;
       }
    }

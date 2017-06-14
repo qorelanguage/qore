@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,9 +55,9 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
    if (QoreTypeInfo::nonNumericValue(lti))
-      QoreTypeInfo::doNonNumericWarning(lti, "the left hand expression of the 'binary and' operator (&) expression is ");
+      QoreTypeInfo::doNonNumericWarning(lti, loc, "the left hand expression of the 'binary and' operator (&) expression is ");
    if (QoreTypeInfo::nonNumericValue(rti))
-      QoreTypeInfo::doNonNumericWarning(rti, "the right hand expression of the 'binary and' operator (&) expression is ");
+      QoreTypeInfo::doNonNumericWarning(rti, loc, "the right hand expression of the 'binary and' operator (&) expression is ");
 
    // see if both arguments are constant values, then eval immediately and substitute this node with the result
    if (left && left->is_value() && right && right->is_value()) {

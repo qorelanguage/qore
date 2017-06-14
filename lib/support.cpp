@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -164,21 +164,6 @@ char *remove_trailing_blanks(char *str) {
    return str;
 }
 
-void parse_error(const char *fmt, ...) {
-   printd(5, "parse_error(\"%s\", ...) called\n", fmt);
-
-   QoreStringNode *desc = new QoreStringNode;
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   qore_program_private::makeParseException(getProgram(), desc);
-}
-
 void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
    printd(5, "parse_error(\"%s\", ...) called\n", fmt);
 
@@ -197,24 +182,6 @@ void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
 void parseException(const QoreProgramLocation& loc, const char *err, QoreStringNode *desc) {
    printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
    qore_program_private::makeParseException(getProgram(), loc, err, desc);
-}
-
-void parseException(const char *err, QoreStringNode *desc) {
-   printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
-   qore_program_private::makeParseException(getProgram(), err, desc);
-}
-
-void parseException(const char *err, const char *fmt, ...) {
-   QoreStringNode *desc = new QoreStringNode;
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   parseException(err, desc);
 }
 
 void parseException(const QoreProgramLocation& loc, const char *err, const char *fmt, ...) {

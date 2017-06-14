@@ -53,7 +53,7 @@ protected:
    DLLLOCAL bool bigIntGreaterThanOrEquals(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBoolBinaryOperatorNode(loc, n_left, n_right), pfunc(0) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module mysql
 %define NoMysql
 %endtry
@@ -168,6 +168,11 @@ class MysqlTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

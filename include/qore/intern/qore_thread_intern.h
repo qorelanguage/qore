@@ -186,16 +186,19 @@ class QoreClosureParseNode;
 
 class QoreModuleDefContext {
 protected:
-   DLLLOCAL void initClosure(AbstractQoreNode*& c, const char* n);
+   DLLLOCAL void initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n);
 
 public:
    typedef std::set<std::string> strset_t;
    typedef std::map<std::string, std::string> strmap_t;
 
-   AbstractQoreNode* init_c, // the initialization closure
-      * del_c;               // the destructor closure
+   AbstractQoreNode* init_c = nullptr, // the initialization closure
+      * del_c = nullptr;               // the destructor closure
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0) {
+   QoreProgramLocation init_loc,
+      del_loc;
+
+   DLLLOCAL QoreModuleDefContext() {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
@@ -211,7 +214,7 @@ public:
    // set of tag definitions
    strmap_t vmap;
 
-   DLLLOCAL void set(const char* key, const AbstractQoreNode* val);
+   DLLLOCAL void set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val);
 
    DLLLOCAL const char* get(const char* str) const {
       strmap_t::const_iterator i = vmap.find(str);
@@ -241,7 +244,6 @@ DLLLOCAL QoreProgramLocation get_runtime_location();
 DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
-DLLLOCAL void update_parse_line_location(int start_line, int end_line);
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();
@@ -270,11 +272,11 @@ DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
-DLLLOCAL bool parse_cond_pop();
-DLLLOCAL bool parse_cond_test();
+DLLLOCAL bool parse_cond_pop(const QoreProgramLocation& loc);
+DLLLOCAL bool parse_cond_test(const QoreProgramLocation& loc);
 DLLLOCAL void push_parse_options();
 DLLLOCAL void parse_try_module_inc();
-DLLLOCAL bool parse_try_module_dec();
+DLLLOCAL bool parse_try_module_dec(const QoreProgramLocation& loc);
 DLLLOCAL unsigned parse_try_module_get();
 DLLLOCAL void parse_try_module_set(unsigned c);
 
@@ -290,6 +292,9 @@ DLLLOCAL QoreModuleDefContext* get_module_def_context();
 DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
+
+DLLLOCAL void parse_set_try_reexport(bool tr);
+DLLLOCAL bool parse_get_try_reexport();
 
 DLLLOCAL void set_thread_tz(const AbstractQoreZoneInfo* tz);
 DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
