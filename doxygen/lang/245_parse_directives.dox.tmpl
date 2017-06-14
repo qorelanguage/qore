@@ -215,7 +215,7 @@
     <tt>%%broken-int-assignments</tt>
 
     @par Command Line:
-    <tt>-</tt><tt>-broken-int-assignments</tt>
+    <tt>-pbroken-int-assignments</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_BROKEN_INT_ASSIGNMENTS
@@ -234,7 +234,7 @@
     <tt>%%broken-list-parsing</tt>
 
     @par Command Line:
-    <tt>-</tt><tt>-broken-list-parsing</tt>
+    <tt>-pbroken-list-parsing</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_BROKEN_LIST_PARSING
@@ -253,7 +253,7 @@
     <tt>%%broken-logic-precedence</tt>
 
     @par Command Line:
-    <tt>-</tt><tt>-broken-logic-precedence</tt>
+    <tt>-pbroken-logic-precedence</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_BROKEN_LOGIC_PRECEDENCE
@@ -262,7 +262,36 @@
     Use old pre-0.8.12 precedence where the \ref logical_and_operator "&&" had the same precedence as \ref logical_or_operator "||" and all three bitwise operators (
     \ref bitwise_and_operator "&", \ref bitwise_or_operator "|", \ref bitwise_xor_operator "^") shared the same precedence.
 
+    An example of impact of @ref broken-logic-precedence "%broken-logic-precedence" directive:
+    |--------------------------------------------------------------------------------------------------|
+    |expression              |broken-logic-precedence              |correct-logic-precedence           |
+    |                        |-------------------------------------|-----------------------------------|
+    |                        |parenthesized expression   | result  |parenthesized expression  | result |
+    |------------------------|-------------------------------------|-----------------------------------|
+    |True \|\| False && False|(True \|\| False) && False | False   |True \|\| (False && False)| True   |
+    |1 \| 2 ^ 3 & 5          |((1 \| 2) ^ 3) & 5         | 0       |1 \| (2 ^ (3 & 5)) = 3    | 3      |
+    |--------------------------------------------------------------------------------------------------|
+
     @see @ref correct-logic-precedence "%correct-logic-precedence"
+
+    @since %Qore 0.8.12
+
+    <hr>
+    @section broken-logic-precedence-warn %broken-logic-precedence-warn
+
+    @par Parse Directive:
+    <tt>%%broken-logic-precedence-warn</tt>
+
+    @par Command Line:
+    <tt>-pbroken-logic-precedence-warn</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_LOGIC_PRECEDENCE_WARN
+
+    @par Description:
+    Can only be set with @ref broken-logic-precedence "%broken-logic-precedence". When set on, a parse-time warning is printed for expressions that are affected by @ref broken-logic-precedence "%broken-logic-precedence".
+
+    @see @ref broken-logic-precedence "%broken-logic-precedence"
 
     @since %Qore 0.8.12
 
@@ -273,7 +302,7 @@
     <tt>%%broken-operators</tt>
 
     @par Command Line:
-    <tt>-</tt><tt>-broken-operators</tt>
+    <tt>-pbroken-operators</tt>
 
     @par Parse Option Constant:
     @ref Qore::PO_BROKEN_OPERATORS

@@ -350,6 +350,9 @@ class qore_program_private_base {
 
 protected:
    DLLLOCAL void setDefines();
+   DLLLOCAL void checkDefines(ExceptionSink *xsink); // check whether the parse options
+                                                     // are valid, throws and exception
+                                                     // if not
 
 public:
    LocalVariableList local_var_list;
@@ -834,6 +837,7 @@ public:
          parseSink->assimilate(pendingParseSink);
          pendingParseSink = 0;
       }
+      checkDefines(xsink);
    }
 
    DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
@@ -1338,10 +1342,12 @@ public:
          if (i->second)
             i->second->deref(xsink);
          i->second = v;
+         checkDefines(xsink);
          return true;
       }
 
       dmap[name] = v;
+      checkDefines(xsink);
       return false;
    }
 
@@ -1370,8 +1376,10 @@ public:
          if (i->second)
             i->second->deref(xsink);
          dmap.erase(i);
+         checkDefines(xsink);
          return true;
       }
+      checkDefines(xsink);
       return false;
    }
 

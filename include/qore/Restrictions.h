@@ -80,6 +80,7 @@
 #define PO_BROKEN_LOGIC_PRECEDENCE          (1LL << 40)  //!< allow for old pre-%Qore 0.8.12 precedence of logical and bitwise operators
 #define PO_BROKEN_INT_ASSIGNMENTS           (1LL << 41)  //!< allow for old pre-%Qore 0.8.12 "int" restrictions to be ignored at runtime
 #define PO_BROKEN_OPERATORS                 (1LL << 42)  //!< allow for old pre-%Qore 0.8.12 parsing of multi-character operators with spaces
+#define PO_BROKEN_LOGIC_PRECEDENCE_WARN     (1LL << 43)  //!< allow for old pre-%Qore 0.8.12 precedence of logical and bitwise operators - warning about dangerous expressions
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -114,7 +115,7 @@
 #define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_LOGIC_PRECEDENCE_WARN)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
 #define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS)

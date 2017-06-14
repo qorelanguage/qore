@@ -101,5 +101,10 @@ public class LogicTest inherits QUnit::Test {
             pgm.parse("%correct-logic-precedence\nint sub get() { return True | False & False; }", "");
             assertEq(1, pgm.callFunction("get"));
         }
+
+%broken-logic-precedence
+%broken-logic-precedence-warn
+        assertFalse(True || False && False);
+        assertEq(0, 1 | 2 ^ 3 & 5);
     }
 }

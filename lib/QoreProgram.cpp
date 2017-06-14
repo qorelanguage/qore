@@ -128,6 +128,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
+      doMap(PO_BROKEN_LOGIC_PRECEDENCE_WARN, "PO_BROKEN_LOGIC_PRECEDENCE_WARN");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -163,6 +164,18 @@ void qore_program_private_base::setDefines() {
 	 dmap[i->second] = &True;
       }
    }
+}
+
+void qore_program_private_base::checkDefines(ExceptionSink *xsink) {
+    dmap_t::iterator blp = dmap.find("PO_BROKEN_LOGIC_PRECEDENCE");
+    dmap_t::iterator blpw = dmap.find("PO_BROKEN_LOGIC_PRECEDENCE_WARN");
+    if (blp == dmap.end() || !blp->second || !blp->second->getAsBool()) {
+        if (blpw != dmap.end() && blpw->second && blpw->second->getAsBool()) {
+            if (xsink) {
+                xsink->raiseException("PARSE-DIRECTIVE-ERROR", "broken-logic-precedence-warn cannot be set without broken-logic-precedence");
+            }
+        }
+    }
 }
 
 void qore_program_private_base::startThread(ExceptionSink& xsink) {
