@@ -34,7 +34,7 @@
 
 #include "qore/intern/sql_statement_private.h"
 
-class DatasourceStatementHelper;
+#include "qore/intern/DatasourceStatementHelper.h"
 
 #define STMT_IDLE      0
 #define STMT_PREPARED  1
