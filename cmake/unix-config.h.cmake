@@ -161,10 +161,10 @@
 #cmakedefine HAVE_SOLARIS_STYLE_GETHOST
 
 /* stl hash_map and list */
-#cmakedefine HASH_MAP_INCLUDE
-#cmakedefine HASH_NAMESPACE
-#cmakedefine HASH_SET_INCLUDE
-#cmakedefine HASH_TYPE
+#cmakedefine HASH_MAP_INCLUDE @HASH_MAP_INCLUDE@
+#cmakedefine HASH_NAMESPACE @HASH_NAMESPACE@
+#cmakedefine HASH_SET_INCLUDE @HASH_SET_INCLUDE@
+#cmakedefine HASH_TYPE @HASH_TYPE@
 #cmakedefine HAVE_EXT_HASH_MAP
 #cmakedefine HAVE_EXT_HASH_SET
 #cmakedefine HAVE_EXT_SLIST
@@ -174,10 +174,10 @@
 #cmakedefine HAVE_QORE_SLIST
 #cmakedefine HAVE_SLIST
 #cmakedefine HAVE_UNORDERED_MAP
-#cmakedefine LIST_NAMESPACE
-#cmakedefine LIST_SET_INCLUDE
-#cmakedefine SLIST_INCLUDE
-#cmakedefine SLIST_TYPE
+#cmakedefine LIST_NAMESPACE @LIST_NAMESPACE@
+#cmakedefine LIST_SET_INCLUDE @LIST_SET_INCLUDE@
+#cmakedefine SLIST_INCLUDE @SLIST_INCLUDE@
+#cmakedefine SLIST_TYPE @SLIST_TYPE@
 
 /* CPU:s */
 #cmakedefine CPU_X86_64

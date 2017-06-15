@@ -272,6 +272,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(HAVE_CXX11 true)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
@@ -618,14 +619,19 @@ target_link_libraries(qr libqore)
 set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
+message(STATUS "Generating unix-config.h")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
+message(STATUS "Generating qore-version.h")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/qore-version.h)
+message(STATUS "Generating QoreConfigVersion.cmake")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfigVersion.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake @ONLY)
+message(STATUS "Generating QoreConfig.cmake")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake @ONLY)
+message(STATUS "Generating qore.pc")
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
                ${CMAKE_BINARY_DIR}/qore.pc @ONLY)
 
@@ -762,5 +768,6 @@ qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
 # print info
+message(STATUS "")
 message(STATUS "Implicit link libraries and flags detected for C++: ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
 qore_config_info()
