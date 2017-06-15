@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), left(l), right(r) {
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), inParenthesis(false), left(l), right(r) {
    //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
 }
 
@@ -44,6 +44,10 @@ QoreTreeNode::~QoreTreeNode() {
 
 void QoreTreeNode::ignoreReturnValue() {
    ignore_rv();
+}
+
+void QoreTreeNode::setInParenthesis() {
+    inParenthesis = true;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

@@ -37,6 +37,7 @@ class QoreTreeNode : public ParseNode {
 protected:
    Operator *op;
    const QoreTypeInfo *returnTypeInfo;
+   bool inParenthesis; // whether or not the node was enclosed in parenthesis
 
    DLLLOCAL virtual ~QoreTreeNode();
 
@@ -64,6 +65,9 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
+
+   DLLLOCAL virtual bool getInParenthesis() const { return inParenthesis; }
+   DLLLOCAL virtual void setInParenthesis();
 
    DLLLOCAL void ignoreReturnValue();
 

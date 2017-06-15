@@ -1285,6 +1285,14 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
    return $$;
 }
 
+static void check_operator(const AbstractQoreNode *n, const Operator *parent, const Operator *child) {
+    if (n->getType() == NT_TREE && parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
+        const QoreTreeNode *tn = reinterpret_cast<const QoreTreeNode *>(n);
+        if (!tn->getInParenthesis() && tn->getOp() == child) {
+            qore_program_private::makeParseWarning(getProgram(), QP_WARN_BROKEN_LOGIC_PRECEDENCE, "BROKEN-LOGIC-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child->getDescription(), parent->getDescription());
+        }
+    }
+}
 %}
 
 %pure-parser
@@ -3143,6 +3151,9 @@ exp_c:  scalar
                  case NT_BAREWORD:
                     reinterpret_cast<BarewordNode*>($2)->setFinalized();
                     break;
+                 case NT_TREE:
+                    reinterpret_cast<QoreTreeNode*>($2)->setInParenthesis();
+                    break;
               }
            }
         }
@@ -3220,13 +3231,13 @@ exp
     | exp P_INCREMENT                   { $$ = new QorePostIncrementOperatorNode($1); } // post-increment
     | exp P_DECREMENT                   { $$ = new QorePostDecrementOperatorNode($1); } // post-decrement
     | exp '(' myexp ')'                 { $$ = processCall($1, $3); }
-    | exp LOGICAL_AND exp               { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
+    | exp LOGICAL_AND exp               { check_operator($1, OP_LOG_AND, OP_LOG_OR); $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
     | exp LOGICAL_OR exp                { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
     | exp BROKEN_LOGICAL_OR exp         { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
     | exp BROKEN_BINARY_OR exp          { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
-    | exp BROKEN_BINARY_XOR exp         { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
+    | exp BROKEN_BINARY_XOR exp         { check_operator($1, OP_BIN_XOR, OP_BIN_OR); $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp '|' exp                       { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
-    | exp '&' exp                       { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
+    | exp '&' exp                       { check_operator($1, OP_BIN_AND, OP_BIN_OR); check_operator($1, OP_BIN_AND, OP_BIN_XOR); $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp '^' exp                       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp REGEX_MATCH regex             { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
     | exp REGEX_NMATCH regex            { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }

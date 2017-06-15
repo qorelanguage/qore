@@ -87,6 +87,7 @@ public class LogicTest inherits QUnit::Test {
         assertTrue(True || True && x());
         assertTrue(True || x() && x());
 %broken-logic-precedence
+%disable-warning broken-logic-precedence
         assertEq(0, True | False & False);
         assertEq(0, True | True & False);
         assertEq(0, True | False ^ True);
@@ -100,6 +101,22 @@ public class LogicTest inherits QUnit::Test {
             Program pgm(PO_BROKEN_LOGIC_PRECEDENCE);
             pgm.parse("%correct-logic-precedence\nint sub get() { return True | False & False; }", "");
             assertEq(1, pgm.callFunction("get"));
+        }
+
+%broken-logic-precedence
+        assertFalse(True || False && False);
+        assertEq(0, 1 | 2 ^ 3 & 5);
+        {
+            Program a(PO_BROKEN_LOGIC_PRECEDENCE|PO_NEW_STYLE);
+            a.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+            *hash h = a.parse("int x; if (True || False && False) { x = 1; };", "warn", WARN_BROKEN_LOGIC_PRECEDENCE);
+            assertEq("<run-time-loaded: warn>", h.file);
+            assertEq("BROKEN-LOGIC-PRECEDENCE", h.err);
+            h = a.parse("x = 1 | 2 ^ 3 & 5;", "warn", WARN_BROKEN_LOGIC_PRECEDENCE);
+            assertEq("<run-time-loaded: warn>", h.file);
+            assertEq("BROKEN-LOGIC-PRECEDENCE", h.err);
+            assertEq("<run-time-loaded: warn>", h.next.file);
+            assertEq("BROKEN-LOGIC-PRECEDENCE", h.next.err);
         }
     }
 }
