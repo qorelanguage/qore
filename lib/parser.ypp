@@ -1286,10 +1286,10 @@ static AbstractQoreNode* processCall(AbstractQoreNode* $1, AbstractQoreNode* $3)
 }
 
 static void check_operator(const AbstractQoreNode *n, const Operator *parent, const Operator *child) {
-    if (n->getType() == NT_TREE && parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE_WARN)) {
+    if (n->getType() == NT_TREE && parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
         const QoreTreeNode *tn = reinterpret_cast<const QoreTreeNode *>(n);
         if (!tn->getInParenthesis() && tn->getOp() == child) {
-            qore_program_private::makeParseWarning(getProgram(), QP_WARN_DEFAULT, "OPERATOR-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child->getDescription(), parent->getDescription());
+            qore_program_private::makeParseWarning(getProgram(), QP_WARN_BROKEN_LOGIC_PRECEDENCE, "BROKEN-LOGIC-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child->getDescription(), parent->getDescription());
         }
     }
 }

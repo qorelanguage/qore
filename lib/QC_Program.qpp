@@ -419,13 +419,6 @@ const PO_BROKEN_LIST_PARSING = PO_BROKEN_LIST_PARSING;
 */
 const PO_BROKEN_LOGIC_PRECEDENCE = PO_BROKEN_LOGIC_PRECEDENCE;
 
-//! allows for warn before expressions affected by @ref broken-logic-precedence "%broken-logic-precedence"
-/** @see @ref broken-logic-precedence-warn "%broken-logic-precedence-warn"
-
-    @since %Qore 0.8.12
-*/
-const PO_BROKEN_LOGIC_PRECEDENCE_WARN = PO_BROKEN_LOGIC_PRECEDENCE_WARN;
-
 //! allows for old pre-%Qore 0.8.12 broken runtime @ref int_type "int" assignments where runtime type errors were ignored
 /** @see @ref broken-int-assignments "%broken-int-assignments"
 
@@ -464,6 +457,7 @@ const WARN_CALL_WITH_TYPE_ERRORS = QP_WARN_CALL_WITH_TYPE_ERRORS;
     - @ref WARN_DEPRECATED
     - @ref WARN_DUPLICATE_HASH_KEY
     - @ref WARN_DUPLICATE_BLOCK_VARS
+    - @ref WARN_BROKEN_LOGIC_PRECEDENCE
 */
 const WARN_DEFAULT = QP_WARN_DEFAULT;
 
@@ -511,6 +505,7 @@ const WARN_INVALID_OPERATION = QP_WARN_INVALID_OPERATION;
     - @ref WARN_RETURN_VALUE_IGNORED
     - @ref WARN_DUPLICATE_HASH_KEY
     - @ref WARN_DUPLICATE_BLOCK_VARS
+    - @ref WARN_BROKEN_LOGIC_PRECEDENCE
 */
 const WARN_MODULES = QP_WARN_MODULES;
 
@@ -553,6 +548,14 @@ const WARN_UNREFERENCED_VARIABLE = QP_WARN_UNREFERENCED_VARIABLE;
 /** @see @ref warning-mask-unchanged
  */
 const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
+
+//! This warns before expressions affected by @ref broken-logic-precedence "%broken-logic-precedence"
+/** @see @ref warning-broken-logic-precedence
+ *
+    @since %Qore 0.8.12.11
+*/
+const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
+
 //@}
 
 //! Program objects allow %Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
