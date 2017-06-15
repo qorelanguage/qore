@@ -181,10 +181,10 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
         message(STATUS "")
-        message(STATUS "uninstall target: make uninstall")
+        message(STATUS "Module ${_module_name} uninstall target: make uninstall")
         message(STATUS "")
     else()
-        message(WARNING "Uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
+        message(WARNING "Module ${_module_name} uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
     endif()
 
     # docs
@@ -202,14 +202,14 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             add_dependencies(docs ${_module_name})
 
             message(STATUS "")
-            message(STATUS "documentation target: make docs")
+            message(STATUS "Module ${_module_name} documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            message(WARNING "User module doxygen template file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
 
     else (DOXYGEN_FOUND)
-        message(WARNING "Doxygen not found. Documentation won't be built")
+        message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
 ENDMACRO (QORE_BINARY_MODULE)
 
@@ -230,7 +230,6 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
 
         # prepare directories for the documentation
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
-        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/modules/${f})
 
         # prepare needed vars
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
@@ -246,6 +245,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         # add CMake target for the documentation
         if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
@@ -256,6 +256,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             )
         else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
@@ -328,12 +329,12 @@ MACRO (QORE_DIST _version)
     add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
     message(STATUS "")
-    message(STATUS "tarbal creation target: make dist")
+    message(STATUS "Tarball creation target: make dist")
     message(STATUS "")
 
 ENDMACRO (QORE_DIST)
 
-# prints a sumamry of configuration
+# prints a summary of configuration
 MACRO (QORE_CONFIG_INFO)
     MESSAGE(STATUS "")
     MESSAGE(STATUS "-----------------------------")
@@ -344,9 +345,9 @@ MACRO (QORE_CONFIG_INFO)
         MESSAGE(STATUS "Archs: ${CMAKE_OSX_ARCHITECTURES}")
     ENDIF (APPLE)
     MESSAGE(STATUS "Compiler: ${CMAKE_CXX_COMPILER} - ${CMAKE_CXX_COMPILER_ID}")
-    MESSAGE(STATUS "FLags deb: ${CMAKE_CXX_FLAGS_DEBUG}")
-    MESSAGE(STATUS "FLags rel: ${CMAKE_CXX_FLAGS}")
-    MESSAGE(STATUS "FLags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    MESSAGE(STATUS "CXX Flags debug: ${CMAKE_CXX_FLAGS_DEBUG}")
+    MESSAGE(STATUS "CXX Flags release: ${CMAKE_CXX_FLAGS}")
+    MESSAGE(STATUS "CXX Flags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
     MESSAGE(STATUS "-----------------------------")
 ENDMACRO (QORE_CONFIG_INFO)
 

@@ -15,6 +15,12 @@ set(VERSION_MINOR 8)
 set(VERSION_SUB 13)
 #set(VERSION_PATCH xxx)
 
+if(DEFINED VERSION_PATCH)
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
+else()
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+endif()
+
 # If changing the module API numbers, make sure to change the appropriate
 # defines in include/qore/ModuleManager.h too.
 set(MODULE_API_MAJOR 0)
@@ -57,12 +63,6 @@ set(exec_prefix ${CMAKE_INSTALL_PREFIX})
 set(myprefix ${CMAKE_INSTALL_PREFIX})
 set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
-
-if(DEFINED VERSION_PATCH)
-    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
-else()
-    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
-endif()
 
 set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
@@ -242,6 +242,7 @@ set(QORE_DOX_TMPL_SRC
 set(QORE_CPP_SRC command-line.cpp qore-main.cpp)
 set(QR_CPP_SRC command-line.cpp qr-main.cpp)
 
+# find needed libraries
 qore_find_pthreads()
 find_package(ICONV REQUIRED)
 find_package(BISON REQUIRED)
@@ -266,7 +267,7 @@ endif (WIN32 AND MINGW AND MSYS)
 
 create_git_revision()
 
-# Check for C++11.
+# check for C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
@@ -275,7 +276,10 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-# Other checks
+# check if we need libatomic
+check_cxx_atomic()
+
+# other checks
 qore_os_checks()
 qore_iconv_translit_check()
 qore_openssl_checks()
@@ -311,6 +315,7 @@ if(NOT DEFINED NO_SIGNAL_HANDLING)
    set(HAVE_SIGNAL_HANDLING true)
 endif()
 
+# prepare scanner and parser targets
 bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 add_flex_bison_dependency(qorescanner qoreparser)
@@ -572,6 +577,7 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
     set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
 endif ()
 
+# prepare libqore target
 if (SINGLE_COMPILATION_UNIT)
     add_library(libqore SHARED lib/single-compilation-unit.cpp)
 else (SINGLE_COMPILATION_UNIT)
@@ -592,9 +598,6 @@ endif (WIN32 AND MINGW AND MSYS)
 
 target_include_directories(libqore PUBLIC ${Backtrace_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
 
-# check if we need libatomic
-check_cxx_atomic()
-
 target_link_libraries(libqore ${Backtrace_LIBRARIES} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 if (WIN32 AND MINGW AND MSYS)
     target_link_libraries(libqore ${WINSOCKET_LIBRARIES})
@@ -606,6 +609,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 endif (APPLE)
 
+# prepare qore and qr targets
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
 add_executable(qr ${QR_CPP_SRC})
@@ -613,6 +617,7 @@ target_link_libraries(qr libqore)
 
 set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
+# configuration files
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake
@@ -624,6 +629,10 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
                ${CMAKE_BINARY_DIR}/qore.pc @ONLY)
 
+# prepare dist target
+qore_dist(${VERSION})
+
+# prepare installation targets
 install(PROGRAMS ${QORE_BIN_FILES}
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
@@ -649,6 +658,7 @@ install(FILES qore.1
 install(FILES doxygen/Doxyfile.in
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
+# prepare documentation targets
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     # documentation
@@ -665,9 +675,9 @@ if (DOXYGEN_FOUND)
     # library
     message(STATUS "Preparing Doxyfile for library")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib @ONLY)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html)
     add_custom_target(docs-lib
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/library/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
@@ -677,15 +687,22 @@ if (DOXYGEN_FOUND)
     # lang
     message(STATUS "Preparing Doxyfile for lang")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lang/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang @ONLY)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html)
     add_custom_target(docs-lang
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/lang/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
         COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
     )
     add_dependencies(docs docs-lang)
 endif (DOXYGEN_FOUND)
+
+add_custom_target(install-docs
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/ ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
+)
+add_dependencies(install-docs docs)
 # end of documentation
 
 # astparser module
@@ -744,5 +761,6 @@ qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUti
 qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
+# print info
 message(STATUS "Implicit link libraries and flags detected for C++: ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
-message(WARNING "Please do not use CMake for production/real builds. CMake support is experimental and it does not contain all required setup.")
+qore_config_info()
