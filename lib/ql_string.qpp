@@ -352,6 +352,7 @@ const RE_Global = QRE_GLOBAL;
     |!Character|!Description
     |\c s|string
     |\c d|Integer, output in base 10 format
+    |\c o|Integer, output in base 8 (octal) format
     |\c f|Literal floating point value
     |\c F|Literat floating point value
     |\c a|Hexadecimal floating-point output with lower-case \c "0x" and \c "abcdef"
@@ -367,13 +368,30 @@ const RE_Global = QRE_GLOBAL;
     @anchor string_escape_chars
     <b>String Escape Characters</b>
     |!Escape Characters|!Description
+    |\c \\b|a backspace character
+    |\c \\f|a form-feed character
     |\c \\n|a newline character
     |\c \\r|a carriage-return character
     |\c \\t|a tab character
-    |\c \\b|a backspace character
-    |\c \\f|a form-feed character
+    |\c \\v|a vertical tab character
     |\c \\<em>num</em>|an 8-bit character whose value is the 1, 2, or 3 digit octal number \a num
     |\c \\\"|a double-quote character (\c \")
+    |\c \\\\|a backslash character
+
+    @warning Trying to escape a 3-digit octal number in the range 400-777 will result in a \c PARSE-EXCEPTION being thrown. Trying to parse a number starting with 8 or 9 will result in that number being reproduced literally.
+    @code{.py}
+string abc = "Number: \455"; # will throw a parse error
+    @endcode
+    @code{.py}
+string abc = "Number: \820";
+printf(abc); # will print out "Number: 820"
+    @endcode
+
+    @note Trying to escape any other character will result in that character being reproduced literally:
+    @code{.py}
+string abc = "He\llo\, worl\d!";
+printf(abc); # will print out "Hello, world!"
+    @endcode
  */
 //@{
 
