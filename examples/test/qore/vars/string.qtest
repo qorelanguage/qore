@@ -23,6 +23,7 @@ class StringTest inherits QUnit::Test {
         addTestCase("Chomp and trim test", \testChompAndTrim());
         addTestCase("Float strings test", \testFloat());
         addTestCase("String conversion test", \testConversions());
+        addTestCase("Octal value escaping test", \testOctalEscaping());
         set_return_value(main());
     }
 
@@ -366,5 +367,15 @@ class StringTest inherits QUnit::Test {
 
     testConversions() {
         assertEq("", string(NULL));
+    }
+
+    testOctalEscaping() {
+        assertEq("\r\n !X| ¥λ", "\15\12 \41\130\174 \302\245\316\273");
+        assertEq("820 95", sprintf("\820 \95"));
+
+        Program p(PO_NEW_STYLE);
+        p.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+        assertThrows("PARSE-EXCEPTION", "escape invalid octal value", sub () { p.parse("string abc = \"Number: \\400\";", "test"); });
+        assertThrows("PARSE-EXCEPTION", "escape invalid octal value", sub () { p.parse("string abc = \"Number: \\777\";", "test"); });
     }
 }
