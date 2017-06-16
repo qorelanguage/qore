@@ -39,6 +39,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ConstantList.h"
 #include "qore/intern/QoreTypeInfo.h"
+#include "qore/intern/QC_Breakpoint.h"
 
 #include <string>
 #include <set>
@@ -1789,6 +1790,9 @@ QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionS
    return priv->runtimeFindCallVariants(name, xsink);
 }
 
+QoreRWLock QoreBreakpoint::lck_breakpoint;
+QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
+
 void QoreBreakpoint::unassignAllStatements() {
    for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
       (*it)->unassignBreakpoint(this);
@@ -1808,6 +1812,11 @@ QoreBreakpoint& QoreBreakpoint::operator=(const QoreBreakpoint& other) {
    return *this;
 }
 
+QoreBreakpoint::QoreBreakpoint(): pgm(0), qo(0), enabled(false), policy(BKP_PO_NONE) {
+   QoreAutoRWWriteLocker al(&QoreBreakpoint::lck_breakpoint);
+   QoreBreakpoint::breakpointList.push_back(this);
+}
+
 QoreBreakpoint::~QoreBreakpoint() {
    if (pgm) {
       QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
@@ -1816,8 +1825,11 @@ QoreBreakpoint::~QoreBreakpoint() {
    } else {
       unassignAllStatements();
    }
+   QoreAutoRWWriteLocker al(&QoreBreakpoint::lck_breakpoint);
+   QoreBreakpoint::breakpointList.remove(this);
 }
-// lck_breakpoint lock should be aquired
+
+// lck_breakpoint lock should be acquired
 bool QoreBreakpoint::isStatementAssigned(const AbstractStatement *statement) const {
    return std::find(statementList.begin(), statementList.end(), statement) != statementList.end();
 }
@@ -2020,4 +2032,38 @@ bool QoreBreakpoint::isThreadId(int tid, ExceptionSink* xsink) {
 void QoreBreakpoint::clearThreadIds(ExceptionSink* xsink) {
    QoreAutoRWWriteLocker al(pgm ? &pgm->lck_breakpoint : 0);
    tidMap.clear();
+}
+
+QoreStringNode* QoreBreakpoint::getBreakpointId() const {
+   char buff[2*sizeof(this)+5 +1+1];  // printf %p is implementation specific
+   snprintf(buff, sizeof(buff), "%p", this);
+   return new QoreStringNode(buff);
+}
+
+QoreBreakpoint* QoreBreakpoint::resolveBreakpointId(const char *breakpointId) {
+   if (!breakpointId)
+      return 0;
+   QoreAutoRWReadLocker al(&QoreBreakpoint::lck_breakpoint);
+   QoreBreakpoint* b;
+   int n;
+   if ((n = sscanf(breakpointId, "%p", &b) != 1)) {
+      printd(5, "qore_program_private::resolveBreakpointId(%s), n:%d\n", breakpointId, n);
+      return 0;
+   }
+   if (std::find(QoreBreakpoint::breakpointList.begin(), QoreBreakpoint::breakpointList.end(), b) == QoreBreakpoint::breakpointList.end()) {
+      printd(5, "qore_program_private::resolveBreakpointId(%s), unknown pointer\n", breakpointId);
+      return 0;
+   }
+   return b;
+}
+
+QoreObject* QoreBreakpoint::getQoreObject() {
+   QoreAutoRWWriteLocker al(&QoreBreakpoint::lck_breakpoint);   // reuse global lock, local would be enough
+   if (qo) {
+      qo->ref();
+   } else {
+      qo = new QoreObject(QC_BREAKPOINT, getProgram(), this);
+      this->ref();
+   }
+   return qo;
 }

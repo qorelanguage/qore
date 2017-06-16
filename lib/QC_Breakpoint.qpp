@@ -83,7 +83,7 @@ qclass Breakpoint [arg=QoreBreakpoint* bkpt; ns=Breakpoint];
  */
 Breakpoint::constructor() {
    QoreBreakpoint *qb = new QoreBreakpoint();
-   qb->setObject(self);
+   qb->setQoreObject(self);
    self->setPrivate(CID_BREAKPOINT, qb);
 }
 
@@ -92,7 +92,7 @@ Breakpoint::constructor() {
  */
 Breakpoint::copy() {
    QoreBreakpoint *qb = new QoreBreakpoint(*bkpt);
-   qb->setObject(self);
+   qb->setQoreObject(self);
    self->setPrivate(CID_BREAKPOINT, qb);
 }
 
@@ -101,7 +101,7 @@ Breakpoint::copy() {
  *
  */
 Breakpoint::destructor() {
-   bkpt->setObject(0);
+   bkpt->setQoreObject(0);
    bkpt->deref();
 }
 
@@ -121,9 +121,9 @@ bool Breakpoint::getEnabled() {
    return bkpt->enabled;
 }
 
-
 //! Defines policy how thread list is evaluated. See @ref breakpoint_policy_options
 /**
+   @throw BREAKPOINT-ERROR if policy is wrong value
  */
 nothing Breakpoint::setPolicy(softint policy) {
    switch (policy) {
@@ -133,7 +133,7 @@ nothing Breakpoint::setPolicy(softint policy) {
       bkpt->policy = (BreakpointPolicy)policy;
       break;
    default:
-      xsink->raiseException("BREAKPOINT-POLICY-ERROR", "wrong policy value");
+      xsink->raiseException("BREAKPOINT-ERROR", "wrong policy value");
    }
 }
 
@@ -251,5 +251,29 @@ bool Breakpoint::isThreadId(softint tid) {
  */
 nothing Breakpoint::clearThreadIds() {
    bkpt->clearThreadIds(xsink);
+}
+
+//! Get breakpoint id
+/**
+   @see
+      @ref Breakpoint::getBreakpointId()
+ */
+string Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
+   return bkpt->getBreakpointId();
+}
+
+//! Get instance of breakpoint id
+/**
+   @see
+      @ref Breakpoint::resolveBreakpointId()
+
+   @throw BREAKPOINT-ERROR if the breakpointId cannot identify @ref Breakpoint instance
+
+ */
+static Breakpoint Breakpoint::resolveBreakpointId(string breakpointId) {
+   QoreBreakpoint* b = QoreBreakpoint::resolveBreakpointId(breakpointId->c_str());
+   if (!b)
+      return xsink->raiseException("BREAKPOINT-ERROR", "wrong breakpointId \"%s\"", breakpointId->c_str());
+   return b->getQoreObject();
 }
 

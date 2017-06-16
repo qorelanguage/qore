@@ -482,7 +482,12 @@ class DebugTest inherits QUnit::Test {
         b2.unassignStatement(thisProgram.findStatementId('', line.tstFunction+9));
         checkProgram("breakpoint b1(enable), b2(accept,group2)", splice(action2, 1, 0, list(DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6))), "DIVISION-BY-ZERO");
         b2.setEnabled(False);
-        checkProgram("breakpoint b1(enable), b2(dísable,group)", action3, traceLog3, "DIVISION-BY-ZERO");
+        checkProgram("breakpoint b1(enable), b2(disable,group)", action3, traceLog3, "DIVISION-BY-ZERO");
+
+        testAssertionValue('getBreakpointId', b1.getBreakpointId().substr(0,2), "0x");
+        testAssertionValue('getBreakpointId compare', b1.getBreakpointId() == b2.getBreakpointId(), False);
+        assertThrows('BREAKPOINT-ERROR', \Breakpoint::resolveBreakpointId(), ("0x000000"), '.resolveBreakpointId() no breakpoint');
+        testAssertionValue('resolveBreakpointId', Breakpoint::resolveBreakpointId(b1.getBreakpointId()).getBreakpointId(), b1.getBreakpointId());
     }
 
     multiThreadBreakTest() {

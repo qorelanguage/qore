@@ -111,6 +111,7 @@ class qore_program_private;
 class AbstractQoreProgramExternalData;
 class QoreBreakpoint;
 class AbstractQoreFunctionVariant;
+class QoreRWLock;
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
@@ -913,6 +914,9 @@ private:
    typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
    TidMap_t tidMap;
    QoreObject* qo; // reference to Qore script object, it's private object but we cannot
+   typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+   static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
+   static QoreBreakpointList_t breakpointList;
 
    DLLLOCAL void unassignAllStatements();
    DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
@@ -931,7 +935,7 @@ public:
     */
    BreakpointPolicy policy;
 
-   DLLEXPORT QoreBreakpoint(): pgm(0), qo(0), enabled(false), policy(BKP_PO_NONE) {}
+   DLLEXPORT QoreBreakpoint();
    /** Copy all props but object reference
     *
     */
@@ -990,13 +994,24 @@ public:
     */
    DLLEXPORT void clearThreadIds(ExceptionSink* xsink);
 
-   /* it is for private purpose but we cannot define friend procedure because it's is qpp generated function */
-   DLLLOCAL void setObject(QoreObject *q) {
-      qo = q;
+   //! get the breakpoint id
+   /**
+      @return the breakpoint id which consists of pointer of QoreBreakpoint instance
+    */
+   DLLEXPORT QoreStringNode* getBreakpointId() const;
+
+   //! get the breakpoint from breakpoint id
+   /**
+      @param breakpointId created by @ref Program::getBreakpointId
+
+      @return the original breakpoint or null if object cannot be resolved
+    */
+   DLLEXPORT static QoreBreakpoint* resolveBreakpointId(const char *breakpointId);
+
+   DLLEXPORT void setQoreObject(QoreObject *n_qo) {
+      qo = n_qo;
    }
-   DLLLOCAL QoreObject* getObject() {
-      return qo;
-   }
+   DLLEXPORT QoreObject* getQoreObject();
 
 };
 

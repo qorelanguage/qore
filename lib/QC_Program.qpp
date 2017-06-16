@@ -1691,14 +1691,7 @@ list Program::getBreakpoints() {
    p->getBreakpoints(bl);
    QoreListNode *l = new QoreListNode;
    for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
-      if (!(*it)->getObject()) {
-         // create script object if not exists
-         QoreObject *q = new QoreObject(QC_BREAKPOINT, p, *it);
-//         q->setPrivate(CID_BREAKPOINT, (*it));
-         (*it)->setObject(q);
-         (*it)->ref();
-      }
-      l->push((*it)->getObject());
+      l->push((*it)->getQoreObject());
    }
    return l;
 }
@@ -1797,6 +1790,8 @@ string Program::getProgramId() [flags=RET_VALUE_ONLY;] {
 /**
    @see
       @ref Program::resolveProgramId()
+
+   @throw PROGRAM-ERROR if the programId cannot identify @ref Program instance
 
    @since %Qore 0.8.13
  */
