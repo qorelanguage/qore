@@ -775,7 +775,13 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
+   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+      delete it->second;
+   }
    statementByFileIndex.clear();
+   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+      delete it->second;
+   }
    statementByLabelIndex.clear();
 }
 
