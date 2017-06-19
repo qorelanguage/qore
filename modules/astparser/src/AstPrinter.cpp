@@ -80,7 +80,7 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "const " << d->name.name << " = ";
-
+    // TODO
 }
 
 void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration* d) {

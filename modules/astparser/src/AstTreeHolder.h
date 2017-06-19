@@ -48,6 +48,8 @@ public:
 
     void printTree(std::ostream& os);
 
+    QoreListNode* getNodesInfo();
+
     void set(ASTTree* t);
     ASTTree* get();
     ASTTree* release();

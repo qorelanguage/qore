@@ -41,6 +41,7 @@ set(ASTPARSER_CPP_SRC
     src/queries/FindReferencesQuery.cpp
     src/queries/FindSymbolInfoQuery.cpp
     src/queries/FindSymbolsQuery.cpp
+    src/queries/GetNodesInfoQuery.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp
 )

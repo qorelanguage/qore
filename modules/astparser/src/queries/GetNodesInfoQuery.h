@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AstTreePrinter.h
+  GetNodesInfoQuery.h
 
   Qore AST Parser
 
@@ -25,37 +25,48 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_ASTTREEPRINTER_H
-#define _QLS_ASTTREEPRINTER_H
+#ifndef _QLS_QUERIES_GETNODESINFOQUERY_H
+#define _QLS_QUERIES_GETNODESINFOQUERY_H
 
-#include <ostream>
+#include <vector>
 
 #include "ast/ASTModifiers.h"
 #include "ast/ASTName.h"
 #include "ast/ASTOperator.h"
-#include "ast/ASTParseLocation.h"
 
 class ASTDeclaration;
 class ASTExpression;
-class ASTNode;
 class ASTParseOption;
 class ASTStatement;
 class ASTTree;
 
-class AstTreePrinter {
-public:
-    static void printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent);
-    static void printExpression(std::ostream& os, ASTExpression* expr, int indent);
-    static void printLocation(std::ostream& os, const ASTParseLocation& loc, int indent, bool newline = true);
-    static void printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly = false);
-    static void printName(std::ostream& os, ASTName& name, int indent, bool location = true, bool newline = true, const char* prefix = "name: ");
-    static void printOperator(std::ostream& os, ASTOperator op, int indent, bool newline);
-    static void printParseOption(std::ostream& os, ASTParseOption* po, int indent);
-    static void printParseOptionString(std::ostream& os, ASTParseOption* po);
-    static void printStatement(std::ostream& os, ASTStatement* stmt, int indent);
-    static void printNode(std::ostream& os, ASTNode* node, int indent);
+class ExceptionSink;
+class QoreHashNode;
+class QoreListNode;
+class QoreStringNode;
 
-    static void printTree(std::ostream& os, ASTTree* tree);
+class GetNodesInfoQuery {
+public:
+    GetNodesInfoQuery() = delete;
+    GetNodesInfoQuery(const GetNodesInfoQuery& other) = delete;
+
+    //! Get info about nodes in the given tree.
+    /**
+        @param tree tree to search
+        @return list of info about nodes
+    */
+    static QoreListNode* get(ASTTree* tree);
+
+private:
+    static QoreHashNode* getDeclaration(ASTDeclaration* decl, ExceptionSink* xsink);
+    static QoreHashNode* getExpression(ASTExpression* expr, ExceptionSink* xsink);
+    static QoreStringNode* getLocation(const ASTParseLocation& loc);
+    static QoreStringNode* getModifiers(ASTModifiers& mods);
+    static QoreHashNode* getName(ASTName& name, ExceptionSink* xsink);
+    static QoreHashNode* getName(ASTName* name, ExceptionSink* xsink);
+    static QoreStringNode* getOperator(ASTOperator& op);
+    static QoreHashNode* getParseOption(ASTParseOption* po, ExceptionSink* xsink);
+    static QoreHashNode* getStatement(ASTStatement* stmt, ExceptionSink* xsink);
 };
 
-#endif // _QLS_ASTTREEPRINTER_H
+#endif // _QLS_QUERIES_GETNODESINFOQUERY_H
