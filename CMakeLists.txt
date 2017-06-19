@@ -579,7 +579,7 @@ if (NOT HAVE_INET_PTON)
     set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_pton.cpp)
 endif ()
 if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
-    set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
 # prepare libqore target
