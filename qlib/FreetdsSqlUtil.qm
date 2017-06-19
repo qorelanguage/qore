@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -112,6 +112,9 @@ module FreetdsSqlUtil {
 
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+
+    @subsection freetdssqlutilv11 FreetdsSqlUtil v1.2
+    - fixed a bug where @ref SqlUtil::BLOB columns were created as \c VARBINARY columns instead of \c VARBINARY(MAX) (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
 
     @subsection freetdssqlutilv11 FreetdsSqlUtil v1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -882,6 +885,7 @@ my any $v = $c.name;
                 "binary": ("qore": Type::Binary, "size": SZ_OPT),
                 "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
                 "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary(max)": ("qore": Type::Binary,),
 
                 # The following are used in Sybase, supported & deprecated in MS SQL
                 "text": ("qore": Type::String,), # domain, implemented as "long varchar"
@@ -891,7 +895,7 @@ my any $v = $c.name;
                 "long varchar": ("qore": Type::String,),
                 );
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to DB type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "float",
@@ -902,8 +906,15 @@ my any $v = $c.name;
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",
                 SqlUtil::CLOB: "text",
-                SqlUtil::BLOB: "varbinary",
                 );
+
+            #! maps qore type names to MS SQL Server type names
+            const MsQoreTypeMap = QoreTypeMap + (
+                SqlUtil::BLOB: "varbinary(max)",
+                );
+
+            #! maps qore type names to Sybase/SAP type names
+            const SybaseQoreTypeMap = QoreTypeMap;
 
             #! equal to @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
             const FreetdsTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions;
@@ -1663,7 +1674,7 @@ order by
         }
 
         private hash getQoreTypeMapImpl() {
-            return QoreTypeMap;
+            return is_sybase ? SybaseQoreTypeMap : MsQoreTypeMap;
         }
 
         private hash getTypeMapImpl() {

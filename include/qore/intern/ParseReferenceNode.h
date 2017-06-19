@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_INTERN_PARSEREFERENCENODE_H
 #define _QORE_INTERN_PARSEREFERENCENODE_H
 
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 class IntermediateParseReferenceNode;
 
@@ -52,7 +52,7 @@ protected:
       return evalToRef(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, ExceptionSink* xsink) const;
+   DLLLOCAL AbstractQoreNode* doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const;
 
    //! initializes during parsing
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
@@ -61,7 +61,7 @@ public:
    //! creates the ReferenceNode object with the given lvalue expression
    /** @param exp must be a parse expression for an lvalue
     */
-   DLLLOCAL ParseReferenceNode(AbstractQoreNode* exp) : ParseNode(NT_PARSEREFERENCE, true, false), lvexp(exp) {
+   DLLLOCAL ParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp) {
    }
 
    //! concatenate the verbose string representation of the value to an existing QoreString
@@ -99,7 +99,7 @@ public:
       return referenceTypeInfo;
    }
 
-   // returns an intermediate reference for use with the backgroun operator
+   // returns an intermediate reference for use with the background operator
    DLLLOCAL IntermediateParseReferenceNode* evalToIntermediate(ExceptionSink* xsink) const;
 
    // returns a runtime reference
@@ -110,6 +110,7 @@ class IntermediateParseReferenceNode : public ParseReferenceNode {
 protected:
    QoreObject* self;
    const void* lvalue_id;
+   const qore_class_private* cls;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
       if (lvexp)
@@ -119,12 +120,11 @@ protected:
    }
 
 public:
-   DLLLOCAL IntermediateParseReferenceNode(AbstractQoreNode* exp, QoreObject* o, const void* lvid) : ParseReferenceNode(exp), self(o), lvalue_id(lvid) {
-   }
+   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
 
    // returns a runtime reference
    DLLLOCAL virtual ReferenceNode* evalToRef(ExceptionSink* xsink) const {
-      return new ReferenceNode(lvexp->refSelf(), self, lvalue_id);
+      return new ReferenceNode(lvexp->refSelf(), self, lvalue_id, cls);
    }
 };
 

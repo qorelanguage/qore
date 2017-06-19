@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, QoreClass*, qore_hash_str, eqstr> hm_qc_t;
 #else
@@ -95,7 +95,7 @@ public:
 
    DLLLOCAL AbstractQoreNode* findConstant(const char* cname, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL AbstractQoreNode* parseResolveBareword(const char* name, const QoreTypeInfo*& typeInfo);
+   //DLLLOCAL AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL bool empty() const {
       return hm.empty();

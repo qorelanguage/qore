@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +47,8 @@ extern bool threads_initialized;
 static QoreThreadLock debug_output_lock;
 #endif
 
+#define QORE_QUICK_TIMESTAMP_LOG
+
 int printe(const char *fmt, ...) {
    va_list args;
    QoreString buf;
@@ -58,14 +60,28 @@ int printe(const char *fmt, ...) {
       if (!rc)
 	 break;
    }
-		    
+
    fputs(buf.getBuffer(), stderr);
    fflush(stderr);
    return 0;
 }
 
+#ifdef QORE_QUICK_TIMESTAMP_LOG
+static void get_timestamp(int &secs, int &us) {
+   static int64 startSecs;
+   static bool initFlag = false;
+   int64 secs64 = q_epoch_us(us);
+   if (initFlag) {
+      secs = secs64-startSecs;
+   } else {
+      secs = 0;
+      startSecs = secs64;
+      initFlag = true;
+   }
+}
+#else
 static void get_timestamp(QoreString &str) {
-   if (!threads_initialized)
+   if (!(threads_initialized && is_valid_qore_thread()))
       return;
 
    int us;
@@ -74,6 +90,7 @@ static void get_timestamp(QoreString &str) {
    now.setDate(currentTZ(), secs, us);
    now.format(str, "YYYY-MM-DD HH:mm:SS.xx");
 }
+#endif
 
 int print_debug(int level, const char *fmt, ...) {
    if (level > debug)
@@ -90,14 +107,23 @@ int print_debug(int level, const char *fmt, ...) {
 	 break;
    }
 
+   int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
+#ifdef QORE_QUICK_TIMESTAMP_LOG
+   int secs, us;
+   get_timestamp(secs, us);
+#ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
+   AutoLocker al(debug_output_lock);
+#endif
+   fprintf(stderr, "%d.%d: TID %d: %s", secs, us, tid, buf.getBuffer());
+#else
    QoreString ts;
    get_timestamp(ts);
 
 #ifdef QORE_SERIALIZE_DEBUGGING_OUTPUT
    AutoLocker al(debug_output_lock);
 #endif
-   int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
    fprintf(stderr, "%s: TID %d: %s", ts.getBuffer(), tid, buf.getBuffer());
+#endif
    fflush(stderr);
    return 0;
 }
@@ -106,12 +132,22 @@ void trace_function(int code, const char *funcname) {
    if (!qore_trace)
       return;
 
+#ifdef QORE_QUICK_TIMESTAMP_LOG
+   int secs, us;
+   get_timestamp(secs, us);
+   if (code == TRACE_IN)
+      printe("%d.%d: TID %d: %s entered\n", secs, us, threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+   else
+      printe("%d.%d: TID %d: %s exited\n", secs, us, threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+#else
+
    QoreString ts;
    get_timestamp(ts);
    if (code == TRACE_IN)
-      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
    else
-      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+#endif
 }
 
 char *remove_trailing_newlines(char *str) {
@@ -126,21 +162,6 @@ char *remove_trailing_blanks(char *str) {
    while (i && (str[--i] == ' '))
       str[i] = '\0';
    return str;
-}
-
-void parse_error(const char *fmt, ...) {
-   printd(5, "parse_error(\"%s\", ...) called\n", fmt);
-
-   QoreStringNode *desc = new QoreStringNode;
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   qore_program_private::makeParseException(getProgram(), desc);
 }
 
 void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
@@ -161,24 +182,6 @@ void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
 void parseException(const QoreProgramLocation& loc, const char *err, QoreStringNode *desc) {
    printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
    qore_program_private::makeParseException(getProgram(), loc, err, desc);
-}
-
-void parseException(const char *err, QoreStringNode *desc) {
-   printd(5, "parseException(%s, %s) called\n", err, desc->getBuffer());
-   qore_program_private::makeParseException(getProgram(), err, desc);
-}
-
-void parseException(const char *err, const char *fmt, ...) {
-   QoreStringNode *desc = new QoreStringNode;
-   while (true) {
-      va_list args;
-      va_start(args, fmt);
-      int rc = desc->vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-	 break;
-   }
-   parseException(err, desc);
 }
 
 void parseException(const QoreProgramLocation& loc, const char *err, const char *fmt, ...) {

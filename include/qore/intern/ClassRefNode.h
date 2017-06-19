@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ClassRefNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -45,9 +45,9 @@ protected:
       // FIXME: implement a type for this
       return 0;
    }
-      
+
 public:
-   DLLLOCAL ClassRefNode(char* str) : ParseNoEvalNode(NT_CLASSREF), loc(ParseLocation), cscope(new NamedScope(str)), qc(0) {
+   DLLLOCAL ClassRefNode(const QoreProgramLocation& loc, char* str) : ParseNoEvalNode(loc, NT_CLASSREF), cscope(new NamedScope(str)), qc(nullptr) {
    }
 
    DLLLOCAL ~ClassRefNode() {
@@ -59,6 +59,7 @@ public:
    // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
    // returns -1 for exception raised, 0 = OK
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
    DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 

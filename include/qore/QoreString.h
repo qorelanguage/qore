@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -703,53 +703,93 @@ public:
    DLLEXPORT QoreString* reverse() const;
 
    //! remove trailing whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_trailing(const char* chars = 0);
 
    //! remove leading whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_leading(const char* chars = 0);
 
    //! remove leading and trailing whitespace or other characters
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim(const char* chars = 0);
 
    //! remove trailing characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_trailing(char c);
 
    //! remove a single trailing character if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_single_trailing(char c);
 
    //! remove leading characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_leading(char c);
 
    //! remove a single leading character if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim_single_leading(char c);
 
    //! remove leading and trailing characters if present
+   /** does not work with multi-byte encodings
+   */
    DLLEXPORT void trim(char c);
+
+   //! removes leading and trailing whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trim(ExceptionSink* xsink, const QoreString* chars = nullptr);
+
+   //! removes leading whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trimLeading(ExceptionSink* xsink, const QoreString* chars = nullptr);
+
+   //! removes trailing whitespace or other characters
+   /** performs character conversions, works with multi-byte encodings
+
+       @return 0 = OK, -1 = exception raised
+
+       @since Qore 0.8.13
+   */
+   DLLEXPORT int trimTrailing(ExceptionSink* xsink, const QoreString* chars = nullptr);
 
    //! return Unicode code point for character offset, string must be UTF-8
    /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), an unpredictable value will be returned
        @param offset the offset in characters (not bytes) in the string (negative offset means that many characters from the end of the string)
-       @return the unicode code for the character
+       @return the unicode code for the character or -1 in case of an error
    */
    DLLEXPORT unsigned int getUnicodePointFromUTF8(qore_offset_t offset = 0) const;
 
    //! return Unicode code point for the single character at the given character (not byte) offset in the string
-   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
-
-       @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
+   /** @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return the unicode code for the character
+       @return the unicode code for the character or -1 in case of an error
    */
    DLLEXPORT unsigned int getUnicodePoint(qore_offset_t offset, ExceptionSink* xsink) const;
 
    //! return Unicode code point for the given byte offset
-   /** if the string is not in UTF-8 encoding, only a single character is converted to make the unicode code point calculation
-       @param offset the offset in bytes in the string
+   /** @param offset the offset in bytes in the string
        @param len the length of the character in bytes in the source string in the original encoding
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
-       @return the unicode code for the character at the given byte offset
+       @return the unicode code for the character at the given byte offset or -1 in case of an error
 
        @since Qore 0.8.8
    */
@@ -778,6 +818,21 @@ public:
 
    //! returns true if the other string is equal to this string (encodings also must be equal)
    DLLEXPORT bool operator==(const char* other) const;
+
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const QoreString& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const std::string& other) const {
+      return !(*this == other);
+   }
+
+   //! returns true if the other string is not equal to this string (encodings also must be equal)
+   DLLLOCAL bool operator!=(const char* other) const {
+      return !(*this == other);
+   }
 
    //! returns the byte (not character) at the given location; if the location is invalid, returns 0
    /** @param pos offset in string, negative offsets are form the end of the string
@@ -1076,6 +1131,11 @@ public:
          return str->giveBuffer();
       return strdup(str->getBuffer());
    }
+
+   //! remove any leading byte order marker (BOM) from UTF-16* strings
+   /** @since Qore 0.8.13
+    */
+   DLLEXPORT void removeBom();
 };
 
 #endif

@@ -3,9 +3,9 @@
   QC_Counter.cpp
 
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2015 David Nichols
-  
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Counter.h>
+#include "qore/intern/QC_Counter.h"
 
 //! Implements a class that can be used for blocking a thread until a counter reaches zero
 /** Counter objects allow Qore threads to sleep until a counter reaches zero.
@@ -51,7 +51,7 @@ Counter counter();
  */
 Counter::constructor(softint c = 0) {
    if (c < 0) {
-      xsink->raiseException("COUNTER-ERROR", "Counter::constructor() called with initial value "QLLD", however value must be non-negative", c);
+      xsink->raiseException("COUNTER-ERROR", "Counter::constructor() called with initial value " QLLD ", however value must be non-negative", c);
       return;
    }
    self->setPrivate(CID_COUNTER, new Counter(c));
@@ -73,7 +73,7 @@ Counter::destructor() {
 }
 
 //! Creates a new Counter object with the same count as the original
-/** 
+/**
     @par Example:
     @code{.py}
 Counter new_counter = counter.copy();
@@ -84,7 +84,7 @@ Counter::copy() {
 }
 
 //! Atomically increments the counter value
-/** 
+/**
     @par Example:
     @code{.py}
 counter.inc();
@@ -102,14 +102,18 @@ nothing Counter::inc() {
 counter.dec();
     @endcode
 
+    @return the current value after the decrement is returned
+
     @throw COUNTER-ERROR Counter has been deleted in another thread or Counter is already at 0
+
+    @since %Qore 0.8.13 this method returns the current value after the decrement
  */
-nothing Counter::dec() {
-   c->dec(xsink);
+int Counter::dec() {
+   return c->dec(xsink);
 }
 
 //! Blocks a thread until the counter reaches zero
-/** 
+/**
     @par Example:
     @code{.py}
 counter.waitForZero();

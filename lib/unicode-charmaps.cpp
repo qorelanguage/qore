@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1540,25 +1540,25 @@ static int apply_unicode_charmap(const unicodecharmap_t& umap, QoreString& str, 
    for (const char* p = src.getBuffer(), *e = p + src.size(); p < e; ++p) {
       // if we discover a non-ASCII character, then we have to start worrying about conversions
       if ((*p) & 0x80) {
-	 unsigned len;
-	 unsigned uc = src.getUnicodePointFromBytePos(p - src.getBuffer(), len, xsink);
-	 if (*xsink)
-	    return -1;
-	 // see if there is a mapping
-	 unicodecharmap_t::const_iterator i = umap.find(uc);
-	 // if the character was not found, then just add the original character
-	 if (i == umap.end()) {
-	    //printd(5, "apply_unicode_charmap() no match found for %x (%d)\n", uc, ulmap.size());
-	    for (unsigned j = 0; j < len; ++j) {
-	       str.concat(*(p + j));
-	    }
-	 }
-	 else {
-	    // otherwise concatenate the new character
-	    str.concat(i->second);
-	 }
-	 p += (len - 1);
-	 continue;
+         unsigned len;
+         unsigned uc = src.getUnicodePointFromBytePos(p - src.getBuffer(), len, xsink);
+         if (*xsink)
+            return -1;
+         // see if there is a mapping
+         unicodecharmap_t::const_iterator i = umap.find(uc);
+         // if the character was not found, then just add the original character
+         if (i == umap.end()) {
+            //printd(5, "apply_unicode_charmap() no match found for %x (%d)\n", uc, ulmap.size());
+            for (unsigned j = 0; j < len; ++j) {
+               str.concat(*(p + j));
+            }
+         }
+         else {
+            // otherwise concatenate the new character
+            str.concat(i->second);
+         }
+         p += (len - 1);
+         continue;
       }
       str.concat(*p);
    }
@@ -1587,27 +1587,27 @@ static int apply_unicode_map(const unicodemap_t& umap, ascii_func_t func, QoreSt
    for (const char* p = src.getBuffer(), *e = p + src.size(); p < e; ++p) {
       // if we discover a non-ASCII character, then we have to start worrying about conversions
       if ((*p) & 0x80) {
-	 unsigned len;
-	 unsigned uc = src.getUnicodePointFromBytePos(p - src.getBuffer(), len, xsink);
-	 if (*xsink)
-	    return -1;
-	 // see if there is a mapping
-	 unicodemap_t::const_iterator i = umap.find(uc);
-	 // if the character was not found, then just add the original character
-	 if (i == umap.end()) {
-	    //printd(5, "apply_unicode_map() no match found for %x (%d)\n", uc, ulmap.size());
-	    for (unsigned j = 0; j < len; ++j) {
-	       str.concat(*(p + j));
-	    }
-	 }
-	 else {
-	    // otherwise concatenate the new character
-	    str.concatUnicode(i->second, xsink);
-	    if (*xsink)
-	       return -1;
-	 }
-	 p += (len - 1);
-	 continue;
+         unsigned len;
+         unsigned uc = src.getUnicodePointFromBytePos(p - src.getBuffer(), len, xsink);
+         if (*xsink)
+            return -1;
+         // see if there is a mapping
+         unicodemap_t::const_iterator i = umap.find(uc);
+         // if the character was not found, then just add the original character
+         if (i == umap.end()) {
+            //printd(5, "apply_unicode_map() no match found for %x (%d)\n", uc, ulmap.size());
+            for (unsigned j = 0; j < len; ++j) {
+               str.concat(*(p + j));
+            }
+         }
+         else {
+            // otherwise concatenate the new character
+            str.concatUnicode(i->second, xsink);
+            if (*xsink)
+               return -1;
+         }
+         p += (len - 1);
+         continue;
       }
       str.concat(func(*p));
    }
