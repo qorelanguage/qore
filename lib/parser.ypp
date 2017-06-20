@@ -1262,9 +1262,9 @@ static AbstractQoreNode* processCall(int sline, int eline, AbstractQoreNode* $1,
    return $$;
 }
 
-static void check_operator(const AbstractQoreNode *n, const char *parent, const char *child) {
-    if (n->getType() == NT_OPERATOR && parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
-        if (!static_cast<const QoreOperatorNode *>(n)->getInParenthesis()) {
+static void check_operator(const QoreOperatorNode *n, const char *parent, const char *child) {
+    if (parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
+        if (!n->getInParenthesis()) {
             qore_program_private::makeParseWarning(getProgram(), QP_WARN_BROKEN_LOGIC_PRECEDENCE, "BROKEN-LOGIC-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child, parent);
         }
     }
@@ -1272,19 +1272,19 @@ static void check_operator(const AbstractQoreNode *n, const char *parent, const 
 
 static void check_operator_log_or(const AbstractQoreNode *n, const char *parent) {
     if (dynamic_cast< const QoreLogicalOrOperatorNode *>(n)) {
-        check_operator(n, parent, "logical OR");
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "logical OR");
     }
 }
 
 static void check_operator_bin_or(const AbstractQoreNode *n, const char *parent) {
     if (dynamic_cast< const QoreBinaryOrOperatorNode *>(n)) {
-        check_operator(n, parent, "binary OR");
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "binary OR");
     }
 }
 
 static void check_operator_bin_xor(const AbstractQoreNode *n, const char *parent) {
     if (dynamic_cast< const QoreBinaryXorOperatorNode *>(n)) {
-        check_operator(n, parent, "binary XOR");
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "binary XOR");
     }
 }
 
