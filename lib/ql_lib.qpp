@@ -858,7 +858,7 @@ if (!exists host)
 nothing gethostbyname() [flags=RUNTIME_NOOP] {
 }
 
-//! Returns the official hostname corresponding to the network addressed passed as an argument
+//! Returns the official hostname corresponding to the network address passed as an argument
 /** If the address family is invalid or the address string is not a valid address for the given family a \c GETHOSTBYADDR-ERROR exception will be thrown.
 
     @param addr the address to look up

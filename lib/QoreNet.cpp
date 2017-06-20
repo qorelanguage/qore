@@ -128,46 +128,34 @@ int q_get_port_from_addr(const struct sockaddr *ai_addr) {
    return -1;
 }
 
-// FIXME: check err?
-int q_gethostbyname(const char *host, struct in_addr *sin_addr) {
+//! Get host's IP address (struct in_addr*) from name.
+/**
+    @param host host's name
+    @param sin_addr host's IP address will be saved here
+    @return 0 in case of success, non-zero in case of error
+
+    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
+ */
+int q_gethostbyname(const char* host, struct in_addr* sin_addr) {
    QORE_TRACE("q_gethostbyname()");
 
-#ifdef HAVE_GETHOSTBYNAME_R
-   struct hostent he;
-   int err;
-   char buf[NET_BUFSIZE];
-# ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   struct hostent *p;
-
-   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
-   if (!p || rc) {
-      // NOTE: ERANGE means that the buffer was too small
-       //printd(0, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
-
+   ExceptionSink xsink;
+   QoreAddrInfo qai;
+   qai.getInfo(&xsink, host, NULL);
+   if (xsink) {
+      xsink.clear();
       return -1;
    }
-# else // assume Solaris-style gethostbyname_r
-   if (!gethostbyname_r(host, &he, buf, NET_BUFSIZE, &err)) {
-      printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
 
-      return -1;
+   struct addrinfo* addrInfo = qai.getAddrInfo();
+   while (addrInfo) {
+      if (addrInfo->ai_addr->sa_family == AF_INET) {
+         memcpy(sin_addr, &(reinterpret_cast<struct sockaddr_in*>(addrInfo->ai_addr)->sin_addr), sizeof(struct in_addr));
+         return 0;
+      }
+      addrInfo = addrInfo->ai_next;
    }
-# endif // HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   memcpy((char *)sin_addr, (char *)he.h_addr, he.h_length);
-#else  // else if !HAVE_GETHOSTBYNAME_R
-   struct hostent *he;
-   lck_gethostbyname.lock();
-   if (!(he = gethostbyname(host))) {
-      //herror("q_gethostbyname()");
-      lck_gethostbyname.unlock();
-
-      return -1;
-   }
-   memcpy((char *)sin_addr, (char *)he->h_addr, he->h_length);
-   lck_gethostbyname.unlock();
-#endif
-
-   return 0;
+   return -1;
 }
 
 static const char* q_af_to_str(int af) {
@@ -248,71 +236,83 @@ static QoreStringNode *headdr_string(struct hostent &he) {
    return new QoreStringNode;
 }
 
-QoreHashNode *q_gethostbyname_to_hash(const char *host) {
-#ifdef HAVE_GETHOSTBYNAME_R
-   struct hostent he;
-   int err;
-   char buf[NET_BUFSIZE];
-# ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   struct hostent *p;
+//! Get host's IP addresses and info from name.
+/**
+    @param host host's name
+    @return hash containing info about host
 
-   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
+    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
+ */
+QoreHashNode* q_gethostbyname_to_hash(const char* host) {
+   ExceptionSink xsink;
+   QoreAddrInfo qai;
+   qai.getInfo(&xsink, host, NULL, Q_AF_UNSPEC, AI_CANONNAME);
+   ReferenceHolder<QoreHashNode> result(new QoreHashNode, &xsink);
+   ReferenceHolder<QoreListNode> addresses(new QoreListNode, &xsink);
+   if (xsink || !result || !addresses) {
+      xsink.clear();
+      return nullptr;
+   }
 
-   if (!p || rc) {
-      // NOTE: ERANGE means that the buffer was too small
-      //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
-      return 0;
+   struct addrinfo* addrInfo = qai.getAddrInfo();
+   result->setKeyValue("name", new QoreStringNode(addrInfo->ai_canonname), &xsink);
+   result->setKeyValue("aliases", new QoreListNode, &xsink);
+   int ai_family = addrInfo->ai_family;
+   switch (ai_family) {
+      case AF_INET:
+         result->setKeyValue("typename", new QoreStringNode("ipv4"), &xsink);
+         result->setKeyValue("type", new QoreBigIntNode(AF_INET), &xsink);
+         result->setKeyValue("len", new QoreBigIntNode(4), &xsink);
+         break;
+      case AF_INET6:
+         result->setKeyValue("typename", new QoreStringNode("ipv6"), &xsink);
+         result->setKeyValue("type", new QoreBigIntNode(AF_INET6), &xsink);
+         result->setKeyValue("len", new QoreBigIntNode(16), &xsink);
+         break;
+      default:
+         result->setKeyValue("typename", new QoreStringNode("unknown"), &xsink);
+         break;
    }
-# else // assume Solaris-style gethostbyname_r
-   if (!gethostbyname_r(host, &he, buf, NET_BUFSIZE, &err)) {
-      printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
-      return 0;
+
+   while (addrInfo && !xsink) {
+      if (ai_family == addrInfo->ai_family) {
+         SimpleRefHolder<QoreStringNode> addr(new QoreStringNode);
+         if (q_addr_to_string2(addrInfo->ai_addr, **addr))
+            return nullptr;
+         addresses->push(addr.release());
+      }
+      addrInfo = addrInfo->ai_next;
    }
-# endif // HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   return he_to_hash(he);
-#else  // else if !HAVE_GETHOSTBYNAME_R
-   struct hostent *he;
-   AutoLocker al(&lck_gethostbyname);
-   if (!(he = gethostbyname(host))) {
-      //herror("q_gethostbyname()");
-      lck_gethostbyname.unlock();
-      return 0;
+   result->setKeyValue("addresses", addresses.release(), &xsink);
+   if (xsink) {
+      xsink.clear();
+      return nullptr;
    }
-   return he_to_hash(*he);
-#endif
+
+   return result.release();
 }
 
-QoreStringNode *q_gethostbyname_to_string(const char *host) {
-#ifdef HAVE_GETHOSTBYNAME_R
-   struct hostent he;
-   int err;
-   char buf[NET_BUFSIZE];
-# ifdef HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   struct hostent *p;
+//! Get host's IP address from name.
+/**
+    @param host host's name
+    @return host's IP address
 
-   int rc = gethostbyname_r(host, &he, buf, NET_BUFSIZE, &p, &err);
-   if (!p || rc) {
-      // NOTE: ERANGE means that the buffer was too small
-      //printd(5, "gethostbyname_r() host=%s (bs=%d) error=%d: %d: %s\n", host, NET_BUFSIZE, err, errno, strerror(errno));
-      return 0;
+    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
+ */
+QoreStringNode* q_gethostbyname_to_string(const char* host) {
+   ExceptionSink xsink;
+   QoreAddrInfo qai;
+   qai.getInfo(&xsink, host, NULL);
+   if (xsink) {
+      xsink.clear();
+      return nullptr;
    }
-# else // assume Solaris-style gethostbyname_r
-   if (!gethostbyname_r(host, &he, buf, NET_BUFSIZE, &err)) {
-      printd(5, "q_gethostbyname() Solaris gethostbyname_r() returned NULL");
-      return 0;
-   }
-# endif // HAVE_GETHOSTBYNAME_R_GLIBC2_STYLE
-   return headdr_string(he);
-#else  // else if !HAVE_GETHOSTBYNAME_R
-   struct hostent *he;
-   AutoLocker al(&lck_gethostbyname);
-   if (!(he = gethostbyname(host))) {
-      //herror("q_gethostbyname()");
-      lck_gethostbyname.unlock();
-      return 0;
-   }
-   return headdr_string(*he);
-#endif
+
+   SimpleRefHolder<QoreStringNode> addr(new QoreStringNode);
+   if (q_addr_to_string2(qai.getAddrInfo()->ai_addr, **addr))
+      return nullptr;
+
+   return addr.release();
 }
 
 // thread-safe gethostbyaddr (string returned must be freed)
