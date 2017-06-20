@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.12.11],
+AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
@@ -169,6 +169,8 @@ case "${host_os}" in
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
 		   if test -z "$NATIVE_CXX"; then
 		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   else
+                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
 		   fi
 		fi
 		if test -z "$NATIVE_CXX"; then
@@ -206,6 +208,12 @@ QPP_CPPFLAGS="$QPP_CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
+
+# test for C++11
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+if test "$HAVE_CXX11" = "1"; then
+    AM_CXXFLAGS=-std=gnu++11
+fi
 
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
@@ -1635,6 +1643,32 @@ if test "$darwin" = "yes"; then
     LIBS="$SAVE_LIBS"
 fi
 
+# do we need -latomic on this platform
+AC_MSG_CHECKING([for pure compile-time atomic functionality])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <atomic>]],
+[[bool b = std::atomic_int{}.is_lock_free();]])],
+   [ATOMIC_COMPILE_ONLY=1
+    AC_MSG_RESULT([found])
+    AC_DEFINE([HAVE_ATOMIC_COMPILE_ONLY], 1, [define if there is no need to link with libatomic])],
+   [AC_MSG_RESULT([needs libatomic])])
+if test "$ATOMIC_COMPILE_ONLY" != "1"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -latomic"
+    AC_MSG_CHECKING([for libatomic])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <atomic>]],
+    [[bool b = std::atomic_int{}.is_lock_free();]])],
+       [LIBATOMIC_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_LIBATOMIC], 1, [define if libatomic])],
+       [AC_MSG_RESULT([not found])])
+    if test "$LIBATOMIC_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -latomic"
+    fi
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
@@ -1807,12 +1841,14 @@ AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
-CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
-CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
-CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
+CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"
+CMAKE_INSTALL_FULL_LIBDIR="`eval echo ${myprefix}/lib${LIBSUFFIX}`"
+CMAKE_INSTALL_FULL_DATADIR="`eval echo ${datarootdir}`"
 AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_DATADIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"

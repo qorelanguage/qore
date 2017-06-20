@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,15 +55,11 @@ protected:
    DLLLOCAL QoreValue bigIntDivision(ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreDivisionOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), typeInfo(0), pfunc(0) {
+   DLLLOCAL QoreDivisionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right), typeInfo(0), pfunc(0) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

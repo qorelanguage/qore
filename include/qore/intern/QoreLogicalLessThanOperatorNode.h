@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@ protected:
    DLLLOCAL bool bigIntLessThan(ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalLessThanOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBoolBinaryOperatorNode(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalLessThanOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBoolBinaryOperatorNode(loc, n_left, n_right), pfunc(0) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

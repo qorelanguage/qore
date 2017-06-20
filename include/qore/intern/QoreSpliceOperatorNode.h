@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -56,18 +56,28 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreSpliceOperatorNode(AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
-                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) : lvalue_exp(n_lvalue_exp),
-                                                                                                  offset_exp(n_offset_exp),
-                                                                                                  length_exp(n_length_exp),
-                                                                                                  new_exp(n_new_exp),
-                                                                                                  returnTypeInfo(0) {
+   DLLLOCAL QoreSpliceOperatorNode(const QoreProgramLocation& loc,
+                                   AbstractQoreNode *n_lvalue_exp, AbstractQoreNode *n_offset_exp,
+                                   AbstractQoreNode *n_length_exp, AbstractQoreNode *n_new_exp) :
+      LValueOperatorNode(loc),
+      lvalue_exp(n_lvalue_exp),
+      offset_exp(n_offset_exp),
+      length_exp(n_length_exp),
+      new_exp(n_new_exp),
+      returnTypeInfo(0) {
    }
+
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
       return splice_str.getBuffer();
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
@@ -83,7 +93,7 @@ public:
       ReferenceHolder<> n_nw(copy_and_resolve_lvar_refs(new_exp, xsink), xsink);
       if (*xsink)
          return 0;
-      return new QoreSpliceOperatorNode(n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
+      return new QoreSpliceOperatorNode(get_runtime_location(), n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
    }
 };
 

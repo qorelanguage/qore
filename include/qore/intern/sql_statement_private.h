@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,11 +35,14 @@
 // private implementation of the SQLStatement class
 struct sql_statement_private {
    // Datasource pointer
-   Datasource* ds;
+   Datasource* ds = nullptr;
    // private data for statement handle/ptr
-   void* data;
+   void* data = nullptr;
 
-   DLLLOCAL sql_statement_private() : ds(0), data(0) {
+   DLLLOCAL sql_statement_private() {
+   }
+
+   DLLLOCAL sql_statement_private(Datasource* ds, void* data) : ds(ds), data(data) {
    }
 };
 

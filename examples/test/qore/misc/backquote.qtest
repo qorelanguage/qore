@@ -25,7 +25,7 @@ class BackquoteTest inherits QUnit::Test {
         assertEq("Qore is great!", chomp(`/bin/echo Qore is great!`), "backquotes 3");
         assertEq("1", chomp(backquote("/bin/echo 1")), "backquote function");
         int rc;
-        backquote("pwd -prd", \rc);
+        backquote("cat /abcDefGHm54sdvdsCE54dfhbgzgGH45J5g4bbg4dfwrtEFG5", \rc);
         assertEq(1, rc);
     }
 }

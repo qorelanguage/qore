@@ -35,8 +35,9 @@
 
 #define _QORE_DS_PRIVATE_H
 
-#include <qore/intern/qore_dbi_private.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/qore_dbi_private.h"
+#include "qore/intern/QoreSQLStatement.h"
+#include "qore/intern/DatasourceStatementHelper.h"
 
 #include <set>
 
@@ -53,6 +54,7 @@ struct qore_ds_private {
    bool isopen;
    bool autocommit;
    bool connection_aborted;
+   bool keep_lock = false;
 
    mutable DBIDriver* dsl;
    const QoreEncoding* qorecharset;
@@ -81,10 +83,13 @@ struct qore_ds_private {
    // DBI Event queue argument
    AbstractQoreNode* event_arg;
 
-   DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(0), p_port(0), port(0), opt(new QoreHashNode), event_queue(0), event_arg(0) {
+   // interface for the parent class
+   DatasourceStatementHelper* dsh;
+
+   DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl, DatasourceStatementHelper* dsh) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(nullptr), p_port(0), port(0), opt(new QoreHashNode), event_queue(nullptr), event_arg(nullptr), dsh(dsh) {
    }
 
-   DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds) :
+   DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds, DatasourceStatementHelper* dsh) :
       ds(n_ds), in_transaction(false), active_transaction(false), isopen(false),
       autocommit(old.autocommit), connection_aborted(false), dsl(old.dsl),
       qorecharset(QCS_DEFAULT), private_data(0),
@@ -94,8 +99,9 @@ struct qore_ds_private {
       port(0),
       //opt(old.opt->copy()) {
       opt(old.getCurrentOptionHash(true)),
-      event_queue(old.event_queue ? old.event_queue->queueRefSelf() : 0),
-      event_arg(old.event_arg ? old.event_arg->refSelf() : 0) {
+      event_queue(old.event_queue ? old.event_queue->queueRefSelf() : nullptr),
+      event_arg(old.event_arg ? old.event_arg->refSelf() : nullptr),
+      dsh(dsh) {
    }
 
    DLLLOCAL ~qore_ds_private() {
@@ -268,6 +274,24 @@ struct qore_ds_private {
          return 0;
       }
       return -1;
+   }
+
+   DLLLOCAL void setStatementKeepLock(QoreSQLStatement* stmt) {
+      assert(!keep_lock);
+      keep_lock = true;
+      if (!in_transaction)
+         in_transaction = true;
+      if (!active_transaction)
+         active_transaction = true;
+
+      addStatement(stmt);
+   }
+
+   DLLLOCAL bool keepLock() {
+      bool rv = keep_lock;
+      if (keep_lock)
+         keep_lock = false;
+      return rv;
    }
 
    DLLLOCAL static qore_ds_private* get(Datasource& ds) {

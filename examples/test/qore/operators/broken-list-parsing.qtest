@@ -18,7 +18,7 @@ class Test inherits QUnit::Test {
     }
 
     fixedCase() {
-        testAssertion("+= neg-1", \Test::check(), "l += 3, 2", new TestResultExceptionType("PARSE-EXCEPTION"));
+        assertThrows("PARSE-EXCEPTION", \Test::check(), "l += 3, 2");
         assertThrows("PARSE-EXCEPTION", "statement has no effect", \Test::check(), ("l += 3, 2", PO_BROKEN_LIST_PARSING, "%correct-list-parsing"));
         testAssertion("+= ok-1", \Test::check(), "l += (3, 2)", (10, 3, 2));
         testAssertion("+= ok-2", \Test::check(), "(l += (3, 2))", (10, 3, 2));

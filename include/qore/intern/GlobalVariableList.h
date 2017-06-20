@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 
 #define _QORE_GLOBALVARIABLELIST_H
 
-#include <qore/intern/Variable.h>
+#include "qore/intern/Variable.h"
 
 #include <map>
 
@@ -44,7 +44,7 @@ class Var;
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
-#include <qore/intern/xxhash.h>
+#include "qore/intern/xxhash.h"
 
 typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
 #else
@@ -55,7 +55,6 @@ typedef std::map<const char*, Var*, ltstr> map_var_t;
 // all reading and writing is done within the parse lock on the containing program object
 class GlobalVariableList {
 protected:
-   // xxx DLLLOCAL Var* parseCreatePendingVar(const char* name, QoreParseTypeInfo* typeInfo);
 
 public:
    map_var_t vmap, pending_vmap;
@@ -83,7 +82,7 @@ public:
    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseFindVar(const char* name);
-   DLLLOCAL Var* parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo* typeInfo);
    DLLLOCAL const Var* parseFindVar(const char* name) const;
 
    DLLLOCAL void parseAdd(Var* v);
@@ -97,6 +96,8 @@ public:
    }
 
    DLLLOCAL QoreListNode* getVarList() const;
+
+   DLLLOCAL void getGlobalVars(const std::string& path, QoreHashNode& h) const;
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit();

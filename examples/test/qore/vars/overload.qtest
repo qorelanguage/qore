@@ -27,6 +27,55 @@ string sub f_test(float x) {
     return type(x);
 }
 
+int sub f2_test(*int i) {
+    return -1;
+}
+
+int sub f2_test() {
+    return 0;
+}
+
+int sub f3_test(*int i, *int j) {
+    return -1;
+}
+
+int sub f3_test() {
+    return 0;
+}
+
+int sub f4_test() {
+    delete argv;
+    return -1;
+}
+
+int sub f4_test(list l) {
+    return 0;
+}
+
+int sub f5_test(softlist l, *object o) {
+    return -1;
+}
+
+int sub f5_test(string str) {
+    return 0;
+}
+
+int sub f6(int i, *string s1, *int i1, *hash h1) {
+    return 4;
+}
+
+int sub f6(int i, *string s1, *int i1) {
+    return 3;
+}
+
+int sub f6(int i, *string s1) {
+    return 2;
+}
+
+int sub f6(int i) {
+    return 1;
+}
+
 public class OverloadTest inherits QUnit::Test {
     public {
         const Api = "hash sub p() { return {}; }*hash sub p(string a) {return {};}any sub p(string a, string b) { return 1; }";
@@ -36,6 +85,7 @@ public class OverloadTest inherits QUnit::Test {
         addTestCase("Values test", \testValues());
         addTestCase("Variables test", \testVariables());
         addTestCase("issue 1928", \issue1928());
+        addTestCase("Overload test", \testOverload());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -52,6 +102,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     testValues() {
+        # test parse-time matching
         assertEq("integer", f_test(1));
         assertEq("float", f_test(1.1));
         assertEq("float", f1_test(1));
@@ -59,15 +110,72 @@ public class OverloadTest inherits QUnit::Test {
         assertEq("string", f1_test("str"));
         assertEq("string", f1_test("1.11"));
 
-        testAssertion("test not-existing overload", \f1_test(), (123.456n,), new TestResultExceptionType("RUNTIME-OVERLOAD-ERROR"));
+        # test runtime matching
+        assertEq("integer", call_function(\f_test(), 1));
+        assertEq("float", call_function(\f_test(), 1.1));
+        assertEq("float", call_function(\f1_test(), 1));
+        assertEq("float", call_function(\f1_test(), 1.1));
+        assertEq("string", call_function(\f1_test(), "str"));
+        assertEq("string", call_function(\f1_test(), "1.11"));
+
+        assertThrows("RUNTIME-OVERLOAD-ERROR", \f1_test(), 123.456n);
     }
 
     testVariables() {
         int i = 1;
         float fi = 1.1;
+
+        # test parse-time matching
         assertEq("integer", f_test(i));
         assertEq("float", f1_test(i));
         assertEq("float", f_test(fi));
         assertEq("float", f1_test(fi));
+
+        # test runtime matching
+        assertEq("integer", call_function(\f_test(), i));
+        assertEq("float", call_function(\f1_test(), i));
+        assertEq("float", call_function(\f_test(), fi));
+        assertEq("float", call_function(\f1_test(), fi));
+    }
+
+    testOverload() {
+        # test parse-time matching
+        assertEq(0, f2_test());
+        assertEq(0, f3_test());
+        assertEq(0, f4_test(()));
+        assertEq(0, f5_test("hi"));
+        assertEq(1, f6(1));
+        # make sure we catch and fix the behavior of corner cases
+        any a;
+        assertEq(2, f6(1, NOTHING));
+        assertEq(2, f6(1, a));
+        assertEq(2, f6(1, "hi"));
+        assertEq(3, f6(1, NOTHING, 1));
+        assertEq(3, f6(1, a, 1));
+        assertEq(3, f6(1, NOTHING, NOTHING));
+        assertEq(3, f6(1, a, 1));
+        assertEq(4, f6(1, NOTHING, NOTHING, {}));
+        assertEq(4, f6(1, a, a, {}));
+        assertEq(4, f6(1, NOTHING, NOTHING, NOTHING));
+        assertEq(4, f6(1, a, a, a));
+
+        # test runtime matching
+        assertEq(0, call_function(\f2_test()));
+        assertEq(0, call_function(\f3_test()));
+        assertEq(0, call_function(\f4_test(), ()));
+        assertEq(0, call_function(\f5_test(), "hi"));
+        assertEq(1, call_function(\f6(), 1));
+        # make sure we catch and fix the behavior of corner cases
+        assertEq(2, call_function(\f6(), 1, NOTHING));
+        assertEq(2, call_function(\f6(), 1, a));
+        assertEq(2, call_function(\f6(), 1, "hi"));
+        assertEq(3, call_function(\f6(), 1, NOTHING, 1));
+        assertEq(3, call_function(\f6(), 1, a, 1));
+        assertEq(3, call_function(\f6(), 1, NOTHING, NOTHING));
+        assertEq(3, call_function(\f6(), 1, a, a));
+        assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, {}));
+        assertEq(4, call_function(\f6(), 1, a, a, {}));
+        assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, NOTHING));
+        assertEq(4, call_function(\f6(), 1, a, a, a));
     }
 }

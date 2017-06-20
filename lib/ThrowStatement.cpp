@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ThrowStatement.h>
+#include "qore/intern/ThrowStatement.h"
 
 ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
    if (!v) {

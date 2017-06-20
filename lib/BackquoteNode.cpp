@@ -36,7 +36,7 @@
 #include <sys/wait.h>
 #endif
 
-BackquoteNode::BackquoteNode(char *c_str) : ParseNode(NT_BACKQUOTE), str(c_str) {
+BackquoteNode::BackquoteNode(const QoreProgramLocation& loc, char *c_str) : ParseNode(loc, NT_BACKQUOTE), str(c_str) {
 }
 
 BackquoteNode::~BackquoteNode() {
@@ -56,7 +56,7 @@ int BackquoteNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *BackquoteNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
