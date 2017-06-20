@@ -60,7 +60,7 @@ public:
 private:
     static QoreHashNode* getDeclaration(ASTDeclaration* decl, ExceptionSink* xsink);
     static QoreHashNode* getExpression(ASTExpression* expr, ExceptionSink* xsink);
-    static QoreStringNode* getLocation(const ASTParseLocation& loc);
+    static QoreHashNode* getLocation(const ASTParseLocation& loc, ExceptionSink* xsink);
     static QoreStringNode* getModifiers(ASTModifiers& mods);
     static QoreHashNode* getName(ASTName& name, ExceptionSink* xsink);
     static QoreHashNode* getName(ASTName* name, ExceptionSink* xsink);

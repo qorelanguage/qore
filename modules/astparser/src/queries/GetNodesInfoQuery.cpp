@@ -43,7 +43,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTDeclaration* decl, ExceptionS
         return nullptr;
 
     nodeInfo->setKeyValue("nodetype", new QoreStringNode("decl"), xsink);
-    nodeInfo->setKeyValue("loc", getLocation(decl->loc), xsink);
+    nodeInfo->setKeyValue("loc", getLocation(decl->loc, xsink), xsink);
     switch (decl->getKind()) {
         case ASTDeclaration::Kind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
@@ -155,7 +155,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTExpression* expr, ExceptionSin
         return nullptr;
 
     nodeInfo->setKeyValue("nodetype", new QoreStringNode("expr"), xsink);
-    nodeInfo->setKeyValue("loc", getLocation(expr->loc), xsink);
+    nodeInfo->setKeyValue("loc", getLocation(expr->loc, xsink), xsink);
     switch (expr->getKind()) {
         case ASTExpression::Kind::AEK_Access: {
             ASTAccessExpression* e = static_cast<ASTAccessExpression*>(expr);
@@ -407,10 +407,18 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTExpression* expr, ExceptionSin
     return nodeInfo.release();
 }
 
-QoreStringNode* GetNodesInfoQuery::getLocation(const ASTParseLocation& loc) {
-    std::ostringstream oss;
-    AstTreePrinter::printLocation(oss, loc, 0, false);
-    return new QoreStringNode(oss.str());
+QoreHashNode* GetNodesInfoQuery::getLocation(const ASTParseLocation& loc, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> nodeInfo(new QoreHashNode, xsink);
+    if (*xsink)
+        return nullptr;
+
+    nodeInfo->setKeyValue("start_line", new QoreBigIntNode(static_cast<int64>(loc.firstLine)), xsink);
+    nodeInfo->setKeyValue("start_column", new QoreBigIntNode(static_cast<int64>(loc.firstCol)), xsink);
+    nodeInfo->setKeyValue("end_line", new QoreBigIntNode(static_cast<int64>(loc.lastLine)), xsink);
+    nodeInfo->setKeyValue("end_column", new QoreBigIntNode(static_cast<int64>(loc.lastCol)), xsink);
+    if (*xsink)
+        return nullptr;
+    return nodeInfo.release();
 }
 
 QoreStringNode* GetNodesInfoQuery::getModifiers(ASTModifiers& mods) {
@@ -425,7 +433,7 @@ QoreHashNode* GetNodesInfoQuery::getName(ASTName& name, ExceptionSink* xsink) {
         return nullptr;
 
     nodeInfo->setKeyValue("nodetype", new QoreStringNode("name"), xsink);
-    nodeInfo->setKeyValue("loc", getLocation(name.loc), xsink);
+    nodeInfo->setKeyValue("loc", getLocation(name.loc, xsink), xsink);
     nodeInfo->setKeyValue("name", new QoreStringNode(name.name), xsink);
     if (*xsink)
         return nullptr;
@@ -453,7 +461,7 @@ QoreHashNode* GetNodesInfoQuery::getParseOption(ASTParseOption* po, ExceptionSin
         return nullptr;
 
     nodeInfo->setKeyValue("nodetype", new QoreStringNode("po"), xsink);
-    nodeInfo->setKeyValue("loc", getLocation(po->loc), xsink);
+    nodeInfo->setKeyValue("loc", getLocation(po->loc, xsink), xsink);
     std::ostringstream oss;
     AstTreePrinter::printParseOptionString(oss, po);
     nodeInfo->setKeyValue("option", new QoreStringNode(oss.str()), xsink);
@@ -471,7 +479,7 @@ QoreHashNode* GetNodesInfoQuery::getStatement(ASTStatement* stmt, ExceptionSink*
         return nullptr;
 
     nodeInfo->setKeyValue("nodetype", new QoreStringNode("stmt"), xsink);
-    nodeInfo->setKeyValue("loc", getLocation(stmt->loc), xsink);
+    nodeInfo->setKeyValue("loc", getLocation(stmt->loc, xsink), xsink);
     switch (stmt->getKind()) {
         case ASTStatement::Kind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
