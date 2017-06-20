@@ -3288,13 +3288,13 @@ exp_n
     | exp_n P_INCREMENT                 { $$ = new QorePostIncrementOperatorNode($1); } // post-increment
     | exp_n P_DECREMENT                 { $$ = new QorePostDecrementOperatorNode($1); } // post-decrement
     | exp_n '(' myexp ')'               { $$ = processCall($1, $3); }
-    | exp_n LOGICAL_AND exp             { $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
+    | exp_n LOGICAL_AND exp             { check_operator($1, OP_LOG_AND, OP_LOG_OR); $$ = new QoreTreeNode($1, OP_LOG_AND, $3); }
     | exp_n LOGICAL_OR exp              { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
     | exp_n BROKEN_LOGICAL_OR exp       { $$ = new QoreTreeNode($1, OP_LOG_OR, $3); }
     | exp_n BROKEN_BINARY_OR exp        { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
-    | exp_n BROKEN_BINARY_XOR exp       { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
+    | exp_n BROKEN_BINARY_XOR exp       { check_operator($1, OP_BIN_XOR, OP_BIN_OR); $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp_n '|' exp                     { $$ = new QoreTreeNode($1, OP_BIN_OR, $3); }
-    | exp_n '&' exp                     { $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
+    | exp_n '&' exp                     { check_operator($1, OP_BIN_AND, OP_BIN_OR); check_operator($1, OP_BIN_AND, OP_BIN_XOR); $$ = new QoreTreeNode($1, OP_BIN_AND, $3); }
     | exp_n '^' exp                     { $$ = new QoreTreeNode($1, OP_BIN_XOR, $3); }
     | exp_n REGEX_MATCH regex           { $$ = new QoreTreeNode($1, OP_REGEX_MATCH, $3); }
     | exp_n REGEX_NMATCH regex          { $$ = new QoreTreeNode($1, OP_REGEX_NMATCH, $3); }
