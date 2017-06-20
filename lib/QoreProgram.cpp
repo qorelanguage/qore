@@ -68,6 +68,7 @@ static const char* qore_warnings_l[] = {
    "unreferenced-variable",
    "duplicate-block-vars",
    "module-only",
+   "broken-logic-precedence",
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char* ))
 

@@ -40,6 +40,8 @@ DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n,
 typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
 
 class QoreOperatorNode : public ParseNode {
+private:
+   bool in_parentheses;
 protected:
    bool ref_rv;
 
@@ -48,7 +50,7 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), ref_rv(n_ref_rv) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -57,6 +59,14 @@ public:
    DLLLOCAL void ignoreReturnValue() {
       ref_rv = false;
       ignoreReturnValueImpl();
+   }
+
+   DLLLOCAL bool getInParentheses() const {
+       return in_parentheses;
+   }
+
+   DLLLOCAL void setInParentheses() {
+       in_parentheses = true;
    }
 
    DLLLOCAL virtual bool hasEffect() const = 0;
