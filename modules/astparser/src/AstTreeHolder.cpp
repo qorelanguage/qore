@@ -29,6 +29,7 @@
 
 #include "AstTreePrinter.h"
 #include "ast/ASTTree.h"
+#include "queries/GetNodesInfoQuery.h"
 
 AstTreeHolder::AstTreeHolder(ASTTree* t) : tree(t) {
 }
@@ -41,6 +42,10 @@ AstTreeHolder::~AstTreeHolder() {
 void AstTreeHolder::printTree(std::ostream& os) {
     if (tree)
         AstTreePrinter::printTree(os, tree);
+}
+
+QoreListNode* AstTreeHolder::getNodesInfo() {
+    return GetNodesInfoQuery::get(tree);
 }
 
 void AstTreeHolder::set(ASTTree* t) {

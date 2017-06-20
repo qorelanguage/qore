@@ -43,9 +43,9 @@ public:
 
 public:
     enum Condition {
-        AOBEC_Error,
-        AOBEC_Exit,
-        AOBEC_Success,
+        AOBEC_Error = 0,
+        AOBEC_Exit = 1,
+        AOBEC_Success = 2,
     };
 
 public:
