@@ -1208,7 +1208,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               val = ascii_to_octal(*(yytext + 1));
                                            }
                                            if (val >= 0400)
-                                              parse_error("trying to escape invalid octal value (in the range 400-777): %o", val);
+                                              parse_error(get_loc(yylloc), "trying to escape invalid octal value (in the range 400-777): %o", val);
                                            yylval->String->concat((char)val);
                                         }
       \\n                               yylval->String->concat('\n');
