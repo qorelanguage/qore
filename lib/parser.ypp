@@ -1264,7 +1264,7 @@ static AbstractQoreNode* processCall(int sline, int eline, AbstractQoreNode* $1,
 
 static void check_operator(const AbstractQoreNode *n, const char *parent, const char *child) {
     if (n->getType() == NT_OPERATOR && parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
-        if (!dynamic_cast<const QoreOperatorNode *>(n)->getInParenthesis()) {
+        if (!static_cast<const QoreOperatorNode *>(n)->getInParenthesis()) {
             qore_program_private::makeParseWarning(getProgram(), QP_WARN_BROKEN_LOGIC_PRECEDENCE, "BROKEN-LOGIC-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child, parent);
         }
     }
