@@ -35,9 +35,9 @@
 #include "ast/ASTExpression.h"
 
 enum ACMEKind {
-    ACMEK_SortBy,
-    ACMEK_SortDescBy,
-    ACMEK_Where,
+    ACMEK_SortBy = 0,
+    ACMEK_SortDescBy = 1,
+    ACMEK_Where = 2,
 };
 
 class ASTContextModExpression : public ASTExpression {

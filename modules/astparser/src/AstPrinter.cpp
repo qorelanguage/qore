@@ -37,6 +37,10 @@ void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpres
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
     os << " = ";
+    if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
+        ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
+        printLiteralExpression(os, le);
+    }
     // TODO
 }
 
@@ -68,6 +72,33 @@ void AstPrinter::printListExpression(std::ostream& os, ASTListExpression* le) {
     }
 }
 
+void AstPrinter::printLiteralExpression(std::ostream& os, ASTLiteralExpression* le) {
+    if (!le)
+        return;
+    switch (le->kind) {
+        case ALEK_Binary:
+            os << "<" << le->value.str << ">";
+            break;
+        case ALEK_Date:
+            os << le->value.str;
+            break;
+        case ALEK_Float:
+            os << le->value.d;
+            break;
+        case ALEK_Int:
+            os << le->value.i;
+            break;
+        case ALEK_Number:
+            os << le->value.str;
+            break;
+        case ALEK_String:
+            os << "\"" << le->value.stdstr << "\"";
+            break;
+        default:
+            break;
+    }
+}
+
 void AstPrinter::printClassSignature(std::ostream& os, ASTClassDeclaration* d) {
     if (!d)
         return;
@@ -79,8 +110,12 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
     if (!d)
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
-    os << "const " << d->name.name << " = ";
-
+    os << "const " << d->name.name;
+    if (d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
+        os << " = ";
+        ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(d->value.get());
+        printLiteralExpression(os, le);
+    }
 }
 
 void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration* d) {

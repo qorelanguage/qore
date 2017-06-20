@@ -40,10 +40,10 @@
 #include "ast/statements/ASTStatementBlock.h"
 
 enum AFDKind {
-    AFDK_Inline,
-    AFDK_Outofline,
-    AFDK_ScopedSub,
-    AFDK_Sub,
+    AFDK_Inline = 0,
+    AFDK_Outofline = 1,
+    AFDK_ScopedSub = 2,
+    AFDK_Sub = 3,
 };
 
 class ASTFunctionDeclaration : public ASTDeclaration {
