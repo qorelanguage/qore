@@ -44,9 +44,9 @@ int q_get_af(int type) {
 
    switch (type) {
       case Q_AF_UNSPEC:
-	 return AF_UNSPEC;
+         return AF_UNSPEC;
       case Q_AF_INET6:
-	 return AF_INET6;
+         return AF_INET6;
    }
 
    return AF_INET;
@@ -177,23 +177,21 @@ static QoreHashNode* he_to_hash(struct hostent& he) {
       QoreListNode* l = new QoreListNode;
       char** a = he.h_aliases;
       while (*a)
-	 l->push(new QoreStringNode(*(a++)));
+         l->push(new QoreStringNode(*(a++)));
       h->setKeyValue("aliases", l, 0);
    }
    switch (he.h_addrtype) {
       case AF_INET:
-	 h->setKeyValue("typename", new QoreStringNode("ipv4"), 0);
-	 h->setKeyValue("type", new QoreBigIntNode(AF_INET), 0);
-	 break;
-
+         h->setKeyValue("typename", new QoreStringNode("ipv4"), 0);
+         h->setKeyValue("type", new QoreBigIntNode(AF_INET), 0);
+         break;
       case AF_INET6:
-	 h->setKeyValue("typename", new QoreStringNode("ipv6"), 0);
-	 h->setKeyValue("type", new QoreBigIntNode(AF_INET6), 0);
-	 break;
-
+         h->setKeyValue("typename", new QoreStringNode("ipv6"), 0);
+         h->setKeyValue("type", new QoreBigIntNode(AF_INET6), 0);
+         break;
       default:
-	 h->setKeyValue("typename", new QoreStringNode("unknown"), 0);
-	 // no break
+         h->setKeyValue("typename", new QoreStringNode("unknown"), 0);
+         break;
    }
    h->setKeyValue("len", new QoreBigIntNode(he.h_length), 0);
 
@@ -203,8 +201,8 @@ static QoreHashNode* he_to_hash(struct hostent& he) {
       QoreListNode* l = new QoreListNode();
       char** a = he.h_addr_list;
       while (*a) {
-	 if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
-	    l->push(new QoreStringNode(buf));
+         if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
+            l->push(new QoreStringNode(buf));
       }
       h->setKeyValue("addresses", l, 0);
    }
@@ -449,7 +447,7 @@ int QoreAddrInfo::getInfo(ExceptionSink* xsink, const char* node, const char* se
    int status = getaddrinfo(node, service, &hints, &ai);
    if (status) {
       if (xsink)
-	 xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo(node: '%s', service: '%s', address_family: %d='%s', flags: %d) error: %s", node ? node : "", service ? service : "", family, q_af_to_str(family), flags, gai_strerror(status));
+         xsink->raiseException("QOREADDRINFO-GETINFO-ERROR", "getaddrinfo(node: '%s', service: '%s', address_family: %d='%s', flags: %d) error: %s", node ? node : "", service ? service : "", family, q_af_to_str(family), flags, gai_strerror(status));
       return -1;
    }
 
@@ -470,21 +468,21 @@ QoreListNode* QoreAddrInfo::getList() const {
       const char* family = q_af_to_str(p->ai_family);
 
       if (p->ai_canonname && *p->ai_canonname)
-	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
+         h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
 
       QoreStringNode* addr = q_addr_to_string2(p->ai_addr);
       if (addr) {
-	 h->setKeyValue("address", addr, 0);
-	 h->setKeyValue("address_desc", getAddressDesc(p->ai_family, addr->getBuffer()), 0);
+         h->setKeyValue("address", addr, 0);
+         h->setKeyValue("address_desc", getAddressDesc(p->ai_family, addr->getBuffer()), 0);
       }
 
       h->setKeyValue("family", new QoreBigIntNode(p->ai_family), 0);
       h->setKeyValue("familystr", new QoreStringNode(family), 0);
       h->setKeyValue("addrlen", new QoreBigIntNode(p->ai_addrlen), 0);
       if (has_svc) {
-	 int port = q_get_port_from_addr(p->ai_addr);
-	 if (port != -1)
-	    h->setKeyValue("port", new QoreBigIntNode(port), 0);
+         int port = q_get_port_from_addr(p->ai_addr);
+         if (port != -1)
+            h->setKeyValue("port", new QoreBigIntNode(port), 0);
       }
 
       l->push(h);
@@ -503,14 +501,14 @@ QoreStringNode* QoreAddrInfo::getAddressDesc(int family, const char* addr) {
    QoreStringNode* str = new QoreStringNode;
    switch (family) {
       case AF_INET:
-	 str->sprintf("ipv4(%s)", addr);
-	 break;
+         str->sprintf("ipv4(%s)", addr);
+         break;
       case AF_INET6:
-	 str->sprintf("ipv6[%s]", addr);
-	 break;
+         str->sprintf("ipv6[%s]", addr);
+         break;
       default:
-	 str->sprintf("%s:%s", getFamilyName(family), addr);
-	 break;
+         str->sprintf("%s:%s", getFamilyName(family), addr);
+         break;
    }
    return str;
 }
