@@ -59,7 +59,7 @@ int q_get_sock_type(int t) {
    return SOCK_STREAM;
 }
 
-int q_addr_to_string(int family, const char *addr, QoreString& str) {
+int q_addr_to_string(int family, const char* addr, QoreString& str) {
    family = q_get_af(family);
 
    char buf[QORE_NET_ADDR_BUF_LEN];
@@ -69,7 +69,7 @@ int q_addr_to_string(int family, const char *addr, QoreString& str) {
    return 0;
 }
 
-QoreStringNode *q_addr_to_string(int family, const char *addr) {
+QoreStringNode* q_addr_to_string(int family, const char* addr) {
    family = q_get_af(family);
 
    char buf[QORE_NET_ADDR_BUF_LEN];
@@ -79,14 +79,14 @@ QoreStringNode *q_addr_to_string(int family, const char *addr) {
 int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
    size_t slen = str.strlen();
 
-   const void *addr;
+   const void* addr;
    if (ai_addr->sa_family == AF_INET) {
-      struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
+      struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
       addr = &(ipv4->sin_addr);
       str.reserve(slen + INET_ADDRSTRLEN + 1);
    }
    else if (ai_addr->sa_family == AF_INET6) {
-      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
+      struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
       addr = &(ipv6->sin6_addr);
       str.reserve(slen + INET6_ADDRSTRLEN + 1);
    }
@@ -101,7 +101,7 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
    else
       return -1;
 
-   if (!inet_ntop(ai_addr->sa_family, addr, (char *)(str.getBuffer() + slen), str.capacity() - slen))
+   if (!inet_ntop(ai_addr->sa_family, addr, (char*)(str.getBuffer() + slen), str.capacity() - slen))
       return -1;
 
    str.terminate(slen + strlen(str.getBuffer() + slen));
@@ -109,19 +109,19 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
 }
 
 
-QoreStringNode *q_addr_to_string2(const struct sockaddr *ai_addr) {
+QoreStringNode* q_addr_to_string2(const struct sockaddr* ai_addr) {
    SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
 
    return q_addr_to_string2(ai_addr, **str) ? 0 : str.release();
 }
 
-int q_get_port_from_addr(const struct sockaddr *ai_addr) {
+int q_get_port_from_addr(const struct sockaddr* ai_addr) {
    if (ai_addr->sa_family == AF_INET) {
-      const struct sockaddr_in *ipv4 = (struct sockaddr_in *)ai_addr;
+      const struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
       return ntohs(ipv4->sin_port);
    }
    else if (ai_addr->sa_family == AF_INET6) {
-      const struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)ai_addr;
+      const struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
       return ntohs(ipv6->sin6_port);
    }
 
@@ -129,13 +129,6 @@ int q_get_port_from_addr(const struct sockaddr *ai_addr) {
 }
 
 //! Get host's IP address (struct in_addr*) from name.
-/**
-    @param host host's name
-    @param sin_addr host's IP address will be saved here
-    @return 0 in case of success, non-zero in case of error
-
-    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
- */
 int q_gethostbyname(const char* host, struct in_addr* sin_addr) {
    QORE_TRACE("q_gethostbyname()");
 
@@ -175,14 +168,14 @@ void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
    h.setKeyValue("typename", new QoreStringNode(q_af_to_str(af)), xsink);
 }
 
-static QoreHashNode *he_to_hash(struct hostent &he) {
-   QoreHashNode *h = new QoreHashNode;
+static QoreHashNode* he_to_hash(struct hostent& he) {
+   QoreHashNode* h = new QoreHashNode;
 
    if (he.h_name && he.h_name[0])
       h->setKeyValue("name", new QoreStringNode(he.h_name), 0); // official host name
    if (he.h_aliases) {
-      QoreListNode *l = new QoreListNode;
-      char **a = he.h_aliases;
+      QoreListNode* l = new QoreListNode;
+      char** a = he.h_aliases;
       while (*a)
 	 l->push(new QoreStringNode(*(a++)));
       h->setKeyValue("aliases", l, 0);
@@ -207,8 +200,8 @@ static QoreHashNode *he_to_hash(struct hostent &he) {
    if (he.h_addr_list) {
       char buf[QORE_NET_ADDR_BUF_LEN];
 
-      QoreListNode *l = new QoreListNode();
-      char **a = he.h_addr_list;
+      QoreListNode* l = new QoreListNode();
+      char** a = he.h_addr_list;
       while (*a) {
 	 if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
 	    l->push(new QoreStringNode(buf));
@@ -219,30 +212,7 @@ static QoreHashNode *he_to_hash(struct hostent &he) {
    return h;
 }
 
-static QoreStringNode *hename_string(struct hostent &he) {
-   if (he.h_name && he.h_name[0])
-      return new QoreStringNode(he.h_name);
-
-   return new QoreStringNode;
-}
-
-static QoreStringNode *headdr_string(struct hostent &he) {
-   if (he.h_addr_list && he.h_addr_list[0]) {
-      char buf[QORE_NET_ADDR_BUF_LEN];
-      if (inet_ntop(he.h_addrtype, he.h_addr_list[0], buf, QORE_NET_ADDR_BUF_LEN))
-	 return new QoreStringNode(buf);
-   }
-
-   return new QoreStringNode;
-}
-
 //! Get host's IP addresses and info from name.
-/**
-    @param host host's name
-    @return hash containing info about host
-
-    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
- */
 QoreHashNode* q_gethostbyname_to_hash(const char* host) {
    ExceptionSink xsink;
    QoreAddrInfo qai;
@@ -293,12 +263,6 @@ QoreHashNode* q_gethostbyname_to_hash(const char* host) {
 }
 
 //! Get host's IP address from name.
-/**
-    @param host host's name
-    @return host's IP address
-
-    @note utilizes \c getaddrinfo(3) internally instead of \c gethostbyname(3)
- */
 QoreStringNode* q_gethostbyname_to_string(const char* host) {
    ExceptionSink xsink;
    QoreAddrInfo qai;
@@ -315,56 +279,49 @@ QoreStringNode* q_gethostbyname_to_string(const char* host) {
    return addr.release();
 }
 
-// thread-safe gethostbyaddr (string returned must be freed)
-// FIXME: check err?
-char *q_gethostbyaddr(const char *addr, int len, int type) {
-   char *host;
+//! Get host's name from IP address.
+char* q_gethostbyaddr(const char* addr, int len, int type) {
+   sockaddr_in in;
+   sockaddr_in6 in6;
+   char buf[512];
+   int rc;
 
    type = q_get_af(type);
+   if (type == AF_INET) {
+      memset(&in, 0, sizeof(sockaddr_in));
+      in.sin_family = AF_INET;
+      in.sin_addr = *((struct in_addr*)addr);
+      rc = getnameinfo(reinterpret_cast<sockaddr*>(&in), sizeof(sockaddr_in), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
+   }
+   else if (type == AF_INET6) {
+      memset(&in6, 0, sizeof(sockaddr_in6));
+      in6.sin6_family = AF_INET6;
+      in6.sin6_addr = *((struct in6_addr*)addr);
+      rc = getnameinfo(reinterpret_cast<sockaddr*>(&in6), sizeof(sockaddr_in6), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
+   }
+   else {
+      return nullptr;
+   }
 
-#ifdef HAVE_GETHOSTBYADDR_R
-   struct hostent he;
-   char buf[NET_BUFSIZE];
-   int err;
-# ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &err))
-      host = strdup(he.h_name);
-   else
-      host = 0;
-# else // assume glibc2-style gethostbyaddr_r
-   struct hostent *p;
-
-   int rc = gethostbyaddr_r(addr, len, type, &he, buf, NET_BUFSIZE, &p, &err);
-   host = !rc && p ? strdup(he.h_name) : 0;
-# endif // HAVE_SOLARIS_STYLE_GETHOST
-#else  // else if !HAVE_GETHOSTBYADDR_R
-   lck_gethostbyaddr.lock();
-   struct hostent *he;
-   if ((he = gethostbyaddr(addr, len, type)))
-      host = strdup(he->h_name);
-   else
-      host = 0;
-   lck_gethostbyaddr.unlock();
-#endif // HAVE_GETHOSTBYADDR_R
-   return host;
+   return rc ? nullptr : strdup(buf);
 }
 
 // thread-safe gethostbyaddr
 // FIXME: check err?
-QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, int type) {
+QoreHashNode* q_gethostbyaddr_to_hash(ExceptionSink* xsink, const char* addr, int type) {
    in_addr sin_addr;
    in6_addr sin6_addr;
-   void *dst;
+   void* dst;
    int len;
 
    type = q_get_af(type);
 
    if (type == AF_INET) {
-      dst = (void *)&sin_addr;
+      dst = (void*)&sin_addr;
       len = sizeof(sin_addr);
    }
    else if (type == AF_INET6) {
-      dst = (void *)&sin6_addr;
+      dst = (void*)&sin6_addr;
       len = sizeof(sin6_addr);
    }
    else {
@@ -385,10 +342,10 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
    char buf[NET_BUFSIZE];
    int err;
 # ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (!gethostbyaddr_r((char *)dst, len, type, &he, buf, NET_BUFSIZE, &err))
+   if (!gethostbyaddr_r((char*)dst, len, type, &he, buf, NET_BUFSIZE, &err))
       return 0;
 # else // assume glibc2-style gethostbyaddr_r
-   struct hostent *p;
+   struct hostent* p;
 
    rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
    if (rc || !p)
@@ -399,73 +356,59 @@ QoreHashNode *q_gethostbyaddr_to_hash(ExceptionSink *xsink, const char *addr, in
 
 #else  // else if !HAVE_GETHOSTBYADDR_R
    AutoLocker al(&lck_gethostbyaddr);
-   struct hostent *he;
-   if (!(he = gethostbyaddr((char *)dst, len, type)))
+   struct hostent* he;
+   if (!(he = gethostbyaddr((char*)dst, len, type)))
       return 0;
 
    return he_to_hash(*he);
 #endif // HAVE_GETHOSTBYADDR_R
 }
 
-// thread-safe gethostbyaddr
-// FIXME: check err?
-QoreStringNode *q_gethostbyaddr_to_string(ExceptionSink *xsink, const char *addr, int type) {
-   in_addr sin_addr;
-   in6_addr sin6_addr;
-   void *dst;
-   int len;
+//! Get host's name from IP address.
+QoreStringNode* q_gethostbyaddr_to_string(ExceptionSink* xsink, const char* addr, int type) {
+   sockaddr_in in;
+   sockaddr_in6 in6;
+   char buf[512];
+   void* dst;
 
    type = q_get_af(type);
-
    if (type == AF_INET) {
-      dst = (void *)&sin_addr;
-      len = sizeof(sin_addr);
+      memset(&in, 0, sizeof(sockaddr_in));
+      in.sin_family = AF_INET;
+      dst = (void*)&in.sin_addr;
    }
    else if (type == AF_INET6) {
-      dst = (void *)&sin6_addr;
-      len = sizeof(sin6_addr);
+      memset(&in6, 0, sizeof(sockaddr_in6));
+      in6.sin6_family = AF_INET6;
+      dst = (void*)&in6.sin6_addr;
    }
    else {
       xsink->raiseException("GETHOSTBYADDR-ERROR", "%d is an invalid address type (valid types are AF_INET=%d, AF_INET6=%d", type, AF_INET, AF_INET6);
-      return 0;
+      return nullptr;
    }
 
    int rc = inet_pton(type, addr, dst);
    if (rc == 0) {
       xsink->raiseException("GETHOSTBYADDR-ERROR", "'%s' is not a valid address for %s addresses", addr, type == AF_INET ? "AF_INET (IPv4)" : "AF_INET6 (IPv6)");
-      return 0;
+      return nullptr;
    }
    if (rc < 0)
-      return 0;
+      return nullptr;
 
-#ifdef HAVE_GETHOSTBYADDR_R
-   struct hostent he;
-   char buf[NET_BUFSIZE];
-   int err;
-# ifdef HAVE_SOLARIS_STYLE_GETHOST
-   if (!gethostbyaddr_r((char *)dst, len, type, &he, buf, NET_BUFSIZE, &err))
-      return 0;
-# else // assume glibc2-style gethostbyaddr_r
-   struct hostent *p;
+   if (type == AF_INET) {
+      rc = getnameinfo(reinterpret_cast<sockaddr*>(&in), sizeof(sockaddr_in), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
+   }
+   else {
+      rc = getnameinfo(reinterpret_cast<sockaddr*>(&in6), sizeof(sockaddr_in6), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
+   }
 
-   rc = gethostbyaddr_r(dst, len, type, &he, buf, NET_BUFSIZE, &p, &err);
-   if (rc || !p)
-      return 0;
-# endif // HAVE_SOLARIS_STYLE_GETHOST
+   if (rc)
+      return nullptr;
 
-   return hename_string(he);
-
-#else  // else if !HAVE_GETHOSTBYADDR_R
-   AutoLocker al(&lck_gethostbyaddr);
-   struct hostent *he;
-   if (!(he = gethostbyaddr((char *)dst, len, type)))
-      return 0;
-
-   return hename_string(*he);
-#endif // HAVE_GETHOSTBYADDR_R
+   return new QoreStringNode(buf);
 }
 
-QoreListNode *q_getaddrinfo_to_list(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype) {
+QoreListNode* q_getaddrinfo_to_list(ExceptionSink* xsink, const char* node, const char* service, int family, int flags, int socktype) {
    QoreAddrInfo ai;
    if (ai.getInfo(xsink, node, service, family, flags, socktype))
       return 0;
@@ -488,7 +431,7 @@ void QoreAddrInfo::clear() {
    }
 }
 
-int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *service, int family, int flags, int socktype, int protocol) {
+int QoreAddrInfo::getInfo(ExceptionSink* xsink, const char* node, const char* service, int family, int flags, int socktype, int protocol) {
    family = q_get_af(family);
    socktype = q_get_sock_type(socktype);
 
@@ -515,21 +458,21 @@ int QoreAddrInfo::getInfo(ExceptionSink *xsink, const char *node, const char *se
    return 0;
 }
 
-QoreListNode *QoreAddrInfo::getList() const {
+QoreListNode* QoreAddrInfo::getList() const {
    if (!ai)
       return 0;
 
-   QoreListNode *l = new QoreListNode;
+   QoreListNode* l = new QoreListNode;
 
-   for (struct addrinfo *p = ai; p; p = p->ai_next) {
-      QoreHashNode *h = new QoreHashNode;
+   for (struct addrinfo* p = ai; p; p = p->ai_next) {
+      QoreHashNode* h = new QoreHashNode;
 
-      const char *family = q_af_to_str(p->ai_family);
+      const char* family = q_af_to_str(p->ai_family);
 
       if (p->ai_canonname && *p->ai_canonname)
 	 h->setKeyValue("canonname", new QoreStringNode(p->ai_canonname), 0);
 
-      QoreStringNode *addr = q_addr_to_string2(p->ai_addr);
+      QoreStringNode* addr = q_addr_to_string2(p->ai_addr);
       if (addr) {
 	 h->setKeyValue("address", addr, 0);
 	 h->setKeyValue("address_desc", getAddressDesc(p->ai_family, addr->getBuffer()), 0);
@@ -550,14 +493,14 @@ QoreListNode *QoreAddrInfo::getList() const {
    return l;
 }
 
-const char *QoreAddrInfo::getFamilyName(int family) {
+const char* QoreAddrInfo::getFamilyName(int family) {
    return q_af_to_str(q_get_af(family));
 }
 
-QoreStringNode *QoreAddrInfo::getAddressDesc(int family, const char *addr) {
+QoreStringNode* QoreAddrInfo::getAddressDesc(int family, const char* addr) {
    family = q_get_af(family);
 
-   QoreStringNode *str = new QoreStringNode;
+   QoreStringNode* str = new QoreStringNode;
    switch (family) {
       case AF_INET:
 	 str->sprintf("ipv4(%s)", addr);
