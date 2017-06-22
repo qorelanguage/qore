@@ -253,6 +253,7 @@
     - fixed a bug in overloaded call variant matching where missing arguments were counted towards the match (<a href="https://github.com/qorelanguage/qore/issues/1897">issue 1897</a>)
     - fixed many bugs where parse-time errors could be reported at an incorrect source location; parse-time error location reporting has been completely overhauled and reimplemented for correctness (<a href="https://github.com/qorelanguage/qore/issues/1930">issue 1930</a>)
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
+    - rewritten the Qore functions \ref gethostbyname(), \ref gethostbyname_long() and \ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
 
     @section qore_081210 Qore 0.8.12.10
 
