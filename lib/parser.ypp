@@ -1261,6 +1261,33 @@ static AbstractQoreNode* processCall(int sline, int eline, AbstractQoreNode* $1,
    }
    return $$;
 }
+
+static void check_operator(const QoreOperatorNode *n, const char *parent, const char *child) {
+    if (parse_check_parse_option(PO_BROKEN_LOGIC_PRECEDENCE)) {
+        if (!n->getInParentheses()) {
+            qore_program_private::makeParseWarning(getProgram(), QP_WARN_BROKEN_LOGIC_PRECEDENCE, "BROKEN-LOGIC-PRECEDENCE", "%s gets under %s in the parse tree as an impact of broken-logic-precedence flag being set - please consider using parenthesis to enforce the desired operator precedence", child, parent);
+        }
+    }
+}
+
+static void check_operator_log_or(const AbstractQoreNode *n, const char *parent) {
+    if (dynamic_cast< const QoreLogicalOrOperatorNode *>(n)) {
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "logical OR");
+    }
+}
+
+static void check_operator_bin_or(const AbstractQoreNode *n, const char *parent) {
+    if (dynamic_cast< const QoreBinaryOrOperatorNode *>(n)) {
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "binary OR");
+    }
+}
+
+static void check_operator_bin_xor(const AbstractQoreNode *n, const char *parent) {
+    if (dynamic_cast< const QoreBinaryXorOperatorNode *>(n)) {
+        check_operator(static_cast<const QoreOperatorNode*>(n), parent, "binary XOR");
+    }
+}
+
 %}
 
 %pure-parser
@@ -3259,6 +3286,9 @@ exp_c:
                  case NT_BAREWORD:
                     reinterpret_cast<BarewordNode*>($2)->setFinalized();
                     break;
+                 case NT_OPERATOR:
+                    dynamic_cast<QoreOperatorNode*>($2)->setInParentheses();
+                    break;
               }
            }
         }
@@ -3338,13 +3368,13 @@ exp:
     | exp P_INCREMENT                   { $$ = new QorePostIncrementOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1); } // post-increment
     | exp P_DECREMENT                   { $$ = new QorePostDecrementOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1); } // post-decrement
     | exp '(' myexp ')'                 { $$ = processCall(@1.first_line, @4.last_line, $1, $3); }
-    | exp LOGICAL_AND exp               { $$ = new QoreLogicalAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp LOGICAL_AND exp               { check_operator_log_or($1, "logical AND"); $$ = new QoreLogicalAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp LOGICAL_OR exp                { $$ = new QoreLogicalOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp BROKEN_LOGICAL_OR exp         { $$ = new QoreLogicalOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp BROKEN_BINARY_OR exp          { $$ = new QoreBinaryOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp BROKEN_BINARY_XOR exp         { $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp BROKEN_BINARY_XOR exp         { check_operator_bin_or($1, "binary XOR"); $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '|' exp                       { $$ = new QoreBinaryOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp '&' exp                       { $$ = new QoreBinaryAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp '&' exp                       { check_operator_bin_or($1, "binary AND"); check_operator_bin_xor($1, "binary AND"); $$ = new QoreBinaryAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '^' exp                       { $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp REGEX_MATCH regex             { $$ = new QoreRegexMatchOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp REGEX_NMATCH regex            { $$ = new QoreRegexNMatchOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
@@ -3395,13 +3425,13 @@ exp_n:
     | exp_n P_INCREMENT                   { $$ = new QorePostIncrementOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1); } // post-increment
     | exp_n P_DECREMENT                   { $$ = new QorePostDecrementOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1); } // post-decrement
     | exp_n '(' myexp ')'                 { $$ = processCall(@1.first_line, @4.last_line, $1, $3); }
-    | exp_n LOGICAL_AND exp               { $$ = new QoreLogicalAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n LOGICAL_AND exp               { check_operator_log_or($1, "logical AND"); $$ = new QoreLogicalAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n LOGICAL_OR exp                { $$ = new QoreLogicalOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n BROKEN_LOGICAL_OR exp         { $$ = new QoreLogicalOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n BROKEN_BINARY_OR exp          { $$ = new QoreBinaryOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n BROKEN_BINARY_XOR exp         { $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n BROKEN_BINARY_XOR exp         { check_operator_bin_or($1, "binary XOR"); $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '|' exp                       { $$ = new QoreBinaryOrOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n '&' exp                       { $$ = new QoreBinaryAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n '&' exp                       { check_operator_bin_or($1, "binary AND"); check_operator_bin_xor($1, "binary AND"); $$ = new QoreBinaryAndOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '^' exp                       { $$ = new QoreBinaryXorOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n REGEX_MATCH regex             { $$ = new QoreRegexMatchOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n REGEX_NMATCH regex            { $$ = new QoreRegexNMatchOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }

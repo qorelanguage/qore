@@ -255,6 +255,17 @@
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
     - rewritten the Qore functions \ref gethostbyname(), \ref gethostbyname_long() and \ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
 
+    @section qore_081211 Qore 0.8.12.11
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_081211_new_features New Features in Qore
+
+    - <a href="https://github.com/qorelanguage/qore/issues/1947">issue 1947</a> added @ref warning-broken-logic-precedence "broken-logic-precedence" warning.
+
+    @subsection qore_081211_bug_fixes Bug Fixes in Qore
+
     @section qore_081210 Qore 0.8.12.10
 
     @par Release Summary
