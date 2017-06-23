@@ -39,22 +39,22 @@
 DLLEXPORT extern qore_classid_t CID_TREEMAP;
 DLLLOCAL extern QoreClass* QC_TREEMAP;
 
-DLLLOCAL QoreClass *initTreeMapClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initTreeMapClass(QoreNamespace& ns);
 
 static inline bool isPathEnd(char c) {
    return c == '/' || c == '?';
 }
 
-static inline size_t getFirstPathSegmentLength(const std::string &path) {
+static inline size_t getFirstPathSegmentLength(const std::string& path) {
    size_t prefixLen = path.find_first_of("/?");
    return prefixLen == std::string::npos ? path.length() : prefixLen;
 }
 
-static inline bool isPrefix(const std::string &prefix, const std::string &str) {
+static inline bool isPrefix(const std::string& prefix, const std::string& str) {
    return str.length() >= prefix.length() && !str.compare(0, prefix.length(), prefix);
 }
 
-static inline bool isPathPrefix(const std::string &prefix, const std::string &path) {
+static inline bool isPathPrefix(const std::string& prefix, const std::string& path) {
    return isPrefix(prefix, path) && (path.length() == prefix.length() || isPathEnd(path[prefix.length()]));
 }
 
@@ -91,7 +91,7 @@ public:
 
       QoreAutoRWReadLocker al(rwl);
       if (!data.empty()) {
-         std::string path(keyStr->getBuffer());
+         std::string path(keyStr->c_str());
 
          Map::const_iterator b = data.begin();
          Map::const_iterator it = data.upper_bound(path);
