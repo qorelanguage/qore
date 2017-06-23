@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologoes, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,6 @@ static inline bool isPathPrefix(const std::string &prefix, const std::string &pa
 }
 
 class TreeMapData : public AbstractPrivateData {
-
 public:
    DLLLOCAL TreeMapData() {
    }
@@ -73,7 +72,7 @@ public:
       }
    }
 
-   DLLLOCAL void put(const QoreStringNode *key, const QoreValue value, ExceptionSink *xsink) {
+   DLLLOCAL void put(const QoreStringNode* key, const QoreValue value, ExceptionSink* xsink) {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (keyStr) {
          QoreAutoRWWriteLocker al(rwl);
@@ -83,10 +82,11 @@ public:
       }
    }
 
-   DLLLOCAL AbstractQoreNode *get(const QoreStringNode *key, const ReferenceNode* unmatched, ExceptionSink *xsink) const {
+   // return value must be dereferenced by the caller
+   DLLLOCAL QoreValue get(const QoreStringNode* key, const ReferenceNode* unmatched, ExceptionSink* xsink) const {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (!keyStr) {
-         return 0;
+         return QoreValue();
       }
 
       QoreAutoRWReadLocker al(rwl);
@@ -106,48 +106,49 @@ public:
                   }
                   QoreTypeSafeReferenceHelper ref(unmatched, xsink);
                   if (!ref)
-                     return 0;
+                     return QoreValue();
                   if (ref.assign(key->substr(l, xsink)))
-                     return 0;
+                     return QoreValue();
                }
-               return it->second.getReferencedValue();
+               return it->second.refSelf();
             }
          }
       }
       if (unmatched) {
          QoreTypeSafeReferenceHelper ref(unmatched, xsink);
          if (!ref)
-            return 0;
+            return QoreValue();
          if (ref.assign(&Nothing))
-            return 0;
+            return QoreValue();
       }
-      return 0;
+      return QoreValue();
    }
 
-   DLLLOCAL QoreHashNode *getAll() const {
+   DLLLOCAL QoreHashNode* getAll() const {
       QoreAutoRWReadLocker al(rwl);
 
       if (data.empty())
-         return 0;
+         return nullptr;
 
-      QoreHashNode* h = new QoreHashNode;
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, nullptr);
       for (Map::const_iterator i = data.begin(), e = data.end(); i != e; ++i)
-         h->setKeyValue(i->first.c_str(), i->second.getReferencedValue(), 0);
-      return h;
+         h->setKeyValue(i->first.c_str(), i->second.getReferencedValue(), nullptr);
+      return h.release();
    }
 
-   DLLLOCAL AbstractQoreNode *take(const QoreStringNode *key, ExceptionSink *xsink) {
+   // return value must be dereferenced
+   DLLLOCAL QoreValue take(const QoreStringNode* key, ExceptionSink* xsink) {
       TempEncodingHelper keyStr(key, QCS_DEFAULT, xsink);
       if (!keyStr) {
-         return 0;
+         return QoreValue();
       }
 
       QoreAutoRWWriteLocker al(rwl);
       Map::iterator i = data.find(keyStr->getBuffer());
       if (i == data.end())
-         return 0;
+         return QoreValue();
 
-      AbstractQoreNode *rv = i->second.takeNode();
+      QoreValue rv = i->second;
       data.erase(i);
       return rv;
    }
