@@ -48,12 +48,14 @@ extern void yyset_lineno(int line_number, yyscan_t yyscanner);
 #define AST_BUF_SIZE 16384
 
 ASTTree* AstParser::parseFile(const char* filename) {
+    // Open a file for reading.
+    FILE* f = fopen(filename, "r");
+    if (!f)
+        return nullptr;
+
     // Prepare scanner.
     yyscan_t lexer;
     yylex_init(&lexer);
-
-    // Open a file for reading.
-    FILE* f = fopen(filename, "r");
 
     // Set up flex to scan the file.
     yy_buffer_state* buf = yy_create_buffer(f, AST_BUF_SIZE, lexer);
@@ -66,7 +68,6 @@ ASTTree* AstParser::parseFile(const char* filename) {
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
-        // ???
         return nullptr;
     }
 
@@ -88,6 +89,9 @@ ASTTree* AstParser::parseFile(std::string& filename) {
 }
 
 ASTTree* AstParser::parseString(const char* str) {
+    if (!str)
+        return nullptr;
+
     // Prepare scanner.
     yyscan_t lexer;
     yylex_init(&lexer);
@@ -102,7 +106,6 @@ ASTTree* AstParser::parseString(const char* str) {
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
     if (rc) {
-        // ???
         return nullptr;
     }
 
