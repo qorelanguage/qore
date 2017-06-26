@@ -1,0 +1,47 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetHostTest
+
+public class GetHostTest inherits QUnit::Test {
+    constructor() : Test("GetHostBy*Test", "1.0") {
+        addTestCase("gethostbyname test", \gethostbynameTest());
+        addTestCase("gethostbyaddr test", \gethostbyaddrTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    gethostbynameTest() {
+        assertTrue(gethostbyname("8.8.8.8") =~ /8.8.8.8/);
+        *hash result = gethostbyname_long("8.8.8.8");
+        assertTrue(result.name =~ /8.8.8.8/);
+        assertTrue(result.hasKey("aliases"));
+        assertEq("ipv4", result.typename);
+        assertEq(2, result.type);
+        assertEq(4, result.len);
+
+        string ipValRgx = "([0-9]|[1-9][0-9]|1[0-9]{2}|2([0-4][0-9]|5[0-5]))";
+        string ipRegex = ipValRgx + "\\." + ipValRgx + "\\." + ipValRgx + "\\." + ipValRgx;
+        string simpleIp6Regex = "((([0-9]|[abcdef]){1,4}):|:)+(([0-9]|[abcdef]){1,4})";
+        string ip = gethostbyname("google.com");
+        assertTrue(ip.regex(ipRegex) || ip.regex(simpleIp6Regex));
+    }
+
+    gethostbyaddrTest() {
+        assertTrue(gethostbyaddr("8.8.8.8") =~ /google.com/);
+        *hash result = gethostbyaddr_long("8.8.8.8");
+        assertTrue(result.name =~ /google.com/);
+        assertTrue(result.hasKey("aliases"));
+        assertEq("ipv4", result.typename);
+        assertEq(2, result.type);
+        assertEq(4, result.len);
+    }
+}
