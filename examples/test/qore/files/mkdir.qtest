@@ -44,8 +44,8 @@ class MkdirTest inherits QUnit::Test {
 
     mkdirParentTest() {
         string dir1 = tmp_location() + dir_par;
-        string dir2 = dir1 + "/mk2";
-        string dir3 = dir2 + "/mk3";
+        string dir2 = dir1 + DirSep + "mk2";
+        string dir3 = dir2 + DirSep + "mk3";
         int ret = mkdir(dir3, 0777, True);
         on_exit {
             rmdir(dir3);
