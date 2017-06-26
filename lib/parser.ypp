@@ -61,6 +61,7 @@
 
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/typed_hash_decl_private.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -100,20 +101,20 @@ public:
    }
 
    DLLLOCAL ~HashElement() {
-      discard(key, 0);
-      discard(value, 0);
+      discard(key, nullptr);
+      discard(value, nullptr);
    }
 
    DLLLOCAL void addDelete(QoreParseHashNode* h) {
       h->add(key, value, loc);
-      key = value = 0;
+      key = value = nullptr;
       delete this;
    }
 };
 
 static AbstractQoreNode* makeErrorTree(AbstractQoreNode* left, AbstractQoreNode* right) {
-   discard(left, 0);
-   discard(right, 0);
+   discard(left, nullptr);
+   discard(right, nullptr);
    return &False;
 }
 
@@ -132,10 +133,10 @@ public:
    }
    DLLLOCAL AbstractQoreNode* takeValue() {
       AbstractQoreNode* rv = value;
-      value = 0;
+      value = nullptr;
       return rv;
    }
-   DLLLOCAL const std::string &getName() const {
+   DLLLOCAL const std::string& getName() const {
       return name.getIdentifierStr();
    }
    DLLLOCAL bool isPublic() const {
@@ -146,7 +147,7 @@ public:
 class ObjClassDef {
 public:
    QoreProgramLocation loc;
-   NamedScope *name;
+   NamedScope* name;
    QoreClass* oc;
 
    DLLLOCAL ObjClassDef(const QoreProgramLocation& loc, NamedScope *n, QoreClass* o) : loc(loc), name(n), oc(o) {
@@ -156,6 +157,25 @@ public:
    }
 
    DLLLOCAL ~ObjClassDef() {
+      delete name;
+   }
+};
+
+class HashDeclDef {
+public:
+   QoreProgramLocation loc;
+   NamedScope* name;
+   TypedHashDecl* hashdecl;
+
+   DLLLOCAL HashDeclDef(const QoreProgramLocation& loc, NamedScope *n, typed_hash_decl_private* hp) :
+        loc(loc), name(n), hashdecl(hp->newTypedHashDecl(name->getIdentifier())) {
+   }
+
+   DLLLOCAL HashDeclDef(const QoreProgramLocation& loc, char* n, typed_hash_decl_private* hp) :
+        loc(loc), name(new NamedScope(n)), hashdecl(hp->newTypedHashDecl(name->getIdentifier())) {
+   }
+
+   DLLLOCAL ~HashDeclDef() {
       delete name;
    }
 };
@@ -359,7 +379,7 @@ struct GVarListDecl : public GVarDecl {
       while (li.next()) {
          AbstractQoreNode* n = li.getValue();
          qore_type_t t = get_node_type(n);
-         VarRefNode* vrn = 0;
+         VarRefNode* vrn = nullptr;
          if (t == NT_BAREWORD) {
             BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
             GlobalVarRefNode* v = new GlobalVarRefNode(loc, b->takeString());
@@ -457,7 +477,7 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation& l
    if (!strcmp(name, "destructor")) {
       if (params) {
          parse_error(loc, "parameters cannot be defined for destructors");
-         params->deref(0);
+         params->deref(nullptr);
       }
       if (mod & OFM_SYNCED)
          parse_error(loc, "%s() methods cannot be synchronized", name);
@@ -575,19 +595,21 @@ static AbstractQoreNode* parse_map(const QoreProgramLocation& loc, AbstractQoreN
    return new QoreMapSelectOperatorNode(loc, exp, iterator_exp, select_exp);
 }
 
-#define NSN_NONE  0
-#define NSN_OCD   1
-#define NSN_CONST 2
-#define NSN_NS    3
-#define NSN_FUNC  4
-#define NSN_SFUNC 5
-#define NSN_VAR   6
-#define NSN_METH  7
+#define NSN_NONE     0
+#define NSN_OCD      1
+#define NSN_HASHDECL 2
+#define NSN_CONST    3
+#define NSN_NS       4
+#define NSN_FUNC     5
+#define NSN_SFUNC    6
+#define NSN_VAR      7
+#define NSN_METH     8
 
 struct NSNode {
    int type;
    union {
       ObjClassDef* ocd;
+      HashDeclDef* hashdecl;
       ConstNode* cn;
       QoreNamespace* ns;
       ParseUserFunction* func;
@@ -596,9 +618,10 @@ struct NSNode {
       MethodDef* meth;
    } n;
 
-   DLLLOCAL NSNode(ObjClassDef *o) { type = NSN_OCD; n.ocd = o; }
-   DLLLOCAL NSNode(ConstNode *c) { type = NSN_CONST; n.cn = c; }
-   DLLLOCAL NSNode(QoreNamespace *s) { type = NSN_NS; n.ns = s; }
+   DLLLOCAL NSNode(ObjClassDef* o) { type = NSN_OCD; n.ocd = o; }
+   DLLLOCAL NSNode(HashDeclDef* h) { type = NSN_HASHDECL; n.hashdecl = h; }
+   DLLLOCAL NSNode(ConstNode* c) { type = NSN_CONST; n.cn = c; }
+   DLLLOCAL NSNode(QoreNamespace* s) { type = NSN_NS; n.ns = s; }
    DLLLOCAL NSNode(ParseUserFunction* f) : type(NSN_FUNC) {
       n.func = f;
    }
@@ -618,6 +641,9 @@ struct NSNode {
       switch (type) {
          case NSN_OCD:
             delete n.ocd;
+            break;
+         case NSN_HASHDECL:
+            delete n.hashdecl;
             break;
          case NSN_CONST:
             delete n.cn;
@@ -650,6 +676,9 @@ struct NSNode {
             //printd(5, "ocd: %s %d-%d c: %d-%d\n", n.ocd->oc->getName(), n.ocd->loc.start_line, n.ocd->loc.end_line, qore_class_private::get(*n.ocd->oc)->loc.start_line, qore_class_private::get(*n.ocd->oc)->loc.end_line);
             ns.parseAddPendingClass(n.ocd->loc, *(n.ocd->name), n.ocd->oc);
             delete n.ocd;
+            break;
+         case NSN_HASHDECL:
+            ns.parseAddPendingHashDecl(n.hashdecl->loc, *(n.hashdecl->name), n.hashdecl->hashdecl);
             break;
          case NSN_CONST:
             ns.parseAddConstant(n.cn->loc, n.cn->name, n.cn->value, n.cn->pub);
@@ -767,23 +796,23 @@ public:
    DLLLOCAL member_pair_t getPair() {
       assert(type == MI_Member);
       member_pair_t m = std::make_pair(name, u.memberInfo);
-      name = 0;
-      u.memberInfo = 0;
+      name = nullptr;
+      u.memberInfo = nullptr;
       return m;
    }
 
    DLLLOCAL var_pair_t getVarPair() {
       assert(type == MI_Var);
       var_pair_t m = std::make_pair(name, u.varInfo);
-      name = 0;
-      u.varInfo = 0;
+      name = nullptr;
+      u.varInfo = nullptr;
       return m;
    }
 
    DLLLOCAL AbstractQoreNode* takeExp() {
       assert(type == MI_Constant);
       AbstractQoreNode* rv = u.exp;
-      u.exp = 0;
+      u.exp = nullptr;
       return rv;
    }
 };
@@ -799,7 +828,7 @@ struct ClassVarInfo : public MemberInfo {
 
    DLLLOCAL char* takeName() {
       char* n = name;
-      name = 0;
+      name = nullptr;
       return n;
    }
 };
@@ -1063,6 +1092,23 @@ static void check_classmod(const QoreProgramLocation& loc, int mod, QoreClass& q
       parse_error(loc, "illegal 'abstract' modifier in class declaration");
 }
 
+static void check_hashdeclmod(const QoreProgramLocation& loc, int mod, typed_hash_decl_private& hashdecl) {
+   if (mod & (OFM_PRIVATE|OFM_INTERNAL))
+      parse_error(loc, "illegal 'private' modifier in hashdecl");
+   if (mod & OFM_SYNCED)
+      parse_error(loc, "illegal 'synchronized' modifier in hashdecl");
+   if (mod & OFM_STATIC)
+      parse_error(loc, "illegal 'static' modifier in hashdecl");
+   if (mod & OFM_PUBLIC)
+      hashdecl->setPublic();
+   if (mod & OFM_DEPRECATED)
+      parse_error(loc, "illegal 'deprecated' modifier in hashdecl");
+   if (mod & OFM_FINAL)
+      parse_error(loc, "illegal 'final' modifier in hashdecl");
+   if (mod & OFM_ABSTRACT)
+      parse_error(loc, "illegal 'abstract' modifier in hashdecl");
+}
+
 static void check_nsmod(const QoreProgramLocation& loc, int mod, qore_ns_private& ns) {
    if (mod & (OFM_PRIVATE|OFM_INTERNAL))
       parse_error(loc, "illegal 'private' modifier in namespace declaration");
@@ -1318,11 +1364,13 @@ static void check_operator_bin_xor(const AbstractQoreNode *n, const char *parent
    struct MethodNode* methodnode;
    class MemberList* memberlist;
    QoreClass* qoreclass;
+   typed_hash_decl_private* hashdeclpriv;
    class ConstNode* constnode;
    QoreNamespace *ns;
    struct NSNodeList* nsnlist;
    struct NSNode* nsn;
    class ObjClassDef* classdef;
+   class HashDeclDef* hashdecldef;
    DateTimeNode* datetime;
    QoreRegexSubst* RegexSubst;
    QoreTransliteration* Trans;
@@ -1405,10 +1453,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token TOK_MODULE "module"
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
+%token TOK_HASHDECL "hashdecl"
 
 // currently unused tokens
-//%token TOK_FINALLY "finally"
-//%token TOK_INTERFACE "interface"
 %token TOK_UNREFERENCE "unreference"
 
 // operator tokens
@@ -1559,9 +1606,12 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <memberinfo>     member
 %type <memberlist>     member_list2
 %type <memberinfo>     member2
+%type <memberinfo>     hashdecl_member
 %type <classvarinfo>   classvardecl
 %type <qoreclass>      class_attributes
+%type <hashdeclpriv>   hashdecl_attrs
 %type <classdef>       class_def
+%type <hashdecldef>    hashdecl_def
 %type <ns>             top_namespace_decl
 %type <nsnlist>        namespace_decls
 %type <nsn>            namespace_decl
@@ -1595,7 +1645,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <Trans>          regex_trans
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans hashdecl_attrs
 %destructor { qore_class_private::get(*$$)->deref(); } class_attributes
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls quoted_word string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
@@ -1622,6 +1672,10 @@ top_level_command:
            // see if class definitions are allowed
            if (parse_check_parse_option(PO_NO_CLASS_DEFS))
               parse_error($1->loc, "illegal class definition \"%s\" (conflicts with parse option NO_CLASS_DEFS)", $1->oc->getName());
+           delete $1;
+        }
+        | hashdecl_def {
+           //qore_root_ns_private::parseAddTypedHash($1->loc, *($1->name), $1->hashdecl);
            delete $1;
         }
         | scoped_const_decl {
@@ -1815,6 +1869,9 @@ namespace_decl:
            // see if class definitions are allowed
            if (parse_check_parse_option(PO_NO_CLASS_DEFS))
               parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "illegal class definition \"%s\" (conflicts with parse option PO_NO_CLASS_DEFS)", $1->oc->getName());
+        }
+        | hashdecl_def {
+           $$ = new NSNode($1);
         }
         | sub_def {
            $$ = new NSNode($1);
@@ -2185,6 +2242,19 @@ myexp:  /* empty */  { $$ = 0; }
         | error      { $$ = 0; }
         ;
 
+hashdecl_def:
+        nsc_modifiers TOK_HASHDECL IDENTIFIER '{' hashdecl_attrs '}' {
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
+           check_hashdeclmod(loc, $1, *($5));
+           $$ = new HashDeclDef(loc, $3, $5);
+        }
+        | nsc_modifiers TOK_HASHDECL SCOPED_REF '{' hashdecl_attrs '}' {
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
+           check_hashdeclmod(loc, $1, *($5));
+           $$ = new HashDeclDef(loc, $3, $5);
+        }
+        ;
+
 class_def:
         nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
            QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @6.last_line);
@@ -2291,6 +2361,65 @@ superclass:
         }
         | TOK_PRIVATEINTERNAL SCOPED_REF {
            $$ = new BCNode(new NamedScope($2), Internal);
+        }
+        ;
+
+hashdecl_attrs:
+        hashdecl_member {
+           $$ = new typed_hash_decl_private;
+           if ($1)
+              $$->members.addNoCheck($1->getPair());
+        }
+        | hashdecl_attrs ',' hashdecl_member {
+           if ($3) {
+              if ($1->members.inList($3->name)) {
+                 parse_error($3->loc, "duplicate hashdecl member declaration '%s'", $3->name);
+              }
+              else {
+                 // add new member to list
+                 $1->members.addNoCheck($3->getPair());
+              }
+              delete $3;
+           }
+
+           $$ = $1;
+        }
+        ;
+
+hashdecl_member:
+        IDENTIFIER ';' {
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc));
+        }
+        | IDENTIFIER '=' exp ';' {
+           QoreProgramLocation loc(@1.first_line, @3.last_line);
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc, nullptr, nullptr, $3));
+        }
+        | uncqtypedef IDENTIFIER ';' {
+           QoreProgramLocation loc(@1.first_line, @2.last_line);
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           delete $1;
+        }
+        | uncqtypedef IDENTIFIER '=' exp ';' {
+           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           delete $1;
+        }
+        | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
+           QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
+           const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
+           ScopedObjectCallNode* new_call = nullptr;
+
+           if (!$1)
+              parse_error(loc, "cannot call constructor without declaring the class");
+           else if (t)
+              parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+           else
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args($4));
+
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+
+           delete $1;
         }
         ;
 

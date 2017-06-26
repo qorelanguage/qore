@@ -408,6 +408,7 @@ set(LIBQORE_CPP_SRC
     lib/ExceptionSink.cpp
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
+    lib/TypedHashDecl.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp

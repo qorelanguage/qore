@@ -165,6 +165,7 @@ libqore_la_SOURCES = \
 	ExceptionSink.cpp \
 	QoreStandardException.cpp \
 	QoreClass.cpp \
+	TypedHashDecl.cpp \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \

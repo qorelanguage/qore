@@ -1418,6 +1418,7 @@ trim                                    return TOK_TRIM;
 on_exit                                 return TOK_ON_EXIT;
 on_success                              return TOK_ON_SUCCESS;
 on_error                                return TOK_ON_ERROR;
+hashdecl                                return TOK_HASHDECL;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }

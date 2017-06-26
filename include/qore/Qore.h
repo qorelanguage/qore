@@ -61,6 +61,7 @@ DLLEXPORT extern QoreCounter thread_counter;
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreIteratorBase.h>
 #include <qore/QoreObject.h>
+#include <qore/QoreTypedHashNode.h>
 #include <qore/QoreProgram.h>
 #include <qore/ModuleManager.h>
 #include <qore/QoreLib.h>
@@ -93,6 +94,7 @@ DLLEXPORT extern QoreCounter thread_counter;
 #include <qore/Datasource.h>
 #include <qore/SQLStatement.h>
 #include <qore/QoreClass.h>
+#include <qore/TypedHashDecl.h>
 #include <qore/ScopeGuard.h>
 #include <qore/SystemEnvironment.h>
 #include <qore/AutoVLock.h>

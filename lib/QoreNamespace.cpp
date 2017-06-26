@@ -1816,6 +1816,45 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation& loc, const 
    return sns->priv->parseAddPendingClass(loc, och.release());
 }
 
+// public, only called either in single-threaded initialization or
+// while the program-level parse lock is held
+int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation& loc, TypedHashDecl* hashdecl) {
+   std::unique_ptr<TypedHashDecl> thd(hashdecl);
+
+   if (!pub && typed_hash_decl_private::get(*hashdecl)->pub && parse_check_parse_option(PO_IN_MODULE))
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), hashdecl->getName(), name.c_str());
+
+   {
+      TypedHashDecl* hd = hashDeclList.find(hashdecl->getName());
+      if (hd) {
+         parse_error(loc, "hashdecl '%s' already exists in namespace '%s::'", hd->getName(), name.c_str());
+         return -1;
+      }
+   }
+
+   if (pendHashDeclList.add(hashdecl)) {
+      parse_error(loc, "hashdecl '%s' is already pending in namespace '%s::'", hashdecl->getName(), name.c_str());
+      return -1;
+   }
+
+   //typed_hash_decl_private::setNamespace(oc, this);
+   thd.release();
+
+   return 0;
+}
+
+// public, only called when parsing unattached namespaces
+int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation& loc, const NamedScope& n, TypedHashDecl* hashdecl) {
+   std::unique_ptr<TypedHashDecl> thd(hashdecl);
+
+   //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
+   QoreNamespace* sns = resolveNameScope(loc, n);
+   if (!sns)
+      return -1;
+
+   return sns->priv->parseAddPendingHashDecl(loc, thd.release());
+}
+
 int qore_ns_private::parseAddMethodToClass(const QoreProgramLocation& loc, const NamedScope& mname, MethodVariantBase* qcmethod, bool static_flag) {
    std::unique_ptr<MethodVariantBase> v(qcmethod);
 

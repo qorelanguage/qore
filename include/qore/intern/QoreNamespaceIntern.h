@@ -33,6 +33,7 @@
 #define _QORE_QORENAMESPACEINTERN_H
 
 #include "qore/intern/QoreClassList.h"
+#include "qore/intern/HashDeclList.h"
 #include "qore/intern/QoreNamespaceList.h"
 #include "qore/intern/ConstantList.h"
 #include "qore/intern/FunctionList.h"
@@ -105,6 +106,8 @@ public:
 
    QoreClassList classList,       // committed class map
       pendClassList;              // pending class map
+   HashDeclList hashDeclList,     // committed class map
+      pendHashDeclList;           // pending class map
    ConstantList constant,         // committed constant map
       pendConstant;               // pending constant map
    QoreNamespaceList nsl,         // committed namespace map
@@ -139,6 +142,7 @@ public:
    DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po)
       : name(old.name),
         classList(old.classList, po, this),
+        hashDeclList(old.hashDeclList),
         constant(old.constant, po, this),
         pendConstant(this),
         nsl(old.nsl, po, *this),
@@ -193,6 +197,9 @@ public:
       classList.reset();
       pendClassList.reset();
 
+      hashDeclList.reset();
+      pendHashDeclList.reset();
+
       nsl.reset();
       pendNSL.reset();
    }
@@ -234,6 +241,9 @@ public:
 
    DLLLOCAL int parseAddPendingClass(const QoreProgramLocation& loc, const NamedScope& n, QoreClass* oc);
    DLLLOCAL int parseAddPendingClass(const QoreProgramLocation& loc, QoreClass* oc);
+
+   DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation& loc, const NamedScope& n, TypedHashDecl* hashdecl);
+   DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation& loc, TypedHashDecl* hashdecl);
 
    DLLLOCAL cnemap_t::iterator parseAddConstant(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* value, bool pub);
 
@@ -859,6 +869,8 @@ typedef RootMap<ConstantEntry> cnmap_t;
 
 typedef RootMap<QoreClass> clmap_t;
 
+typedef RootMap<TypedHashDecl> thdmap_t;
+
 typedef RootMap<Var> varmap_t;
 
 struct GVEntry : public GVEntryBase {
@@ -1027,22 +1039,27 @@ protected:
 
    DLLLOCAL void parseCommit() {
       // commit pending function lookup entries
-      for (fmap_t::iterator i = pend_fmap.begin(), e = pend_fmap.end(); i != e; ++i)
+      for (auto& i : pend_fmap)
          fmap.update(i);
       pend_fmap.clear();
 
       // commit pending constant lookup entries
-      for (cnmap_t::iterator i = pend_cnmap.begin(), e = pend_cnmap.end(); i != e; ++i)
+      for (auto& i : pend_cnmap)
          cnmap.update(i);
       pend_cnmap.clear();
 
       // commit pending class lookup entries
-      for (clmap_t::iterator i = pend_clmap.begin(), e = pend_clmap.end(); i != e; ++i)
+      for (auto& i : pend_clmap)
          clmap.update(i);
       pend_clmap.clear();
 
+      // commit pending hashdecl lookup entries
+      for (auto& i : pend_thdmap)
+         thdmap.update(i);
+      pend_thdmap.clear();
+
       // commit pending global variable lookup entries
-      for (varmap_t::iterator i = pend_varmap.begin(), e = pend_varmap.end(); i != e; ++i)
+      for (auto& i : pend_varmap)
          varmap.update(i);
       pend_varmap.clear();
 
@@ -1059,6 +1076,7 @@ protected:
       pend_fmap.clear();
       pend_cnmap.clear();
       pend_clmap.clear();
+      pend_thdmap.clear();
 
       // must delete unassigned global vars
       /*
@@ -1382,6 +1400,12 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
+   DLLLOCAL static void rebuildHashDeclIndexes(thdmap_t& thdmap, QoreHashDeclList& hdl, qore_ns_private* ns) {
+      HashDeclListIterator hdli(hdl);
+      while (hdli.next())
+         thdmap.update(hdli.getName(), ns, hdli.get());
+   }
+
    DLLLOCAL static void rebuildFunctionIndexes(fmap_t& fmap, fl_map_t& flmap, qore_ns_private* ns) {
       for (fl_map_t::iterator i = flmap.begin(), e = flmap.end(); i != e; ++i) {
          assert(i->second->getFunction()->getNamespace() == ns);
@@ -1403,6 +1427,9 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // process hashdecl indexes
+      rebuildHashDeclIndexes(thdmap, ns->classList, ns);
 
       // reindex namespace
       nsmap.update(ns);
@@ -1439,6 +1466,12 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // process pending hashdecl indexes
+      rebuildHashDeclIndexes(pend_thdmap, ns->pendHashDeclList, ns);
+
+      // process class indexes
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
 
       // reindex namespace
       pend_nsmap.update(ns);
@@ -1497,6 +1530,9 @@ public:
 
    clmap_t clmap,       // root class map
       pend_clmap;       // root pending class map (used only during parsing)
+
+   thdmap_t thdmap,     // root class map
+      pend_thdmap;      // root pending class map (used only during parsing)
 
    varmap_t varmap,     // root variable map
       pend_varmap;      // root pending variable map (used only during parsing)
@@ -1599,6 +1635,10 @@ public:
 
    DLLLOCAL void runtimeRebuildClassIndexes(qore_ns_private* ns) {
       rebuildClassIndexes(clmap, ns->classList, ns);
+   }
+
+   DLLLOCAL void runtimeRebuildHashDeclIndexes(qore_ns_private* ns) {
+      rebuildHashDeclIndexes(thdmap, ns->classList, ns);
    }
 
    DLLLOCAL void runtimeRebuildFunctionIndexes(qore_ns_private* ns) {
