@@ -78,10 +78,6 @@ DLLLOCAL bool threads_initialized = false;
 // recursive mutex attribute
 DLLLOCAL pthread_mutexattr_t ma_recursive;
 
-#ifndef HAVE_GETHOSTBYNAME_R
-DLLLOCAL QoreThreadLock lck_gethostbyname;
-#endif
-
 #ifndef HAVE_GETHOSTBYADDR_R
 DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 #endif
