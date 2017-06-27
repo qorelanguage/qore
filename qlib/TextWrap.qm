@@ -1,0 +1,71 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file TextWrap.qm Text wrapping and filling
+
+/*  TextWrap.qm Copyright 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.12
+
+%new-style
+%require-types
+%enable-all-warnings
+
+module TextWrap {
+    version = "0.1";
+    desc    = "Text wrapping and filling";
+    author  = "Martin Otto <martin@qore.org>";
+    url     = "https://qore.org";
+    license = "MIT";
+    init    = sub () { init(); };
+}
+
+namespace Init {
+    sub init() {
+    }
+}
+
+public namespace TextWrap {
+
+const c_whitespace = "\t\n\r ";
+
+# -- Loosely related functionality -------------------------------------
+
+#! Adds 'prefix' to the beginning of selected lines in 'text'.
+/**
+    If 'predicate' is provided, 'prefix' will only be added to the lines
+    where 'predicate(line)' is True.  If 'predicate' is not provided,
+    it will default to adding 'prefix' to all non-empty lines that do not
+    consist solely of whitespace characters.
+*/
+public string sub indent (string text, string prefix, *code predicate) {
+    if (!exists predicate)
+        predicate = bool sub (string line) { return boolean(trim(line)); };
+    list prefixed_lines;
+
+    foreach string line in (text.split("\n", True))
+        prefixed_lines += predicate(line) ? prefix + line : line;
+    return prefixed_lines.join('');
+}
+
+} # namespace TextWrap
+
+# vim:et:sw=4:ts=4:sts=4:
