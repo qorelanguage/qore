@@ -43,7 +43,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreValueCoalescingOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(e0, e1), typeInfo(0) {
+   DLLLOCAL QoreValueCoalescingOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* e0, AbstractQoreNode* e1) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, e0, e1), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -57,12 +57,6 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return value_coalescing_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check with David how this works.
-      return true;
-//      return ::node_has_effect(e[1]) || ::node_has_effect(e[2]);
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {

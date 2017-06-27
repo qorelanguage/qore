@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/VRMutex.h>
+#include "qore/intern/VRMutex.h"
 
 #include <assert.h>
 
@@ -68,7 +68,7 @@ int VRMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeout_
 	    xsink->raiseException("LOCK-ERROR", "TID %d cannot execute %s::enter() because the object has been deleted in another thread", mtid, getName());
 	    return -1;
 	 }
-	 
+
 	 ++waiting;
 	 int rc = nvl->waitOn((AbstractSmartLock *)this, vl, xsink, timeout_ms);
 	 --waiting;
@@ -122,7 +122,7 @@ int VRMutex::releaseImpl(ExceptionSink *xsink) {
    if (tid != mtid) {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() while the lock is held by TID %d", mtid, getName(), tid);
-      return -1;      
+      return -1;
    }
    // count must be > 0 because tid > 0
    assert(count);
