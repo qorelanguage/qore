@@ -201,6 +201,7 @@ libqore_la_SOURCES = \
 	ReferenceHelper.cpp \
 	ConstantList.cpp \
 	QoreClassList.cpp \
+	HashDeclList.cpp \
 	ThreadResourceList.cpp \
 	AbstractThreadResource.cpp \
 	thread.cpp \

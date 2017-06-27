@@ -33,10 +33,7 @@
 
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/QoreRegexBase.h"
-#include "qore/intern/QoreNamespaceList.h"
 #include "qore/intern/ssl_constants.h"
-#include "qore/intern/ConstantList.h"
-#include "qore/intern/QoreClassList.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/QoreNamespaceIntern.h"
@@ -1783,6 +1780,17 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation& loc, QoreCl
       return -1;
    }
 
+   // look for conflicting hashdecl
+   if (hashDeclList.find(oc->getName())) {
+      parse_error(loc, "hashdecl '%s' already exists in namespace '%s::'", oc->getName(), name.c_str());
+      return -1;
+   }
+
+   if (pendHashDeclList.find(oc->getName())) {
+      parse_error(loc, "hashdecl '%s' is already pending in namespace '%s::'", oc->getName(), name.c_str());
+      return -1;
+   }
+
    {
       QoreClass* c = classList.find(oc->getName());
       if (c) {
@@ -1819,9 +1827,9 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation& loc, const 
 // public, only called either in single-threaded initialization or
 // while the program-level parse lock is held
 int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation& loc, TypedHashDecl* hashdecl) {
-   std::unique_ptr<TypedHashDecl> thd(hashdecl);
+   TypedHashDeclHolder thd(hashdecl);
 
-   if (!pub && typed_hash_decl_private::get(*hashdecl)->pub && parse_check_parse_option(PO_IN_MODULE))
+   if (!pub && typed_hash_decl_private::get(*hashdecl)->isPublic() && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), hashdecl->getName(), name.c_str());
 
    {
@@ -1845,7 +1853,7 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation& loc, Typ
 
 // public, only called when parsing unattached namespaces
 int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation& loc, const NamedScope& n, TypedHashDecl* hashdecl) {
-   std::unique_ptr<TypedHashDecl> thd(hashdecl);
+   TypedHashDeclHolder thd(hashdecl);
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
    QoreNamespace* sns = resolveNameScope(loc, n);
@@ -1974,6 +1982,9 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    // merge in source classes
    classList.mergeUserPublic(mns.classList, this);
 
+   // merge in source hashdecls
+   hashDeclList.mergeUserPublic(mns.hashDeclList);
+
    // merge in source functions
    func_list.mergeUserPublic(mns.func_list, this);
 
@@ -2011,6 +2022,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
    assert(pns->nsl.empty());
    assert(pns->constant.empty());
    assert(pns->classList.empty());
+   assert(pns->hashDeclList.empty());
 
    // ensure that either both namespaces are public or both are not
    if (parse_check_parse_option(PO_IN_MODULE) && ((pub && !pns->pub) || (!pub && pns->pub))) {
@@ -2025,6 +2037,9 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
 
    // assimilate classes
    pendClassList.assimilate(pns->pendClassList, *this);
+
+   // assimilate hashdecls
+   pendHashDeclList.assimilate(pns->pendHashDeclList, *this);
 
    // assimilate pending functions
    func_list.assimilate(pns->func_list, this);
@@ -2073,6 +2088,7 @@ void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
    assert(pns->pendNSL.empty());
    assert(pns->pendConstant.empty());
    assert(pns->pendClassList.empty());
+   assert(pns->pendHashDeclList.empty());
    assert(pns->pend_gvblist.empty());
 
    // assimilate constants
@@ -2080,6 +2096,9 @@ void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
 
    // assimilate classes
    classList.assimilate(pns->classList, *this);
+
+   // assimilate hashdecls
+   hashDeclList.assimilate(pns->hashDeclList, *this);
 
    // assimilate pending functions
    func_list.assimilate(pns->func_list, this);

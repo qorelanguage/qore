@@ -746,10 +746,12 @@ static QoreListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreNode* 
 
 typedef std::pair<char*, QoreMemberInfo*> member_pair_t;
 typedef std::pair<char*, QoreVarInfo*> var_pair_t;
+typedef std::pair<char*, HashDeclMemberInfo*> hashmem_pair_t;
 
 #define MI_Member 0
 #define MI_Constant 1
 #define MI_Var 2
+#define MI_HashMem 3
 
 struct MemberInfo {
 protected:
@@ -763,10 +765,11 @@ public:
    union {
       QoreMemberInfo* memberInfo;
       QoreVarInfo* varInfo;
+      HashDeclMemberInfo* hashMemberInfo;
       AbstractQoreNode* exp;
    } u;
 
-   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : loc(mi->loc), name(n), type(MI_Member)  {
+   DLLLOCAL MemberInfo(char* n, QoreMemberInfo* mi) : loc(mi->loc), name(n), type(MI_Member) {
       u.memberInfo = mi;
       if (!(mi && mi->parseHasTypeInfo()) && parse_check_parse_option(PO_REQUIRE_TYPES))
          parse_error(mi->loc, "member '%s' declared without type information, but parse options require type information for all declarations", name);
@@ -774,6 +777,10 @@ public:
 
    DLLLOCAL MemberInfo(const QoreProgramLocation& loc, char* n, AbstractQoreNode* exp) : loc(loc), name(n), type(MI_Constant) {
       u.exp = exp;
+   }
+
+   DLLLOCAL MemberInfo(char* n, HashDeclMemberInfo* mi) : loc(mi->loc), name(n), type(MI_HashMem) {
+      u.hashMemberInfo = mi;
    }
 
    DLLLOCAL ~MemberInfo() {
@@ -785,6 +792,9 @@ public:
             break;
          case MI_Var:
             delete u.varInfo;
+            break;
+         case MI_HashMem:
+            delete u.hashMemberInfo;
             break;
          case MI_Constant:
             if (u.exp)
@@ -806,6 +816,14 @@ public:
       var_pair_t m = std::make_pair(name, u.varInfo);
       name = nullptr;
       u.varInfo = nullptr;
+      return m;
+   }
+
+   DLLLOCAL hashmem_pair_t getHashMemPair() {
+      assert(type == MI_HashMem);
+      hashmem_pair_t m = std::make_pair(name, u.hashMemberInfo);
+      name = nullptr;
+      u.hashMemberInfo = nullptr;
       return m;
    }
 
@@ -1100,7 +1118,7 @@ static void check_hashdeclmod(const QoreProgramLocation& loc, int mod, typed_has
    if (mod & OFM_STATIC)
       parse_error(loc, "illegal 'static' modifier in hashdecl");
    if (mod & OFM_PUBLIC)
-      hashdecl->setPublic();
+      hashdecl.setPublic();
    if (mod & OFM_DEPRECATED)
       parse_error(loc, "illegal 'deprecated' modifier in hashdecl");
    if (mod & OFM_FINAL)
@@ -1645,8 +1663,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %type <Trans>          regex_trans
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans hashdecl_attrs
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans
 %destructor { qore_class_private::get(*$$)->deref(); } class_attributes
+%destructor { $$->deref(); } hashdecl_attrs
 %destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls quoted_word string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
 %destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
@@ -2366,18 +2385,19 @@ superclass:
 
 hashdecl_attrs:
         hashdecl_member {
-           $$ = new typed_hash_decl_private;
+           QoreProgramLocation loc(@1.first_line, @1.last_line);
+           $$ = new typed_hash_decl_private(loc);
            if ($1)
-              $$->members.addNoCheck($1->getPair());
+              $$->parseAdd($1->getHashMemPair());
         }
         | hashdecl_attrs ',' hashdecl_member {
            if ($3) {
-              if ($1->members.inList($3->name)) {
+              if ($1->hasMember($3->name)) {
                  parse_error($3->loc, "duplicate hashdecl member declaration '%s'", $3->name);
               }
               else {
                  // add new member to list
-                 $1->members.addNoCheck($3->getPair());
+                 $1->parseAdd($3->getHashMemPair());
               }
               delete $3;
            }
@@ -2387,22 +2407,14 @@ hashdecl_attrs:
         ;
 
 hashdecl_member:
-        IDENTIFIER ';' {
-           QoreProgramLocation loc(@1.first_line, @1.last_line);
-           $$ = new MemberInfo($1, new QoreMemberInfo(loc));
-        }
-        | IDENTIFIER '=' exp ';' {
-           QoreProgramLocation loc(@1.first_line, @3.last_line);
-           $$ = new MemberInfo($1, new QoreMemberInfo(loc, nullptr, nullptr, $3));
-        }
-        | uncqtypedef IDENTIFIER ';' {
+        uncqtypedef IDENTIFIER ';' {
            QoreProgramLocation loc(@1.first_line, @2.last_line);
-           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
+           $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
            delete $1;
         }
         | uncqtypedef IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @4.last_line);
-           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
+           $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
            delete $1;
         }
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
@@ -2417,7 +2429,7 @@ hashdecl_member:
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args($4));
 
-           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
 
            delete $1;
         }
@@ -2547,7 +2559,7 @@ classvardecl:
         }
         | TOK_STATIC IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @4.last_line);
-           $$ = new ClassVarInfo($2, new QoreVarInfo(loc, $4));
+           $$ = new ClassVarInfo($2, new QoreVarInfo(loc, nullptr, nullptr, $4));
         }
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
            QoreProgramLocation loc(@1.first_line, @6.last_line);
@@ -2638,7 +2650,7 @@ member2:
         }
         | IDENTIFIER '=' exp ';' {
            QoreProgramLocation loc(@1.first_line, @3.last_line);
-           $$ = new MemberInfo($1, new QoreMemberInfo(loc, $3));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc, nullptr, nullptr, $3));
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);
         }
@@ -2663,7 +2675,7 @@ member:
         }
         | SELF_REF SCOPED_REF {
            QoreProgramLocation loc(@1.first_line, @2.last_line);
-           $$ = new MemberInfo($1, new QoreMemberInfo(loc, $2));
+           $$ = new MemberInfo($1, new QoreMemberInfo(loc, nullptr, new QoreParseTypeInfo($2)));
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }

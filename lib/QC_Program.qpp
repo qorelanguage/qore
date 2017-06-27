@@ -467,6 +467,16 @@ const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
     @since %Qore 0.8.13
 */
 const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
+
+//! Prohibits user hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_USER_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+
+//! Prohibits system hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
 //@}
 
 /** @defgroup warning_constants Warning Constants

@@ -219,6 +219,7 @@ include_HEADERS = \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
+	include/qore/TypedHashDecl.h \
 	include/qore/QoreString.h \
 	include/qore/qore-version.h \
 	include/qore/common.h \
@@ -334,6 +335,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \
+	include/qore/intern/HashDeclList.h \
+	include/qore/intern/typed_hash_decl_private.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \

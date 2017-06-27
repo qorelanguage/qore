@@ -438,6 +438,7 @@ set(LIBQORE_CPP_SRC
     lib/DBI.cpp
     lib/ConstantList.cpp
     lib/QoreClassList.cpp
+    lib/HashDeclList.cpp
     lib/thread.cpp
     lib/AbstractThreadResource.cpp
     lib/ThreadResourceList.cpp

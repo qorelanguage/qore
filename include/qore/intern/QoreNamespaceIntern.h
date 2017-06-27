@@ -281,6 +281,14 @@ public:
          xsink->raiseException("CLASS-IMPORT-ERROR", "class '%s' is already pending in namespace '%s'", cname, name.c_str());
          return -1;
       }
+      if (hashDeclList.find(cname)) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "hashdecl '%s' already exists in namespace '%s'", cname, name.c_str());
+         return -1;
+      }
+      if (pendHashDeclList.find(cname)) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "hashdecl '%s' is already pending in namespace '%s'", cname, name.c_str());
+         return -1;
+      }
       if (nsl.find(cname)) {
          xsink->raiseException("CLASS-IMPORT-ERROR", "a subnamespace named '%s' already exists in namespace '%s'", cname, name.c_str());
          return -1;
@@ -1039,27 +1047,27 @@ protected:
 
    DLLLOCAL void parseCommit() {
       // commit pending function lookup entries
-      for (auto& i : pend_fmap)
+      for (fmap_t::iterator i = pend_fmap.begin(), e = pend_fmap.end(); i != e; ++i)
          fmap.update(i);
       pend_fmap.clear();
 
       // commit pending constant lookup entries
-      for (auto& i : pend_cnmap)
+      for (cnmap_t::iterator i = pend_cnmap.begin(), e = pend_cnmap.end(); i != e; ++i)
          cnmap.update(i);
       pend_cnmap.clear();
 
       // commit pending class lookup entries
-      for (auto& i : pend_clmap)
+      for (clmap_t::iterator i = pend_clmap.begin(), e = pend_clmap.end(); i != e; ++i)
          clmap.update(i);
       pend_clmap.clear();
 
       // commit pending hashdecl lookup entries
-      for (auto& i : pend_thdmap)
+      for (thdmap_t::iterator i = pend_thdmap.begin(), e = pend_thdmap.end(); i != e; ++i)
          thdmap.update(i);
       pend_thdmap.clear();
 
       // commit pending global variable lookup entries
-      for (auto& i : pend_varmap)
+      for (varmap_t::iterator i = pend_varmap.begin(), e = pend_varmap.end(); i != e; ++i)
          varmap.update(i);
       pend_varmap.clear();
 
@@ -1400,7 +1408,7 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
-   DLLLOCAL static void rebuildHashDeclIndexes(thdmap_t& thdmap, QoreHashDeclList& hdl, qore_ns_private* ns) {
+   DLLLOCAL static void rebuildHashDeclIndexes(thdmap_t& thdmap, HashDeclList& hdl, qore_ns_private* ns) {
       HashDeclListIterator hdli(hdl);
       while (hdli.next())
          thdmap.update(hdli.getName(), ns, hdli.get());
@@ -1429,7 +1437,7 @@ protected:
       rebuildClassIndexes(clmap, ns->classList, ns);
 
       // process hashdecl indexes
-      rebuildHashDeclIndexes(thdmap, ns->classList, ns);
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
 
       // reindex namespace
       nsmap.update(ns);
@@ -1638,7 +1646,7 @@ public:
    }
 
    DLLLOCAL void runtimeRebuildHashDeclIndexes(qore_ns_private* ns) {
-      rebuildHashDeclIndexes(thdmap, ns->classList, ns);
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
    }
 
    DLLLOCAL void runtimeRebuildFunctionIndexes(qore_ns_private* ns) {
