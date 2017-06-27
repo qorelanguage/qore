@@ -26,7 +26,7 @@ MACRO (QORE_WRAP_QPP _cpp_files)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
-        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qunit)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
@@ -62,7 +62,7 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
-        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qunit)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
