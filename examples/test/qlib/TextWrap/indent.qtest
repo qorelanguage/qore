@@ -1,0 +1,165 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%requires Util
+
+%exec-class IndentTest
+
+#! Test TextWrap.indent()
+public class IndentTest inherits QUnit::Test {
+    constructor () : Test ("IndentTest", "1.0") {
+        addTestCase ("TextWrap - test_indent_nomargin_default", \test_indent_nomargin_default());
+        addTestCase ("TextWrap - test_indent_nomargin_explicit_default", \test_indent_nomargin_explicit_default());
+        addTestCase ("TextWrap - test_indent_nomargin_all_lines", \test_indent_nomargin_all_lines());
+        addTestCase ("TextWrap - test_indent_no_lines", \test_indent_no_lines());
+        addTestCase ("TextWrap - test_indent_default", \test_indent_default());
+        addTestCase ("TextWrap - test_indent_explicit_default", \test_indent_explicit_default());
+        addTestCase ("TextWrap - test_indent_all_lines", \test_indent_all_lines());
+        addTestCase ("TextWrap - test_indent_empty_lines", \test_indent_empty_lines());
+        set_return_value(main());
+    }
+
+    private {
+        # The examples used for tests. If any of these change, the expected
+        # results in the various test cases must also be updated.
+        # The roundtrip cases are separate, because TextWrap.dedent doesn't
+        # handle Windows line endings.
+        const ROUNDTRIP_CASES = (
+                # Basic test case
+                "Hi.\nThis is a test.\nTesting.",
+                # Include a blank line
+                "Hi.\nThis is a test.\n\nTesting.",
+                # Include leading and trailing blank lines
+                "\nHi.\nThis is a test.\nTesting.\n",
+                );
+        const CASES = ROUNDTRIP_CASES + (
+                # Use Windows line endings
+                "Hi.\r\nThis is a test.\r\nTesting.\r\n",
+                # Pathological case
+                "\nHi.\r\nThis is a test.\n\r\nTesting.\r\n\n",
+                );
+    }
+
+    test_indent_nomargin_default () {
+        # indent should do nothing if 'prefix' is empty.
+        foreach string text in (CASES)
+            assertEq (text, indent (text, ''));
+    }
+
+    test_indent_nomargin_explicit_default () {
+        # The same as test_indent_nomargin, but explicitly requesting
+        # the default behaviour by passing NOTHING as the predicate.
+        foreach string text in (CASES)
+            assertEq (text, indent (text, '', NOTHING));
+    }
+
+    test_indent_nomargin_all_lines () {
+        # The same as test_indent_nomargin, but using the optional
+        # predicate argument.
+        code predicate = bool sub (string line) { return True; };
+        foreach string text in (CASES)
+            assertEq (text, indent (text, '', predicate));
+    }
+
+    test_indent_no_lines () {
+        # Explicitly skip indenting any lines
+        code predicate = bool sub (string line) { return False; };
+        foreach string text in (CASES)
+            assertEq (text, indent (text, '    ', predicate));
+    }
+
+    test_indent_default () {
+        # Test default indenting of lines that are not whitespace only
+        string prefix = '  ';
+        list expected = (
+          # Basic test case
+          "  Hi.\n  This is a test.\n  Testing.",
+          # Include a blank line
+          "  Hi.\n  This is a test.\n\n  Testing.",
+          # Include leading and trailing blank lines
+          "\n  Hi.\n  This is a test.\n  Testing.\n",
+          # Use Windows line endings
+          "  Hi.\r\n  This is a test.\r\n  Testing.\r\n",
+          # Pathological case
+          "\n  Hi.\r\n  This is a test.\n\r\n  Testing.\r\n\n",
+        );
+        foreach list tuple in (zip (CASES, expected)) {
+            string text = tuple[0];
+            string expect = tuple[1];
+            assertEq (expect, indent (text, prefix));
+        }
+    }
+
+    test_indent_explicit_default () {
+        # Test default indenting of lines that are not whitespace only
+        string prefix = '  ';
+        list expected = (
+          # Basic test case
+          "  Hi.\n  This is a test.\n  Testing.",
+          # Include a blank line
+          "  Hi.\n  This is a test.\n\n  Testing.",
+          # Include leading and trailing blank lines
+          "\n  Hi.\n  This is a test.\n  Testing.\n",
+          # Use Windows line endings
+          "  Hi.\r\n  This is a test.\r\n  Testing.\r\n",
+          # Pathological case
+          "\n  Hi.\r\n  This is a test.\n\r\n  Testing.\r\n\n",
+        );
+        foreach list tuple in (zip (CASES, expected)) {
+            string text = tuple[0];
+            string expect = tuple[1];
+            assertEq (expect, indent (text, prefix, NOTHING));
+        }
+    }
+
+    test_indent_all_lines () {
+        # Add 'prefix' to all lines, including whitespace-only ones.
+        string prefix = '  ';
+        list expected = (
+          # Basic test case
+          "  Hi.\n  This is a test.\n  Testing.",
+          # Include a blank line
+          "  Hi.\n  This is a test.\n  \n  Testing.",
+          # Include leading and trailing blank lines
+          "  \n  Hi.\n  This is a test.\n  Testing.\n",
+          # Use Windows line endings
+          "  Hi.\r\n  This is a test.\r\n  Testing.\r\n",
+          # Pathological case
+          "  \n  Hi.\r\n  This is a test.\n  \r\n  Testing.\r\n  \n",
+        );
+        code predicate = bool sub (string line) { return True; };
+        foreach list tuple in (zip (CASES, expected)) {
+            string text = tuple[0];
+            string expect = tuple[1];
+            assertEq (expect, indent (text, prefix, predicate));
+        }
+    }
+
+    test_indent_empty_lines () {
+        # Add 'prefix' solely to whitespace-only lines.
+        string prefix = '  ';
+        list expected = (
+          # Basic test case
+          "Hi.\nThis is a test.\nTesting.",
+          # Include a blank line
+          "Hi.\nThis is a test.\n  \nTesting.",
+          # Include leading and trailing blank lines
+          "  \nHi.\nThis is a test.\nTesting.\n",
+          # Use Windows line endings
+          "Hi.\r\nThis is a test.\r\nTesting.\r\n",
+          # Pathological case
+          "  \nHi.\r\nThis is a test.\n  \r\nTesting.\r\n  \n",
+        );
+        code predicate = bool sub (string line) { return !trim(line); };
+        foreach list tuple in (zip (CASES, expected)) {
+            string text = tuple[0];
+            string expect = tuple[1];
+            assertEq (expect, indent (text, prefix, predicate));
+        }
+    }
+}
