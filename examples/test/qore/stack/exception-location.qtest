@@ -225,6 +225,7 @@ class ExceptionLocationTest inherits QUnit::Test {
             assertEq("<run-time-loaded: A11>", ex.file);
 
             ex = getEx(\p.parse(), "our int i = 1;\nour string i = '2';\n", "A13");
+            # line numbers could change the with the implementation
             #assertEq(2, ex.line);
             #assertEq(2, ex.endline);
             assertEq("<run-time-loaded: A13>", ex.file);
@@ -312,6 +313,26 @@ class ExceptionLocationTest inherits QUnit::Test {
             ex = getEx(\p.parse(), "sub t() {\ncontext({}) {\nint i = %%;\n}\n}\n", "B");
             assertEq(3, ex.line);
             assertEq(3, ex.endline);
+            assertEq("<run-time-loaded: B>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nstring str =\n\"sdfdfssf;\n}", "B");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: B>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nstring str = '';\nstr =~ /sdfdfssf;\n}", "B");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: B>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nstring str = '';\nstr =~ s/sdfdfssf/;\n}", "B");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
+            assertEq("<run-time-loaded: B>", ex.file);
+
+            ex = getEx(\p.parse(), "sub t() {\nstring str = '';\nstr =~ x/sdfdfssf;\n}", "B");
+            assertEq(4, ex.line);
+            assertEq(4, ex.endline);
             assertEq("<run-time-loaded: B>", ex.file);
 
             #printf("%s\n", get_exception_string(ex));
