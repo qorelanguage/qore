@@ -57,9 +57,10 @@
 #define QP_WARN_UNREFERENCED_VARIABLE    (1 << 13)  //!< when a variable is declared but not referenced
 #define QP_WARN_DUPLICATE_BLOCK_VARS     (1 << 14)  //!< when a variable is declared more than once in the same block; this would normally be an error, but for backwards-compatibility it's just a warning unless parse option 'assume-local' is set, in which case it's an error
 #define QP_WARN_MODULE_ONLY              (1 << 15)  //!< when qualifiers that are only valid in modules are given when not parsing a module
+#define QP_WARN_BROKEN_LOGIC_PRECEDENCE  (1 << 16)  //!< warning about expressions that are affected by broken-logic-precedence
 #define QP_WARN_ALL                      -1         //!< for all possible warnings
 
-#define QP_WARN_MODULES (QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY|QP_WARN_DUPLICATE_BLOCK_VARS)
+#define QP_WARN_MODULES (QP_WARN_UNREACHABLE_CODE|QP_WARN_NONEXISTENT_METHOD_CALL|QP_WARN_INVALID_OPERATION|QP_WARN_CALL_WITH_TYPE_ERRORS|QP_WARN_RETURN_VALUE_IGNORED|QP_WARN_DUPLICATE_HASH_KEY|QP_WARN_DUPLICATE_BLOCK_VARS|QP_WARN_BROKEN_LOGIC_PRECEDENCE)
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 

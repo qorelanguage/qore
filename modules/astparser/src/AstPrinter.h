@@ -38,12 +38,14 @@ class ASTVariableDeclaration;
 class ASTAssignmentExpression;
 class ASTDeclExpression;
 class ASTListExpression;
+class ASTLiteralExpression;
 
 class AstPrinter {
 public:
     static void printAssignmentExpression(std::ostream& os, ASTAssignmentExpression* ae);
     static void printDeclExpression(std::ostream& os, ASTDeclExpression* de);
     static void printListExpression(std::ostream& os, ASTListExpression* le);
+    static void printLiteralExpression(std::ostream& os, ASTLiteralExpression* le);
 
     static void printClassSignature(std::ostream& os, ASTClassDeclaration* d);
     static void printConstantSignature(std::ostream& os, ASTConstantDeclaration* d);

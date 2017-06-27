@@ -32,7 +32,7 @@
 #include "ast/ASTParseError.h"
 
 //! AstTree class
-/** Lorem ipsum dolor sit amet.
+/** AST tree structure.
 
     @since %Qore 0.8.13
  */
@@ -44,6 +44,7 @@ qclass AstTree [arg=AstTreeHolder* ath; ns=astparser; flags=final];
 AstTree::constructor() {
     self->setPrivate(CID_ASTTREE, new AstTreeHolder);
 }
+
 //! Print tree.
 /**
     @param file name of file where to print out the tree
@@ -51,4 +52,12 @@ AstTree::constructor() {
 AstTree::printTree(string file) {
     std::ofstream ofs(file->c_str(), std::ofstream::out | std::ofstream::trunc);
     ath->printTree(ofs);
+}
+
+//! Get info about nodes in the tree.
+/** Export the tree structure to Qore hashes and lists.
+    @return list of node info hashes
+ */
+list AstTree::getNodesInfo() {
+    return ath->getNodesInfo();
 }

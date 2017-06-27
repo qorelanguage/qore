@@ -416,9 +416,6 @@ DLLLOCAL extern std::atomic<bool> qore_shutdown;
 
 DLLLOCAL extern int qore_library_options;
 
-#ifndef HAVE_GETHOSTBYNAME_R
-DLLLOCAL extern QoreThreadLock lck_gethostbyname;
-#endif
 #ifndef HAVE_GETHOSTBYADDR_R
 DLLLOCAL extern QoreThreadLock lck_gethostbyaddr;
 #endif

@@ -37,8 +37,8 @@
 class ASTIndexExpression : public ASTExpression {
 public:
     enum class IndexKind {
-        AIE_SquareBrackets,
-        AIE_CurlyBrackets,
+        AIE_SquareBrackets = 0,
+        AIE_CurlyBrackets = 1,
     };
 
 public:

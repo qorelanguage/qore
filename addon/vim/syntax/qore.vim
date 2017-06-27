@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2017 February 23
+" Last Change:	2017 May 29
 
 if version < 600
   syntax clear
@@ -112,8 +112,13 @@ syn match qoreParseDirective "^%assume-global\>"
 syn match qoreParseDirective "^%assume-local\>"
 syn match qoreParseDirective "^%broken-int-assignments\>"
 syn match qoreParseDirective "^%broken-list-parsing\>"
+syn match qoreParseDirective "^%broken-logic-precedence\>"
 syn match qoreParseDirective "^%broken-loop-statement\>"
 syn match qoreParseDirective "^%broken-operators\>"
+syn match qoreParseDirective "^%correct-int-assignments\>"
+syn match qoreParseDirective "^%correct-list-parsing\>"
+syn match qoreParseDirective "^%correct-logic-precedence\>"
+syn match qoreParseDirective "^%correct-operators\>"
 syn match qoreParseDirective "^%disable-all-warnings\>"
 syn match qoreParseDirective "^%disable-warning\>"
 syn match qoreParseDirective "^%enable-all-warnings\>"
@@ -123,6 +128,7 @@ syn match qoreParseDirective "^%exec-class\>"
 syn match qoreParseDirective "^%lockdown\>"
 syn match qoreParseDirective "^%lock-options\>"
 syn match qoreParseDirective "^%lock-warnings\>"
+syn match qoreParseDirective "^%loose-args\>"
 syn match qoreParseDirective "^%new-style\>"
 syn match qoreParseDirective "^%no-class-defs\>"
 syn match qoreParseDirective "^%no-child-restrictions\>"
