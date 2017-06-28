@@ -238,6 +238,8 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 
 // scanner errors
 %token INTEGER_OVERFLOW_ERROR "'integer overflow error (cannot represent in a 64-bit signed number)'"
+%token OPEN_BLK_COMMENT_AT_EOF_ERROR "'open block comment at EOF error'"
+%token NO_REGEX_AFTER_MATCH_ERROR "'missing regular expression after =~ error'"
 %token NO_REGEX_AFTER_NOTMATCH_ERROR "'missing regular expression after !~ error'"
 
 // operators with white-space inside

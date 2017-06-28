@@ -962,11 +962,8 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                                     if (c == '/')
                                                         break;
                                                 }
-                                                if (c == EOF) {
-                                                    /*parse_error("open block comment at EOF");*/
-                                                    AST_FLEX_DO_EOF;
-                                                    break;
-                                                }
+                                                if (c == EOF)
+                                                    return OPEN_BLK_COMMENT_AT_EOF_ERROR;
                                             }
                                         }
 <regex_googleplex>{
@@ -976,7 +973,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
    m\/                                  { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    \/                                   { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    {WSNL}+                              /* ignore whitespace */
-   [^sxmt\/]                            { BEGIN(INITIAL); }/* TODO parse_error("missing regular expression after =~"); BEGIN(INITIAL);*/
+   [^sxmt\/]                            { BEGIN(INITIAL); return NO_REGEX_AFTER_MATCH_ERROR; }
 }
 <regex_negative_universe>{
    m\/                                  { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
