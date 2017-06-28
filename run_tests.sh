@@ -67,7 +67,12 @@ if [ -z "$QORE" ] || [ -z "$LIBQORE" ]; then
     exit 1
 fi
 
-echo "Using qore: $QORE, libqore: $LIBQORE"; echo
+export LD_LIBRARY_PATH=$QORE_LIB_PATH
+export QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR
+
+echo "Using qore: $QORE, libqore: $LIBQORE"
+echo "QORE_MODULE_DIR=$QORE_MODULE_DIR"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; echo
 
 # Search for tests in the test directory.
 TESTS=`find ./examples/test/ -name "*.qtest"`
@@ -77,12 +82,16 @@ TEST_COUNT=`echo $TESTS | wc -w`
 PASSED_TEST_COUNT=0
 FAILED_TEST_COUNT=0
 
+TIME_FORMAT="\nUserTime: %U\nSystemTime: %S\nWallClockTime: %e\nMinorPageFaults: %R\nMajorPageFaults: %F\nAverageSharedTextSize: %X\nAverageUnsharedDataSize: %D\nAverageStackSize: %p\nAverageTotalSize: %K\nMaximumResidentSetSize: %M\nAverageResidentSetSize: %t\nFilesystemInputs: %I\nFilesystemOutputs: %O\nSocketMessagesSent: %s\nSocketMessagesReceived: %r\nExitStatus: %x"
+
 # Run tests.
 i=1
 for test in $TESTS; do
     if [ $PRINT_TEXT -eq 1 ]; then
         echo "====================================="
         echo "Running test ($i/$TEST_COUNT): $test"
+        echo "-------------------------------------"
+        echo "cmdline: LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT"
         echo "-------------------------------------"
     fi
 
@@ -95,7 +104,7 @@ for test in $TESTS; do
     #fi
 
     # Run single test.
-    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_PRELOAD=$LIBQORE LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
+    LD_PRELOAD=$LIBQORE time -f "$TIME_FORMAT" $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
