@@ -277,7 +277,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION; }
 ^%broken-int-assignments{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_BROKEN_INT_ASSIGNMENTS); return PARSE_OPTION; }
 ^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_OPERATORS); return PARSE_OPTION; }
+^%correct-list-parsing{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LIST_PARSING); return PARSE_OPTION; }
+^%correct-logic-precedence{WS}*$        { PO_BROKEN_LOGIC_PRECEDENCE = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOGIC_PRECEDENCE); return PARSE_OPTION; }
+^%correct-loop-statement{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOOP_STATEMENT); return PARSE_OPTION; }
+^%correct-int-assignments{WS}*$         { yylval->parseopt = new ASTParseOption(APOK_CORRECT_INT_ASSIGNMENTS); return PARSE_OPTION; }
+^%correct-operators{WS}*$               { PO_BROKEN_OPERATORS = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_OPERATORS); return PARSE_OPTION; }
+^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION; }
 ^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION; }
+^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION; }
 ^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION; }
 ^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION; }
 ^%append-include-path{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); BEGIN(append_path_state); return PARSE_OPTION; }
@@ -337,6 +344,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             return PARSE_OPT_STR;
                                         }
 }
+^%try-reexport-module{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_TRY_REEXPORT_MODULE); return PARSE_OPTION; }
+^%try-reexport-module{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_TRY_REEXPORT_MODULE); BEGIN(try_module); return PARSE_OPTION; }
 ^%try-module{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_TRY_MODULE); return PARSE_OPTION; }
 ^%try-module{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_TRY_MODULE); BEGIN(try_module); return PARSE_OPTION; }
 <try_module>[^\n\r]+                    {
