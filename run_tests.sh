@@ -84,6 +84,14 @@ FAILED_TEST_COUNT=0
 
 TIME_FORMAT="\nUserTime: %U\nSystemTime: %S\nWallClockTime: %e\nMinorPageFaults: %R\nMajorPageFaults: %F\nAverageSharedTextSize: %X\nAverageUnsharedDataSize: %D\nAverageStackSize: %p\nAverageTotalSize: %K\nMaximumResidentSetSize: %M\nAverageResidentSetSize: %t\nFilesystemInputs: %I\nFilesystemOutputs: %O\nSocketMessagesSent: %s\nSocketMessagesReceived: %r\nExitStatus: %x"
 
+# check if time supports -f
+time --help >/dev/null 2>/dev/null
+if [ $? -eq 0 ]; then
+    TIME_CMD='time -f "$TIME_FORMAT"'
+else
+    TIME_CMD=time
+fi
+
 # Run tests.
 i=1
 for test in $TESTS; do
@@ -104,7 +112,7 @@ for test in $TESTS; do
     #fi
 
     # Run single test.
-    LD_PRELOAD=$LIBQORE time -f "$TIME_FORMAT" $QORE $test $TEST_OUTPUT_FORMAT
+    LD_PRELOAD=$LIBQORE $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`

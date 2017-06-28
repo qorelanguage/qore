@@ -420,13 +420,13 @@ protected:
    // must be reimplemented in subclasses if has_defval is true
    DLLLOCAL virtual AbstractQoreNode* getDefaultValueImpl() const {
       assert(false);
-      return 0;
+      return nullptr;
    }
 
    // must be reimplemented in subclasses if has_name is true
    DLLLOCAL virtual const char* getNameImpl() const {
       assert(false);
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL static void getNodeType(QoreString& str, const QoreValue n) {
@@ -464,6 +464,16 @@ protected:
 
    DLLLOCAL bool returnsSingleIntern() const {
       return (!returns_mult && qt != NT_ALL);
+   }
+
+   DLLLOCAL QoreTypeInfo* getSubtypeIntern() const {
+      assert(has_subtype);
+      return getSubtypeImpl();
+   }
+
+   DLLLOCAL virtual QoreTypeInfo* getSubtypeImpl() const {
+      assert(false);
+      return nullptr;
    }
 
    DLLLOCAL QoreTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
@@ -506,6 +516,11 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
       return ti ? ti->getSingleType() : NT_ALL;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static QoreTypeInfo* getSubtype(const QoreTypeInfo* ti) {
+      return ti && ti->has_subtype ? ti->getSubtypeIntern() : nullptr;
    }
 
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
@@ -1146,13 +1161,15 @@ protected:
 
 public:
    NamedScope* cscope; // namespace scope for class
+   const QoreTypeInfo* maintype = nullptr;
+   QoreParseTypeInfo* subtype = nullptr;
 
    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
       setName();
       assert(strcmp(n_cscope, "any"));
    }
 
-   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : 0) {
+   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr) {
    }
 
    DLLLOCAL ~QoreParseTypeInfo() {

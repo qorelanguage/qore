@@ -31,6 +31,9 @@
 
 #include <qore/Qore.h>
 
+#include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/qore_program_private.h"
+
 void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
    if (!typeInfo) {
       typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);

@@ -951,35 +951,35 @@ public:
 
 struct ParserTypeStruct {
 protected:
-   DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : typeInfo(0), parseTypeInfo(n_parseTypeInfo) {
-   }
-
    DLLLOCAL ParserTypeStruct() {
    }
 
 public:
-   const QoreTypeInfo* typeInfo;
-   QoreParseTypeInfo* parseTypeInfo;
+   const QoreTypeInfo* typeInfo = nullptr;
+   QoreParseTypeInfo* parseTypeInfo = nullptr;
+   ParserTypeStruct* subtype = nullptr;
 
-   DLLLOCAL ParserTypeStruct(const QoreTypeInfo* n_typeInfo) : typeInfo(n_typeInfo), parseTypeInfo(0) {
+   DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : parseTypeInfo(n_parseTypeInfo) {
    }
 
-   DLLLOCAL ParserTypeStruct(char* id) {
-      const QoreTypeInfo* t = getBuiltinUserTypeInfo(id);
-      //printd(0, "ParserTypeStruct::ParserTypeStruct('%s') t: %p %s\n", id, t, QoreTypeInfo::getName(t));
-      if (t) {
+   DLLLOCAL ParserTypeStruct(char* id, bool or_nothing) : typeInfo(or_nothing ? getBuiltinUserOrNothingTypeInfo(id) : getBuiltinUserTypeInfo(id)) {
+      //printd(0, "ParserTypeStruct::ParserTypeStruct('%s', %d) t: %p %s\n", id, or_nothing, typeInfo, QoreTypeInfo::getName(typeInfo));
+      if (typeInfo) {
          free(id);
-         typeInfo = t;
-         parseTypeInfo = 0;
          return;
       }
 
-      typeInfo = 0;
-      parseTypeInfo = new QoreParseTypeInfo(id);
+      parseTypeInfo = new QoreParseTypeInfo(id, or_nothing);
    }
 
    DLLLOCAL ~ParserTypeStruct() {
       delete parseTypeInfo;
+      delete subtype;
+   }
+
+   DLLLOCAL void setSubtype(ParserTypeStruct* t) {
+      assert(!subtype);
+      subtype = t;
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
@@ -988,48 +988,37 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* getTypeInfo(ParserTypeStruct* pts) {
-      return pts ? pts->getTypeInfo() : 0;
+      return pts ? pts->getTypeInfo() : nullptr;
    }
 
    DLLLOCAL QoreParseTypeInfo* getParseTypeInfo() {
       QoreParseTypeInfo* rv = parseTypeInfo;
-      parseTypeInfo = 0;
+      parseTypeInfo = nullptr;
       return rv;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static QoreParseTypeInfo* getParseTypeInfo(ParserTypeStruct* pts) {
-      return pts ? pts->getParseTypeInfo() : 0;
+      return pts ? pts->getParseTypeInfo() : nullptr;
    }
 
    DLLLOCAL const char* getClassName() {
       assert(parseTypeInfo);
       return parseTypeInfo->cscope->ostr;
    }
-};
 
-struct ParserScopedTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserScopedTypeStruct(char* sr) : ParserTypeStruct(new QoreParseTypeInfo(sr)) {
-   }
-};
-
-struct ParserOrNothingTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserOrNothingTypeStruct(char* id) {
-      const QoreTypeInfo* t = getBuiltinUserOrNothingTypeInfo(id);
-      if (t) {
-         free(id);
-         typeInfo = t;
-         parseTypeInfo = 0;
-         return;
+   DLLLOCAL static ParserTypeStruct* getType(char* id, bool or_nothing) {
+      char* p0 = strchr(id, '<');
+      if (p0) {
+         const char* p1 = strrchr(id, '>');
+         if (p1 > (p0 + 1)) {
+            *p0 = '\0';
+            std::unique_ptr<ParserTypeStruct> rv(new ParserTypeStruct(id, or_nothing));
+            rv->subtype = getType(strdup(p0 + 1), false);
+            return rv.release();
+         }
       }
-
-      typeInfo = 0;
-      parseTypeInfo = new QoreParseTypeInfo(id, true);
-   }
-};
-
-struct ParserScopedOrNothingTypeStruct : public ParserTypeStruct {
-   DLLLOCAL ParserScopedOrNothingTypeStruct(char* sr) : ParserTypeStruct(new QoreParseTypeInfo(sr, true)) {
+      return new ParserTypeStruct(id, or_nothing);
    }
 };
 
@@ -1535,6 +1524,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token <decimal> QFLOAT "floating-point value"
 %token <num> NUMBER "arbitrary-precision number"
 %token <string> IDENTIFIER "identifier"
+%token <string> ANGLE_IDENTIFIER "type identifier with angle brackets"
 %token <string> VAR_REF "variable reference"
 %token <string> BACKQUOTE "backquote expression"
 %token <string> SELF_REF "in-object member reference"
@@ -1562,6 +1552,7 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
 %token <trymod> TRY_MODULE_ERROR "%try-module error token"
+%token <string> TYPESPEC "<type specification>"
 
 %nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE
@@ -1663,10 +1654,9 @@ DLLLOCAL void yyerror(YYLTYPE *loc, yyscan_t scanner, const char* str) {
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { delete $$; } TRY_MODULE_ERROR REGEX_BEGIN REGEX REGEX_SUBST_BEGIN REGEX_SUBST REGEX_EXTRACT_BEGIN REGEX_EXTRACT REGEX_TRANS_BEGIN REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash regex regex_extract regex_subst regex_trans
 %destructor { qore_class_private::get(*$$)->deref(); } class_attributes
-%destructor { $$->deref(); } hashdecl_attrs
-%destructor { free($$); } IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
-%destructor { if ($$) $$->deref(); } namespace_decl namespace_decls quoted_word string QUOTED_WORD_BEGIN QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER
-%destructor { if ($$) $$->deref(0); } exp exp_n exp_c myexp scalar list
+%destructor { free($$); } IDENTIFIER ANGLE_IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen
+%destructor { if ($$) $$->deref(); } namespace_decl namespace_decls quoted_word string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER hashdecl_attrs
+%destructor { if ($$) $$->deref(nullptr); } exp exp_n exp_c myexp scalar list
 
 %%
 top_level_commands:
@@ -2388,16 +2378,16 @@ hashdecl_attrs:
            if ($1)
               $$->parseAdd($1->getHashMemPair());
         }
-        | hashdecl_attrs ',' hashdecl_member {
-           if ($3) {
-              if ($1->hasMember($3->name)) {
-                 parse_error($3->loc, "duplicate hashdecl member declaration '%s'", $3->name);
+        | hashdecl_attrs hashdecl_member {
+           if ($2) {
+              if ($1->hasMember($2->name)) {
+                 parse_error($2->loc, "duplicate hashdecl member declaration '%s'", $2->name);
               }
               else {
                  // add new member to list
-                 $1->parseAdd($3->getHashMemPair());
+                 $1->parseAdd($2->getHashMemPair());
               }
-              delete $3;
+              delete $2;
            }
 
            $$ = $1;
@@ -2497,16 +2487,22 @@ class_attributes:
 
 uncqtypedef:
         IDENTIFIER {
-           $$ = new ParserTypeStruct($1);
+           $$ = new ParserTypeStruct($1, false);
         }
         | SCOPED_REF {
-           $$ = new ParserScopedTypeStruct($1);
+           $$ = new ParserTypeStruct(new QoreParseTypeInfo($1, false));
+        }
+        | ANGLE_IDENTIFIER {
+           $$ = ParserTypeStruct::getType($1, false);
         }
         | '*' IDENTIFIER {
-           $$ = new ParserOrNothingTypeStruct($2);
+           $$ = new ParserTypeStruct($2, true);
         }
         | '*' SCOPED_REF {
-           $$ = new ParserScopedOrNothingTypeStruct($2);
+           $$ = new ParserTypeStruct(new QoreParseTypeInfo($2, true));
+        }
+        | '*' ANGLE_IDENTIFIER {
+           $$ = ParserTypeStruct::getType($2, true);
         }
         ;
 
@@ -3544,7 +3540,7 @@ exp:
 
 exp_n:
     exp_c
-    | list_n                            { $$ = $1; }
+    | list_n                              { $$ = $1; }
     | exp_n PLUS_EQUALS exp               { $$ = new QorePlusEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n MINUS_EQUALS exp              { $$ = new QoreMinusEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n AND_EQUALS exp                { $$ = new QoreAndEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
