@@ -27,7 +27,7 @@ macro(qore_check_headers_cxx)
         string(REPLACE "." "_" include_file_ ${include_file})
 	string(REPLACE "/" "_" _include_file_ ${include_file_})
 	string(TOUPPER ${_include_file_} upper_include_file_)
-	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}")
+	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}" ${QORE_CHECK_HEADERS_CXX_FLAGS})
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${have_var})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/header_defines.txt ${file_output})
@@ -131,7 +131,7 @@ endmacro()
 
 macro(qore_mpfr_checks)
 
-set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIR})
+set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${MPFR_LIBRARIES})
 
 check_cxx_symbol_exists(mpfr_divby0_p mpfr.h HAVE_MPFR_DIVBY0)
@@ -619,9 +619,13 @@ endmacro(qore_iconv_translit_check)
 
 macro(qore_os_checks)
 if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-   set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
+   #set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
    set(ZONEINFO_LOCATION "/usr/share/lib/zoneinfo")
    set(SOLARIS true)
+   if (CMAKE_COMPILER_IS_GNUCXX)
+      # netinet/tcp.h needs sys/types.h on illumos but it does not include it
+      set(QORE_CHECK_HEADERS_CXX_FLAGS "-include sys/types.h")
+   endif (CMAKE_COMPILER_IS_GNUCXX)
    #use libumem if available
    find_library(LIBUMEM NAMES umem libumem)
    if(LIBUMEM)
