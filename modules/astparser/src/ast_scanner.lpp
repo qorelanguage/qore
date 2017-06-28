@@ -69,8 +69,6 @@
             /*yylloc->firstLine, yylloc->firstCol, yylloc->lastLine, yylloc->lastCol);*/ \
     }
 
-//int ast_parse(yyscan_t yyscanner);
-
 #define isoctaldigit(x) (x >= '0' && x <= '7')
 
 static int ascii_to_octal(char c) {
@@ -124,103 +122,6 @@ static char* trim_inplace(const char* str) {
     return str[0] ? (char*)str : 0;
 }
 
-/*static void scanner_process_path(QoreString& npath, char* ip) {
-    // scan through paths and:
-    // 1: do environment variable substitution
-    // 2: remove the paths that don't exist
-    char* lp, *p;
-    p = lp = ip;
-
-    while (true) {
-#ifdef _Q_WINDOWS
-        // do not assume ':' separates paths on windows if it's the second character in a path
-        if ((*p == ':' && p != lp + 1) || !*p)
-#else
-        if (*p == ':' || !*p)
-#endif
-        {
-            // skip if at beginning of new path
-            if (p != lp) {
-                QoreString tpath;
-                tpath.concat(lp, p - lp);
-                const char* sp = tpath.getBuffer();
-                //printd(5, "got path string: '%s'\n", sp);
-
-                const char* i, *spt;
-                spt = sp;
-
-                while ((i = strchr(spt, '$'))) {
-                    // find end of environment variable
-                    char* ep = (char*)++i;
-                    while (*ep && (*ep == '_' || isalnum(*ep)))
-                        ++ep;
-                    spt = i + 1;
-                    // perform variable substitution
-                    if (ep != i) {
-                        char save = *ep;
-                        *ep = '\0';
-                        TempString val(SystemEnvironment::get(i));
-                        //printd(5, "set_include_path() found variable '$%s' = %s\n", i, val->getBuffer());
-                        *ep = save;
-                        if (val && val->strlen()) {
-                            // see if environment value ends in the directory separator char, if so, and the
-                            // rest of the string starts with the directory separator char, then make sure the
-                            // character is not doubled (can cause problems on windows)
-                            if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
-                                    && *ep == QORE_DIR_SEP)
-                                ++ep;
-
-                            // replace with value
-                            int pos = (int)(i - sp);
-                            //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
-                            tpath.replace(pos - 1, ep - i + 1, *val);
-                            // re-assign sp in case it's changed
-                            int diff = (int)(pos + val->strlen());
-                            sp = tpath.getBuffer();
-                            spt = sp + diff;
-                            //printd(5, "new string = '%s' ('%s')\n", sp, spt);
-                        }
-                    }
-                }
-                struct stat sb;
-
-                if (tpath[0] == '.' && tpath[1] == '.') {
-                    // substitue program path if available
-                    const char* sp = getProgram()->parseGetScriptDir();
-                    if (sp) {
-                        size_t l = strlen(sp);
-                        if (tpath[0] != '/' && tpath[0] != '\\' && sp[l-1] != '/' && sp[l-1] != '\\')
-                            tpath.replace(0, 0, QORE_DIR_SEP_STR);
-                        tpath.replace(0, 0, sp);
-                    }
-                }
-
-                //printd(5, "set_include_path() trying '%s'\n", sp);
-                // add to path list if the directory exists
-                if (!stat(sp, &sb)) {
-                    //printd(5, "OK: adding '%s' to path list\n", sp);
-                    if (npath.strlen())
-                        npath.concat(':');
-                    npath.concat(&tpath);
-                }
-
-                if (!*p)
-                    break;
-            }
-            lp = ++p;
-            continue;
-        }
-#ifdef _Q_WINDOWS
-        // transform '/ characters to '\' characters
-        if (*p == '/')
-            *p = '\\';
-#endif
-
-        ++p;
-    }
-    //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.getBuffer());
-}*/
-
 static char* remove_quotes(char* str) {
     str[strlen(str) - 1] = '\0';
     return str + 1;
@@ -234,32 +135,11 @@ double q_strtod(const char* str) {
     return rv;
 }
 
-static int64_t parse_get_integer(const char* str) {
+static int64_t parse_get_integer(const char* str, bool& err) {
     errno = 0;
     int64_t rv = strtoll(str, 0, 10);
-    // TODO
-    /*if (errno == ERANGE)
-        parse_error("numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);*/
-    return rv;
-}
-
-static inline int get_int_2(const char* &p) {
-    int rv = (*p - '0') * 10;
-    ++p;
-    rv += (*p - '0');
-    ++p;
-    return rv;
-}
-
-static inline int get_int_4(const char* &p) {
-    int rv = (*p - '0') * 1000;
-    ++p;
-    rv += (*p - '0') * 100;
-    ++p;
-    rv += (*p - '0') * 10;
-    ++p;
-    rv += (*p - '0');
-    ++p;
+    if (errno == ERANGE)
+        err = true;
     return rv;
 }
 
@@ -310,55 +190,7 @@ static char* make_cast(const char* s) {
     return str;
 }
 
-/*static void qore_parse_define(const char* pstr) {
-    QoreString str(pstr);
-    // trim trailing and leading whitespace
-    str.trim();
-    const char* p = strchr(str.getBuffer(), ' ');
-    QoreString arg;
-    if (p) {
-        // copy arg to arg string
-        arg.set(p + 1);
-        // trim leading whitespace, if any
-        arg.trim_leading();
-        // remove argument from define string
-        str.terminate(p - str.getBuffer());
-    }
-    // check define string
-    if (str.empty()) {
-        parse_error("missing argument to %%define");
-        return;
-    }
-
-    AbstractQoreNode *v = 0;
-    if (!arg.empty()) {
-        bool ok;
-        v = qore_parse_get_define_value(str.getBuffer(), arg, ok);
-        if (!ok)
-            return;
-    }
-
-    qore_program_private::parseDefine(getProgram(), QoreProgramLocation(ParseLocation), str.getBuffer(), v);
-}*/
-
-/*static bool parse_is_defined(const char* pstr, bool def = true) {
-    QoreString str(pstr);
-    str.trim();
-    if (str.empty()) {
-        parse_error("missing argument to %%if%sdef", def ? "" : "n");
-        return false;
-    }
-    return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
-}*/
-
 #define AST_DOT_KW_IDENTIFIER(kw) { yylval->String = new std::string(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
-
-//#define AST_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
-//        /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
-//        if (yybs) { /* need to close file and switch to previous buffer */ \
-//            fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner);  \
-//        } else yyterminate();  \
-//    }
 
 #define AST_FLEX_DO_EOF { yyterminate(); }
 
@@ -1013,7 +845,13 @@ cast\<{WS}*{WORD}{WS}*\>                { yylval->string = make_cast(yytext); re
 {DIGIT}+[eE][+-]?{DIGIT}+n              { yylval->string = strdup(yytext); return NUMBER; }
 {DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   { yylval->string = strdup(yytext); return NUMBER; }
 0[0-7]+                                 { yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER; }
-{DIGIT}+                                { yylval->integer = parse_get_integer(yytext); return INTEGER; }
+{DIGIT}+                                {
+                                            bool err = false;
+                                            yylval->integer = parse_get_integer(yytext, err);
+                                            if (err)
+                                                return INTEGER_OVERFLOW_ERROR;
+                                            return INTEGER;
+                                        }
 {DIGIT}+Y                               { yylval->string = strdup(yytext); return DATETIME; }
 {DIGIT}+M                               { yylval->string = strdup(yytext); return DATETIME; }
 {DIGIT}+D                               { yylval->string = strdup(yytext); return DATETIME; }
@@ -1135,7 +973,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
    m\/                                  { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    \/                                   { yylval->regex = new ASTRegexExpression; BEGIN(regex_state); return REGEX_BEGIN; }
    {WSNL}+                              /* ignore whitespace */
-   [^m\/]                               { BEGIN(INITIAL); }/* TODO parse_error("missing regular expression after !~"); BEGIN(INITIAL);*/
+   [^m\/]                               { BEGIN(INITIAL); return NO_REGEX_AFTER_NOTMATCH_ERROR; }
 }
 =\~                                     { BEGIN(regex_googleplex); return REGEX_MATCH; }
 \!\~                                    { BEGIN(regex_negative_universe); return REGEX_NMATCH; }
