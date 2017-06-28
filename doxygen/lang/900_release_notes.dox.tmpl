@@ -254,6 +254,7 @@
     - fixed many bugs where parse-time errors could be reported at an incorrect source location; parse-time error location reporting has been completely overhauled and reimplemented for correctness (<a href="https://github.com/qorelanguage/qore/issues/1930">issue 1930</a>)
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
     - rewrote %Qore functions @ref gethostbyname(), @ref gethostbyname_long() and @ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
+    - fixed a memory leak in parser errors in strings, the @ref regex_match "regex match", @ref regex_nomatch "regex nomatch", @ref regex_subst "regex subst", @ref regex_extract "regex extract", and @ref transliteration_operator "transliteration" operators (<a href="https://github.com/qorelanguage/qore/issues/1976">issue 1976</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
