@@ -89,11 +89,11 @@
     }
 }*/
 
-bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
+static bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
     return expr && expr->loc.inside(line, col) && expr->getKind() == ASTExpression::Kind::AEK_Name;
 }
 
-ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsageKind suk) {
+static ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsageKind suk) {
     ASTNameExpression* name = static_cast<ASTNameExpression*>(expr);
     return ASTSymbolInfo(sk, suk, name->loc, name->name.name);
 }

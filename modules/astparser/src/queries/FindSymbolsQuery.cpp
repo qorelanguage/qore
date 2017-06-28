@@ -232,13 +232,13 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
 }
 
 void FindSymbolsQuery::inName(std::vector<ASTSymbolInfo>* vec, ASTName& name) {
-    return; // TODO
+    return;
 }
 
 void FindSymbolsQuery::inName(std::vector<ASTSymbolInfo>* vec, ASTName* name) {
     if (!name)
         return;
-    return; // TODO
+    return;
 }
 
 void FindSymbolsQuery::inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt) {
@@ -515,6 +515,8 @@ std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree, bool bareNames
         return nullptr;
 
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(new std::vector<ASTSymbolInfo>);
+    if (!vec)
+        return nullptr;
     vec->reserve(64);
     for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
         ASTNode* node = tree->nodes[i];
