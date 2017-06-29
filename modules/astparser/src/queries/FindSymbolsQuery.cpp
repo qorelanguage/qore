@@ -231,16 +231,6 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
     }
 }
 
-void FindSymbolsQuery::inName(std::vector<ASTSymbolInfo>* vec, ASTName& name) {
-    return; // TODO
-}
-
-void FindSymbolsQuery::inName(std::vector<ASTSymbolInfo>* vec, ASTName* name) {
-    if (!name)
-        return;
-    return; // TODO
-}
-
 void FindSymbolsQuery::inStatement(std::vector<ASTSymbolInfo>* vec, ASTStatement* stmt) {
     if (!stmt)
         return;
@@ -515,6 +505,8 @@ std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree, bool bareNames
         return nullptr;
 
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(new std::vector<ASTSymbolInfo>);
+    if (!vec)
+        return nullptr;
     vec->reserve(64);
     for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
         ASTNode* node = tree->nodes[i];
@@ -529,11 +521,7 @@ std::vector<ASTSymbolInfo>* FindSymbolsQuery::find(ASTTree* tree, bool bareNames
                 inExpression(vec.get(), expr);
                 break;
             }
-            case ANT_Name: {
-                ASTName* n = static_cast<ASTName*>(node);
-                inName(vec.get(), n);
-                break;
-            }
+            case ANT_Name:
             case ANT_ParseOption:
                 break;
             case ANT_Statement: {

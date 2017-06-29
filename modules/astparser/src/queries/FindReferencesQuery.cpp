@@ -371,6 +371,8 @@ std::vector<ASTNode*>* FindReferencesQuery::find(ASTTree* tree, const std::strin
         return nullptr;
 
     std::unique_ptr<std::vector<ASTNode*> > vec(new std::vector<ASTNode*>);
+    if (!vec)
+        return nullptr;
     for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
         ASTNode* node = tree->nodes[i];
         switch (node->getNodeType()) {
