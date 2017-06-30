@@ -230,11 +230,6 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 
 // other
 %token PARSE_OPT_STR "parse option string (no data)"
-%token QUOTED_WORD_BEGIN "quoted string beginning (no data)"
-%token REGEX_BEGIN "regular expression beginning (no data)"
-%token REGEX_EXTRACT_BEGIN "regular expression extraction beginning (no data)"
-%token REGEX_SUBST_BEGIN "regular expression substitution beginning (no data)"
-%token REGEX_TRANS_BEGIN "transliteration beginning (no data)"
 
 // scanner errors
 %token INTEGER_OVERFLOW_ERROR "'integer overflow error (cannot represent in a 64-bit signed number)'"
@@ -367,11 +362,6 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <membergroup>    private_member_list
 %type <membergroup>    public_member_list
 %type <String>         qtypedef
-%type <String>         quoted_word
-%type <regex>          regex
-%type <regex>          regex_extract
-%type <regexsubst>     regex_subst
-%type <regextrans>     regex_trans
 %type <statement>      return_statement
 %type <expression>     return_value
 %type <expression>     scalar
@@ -392,7 +382,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } DOT_KW_IDENTIFIER PARSE_OPTION QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef quoted_word return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { delete $$; } DOT_KW_IDENTIFIER PARSE_OPTION QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
 %destructor { free($$); } BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
 %destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } } base_constructors class_attributes context_mods inheritance_list member_list member_list2 namespace_decls superclass_list
 
@@ -931,27 +921,27 @@ case_code:
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_GreaterThan, $3, 0);
             $$->loc.set(@1, @4);
         }
-        | TOK_CASE REGEX_MATCH regex ':' statements {
+        | TOK_CASE REGEX_MATCH REGEX ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexMatch, $3, $5);
             $$->loc.set(@1, @5);
         }
-        | TOK_CASE REGEX_MATCH regex ':' { // nothing
+        | TOK_CASE REGEX_MATCH REGEX ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexMatch, $3, 0);
             $$->loc.set(@1, @4);
         }
-        | TOK_CASE REGEX_NMATCH regex ':' statements {
+        | TOK_CASE REGEX_NMATCH REGEX ':' statements {
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexNotMatch, $3, $5);
             $$->loc.set(@1, @5);
         }
-        | TOK_CASE REGEX_NMATCH regex ':' { // nothing
+        | TOK_CASE REGEX_NMATCH REGEX ':' { // nothing
             $$ = new ASTCaseExpression(ASTOperatorKind::AOK_RegexNotMatch, $3, 0);
             $$->loc.set(@1, @4);
         }
-        | TOK_CASE regex ':' statements {
+        | TOK_CASE REGEX ':' statements {
             $$ = new ASTCaseExpression($2, $4);
             $$->loc.set(@1, @4);
         }
-        | TOK_CASE regex ':' { // nothing
+        | TOK_CASE REGEX ':' { // nothing
             $$ = new ASTCaseExpression($2, 0);
             $$->loc.set(@1, @3);
         }
@@ -2214,11 +2204,11 @@ exp:
         | exp '|' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryOr, $3); }
         | exp '&' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryAnd, $3); }
         | exp '^' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryXor, $3); }
-        | exp REGEX_MATCH regex             { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp REGEX_NMATCH regex            { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexNotMatch, $3); }
-        | exp REGEX_MATCH regex_subst       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp REGEX_MATCH regex_trans       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp REGEX_MATCH regex_extract     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp REGEX_MATCH REGEX             { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp REGEX_NMATCH REGEX            { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexNotMatch, $3); }
+        | exp REGEX_MATCH REGEX_SUBST       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp REGEX_MATCH REGEX_TRANS       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp REGEX_MATCH REGEX_EXTRACT     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
         | exp '>' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_GreaterThan, $3); }
         | exp '<' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_LessThan, $3); }
         | exp LOGICAL_CMP exp               { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Comparison, $3); }
@@ -2322,11 +2312,11 @@ exp_n:
         | exp_n '|' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryOr, $3); }
         | exp_n '&' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryAnd, $3); }
         | exp_n '^' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_BinaryXor, $3); }
-        | exp_n REGEX_MATCH regex           { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp_n REGEX_NMATCH regex          { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexNotMatch, $3); }
-        | exp_n REGEX_MATCH regex_subst     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp_n REGEX_MATCH regex_trans     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
-        | exp_n REGEX_MATCH regex_extract   { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp_n REGEX_MATCH REGEX           { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp_n REGEX_NMATCH REGEX          { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexNotMatch, $3); }
+        | exp_n REGEX_MATCH REGEX_SUBST     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp_n REGEX_MATCH REGEX_TRANS     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
+        | exp_n REGEX_MATCH REGEX_EXTRACT   { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_RegexMatch, $3); }
         | exp_n '>' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_GreaterThan, $3); }
         | exp_n '<' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_LessThan, $3); }
         | exp_n LOGICAL_CMP exp             { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Comparison, $3); }
@@ -2372,49 +2362,11 @@ exp_n:
         }
         ;
 
-regex:
-        REGEX_BEGIN REGEX {
-            $$ = $2;
-            $$->loc.set(@1, @2);
-        }
-        ;
-
-regex_extract:
-        REGEX_EXTRACT_BEGIN REGEX_EXTRACT {
-            $$ = $2;
-            $$->loc.set(@1, @2);
-        }
-        ;
-
-regex_subst:
-        REGEX_SUBST_BEGIN REGEX_SUBST {
-            $$ = $2;
-            $$->loc.set(@1, @2);
-        }
-        ;
-
-regex_trans:
-        REGEX_TRANS_BEGIN REGEX_TRANS {
-            $$ = $2;
-            $$->loc.set(@1, @2);
-        }
-        ;
-
-
-quoted_word:
-        QUOTED_WORD_BEGIN QUOTED_WORD {
-            $$ = $2;
-        }
-        | QUOTED_WORD {
-            $$ = $1;
-        }
-        ;
-
 string:
-        quoted_word {
+        QUOTED_WORD {
             $$ = $1;
         }
-        | quoted_word string {
+        | QUOTED_WORD string {
             $$ = $1;
             $$->append(*($2));
             delete $2;
