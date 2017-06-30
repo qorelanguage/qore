@@ -61,16 +61,16 @@ public:
       first_col = saved_first_col;
    }
 
-   DLLLOCAL void update(int yylineno, int yyleng, const char* yytext) {
+   DLLLOCAL void update(int lineno, int leng, const char* text) {
       first_line = last_line;
       first_col = last_col;
-      if (first_line == yylineno)
-         last_col += yyleng;
+      if (first_line == lineno)
+         last_col += leng;
       else {
          unsigned int col = 1;
-         for (; (col <= yyleng) && (yytext[yyleng - col] != '\n'); ++col) {}
+         for (; (col <= leng) && (text[leng - col] != '\n'); ++col) {}
          last_col = col;
-         last_line = yylineno;
+         last_line = lineno;
       }
    }
 
