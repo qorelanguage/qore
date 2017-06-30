@@ -70,9 +70,37 @@ fi
 export LD_LIBRARY_PATH=$QORE_LIB_PATH
 export QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR
 
+# Test time commands.
+TIME_OK=0
+TIME_BIN=""
+TIME_CMD=""
+TIME_FORMAT="-------------------------------------\nUserTime: %U\nSystemTime: %S\nWallClockTime: %e\nMinorPageFaults: %R\nMajorPageFaults: %F\nAverageSharedTextSize: %X\nAverageUnsharedDataSize: %D\nAverageStackSize: %p\nAverageTotalSize: %K\nMaximumResidentSetSize: %M\nAverageResidentSetSize: %t\nFilesystemInputs: %I\nFilesystemOutputs: %O\nSocketMessagesSent: %s\nSocketMessagesReceived: %r\nExitStatus: %x"
+
+test_time() {
+    TIME_CMD="$TIME_BIN -f \"$TIME_FORMAT\""
+    eval $TIME_CMD ls / >/dev/null 2>&1
+    TIME_OK=$?
+}
+
+TIME_BINS="time /usr/bin/time /bin/time `which time`"
+for tm in $TIME_BINS; do
+    TIME_BIN=$tm
+    test_time
+    if [ $TIME_OK -eq 0 ]; then
+        break
+    fi
+    TIME_CMD=""
+done
+
+if [ "$TIME_CMD" = "" ]; then
+    TIME_CMD="time -p"
+fi
+
+# Print info about used variables etc.
 echo "Using qore: $QORE, libqore: $LIBQORE"
 echo "QORE_MODULE_DIR=$QORE_MODULE_DIR"
-echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; echo
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+printf "TIME_CMD: %s\n" "$TIME_CMD";echo
 
 # Search for tests in the test directory.
 TESTS=`find ./examples/test/ -name "*.qtest"`
@@ -81,8 +109,6 @@ FAILED_TESTS=""
 TEST_COUNT=`echo $TESTS | wc -w`
 PASSED_TEST_COUNT=0
 FAILED_TEST_COUNT=0
-
-TIME_FORMAT="\nUserTime: %U\nSystemTime: %S\nWallClockTime: %e\nMinorPageFaults: %R\nMajorPageFaults: %F\nAverageSharedTextSize: %X\nAverageUnsharedDataSize: %D\nAverageStackSize: %p\nAverageTotalSize: %K\nMaximumResidentSetSize: %M\nAverageResidentSetSize: %t\nFilesystemInputs: %I\nFilesystemOutputs: %O\nSocketMessagesSent: %s\nSocketMessagesReceived: %r\nExitStatus: %x"
 
 # Run tests.
 i=1
@@ -95,16 +121,8 @@ for test in $TESTS; do
         echo "-------------------------------------"
     fi
 
-    #if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
-    #    echo "Skipping $test because it doesn't really test what it should. Need to fix it."
-    #    echo "-------------------------------------"; echo
-    #    PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
-    #    i=`expr $i + 1`
-    #    continue
-    #fi
-
     # Run single test.
-    LD_PRELOAD=$LIBQORE time -f "$TIME_FORMAT" $QORE $test $TEST_OUTPUT_FORMAT
+    eval LD_PRELOAD=$LIBQORE $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
 
     if [ $? -eq 0 ]; then
         PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
