@@ -73,7 +73,6 @@ public:
          last_line = lineno;
       }
    }
-
 };
 
 struct TryModuleError {
