@@ -34,6 +34,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreClassIntern.h"
 
 // provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
 static BigIntTypeInfo staticBigIntTypeInfo;
@@ -632,6 +633,52 @@ void QoreTypeInfo::doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramL
    QoreTypeInfo::getThisType(ti, *desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+}
+
+bool QoreClassTypeInfo::isClassImpl(const QoreClass* qc) const {
+   return qore_class_private::get(*this->qc)->equal(*qore_class_private::get(*qc));
+}
+
+qore_type_result_e QoreClassTypeInfo::parseReturnsClassImpl(const QoreClass* qc) const {
+   return qore_class_private::get(*this->qc)->equal(*qore_class_private::get(*qc)) ? QTI_IDENT : QTI_NOT_EQUAL;
+}
+
+// used when parsing user code to find duplicate signatures after types are resolved
+bool QoreClassTypeInfo::isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
+   // if a type can only return our class, then it must be the same type
+   const QoreClass* cls = typeInfo->getUniqueReturnClassImpl();
+   if (!cls)
+      return false;
+   return qore_class_private::get(*qc)->equal(*qore_class_private::get(*cls));
+}
+
+bool QoreClassTypeInfo::isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
+   const QoreClass* cls = typeInfo->getUniqueReturnClassImpl();
+   if (!cls)
+      return false;
+   return qore_class_private::get(*qc)->equal(*qore_class_private::get(*cls));
+}
+
+qore_type_result_e QoreClassTypeInfo::runtimeAcceptsValueImpl(const QoreValue n) const {
+   if (n.getType() != NT_OBJECT)
+      return QTI_NOT_EQUAL;
+
+   return qore_class_private::runtimeCheckCompatibleClass(*qc, *n.get<const QoreObject>()->getClass());
+}
+
+void QoreClassTypeInfo::acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+   bool priv;
+   if (n.getType() != NT_OBJECT || !reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
+      doAcceptError(false, obj, param_num, param_name, n, xsink);
+      return;
+   }
+   if (!priv)
+      return;
+
+   if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
+      return;
+
+   doAcceptError(true, obj, param_num, param_name, n, xsink);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {

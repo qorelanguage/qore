@@ -957,7 +957,6 @@ protected:
 public:
    const QoreTypeInfo* typeInfo = nullptr;
    QoreParseTypeInfo* parseTypeInfo = nullptr;
-   ParserTypeStruct* subtype = nullptr;
 
    DLLLOCAL ParserTypeStruct(QoreParseTypeInfo* n_parseTypeInfo) : parseTypeInfo(n_parseTypeInfo) {
    }
@@ -974,12 +973,6 @@ public:
 
    DLLLOCAL ~ParserTypeStruct() {
       delete parseTypeInfo;
-      delete subtype;
-   }
-
-   DLLLOCAL void setSubtype(ParserTypeStruct* t) {
-      assert(!subtype);
-      subtype = t;
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
@@ -1008,17 +1001,23 @@ public:
    }
 
    DLLLOCAL static ParserTypeStruct* getType(char* id, bool or_nothing) {
+      return new ParserTypeStruct(getParseType(id, or_nothing));
+   }
+
+   DLLLOCAL static QoreParseTypeInfo* getParseType(char* id, bool or_nothing) {
       char* p0 = strchr(id, '<');
       if (p0) {
-         const char* p1 = strrchr(id, '>');
+         char* p1 = strrchr(id, '>');
          if (p1 > (p0 + 1)) {
             *p0 = '\0';
-            std::unique_ptr<ParserTypeStruct> rv(new ParserTypeStruct(id, or_nothing));
-            rv->subtype = getType(strdup(p0 + 1), false);
-            return rv.release();
+            *p1 = '\0';
+            ++p0;
+            bool st_or_nothing = *p0 == '*';
+            QoreParseTypeInfo* st = getParseType(strdup(p0 + (st_or_nothing ? 1 : 0)), st_or_nothing);
+            return new QoreParseTypeInfo(id, or_nothing, st);
          }
       }
-      return new ParserTypeStruct(id, or_nothing);
+      return new QoreParseTypeInfo(id, or_nothing);
    }
 };
 
