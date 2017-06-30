@@ -197,11 +197,12 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    AbstractQoreNode *exp = left;
    left = 0;
    char *meth = m->takeName();
+   QoreProgramLocation nloc = loc;
    this->deref();
 
    //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);
 
-   return new ParseObjectMethodReferenceNode(loc, exp, meth);
+   return new ParseObjectMethodReferenceNode(nloc, exp, meth);
 }
 
 QoreOperatorNode *QoreDotEvalOperatorNode::copyBackground(ExceptionSink *xsink) const {

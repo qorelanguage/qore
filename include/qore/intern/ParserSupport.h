@@ -6,7 +6,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,16 +42,10 @@
 
 class QoreParserLocation {
 public:
-   int first_line;
-   int last_line;
-   int first_col;
-   int last_col;
-
-   QoreParserLocation() :
-      first_line(0),
-      last_line(0),
-      first_col(0),
-      last_col(0) {}
+   int first_line = 0;
+   int last_line = 0;
+   int first_col = 0;
+   int last_col = 0;
 };
 
 struct TryModuleError {
