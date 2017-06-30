@@ -29,7 +29,7 @@
 
 #include "ast/AST.h"
 
-std::vector<ASTNode*>* prepareResultVector() {
+static std::vector<ASTNode*>* prepareResultVector() {
     std::vector<ASTNode*>* result = new std::vector<ASTNode*>;
     result->reserve(8);
     return result;
