@@ -5,10 +5,9 @@
 %new-style
 %allow-debugging
 
+%requires linenoise
 %requires qore >= 0.8.13
-%requires HttpServer
-#%requires ../qlib/HttpServer.qm
-%requires ../qlib/DebugHandler.qm
+%requires ../qlib/DebugUtil.qm
 
 %exec-class DebugWrapper
 
@@ -17,17 +16,14 @@ class DebugWrapper {
         hash opts = (
     		'help': 'h,help',
 	    	'verbose': 'v,verbose',
+			'run': 'r,run',
             'listen': 'l,listen=s@',
         );
-		bool verbose = False;
-		Program pgm;
-		DebugProgram dpgm;
-		WebSocketDebugHandler wsHandler;
-		HttpServer mServer;
+		DebugProgramHelper dph;
 	}
 
 	constructor() {
-
+		WrapperGetOpt g(opts);
 		# first we need split debug args and program args, 'qore-dbg debug-args program-name program-args'
 		# it is not trivial, e.g.
 		#	qore-dbg -v -l xxx xxx     #the second xxx is program name
@@ -36,28 +32,11 @@ class DebugWrapper {
 		#	qore-dbg -v --listen xxx xxx     #the second xxx is program name
 		# GetOpt does not support such a parse function
 		#
-		GetOpt g(opts);
-		list dargs = ();
+		list dargs;
 		hash opt;
-        string fileName;
-		while (ARGV) {
-			string s = shift ARGV;
-			push dargs, s;
-			if (s !~ /^\-/ ) {
-				list a = dargs;
-				opt = g.parse(\a);
-				if (a) {
-					# last arg is filename
-					fileName = s;
-					pop dargs;
-					break;
-				}
-			} else if (s == '--') {
-				fileName = s;
-				pop dargs;
-				break;
-			}
-		}
+        *string fileName;
+		g.split(ARGV, \dargs, \fileName, \ARGV);
+
 		try {
 			opt = g.parse2(\dargs);
 		} catch (hash ex) {
@@ -68,63 +47,21 @@ class DebugWrapper {
 		if (opt.help) {
 			help();
 		}
-        if (ARGV.empty()) {
-            stderr.print("No input file\n");
-            help(-1);
-        }
+		dph = new DebugProgramHelper();
         if (opt.verbose) {
-            verbose = True;
+            dph.verbose = True;
         }
-printf("opts:%N\n", opt);
-exit(1);
+printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
+#exit(1);
         try {
-
-			info("create DebugProgram");
-			dpgm = new DebugProgram();
-			info("create WebSocketDebugHandler");
-#			wsHandler = new WebSocketDebugHandler(NOTHING, dpgm);
-
-			info("create HttpServer");
-			mServer = new HttpServer(\log(), \log(), verbose);
-#			mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
-#			mServer.setDefaultHandler("ws-handler", wsHandler);
-			if (opt.listen) {
-				foreach string l in (opt.listen) {
-					mServer.addListener(l);
-				}
-			} else {
-				mServer.addListener(0);
+			if (exists fileName) {
+				dph.createProgram(fileName, ARGV);
+				dph.info("run program");
+				background dph.pgm.run();
+				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
 			}
 
-			info("create Program");
-			pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
-			# restore default options
-			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
-			# update arguments without debug options
-			pgm.setGlobalVarValue('ARGV', ARGV);
-			pgm.define('Q_DEBUGGING', 1);
-			dpgm.addProgram(pgm);
-
-			string s;
-s = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
-			if (fileName == '--') {
-				pgm.setScriptPath('<stdin>');
-				info("read stdin");
-				s = stdin.read(-1, 0);
-				info("%s", s);
-			} else {
-				pgm.setScriptPath(fileName);
-				info("read file: %y", fileName);
-				s = ReadOnlyFile::readTextFile(fileName);
-			}
-			info("parse code");
-			*hash wh = pgm.parse(s, "debug", WARN_DEFAULT);
-			if (wh) {
-				log("warning: %N", wh);
-			}
-			info("run program");
-			background pgm.run();
-			sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
+			dph.runCmdLine();
 
         } catch (hash e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
@@ -153,17 +90,9 @@ s = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
         exit(exCode);
     }
 
-	private log(string fmt) {
-	    vprintf(fmt, argv);
-	}
-
-	private info(string fmt) {
-		if (verbose) {
-		    vprintf(fmt+"\n", argv);
-		}
-	}
 
 	public dummy() {
 	}
 }
+
 

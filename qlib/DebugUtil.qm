@@ -1,0 +1,446 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugUtil.qm Debug common code
+
+/*  DebugUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires linenoise
+
+%require-types
+%enable-all-warnings
+%new-style
+
+module DebugUtil {
+    version = "0.1";
+    desc = "user module providing common debug stuff";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugUtil Module
+
+    @tableofcontents
+
+    @section debugutilintro Introduction to the DebugUtil Module
+
+    The %DebugUtil module provides common functionality for implementing debugger utilities (client, server, ...)
+
+    @subsection du_v01 v0.1
+    - the initial version of the DebugUtil module
+*/
+
+#! the WebSocketUtil namespace contains all the definitions in the WebSocketUtil module
+public namespace DebugUtil {
+
+    /**
+        When implementing a wrapper which executes program whose name is passed at command line then we can divide
+        arguments usually into 3 groups, internal wrapper arguments, target program filename and program arguments.
+        The class support argument parsing for such a case.
+
+		Examples:
+            (   # GetOpt options
+    		    'help': 'h,help',
+    	    	'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+		    wrapper-prog -v -l xxx xxx -v -l    #the second xxx is target program name
+		    wrapper-prog -v -h xxx xxx          #the first xxx is target program name
+		    wrapper-prog -v --listen=xxx xxx    #the second xxx is target program name
+		    wrapper-prog -v --listen xxx xxx    #the second xxx is target program name
+        **/
+    public class WrapperGetOpt inherits GetOpt {
+        public constructor(hash options): GetOpt(options) {
+        }
+
+        /**
+            Parses input arguments till a standalone argument is found.
+
+            @param args @ref list of arguments passed to wrapper, typically ARGV
+            @param wrp_args returns list of wrapper arguments
+            @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
+            @param pgm_args return @list of target program arguments
+
+            @code{.py}
+            hash opts = (
+    		    'help': 'h,help',
+    	    	'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+    		WrapperGetOpt g(opts);
+		    list dargs;
+    		hash opt;
+            *string fileName;
+		    g.split(ARGV, \dargs, \fileName, \ARGV);
+
+            try {
+                opt = g.parse2(\dargs);
+            } catch (hash ex) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                help(-1);
+            }
+
+            if (exists fileName) {
+                stderr.print("No input file\n");
+                exit(-1);
+            }
+
+            @endcode
+        **/
+        public split(list args, reference wrp_args, reference pgm_name, reference pgm_args) {
+            pgm_name = NOTHING;
+            wrp_args = ();
+            pgm_args = ();
+            while (args) {
+                string s = shift args;
+                push wrp_args, s;
+                if (s !~ /^\-/ ) {
+                    list a = wrp_args;
+                    parse(\a);
+                    if (a) {
+                        # last arg is filename
+                        pgm_name = s;
+                        pop wrp_args;
+                        break;
+                    }
+                } else if (s == '--') {
+                    pgm_name = '';
+                    pop wrp_args;
+                    break;
+                }
+            }
+            pgm_args = args;
+        }
+    }
+
+    public class DebugProgramHelper {
+        public {
+            DebugProgram dpgm;
+            Program pgm;
+            bool verbose = False;
+            string ln_prompt = 'qdbg> ';
+        }
+
+        private {
+            hash commands = (
+                '>': (
+                    'help': (
+                        '**': (
+                            'desc': 'help/*',
+                            'enum': list sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                shift path;
+                                if (path[0] == 'help') return ();
+#                            printf("--152>%y, %y\r\n", path, args);
+                                *hash cmd = dph.findCmd(path + args, True);
+#            printf("%N\r\n", cmd);
+                                if (!cmd.variants) return ();
+                                return keys cmd.variants;
+                            },
+                            'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                shift path; # remove help arg
+                                *hash cmd = dph.findCmd(path + args, True);
+                                if (cmd.cmd) {
+                                    printf("%s: %s\n", (path+args).join(' '), cmd.cmd.desc);
+                                }
+                                cmd = dph.findCmd(path + args + (''), True);
+                                if (cmd.variants.typeCode()==NT_HASH) {
+                                    printf("\nSubcommand list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                                }
+                            },
+                        ),
+                        'desc': 'get help about command',
+                        'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                            shift path; # remove help arg
+                            *hash cmd = dph.findCmd(list('') , True);
+                            printf("Command root list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                        },
+                    ),
+                    'history': (
+                        '>': (
+                            'load': (
+                                'desc': 'load history from file',
+                                'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        dph.info("load history: %y", fn);
+                                        Linenoise::history_load(fn);
+                                    }
+                                },
+                            ),
+                            'save': (
+                                'desc': 'save history to file',
+                                'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        dph.info("save history: %y", fn);
+                                        Linenoise::history_save(fn);
+                                    }
+                                },
+                            ),
+
+                        ),
+                        'desc': 'load or save history to file',
+                    ),
+                    'quit': (
+                        'desc': 'quit debugger',
+                        'action': bool sub(DebugProgramHelper dph, softlist path, softlist args) {
+                            return True;
+                        },
+                    ),
+                ),
+            );
+
+        }
+
+        constructor() {
+            dpgm = new DebugProgram();
+        }
+
+        public createProgram(*string fileName, list args) {
+            log("create program: %y", fileName);
+			pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
+			# restore default options
+			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
+			# update arguments without debug options
+			pgm.setGlobalVarValue('ARGV', ARGV);
+			pgm.define('Q_DEBUGGING', 1);
+            log("add program");
+			dpgm.addProgram(pgm);
+
+			string s;
+s = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
+			if (fileName == '') {
+				pgm.setScriptPath('<stdin>');
+				info("read stdin");
+				s = stdin.read(-1, 0);
+				info("%s", s);
+			} else {
+				pgm.setScriptPath(fileName);
+				info("read file: %y", fileName);
+				s = ReadOnlyFile::readTextFile(fileName);
+			}
+			info("parse code");
+			*hash wh = pgm.parse(s, "debug", WARN_DEFAULT);
+			if (wh) {
+				log("warning: %N", wh);
+			}
+        }
+
+        private list splitCmd(string line) {
+            list ret = ();
+            int i = 0;
+            int q = 0;
+            string s = '';
+            while (i < line.size()) {
+                switch (line[i]) {
+                case ' ':
+                    if (q == 0) {
+                        if (s != '') {
+                            push ret, s;
+                            s = '';
+                        }
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case "'":
+                    if (q == 0) {
+                        q = 1;
+                    } else if (q == 1) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '"':
+                    if (q == 0) {
+                        q = 2;
+                    } else if (q == 2) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '\':
+                    i++;
+                    switch (line[i]) {
+                    case 'n':
+                        s += "\n";
+                        break;
+                    case 'r':
+                        s += "\r";
+                        break;
+                    case 't':
+                        s += "\t";
+                        break;
+                    case '0':
+                        s += "\0";
+                        break;
+                    default:
+                        s += line[i];
+                    }
+                    break;
+                default:
+                    s += line[i];
+                }
+                i++;
+            }
+            if (q != 0)
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
+            if (s != '') {
+                push ret, s;
+            }
+            return ret;
+        }
+
+        public *hash findCmd(list args, bool findHelp = False) {  /* public because it is needed from closure */
+            hash result;
+            result.path = ();
+#printf("findcmd(%N)\n", args);
+            hash c = commands;
+            while (args.size() > 0) {
+                if (findHelp && exists c."*") {
+                    # skip
+                    c = c."*";
+                } else if (exists c.">") {
+                    # static enum
+                    if (args.size() == 1) {
+                        foreach string k in (keys c.">") {
+                            if (k.substr(0, args[0].size()) == args[0]) {
+                                result.variants{k} = c.">"{k};
+                            }
+                        }
+                    }
+                    if (exists c.">"{args[0]}) {
+#printf("args[0]:%y, c.>:%y\n", args[0], c.">"{args[0]});
+                        #remove result.cmd.">";
+                        c = c.">"{args[0]};
+                        result.cmd = c;
+                        push result.path, shift args;
+                    } else {
+                        if (exists result.variants) {
+                            push result.path, shift args;
+                        }
+                        break;
+                    }
+                } else if (exists c."*") {
+                    # dynamically enumerated
+                    c = c."*";
+                    if (args.size() == 1 && exists c.enum) {
+                        result.variants = c.enum;
+                    }
+                    push result.path, shift args;
+                    result.cmd = c;
+                } else if (exists c."**") {
+                    c = c."**";
+                    if (exists c.enum) {
+                        result.variants = c.enum;
+                    }
+                    push result.path, shift args;
+                    result.cmd = c;
+                    break;
+                } else
+                    break;
+            }
+            result.args = args;
+#printf("findcmd()->%N\n", result);
+            return result;
+        }
+
+        private list ln_callback(string line) {
+            list args = splitCmd(line); 
+            if (line =~ / $/ || line == '') {
+                args += '';
+            } else {
+                # strip last args
+                while (line != '' && line[line.size()-1] != ' ') {
+                    line = splice(line, -1);
+                }
+            }
+            *hash cmd = findCmd(args);
+#printf(" cmd-362:%y\n", cmd);
+
+            if (cmd.variants) {
+                *list v;
+                switch (cmd.variants.typeCode()) {
+                case NT_CLOSURE:
+                case NT_CALLREF:
+                    v = cmd.variants(self, cmd.path, cmd.args);
+                    break;
+                default:
+                    v = keys cmd.variants;
+                }
+                return map line+$1, sort(v);
+            } else {
+                return ();
+            }
+        }
+        public runCmdLine() {
+            # Linenoise::history_load('history.txt');
+            # Linenoise::history_set_max_len(256);
+            Linenoise::set_callback(\ln_callback());
+Linenoise::history_add('history load filename');
+            while (True) {
+                my *string line = Linenoise::line(ln_prompt);
+                if (!exists line) {
+                    printf("^C signal caught. Exiting.\n");
+                        break;
+                }
+                if (line !~ /^ /) {
+                    Linenoise::history_add(line);
+                }
+                *hash cmd = findCmd(splitCmd(line));
+                if (cmd) {
+#                    printf("line:%y\n", line);
+
+                    if (cmd.cmd.action) {
+#                    printf("exec:%y\n", cmd);
+                        try {
+                            any rc = cmd.cmd.action(self, cmd.path, cmd.args);
+                            if (rc) break;
+                        } catch (hash ex) {
+                            printf("%s: %s\n", ex.err, ex.desc);
+                        }
+                    }
+#                    printf("%y\n", cmd);
+                } else {
+                    printf("Unknown command\n");
+                }
+            }
+            # Linenoise::history_save('history.txt');
+
+        }
+
+	    public log(string fmt) {
+	        stdout.vprintf(fmt+"\n", argv);
+        }
+
+	    public info(string fmt) {
+    		if (verbose) {
+	    	    stdout.vprintf(fmt+"\n", argv);
+		    }
+        }
+    }
+
+}
+
