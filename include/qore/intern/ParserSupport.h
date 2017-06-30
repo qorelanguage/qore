@@ -42,13 +42,21 @@
 
 class QoreParserLocation {
 public:
-   int first_line = 1;
-   int last_line = 1;
-   int first_col = 0;
-   int last_col = 0;
+   int first_line;
+   int last_line;
+   int first_col;
+   int last_col;
 
-   int saved_first_line = 0;
-   int saved_first_col = 0;
+   int saved_first_line;
+   int saved_first_col;
+
+   QoreParserLocation() :
+      first_line(1),
+      last_line(1),
+      first_col(0),
+      last_col(0),
+      saved_first_line(0),
+      saved_first_col(0) {}
 
    DLLLOCAL void saveFirst() {
       //printd(0, "QoreParserLocation::setFirst: current: %d:%d - %d:%d\n", first_line, first_col, last_line, last_col);
