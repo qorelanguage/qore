@@ -346,7 +346,6 @@ class ExceptionLocationTest inherits QUnit::Test {
             assertEq("<run-time-loaded: B>", ex.file);
 
             ex = getEx(\p.parse(), "sub t() {\nstring s = sprintf()\"error string for\n%s\", \"foo\"));\n}", "B");
-            printf("%s\n", get_exception_string(ex));
             assertEq(2, ex.line);
             assertEq(3, ex.endline);
             assertEq("<run-time-loaded: B>", ex.file);
