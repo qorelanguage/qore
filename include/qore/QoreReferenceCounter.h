@@ -36,16 +36,14 @@
 #include <qore/common.h>
 #include <qore/macros.h>
 
+#include <atomic>
+
 class QoreThreadLock;
 
 //! provides atomic reference counting to Qore objects
 class QoreReferenceCounter {
 protected:
-   mutable int references;
-#ifndef HAVE_ATOMIC_MACROS
-   //! pthread lock to ensure atomicity of updates for architectures where we don't have an atomic increment and decrement implementation
-   mutable QoreThreadLock mRO;
-#endif
+   mutable std::atomic_int references;
 
 public:
    //! creates the reference counter object
@@ -63,17 +61,13 @@ public:
    /**
       @return returns the current reference count
    */
-   DLLLOCAL int reference_count() const {
-      return references;
-   }
+   DLLEXPORT int reference_count() const;
 
    //! returns true if the reference count is 1
    /**
       @return returns true if the reference count is 1
    */
-   DLLLOCAL bool is_unique() const {
-      return references == 1;
-   }
+   DLLEXPORT bool is_unique() const;
 
    //! atomically increments the reference count
    DLLEXPORT void ROreference() const;

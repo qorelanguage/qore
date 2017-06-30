@@ -41,6 +41,7 @@
 #include <string>
 
 class DBIDriver;
+class DatasourceStatementHelper;
 
 //! the base class for accessing databases in Qore through a Qore DBI driver
 /** This class is not thread-safe or even thread-aware.  Thread safety and thread
@@ -59,7 +60,7 @@ private:
    struct qore_ds_private *priv; // private implementation
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL Datasource& operator=(const Datasource&);
+   Datasource& operator=(const Datasource&) = delete;
 
    //! this helper method shares code for exec() and execRaw() methods
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
@@ -81,13 +82,36 @@ protected:
    DLLEXPORT int beginImplicitTransaction(ExceptionSink* xsink);
 
 public:
+   //! creates the object; internal only
+   /**
+      @param driver the DBIDriver object to use for the connection
+      @param dsh the interface of the real C++ parent object
+
+      @since %Qore 0.8.13
+   */
+   DLLLOCAL Datasource(DBIDriver* driver, DatasourceStatementHelper* dsh);
+
+   //! copy constructor; internal only
+   /**
+      @param old the old object to copy
+      @param dsh the interface of the real C++ parent object
+
+      @since %Qore 0.8.13
+   */
+   DLLLOCAL Datasource(const Datasource& old, DatasourceStatementHelper* dsh);
+
    //! creates the object and binds it to a particular DBIDriver
    /**
       @param driver the DBIDriver object to use for the connection
+
+      @deprecated do not use
    */
    DLLEXPORT Datasource(DBIDriver* driver);
 
    //! copy constructor
+   /*
+      @deprecated do not use
+   */
    DLLEXPORT Datasource(const Datasource& old);
 
    //! the Datasource is closed if it's still open and the object is destroyed
@@ -595,6 +619,15 @@ public:
    /** meant to be called from drivers while a transaction or action lock is held
     */
    DLLEXPORT QoreHashNode* getEventQueueHash(Queue*& q, int event_code) const;
+
+   //! returns an SQLStatement object representing a result set
+   /** @param stmt_private_data private data for the QoreSQLStatement object
+
+       @return an SQLStatement object representing a result set
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreObject* getSQLStatementObjectForResultSet(void* stmt_private_data);
 };
 
 #endif // _QORE_DATASOURCE_H
