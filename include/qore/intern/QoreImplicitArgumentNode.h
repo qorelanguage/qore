@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 #ifndef _QORE_IMPLICIT_ARGUMENT_NODE_H
 
-#define _QORE_IMPLICIT_ARGUMENT_NODE_H 
+#define _QORE_IMPLICIT_ARGUMENT_NODE_H
 
 class QoreImplicitArgumentNode : public ParseNode {
 private:
@@ -53,7 +53,7 @@ private:
 
 public:
    // offset = -1 means return the entire "$argv" list
-   DLLLOCAL QoreImplicitArgumentNode(int n_offset = -1);
+   DLLLOCAL QoreImplicitArgumentNode(const QoreProgramLocation& loc, int n_offset = -1);
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -62,7 +62,7 @@ public:
    DLLLOCAL static const char *getStaticTypeName() {
       return "implicit argument reference";
    }
-      
+
 };
 
 #endif

@@ -34,6 +34,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_dbi_private.h"
 #include "qore/intern/qore_ds_private.h"
+#include "qore/intern/QoreSQLStatement.h"
+#include "qore/intern/QC_SQLStatement.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,10 +56,16 @@ void qore_ds_private::statementExecuted(int rc) {
       active_transaction = true;
 }
 
-Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl)) {
+Datasource::Datasource(DBIDriver* ndsl, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(this, ndsl, dsh)) {
 }
 
-Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.priv, this)) {
+Datasource::Datasource(const Datasource& old, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(*old.priv, this, dsh)) {
+}
+
+Datasource::Datasource(DBIDriver* ndsl) : priv(new qore_ds_private(this, ndsl, nullptr)) {
+}
+
+Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.priv, this, nullptr)) {
 }
 
 Datasource::~Datasource() {
@@ -154,7 +162,7 @@ QoreHashNode* Datasource::selectRow(const QoreString* query_str, const QoreListN
 AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
    assert(xsink);
    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
-      return 0;
+      return nullptr;
 
    assert(priv->isopen && priv->private_data);
 
@@ -165,7 +173,7 @@ AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query
    if (priv->connection_aborted) {
       assert(*xsink);
       assert(!rv);
-      return 0;
+      return nullptr;
    }
 
    if (priv->autocommit)
@@ -189,11 +197,11 @@ AbstractQoreNode* Datasource::exec(const QoreString* query_str, const QoreListNo
 // deprecated: remove due to extraneous ignored "args" argument
 AbstractQoreNode* Datasource::execRaw(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
    assert(!args);
-   return exec_internal(false, query_str, 0, xsink);
+   return exec_internal(false, query_str, nullptr, xsink);
 }
 
 AbstractQoreNode* Datasource::execRaw(const QoreString* query_str, ExceptionSink* xsink) {
-   return exec_internal(false, query_str, 0, xsink);
+   return exec_internal(false, query_str, nullptr, xsink);
 }
 
 QoreHashNode* Datasource::describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
@@ -253,8 +261,8 @@ int Datasource::open(ExceptionSink* xsink) {
 
       rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
       if (!*xsink) {
-	 assert(priv->qorecharset);
-	 priv->isopen = true;
+         assert(priv->qorecharset);
+         priv->isopen = true;
       }
    }
    else
@@ -358,27 +366,27 @@ const std::string &Datasource::getHostNameStr() const {
 }
 
 const char* Datasource::getUsername() const {
-   return priv->username.empty() ? 0 : priv->username.c_str();
+   return priv->username.empty() ? nullptr : priv->username.c_str();
 }
 
 const char* Datasource::getPassword() const {
-   return priv->password.empty() ? 0 : priv->password.c_str();
+   return priv->password.empty() ? nullptr : priv->password.c_str();
 }
 
 const char* Datasource::getDBName() const {
-   return priv->dbname.empty() ? 0 : priv->dbname.c_str();
+   return priv->dbname.empty() ? nullptr : priv->dbname.c_str();
 }
 
 const char* Datasource::getDBEncoding() const {
-   return priv->db_encoding.empty() ? 0 : priv->db_encoding.c_str();
+   return priv->db_encoding.empty() ? nullptr : priv->db_encoding.c_str();
 }
 
 const char* Datasource::getOSEncoding() const {
-   return priv->qorecharset ? priv->qorecharset->getCode() : 0;
+   return priv->qorecharset ? priv->qorecharset->getCode() : nullptr;
 }
 
 const char* Datasource::getHostName() const {
-   return priv->hostname.empty() ? 0 : priv->hostname.c_str();
+   return priv->hostname.empty() ? nullptr : priv->hostname.c_str();
 }
 
 int Datasource::getPort() const {
@@ -402,23 +410,23 @@ void Datasource::setQoreEncoding(const QoreEncoding* enc) {
 }
 
 QoreStringNode* Datasource::getPendingUsername() const {
-   return priv->p_username.empty() ? 0 : new QoreStringNode(priv->p_username.c_str());
+   return priv->p_username.empty() ? nullptr : new QoreStringNode(priv->p_username.c_str());
 }
 
 QoreStringNode* Datasource::getPendingPassword() const {
-   return priv->p_password.empty() ? 0 : new QoreStringNode(priv->p_password.c_str());
+   return priv->p_password.empty() ? nullptr : new QoreStringNode(priv->p_password.c_str());
 }
 
 QoreStringNode* Datasource::getPendingDBName() const {
-   return priv->p_dbname.empty() ? 0 : new QoreStringNode(priv->p_dbname.c_str());
+   return priv->p_dbname.empty() ? nullptr : new QoreStringNode(priv->p_dbname.c_str());
 }
 
 QoreStringNode* Datasource::getPendingDBEncoding() const {
-   return priv->p_db_encoding.empty() ? 0 : new QoreStringNode(priv->p_db_encoding.c_str());
+   return priv->p_db_encoding.empty() ? nullptr : new QoreStringNode(priv->p_db_encoding.c_str());
 }
 
 QoreStringNode* Datasource::getPendingHostName() const {
-   return priv->p_hostname.empty() ? 0 : new QoreStringNode(priv->p_hostname.c_str());
+   return priv->p_hostname.empty() ? nullptr : new QoreStringNode(priv->p_hostname.c_str());
 }
 
 int Datasource::getPendingPort() const {
@@ -471,23 +479,23 @@ AbstractQoreNode* Datasource::getOption(const char* opt, ExceptionSink* xsink) {
 QoreHashNode* Datasource::getConfigHash() const {
    QoreHashNode* h = new QoreHashNode;
 
-   h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), 0);
+   h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), nullptr);
    if (!priv->username.empty())
-      h->setKeyValue("user", new QoreStringNode(priv->username), 0);
+      h->setKeyValue("user", new QoreStringNode(priv->username), nullptr);
    if (!priv->password.empty())
-      h->setKeyValue("pass", new QoreStringNode(priv->password), 0);
+      h->setKeyValue("pass", new QoreStringNode(priv->password), nullptr);
    if (!priv->dbname.empty())
-      h->setKeyValue("db", new QoreStringNode(priv->dbname), 0);
+      h->setKeyValue("db", new QoreStringNode(priv->dbname), nullptr);
    if (!priv->db_encoding.empty())
-      h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), 0);
+      h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), nullptr);
    if (!priv->hostname.empty())
-      h->setKeyValue("host", new QoreStringNode(priv->hostname), 0);
+      h->setKeyValue("host", new QoreStringNode(priv->hostname), nullptr);
    if (priv->port)
-      h->setKeyValue("port", new QoreBigIntNode(priv->port), 0);
+      h->setKeyValue("port", new QoreBigIntNode(priv->port), nullptr);
 
    QoreHashNode* options = priv->getCurrentOptionHash();
    if (options)
-      h->setKeyValue("options", options, 0);
+      h->setKeyValue("options", options, nullptr);
 
    return h;
 }
@@ -514,23 +522,23 @@ QoreStringNode* Datasource::getConfigString() const {
       str->sprintf(":%d", priv->port);
 
    bool first = false;
-   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), 0);
+   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), nullptr);
    ConstHashIterator hi(*opts);
    while (hi.next()) {
       const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
       const AbstractQoreNode* v = ov->getKeyValue("value");
       if (!v || v == &False)
-	 continue;
+         continue;
 
       if (first)
-	 str->concat(',');
+         str->concat(',');
       else {
-	 str->concat('{');
-	 first = true;
+         str->concat('{');
+         first = true;
       }
       str->concat(hi.getKey());
       if (v == &True)
-	 continue;
+         continue;
 
       QoreStringValueHelper sv(v);
       str->sprintf("=%s", sv->getBuffer());
@@ -547,4 +555,8 @@ void Datasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* x
 
 QoreHashNode* Datasource::getEventQueueHash(Queue*& q, int event_code) const {
    return priv->getEventQueueHash(q, event_code);
+}
+
+QoreObject* Datasource::getSQLStatementObjectForResultSet(void* stmt_private_data) {
+   return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(this, stmt_private_data, priv->dsh, STMT_EXECED));
 }

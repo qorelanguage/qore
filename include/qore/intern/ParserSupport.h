@@ -116,7 +116,7 @@ struct TryModuleError {
 // private interface to bison/flex parser/scanner
 typedef void* yyscan_t;
 DLLLOCAL extern int yyparse(yyscan_t yyscanner);
-DLLLOCAL extern struct yy_buffer_state* yy_scan_string(const char* , yyscan_t scanner);
+DLLLOCAL extern struct yy_buffer_state* yy_scan_string(const char*, yyscan_t scanner);
 DLLLOCAL int yylex_init(yyscan_t* scanner);
 DLLLOCAL void yyset_in(FILE* in_str, yyscan_t yyscanner);
 DLLLOCAL int yylex_destroy(yyscan_t yyscanner);

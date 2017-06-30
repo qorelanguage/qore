@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,9 +37,30 @@
 
 class LocalFunctionCallReferenceNode;
 
-class AbstractUnresolvedCallReferenceNode : public AbstractCallReferenceNode {
+struct CallReferenceNodeLocation {
+   QoreProgramLocation loc;
+
+   DLLLOCAL CallReferenceNodeLocation(const QoreProgramLocation& loc) : loc(loc) {
+   }
+};
+
+class AbstractCallReferenceNodeIntern : public AbstractCallReferenceNode, public CallReferenceNodeLocation {
 public:
-   DLLLOCAL AbstractUnresolvedCallReferenceNode(bool n_needs_eval) : AbstractCallReferenceNode(n_needs_eval, false) {
+   DLLLOCAL AbstractCallReferenceNodeIntern(const QoreProgramLocation& loc, bool n_needs_eval) :
+      AbstractCallReferenceNode(n_needs_eval), CallReferenceNodeLocation(loc) {
+   }
+};
+
+class ResolvedCallReferenceNodeIntern : public ResolvedCallReferenceNode, public CallReferenceNodeLocation {
+public:
+   DLLLOCAL ResolvedCallReferenceNodeIntern(const QoreProgramLocation& loc, bool n_needs_eval = false) :
+      ResolvedCallReferenceNode(n_needs_eval), CallReferenceNodeLocation(loc) {
+   }
+};
+
+class AbstractUnresolvedCallReferenceNode : public AbstractCallReferenceNodeIntern {
+public:
+   DLLLOCAL AbstractUnresolvedCallReferenceNode(const QoreProgramLocation& loc, bool n_needs_eval) : AbstractCallReferenceNodeIntern(loc, n_needs_eval) {
    }
 };
 
@@ -48,52 +69,64 @@ class UnresolvedProgramCallReferenceNode : public AbstractUnresolvedCallReferenc
 public:
    char* str;
 
-   DLLLOCAL UnresolvedProgramCallReferenceNode(char* n_str);
+   DLLLOCAL UnresolvedProgramCallReferenceNode(const QoreProgramLocation& loc, char* n_str);
+
    DLLLOCAL virtual ~UnresolvedProgramCallReferenceNode();
+
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
 class UnresolvedCallReferenceNode : public UnresolvedProgramCallReferenceNode {
 public:
-   DLLLOCAL UnresolvedCallReferenceNode(char* n_str) : UnresolvedProgramCallReferenceNode(n_str) {
+   DLLLOCAL UnresolvedCallReferenceNode(const QoreProgramLocation& loc, char* n_str) : UnresolvedProgramCallReferenceNode(loc, n_str) {
    }
+
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
 //! a call reference to a static user method
-class LocalStaticMethodCallReferenceNode : public ResolvedCallReferenceNode {
+class LocalStaticMethodCallReferenceNode : public ResolvedCallReferenceNodeIntern {
 protected:
    const QoreMethod* method;
 
    // constructor for subclasses
-   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method, bool n_needs_eval) : ResolvedCallReferenceNode(n_needs_eval), method(n_method) {
+   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod* n_method, bool n_needs_eval) : ResolvedCallReferenceNodeIntern(loc, n_needs_eval), method(n_method) {
    }
 
    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
       return false;
    }
+
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
       return 0.0;
    }
 
 public:
-   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreMethod* n_method) : ResolvedCallReferenceNode(true), method(n_method) {
-      //printd(5, "LocalStaticMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+   DLLLOCAL LocalStaticMethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod* n_method) : ResolvedCallReferenceNodeIntern(loc, true), method(n_method) {
+      //printd(5, "LocalStaticMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
+
    DLLLOCAL virtual ~LocalStaticMethodCallReferenceNode() {
    }
+
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return LocalStaticMethodCallReferenceNode::is_equal_hard(v, xsink);
    }
+
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreFunction* getFunction() {
@@ -104,14 +137,17 @@ public:
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:
    QoreProgram* pgm;
+   const qore_class_private* class_ctx;
 
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL StaticMethodCallReferenceNode(const QoreMethod *n_method, QoreProgram *n_pgm);
+   DLLLOCAL StaticMethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod *n_method, QoreProgram *n_pgm, const qore_class_private* n_class_ctx);
+
    DLLLOCAL ~StaticMethodCallReferenceNode() {
       assert(!pgm);
    }
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode *args, ExceptionSink *xsink) const;
 };
 
@@ -119,22 +155,27 @@ public:
 class LocalMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
 protected:
    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL LocalMethodCallReferenceNode(const QoreMethod* n_method, bool n_needs_eval) : LocalStaticMethodCallReferenceNode(n_method, n_needs_eval) {
-      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+   DLLLOCAL LocalMethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod* n_method, bool n_needs_eval) : LocalStaticMethodCallReferenceNode(loc, n_method, n_needs_eval) {
+      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
 
 public:
-   DLLLOCAL LocalMethodCallReferenceNode(const QoreMethod* n_method) : LocalStaticMethodCallReferenceNode(n_method) {
-      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this=%p %s::%s() pgm=%p\n", this, method->getClass()->getName(), method->getName(), pgm);
+   DLLLOCAL LocalMethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod* n_method) : LocalStaticMethodCallReferenceNode(loc, n_method) {
+      //printd(5, "LocalMethodCallReferenceNode::LocalStaticMethodCallReferenceNode() this: %p %s::%s() pgm: %p\n", this, method->getClass()->getName(), method->getName(), pgm);
    }
+
    DLLLOCAL virtual ~LocalMethodCallReferenceNode() {
    }
+
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return LocalMethodCallReferenceNode::is_equal_hard(v, xsink);
    }
+
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
@@ -145,40 +186,50 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL MethodCallReferenceNode(const QoreMethod* n_method, QoreProgram* n_pgm);
+   DLLLOCAL MethodCallReferenceNode(const QoreProgramLocation& loc, const QoreMethod* n_method, QoreProgram* n_pgm);
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
 //! a call reference to a user function from within the same QoreProgram object
-class LocalFunctionCallReferenceNode : public ResolvedCallReferenceNode {
+class LocalFunctionCallReferenceNode : public ResolvedCallReferenceNodeIntern {
 protected:
    const QoreFunction* uf;
 
    // constructor for subclasses
-   DLLLOCAL LocalFunctionCallReferenceNode(const QoreFunction* n_uf, bool n_needs_eval);
+   DLLLOCAL LocalFunctionCallReferenceNode(const QoreProgramLocation& loc, const QoreFunction* n_uf, bool n_needs_eval);
 
    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+
    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
       return 0;
    }
+
    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
       return false;
    }
+
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
       return 0.0;
    }
 
 public:
-   DLLLOCAL LocalFunctionCallReferenceNode(const QoreFunction* n_uf);
+   DLLLOCAL LocalFunctionCallReferenceNode(const QoreProgramLocation& loc, const QoreFunction* n_uf);
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return LocalFunctionCallReferenceNode::is_equal_hard(v, xsink);
    }
+
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreFunction* getFunction() {
       return const_cast<QoreFunction*>(uf);
    }
@@ -192,11 +243,12 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL FunctionCallReferenceNode(const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(n_uf, false), pgm(n_pgm) {
+   DLLLOCAL FunctionCallReferenceNode(const QoreProgramLocation& loc, const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(loc, n_uf, false), pgm(n_pgm) {
       assert(pgm);
       // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
       pgm->depRef();
    }
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 };
 
@@ -206,20 +258,23 @@ protected:
    NamedScope* scope;
 
 public:
-   DLLLOCAL UnresolvedStaticMethodCallReferenceNode(NamedScope* n_scope);
+   DLLLOCAL UnresolvedStaticMethodCallReferenceNode(const QoreProgramLocation& loc, NamedScope* n_scope);
+
    DLLLOCAL virtual ~UnresolvedStaticMethodCallReferenceNode();
+
    using AbstractQoreNode::deref;
    DLLLOCAL void deref() {
       if (ROdereference())
-	 delete this;
+      delete this;
    }
+
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
 class ImportedFunctionEntry;
 
 //! a run-time call reference to a method of a particular object
-class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNode {
+class RunTimeObjectMethodReferenceNode : public ResolvedCallReferenceNodeIntern {
 private:
    QoreObject* obj;
    std::string method;
@@ -228,12 +283,16 @@ private:
    DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
 
 public:
-   DLLLOCAL RunTimeObjectMethodReferenceNode(QoreObject* n_obj, const char* n_method);
+   DLLLOCAL RunTimeObjectMethodReferenceNode(const QoreProgramLocation& loc, QoreObject* n_obj, const char* n_method);
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreProgram* getProgram() const;
+
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return RunTimeObjectMethodReferenceNode::is_equal_hard(v, xsink);
    }
+
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreFunction* getFunction() {
@@ -244,7 +303,7 @@ public:
 
 //! a run-time call reference to a method of a particular object where the method's class
 // is known when the method reference node object is created
-class RunTimeResolvedMethodReferenceNode : public ResolvedCallReferenceNode {
+class RunTimeResolvedMethodReferenceNode : public ResolvedCallReferenceNodeIntern {
 private:
    QoreObject* obj;
    const QoreMethod* method;
@@ -253,13 +312,18 @@ private:
    DLLLOCAL virtual ~RunTimeResolvedMethodReferenceNode();
 
 public:
-   DLLLOCAL RunTimeResolvedMethodReferenceNode(QoreObject* n_obj, const QoreMethod* n_method);
+   DLLLOCAL RunTimeResolvedMethodReferenceNode(const QoreProgramLocation& loc, QoreObject* n_obj, const QoreMethod* n_method);
+
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreProgram* getProgram() const;
+
    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
       return RunTimeResolvedMethodReferenceNode::is_equal_hard(v, xsink);
    }
+
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+
    DLLLOCAL virtual QoreFunction* getFunction() {
       return method ? method->getFunction() : 0;
    }

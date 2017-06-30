@@ -14,6 +14,8 @@ class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Encoding test", \testEncoding());
+        addTestCase("UTF-16 test", \testUtf16());
+        addTestCase("ASCII x UTF-8 string equality tests", \testASCIIUTF8Equality());
         addTestCase("Base64 and hex test", \testBase64Hex());
         addTestCase("Splice test", \testSplice());
         addTestCase("Extract test", \testExtract());
@@ -23,7 +25,7 @@ class StringTest inherits QUnit::Test {
         addTestCase("Chomp and trim test", \testChompAndTrim());
         addTestCase("Float strings test", \testFloat());
         addTestCase("String conversion test", \testConversions());
-        addTestCase("Octal value escaping test", \testOctalEscaping());
+        addTestCase("trim", \testTrim());
         set_return_value(main());
     }
 
@@ -109,10 +111,204 @@ class StringTest inherits QUnit::Test {
         assertEq(str, convert_encoding(nstr, "UTF-8"), "convert_encoding()");
 
         str = "příliš žluťoučký kůň úpěl ďábelské ódy";
-        assertEq(str.unaccent(), "prilis zlutoucky kun upel dabelske ody", "<string>::unaccent()");
+        assertEq("prilis zlutoucky kun upel dabelske ody", str.unaccent(), "<string>::unaccent()");
         string ustr = str.upr();
-        assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
-        assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+        assertEq("PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", ustr, "<string>::upr()");
+        assertEq("příliš žluťoučký kůň úpěl ďábelské ódy", ustr.lwr(), "<string>::lwr()");
+    }
+
+    testUtf16() {
+        string a = convert_encoding("xbcd", "UTF16BE");
+        string b = convert_encoding("aaaa", "UTF16BE");
+        assertTrue(a != b);
+        assertFalse(a != a);
+        assertFalse(a == b);
+        assertFalse(a === b);
+        assertTrue(a == a);
+        assertTrue(a === a);
+        assertTrue(a > b);
+        assertTrue(a >= b);
+        assertFalse(a > a);
+        assertTrue(a >= a);
+        assertTrue(b < a);
+        assertTrue(b <= a);
+        assertFalse(b < b);
+        assertTrue(b <= b);
+        assertEq(1, a <=> b);
+        assertEq(0, a <=> a);
+        assertEq(-1, b <=> a);
+        assertTrue(b.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(b.equalPartial(b+b));
+        assertTrue(b.equalPartial(b.substr(2)));
+        assertTrue(b.equalPartial(b.substr(2, 1)));
+        assertTrue(b.equalPartial(b.substr(2, -1)));
+        assertTrue(b.equalPartial(substr(b, 2)));
+        assertTrue(b.equalPartial(substr(b, 2, 1)));
+        assertTrue(b.equalPartial(substr(b, 2, -1)));
+
+        string c = convert_encoding("abcd", "UTF16LE");
+        string d = convert_encoding("aaaa", "UTF16LE");
+        assertTrue(c != d);
+        assertFalse(c != c);
+        assertFalse(c == d);
+        assertFalse(c === d);
+        assertTrue(c == c);
+        assertTrue(c === c);
+        assertTrue(c > d);
+        assertTrue(c >= d);
+        assertFalse(c > c);
+        assertTrue(c >= c);
+        assertTrue(d < c);
+        assertTrue(d <= c);
+        assertFalse(d < d);
+        assertTrue(d <= d);
+        assertEq(1, c <=> d);
+        assertEq(0, c <=> c);
+        assertEq(-1, d <=> c);
+        assertTrue(d.equalPartial(d));
+        assertFalse(d.equalPartial(c));
+        assertFalse(d.equalPartial(d+d));
+        assertTrue(d.equalPartial(d.substr(2)));
+        assertTrue(d.equalPartial(d.substr(2, 1)));
+        assertTrue(d.equalPartial(d.substr(2, -1)));
+        assertTrue(d.equalPartial(substr(d, 2)));
+        assertTrue(d.equalPartial(substr(d, 2, 1)));
+        assertTrue(d.equalPartial(substr(d, 2, -1)));
+
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("abcd", trim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("\nabcd", rtrim(a));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("\nabcd", rtrim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("abcd\n", ltrim(a));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("abcd\n", ltrim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("\r\nabcd", rtrim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("\r\nabcd", rtrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("abcd\r\n", ltrim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("abcd\r\n", ltrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("abcd", trim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("\rabcd", rtrim(a));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("\rabcd", rtrim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("abcd\r", ltrim(a));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("abcd\r", ltrim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16BE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("abcd", trim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("\nabcd", rtrim(a));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("\nabcd", rtrim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("abcd\n", ltrim(a));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("abcd\n", ltrim(a, "12\n3"));
+        a = convert_encoding("\nabcd\n", "UTF16LE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("\r\nabcd", rtrim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("\r\nabcd", rtrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("abcd\r\n", ltrim(a));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("abcd\r\n", ltrim(a, "12\r\n3"));
+        a = convert_encoding("\r\nabcd\r\n", "UTF16LE");
+        assertEq("abcd", trim a);
+
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("abcd", trim(a));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("abcd", trim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("\rabcd", rtrim(a));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("\rabcd", rtrim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("abcd\r", ltrim(a));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("abcd\r", ltrim(a, "12\r3"));
+        a = convert_encoding("\rabcd\r", "UTF16LE");
+        assertEq("abcd", trim a);
+
+        assertEq("ABCD", toupper(a));
+        assertEq("ABCD", a.upr());
+        assertEq("abcd", tolower(toupper(a)));
+        assertEq("abcd", a.upr().lwr());
+        assertEq(("a", "cd"), split(convert_encoding("b", "UTF16LE"), a));
+        assertEq(("a", "cd"), a.split(convert_encoding("b", "UTF16LE")));
+        assertEq(("a", "cd"), split(convert_encoding("b", "UTF16BE"), a));
+        assertEq(("a", "cd"), a.split(convert_encoding("b", "UTF16BE")));
+
+        string lstr = convert_encoding("a,b,c", "UTF16LE");
+        assertEq(("a", "b", "c"), split(convert_encoding(",", "UTF16LE"), lstr));
+        assertEq(("a", "b", "c"), lstr.split(convert_encoding(",", "UTF16LE")));
+        lstr = convert_encoding("a,'b,c,d',e", "UTF16LE");
+        assertEq(("a", "b,c,d", "e"), split(convert_encoding(",", "UTF16LE"), lstr, convert_encoding("'", "UTF16LE")));
+        assertEq(("a", "b,c,d", "e"), lstr.split(convert_encoding(",", "UTF16LE"), convert_encoding("'", "UTF16LE")));
+
+        lstr = convert_encoding("a,b,c", "UTF16BE");
+        assertEq(("a", "b", "c"), split(convert_encoding(",", "UTF16BE"), lstr));
+        assertEq(("a", "b", "c"), lstr.split(convert_encoding(",", "UTF16BE")));
+        lstr = convert_encoding("a,'b,c,d',e", "UTF16BE");
+        assertEq(("a", "b,c,d", "e"), split(convert_encoding(",", "UTF16BE"), lstr, convert_encoding("'", "UTF16BE")));
+        assertEq(("a", "b,c,d", "e"), lstr.split(convert_encoding(",", "UTF16BE"), convert_encoding("'", "UTF16BE")));
+
+        # test currently unsupported operations
+        assertThrows("UNSUPPORTED-ENCODING", \html_encode(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \html_decode(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \encode_url(), a);
+        assertThrows("UNSUPPORTED-ENCODING", \encode_uri_request(), a);
+        assertThrows("UNSUPPORTED-ENCODING", sub (string str) { str.equalPartialPath(str); }, a);
+        assertThrows("UNSUPPORTED-ENCODING", sub (string str) { str.toInt(16); }, a);
+    }
+
+    testASCIIUTF8Equality() {
+        string a = convert_encoding("ěščřžýáíé", "UTF-8");
+        string b = convert_encoding("escrzyaie", "ASCII");
+        assertFalse(a == b);
+        assertTrue(a != b);
+        assertFalse(b == a);
+        assertTrue(b != a);
+        assertFalse(a.equalPartial(b));
+        assertFalse(b.equalPartial(a));
+        assertFalse(a.equalPartialPath(b));
+        assertFalse(b.equalPartialPath(a));
     }
 
     testBase64Hex() {
@@ -369,13 +565,50 @@ class StringTest inherits QUnit::Test {
         assertEq("", string(NULL));
     }
 
-    testOctalEscaping() {
-        assertEq("\r\n !X| ¥λ", "\15\12 \41\130\174 \302\245\316\273");
-        assertEq("820 95", sprintf("\820 \95"));
+    testTrim() {
+        string a = "\nabcd\n";
+        assertEq("abcd", trim(a));
+        a = "\nabcd\n";
+        assertEq("abcd", trim(a, "12\n3"));
+        a = "\nabcd\n";
+        assertEq("\nabcd", rtrim(a));
+        a = "\nabcd\n";
+        assertEq("\nabcd", rtrim(a, "12\n3"));
+        a = "\nabcd\n";
+        assertEq("abcd\n", ltrim(a));
+        a = "\nabcd\n";
+        assertEq("abcd\n", ltrim(a, "12\n3"));
+        a = "\nabcd\n";
+        assertEq("abcd", trim a);
 
-        Program p(PO_NEW_STYLE);
-        p.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
-        assertThrows("PARSE-EXCEPTION", "escape invalid octal value", sub () { p.parse("string abc = \"Number: \\400\";", "test"); });
-        assertThrows("PARSE-EXCEPTION", "escape invalid octal value", sub () { p.parse("string abc = \"Number: \\777\";", "test"); });
+        a = "\r\nabcd\r\n";
+        assertEq("abcd", trim(a));
+        a = "\r\nabcd\r\n";
+        assertEq("abcd", trim(a, "12\r\n3"));
+        a = "\r\nabcd\r\n";
+        assertEq("\r\nabcd", rtrim(a));
+        a = "\r\nabcd\r\n";
+        assertEq("\r\nabcd", rtrim(a, "12\r\n3"));
+        a = "\r\nabcd\r\n";
+        assertEq("abcd\r\n", ltrim(a));
+        a = "\r\nabcd\r\n";
+        assertEq("abcd\r\n", ltrim(a, "12\r\n3"));
+        a = "\r\nabcd\r\n";
+        assertEq("abcd", trim a);
+
+        a = "\rabcd\r";
+        assertEq("abcd", trim(a));
+        a = "\rabcd\r";
+        assertEq("abcd", trim(a, "12\r3"));
+        a = "\rabcd\r";
+        assertEq("\rabcd", rtrim(a));
+        a = "\rabcd\r";
+        assertEq("\rabcd", rtrim(a, "12\r3"));
+        a = "\rabcd\r";
+        assertEq("abcd\r", ltrim(a));
+        a = "\rabcd\r";
+        assertEq("abcd\r", ltrim(a, "12\r3"));
+        a = "\rabcd\r";
+        assertEq("abcd", trim a);
     }
 }
