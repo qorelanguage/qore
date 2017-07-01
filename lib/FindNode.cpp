@@ -1,10 +1,10 @@
 /*
   FindNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,9 +29,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/FindNode.h>
+#include "qore/intern/FindNode.h"
 
-FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(NT_FIND) {
+FindNode::FindNode(const QoreProgramLocation& loc, AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(loc, NT_FIND) {
    exp = expr;
    find_exp = find_expr;
    where = w;
@@ -39,11 +39,11 @@ FindNode::FindNode(AbstractQoreNode *expr, AbstractQoreNode *find_expr, Abstract
 
 FindNode::~FindNode() {
    if (find_exp)
-      find_exp->deref(0);
+      find_exp->deref(nullptr);
    if (exp)
-      exp->deref(0);
+      exp->deref(nullptr);
    if (where)
-      where->deref(0);
+      where->deref(nullptr);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -73,32 +73,32 @@ QoreValue FindNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const
    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
    if (*xsink)
       return QoreValue();
-   
+
    QoreListNode *lrv = 0;
    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
       printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
       bool b = context->check_condition(where, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
       if (!b)
-	 continue;
+         continue;
 
       printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
       AbstractQoreNode *result = exp->eval(xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
       if (rv) {
-	 if (!lrv) {
-	    lrv = new QoreListNode;
-	    lrv->push(rv.release());
-	    lrv->push(result);
-	    rv = lrv;
-	 }
-	 else
-	    lrv->push(result);
+         if (!lrv) {
+            lrv = new QoreListNode;
+            lrv->push(rv.release());
+            lrv->push(result);
+            rv = lrv;
+         }
+         else
+            lrv->push(result);
       }
       else
-	 rv = result;
+         rv = result;
    }
 
    return rv.release();
@@ -108,15 +108,15 @@ AbstractQoreNode *FindNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids
    typeInfo = 0;
 
    push_cvar(0);
-   const QoreTypeInfo *argTypeInfo = 0;
+   const QoreTypeInfo *argTypeInfo = nullptr;
    if (find_exp)
       find_exp = find_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    if (where) {
-      argTypeInfo = 0;
+      argTypeInfo = nullptr;
       where = where->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
    if (exp) {
-      argTypeInfo = 0;
+      argTypeInfo = nullptr;
       exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
    }
    pop_cvar();

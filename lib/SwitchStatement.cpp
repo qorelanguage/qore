@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 Qore Technologies
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,28 +29,24 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SwitchStatement.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/CaseNodeWithOperator.h>
-#include <qore/intern/CaseNodeRegex.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/SwitchStatement.h"
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/CaseNodeWithOperator.h"
+#include "qore/intern/CaseNodeRegex.h"
+#include "qore/intern/qore_program_private.h"
 #include <qore/minitest.hpp>
 
 #ifdef DEBUG_TESTS
 #  include "tests/SwitchStatementWithOperators_tests.cpp"
 #endif
 
-CaseNode::CaseNode(AbstractQoreNode* v, StatementBlock* c) {
-   val = v;
-   code = c;
-   next = 0;
+CaseNode::CaseNode(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c) : loc(loc), val(v), code(c) {
 }
 
 CaseNode::~CaseNode() {
    if (val)
       val->deref(0);
-   if (code)
-      delete code;
+   delete code;
 }
 
 bool CaseNode::isCaseNodeImpl() const {
@@ -92,7 +88,7 @@ void SwitchStatement::addCase(CaseNode *c) {
    tail = c;
    if (c->isDefault()) {
       if (deflt)
-	 parse_error("multiple defaults in switch statement");
+         parse_error(c->loc, "multiple defaults in switch statement");
       deflt = c;
    }
 }
@@ -108,21 +104,22 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
       // find match
       CaseNode *w = head;
       while (w) {
-	 if (w->matches(se, xsink))
-	    break;
-	 w = w->next;
+         if (w->matches(se, xsink))
+            break;
+         w = w->next;
       }
       if (!w && deflt)
-	 w = deflt;
+         w = deflt;
 
       while (w && !rc && !xsink->isEvent()) {
-	 if (w->code)
-	    rc = w->code->execImpl(return_value, xsink);
+         if (w->code)
+            rc = w->code->execImpl(return_value, xsink);
 
-	 w = w->next;
+         w = w->next;
       }
-      if (rc == RC_BREAK || rc == RC_CONTINUE)
-	 rc = 0;
+
+      if (rc == RC_BREAK || ((getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT) != 0 && rc == RC_CONTINUE))
+         rc = 0;
    }
 
    if (se)
@@ -149,49 +146,49 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       if (w->val) {
          argTypeInfo = 0;
          w->val = w->val->parseInit(oflag, pflag | PF_CONST_EXPRESSION, lvids, argTypeInfo);
-	 if (lvids) {
-	    parse_error("illegal local variable declaration in assignment expression for case block");
-	    while (lvids--)
-	       pop_local_var();
+         if (lvids) {
+            parse_error(w->loc, "illegal local variable declaration in assignment expression for case block");
+            while (lvids--)
+               pop_local_var();
 
-	    w = w->next;
-	    continue;
-	 }
+            w = w->next;
+            continue;
+         }
 
-	 // evaluate case expression if necessary and no parse expressions have been raised
-	 if (w->val && !w->val->is_value()) {
-	    if (pgm->parseExceptionRaised()) {
-	       w = w->next;
-	       continue;
-	    }
+         // evaluate case expression if necessary and no parse expressions have been raised
+         if (w->val && !w->val->is_value()) {
+            if (pgm->parseExceptionRaised()) {
+               w = w->next;
+               continue;
+            }
 
-	    ReferenceHolder<AbstractQoreNode> v(w->val->eval(&xsink), &xsink);
-	    if (!xsink) {
-	       w->val->deref(&xsink);
-	       w->val = v.release();
-	       if (!w->val)
-		  w->val = nothing();
-	    }
-	    else
-	       qore_program_private::addParseException(pgm, xsink);
-	 }
-	 //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, get_type_name(w->val));
+            ReferenceHolder<AbstractQoreNode> v(w->val->eval(&xsink), &xsink);
+            if (!xsink) {
+               w->val->deref(&xsink);
+               w->val = v.release();
+               if (!w->val)
+                  w->val = nothing();
+            }
+            else
+               qore_program_private::addParseException(pgm, xsink);
+         }
+         //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, get_type_name(w->val));
 
-	 // check for duplicate values
-	 CaseNode *cw = head;
-	 while (cw != w) {
+         // check for duplicate values
+         CaseNode *cw = head;
+         while (cw != w) {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
-	    // note that no exception can be raised here as the case node values are parse values
+            // note that no exception can be raised here as the case node values are parse values
             if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val, &xsink))
-	       parse_error("duplicate case values in switch");
-	    assert(!xsink);
-	    cw = cw->next;
-	 }
+               parse_error(w->loc, "duplicate case values in switch");
+            assert(!xsink);
+            cw = cw->next;
+         }
       }
 
       if (w->code)
-	 w->code->parseInitImpl(oflag, pflag);
+         w->code->parseInitImpl(oflag, pflag | PF_BREAK_OK);
       w = w->next;
    }
 
@@ -202,7 +199,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
-CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op) : CaseNode(v, c), m_operator(op) {
+CaseNodeWithOperator::CaseNodeWithOperator(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(loc, v, c), op_func(op) {
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
@@ -210,11 +207,10 @@ bool CaseNodeWithOperator::isCaseNodeImpl() const {
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
-   ValueHolder rv(m_operator->eval(lhs_value, val, true, xsink), xsink);
-   return rv->getAsBool();
+   return op_func(lhs_value, val, xsink);
 }
 
-CaseNodeRegex::CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
+CaseNodeRegex::CaseNodeRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk) : CaseNode(loc, nullptr, blk), re(m_re) {
 }
 
 bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {

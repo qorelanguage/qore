@@ -18,11 +18,31 @@ class DirTest inherits QUnit::Test {
     }
 
     dirTest() {
-        string dir = sprintf(tmp_location() + DirSep + get_random_string());
+        string dir1 = sprintf(tmp_location() + DirSep + get_random_string());
         Dir d();
-        d.chdir(dir);
-        d.create();
-        assertEq("DIRECTORY", hstat(dir).type);
-        rmdir(dir);
+        bool b = d.chdir(dir1);
+        assertEq(False, b);
+        int rc = d.create();
+        on_exit
+            rmdir(dir1);
+        assertEq(1, rc);
+        assertEq("DIRECTORY", hstat(dir1).type);
+
+        string dir2 = get_random_string();
+        string dir3 = get_random_string();
+        b = d.chdir(dir2);
+        assertEq(False, b);
+        b = d.chdir(dir3);
+        assertEq(False, b);
+        rc = d.create();
+        string path2 = dir1 + DirSep + dir2;
+        string path3 = dir1 + DirSep + dir2 + DirSep + dir3;
+        on_exit {
+            rmdir(path3);
+            rmdir(path2);
+        }
+        assertEq(2, rc);
+        assertEq("DIRECTORY", hstat(path3).type);
+        assertEq("DIRECTORY", hstat(path2).type);
     }
 }

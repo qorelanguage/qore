@@ -11,8 +11,6 @@
     |An expression that changes an lvalue|@code{.py} var = 1;@endcode @code{.py} var += 5;@endcode @code{.py} var[1].count++;@endcode @code{.py} shift var.key[i];@endcode|@ref expressions
     |An expression with the @ref new "new operator"|@code{.py} new ObjectClass(1, 2, 3);@endcode|@ref new
     |An expression with the @ref background "background operator"|@code{.py} background function();@endcode|@ref background
-    |A @ref call_reference "call reference" or @ref closure "closure" call|@code{.py} call_reference(arg1, arg2);@endcode|@ref call_reference, @ref closure
-    |A @ref object_method_calls "method call"|@code{.py} object.method(1, 2, 3);@endcode|@ref qore_classes
     |An @ref if "if statement"|@code{.py} if (var == 3) {}@endcode|@ref if
     |An @ref if "if ... else" statement|@code{.py} if (var == 3) {} else {}@endcode|@ref if
     |A @ref while "while statement"|@code{.py} while (var < 10) {}@endcode|@ref while
@@ -23,7 +21,7 @@
     |A @ref return "return statement"|@code{.py} return val;@endcode|@ref return
     |A @ref variable_declarations "local variable declaration"|@code{.py} string var;@endcode @code{.py} my (int a, string b, bool c);@endcode|@ref variables, @ref variable_declarations
     |A @ref variable_declarations "global variable declaration"|@code{.py} our int var;@endcode @code{.py} our (float a, int b, hash c);@endcode|@ref variables, @ref variable_declarations
-    |A @ref qore_functions "function call"|@code{.py} calculate(this, that, the_other);@endcode|@ref qore_functions
+    |A @ref qore_functions "function call"|@code{.py} calculate(this, that, the_other);@endcode|@ref qore_functions, @ref object_method_calls, @ref static_method_calls, @ref closure, @ref call_reference
     |A @ref continue "continue statement"|@code{.py} continue;@endcode|@ref continue
     |A @ref break "break statement"|@code{.py} break;@endcode|@ref break
     |A statement block|@code{.py} {}@endcode|zero or more statements enclosed in curly brackets
@@ -91,8 +89,9 @@ for (int i = 0; i < 10; i++)
 
     @par Description
     If \a expression does not evaluate to a list, then the variable will be assigned the value of the expression evaluation and the statement will only execute one time. Otherwise the variable will be assigned to each value of the list and the statement will be called once for each value.\n\n
-    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".
-    If \a expression evalutes to @ref nothing (no value); then the loop is not executed at all.
+    If \a expression evaluates to an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>foreach</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the values assigned to the iterator variable on each iteration are the container values returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If possible, \a expression is evaluated using @ref op_functional "lazy functional evaluation".\n\n
+    If \a expression evaluates to @ref nothing (no value); then the loop is not executed at all.
 
     @par Example
     Here is an example of a foreach loop using a local variable:\n
@@ -106,11 +105,13 @@ foreach string str in (\str_list)
     Here is an example of a foreach loop using an object derived from @ref Qore::AbstractIterator "AbstractIterator":\n
     @code{.py}
 hash h = ("a": 1, "b": 2);
-foreach int i in (new HashIterator(h))
-    printf("%s = %y\n", i.key, i.value);
+foreach hash ih in (h.pairIterator())
+    printf("%s = %y\n", ih.key, ih.value);
     @endcode
 
-    @note If a reference (<tt>\\lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list (in which case any @ref Qore::AbstractIterator "AbstractIterator" object is not iterated; references cannot be used with @ref Qore::AbstractIterator "AbstractIterator" objects as such objects provide read-only iteration).
+    @note
+    - If a reference (<tt>\\lvalue_expression</tt>) is used as the list expression, any changes made to the <tt><b>foreach</b></tt> iterator variable will be written back to the list (in which case any @ref Qore::AbstractIterator "AbstractIterator" object is not iterated; references cannot be used with @ref Qore::AbstractIterator "AbstractIterator" objects as such objects provide read-only iteration).
+    - When used with @ref new-style "%new-style" (which is a recommended parse option) or @ref allow-bare-refs "%allow-bare-refs", the \c \b my or \c \b our keywords are required with new variables or their type has to be declared, otherwise a parse exception will be raised
 
     @see @ref map for a flexible way to iterate a list or @ref Qore::AbstractIterator "AbstractIterator" object in a single expression
 
