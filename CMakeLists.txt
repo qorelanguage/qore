@@ -21,10 +21,7 @@ else()
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
 endif()
 
-# If changing the module API numbers, make sure to change the appropriate
-# defines in include/qore/ModuleManager.h too.
-set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 20)
+get_module_api_versions()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
