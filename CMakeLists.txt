@@ -21,8 +21,6 @@ else()
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
 endif()
 
-get_module_api_versions()
-
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
 endif (NOT CMAKE_BUILD_TYPE)
@@ -65,6 +63,8 @@ set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
 set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
 set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
+
+get_module_api_versions()
 
 set(LIBQORE_QPP_SRC
     lib/QC_AbstractSmartLock.qpp
