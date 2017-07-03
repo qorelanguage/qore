@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -841,7 +841,7 @@ hash h = ds.getConfigHash();
     @since %Qore 0.8.8
  */
 hash DatasourcePool::getConfigHash() [flags=CONSTANT] {
-   return ds->getConfigHash();
+   return ds->getConfigHash(xsink);
 }
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -855,7 +855,7 @@ string str = ds.getConfigString();
     @since %Qore 0.8.8
  */
 string DatasourcePool::getConfigString() [flags=CONSTANT] {
-   return ds->getConfigString();
+   return ds->getConfigString(xsink);
 }
 
 //! clears any connection delay warning callback from the object
