@@ -339,7 +339,7 @@ public:
    const char* user_module_context_name = nullptr;
 
    // AbstractQoreModule* with boolean ptr in bit 0
-   uintptr_t qmi;
+   uintptr_t qmi = 0;
 
    bool
       foreign : 1, // true if the thread is a foreign thread

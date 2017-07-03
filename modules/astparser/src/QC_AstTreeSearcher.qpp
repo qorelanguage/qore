@@ -217,7 +217,7 @@ AstTreeSearcher::constructor() {
 
 //! Find symbol references
 /**
-    @param uri document's uri'
+    @param uri document's uri
     @param line line on which the symbol lies
     @param col column at which the symbol lies
     @param includeDecl whether to include a reference at the passed position
