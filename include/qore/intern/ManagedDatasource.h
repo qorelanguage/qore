@@ -4,7 +4,7 @@
 
  Qore Programming Language
 
- Copyright (C) 2003 - 2015 David Nichols
+ Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -131,6 +131,9 @@ public:
    DLLLOCAL ManagedDatasource* copy();
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
+   DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);
 
    DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
 

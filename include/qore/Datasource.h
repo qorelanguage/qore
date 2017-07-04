@@ -580,8 +580,9 @@ public:
    DLLEXPORT QoreHashNode* getConfigHash() const;
 
    //! returns a string representing the configuration of the current object
-   /**
-      @since %Qore 0.8.8
+   /** @note must be connected before calling or a crash could result
+
+       @since %Qore 0.8.8
    */
    DLLEXPORT QoreStringNode* getConfigString() const;
 
