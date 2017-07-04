@@ -1,0 +1,68 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class DatasourceTest
+
+public class DatasourceTest inherits QUnit::Test {
+    public {
+        const MyOpts = Opts + (
+            "connstr": "c,conn=s",
+            );
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("DatasourceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("Datasource string test", \datasourceStringTest());
+        addTestCase("oracle test", \oracleTest());
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    datasourceStringTest() {
+        assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)"); });
+        assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)%localhost:5432"); });
+    }
+
+    oracleTest() {
+        Datasource ds;
+        try {
+            ds = getOracleDatasource();
+        }
+        catch (hash ex) {
+            testSkip("skipping oracle tests: " + ex.err + ": " + ex.desc);
+        }
+
+        hash h = ds.getConfigHash();
+        assertEq(Type::Hash, h.type());
+
+        string str = ds.getConfigString();
+        assertEq(Type::String, str.type());
+
+        ds.open();
+        assertEq(ds.getConfigHash(), h);
+    }
+
+    Datasource getOracleDatasource() {
+        if (!m_options.connstr)
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverName() != "oracle")
+            throw "ORACLE-ERROR", sprintf("cannot execute these tests on a connection using driver %y; expecting \"oracle\"", ds.getDriverName());
+        return ds;
+    }
+
+}
