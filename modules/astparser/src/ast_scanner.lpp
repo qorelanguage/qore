@@ -524,6 +524,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             } while (isRegexSubstModifier(yylval->regexsubst, c));
                                             unput(c);
                                             yylloc->restoreFirst();
+                                            yylval->regexsubst->loc = *yylloc;
                                             BEGIN(INITIAL);
                                             return REGEX_SUBST;
                                         }
@@ -550,7 +551,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 }
 <regex_trans2>{
       -                                 yylval->regextrans->target += '-';
-      \/                                { yylloc->restoreFirst(); BEGIN(INITIAL); return REGEX_TRANS; }
+      \/                                { yylloc->restoreFirst(); yylval->regextrans->loc = *yylloc; BEGIN(INITIAL); return REGEX_TRANS; }
       \n                                yylval->regextrans->target += '\n';
       \\n                               yylval->regextrans->target += '\n';
       \\t                               yylval->regextrans->target += '\t';
@@ -593,6 +594,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             } while (isRegexModifier(yylval->regex, c));
                                             unput(c);
                                             yylloc->restoreFirst();
+                                            yylval->regex->loc = *yylloc;
                                             BEGIN(INITIAL);
                                             return REGEX;
                                         }
@@ -614,6 +616,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             } while (isRegexExtractModifier(yylval->regex, c));
                                             unput(c);
                                             yylloc->restoreFirst();
+                                            yylval->regex->loc = *yylloc;
                                             BEGIN(INITIAL);
                                             return REGEX_EXTRACT;
                                         }
