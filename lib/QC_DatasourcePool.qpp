@@ -841,7 +841,7 @@ hash h = ds.getConfigHash();
     @since %Qore 0.8.8
  */
 hash DatasourcePool::getConfigHash() [flags=CONSTANT] {
-   return ds->getConfigHash();
+   return ds->getConfigHash(xsink);
 }
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -855,7 +855,7 @@ string str = ds.getConfigString();
     @since %Qore 0.8.8
  */
 string DatasourcePool::getConfigString() [flags=CONSTANT] {
-   return ds->getConfigString();
+   return ds->getConfigString(xsink);
 }
 
 //! clears any connection delay warning callback from the object
