@@ -262,10 +262,12 @@
     Bugfix release; see details below
 
     @subsection qore_081211_new_features New Features in Qore
-
     - <a href="https://github.com/qorelanguage/qore/issues/1947">issue 1947</a> added @ref warning-broken-logic-precedence "broken-logic-precedence" warning.
 
     @subsection qore_081211_bug_fixes Bug Fixes in Qore
+    - fixed documentation regarding escaping of characters in strings and added a parse exception in case of trying to escape octal values in range 400-777 (<a href="https://github.com/qorelanguage/qore/issues/50">issue 50</a>)
+    - fixed a crashing bug where @ref Qore::SQL::Datasource::getConfigString() "Datasource::getConfigString()" was called without a connection, also could crash in an implicit internal call to this method with the @ref Qore::SQL::DatasourcePool "DatasourcePool" class when connections were lost and the warning callback should be called (<a href="https://github.com/qorelanguage/qore/issues/1992">issue 1992</a>)
+    - fixed a bug where @ref Qore::SQL::Datasource::getConfigHash() "Datasource::getConfigHash()" returned different values depending on if the object was connected or not (<a href="https://github.com/qorelanguage/qore/issues/1994">issue 1994</a>)
 
     @section qore_081210 Qore 0.8.12.10
 
