@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_list_private.h>
+#include "qore/intern/qore_list_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -124,7 +124,7 @@ bool QoreListNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink
    if (l->size() != size())
       return false;
    for (qore_size_t i = 0; i < l->size(); i++)
-      if (compareSoft(l->retrieve_entry(i), retrieve_entry(i), xsink) || *xsink)
+      if (compareSoft(l->retrieve_entry(i), retrieve_entry(i), xsink) || (xsink && *xsink))
          return false;
    return true;
 }
@@ -137,7 +137,7 @@ bool QoreListNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink
    if (l->size() != size())
       return false;
    for (qore_size_t i = 0; i < l->size(); i++)
-      if (compareHard(l->retrieve_entry(i), retrieve_entry(i), xsink) || *xsink)
+      if (compareHard(l->retrieve_entry(i), retrieve_entry(i), xsink) || (xsink && *xsink))
          return false;
    return true;
 }
@@ -470,9 +470,7 @@ static int compareListEntries(AbstractQoreNode* l, AbstractQoreNode* r) {
       return 1;
 
    ExceptionSink xsink;
-   ValueHolder v(OP_LOG_LT->eval(l, r, true, &xsink), &xsink);
-   //printd(5, "compareListEntries() returning %d\n", (int)v->getAsBool());
-   return (int)v->getAsBool();
+   return QoreLogicalLessThanOperatorNode::doLessThan(l, r, &xsink);
 }
 
 static int compareListEntriesDescending(AbstractQoreNode* l, AbstractQoreNode* r) {
@@ -848,8 +846,7 @@ AbstractQoreNode* QoreListNode::min() const {
       if (!rv)
 	 rv = v;
       else {
-	 ValueHolder vh(OP_LOG_LT->eval(v, rv, true, &xsink), &xsink);
-	 if (vh->getAsBool())
+	 if (QoreLogicalLessThanOperatorNode::doLessThan(v, rv, &xsink))
 	    rv = v;
 	 assert(!xsink);
       }
@@ -869,8 +866,7 @@ AbstractQoreNode* QoreListNode::max() const {
       if (!rv)
 	 rv = v;
       else {
-	 ValueHolder vh(OP_LOG_GT->eval(v, rv, true, &xsink), &xsink);
-	 if (vh->getAsBool())
+	 if (QoreLogicalGreaterThanOperatorNode::doGreaterThan(v, rv, &xsink))
 	    rv = v;
 	 assert(!xsink);
       }

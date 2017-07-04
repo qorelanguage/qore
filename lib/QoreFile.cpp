@@ -30,7 +30,33 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreFile.h>
-#include <qore/intern/qore_qf_private.h>
+#include "qore/intern/qore_qf_private.h"
+#include "qore/intern/qore_encoding_private.h"
+
+int qore_qf_private::readUnicode(int* n_len) const {
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+   char buf[charset->getMaxCharWidth()];
+#else
+   assert(charset->getMaxCharWidth() <= 4);
+   char buf[4];
+#endif
+   if (read(buf, 1) != 1)
+      return -1;
+
+   int len = (int)charset->getCharLen(buf, 1);
+   if (len < 0) {
+      len = -len;
+      for (int i = 1; i < len; ++i) {
+         if (read(&buf[i], 1) != 1)
+            return -1;
+      }
+   }
+
+   if (n_len)
+      *n_len = len;
+
+   return qore_encoding_private::get(*charset)->getUnicode(buf);
+}
 
 QoreFile::QoreFile(const QoreEncoding *cs) : priv(new qore_qf_private(cs)) {
 }
@@ -323,7 +349,6 @@ QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
 
       // read in more characters for multi-byte chars if needed
       qore_offset_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
-      // rc < 0: invalid character
       if (!rc) {
 	 xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
 	 return 0;
@@ -433,29 +458,11 @@ int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink *xsink) {
 }
 
 QoreStringNode *QoreFile::read(qore_offset_t size, ExceptionSink *xsink) {
-   if (!size)
-      return 0;
+   return priv->readString(size, -1, "read", xsink);
+}
 
-   char *buf;
-   {
-      AutoLocker al(priv->m);
-
-      if (priv->check_read_open(xsink))
-	 return 0;
-
-      buf = priv->readBlock(size, -1, "read", xsink);
-   }
-   if (!buf)
-      return 0;
-
-   QoreStringNode* str;
-   if (size) {
-      str = new QoreStringNode(buf, size, size, priv->charset);
-      str->terminate(size);
-   }
-   else
-      str = new QoreStringNode(priv->charset);
-   return str;
+QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
+   return priv->readString(size, timeout_ms, "read", xsink);
 }
 
 int QoreFile::readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink) {
@@ -501,28 +508,6 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, ExceptionSink *xsink) {
    return new BinaryNode(buf, size);
 }
 
-QoreStringNode *QoreFile::read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
-   if (!size)
-      return 0;
-
-   char *buf;
-   {
-      AutoLocker al(priv->m);
-
-      if (priv->check_read_open(xsink))
-	 return 0;
-
-      buf = priv->readBlock(size, timeout_ms, "read", xsink);
-   }
-   if (!buf)
-      return 0;
-
-   QoreStringNode *str = new QoreStringNode(buf, size, size, priv->charset);
-   //str->terminate(buf[size - 1] ? size : size - 1);
-   str->terminate(size);
-   return str;
-}
-
 BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink) {
    if (!size)
       return 0;
@@ -540,6 +525,19 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
       return 0;
 
    return new BinaryNode(buf, size);
+}
+
+qore_size_t QoreFile::read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink) {
+   if (timeout_ms >= 0 && !priv->isDataAvailable(timeout_ms, xsink)) {
+      xsink->raiseException("FILE-READ-TIMEOUT-ERROR", "timeout limit exceeded (%d ms) reading file", timeout_ms);
+      return 0;
+   }
+   qore_offset_t rc = priv->read(ptr, limit);
+   if (rc < 0) {
+      xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file");
+      return 0;
+   }
+   return (qore_size_t)rc;
 }
 
 int QoreFile::writei1(char i, ExceptionSink *xsink) {
@@ -825,4 +823,25 @@ QoreHashNode *QoreFile::statvfs(ExceptionSink *xsink) const {
 
 bool QoreFile::isTty() const {
    return priv->isTty();
+}
+
+File::File(const QoreEncoding *cs) : QoreFile(cs) {
+}
+
+File::~File() {
+}
+
+void File::deref(ExceptionSink *xsink) {
+   if (ROdereference()) {
+      cleanup(xsink);
+      delete this;
+   }
+}
+
+void File::deref() {
+   if (ROdereference()) {
+      ExceptionSink xsink;
+      cleanup(&xsink);
+      delete this;
+   }
 }

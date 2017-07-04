@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,11 +33,11 @@
 #include <qore/Qore.h>
 #include <qore/Restrictions.h>
 #include <qore/QoreCounter.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/LocalVar.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/ConstantList.h>
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/LocalVar.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/ConstantList.h"
 
 #include <string>
 #include <set>
@@ -129,6 +129,8 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
       doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
+      doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
+      doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -161,7 +163,7 @@ unsigned qore_num_warnings = NUM_WARNINGS;
 void qore_program_private_base::setDefines() {
    for (ParseOptionMaps::pomap_t::iterator i = pomaps.pomap.begin(), e = pomaps.pomap.end(); i != e; ++i) {
       if ((pwo.parse_options & i->first) == i->first) {
-	 dmap[i->second] = &True;
+         dmap[i->second] = &True;
       }
    }
 }
@@ -173,7 +175,7 @@ void qore_program_private_base::startThread(ExceptionSink& xsink) {
 
 void qore_program_private::doThreadInit(ExceptionSink* xsink) {
    // create/destroy temporary ExceptionSink object if necessary
-   std::auto_ptr<ExceptionSink> xs;
+   std::unique_ptr<ExceptionSink> xs;
    if (!xsink) {
       xs.reset(new ExceptionSink);
       xsink = xs.get();
@@ -257,7 +259,7 @@ void qore_program_private_base::newProgram() {
       assert(v);
       // skip boolean options defined as False
       if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode*>(v)->getValue())
-	 continue;
+         continue;
 
       dmap[cli.getName()] = v->refSelf();
    }
@@ -309,6 +311,14 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
    // copy program defines to child program
    for (dmap_t::const_iterator i = p_pgm->priv->dmap.begin(), e = p_pgm->priv->dmap.end(); i != e; ++i)
       dmap[i->first] = i->second ? i->second->refSelf() : 0;
+
+   // copy external data if present
+   {
+      AutoLocker al(p_pgm->priv->plock);
+      for (auto& i : p_pgm->priv->extmap) {
+         extmap.insert(extmap_t::value_type(i.first, i.second->copy(pgm)));
+      }
+   }
 }
 
 void qore_program_private::internParseRollback() {
@@ -334,9 +344,9 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
          if (!ptid) {
             l = new QoreListNode;
             qore_root_ns_private::clearConstants(*RootNS, **l);
-	    // mark the program so that only code from this thread can run during data destruction
-	    ptid = gettid();
-	    clr = true;
+            // mark the program so that only code from this thread can run during data destruction
+            ptid = gettid();
+            clr = true;
          }
       }
    }
@@ -351,15 +361,15 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       // clear thread init code reference if any
       {
-	 ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+         ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
 
-	 {
-	    AutoLocker al(tlock);
+         {
+            AutoLocker al(tlock);
 
-	    // clear thread init code reference
-	    old = thr_init;
-	    thr_init = 0;
-	 }
+            // clear thread init code reference
+            old = thr_init;
+            thr_init = 0;
+         }
       }
 
       // clear thread data if base object
@@ -375,12 +385,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
       // now clear the original map
       {
-	 AutoLocker al(tlock);
-	 pgm_data_map.clear();
-	 tclear = 0;
+         AutoLocker al(tlock);
+         pgm_data_map.clear();
+         tclear = 0;
 
-	 if (twaiting)
-	    tcond.broadcast();
+         if (twaiting)
+            tcond.broadcast();
       }
 #ifdef HAVE_SIGNAL_HANDLING
       {
@@ -538,7 +548,7 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    if (!*xsink) {
       runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
       if (!*xsink)
-	 runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+         runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
    }
 }
 
@@ -559,7 +569,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       // acquire safe access to parse structures in the source program
       ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
       if (*xsink)
-	 return;
+         return;
       c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
    }
 
@@ -618,7 +628,7 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
    {
       ProgramRuntimeParseAccessHelper pah(xsink, pgm);
       if (*xsink)
-	 return;
+         return;
       v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
    }
 
@@ -639,7 +649,13 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
-   printd(5, "QoreProgram::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+   printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+
+   // dereference all external data
+   for (auto& i : extmap) {
+      i.second->doDeref();
+   }
+   extmap.clear();
 
    if (thr_init)
       thr_init->deref(xsink);
@@ -683,6 +699,36 @@ QoreClass* qore_program_private::runtimeFindClass(const char* class_name, Except
    return qore_root_ns_private::runtimeFindClass(*RootNS, class_name);
 }
 
+int qore_program_private::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
+   ValueHolder holder(val, xsink);
+
+   const qore_ns_private* vns = 0;
+   Var* v;
+   {
+      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+      if (*xsink)
+         return -1;
+      v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, name, vns);
+   }
+
+   if (!v) {
+      xsink->raiseException("UNKNOWN-VARIABLE", "there is no global variable \"%s\"", name);
+      return -1;
+   }
+
+   LValueHelper lvh(xsink);
+   if (v->getLValue(lvh, false))
+      return -1;
+
+   return lvh.assign(holder.release(), "<API assignment>");
+}
+
+LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeInfo* typeInfo) {
+   LocalVar* lv = new LocalVar(name, typeInfo);
+   local_var_list.push_back(lv);
+   return lv;
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;
@@ -710,12 +756,6 @@ void QoreProgram::deref(ExceptionSink* xsink) {
    printd(QPP_DBG_LVL, "QoreProgram::deref() this: %p priv: %p %d->%d\n", this, priv, reference_count(), reference_count() - 1);
    if (ROdereference())
       priv->clear(xsink);
-}
-
-LocalVar* QoreProgram::createLocalVar(const char* name, const QoreTypeInfo* typeInfo) {
-   LocalVar* lv = new LocalVar(name, typeInfo);
-   priv->local_var_list.push_back(lv);
-   return lv;
 }
 
 ExceptionSink* QoreProgram::getParseExceptionSink() {
@@ -827,15 +867,15 @@ bool QoreProgram::existsFunction(const char* name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   priv->setParseOptions((int64)po);
+   priv->parseSetParseOptions(QoreProgramLocation(), (int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   priv->setParseOptions(po);
+   priv->parseSetParseOptions(QoreProgramLocation(), po);
 }
 
 void QoreProgram::parseDisableParseOptions(int64 po) {
-   priv->disableParseOptions(po);
+   priv->parseDisableParseOptions(QoreProgramLocation(), po);
 }
 
 // DEPRECATED
@@ -958,7 +998,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    {
       ProgramRuntimeParseAccessHelper pah(xsink, this);
       if (*xsink)
-	 return 0;
+         return 0;
       qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
    }
 
@@ -968,7 +1008,7 @@ AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode
    }
 
    // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(qf, const_cast<QoreListNode*>(args), this);
+   fc = new FunctionCallNode(get_runtime_location(), qf, const_cast<QoreListNode*>(args), this);
    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
 
    // let caller delete function arguments if necessary
@@ -1046,21 +1086,21 @@ void QoreProgram::parseFileAndRun(const char* filename) {
    if (!xsink.isEvent()) {
       // get class name
       if (priv->exec_class) {
-	 if (!priv->exec_class_name.empty())
-	    runClass(priv->exec_class_name.c_str(), &xsink);
-	 else {
-	    char* c, *bn = q_basenameptr(filename);
-	    if (!(c = strrchr(bn, '.')))
-	       runClass(filename, &xsink);
-	    else {
-	       QoreString qcn; // for possible class name
-	       qcn.concat(bn, c - bn);
-	       runClass(qcn.getBuffer(), &xsink);
-	    }
-	 }
+         if (!priv->exec_class_name.empty())
+            runClass(priv->exec_class_name.c_str(), &xsink);
+         else {
+            char* c, *bn = q_basenameptr(filename);
+            if (!(c = strrchr(bn, '.')))
+               runClass(filename, &xsink);
+            else {
+               QoreString qcn; // for possible class name
+               qcn.concat(bn, c - bn);
+               runClass(qcn.getBuffer(), &xsink);
+            }
+         }
       }
       else
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1073,7 +1113,7 @@ void QoreProgram::parseAndRun(FILE* fp, const char* name) {
       parse(fp, name, &xsink);
 
       if (!xsink.isEvent())
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1086,7 +1126,7 @@ void QoreProgram::parseAndRun(const char* str, const char* name) {
       parse(str, name, &xsink);
 
       if (!xsink.isEvent())
-	 run(&xsink);
+         run(&xsink);
    }
 }
 
@@ -1174,7 +1214,7 @@ void QoreProgram::parseSetTimeZone(const char* zone) {
    return priv->parseSetTimeZone(zone);
 }
 
-AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, bool& ok) {
+AbstractQoreNode* qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok) {
    ok = true;
    char c = arg[0];
    // see if a string is being defined
@@ -1182,9 +1222,9 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
       // make sure the string is terminated in the same way
       char e = arg[arg.strlen() - 1];
       if (c != e || arg.strlen() == 1) {
-	 parse_error("'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
-	 ok = false;
-	 return 0;
+         parse_error(loc, "'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
+         ok = false;
+         return 0;
       }
 
       // string is OK, remove quotes
@@ -1205,24 +1245,24 @@ AbstractQoreNode* qore_parse_get_define_value(const char* str, QoreString& arg, 
    bool flt = false;
    while (*p) {
       if (*p == '.') {
-	 if (flt) {
-	    parse_error("'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
-	    ok = false;
-	    return 0;
-	 }
-	 flt = true;
+         if (flt) {
+            parse_error(loc, "'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
+            ok = false;
+            return 0;
+         }
+         flt = true;
       }
       else if (isalpha(*p)) {
-	 parse_error("'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
-	 ok = false;
-	 return 0;
+         parse_error(loc, "'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
+         ok = false;
+         return 0;
       }
       ++p;
    }
 
    p = arg.getBuffer();
    if (flt)
-      return new QoreFloatNode(atof(p));
+      return new QoreFloatNode(q_strtod(p));
    return new QoreBigIntNode(strtoll(p, 0, 10));
 }
 
@@ -1252,7 +1292,7 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
       arg.trim();
 
       bool ok;
-      AbstractQoreNode* v = qore_parse_get_define_value(str, arg, ok);
+      AbstractQoreNode* v = qore_parse_get_define_value(qoreCommandLineLocation, str, arg, ok);
       if (!ok)
          break;
       priv->parseDefine(qoreCommandLineLocation, str, v);
@@ -1265,6 +1305,25 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
 QoreProgram* QoreProgram::programRefSelf() const {
    const_cast<QoreProgram*>(this)->ref();
    return const_cast<QoreProgram*>(this);
+}
+
+void QoreProgram::setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+   priv->setExternalData(owner, pud);
+}
+
+AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner) const {
+   return priv->getExternalData(owner);
+}
+
+QoreHashNode* QoreProgram::getGlobalVars() const {
+   return priv->getGlobalVars();
+}
+
+int QoreProgram::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
+   return priv->setGlobalVarValue(name, val, xsink);
+}
+
+AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
 }
 
 int get_warning_code(const char* str) {
