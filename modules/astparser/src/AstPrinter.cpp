@@ -27,8 +27,31 @@
 
 #include "AstPrinter.h"
 
+#include <sstream>
+#include <string>
+
 #include "AstTreePrinter.h"
 #include "ast/AST.h"
+
+static std::string escapeString(const std::string& str) {
+    std::ostringstream newstr;
+    for (size_t i = 0, count = str.size(); i < count; i++) {
+        char c = str[i];
+        if (c == '\b')
+            newstr << "\\b";
+        else if (c == '\f')
+            newstr << "\\f";
+        else if (c == '\n')
+            newstr << "\\n";
+        else if (c == '\r')
+            newstr << "\\r";
+        else if (c == '\t')
+            newstr << "\\t";
+        else
+            newstr << c;
+    }
+    return newstr.str();
+}
 
 void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpression* ae) {
     if (!ae)
@@ -91,9 +114,11 @@ void AstPrinter::printLiteralExpression(std::ostream& os, ASTLiteralExpression* 
         case ALEK_Number:
             os << le->value.str;
             break;
-        case ALEK_String:
-            os << "\"" << le->value.stdstr << "\"";
+        case ALEK_String: {
+            std::string str(std::move(escapeString(*le->value.stdstr)));
+            os << "\"" << str << "\"";
             break;
+        }
         default:
             break;
     }
