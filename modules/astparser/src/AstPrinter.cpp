@@ -56,6 +56,8 @@ static std::string escapeString(const std::string& str) {
 void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpression* ae) {
     if (!ae)
         return;
+    if (!ae->left || !ae->right)
+        return;
     if (ae->left->getKind() == ASTExpression::Kind::AEK_Decl) {
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
@@ -63,6 +65,10 @@ void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpres
     if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
         printLiteralExpression(os, le);
+    }
+    else if (ae->right->getKind() == ASTExpression::Kind::AEK_Name) {
+        ASTNameExpression* ne = static_cast<ASTNameExpression*>(ae->right.get());
+        os << ne->name.name;
     }
     // TODO
 }
@@ -86,6 +92,8 @@ void AstPrinter::printListExpression(std::ostream& os, ASTListExpression* le) {
         if (i > 0)
             os << ", ";
         ASTExpression* expr = le->elements[i];
+        if (!expr)
+            continue;
         if (expr->getKind() == ASTExpression::Kind::AEK_Decl)
             printDeclExpression(os, static_cast<ASTDeclExpression*>(expr));
         else if (expr->getKind() == ASTExpression::Kind::AEK_List)
@@ -136,7 +144,7 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "const " << d->name.name;
-    if (d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
+    if (d->value && d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
         os << " = ";
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(d->value.get());
         printLiteralExpression(os, le);
