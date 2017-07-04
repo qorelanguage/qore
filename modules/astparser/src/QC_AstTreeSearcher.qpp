@@ -134,46 +134,6 @@ AstTreeSearcher::constructor() {
     return result.release();
 }
 
-//! Hover info.
-/**
-    @param line on what line lies the symbol we want to get info about
-    @param col on what column lies the symbol we want to get info about
-    @return hash with hover info
- */
-*hash AstTreeSearcher::hover(astparser::AstTree[AstTreeHolder] tree, int line, int col) {
-    ASTSymbolInfo si = std::move(AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1));
-
-    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
-    ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
-    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
-    ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
-    ReferenceHolder<QoreListNode> contents(new QoreListNode, xsink);
-    if (xsink && *xsink)
-        return nullptr;
-    if (!start || !end || !range || !result || !contents)
-        return nullptr;
-
-    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
-    if (xsink && *xsink)
-        return nullptr;
-    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
-    if (xsink && *xsink)
-        return nullptr;
-    range->setKeyValue("start", start.release(), xsink);
-    range->setKeyValue("end", end.release(), xsink);
-    if (xsink && *xsink)
-        return nullptr;
-
-    result->setKeyValue("contents", new QoreStringNode(si.name), xsink);
-    result->setKeyValue("range", range.release(), xsink);
-    if (xsink && *xsink)
-        return nullptr;
-
-    return result.release();
-}
-
 //! Find symbol info.
 /**
     @param line on what line lies the symbol we want to get info about
@@ -182,6 +142,12 @@ AstTreeSearcher::constructor() {
  */
 *hash AstTreeSearcher::findSymbolInfo(astparser::AstTree[AstTreeHolder] tree, int line, int col) {
     ASTSymbolInfo si = std::move(AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1));
+    if ((si.kind == 0 && si.usage == 0) ||
+        (si.loc.firstLine == 0 &&
+         si.loc.firstCol == 0 &&
+         si.loc.lastLine == 0 &&
+         si.loc.lastCol == 0))
+        return nullptr;
 
     ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);

@@ -51,8 +51,10 @@ AstParser::constructor() {
     @param filename file's name including path
     @return parsed AST tree
  */
-AstTree AstParser::parseFile(string filename) {
+*AstTree AstParser::parseFile(string filename) {
     ASTTree* tree = aph->parseFile(filename->getBuffer());
+    if (!tree)
+        return nullptr;
     return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
 }
 
@@ -61,8 +63,10 @@ AstTree AstParser::parseFile(string filename) {
     @param str string with code
     @return parsed AST tree
  */
-AstTree AstParser::parseString(string str) {
+*AstTree AstParser::parseString(string str) {
     ASTTree* tree = aph->parseString(str->getBuffer());
+    if (!tree)
+        return nullptr;
     return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
 }
 
