@@ -40,6 +40,9 @@
 static BigIntTypeInfo staticBigIntTypeInfo;
 const QoreTypeInfo* bigIntTypeInfo = &staticBigIntTypeInfo;
 
+static QoreStringTypeInfo XXX_staticStringTypeInfo;
+static QoreStringOrNothingTypeInfo XXX_staticStringOrNothingTypeInfo;
+
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
    staticStringTypeInfo(NT_STRING),
@@ -635,12 +638,45 @@ void QoreTypeInfo::doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramL
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-bool QoreClassTypeInfo::isClassImpl(const QoreClass* qc) const {
-   return qore_class_private::get(*this->qc)->equal(*qore_class_private::get(*qc));
+void AbstractQoreTypeInfo::doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
+   getThisTypeImpl(*desc);
+   desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-qore_type_result_e QoreClassTypeInfo::parseReturnsClassImpl(const QoreClass* qc) const {
-   return qore_class_private::get(*this->qc)->equal(*qore_class_private::get(*qc)) ? QTI_IDENT : QTI_NOT_EQUAL;
+void AbstractQoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
+   getThisTypeImpl(*desc);
+   desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+}
+
+void AbstractQoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
+   getThisTypeImpl(*desc);
+   desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
+   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+}
+
+bool QoreClassTypeInfo::isTypeImpl(QoreTypeSpec t) const {
+   switch (t.getTypeSpec()) {
+      case QTS_TYPE:
+         return t.getType() == NT_OBJECT;
+      case QTS_CLASS:
+         return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass()));
+   }
+   return false;
+}
+
+qore_type_result_e QoreClassTypeInfo::parseReturnsTypeImpl(QoreTypeSpec t) const {
+   switch (t.getTypeSpec()) {
+      case QTS_TYPE:
+         return t.getType() == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
+      case QTS_CLASS:
+        return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass())) ? QTI_IDENT : QTI_NOT_EQUAL;
+   }
+   return QTI_NOT_EQUAL;
 }
 
 // used when parsing user code to find duplicate signatures after types are resolved
@@ -679,6 +715,106 @@ void QoreClassTypeInfo::acceptInputInternImpl(bool obj, int param_num, const cha
       return;
 
    doAcceptError(true, obj, param_num, param_name, n, xsink);
+}
+
+qore_type_result_e QoreClassOrNothingTypeInfo::parseReturnsTypeImpl(QoreTypeSpec t) const {
+   switch (t.getTypeSpec()) {
+      case QTS_TYPE: {
+         qore_type_t tp = t.getType();
+         return tp == NT_OBJECT || tp == NT_NOTHING ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+      }
+      case QTS_CLASS:
+        return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass())) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   }
+   return QTI_NOT_EQUAL;
+}
+
+qore_type_result_e QoreClassOrNothingTypeInfo::runtimeAcceptsValueImpl(const QoreValue n) const {
+   switch (n.getType()) {
+      case NT_NOTHING:
+      case NT_NULL:
+         return QTI_AMBIGUOUS;
+      case NT_OBJECT: {
+         qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*qc, *n.get<const QoreObject>()->getClass());
+         return rv == QTI_IDENT ? QTI_AMBIGUOUS : rv;
+      }
+   }
+   return QTI_NOT_EQUAL;
+}
+
+void QoreClassOrNothingTypeInfo::acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+   switch (n.getType()) {
+      case NT_NULL:
+         // NOTE: we can ignore the return value here since a NULL does not require a dereference
+         n.assignNothing();
+         // fall through to the next case
+      case NT_NOTHING:
+         return;
+      case NT_OBJECT:
+         return QoreClassTypeInfo::acceptInputInternImpl(obj, param_num, param_name, n, xsink);
+   }
+   doAcceptError(false, obj, param_num, param_name, n, xsink);
+}
+
+// used when parsing user code to find duplicate signatures after types are resolved
+bool QoreClassOrNothingTypeInfo::isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
+   if (typeInfo->acceptsSingleImpl())
+      return false;
+
+   q_typespec_vec_t vec;
+   typeInfo->getAcceptTypeListImpl(vec);
+   if (vec.size() != 3)
+      return false;
+
+   for (auto& i : vec) {
+      switch (i.getTypeSpec()) {
+         case QTS_TYPE: {
+            qore_type_t t = i.getType();
+            if (t != NT_NOTHING && t != NT_NULL)
+               return false;
+            break;
+         }
+         case QTS_CLASS: {
+            if (!qore_class_private::get(*qc)->equal(*qore_class_private::get(*i.getClass())))
+               return false;
+            break;
+         }
+         default:
+            return false;
+      }
+   }
+
+   return true;
+}
+
+bool QoreClassOrNothingTypeInfo::isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
+   if (typeInfo->returnsSingleImpl())
+      return false;
+
+   q_typespec_vec_t vec;
+   typeInfo->getReturnTypeListImpl(vec);
+   if (vec.size() != 2)
+      return false;
+
+   for (auto& i : vec) {
+      switch (i.getTypeSpec()) {
+         case QTS_TYPE: {
+            qore_type_t t = i.getType();
+            if (t != NT_NOTHING)
+               return false;
+            break;
+         }
+         case QTS_CLASS: {
+            if (!qore_class_private::get(*qc)->equal(*qore_class_private::get(*i.getClass())))
+               return false;
+            break;
+         }
+         default:
+            return false;
+      }
+   }
+
+   return true;
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
