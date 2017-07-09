@@ -608,7 +608,7 @@ else()
       int main(void){
       iconv_t cd;
       cd = iconv_open(\"ISO8859-1//TRANSLIT\",\"ISO8859-1\");
-      if(cd == -1)
+      if(cd == (iconv_t)-1)
         return 1;
       iconv_close(cd);
       return 0; }
