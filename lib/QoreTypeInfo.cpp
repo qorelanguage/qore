@@ -36,12 +36,89 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
 
-// provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
-static BigIntTypeInfo staticBigIntTypeInfo;
-const QoreTypeInfo* bigIntTypeInfo = &staticBigIntTypeInfo;
+static XXX_QoreBigIntTypeInfo XXX_staticBigIntTypeInfo;
+static QoreBigIntOrNothingTypeInfo XXX_staticBigIntOrNothingTypeInfo;
 
 static QoreStringTypeInfo XXX_staticStringTypeInfo;
 static QoreStringOrNothingTypeInfo XXX_staticStringOrNothingTypeInfo;
+
+static QoreBoolTypeInfo XXX_staticBoolTypeInfo;
+static QoreBoolOrNothingTypeInfo XXX_staticBoolOrNothingTypeInfo;
+
+static QoreBinaryTypeInfo XXX_staticBinaryTypeInfo;
+static QoreBinaryOrNothingTypeInfo XXX_staticBinaryOrNothingTypeInfo;
+
+static QoreObjectTypeInfo XXX_staticObjectTypeInfo;
+static QoreObjectOrNothingTypeInfo XXX_staticObjectOrNothingTypeInfo;
+
+static QoreDateTypeInfo XXX_staticDateTypeInfo;
+static QoreDateOrNothingTypeInfo XXX_staticDateOrNothingTypeInfo;
+
+static QoreHashTypeInfo XXX_staticHashTypeInfo;
+static QoreHashOrNothingTypeInfo XXX_staticHashOrNothingTypeInfo;
+
+static QoreListTypeInfo XXX_staticListTypeInfo;
+static QoreListOrNothingTypeInfo XXX_staticListOrNothingTypeInfo;
+
+static QoreNothingTypeInfo XXX_staticNothingTypeInfo;
+
+static QoreNullTypeInfo XXX_staticNullTypeInfo;
+static QoreNullOrNothingTypeInfo XXX_staticNullOrNothingTypeInfo;
+
+static QoreClosureTypeInfo XXX_staticClosureTypeInfo;
+static QoreClosureOrNothingTypeInfo XXX_staticClosureOrNothingTypeInfo;
+
+static QoreCallReferenceTypeInfo XXX_staticCallReferenceTypeInfo;
+static QoreCallReferenceOrNothingTypeInfo XXX_staticCallReferenceOrNothingTypeInfo;
+
+static QoreReferenceTypeInfo XXX_staticReferenceTypeInfo;
+static QoreReferenceOrNothingTypeInfo XXX_staticReferenceOrNothingTypeInfo;
+
+static QoreNumberTypeInfo XXX_staticNumberTypeInfo;
+static QoreNumberOrNothingTypeInfo XXX_staticNumberOrNothingTypeInfo;
+
+static QoreFloatTypeInfo XXX_staticFloatTypeInfo;
+static QoreFloatOrNothingTypeInfo XXX_staticFloatOrNothingTypeInfo;
+
+static QoreCodeTypeInfo XXX_staticCodeTypeInfo;
+static QoreCodeOrNothingTypeInfo XXX_staticCodeOrNothingTypeInfo;
+
+static QoreDataTypeInfo XXX_staticDataTypeInfo;
+static QoreDataOrNothingTypeInfo XXX_staticDataOrNothingTypeInfo;
+
+static QoreSoftBigIntTypeInfo XXX_staticSoftBigIntTypeInfo;
+static QoreSoftBigIntOrNothingTypeInfo XXX_staticSoftBigIntOrNothingTypeInfo;
+
+static QoreSoftFloatTypeInfo XXX_staticSoftFloatTypeInfo;
+static QoreSoftFloatOrNothingTypeInfo XXX_staticSoftFloatOrNothingTypeInfo;
+
+static QoreSoftNumberTypeInfo XXX_staticSoftNumberTypeInfo;
+static QoreSoftNumberOrNothingTypeInfo XXX_staticSoftNumberOrNothingTypeInfo;
+
+static QoreSoftBoolTypeInfo XXX_staticSoftBoolTypeInfo;
+static QoreSoftBoolOrNothingTypeInfo XXX_staticSoftBoolOrNothingTypeInfo;
+
+static QoreSoftStringTypeInfo XXX_staticSoftStringTypeInfo;
+static QoreSoftStringOrNothingTypeInfo XXX_staticSoftStringOrNothingTypeInfo;
+
+static QoreSoftDateTypeInfo XXX_staticSoftDateTypeInfo;
+static QoreSoftDateOrNothingTypeInfo XXX_staticSoftDateOrNothingTypeInfo;
+
+static QoreSoftListTypeInfo XXX_staticSoftListTypeInfo;
+static QoreSoftListOrNothingTypeInfo XXX_staticSoftListOrNothingTypeInfo;
+
+static QoreIntOrFloatTypeInfo XXX_staticIntOrFloatTypeInfo;
+//const QoreTypeInfo* bigIntOrFloatTypeInfo = &staticIntOrFloatTypeInfo;
+
+static QoreIntFloatOrNumberTypeInfo XXX_staticIntFloatOrNumberTypeInfo;
+//const QoreTypeInfo* bigIntFloatOrNumberTypeInfo = &staticIntFloatOrNumberTypeInfo;
+
+static QoreFloatOrNumberTypeInfo XXX_staticFloatOrNumberTypeInfo;
+//const QoreTypeInfo* floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo;
+
+// provides for 2-way compatibility with classes derived from QoreBigIntNode and softint
+static BigIntTypeInfo staticBigIntTypeInfo;
+const QoreTypeInfo* bigIntTypeInfo = &staticBigIntTypeInfo;
 
 // static reference types
 static QoreTypeInfo staticAnyTypeInfo,
@@ -466,7 +543,7 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo* typeInfo) const {
 
    // from this point on, we know that both have types and are not NULL
    if ((accepts_mult && !typeInfo->accepts_mult)
-       || (!accepts_mult && typeInfo->accepts_mult))
+        || (!accepts_mult && typeInfo->accepts_mult))
       return false;
 
    // from here on, we know either both accept single types or both accept multiple types
@@ -478,24 +555,21 @@ bool QoreTypeInfo::isInputIdentical(const QoreTypeInfo* typeInfo) const {
 
    if (my_at.size() != their_at.size())
       return false;
-
    // check all types to see if there is an identical type
    for (type_vec_t::const_iterator i = my_at.begin(), e = my_at.end(); i != e; ++i) {
       bool ident = false;
       for (type_vec_t::const_iterator j = their_at.begin(), je = their_at.end(); j != je; ++j) {
          //printd(5, "QoreTypeInfo::isInputIdentical() this=%p i=%p %s j=%p %s\n", this, *i, (*i)->getName(), *j, (*j)->getName());
-
          // if the second type is the original type, skip it
          if (*j == this)
             continue;
-
          if ((*i) == (*j) || (*i)->isInputIdentical(*j)) {
             ident = true;
             break;
-         }
-      }
-      if (!ident)
-         return false;
+          }
+       }
+       if (!ident)
+          return false;
    }
 
    return true;
@@ -638,6 +712,96 @@ void QoreTypeInfo::doNonStringWarning(const QoreTypeInfo* ti, const QoreProgramL
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
+qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
+   switch (typespec) {
+      case QTS_CLASS: {
+         switch (t.typespec) {
+            case QTS_CLASS:
+               return qore_class_private::get(*u.qc)->equal(*qore_class_private::get(*t.u.qc)) ? QTI_IDENT : QTI_NOT_EQUAL;
+            case QTS_TYPE:
+               return t.u.t == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+         }
+         return QTI_NOT_EQUAL;
+      }
+      case QTS_TYPE: {
+         switch (t.typespec) {
+            case QTS_CLASS:
+               return u.t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
+            case QTS_TYPE:
+               return u.t == t.u.t ? QTI_IDENT : QTI_NOT_EQUAL;
+         }
+         return QTI_NOT_EQUAL;
+      }
+   }
+   return QTI_NOT_EQUAL;
+}
+
+bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const {
+   assert(!priv_error);
+   switch (typespec) {
+      case QTS_CLASS: {
+         if (n.getType() == NT_OBJECT) {
+            bool priv;
+            if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
+               return false;
+            if (!priv)
+               return true;
+            // check access
+            if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc))
+               return true;
+            priv_error = true;
+            return false;
+         }
+         return false;
+      }
+      case QTS_TYPE:
+         return n.getType() == n.getType();
+   }
+   return false;
+}
+
+bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
+   if (typespec != other.typespec)
+      return false;
+   switch (typespec) {
+      case QTS_TYPE:
+         return u.t == other.u.t;
+      case QTS_CLASS:
+         return qore_class_private::get(*u.qc)->equal(*qore_class_private::get(*other.u.qc));
+   }
+   return false;
+}
+
+bool QoreTypeSpec::operator!=(const QoreTypeSpec& other) const {
+   return (!(*this == other));
+}
+
+qore_type_result_e AbstractQoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
+   if (accept_vec.size() == 1) {
+      const QoreTypeSpec& t = accept_vec[0].spec;
+      if (n.getType() == NT_OBJECT && t.getTypeSpec() == QTS_CLASS)
+         return qore_class_private::runtimeCheckCompatibleClass(*t.getClass(), *n.get<const QoreObject>()->getClass());
+      return n.getType() == t.getType() ? QTI_IDENT : QTI_NOT_EQUAL;
+   }
+
+   for (auto& t : accept_vec) {
+      switch (n.getType()) {
+         case NT_OBJECT:
+            if (t.spec.getTypeSpec() == QTS_CLASS) {
+               qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*t.spec.getClass(), *n.get<const QoreObject>()->getClass());
+               if (rv != QTI_NOT_EQUAL)
+                  return QTI_AMBIGUOUS;
+            }
+         // fall down to default
+         default:
+            if (n.getType() == t.spec.getType())
+               return QTI_AMBIGUOUS;
+            break;
+      }
+   }
+   return QTI_NOT_EQUAL;
+}
+
 void AbstractQoreTypeInfo::doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
@@ -659,161 +823,13 @@ void AbstractQoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, co
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-bool QoreClassTypeInfo::isTypeImpl(QoreTypeSpec t) const {
-   switch (t.getTypeSpec()) {
-      case QTS_TYPE:
-         return t.getType() == NT_OBJECT;
-      case QTS_CLASS:
-         return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass()));
-   }
-   return false;
-}
-
-qore_type_result_e QoreClassTypeInfo::parseReturnsTypeImpl(QoreTypeSpec t) const {
-   switch (t.getTypeSpec()) {
-      case QTS_TYPE:
-         return t.getType() == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
-      case QTS_CLASS:
-        return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass())) ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
-   return QTI_NOT_EQUAL;
-}
-
-// used when parsing user code to find duplicate signatures after types are resolved
-bool QoreClassTypeInfo::isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-   // if a type can only return our class, then it must be the same type
-   const QoreClass* cls = typeInfo->getUniqueReturnClassImpl();
-   if (!cls)
+bool typespec_compare(const q_type_map_vec_t& a, const q_type_map_vec_t& b) {
+   if (a.size() != b.size())
       return false;
-   return qore_class_private::get(*qc)->equal(*qore_class_private::get(*cls));
-}
-
-bool QoreClassTypeInfo::isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-   const QoreClass* cls = typeInfo->getUniqueReturnClassImpl();
-   if (!cls)
-      return false;
-   return qore_class_private::get(*qc)->equal(*qore_class_private::get(*cls));
-}
-
-qore_type_result_e QoreClassTypeInfo::runtimeAcceptsValueImpl(const QoreValue n) const {
-   if (n.getType() != NT_OBJECT)
-      return QTI_NOT_EQUAL;
-
-   return qore_class_private::runtimeCheckCompatibleClass(*qc, *n.get<const QoreObject>()->getClass());
-}
-
-void QoreClassTypeInfo::acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
-   bool priv;
-   if (n.getType() != NT_OBJECT || !reinterpret_cast<const QoreObject*>(n.getInternalNode())->getClass()->getClass(*qc, priv)) {
-      doAcceptError(false, obj, param_num, param_name, n, xsink);
-      return;
+   for (unsigned i = 0; i < a.size(); ++i) {
+      if (a[i].spec != b[i].spec)
+         return false;
    }
-   if (!priv)
-      return;
-
-   if (qore_class_private::runtimeCheckPrivateClassAccess(*qc))
-      return;
-
-   doAcceptError(true, obj, param_num, param_name, n, xsink);
-}
-
-qore_type_result_e QoreClassOrNothingTypeInfo::parseReturnsTypeImpl(QoreTypeSpec t) const {
-   switch (t.getTypeSpec()) {
-      case QTS_TYPE: {
-         qore_type_t tp = t.getType();
-         return tp == NT_OBJECT || tp == NT_NOTHING ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-      }
-      case QTS_CLASS:
-        return qore_class_private::get(*qc)->equal(*qore_class_private::get(*t.getClass())) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-   return QTI_NOT_EQUAL;
-}
-
-qore_type_result_e QoreClassOrNothingTypeInfo::runtimeAcceptsValueImpl(const QoreValue n) const {
-   switch (n.getType()) {
-      case NT_NOTHING:
-      case NT_NULL:
-         return QTI_AMBIGUOUS;
-      case NT_OBJECT: {
-         qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*qc, *n.get<const QoreObject>()->getClass());
-         return rv == QTI_IDENT ? QTI_AMBIGUOUS : rv;
-      }
-   }
-   return QTI_NOT_EQUAL;
-}
-
-void QoreClassOrNothingTypeInfo::acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
-   switch (n.getType()) {
-      case NT_NULL:
-         // NOTE: we can ignore the return value here since a NULL does not require a dereference
-         n.assignNothing();
-         // fall through to the next case
-      case NT_NOTHING:
-         return;
-      case NT_OBJECT:
-         return QoreClassTypeInfo::acceptInputInternImpl(obj, param_num, param_name, n, xsink);
-   }
-   doAcceptError(false, obj, param_num, param_name, n, xsink);
-}
-
-// used when parsing user code to find duplicate signatures after types are resolved
-bool QoreClassOrNothingTypeInfo::isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-   if (typeInfo->acceptsSingleImpl())
-      return false;
-
-   q_typespec_vec_t vec;
-   typeInfo->getAcceptTypeListImpl(vec);
-   if (vec.size() != 3)
-      return false;
-
-   for (auto& i : vec) {
-      switch (i.getTypeSpec()) {
-         case QTS_TYPE: {
-            qore_type_t t = i.getType();
-            if (t != NT_NOTHING && t != NT_NULL)
-               return false;
-            break;
-         }
-         case QTS_CLASS: {
-            if (!qore_class_private::get(*qc)->equal(*qore_class_private::get(*i.getClass())))
-               return false;
-            break;
-         }
-         default:
-            return false;
-      }
-   }
-
-   return true;
-}
-
-bool QoreClassOrNothingTypeInfo::isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-   if (typeInfo->returnsSingleImpl())
-      return false;
-
-   q_typespec_vec_t vec;
-   typeInfo->getReturnTypeListImpl(vec);
-   if (vec.size() != 2)
-      return false;
-
-   for (auto& i : vec) {
-      switch (i.getTypeSpec()) {
-         case QTS_TYPE: {
-            qore_type_t t = i.getType();
-            if (t != NT_NOTHING)
-               return false;
-            break;
-         }
-         case QTS_CLASS: {
-            if (!qore_class_private::get(*qc)->equal(*qore_class_private::get(*i.getClass())))
-               return false;
-            break;
-         }
-         default:
-            return false;
-      }
-   }
-
    return true;
 }
 

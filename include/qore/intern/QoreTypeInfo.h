@@ -35,6 +35,8 @@
 
 #include <map>
 #include <vector>
+#include <utility>
+#include <functional>
 
 #define NO_TYPE_INFO "any"
 
@@ -73,6 +75,16 @@ public:
       return typespec == QTS_CLASS ? u.qc : nullptr;
    }
 
+   // this is the "expecting" type, t is the type to match
+   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+   // ex: this = NT_OBJECT, t = class, result = IDENT
+   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const;
+
+   DLLLOCAL bool runtimeTestMatch(const QoreValue& n, bool& priv_error) const;
+
+   DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
+   DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
+
 private:
    union {
       qore_type_t t;
@@ -83,40 +95,64 @@ private:
 
 typedef std::vector<QoreTypeSpec> q_typespec_vec_t;
 
+typedef std::function<void (QoreValue&, ExceptionSink*)> q_type_map_t;
+
+static q_type_map_t null_to_nothing = [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); };
+
+struct QoreAcceptSpec {
+   const QoreTypeSpec spec;
+   const q_type_map_t map;
+   bool exact = false;
+
+   DLLLOCAL QoreAcceptSpec(const QoreTypeSpec&& spec, const q_type_map_t&& map, bool exact = false) : spec(spec), map(map), exact(exact) {
+   }
+};
+typedef std::vector<QoreAcceptSpec> q_type_map_vec_t;
+
+DLLLOCAL bool typespec_compare(const q_type_map_vec_t& a, const q_type_map_vec_t& b);
+
 class AbstractQoreTypeInfo {
 friend class QoreClassTypeInfo;
 friend class QoreClassOrNothingTypeInfo;
 friend class QoreBaseTypeInfo;
 friend class QoreBaseOrNothingTypeInfo;
+friend class QoreNumberTypeInfo;
+protected:
+   QoreString tname;
+
 public:
-   DLLLOCAL AbstractQoreTypeInfo() {
+   const q_type_map_vec_t accept_vec;
+   const q_typespec_vec_t return_vec;
+
+   DLLLOCAL AbstractQoreTypeInfo(const char* name, const q_type_map_vec_t&& a_vec, const q_typespec_vec_t&& r_vec) : tname(name), accept_vec(a_vec), return_vec(r_vec) {
    }
 
    DLLLOCAL virtual ~AbstractQoreTypeInfo() = default;
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_t getSingleType(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->getSingleTypeImpl() : NT_ALL;
+      return ti ? ti->getSingleType() : NT_ALL;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool parseAcceptsReturns(const AbstractQoreTypeInfo* ti, qore_type_t t) {
-      return ti ? ti->parseAcceptsReturnsImpl(t) : true;
+      return ti ? ti->parseAcceptsReturns(t) : true;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e parseReturnsType(const AbstractQoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti ? ti->parseReturnsTypeImpl(t) : QTI_AMBIGUOUS;
+   DLLLOCAL static qore_type_result_e parseReturns(const AbstractQoreTypeInfo* ti, QoreTypeSpec t) {
+      return ti ? ti->parseReturns(t) : QTI_AMBIGUOUS;
    }
 
    // static version of method, checking for null pointer
+   // returns true if this type only returns the type given
    DLLLOCAL static bool isType(const AbstractQoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti ? ti->isTypeImpl(t) : false;
+      return ti ? ti->isType(t) : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const AbstractQoreTypeInfo* ti, const QoreValue n) {
-      return ti ? ti->runtimeAcceptsValueImpl(n) : QTI_AMBIGUOUS;
+      return ti ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
    }
 
    // static version of method, checking for null pointer
@@ -127,31 +163,33 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const AbstractQoreTypeInfo* first, const AbstractQoreTypeInfo* second, bool& may_not_match) {
-      if (!first || !second || !first->hasTypeImpl() || !second->hasTypeImpl())
+      if (!first || !second)
          return QTI_AMBIGUOUS;
       if (first == second)
          return QTI_IDENT;
-      return first->parseAcceptsImpl(second, may_not_match);
+      return first->parseAccepts(second, may_not_match);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool returnsSingle(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->returnsSingleImpl() : false;
+      return ti ? ti->return_vec.size() == 1 : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool acceptsSingle(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->acceptsSingleImpl() : false;
+      return ti ? ti->accept_vec.size() == 1 : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreClass* getUniqueReturnClass(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->getUniqueReturnClassImpl() : nullptr;
+      if (!ti || ti->return_vec.size() > 1)
+         return nullptr;
+      return ti->return_vec[0].getClass();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool hasType(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->hasTypeImpl() : false;
+      return ti ? true : false;
    }
 
    // static version of method, checking for null pointer
@@ -161,7 +199,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static const char* getName(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->getNameImpl() : NO_TYPE_INFO;
+      return ti ? ti->tname.c_str() : NO_TYPE_INFO;
    }
 
    // static version of method, checking for null pointer
@@ -175,20 +213,20 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputParam(const AbstractQoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
       if (ti)
-         ti->acceptInputInternImpl(false, param_num, param_name, n, xsink);
+         ti->acceptInputIntern(false, param_num, param_name, n, xsink);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputMember(const AbstractQoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (ti)
-         ti->acceptInputInternImpl(true, -1, member_name, n, xsink);
+         ti->acceptInputIntern(true, -1, member_name, n, xsink);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptAssignment(const AbstractQoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
       assert(text && text[0] == '<');
       if (ti)
-         ti->acceptInputInternImpl(false, -1, text, n, xsink);
+         ti->acceptInputIntern(false, -1, text, n, xsink);
    }
 
    // static version of method, checking for null pointer
@@ -203,85 +241,60 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool mayRequireFilter(const AbstractQoreTypeInfo* ti, const QoreValue& n) {
-      return ti ? ti->mayRequireFilterImpl(n) : false;
+      return ti ? ti->mayRequireFilter(n) : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isInputIdentical(const AbstractQoreTypeInfo* a, const AbstractQoreTypeInfo* b) {
       if (a && b)
-         return (a == b) ? true : a->isInputIdenticalImpl(b);
-      if (a)
-         return !a->hasTypeImpl();
-      if (b)
-         return !b->hasTypeImpl();
-      return true;
+         return (a == b) ? true : typespec_compare(a->accept_vec, b->accept_vec);
+      return a || b ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputIdentical(const AbstractQoreTypeInfo* a, const AbstractQoreTypeInfo* b) {
       if (a && b)
-         return a == b ? true : a->isOutputIdenticalImpl(b);
-      if (a)
-         return !a->hasTypeImpl();
-      if (b)
-         return !b->hasTypeImpl();
-      return true;
+         return a == b ? true : a->return_vec == b->return_vec;
+      return a || b ? false : true;
    }
 
    // if second's return type is compatible with first's return type
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputCompatible(const AbstractQoreTypeInfo* first, const AbstractQoreTypeInfo* second) {
       if (first && second)
-         return first->isOutputCompatibleImpl(second);
+         return first->isOutputCompatible(second);
       return true;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static bool nonNumericValue(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->nonNumericValueImpl() : false;
-   }
-
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool nonStringValue(const AbstractQoreTypeInfo* ti) {
-      return ti ? ti->nonStringValueImpl() : false;
+   DLLLOCAL static bool canConvertToScalar(const AbstractQoreTypeInfo* ti) {
+      return ti ? ti->canConvertToScalarImpl() : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void checkDoNonNumericWarning(const AbstractQoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && ti->nonNumericValueImpl())
+      if (ti && !ti->canConvertToScalarImpl())
          ti->doNonNumericWarning(loc, preface);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void checkDoNonBooleanWarning(const AbstractQoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && ti->nonNumericValueImpl())
+      if (ti && !ti->canConvertToScalarImpl())
          ti->doNonBooleanWarning(loc, preface);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void checkDoNonStringWarning(const AbstractQoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && ti->nonStringValueImpl())
+      if (ti && !ti->canConvertToScalarImpl())
          ti->doNonStringWarning(loc, preface);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void concatName(const AbstractQoreTypeInfo* ti, std::string& str) {
       if (ti)
-         str.append(ti->getNameImpl());
+         str.append(ti->tname.c_str());
       else
          str.append(NO_TYPE_INFO);
-   }
-
-   DLLLOCAL static void getReturnTypeList(const AbstractQoreTypeInfo* ti, q_typespec_vec_t& vec) {
-      if (ti)
-         return ti->getReturnTypeListImpl(vec);
-      vec.push_back(NT_ALL);
-   }
-
-   DLLLOCAL static void getAcceptTypeList(const AbstractQoreTypeInfo* ti, q_typespec_vec_t& vec) {
-      if (ti)
-         return ti->getAcceptTypeListImpl(vec);
-      vec.push_back(NT_ALL);
    }
 
    DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
@@ -315,6 +328,23 @@ public:
       desc->concat(" instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
+   }
+
+   DLLLOCAL void acceptInputIntern(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+      for (auto& t : accept_vec) {
+         bool priv_error = false;
+         if (t.spec.runtimeTestMatch(n, priv_error)) {
+            assert(!priv_error);
+            if (t.map)
+               t.map(n, xsink);
+            return;
+         }
+         if (priv_error) {
+            doAcceptError(true, obj, param_num, param_name, n, xsink);
+            return;
+         }
+      }
+      doAcceptError(false, obj, param_num, param_name, n, xsink);
    }
 
 protected:
@@ -359,73 +389,129 @@ protected:
       return -1;
    }
 
-   DLLLOCAL virtual qore_type_t getSingleTypeImpl() const = 0;
+   DLLLOCAL qore_type_t getSingleType() const {
+      if (accept_vec.size() == 1 && return_vec.size() == 1) {
+         qore_type_t qt = accept_vec[0].spec.getType();
+         if (qt == return_vec[0].getType())
+            return qt;
+      }
+      return NT_ALL;
+   }
 
-   DLLLOCAL virtual bool parseAcceptsReturnsImpl(qore_type_t t) const = 0;
-
-   DLLLOCAL virtual qore_type_result_e parseReturnsTypeImpl(QoreTypeSpec t) const = 0;
-
-   // returns true if this type only returns the type given
-   DLLLOCAL virtual bool isTypeImpl(QoreTypeSpec t) const {
+   DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
+      bool ok = false;
+      for (auto& i : accept_vec) {
+         if (i.spec.getType() == t) {
+            ok = true;
+            break;
+         }
+      }
+      if (!ok)
+         return false;
+      for (auto& i : return_vec) {
+         if (i.getType() == t)
+            return true;
+      }
       return false;
    }
 
-   DLLLOCAL virtual qore_type_result_e runtimeAcceptsValueImpl(const QoreValue n) const = 0;
-
-   DLLLOCAL virtual qore_type_result_e parseAcceptsImpl(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const = 0;
-
-   // returns true if the type returns a single type
-   DLLLOCAL virtual bool returnsSingleImpl() const = 0;
-
-   // returns true if the type accepts a single type
-   DLLLOCAL virtual bool acceptsSingleImpl() const = 0;
-
-   DLLLOCAL virtual const QoreClass* getUniqueReturnClassImpl() const {
-      return nullptr;
+   DLLLOCAL qore_type_result_e parseReturns(QoreTypeSpec t) const {
+      if (return_vec.size() == 1)
+         return t.match(return_vec[0]);
+      for (auto& i : return_vec) {
+         qore_type_result_e rv = t.match(i);
+         if (rv != QTI_NOT_EQUAL)
+            return QTI_AMBIGUOUS;
+      }
+      return QTI_NOT_EQUAL;
    }
 
-   DLLLOCAL virtual bool hasTypeImpl() const {
-      return true;
+   // returns true if this type only returns the type given
+   DLLLOCAL bool isType(QoreTypeSpec t) const {
+      if (return_vec.size() > 1)
+         return false;
+      return t.match(return_vec[0]) == QTI_IDENT;
    }
+
+   // returns true if the type matches an accept type with a filter (type only checked)
+   DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
+      for (auto& at : accept_vec) {
+         if (at.spec.getTypeSpec() == QTS_TYPE && at.spec.getType() == n.getType() && at.map)
+            return true;
+      }
+      return false;
+   }
+
+   // if the argument's return type is compatible with "this"'s return type
+   DLLLOCAL bool isOutputCompatible(const AbstractQoreTypeInfo* typeInfo) const {
+      for (auto& rt : typeInfo->return_vec) {
+         for (auto& at : accept_vec) {
+            if (at.spec.match(rt))
+               return true;
+         }
+      }
+      return false;
+   }
+
+   DLLLOCAL qore_type_result_e parseAccepts(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const {
+      if (typeInfo->return_vec.size() > accept_vec.size()) {
+         may_not_match = true;
+      }
+
+      bool ok = false;
+      for (auto& rt : typeInfo->return_vec) {
+         bool t_no_match = true;
+         for (auto& at : accept_vec) {
+            qore_type_result_e res = at.spec.match(rt);
+            switch (res) {
+               case QTI_IDENT:
+                  if (at.exact && typeInfo->return_vec.size() == 1)
+                     return QTI_IDENT;
+                  // fall down to next case
+               case QTI_AMBIGUOUS:
+                  if (t_no_match) {
+                     t_no_match = false;
+                     if (!ok) {
+                        ok = true;
+                        if (may_not_match)
+                           return QTI_AMBIGUOUS;
+                     }
+                  }
+                  // fall down to default
+               default:
+                  break;
+            }
+         }
+         if (t_no_match) {
+            if (!may_not_match) {
+               may_not_match = true;
+               if (ok)
+                  return QTI_AMBIGUOUS;
+            }
+         }
+      }
+      if (ok)
+         return typeInfo->return_vec.size() != accept_vec.size() ? QTI_AMBIGUOUS : QTI_IDENT;
+      return QTI_NOT_EQUAL;
+   }
+
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n) const;
 
    // returns true if this type could contain an object or a closure
    DLLLOCAL virtual bool needsScanImpl() const {
-      return false;
+      return true;
    }
-
-   DLLLOCAL virtual bool mayRequireFilterImpl(const QoreValue& n) const {
-      return false;
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const = 0;
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("type '%s'", getNameImpl());
+      str.sprintf("type '%s'", tname.c_str());
    }
-
-   DLLLOCAL virtual void acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const = 0;
 
    DLLLOCAL virtual bool hasDefaultValueImpl() const = 0;
 
    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const = 0;
 
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL virtual bool isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const = 0;
-
-   DLLLOCAL virtual bool isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const = 0;
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL virtual bool isOutputCompatibleImpl(const AbstractQoreTypeInfo* typeInfo) const = 0;
-
-   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
-   DLLLOCAL virtual bool nonNumericValueImpl() const = 0;
-
-   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
-   DLLLOCAL virtual bool nonStringValueImpl() const = 0;
-
-   DLLLOCAL virtual void getReturnTypeListImpl(q_typespec_vec_t& vec) const = 0;
-
-   DLLLOCAL virtual void getAcceptTypeListImpl(q_typespec_vec_t& vec) const = 0;
+   // returns true if there is no type or if the type can be converted to a scalar (numeric, bool, int, string, etc) value, false true if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
 
    DLLLOCAL static void getNodeType(QoreString& str, const QoreValue& n) {
       qore_type_t nt = n.getType();
@@ -463,60 +549,16 @@ protected:
 
 class QoreClassTypeInfo : public AbstractQoreTypeInfo {
 public:
-   DLLLOCAL QoreClassTypeInfo(const QoreClass* qc) {
+   DLLLOCAL QoreClassTypeInfo(QoreClass* qc) : AbstractQoreTypeInfo(qc->getName(), q_type_map_vec_t {{qc, nullptr}}, q_typespec_vec_t {qc}) {
    }
 
 protected:
-   QoreClass* qc;
-
-   DLLLOCAL virtual bool parseAcceptsReturnsImpl(qore_type_t t) const {
-      return t == NT_OBJECT;
-   }
-
-   DLLLOCAL virtual qore_type_t getSingleTypeImpl() const {
-      return NT_OBJECT;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseReturnsTypeImpl(QoreTypeSpec t) const;
-
-   DLLLOCAL virtual bool isTypeImpl(QoreTypeSpec t) const;
-
-   DLLLOCAL virtual qore_type_result_e runtimeAcceptsValueImpl(const QoreValue n) const;
-
-   DLLLOCAL virtual qore_type_result_e parseAcceptsImpl(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const {
-      if (!typeInfo->returnsSingleImpl())
-         may_not_match = true;
-      return typeInfo->parseReturnsTypeImpl(qc);
-   }
-
-   // returns true if the type returns a single type
-   DLLLOCAL virtual bool returnsSingleImpl() const {
-      return true;
-   }
-
-   // returns true if the type accepts a single type
-   DLLLOCAL virtual bool acceptsSingleImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual const QoreClass* getUniqueReturnClassImpl() const {
-      return qc;
-   }
-
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const {
-      return qc->getName();
+   DLLLOCAL QoreClassTypeInfo(const q_type_map_vec_t&& a_vec, const q_typespec_vec_t&& r_vec) : AbstractQoreTypeInfo(a_vec[0].spec.getClass()->getName(), std::move(a_vec), std::move(r_vec)) {
    }
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("an object of class '%s'", qc->getName());
+      str.sprintf("an object of class '%s'", accept_vec[0].spec.getClass()->getName());
    }
-
-   DLLLOCAL virtual void acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return false;
@@ -526,86 +568,22 @@ protected:
       return QoreValue();
    }
 
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL virtual bool isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const;
-
-   DLLLOCAL virtual bool isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const;
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL virtual bool isOutputCompatibleImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->parseReturnsTypeImpl(qc) == QTI_NOT_EQUAL ? false : true;
-   }
-
-   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
-   DLLLOCAL virtual bool nonNumericValueImpl() const {
-      return true;
-   }
-
-   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
-   DLLLOCAL virtual bool nonStringValueImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual void getReturnTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qc);
-   }
-
-   DLLLOCAL virtual void getAcceptTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qc);
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
    }
 };
 
 class QoreClassOrNothingTypeInfo : public QoreClassTypeInfo {
 public:
-   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc) : QoreClassTypeInfo(qc), tname("*") {
-      tname.concat(qc->getName());
+   DLLLOCAL QoreClassOrNothingTypeInfo(QoreClass* qc) : QoreClassTypeInfo(q_type_map_vec_t {{qc, nullptr}, {NT_NOTHING, nullptr}}, q_typespec_vec_t {qc, NT_NOTHING}) {
+      tname.prepend("*");
    }
 
 protected:
-   DLLLOCAL virtual bool parseAcceptsReturnsImpl(qore_type_t t) const {
-      return t == NT_OBJECT || t == NT_NOTHING;
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.sprintf("an object of class '%s' or no value (NOTHING)", accept_vec[0].spec.getClass()->getName());
    }
-
-   DLLLOCAL virtual qore_type_t getSingleTypeImpl() const {
-      return NT_ALL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseReturnsTypeImpl(QoreTypeSpec t) const;
-
-   DLLLOCAL virtual qore_type_result_e runtimeAcceptsValueImpl(const QoreValue n) const;
-
-   DLLLOCAL virtual qore_type_result_e parseAcceptsImpl(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const {
-      if (!typeInfo->returnsSingleImpl())
-         may_not_match = true;
-
-      return typeInfo->parseReturnsTypeImpl(NT_NULL) || typeInfo->parseReturnsTypeImpl(NT_NOTHING)
-             || typeInfo->parseReturnsTypeImpl(qc) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-
-   // returns true if the type returns a single type
-   DLLLOCAL virtual bool returnsSingleImpl() const {
-      return false;
-   }
-
-   // returns true if the type accepts a single type
-   DLLLOCAL virtual bool acceptsSingleImpl() const {
-      return false;
-   }
-
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const {
-      return tname.c_str();
-   }
-
-   DLLLOCAL virtual bool mayRequireFilterImpl(const QoreValue& n) const {
-      return true;
-   }
-
-   DLLLOCAL virtual void acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return false;
@@ -615,200 +593,34 @@ protected:
       return QoreValue();
    }
 
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL virtual bool isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const;
-
-   DLLLOCAL virtual bool isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const;
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL virtual bool isOutputCompatibleImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->parseReturnsTypeImpl(qc) != QTI_NOT_EQUAL
-             && typeInfo->parseReturnsTypeImpl(NT_NOTHING) != QTI_NOT_EQUAL;
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
    }
-
-   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
-   DLLLOCAL virtual bool nonNumericValueImpl() const {
-      return true;
-   }
-
-   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
-   DLLLOCAL virtual bool nonStringValueImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual void getReturnTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qc);
-      vec.push_back(NT_NOTHING);
-   }
-
-   DLLLOCAL virtual void getAcceptTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qc);
-      vec.push_back(NT_NOTHING);
-      vec.push_back(NT_NULL);
-   }
-
-   QoreString tname;
 };
 
 class QoreBaseTypeInfo : public AbstractQoreTypeInfo {
 public:
-   DLLLOCAL QoreBaseTypeInfo(qore_type_t t) : qt(t) {
+   DLLLOCAL QoreBaseTypeInfo(qore_type_t t) : AbstractQoreTypeInfo(getBuiltinTypeName(t), q_type_map_vec_t {{t, nullptr}}, q_typespec_vec_t {t}) {
    }
 
 protected:
-   DLLLOCAL virtual bool isTypeImpl(QoreTypeSpec t) const {
-      return t.getType() == qt;
+   DLLLOCAL QoreBaseTypeInfo(q_type_map_vec_t&& a_vec, q_typespec_vec_t&& r_vec) : AbstractQoreTypeInfo(getBuiltinTypeName(a_vec[0].spec.getType()), std::move(a_vec), std::move(r_vec)) {
    }
-
-   DLLLOCAL virtual bool parseAcceptsReturnsImpl(qore_type_t t) const {
-      return t == qt;
-   }
-
-   DLLLOCAL virtual qore_type_t getSingleTypeImpl() const {
-      return qt;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseReturnsTypeImpl(QoreTypeSpec t) const {
-      if (t.getTypeSpec() == QTS_TYPE)
-         return t.getType() == qt ? QTI_IDENT : QTI_NOT_EQUAL;
-      return QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e runtimeAcceptsValueImpl(const QoreValue n) const {
-      return n.getType() == qt ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseAcceptsImpl(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const {
-      if (!typeInfo->returnsSingleImpl()) {
-         may_not_match = true;
-         return typeInfo->parseReturnsTypeImpl(qt) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-      }
-
-      return typeInfo->parseReturnsTypeImpl(qt) ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
-
-   // returns true if the type returns a single type
-   DLLLOCAL virtual bool returnsSingleImpl() const {
-      return true;
-   }
-
-   // returns true if the type accepts a single type
-   DLLLOCAL virtual bool acceptsSingleImpl() const {
-      return true;
-   }
-
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return qt == NT_OBJECT;
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const {
-      return getBuiltinTypeName(qt);
-   }
-
-   DLLLOCAL virtual void acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
-      if (n.getType() != qt)
-         doAcceptError(false, obj, param_num, param_name, n, xsink);
-   }
-
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL virtual bool isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->getSingleTypeImpl() == qt;
-   }
-
-   DLLLOCAL virtual bool isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->getSingleTypeImpl() == qt;
-   }
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL virtual bool isOutputCompatibleImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->parseReturnsTypeImpl(qt) != QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual void getReturnTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qt);
-   }
-
-   DLLLOCAL virtual void getAcceptTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qt);
-   }
-
-   qore_type_t qt;
 };
 
 class QoreBaseOrNothingTypeInfo : public QoreBaseTypeInfo {
 public:
-   DLLLOCAL QoreBaseOrNothingTypeInfo(qore_type_t t) : QoreBaseTypeInfo(t), tname("*") {
-      tname.concat(getBuiltinTypeName(t));
+   DLLLOCAL QoreBaseOrNothingTypeInfo(qore_type_t t) : QoreBaseTypeInfo(q_type_map_vec_t {
+         {t, nullptr},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      },
+      q_typespec_vec_t {t, NT_NOTHING}) {
+      tname.prepend("*");
    }
 
 protected:
-   DLLLOCAL virtual bool parseAcceptsReturnsImpl(qore_type_t t) const {
-      return t == qt || t == NT_NOTHING;
-   }
-
-   DLLLOCAL virtual qore_type_t getSingleTypeImpl() const {
-      return NT_ALL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseReturnsTypeImpl(QoreTypeSpec t) const {
-      if (t.getTypeSpec() == QTS_TYPE) {
-         qore_type_t tp = t.getType();
-         return tp == qt || tp == NT_NOTHING ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-      }
-      return QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e runtimeAcceptsValueImpl(const QoreValue n) const {
-      qore_type_t tp = n.getType();
-      return (tp == NT_NOTHING || tp == NT_NULL || tp == qt)
-            ? QTI_AMBIGUOUS
-            : QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual qore_type_result_e parseAcceptsImpl(const AbstractQoreTypeInfo* typeInfo, bool& may_not_match) const {
-      if (!typeInfo->returnsSingleImpl())
-         may_not_match = true;
-
-      return typeInfo->parseReturnsTypeImpl(NT_NULL) || typeInfo->parseReturnsTypeImpl(NT_NOTHING)
-             || typeInfo->parseReturnsTypeImpl(qt) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-   }
-
-   // returns true if the type returns a single type
-   DLLLOCAL virtual bool returnsSingleImpl() const {
-      return false;
-   }
-
-   // returns true if the type accepts a single type
-   DLLLOCAL virtual bool acceptsSingleImpl() const {
-      return false;
-   }
-
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return qt == NT_OBJECT;
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const {
-      return tname.c_str();
-   }
-
-   DLLLOCAL virtual bool mayRequireFilterImpl(const QoreValue& n) const {
-      return true;
-   }
-
-   DLLLOCAL virtual void acceptInputInternImpl(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
-      qore_type_t t = n.getType();
-      if (t == NT_NOTHING || t == qt)
-         return;
-      if (t == NT_NULL) {
-         // NOTE: we can ignore the return value here since a NULL does not require a dereference
-         n.assignNothing();
-         return;
-      }
-      doAcceptError(false, obj, param_num, param_name, n, xsink);
-   }
-
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return false;
    }
@@ -816,70 +628,99 @@ protected:
    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
       return QoreValue();
    }
-
-   // used when parsing user code to find duplicate signatures after types are resolved
-   DLLLOCAL virtual bool isInputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      if (typeInfo->acceptsSingleImpl())
-         return false;
-
-      q_typespec_vec_t vec;
-      typeInfo->getAcceptTypeListImpl(vec);
-      if (vec.size() != 3)
-         return false;
-
-      for (auto& i : vec) {
-         qore_type_t tp = i.getType();
-         if (tp != NT_NOTHING && tp != NT_NULL && tp != qt)
-            return false;
-      }
-
-      return true;
-   }
-
-   DLLLOCAL virtual bool isOutputIdenticalImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      if (typeInfo->returnsSingleImpl())
-         return false;
-
-      q_typespec_vec_t vec;
-      typeInfo->getReturnTypeListImpl(vec);
-      if (vec.size() != 2)
-         return false;
-
-      for (auto& i : vec) {
-         qore_type_t tp = i.getType();
-         if (tp != NT_NOTHING && tp != qt)
-            return false;
-      }
-
-      return true;
-   }
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL virtual bool isOutputCompatibleImpl(const AbstractQoreTypeInfo* typeInfo) const {
-      return typeInfo->parseReturnsTypeImpl(qt) != QTI_NOT_EQUAL
-             && typeInfo->parseReturnsTypeImpl(NT_NOTHING) != QTI_NOT_EQUAL;
-   }
-
-   DLLLOCAL virtual void getReturnTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qt);
-      vec.push_back(NT_NOTHING);
-   }
-
-   DLLLOCAL virtual void getAcceptTypeListImpl(q_typespec_vec_t& vec) const {
-      vec.push_back(qt);
-      vec.push_back(NT_NOTHING);
-      vec.push_back(NT_NULL);
-   }
-
-   QoreString tname;
 };
 
-class QoreStringTypeInfo : public QoreBaseTypeInfo {
+class QoreBaseConvertTypeInfo : public QoreBaseTypeInfo {
 public:
-   DLLLOCAL QoreStringTypeInfo() : QoreBaseTypeInfo(NT_STRING) {
+   DLLLOCAL QoreBaseConvertTypeInfo(qore_type_t qt) : QoreBaseTypeInfo(qt) {
    }
 
 protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+};
+
+class QoreBaseOrNothingConvertTypeInfo : public QoreBaseOrNothingTypeInfo {
+public:
+   DLLLOCAL QoreBaseOrNothingConvertTypeInfo(qore_type_t qt) : QoreBaseOrNothingTypeInfo(qt) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+};
+
+class QoreBaseNoConvertTypeInfo : public QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreBaseNoConvertTypeInfo(qore_type_t qt) : QoreBaseTypeInfo(qt) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+};
+
+class QoreBaseOrNothingNoConvertTypeInfo : public QoreBaseOrNothingTypeInfo {
+public:
+   DLLLOCAL QoreBaseOrNothingNoConvertTypeInfo(qore_type_t qt) : QoreBaseOrNothingTypeInfo(qt) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+};
+
+class XXX_QoreBigIntTypeInfo : public QoreBaseConvertTypeInfo {
+public:
+   DLLLOCAL XXX_QoreBigIntTypeInfo() : QoreBaseConvertTypeInfo(NT_INT) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return 0LL;
+   }
+};
+
+class QoreBigIntOrNothingTypeInfo : public QoreBaseOrNothingConvertTypeInfo {
+public:
+   DLLLOCAL QoreBigIntOrNothingTypeInfo() : QoreBaseOrNothingConvertTypeInfo(NT_INT) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreStringTypeInfo : public QoreBaseConvertTypeInfo {
+public:
+   DLLLOCAL QoreStringTypeInfo() : QoreBaseConvertTypeInfo(NT_STRING) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return true;
    }
@@ -887,34 +728,1497 @@ protected:
    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
       return new QoreStringNode;
    }
-
-   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
-   DLLLOCAL virtual bool nonNumericValueImpl() const {
-      return false;
-   }
-
-   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
-   DLLLOCAL virtual bool nonStringValueImpl() const {
-      return false;
-   }
 };
 
-class QoreStringOrNothingTypeInfo : public QoreBaseOrNothingTypeInfo {
+class QoreStringOrNothingTypeInfo : public QoreBaseOrNothingConvertTypeInfo {
 public:
-   DLLLOCAL QoreStringOrNothingTypeInfo() : QoreBaseOrNothingTypeInfo(NT_STRING) {
+   DLLLOCAL QoreStringOrNothingTypeInfo() : QoreBaseOrNothingConvertTypeInfo(NT_STRING) {
    }
 
 protected:
-   // returns false if there is no type or if the type can be converted to a numeric value, true if otherwise
-   DLLLOCAL virtual bool nonNumericValueImpl() const {
-      return false;
-   }
-
-   // returns false if there is no type or if the type can be converted to a string value, true if otherwise
-   DLLLOCAL virtual bool nonStringValueImpl() const {
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
       return false;
    }
 };
+
+class QoreBoolTypeInfo : public QoreBaseConvertTypeInfo {
+public:
+   DLLLOCAL QoreBoolTypeInfo() : QoreBaseConvertTypeInfo(NT_BOOLEAN) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return false;
+   }
+};
+
+class QoreBoolOrNothingTypeInfo : public QoreBaseOrNothingConvertTypeInfo {
+public:
+   DLLLOCAL QoreBoolOrNothingTypeInfo() : QoreBaseOrNothingConvertTypeInfo(NT_BOOLEAN) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+};
+
+class QoreBinaryTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreBinaryTypeInfo() : QoreBaseNoConvertTypeInfo(NT_BINARY) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return new BinaryNode;
+   }
+};
+
+class QoreBinaryOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreBinaryOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_BINARY) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreObjectTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreObjectTypeInfo() : QoreBaseNoConvertTypeInfo(NT_OBJECT) {
+   }
+
+protected:
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreObjectOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreObjectOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_OBJECT) {
+   }
+};
+
+class QoreDateTypeInfo : public QoreBaseConvertTypeInfo {
+public:
+   DLLLOCAL QoreDateTypeInfo() : QoreBaseConvertTypeInfo(NT_DATE) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return ZeroDate->refSelf();
+   }
+};
+
+class QoreDateOrNothingTypeInfo : public QoreBaseOrNothingConvertTypeInfo {
+public:
+   DLLLOCAL QoreDateOrNothingTypeInfo() : QoreBaseOrNothingConvertTypeInfo(NT_DATE) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreHashTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreHashTypeInfo() : QoreBaseNoConvertTypeInfo(NT_HASH) {
+   }
+
+protected:
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return emptyHash->hashRefSelf();
+   }
+};
+
+class QoreHashOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreHashOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_HASH) {
+   }
+};
+
+class QoreListTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreListTypeInfo() : QoreBaseNoConvertTypeInfo(NT_LIST) {
+   }
+
+protected:
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return emptyList->listRefSelf();
+   }
+
+};
+
+class QoreListOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreListOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_LIST) {
+   }
+};
+
+class QoreNothingTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreNothingTypeInfo() : QoreBaseNoConvertTypeInfo(NT_NOTHING) {
+   }
+
+protected:
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreNullTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreNullTypeInfo() : QoreBaseNoConvertTypeInfo(NT_NULL) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return &Null;
+   }
+};
+
+class QoreNullOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreNullOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_NULL) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreClosureTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreClosureTypeInfo() : QoreBaseNoConvertTypeInfo(NT_RUNTIME_CLOSURE) {
+   }
+
+protected:
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreClosureOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreClosureOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_RUNTIME_CLOSURE) {
+   }
+};
+
+class QoreCallReferenceTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreCallReferenceTypeInfo() : QoreBaseNoConvertTypeInfo(NT_FUNCREF) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreCallReferenceOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreCallReferenceOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_FUNCREF) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreReferenceTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreReferenceTypeInfo() : QoreBaseNoConvertTypeInfo(NT_REFERENCE) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreReferenceOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+   DLLLOCAL QoreReferenceOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo(NT_REFERENCE) {
+   }
+
+protected:
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreNumberTypeInfo : QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreNumberTypeInfo() : QoreBaseTypeInfo(q_type_map_vec_t {
+         {NT_NUMBER, nullptr, true},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) { discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink); }}, {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) { discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink); }},
+      },
+      q_typespec_vec_t {NT_NUMBER}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return ZeroNumber->refSelf();
+   }
+};
+
+class QoreNumberOrNothingTypeInfo : public QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreNumberOrNothingTypeInfo() :
+      QoreBaseTypeInfo(q_type_map_vec_t {
+         {NT_NUMBER, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+              discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assignNothing();
+            }
+         },
+      }, q_typespec_vec_t {NT_NUMBER, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreFloatTypeInfo : QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreFloatTypeInfo() : QoreBaseTypeInfo(q_type_map_vec_t {
+         {NT_FLOAT, nullptr, true},
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign((double)n.getAsBigInt()), xsink);
+            }
+         },
+      }, q_typespec_vec_t {NT_FLOAT}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return 0.0;
+   }
+};
+
+class QoreFloatOrNothingTypeInfo : public QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreFloatOrNothingTypeInfo() : QoreBaseTypeInfo(q_type_map_vec_t {
+         {NT_FLOAT, nullptr},
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign((double)n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assignNothing();
+            }
+         },
+      }, q_typespec_vec_t {NT_FLOAT, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreCodeTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreCodeTypeInfo() : AbstractQoreTypeInfo("code", q_type_map_vec_t {
+         {NT_RUNTIME_CLOSURE, nullptr},
+         {NT_FUNCREF, nullptr},
+      }, q_typespec_vec_t {NT_RUNTIME_CLOSURE, NT_FUNCREF}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return true;
+   }
+};
+
+class QoreCodeOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreCodeOrNothingTypeInfo() : AbstractQoreTypeInfo("*code", q_type_map_vec_t {
+         {NT_RUNTIME_CLOSURE, nullptr},
+         {NT_FUNCREF, nullptr},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_RUNTIME_CLOSURE, NT_FUNCREF, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return true;
+   }
+};
+
+class QoreDataTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreDataTypeInfo() : AbstractQoreTypeInfo("data", q_type_map_vec_t {
+         {NT_STRING, nullptr},
+         {NT_BINARY, nullptr},
+      }, q_typespec_vec_t {NT_RUNTIME_CLOSURE, NT_FUNCREF}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreDataOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreDataOrNothingTypeInfo() : AbstractQoreTypeInfo("*data", q_type_map_vec_t {
+         {NT_STRING, nullptr},
+         {NT_BINARY, nullptr},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_STRING, NT_DATA, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftBigIntTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftBigIntTypeInfo() : AbstractQoreTypeInfo("softint", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(0ll), xsink);
+            }
+         },
+      }, q_typespec_vec_t {NT_INT}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftBigIntOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftBigIntOrNothingTypeInfo() : AbstractQoreTypeInfo("*softint", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBigInt()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_INT, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftFloatTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftFloatTypeInfo() : AbstractQoreTypeInfo("softfloat", q_type_map_vec_t {
+         {NT_FLOAT, nullptr},
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(0.0), xsink);
+            }
+         },
+      }, q_typespec_vec_t {NT_FLOAT}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftFloatOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftFloatOrNothingTypeInfo() : AbstractQoreTypeInfo("*softfloat", q_type_map_vec_t {
+         {NT_FLOAT, nullptr},
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsFloat()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_FLOAT, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftNumberTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftNumberTypeInfo() : AbstractQoreTypeInfo("softnumber", q_type_map_vec_t {
+         {NT_NUMBER, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.get<const QoreStringNode>()->c_str())), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(0.0)), xsink);
+            }
+         },
+      }, q_typespec_vec_t {NT_NUMBER}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftNumberOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftNumberOrNothingTypeInfo() : AbstractQoreTypeInfo("*softnumber", q_type_map_vec_t {
+         {NT_NUMBER, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.get<const QoreStringNode>()->c_str())), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_NUMBER, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftBoolTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftBoolTypeInfo() : AbstractQoreTypeInfo("softbool", q_type_map_vec_t {
+         {NT_BOOLEAN, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assign(false);
+            }
+         },
+      }, q_typespec_vec_t {NT_BOOLEAN}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftBoolOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftBoolOrNothingTypeInfo() : AbstractQoreTypeInfo("*softbool", q_type_map_vec_t {
+         {NT_BOOLEAN, nullptr},
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(n.getAsBool()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_BOOLEAN, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftStringTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftStringTypeInfo() : AbstractQoreTypeInfo("softstring", q_type_map_vec_t {
+         {NT_STRING, nullptr},
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreStringNodeValueHelper str(n.getInternalNode());
+               discard(n.assign(str.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreStringNodeValueHelper str(n.getInternalNode());
+               discard(n.assign(str.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assign(NullString->stringRefSelf());
+            }
+         },
+      }, q_typespec_vec_t {NT_STRING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftStringOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftStringOrNothingTypeInfo() : AbstractQoreTypeInfo("*softstring", q_type_map_vec_t {
+         {NT_STRING, nullptr},
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new QoreStringNodeMaker(QLLD, n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreStringNodeValueHelper str(n.getInternalNode());
+               discard(n.assign(str.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreStringNodeValueHelper str(n.getInternalNode());
+               discard(n.assign(str.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_STRING, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftDateTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftDateTypeInfo() : AbstractQoreTypeInfo("softdate", q_type_map_vec_t {
+         {NT_DATE, nullptr},
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               DateTimeNodeValueHelper dt(n.getInternalNode());
+               discard(n.assign(dt.getReferencedValue()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               DateTimeNodeValueHelper dt(n.getInternalNode());
+               discard(n.assign(dt.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assign(new DateTimeNode(0ll));
+            }
+         },
+      }, q_typespec_vec_t {NT_DATE}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftDateOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftDateOrNothingTypeInfo() : AbstractQoreTypeInfo("*softdate", q_type_map_vec_t {
+         {NT_DATE, nullptr},
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               DateTimeNodeValueHelper dt(n.getInternalNode());
+               discard(n.assign(dt.getReferencedValue()), xsink);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(new DateTimeNode(n.getAsBigInt())), xsink);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               DateTimeNodeValueHelper dt(n.getInternalNode());
+               discard(n.assign(dt.getReferencedValue()), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_DATE, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreSoftListTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftListTypeInfo() : AbstractQoreTypeInfo("softlist", q_type_map_vec_t {
+         {NT_LIST, nullptr},
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_BINARY, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_HASH, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_OBJECT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               n.assign(l);
+            }
+         },
+      }, q_typespec_vec_t {NT_LIST}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return true;
+   }
+};
+
+class QoreSoftListOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreSoftListOrNothingTypeInfo() : AbstractQoreTypeInfo("*softlist", q_type_map_vec_t {
+         {NT_LIST, nullptr},
+         {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_BINARY, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_HASH, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_OBJECT, [] (QoreValue& n, ExceptionSink* xsink) {
+               QoreListNode* l = new QoreListNode;
+               l->push(n.takeNode());
+               n.assign(l);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_typespec_vec_t {NT_LIST, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return true;
+   }
+};
+
+class QoreTimeoutTypeInfo : AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreTimeoutTypeInfo() : AbstractQoreTypeInfo("timeout", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               int64 ms = n.get<const DateTimeNode>()->getRelativeMilliseconds();
+               discard(n.assign(ms), xsink);
+            }
+         },
+      }, q_typespec_vec_t {NT_INT}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return 0ll;
+   }
+};
+
+class QoreTimeoutOrNothingTypeInfo : public AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreTimeoutOrNothingTypeInfo() : AbstractQoreTypeInfo("*timeout", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               int64 ms = n.get<const DateTimeNode>()->getRelativeMilliseconds();
+               discard(n.assign(ms), xsink);
+            }
+         },
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               n.assignNothing();
+            }
+         },
+      }, q_typespec_vec_t {NT_INT, NT_NOTHING}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+};
+
+class QoreIntOrFloatTypeInfo : AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreIntOrFloatTypeInfo() : AbstractQoreTypeInfo("int|float", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_FLOAT, nullptr},
+      }, q_typespec_vec_t {NT_INT, NT_FLOAT}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreIntFloatOrNumberTypeInfo : AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreIntFloatOrNumberTypeInfo() : AbstractQoreTypeInfo("int|float|number", q_type_map_vec_t {
+         {NT_INT, nullptr},
+         {NT_FLOAT, nullptr},
+         {NT_NUMBER, nullptr},
+      }, q_typespec_vec_t {NT_INT, NT_FLOAT, NT_NUMBER}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+class QoreFloatOrNumberTypeInfo : AbstractQoreTypeInfo {
+public:
+   DLLLOCAL QoreFloatOrNumberTypeInfo() : AbstractQoreTypeInfo("float|number", q_type_map_vec_t {
+         {NT_FLOAT, nullptr},
+         {NT_NUMBER, nullptr},
+      }, q_typespec_vec_t {NT_FLOAT, NT_NUMBER}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreValue();
+   }
+};
+
+/*
+   DLLLOCAL QoreTypeInfo(const QoreClass* n_qc, qore_type_t n_qt, bool n_returns_mult,
+                         bool n_accepts_mult, bool n_input_filter, bool n_has_subtype,
+                         bool n_has_name, bool n_has_defval,
+                         bool n_is_int, bool n_exact_return, bool n_accepts_all) :
+*/
 
 /*
  * if input_filter is true, then
@@ -3220,19 +4524,6 @@ public:
       rt.push_back(nothingTypeInfo);
    }
 };
-
-/*
-class ReferenceTypeInfo : public AcceptsReturnsSameMultiTypeInfo {
-public:
-   DLLLOCAL ReferenceTypeInfo() : AcceptsReturnsSameMultiTypeInfo(nullptr, NT_REFERENCE, false, false, false) {
-      at.push_back(anyTypeInfo);
-   }
-
-   DLLLOCAL virtual const char* getNameImpl() const {
-      return "reference";
-   }
-};
-*/
 
 class ReferenceTypeInfo : public QoreTypeInfo {
 public:
