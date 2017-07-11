@@ -336,7 +336,7 @@ public:
    }
 
    DLLLOCAL void instantiate(QoreValue nval) const {
-      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p val: %s\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName());
+      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p val: %s type: '%s'\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName(), QoreTypeInfo::getName(typeInfo));
 
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
@@ -377,6 +377,7 @@ public:
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
       if (!closure_use) {
          LocalVarValue* val = get_var();
+         //printd(5, "LocalVar::evalValue '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
          return val->evalValue(needs_deref, xsink);
       }
 

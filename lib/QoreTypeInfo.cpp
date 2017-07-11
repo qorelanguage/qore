@@ -36,6 +36,8 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
 
+const QoreAnyTypeInfo staticAnyTypeInfo;
+
 const QoreBigIntTypeInfo staticBigIntTypeInfo;
 const QoreBigIntOrNothingTypeInfo staticBigIntOrNothingTypeInfo;
 
@@ -116,7 +118,7 @@ const QoreIntFloatOrNumberTypeInfo staticIntFloatOrNumberTypeInfo;
 
 const QoreFloatOrNumberTypeInfo staticFloatOrNumberTypeInfo;
 
-const QoreTypeInfo* anyTypeInfo = nullptr,
+const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *bigIntTypeInfo = &staticBigIntTypeInfo,
    *floatTypeInfo = &staticFloatTypeInfo,
    *boolTypeInfo = &staticBoolTypeInfo,
@@ -253,7 +255,7 @@ void init_qore_types() {
    do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
    do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
    do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
-   do_maps(NT_ALL,         "any", nullptr, nullptr);
+   do_maps(NT_ALL,         "any", anyTypeInfo, anyTypeInfo);
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
    do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);
@@ -373,14 +375,17 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
             case QTS_CLASS:
                return qore_class_private::get(*u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*t.u.qc));
             case QTS_TYPE:
+               if (t.u.t == NT_ALL)
+                  return QTI_AMBIGUOUS;
                return t.u.t == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
          }
          return QTI_NOT_EQUAL;
       }
       case QTS_TYPE: {
-         if (u.t == NT_ALL)
+         qore_type_t ot = t.getType();
+         if (u.t == NT_ALL || ot == NT_ALL)
             return QTI_AMBIGUOUS;
-         return u.t == t.getType() ? QTI_IDENT : QTI_NOT_EQUAL;
+         return u.t == ot ? QTI_IDENT : QTI_NOT_EQUAL;
       }
    }
    return QTI_NOT_EQUAL;

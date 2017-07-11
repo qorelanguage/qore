@@ -125,8 +125,8 @@ const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, Q
    return m;
 }
 
-const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass* &qc, bool &possible_match) {
-   assert(typeInfo);
+const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo* typeInfo, const char* mname, QoreClass*& qc, bool& possible_match) {
+   assert(typeInfo && QoreTypeInfo::hasType(typeInfo));
 
    const QoreMethod* m;
    if (typeInfo->return_vec.size() == 1) {
@@ -135,7 +135,6 @@ const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const
       return m;
    }
 
-   possible_match = false;
    QoreClass* nqc;
    for (auto& i : typeInfo->return_vec) {
       if (pseudo_classes_find_method(i.spec.getType(), mname, nqc)) {
@@ -144,5 +143,6 @@ const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const
       }
    }
 
+   possible_match = false;
    return nullptr;
 }

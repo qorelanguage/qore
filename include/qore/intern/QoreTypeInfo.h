@@ -75,6 +75,14 @@ public:
       return typespec == QTS_CLASS ? u.qc : nullptr;
    }
 
+   DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
+      if (typespec == QTS_CLASS)
+         return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
+      if (u.t == NT_ALL)
+         return QTI_AMBIGUOUS;
+      return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
+   }
+
    // this is the "expecting" type, t is the type to match
    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
    // ex: this = NT_OBJECT, t = class, result = IDENT
@@ -138,17 +146,17 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
-      return ti ? ti->getSingleType() : NT_ALL;
+      return ti && hasType(ti) ? ti->getSingleType() : NT_ALL;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool parseAcceptsReturns(const QoreTypeInfo* ti, qore_type_t t) {
-      return ti ? ti->parseAcceptsReturns(t) : true;
+      return ti && hasType(ti) ? ti->parseAcceptsReturns(t) : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti ? ti->parseReturns(t) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_AMBIGUOUS;
    }
 
    // static version of method, checking for null pointer
@@ -159,7 +167,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
-      return ti ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
    }
 
    // static version of method, checking for null pointer
@@ -170,7 +178,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
-      if (!first || !second)
+      if (!hasType(first) || !hasType(second))
          return QTI_AMBIGUOUS;
       if (first == second)
          return QTI_IDENT;
@@ -179,34 +187,34 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool returnsSingle(const QoreTypeInfo* ti) {
-      return ti ? ti->return_vec.size() == 1 : false;
+      return ti && hasType(ti) ? ti->return_vec.size() == 1 : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool acceptsSingle(const QoreTypeInfo* ti) {
-      return ti ? ti->accept_vec.size() == 1 : false;
+      return ti && hasType(ti) ? ti->accept_vec.size() == 1 : false;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreClass* getUniqueReturnClass(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1)
+      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
       return ti->return_vec[0].spec.getClass();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
-      return ti ? true : false;
+      return !ti || ti->accept_vec[0].spec.getType() == NT_ALL ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool needsScan(const QoreTypeInfo* ti) {
-      return ti ? ti->needsScanImpl() : true;
+      return ti && hasType(ti) ? ti->needsScanImpl() : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const char* getName(const QoreTypeInfo* ti) {
-      return ti ? ti->tname.c_str() : NO_TYPE_INFO;
+      return ti && hasType(ti) ? ti->tname.c_str() : NO_TYPE_INFO;
    }
 
    // static version of method, checking for null pointer
@@ -253,22 +261,26 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
-      if (a && b)
+      bool hta = hasType(a);
+      bool htb = hasType(b);
+      if (hta && htb)
          return (a == b) ? true : accept_vec_compare(a->accept_vec, b->accept_vec);
-      return a || b ? false : true;
+      return hta || htb ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
-      if (a && b)
+      bool hta = hasType(a);
+      bool htb = hasType(b);
+      if (hta && htb)
          return a == b ? true : return_vec_compare(a->return_vec, b->return_vec);
-      return a || b ? false : true;
+      return hta || htb ? false : true;
    }
 
    // if second's return type is compatible with first's return type
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      if (first && second)
+      if (hasType(first) && hasType(second))
          return first->isOutputCompatible(second);
       return true;
    }
@@ -298,7 +310,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
-      if (ti)
+      if (ti && hasType(ti))
          str.append(ti->tname.c_str());
       else
          str.append(NO_TYPE_INFO);
@@ -408,8 +420,7 @@ protected:
    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
       bool ok = false;
       for (auto& i : accept_vec) {
-         qore_type_t at = i.spec.getType();
-         if (at == NT_ALL || at == t) {
+         if (i.spec.matchType(t) != QTI_NOT_EQUAL) {
             ok = true;
             break;
          }
@@ -417,7 +428,7 @@ protected:
       if (!ok)
          return false;
       for (auto& i : return_vec) {
-         if (i.spec.getType() == t)
+         if (i.spec.matchType(t) != t)
             return true;
       }
       return false;
@@ -444,11 +455,8 @@ protected:
    // returns true if the type matches an accept type with a filter (type only checked)
    DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
       for (auto& at : accept_vec) {
-         if (at.spec.getTypeSpec() == QTS_TYPE) {
-            qore_type_t t = at.spec.getType();
-            if ((t == NT_ALL || t == n.getType()) && at.map)
-               return true;
-         }
+         if (at.map && at.spec.matchType(n.getType()) != QTI_NOT_EQUAL)
+            return true;
       }
       return false;
    }
@@ -688,6 +696,22 @@ private:
    }
 };
 
+class QoreAnyTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreAnyTypeInfo() : QoreTypeInfo("any", q_accept_vec_t {{NT_ALL, nullptr}}, q_return_vec_t {{NT_ALL}}) {
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.concat("no value");
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+};
+
 class QoreClassTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreClassTypeInfo(const QoreClass* qc, const char* name) : QoreTypeInfo(name, q_accept_vec_t {{qc, nullptr, true}}, q_return_vec_t {{qc, true}}) {
@@ -709,7 +733,12 @@ protected:
 
 class QoreClassOrNothingTypeInfo : public QoreClassTypeInfo {
 public:
-   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(name, q_accept_vec_t {{qc, nullptr}, {NT_NOTHING, nullptr}}, q_return_vec_t {{qc}, {NT_NOTHING}}) {
+   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(name,
+      q_accept_vec_t {
+         {qc, nullptr},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      }, q_return_vec_t {{qc}, {NT_NOTHING}}) {
       tname.prepend("*");
    }
 
@@ -1274,7 +1303,7 @@ public:
    DLLLOCAL QoreDataTypeInfo() : QoreTypeInfo("data", q_accept_vec_t {
          {NT_STRING, nullptr},
          {NT_BINARY, nullptr},
-      }, q_return_vec_t {{NT_RUNTIME_CLOSURE}, {NT_FUNCREF}}) {
+      }, q_return_vec_t {{NT_STRING}, {NT_BINARY}}) {
    }
 
 protected:
@@ -1296,7 +1325,7 @@ public:
          {NT_BINARY, nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      }, q_return_vec_t {{NT_STRING}, {NT_DATA}, {NT_NOTHING}}) {
+      }, q_return_vec_t {{NT_STRING}, {NT_BINARY}, {NT_NOTHING}}) {
    }
 
 protected:

@@ -434,6 +434,7 @@ static int check_method(const QoreProgramLocation& loc, const char* name, BCALis
 
 static inline MethodVariantBase* new_method_variant(const QoreProgramLocation& loc, const char* name, int mod, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) {
    //printd(5, "new_method_variant() '%s' b: %p\n", name, b);
+
    int64 flags = QC_NO_FLAGS;
 
    if (get_pop_argv_ref())
@@ -963,7 +964,7 @@ public:
 
    DLLLOCAL ParserTypeStruct(char* id, bool or_nothing) : typeInfo(or_nothing ? getBuiltinUserOrNothingTypeInfo(id) : getBuiltinUserTypeInfo(id)) {
       //printd(0, "ParserTypeStruct::ParserTypeStruct('%s', %d) t: %p %s\n", id, or_nothing, typeInfo, QoreTypeInfo::getName(typeInfo));
-      if (typeInfo || !strcmp(id, "any")) {
+      if (typeInfo) {
          free(id);
          return;
       }
@@ -2329,34 +2330,34 @@ superclass_list:
 
 superclass:
         IDENTIFIER {
-           $$ = new BCNode($1, Public);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @1.last_line), $1, Public);
         }
         | SCOPED_REF {
-           $$ = new BCNode(new NamedScope($1), Public);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @1.last_line), new NamedScope($1), Public);
         }
         | TOK_PUBLIC IDENTIFIER {
-           $$ = new BCNode($2, Public);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, Public);
         }
         | TOK_PUBLIC SCOPED_REF {
-           $$ = new BCNode(new NamedScope($2), Public);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), new NamedScope($2), Public);
         }
         | TOK_PRIVATE IDENTIFIER {
-           $$ = new BCNode($2, Private);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, Private);
         }
         | TOK_PRIVATE SCOPED_REF {
-           $$ = new BCNode(new NamedScope($2), Private);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), new NamedScope($2), Private);
         }
         | TOK_PRIVATEHIERARCHY IDENTIFIER {
-           $$ = new BCNode($2, Private);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, Private);
         }
         | TOK_PRIVATEHIERARCHY SCOPED_REF {
-           $$ = new BCNode(new NamedScope($2), Private);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), new NamedScope($2), Private);
         }
         | TOK_PRIVATEINTERNAL IDENTIFIER {
-           $$ = new BCNode($2, Internal);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), $2, Internal);
         }
         | TOK_PRIVATEINTERNAL SCOPED_REF {
-           $$ = new BCNode(new NamedScope($2), Internal);
+           $$ = new BCNode(QoreProgramLocation(@1.first_line, @2.last_line), new NamedScope($2), Internal);
         }
         ;
 

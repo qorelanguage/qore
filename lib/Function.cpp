@@ -1405,15 +1405,17 @@ void UserVariantBase::parseInitPopLocalVars() {
 
 // instantiates arguments and sets up the argv variable
 int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink* xsink) const {
-   const QoreValueList* args = ceh ? ceh->getArgs() : 0;
+   const QoreValueList* args = ceh ? ceh->getArgs() : nullptr;
    unsigned num_args = args ? args->size() : 0;
    // instantiate local vars from param list
    unsigned num_params = signature.numParams();
 
    for (unsigned i = 0; i < num_params; ++i) {
-      QoreValue np = args ? const_cast<QoreValueList*>(args)->retrieveEntry(i) : 0;
+      QoreValue np;
+      if (args)
+         np = const_cast<QoreValueList*>(args)->retrieveEntry(i);
       //AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
-      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d %p '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), get_node_type(np), np, get_type_name(np));
+      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
       signature.lv[i]->instantiate(np.refSelf());
 
       /*

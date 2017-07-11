@@ -485,7 +485,7 @@ public:
    DLLLOCAL operator bool() const { return m != 0; }
 };
 
-qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 dom, QoreTypeInfo* n_typeInfo)
+qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom, QoreTypeInfo* n_typeInfo)
    : name(nme),
      cls(n_cls),
      ns(0),
@@ -523,15 +523,15 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      num_user_methods(0),
      num_static_methods(0),
      num_static_user_methods(0),
-     typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, nme)),
-     orNothingTypeInfo(0),
+     typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str())),
+     orNothingTypeInfo(nullptr),
      selfid("self", typeInfo),
      ptr(0),
      mud(0),
      new_copy(0),
      spgm(0) {
    assert(methodID == classID);
-   assert(nme);
+   assert(!name.empty());
 
    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
@@ -972,6 +972,8 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
          AbstractQoreNode** v = qore_object_private::get(o)->getMemberValuePtrForInitialization(i->first, i->second->access == Internal ? this : 0);
          assert(!*v);
          if (i->second->exp) {
+            // set runtime location
+            QoreProgramLocationHelper l(i->second->loc);
             ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
             if (*xsink)
                return -1;
@@ -1449,7 +1451,7 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
    if (!n && i->second->execed)
       return 0;
 
-   QoreProgramOptionalLocationHelper plh(arg ? &loc : 0);
+   QoreProgramOptionalLocationHelper plh(arg ? &loc : nullptr);
    assert(!arg || loc.start_line > 0);
    // evaluate arguments
    ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
@@ -1484,7 +1486,7 @@ void BCEAList::deref(ExceptionSink* xsink) {
 
 // resolves classes, parses arguments, and attempts to find constructor variant
 void BCANode::parseInit(BCList* bcl, const char* classname) {
-   QoreClass* sclass = 0;
+   QoreClass* sclass = nullptr;
    if (ns) {
       sclass = qore_root_ns_private::parseFindScopedClass(loc, *ns);
       printd(5, "BCANode::parseInit() this: %p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
@@ -1811,6 +1813,8 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
    // do not execute constructors for virtual base classes
    if (is_virtual)
       return;
+   // set runtime location
+   QoreProgramLocationHelper l(loc);
    sclass->priv->execBaseClassConstructor(o, bceal, xsink);
 }
 
@@ -2228,7 +2232,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
 
 int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink) const {
    for (auto& i : *this) {
-      if (bceal->add((*i).classid, (*i).getArgs(), (*i).getVariant(), (*i).loc, xsink))
+      if (bceal->add(i->classid, i->getArgs(), i->getVariant(), i->loc, xsink))
          return -1;
    }
    return 0;
@@ -2382,7 +2386,7 @@ void QoreClass::addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
    assert(!xargs);
    if (!priv->scl)
       priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(qc));
+   priv->scl->push_back(new BCNode(QoreProgramLocation(), qc));
    priv->scl->sml.add(this, qc, false);
 }
 
@@ -2399,7 +2403,7 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name.c_str(), priv->name.c_str());
    if (!priv->scl)
       priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(qc, true));
+   priv->scl->push_back(new BCNode(QoreProgramLocation(), qc, true));
 
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
@@ -2902,19 +2906,19 @@ void BCSMList::resolveCopy() {
    }
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, nme, dom)) {
+QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
    priv->owns_ornothingtypeinfo = true;
 }
 
-QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, nme, dom)) {
+QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
    priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    assert(typeInfo);
-   priv = new qore_class_private(this, nme, dom, const_cast<QoreTypeInfo*>(typeInfo));
+   priv = new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo));
 
    printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
 
@@ -2927,7 +2931,7 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    }
 }
 
-QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name().c_str())) {
+QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
    priv->owns_ornothingtypeinfo = true;
 }
@@ -4607,7 +4611,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
    if (bcal && !parent_class.hasParentClass()) {
       parse_error(signature.getParseLocation(), "base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
       delete bcal;
-      bcal = 0;
+      bcal = nullptr;
    }
 
    //printd(5, "UserConstructorVariant::parseInitConstructor() this: %p %s::constructor() params: %d\n", this, parent_class.getName(), signature.numParams());

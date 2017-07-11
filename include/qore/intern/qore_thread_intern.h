@@ -392,9 +392,9 @@ public:
 
 class QoreProgramLocationHelper {
 protected:
-   QoreProgramLocation loc;
+   const QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper(QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
+   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {

@@ -84,8 +84,8 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
 QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    QoreValue v;
    if (type == VT_LOCAL) {
-      printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s)\n", this, ref.id, ref.id->getName());
       v = ref.id->evalValue(needs_deref, xsink);
+      printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s) v: '%s'\n", this, ref.id, ref.id->getName(), v.getTypeName());
    }
    else if (type == VT_CLOSURE) {
       printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());

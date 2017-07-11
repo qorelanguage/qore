@@ -1426,27 +1426,27 @@ typedef std::set<qore_class_private*> qcp_set_t;
 class BCNode {
 public:
    // populated automatically on creation
-   QoreProgramLocation loc;
+   const QoreProgramLocation loc;
    NamedScope* cname;
    char* cstr;
    QoreClass* sclass;
    ClassAccess access;
    bool is_virtual : 1;
 
-   DLLLOCAL BCNode(NamedScope* c, ClassAccess a) : loc(ParseLocation), cname(c), cstr(0), sclass(0), access(a), is_virtual(false) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, NamedScope* c, ClassAccess a) : loc(loc), cname(c), cstr(nullptr), sclass(nullptr), access(a), is_virtual(false) {
    }
 
    // this method takes ownership of *str
-   DLLLOCAL BCNode(char* str, ClassAccess a) : loc(ParseLocation), cname(0), cstr(str), sclass(0), access(a), is_virtual(false) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, char* str, ClassAccess a) : loc(loc), cname(0), cstr(str), sclass(nullptr), access(a), is_virtual(false) {
    }
 
    // for builtin base classes
-   DLLLOCAL BCNode(QoreClass* qc, bool n_virtual = false)
-      : loc(ParseLocation), cname(0), cstr(0), sclass(qc), access(Public), is_virtual(n_virtual) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, QoreClass* qc, bool n_virtual = false)
+      : loc(loc), cname(nullptr), cstr(nullptr), sclass(qc), access(Public), is_virtual(n_virtual) {
    }
 
    // called at runtime with committed classes
-   DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(0), cstr(0), sclass(old.sclass), access(old.access), is_virtual(old.is_virtual) {
+   DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(nullptr), cstr(nullptr), sclass(old.sclass), access(old.access), is_virtual(old.is_virtual) {
       assert(!old.cname);
       assert(!old.cstr);
       assert(old.sclass);
@@ -1836,10 +1836,10 @@ public:
    // pointer to owning program for imported classes
    QoreProgram* spgm;
 
-   DLLLOCAL qore_class_private(QoreClass* n_cls, const char* nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
+   DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
    // only called while the parse lock for the QoreProgram owning "old" is held
-   DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
+   DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
 
    DLLLOCAL ~qore_class_private();
 
