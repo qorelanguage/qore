@@ -87,7 +87,6 @@ class UnresolvedProgramCallReferenceNode;
 class Var;
 class LVList;
 class UserFunctionVariant;
-class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreZoneInfo;

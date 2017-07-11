@@ -83,15 +83,16 @@ int typed_hash_decl_private::runtimeInitMembers(QoreHashNode& h, ExceptionSink* 
             if (*xsink)
                 return -1;
             // check types
-            AbstractQoreNode* nv = QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
+            QoreValue qv(val.release());
+            QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
+            val = qv.takeNode();
             if (*xsink)
                 return -1;
-            *v = nv;
-            val.release();
+            *v = val.release();
         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
         else {
-            *v = QoreTypeInfo::getDefaultValue(i->second->getTypeInfo());
+            *v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo()).takeNode();
         }
 #endif
     }

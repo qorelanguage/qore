@@ -1631,7 +1631,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
                // check for real matches
                if (typeInfo) {
                   if (variantTypeInfo) {
-                     if (!typeInfo->isInputIdentical(variantTypeInfo)) {
+                     if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {
                         dup = false;
                         break;
                      }

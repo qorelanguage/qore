@@ -963,7 +963,7 @@ public:
 
    DLLLOCAL ParserTypeStruct(char* id, bool or_nothing) : typeInfo(or_nothing ? getBuiltinUserOrNothingTypeInfo(id) : getBuiltinUserTypeInfo(id)) {
       //printd(0, "ParserTypeStruct::ParserTypeStruct('%s', %d) t: %p %s\n", id, or_nothing, typeInfo, QoreTypeInfo::getName(typeInfo));
-      if (typeInfo) {
+      if (typeInfo || !strcmp(id, "any")) {
          free(id);
          return;
       }

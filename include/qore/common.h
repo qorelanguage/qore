@@ -52,6 +52,9 @@
 #include <algorithm>
 #include <set>
 
+//! Qore's base type info class
+class QoreTypeInfo;
+
 //! cross-platform define for AF_UNSPEC
 #define Q_AF_UNSPEC -1
 
@@ -144,7 +147,6 @@ class AbstractPrivateData;
 class QoreMethod;
 class QoreBuiltinMethod;
 class QoreClass;
-class QoreTypeInfo;
 struct QoreValue;
 class QoreValueList;
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,9 +50,9 @@ AbstractQoreNode* QoreRegexExtractOperatorNode::parseInitImpl(LocalVar* oflag, i
    const QoreTypeInfo *lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
-   if (QoreTypeInfo::nonStringValue(lti)) {
+   if (!QoreTypeInfo::canConvertToScalar(lti)) {
       QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
-      QoreTypeInfo::doNonStringWarning(lti, loc, desc.c_str());
+      lti->doNonStringWarning(loc, desc.c_str());
    }
 
    // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result

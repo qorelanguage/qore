@@ -234,7 +234,9 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
             return;
 
          // check type compatibility and perform type translations, if any
-         ReferenceHolder<AbstractQoreNode> val(QoreTypeInfo::acceptInputMember(ti, hi.getKey(), hi.getReferencedValue(), xsink), xsink);
+         QoreValue qv(hi.getReferencedValue());
+         QoreTypeInfo::acceptInputMember(ti, hi.getKey(), qv, xsink);
+         ReferenceHolder<AbstractQoreNode> val(qv.takeNode(), xsink);
          if (*xsink)
             return;
 
@@ -317,29 +319,29 @@ QoreHashNode* qore_object_private::getRuntimeMemberHash(ExceptionSink* xsink) co
 }
 
 AbstractQoreNode* qore_object_private::takeMember(ExceptionSink* xsink, const char* key, bool check_access) {
-   const QoreTypeInfo* mti = 0;
+   const QoreTypeInfo* mti = nullptr;
 
    // get the current class context for possible internal data
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-      class_ctx = 0;
+      class_ctx = nullptr;
    bool internal_member;
    if (checkMemberAccessGetTypeInfo(xsink, key, class_ctx, internal_member, mti))
-      return 0;
+      return nullptr;
 
    QoreAutoVarRWWriteLocker al(rml);
 
    if (status == OS_DELETED) {
       makeAccessDeletedObjectException(xsink, key, theclass->getName());
-      return 0;
+      return nullptr;
    }
 
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-   return odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti), this);
+   return odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti).takeNode(), this);
 #else
-   return odata->priv->swapKeyValue(key, 0, this);
+   return odata->priv->swapKeyValue(key, nullptr, this);
 #endif
 }
 
@@ -347,18 +349,18 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
    // get the current class context for possible internal data
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-      class_ctx = 0;
-   const QoreTypeInfo* mti = 0;
+      class_ctx = nullptr;
+   const QoreTypeInfo* mti = nullptr;
 
    bool internal_member;
    if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, class_ctx, internal_member, mti))
-      return 0;
+      return nullptr;
 
    QoreAutoVarRWWriteLocker al(rml);
 
    if (status == OS_DELETED) {
       makeAccessDeletedObjectException(lvh.vl.xsink, key, theclass->getName());
-      return 0;
+      return nullptr;
    }
 
    QoreHashNode* odata = internal_member ? getCreateInternalData(class_ctx) : data;
@@ -367,7 +369,7 @@ AbstractQoreNode* qore_object_private::takeMember(LValueHelper& lvh, const char*
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
    rv = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultValue(mti), this);
 #else
-   rv = odata->priv->swapKeyValue(key, 0, this);
+   rv = odata->priv->swapKeyValue(key, nullptr, this);
 #endif
 
    if (needs_scan(rv)) {
@@ -382,7 +384,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
    // get the current class context for possible internal data
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-      class_ctx = 0;
+      class_ctx = nullptr;
 
    QoreHashNode* rvh = new QoreHashNode;
    // in case the lvalue cannot hold a hash, then dereference after the lock is released
@@ -397,7 +399,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
 
    unsigned old_count = getScanCount();
 
-   QoreHashNode* id = 0;
+   QoreHashNode* id = nullptr;
 
    ConstListIterator li(l);
    while (li.next()) {
@@ -406,7 +408,7 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
          return;
       const char* key = mem->getBuffer();
 
-      const QoreTypeInfo* mti = 0;
+      const QoreTypeInfo* mti = nullptr;
       bool internal_member;
       if (checkMemberAccessGetTypeInfo(lvh.vl.xsink, key, class_ctx, internal_member, mti))
          return;
@@ -432,7 +434,7 @@ void qore_object_private::mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsi
    // get the current class context for possible internal data
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-      class_ctx = 0;
+      class_ctx = nullptr;
 
    QoreSafeVarRWReadLocker sl(rml);
 
@@ -460,7 +462,7 @@ void qore_object_private::mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsi
 }
 
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
-   const QoreTypeInfo* mti = 0;
+   const QoreTypeInfo* mti = nullptr;
    bool internal_member;
    if (checkMemberAccessGetTypeInfo(xsink, key, class_ctx, internal_member, mti))
       return -1;

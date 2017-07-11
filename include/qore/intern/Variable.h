@@ -342,7 +342,7 @@ protected:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
-            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -587,7 +587,7 @@ public:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
             return 0;
          }
 

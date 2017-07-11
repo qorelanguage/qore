@@ -88,9 +88,9 @@ protected:
          else if (!needs_eval && keys[i] && keys[i]->needs_eval())
             needs_eval = true;
 
-         if (QoreTypeInfo::nonStringValue(argTypeInfo)) {
+         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            QoreTypeInfo::doNonStringWarning(argTypeInfo, lvec[i], str.getBuffer());
+            argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
          }
 
          argTypeInfo = 0;

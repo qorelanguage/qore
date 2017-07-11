@@ -1836,7 +1836,7 @@ public:
    // pointer to owning program for imported classes
    QoreProgram* spgm;
 
-   DLLLOCAL qore_class_private(QoreClass* n_cls, const char* nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = 0);
+   DLLLOCAL qore_class_private(QoreClass* n_cls, const char* nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
    // only called while the parse lock for the QoreProgram owning "old" is held
    DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
@@ -2481,7 +2481,9 @@ public:
          if (*xsink)
             return -1;
 
-         val = QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, val.release(), xsink);
+         QoreValue qv(val.release());
+         QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, qv, xsink);
+         val = qv.takeNode();
          if (*xsink)
             return -1;
 

@@ -93,7 +93,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
-         if (v.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
+         if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
             return QoreValue();
          vtype = v.getType();
       }

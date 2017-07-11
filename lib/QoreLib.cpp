@@ -2199,9 +2199,9 @@ int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreType
       }
       return -1;
    }
-   if (QoreTypeInfo::parseReturnsType(typeInfo, NT_INT)) {
-      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT)) {
-         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
+   if (QoreTypeInfo::parseReturns(typeInfo, NT_INT)) {
+      if (QoreTypeInfo::parseReturns(typeInfo, NT_FLOAT)) {
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_NUMBER))
             typeInfo = bigIntFloatOrNumberTypeInfo;
          else
             typeInfo = bigIntOrFloatTypeInfo;
@@ -2210,8 +2210,8 @@ int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreType
          typeInfo = bigIntTypeInfo;
    }
    else {
-      if (QoreTypeInfo::parseReturnsType(typeInfo, NT_FLOAT))
-         if (QoreTypeInfo::parseReturnsType(typeInfo, NT_NUMBER))
+      if (QoreTypeInfo::parseReturns(typeInfo, NT_FLOAT))
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_NUMBER))
             typeInfo = floatOrNumberTypeInfo;
          else
             typeInfo = floatTypeInfo;

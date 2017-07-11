@@ -104,13 +104,13 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
       }
    }
 
-   //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() rightTypeInfo: %s rightTypeInfo->nonStringValue(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", QoreTypeInfo::getName(rti), QoreTypeInfo::nonStringValue(rti), !QoreTypeInfo::parseAccepts(listTypeInfo, rti));
+   //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() rightTypeInfo: %s !rightTypeInfo->canConvertToScalar(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", QoreTypeInfo::getName(rti), !QoreTypeInfo::canConvertToScalar(rti), !QoreTypeInfo::parseAccepts(listTypeInfo, rti));
 
    // issue a warning if the right side of the expression cannot be converted to a string
    // and can not be a list (for a slice)
-   if (QoreTypeInfo::nonStringValue(rti) && !QoreTypeInfo::parseAccepts(listTypeInfo, rti))
+   if (!QoreTypeInfo::canConvertToScalar(rti) && !QoreTypeInfo::parseAccepts(listTypeInfo, rti))
       // FIXME: should be "non-string-or-list warning"
-      QoreTypeInfo::doNonStringWarning(rti, loc, "the right side of the expression with the '.' or '{}' operator is ");
+      rti->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
 
    typeInfo = returnTypeInfo;
    return this;

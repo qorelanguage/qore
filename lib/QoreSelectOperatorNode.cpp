@@ -78,8 +78,8 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = listTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }
