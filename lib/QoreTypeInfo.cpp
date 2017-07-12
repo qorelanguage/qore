@@ -340,7 +340,7 @@ const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    const QoreTypeInfo* rv = i->second;
    // return type "any" for reference types if PO_BROKEN_REFERENCES is set
    if (rv == referenceTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
-      rv = nullptr;
+      rv = anyTypeInfo;
    return rv;
 }
 
@@ -352,7 +352,7 @@ const QoreTypeInfo* getBuiltinUserOrNothingTypeInfo(const char* str) {
    const QoreTypeInfo* rv = i->second;
    // return type "any" for reference types if PO_BROKEN_REFERENCES is set
    if (rv == referenceOrNothingTypeInfo && (getProgram()->getParseOptions64() & PO_BROKEN_REFERENCES))
-      rv = nullptr;
+      rv = anyTypeInfo;
 
    return rv;
 }
@@ -373,7 +373,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
       case QTS_CLASS: {
          switch (t.typespec) {
             case QTS_CLASS:
-               return qore_class_private::get(*u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*t.u.qc));
+               return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc));
             case QTS_TYPE:
                if (t.u.t == NT_ALL)
                   return QTI_AMBIGUOUS;
@@ -511,7 +511,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocatio
    if (qc && my_or_nothing) {
       const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
-         parse_error(loc, "class %s cannot be typed with '*' as the class' type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+         parse_error(loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());
          return objectOrNothingTypeInfo;
       }
       return rv;

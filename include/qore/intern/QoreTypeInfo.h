@@ -511,6 +511,7 @@ protected:
       }
       if (ok)
          return typeInfo->return_vec.size() != accept_vec.size() ? QTI_AMBIGUOUS : QTI_IDENT;
+      may_not_match = false;
       return QTI_NOT_EQUAL;
    }
 

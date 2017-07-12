@@ -1763,8 +1763,8 @@ public:
    QoreProgramLocation loc;      // location of declaration
    std::string name;             // the name of the class
    QoreClass* cls;               // parent class
-   qore_ns_private* ns;          // parent namespace
-   BCList* scl;                  // base class list
+   qore_ns_private* ns = nullptr; // parent namespace
+   BCList* scl = nullptr;         // base class list
 
    mutable VRMutex gate;                 // for synchronized static methods
 
@@ -1782,9 +1782,14 @@ public:
    // static var lists (maps)
    QoreVarMap vars, pending_vars;
 
-   const QoreMethod* system_constructor, *constructor, *destructor,
-      *copyMethod, *methodGate, *memberGate, *deleteBlocker,
-      *memberNotification;
+   const QoreMethod* system_constructor = nullptr,
+    * constructor = nullptr,
+    * destructor = nullptr,
+    * copyMethod = nullptr,
+    * methodGate = nullptr,
+    * memberGate = nullptr,
+    * deleteBlocker = nullptr,
+    * memberNotification = nullptr;
 
    qore_classid_t classID,          // class ID
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
@@ -1818,6 +1823,8 @@ public:
    QoreTypeInfo* typeInfo,
       *orNothingTypeInfo;
 
+   const qore_class_private* injectedClass = nullptr;
+
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
 
@@ -1831,7 +1838,7 @@ public:
    AbstractQoreClassUserData* mud;
 
    // pointer to new class when copying
-   mutable QoreClass* new_copy;
+   mutable QoreClass* new_copy = nullptr;
 
    // pointer to owning program for imported classes
    QoreProgram* spgm;
@@ -2099,7 +2106,7 @@ public:
          }
       }
 
-      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
+      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : 0;
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& access) const {
@@ -2466,7 +2473,7 @@ public:
          }
       }
 
-      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
+      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : 0;
    }
 
    DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
@@ -2623,7 +2630,7 @@ public:
    DLLLOCAL const QoreMethod* doRuntimeMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma, const qore_class_private* class_ctx) const {
       assert(m);
 
-      if (ma == Internal && (!class_ctx || !is_equal(*class_ctx)))
+      if (ma == Internal && (!class_ctx || !equal(*class_ctx)))
          m = 0;
       else if (access < ma)
          access = ma;
@@ -2735,8 +2742,10 @@ public:
 
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClassIntern(const qore_class_private& oc) const;
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const;
 
    DLLLOCAL const QoreClass* getClassIntern(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
       if (cid == classID)
@@ -2749,14 +2758,8 @@ public:
       return getClassIntern(qc, n_access, true);
    }
 
-   DLLLOCAL bool is_equal(const qore_class_private& qc) const {
-      // check hashes if names are the same
-      // FIXME: check fully-qualified namespace name
-      return (qc.classID == classID || (qc.name == name && hash == qc.hash));
-   }
-
    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-      if (is_equal(qc))
+      if (equal(qc))
          return cls;
 
 #ifdef DEBUG_1
@@ -2774,7 +2777,7 @@ public:
    DLLLOCAL const QoreClass* parseGetClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name
-      if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
+      if (parseEqual(qc))
          return cls;
 
 #ifdef DEBUG_SKIP
@@ -2812,7 +2815,30 @@ public:
    DLLLOCAL bool equal(const qore_class_private& qc) const {
       if (&qc == this)
          return true;
+
       if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+         return true;
+
+      if (injectedClass && injectedClass->equal(qc))
+         return true;
+
+      if (qc.injectedClass && equal(*qc.injectedClass))
+         return true;
+
+      return false;
+   }
+
+   DLLLOCAL bool parseEqual(const qore_class_private& qc) const {
+      if (&qc == this)
+         return true;
+
+      if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
+         return true;
+
+      if (injectedClass && injectedClass->parseEqual(qc))
+         return true;
+
+      if (qc.injectedClass && parseEqual(*qc.injectedClass))
          return true;
 
       return false;
@@ -2845,7 +2871,7 @@ public:
    }
 
    DLLLOCAL bool parseCheckHierarchyIntern(const QoreClass* n_cls, ClassAccess& access, bool toplevel) const {
-      if (cls == n_cls || (name == n_cls->priv->name && parseCheckEqualHash(*n_cls->priv)))
+      if (parseEqual(*n_cls->priv))
          return true;
 
       return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
@@ -2899,11 +2925,13 @@ public:
       return qc.priv->inject;
    }
 
-   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject) {
+   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
       QoreClass* rv = new QoreClass(qc);
       if (nme)
          rv->priv->name = nme;
       rv->priv->inject = inject;
+      if (injectedClass)
+         rv->priv->injectedClass = injectedClass;
       if (qc.priv->pub)
          rv->priv->pub = true;
       // reference source program and save in copied class

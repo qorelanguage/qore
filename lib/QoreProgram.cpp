@@ -563,7 +563,8 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       return;
    }
 
-   const qore_ns_private* vns = 0;
+   const qore_class_private* injectedClass = nullptr;
+   const qore_ns_private* vns = nullptr;
    const QoreClass* c;
    {
       // acquire safe access to parse structures in the source program
@@ -571,6 +572,19 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       if (*xsink)
          return;
       c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
+
+      // must mark injected class so it can claim type compatibility with the class it's substituting
+      if (inject) {
+         const qore_ns_private* tcns = nullptr;
+         const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
+         if (oc) {
+            // get inejcted target class pointer for new injected class
+            injectedClass = qore_class_private::get(*oc);
+            // mark source class as compatible with the injected target class as well
+            const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
+         }
+         //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
+      }
    }
 
    if (!c) {
@@ -587,13 +601,14 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    QoreNamespace* tns;
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
+
       tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
    }
    else {
       tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
       //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
    }
 }
 

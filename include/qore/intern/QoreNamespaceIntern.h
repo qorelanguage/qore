@@ -301,11 +301,11 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
+   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
       if (checkImportClass(new_name ? new_name : c->getName(), xsink))
-         return 0;
+         return nullptr;
 
-      QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject);
+      QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
       qore_class_private::setNamespace(nc, this);
       classList.add(nc);
 
@@ -937,8 +937,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int runtimeImportClass(ExceptionSink* xsink, qore_ns_private& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
-      QoreClass* nc = ns.runtimeImportClass(xsink, c, spgm, new_name, inject);
+   DLLLOCAL int runtimeImportClass(ExceptionSink* xsink, qore_ns_private& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
+      QoreClass* nc = ns.runtimeImportClass(xsink, c, spgm, new_name, inject, injectedClass);
       if (!nc)
          return -1;
 
@@ -1693,8 +1693,8 @@ public:
       return rns.rpriv->runtimeImportFunction(xsink, *ns.priv, u, new_name, inject);
    }
 
-   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
-      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, spgm, new_name, inject);
+   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false, const qore_class_private* injectedClass = nullptr) {
+      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, spgm, new_name, inject, injectedClass);
    }
 
    DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {

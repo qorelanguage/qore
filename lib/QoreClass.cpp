@@ -488,18 +488,8 @@ public:
 qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom, QoreTypeInfo* n_typeInfo)
    : name(nme),
      cls(n_cls),
-     ns(0),
-     scl(0),
      pend_constlist(this),   // pending constants
      constlist(this),        // committed constants
-     system_constructor(0),
-     constructor(0),
-     destructor(0),
-     copyMethod(0),
-     methodGate(0),
-     memberGate(0),
-     deleteBlocker(0),
-     memberNotification(0),
      classID(classIDSeq.next()),
      methodID(classID),
      sys(false),
@@ -528,7 +518,6 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      selfid("self", typeInfo),
      ptr(0),
      mud(0),
-     new_copy(0),
      spgm(0) {
    assert(methodID == classID);
    assert(!name.empty());
@@ -540,19 +529,11 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 qore_class_private::qore_class_private(const qore_class_private& old, QoreClass* n_cls)
    : name(old.name),
      cls(n_cls),
-     ns(0),
-     scl(0), // parent class list must be copied after new_copy set in old
      ahm(old.ahm),
      pend_constlist(this),                 // pending constants
      constlist(old.constlist, 0, this),    // committed constants
      system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
-     constructor(0), // method pointers set below when methods are copied
-     destructor(0),
-     copyMethod(0),
-     methodGate(0),
-     memberGate(0),
-     deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : 0),
-     memberNotification(0),
+     deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : nullptr),
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
@@ -577,12 +558,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      num_static_user_methods(old.num_static_user_methods),
      typeInfo(old.typeInfo),
      orNothingTypeInfo(old.orNothingTypeInfo),
+     injectedClass(old.injectedClass),
      selfid(old.selfid),
      hash(old.hash),
      ptr(old.ptr),
-     mud(old.mud ? old.mud->copy() : 0),
-     new_copy(0),
-     spgm(old.spgm ? old.spgm->programRefSelf() : 0) {
+     mud(old.mud ? old.mud->copy() : nullptr),
+     spgm(old.spgm ? old.spgm->programRefSelf() : nullptr) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), classID, cls, old.cls, sys);
 
@@ -1741,10 +1722,10 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_a
 const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return 0;
+      return nullptr;
 
    if (access == Internal && !toplevel)
-      return 0;
+      return nullptr;
 
    const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, false);
 
@@ -2200,7 +2181,7 @@ const QoreClass* BCList::parseGetClass(const qore_class_private& qc, ClassAccess
          return rv;
    }
 
-   return 0;
+   return nullptr;
 }
 
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
@@ -2994,7 +2975,7 @@ void QoreClass::insertStaticMethod(QoreMethod* m) {
 const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const {
    n_access = Public;
    const_cast<qore_class_private*>(this)->initialize();
-   if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+   if (parseEqual(qc))
       return (QoreClass*)cls;
    return scl ? scl->parseGetClass(qc, n_access, true) : 0;
 }
@@ -4126,13 +4107,11 @@ QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const Abstra
 
 bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* opc) const {
    // see if shouldBeClass is a parent class of the class currently being parsed
-   //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this, name.c_str(), pc, pc ? pc->getName() : "n/a", pc ? pc->getClass(classID) : 0);
+   //ClassAccess access1 = Public;
+   //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this, name.c_str(), opc, opc ? opc->name.c_str() : "n/a", opc ? opc->getClass(*this, access1) : nullptr);
 
    if (!opc)
       return false;
-
-   if (opc->classID == classID || (opc->name == name && parseCheckEqualHash(*opc)))
-      return true;
 
    ClassAccess access = Public;
    return opc->parseGetClass(*this, access) || (scl && scl->parseGetClass(*opc, access, true));
@@ -4141,14 +4120,30 @@ bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* 
 bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private* qc) const {
    if (!qc) {
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
-      return QTI_NOT_EQUAL;
+      return false;
    }
+
    ClassAccess access = Public;
    //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
-   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true));
 }
 
 qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc) const {
+   qore_type_result_e rv = parseCheckCompatibleClassIntern(oc);
+   if (rv != QTI_NOT_EQUAL)
+      return rv;
+   if (injectedClass) {
+      rv = injectedClass->parseCheckCompatibleClass(oc);
+      if (rv != QTI_NOT_EQUAL)
+         return rv;
+   }
+   // FIXME: with %strict-types, this check should not be made (cast<>s are obligatory in that case)
+   if (oc.injectedClass)
+      return oc.injectedClass->parseCheckCompatibleClass(*this);
+   return QTI_NOT_EQUAL;
+}
+
+qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qore_class_private& oc) const {
    // make sure both classes are initialized
    const_cast<qore_class_private*>(this)->initialize();
    const_cast<qore_class_private&>(oc).initialize();
@@ -4160,9 +4155,10 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
 #endif
 
-   if (classID == oc.classID || (oc.name == name && parseCheckEqualHash(oc)))
+   if (parseEqual(oc))
       return QTI_IDENT;
 
+   // FIXME: with %strict-types, the second check should not be made (cast<>s are obligatory in that case)
    ClassAccess access;
    if (!parseGetClass(oc, access) && !oc.parseGetClass(*this, access))
       return QTI_NOT_EQUAL;
@@ -4170,11 +4166,26 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    if (access == Public)
       return QTI_AMBIGUOUS;
 
+   if (parseCheckPrivateClassAccess())
+      return QTI_AMBIGUOUS;
+
    return parseCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_class_private& oc) const {
-   if (classID == oc.classID || (oc.name == name && oc.hash == hash))
+   qore_type_result_e rv = runtimeCheckCompatibleClassIntern(oc);
+   if (rv != QTI_NOT_EQUAL)
+      return rv;
+   if (injectedClass) {
+      rv = injectedClass->runtimeCheckCompatibleClassIntern(oc);
+      if (rv != QTI_NOT_EQUAL)
+         return rv;
+   }
+   return QTI_NOT_EQUAL;
+}
+
+qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const {
+   if (equal(oc))
       return QTI_IDENT;
 
    ClassAccess access = Public;
