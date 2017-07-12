@@ -41,12 +41,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -188,12 +187,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -326,12 +324,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -464,12 +461,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = True; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -614,12 +610,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -914,12 +909,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -1059,12 +1053,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -1209,12 +1202,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -1360,12 +1352,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2045,12 +2036,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2168,12 +2158,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2282,12 +2271,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2396,12 +2384,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = True; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2522,12 +2509,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2776,12 +2762,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -2897,12 +2882,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -3023,12 +3007,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -3150,12 +3133,11 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = \"\"; }", ""));
             }
 
-/*
+            # issue #2001
             {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = 2017-07-10; }", ""));
             }
-*/
 
             {
                 Program p(PO_NEW_STYLE);
@@ -3418,7 +3400,7 @@ class TypeTest inherits QUnit::Test {
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = \\i; }", ""));
             }
 
-/*
+            # issue #2002
             {
                 Program p(PO_NEW_STYLE);
                 p.parse("sub t() { any x = 1.0; *data i = x; }", "");
@@ -3472,7 +3454,6 @@ class TypeTest inherits QUnit::Test {
                 p.parse("sub t() { any x = now(); *data i = x; }", "");
                 assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
             }
-*/
         }
 
         {
