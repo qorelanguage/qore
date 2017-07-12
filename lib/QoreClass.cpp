@@ -4128,22 +4128,26 @@ bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private
    return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true));
 }
 
-qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc) const {
-   qore_type_result_e rv = parseCheckCompatibleClassIntern(oc);
+qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const {
+   qore_type_result_e rv = parseCheckCompatibleClassIntern(oc, may_not_match);
    if (rv != QTI_NOT_EQUAL)
       return rv;
    if (injectedClass) {
-      rv = injectedClass->parseCheckCompatibleClass(oc);
+      rv = injectedClass->parseCheckCompatibleClass(oc, may_not_match);
       if (rv != QTI_NOT_EQUAL)
          return rv;
    }
    // FIXME: with %strict-types, this check should not be made (cast<>s are obligatory in that case)
-   if (oc.injectedClass)
-      return oc.injectedClass->parseCheckCompatibleClass(*this);
+   if (oc.injectedClass) {
+      qore_type_result_e rv = oc.injectedClass->parseCheckCompatibleClass(*this, may_not_match);
+      if (!may_not_match && rv != QTI_NOT_EQUAL)
+         may_not_match = true;
+      return rv;
+   }
    return QTI_NOT_EQUAL;
 }
 
-qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qore_class_private& oc) const {
+qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const {
    // make sure both classes are initialized
    const_cast<qore_class_private*>(this)->initialize();
    const_cast<qore_class_private&>(oc).initialize();
@@ -4160,8 +4164,11 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qor
 
    // FIXME: with %strict-types, the second check should not be made (cast<>s are obligatory in that case)
    ClassAccess access;
-   if (!parseGetClass(oc, access) && !oc.parseGetClass(*this, access))
-      return QTI_NOT_EQUAL;
+   if (!parseGetClass(oc, access)) {
+      if (!oc.parseGetClass(*this, access))
+         return QTI_NOT_EQUAL;
+      may_not_match = true;
+   }
 
    if (access == Public)
       return QTI_AMBIGUOUS;
@@ -4169,7 +4176,13 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qor
    if (parseCheckPrivateClassAccess())
       return QTI_AMBIGUOUS;
 
-   return parseCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   if (!parseCheckPrivateClassAccess()) {
+      if (may_not_match)
+         may_not_match = false;
+      return QTI_NOT_EQUAL;
+   }
+
+   return QTI_AMBIGUOUS;
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_class_private& oc) const {

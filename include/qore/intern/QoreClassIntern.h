@@ -2741,8 +2741,12 @@ public:
    DLLLOCAL bool runtimeCheckPrivateClassAccess(const qore_class_private* qc = runtime_get_class()) const;
 
    // this = class to find in "oc"
-   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
-   DLLLOCAL qore_type_result_e parseCheckCompatibleClassIntern(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const {
+      bool may_not_match = false;
+      return parseCheckCompatibleClass(oc, may_not_match);
+   }
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const;
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const;

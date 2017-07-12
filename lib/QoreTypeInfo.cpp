@@ -391,6 +391,29 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
    return QTI_NOT_EQUAL;
 }
 
+qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match) const {
+   switch (typespec) {
+      case QTS_CLASS: {
+         switch (t.typespec) {
+            case QTS_CLASS:
+               return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc), may_not_match);
+            case QTS_TYPE:
+               if (t.u.t == NT_ALL)
+                  return QTI_AMBIGUOUS;
+               return t.u.t == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+         }
+         return QTI_NOT_EQUAL;
+      }
+      case QTS_TYPE: {
+         qore_type_t ot = t.getType();
+         if (u.t == NT_ALL || ot == NT_ALL)
+            return QTI_AMBIGUOUS;
+         return u.t == ot ? QTI_IDENT : QTI_NOT_EQUAL;
+      }
+   }
+   return QTI_NOT_EQUAL;
+}
+
 bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const {
    assert(!priv_error);
    switch (typespec) {

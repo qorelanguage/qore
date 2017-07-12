@@ -88,6 +88,11 @@ public:
    // ex: this = NT_OBJECT, t = class, result = IDENT
    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const;
 
+   // this is the "expecting" type, t is the type to match
+   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+   // ex: this = NT_OBJECT, t = class, result = IDENT
+   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const;
+
    DLLLOCAL bool runtimeTestMatch(const QoreValue& n, bool& priv_error) const;
 
    DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
@@ -481,7 +486,7 @@ protected:
       for (auto& rt : typeInfo->return_vec) {
          bool t_no_match = true;
          for (auto& at : accept_vec) {
-            qore_type_result_e res = at.spec.match(rt.spec);
+            qore_type_result_e res = at.spec.match(rt.spec, may_not_match);
             switch (res) {
                case QTI_IDENT:
                   if (at.exact && rt.exact)
