@@ -608,7 +608,7 @@ else()
       int main(void){
       iconv_t cd;
       cd = iconv_open(\"ISO8859-1//TRANSLIT\",\"ISO8859-1\");
-      if(cd == -1)
+      if(cd == (iconv_t)-1)
         return 1;
       iconv_close(cd);
       return 0; }
@@ -752,3 +752,21 @@ function(check_cxx_atomic)
     endif()
   endif()
 endfunction(check_cxx_atomic)
+
+function(get_module_api_versions)
+    file(READ ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h MM_CONTENTS)
+
+    string(REGEX MATCH "#define QORE_MODULE_API_MAJOR [0-9]+" QMAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MAJOR ([0-9]+)" "\\1" QMAMA_L "${QMAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_API_MINOR [0-9]+" QMAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MINOR ([0-9]+)" "\\1" QMAMI_L "${QMAMI_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MAJOR [0-9]+" QMCAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MAJOR ([0-9]+)" "\\1" QMCAMA_L "${QMCAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MINOR [0-9]+" QMCAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MINOR ([0-9]+)" "\\1" QMCAMI_L "${QMCAMI_L}")
+
+    set(MODULE_API_MAJOR ${QMAMA_L} PARENT_SCOPE)
+    set(MODULE_API_MINOR ${QMAMI_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MAJOR ${QMCAMA_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MINOR ${QMCAMI_L} PARENT_SCOPE)
+endfunction(get_module_api_versions)
