@@ -64,7 +64,7 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
    }
 }
 
-typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), pub(old.pub), sys(old.sys), inject(old.inject) {
+typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), pub(old.pub), sys(old.sys) {
     // copy member list
     for (HashDeclMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
         members.addNoCheck(strdup(i->first), i->second ? new HashDeclMemberInfo(*i->second) : nullptr);

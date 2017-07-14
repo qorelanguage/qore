@@ -576,6 +576,9 @@ protected:
    }
 };
 
+class QoreParseTypeInfo;
+typedef std::vector<QoreParseTypeInfo*> parse_type_vec_t;
+
 // this is basically just a wrapper around NamedScope
 class QoreParseTypeInfo {
 protected:
@@ -590,23 +593,44 @@ protected:
       if (or_nothing)
          tname = "*";
       tname += cscope->getIdentifier();
+      if (!subtypes.empty()) {
+         tname += '<';
+         tname += subtypes[0]->getName();
+         for (unsigned i = 1; i < subtypes.size(); ++i) {
+            tname += ", ";
+            tname += subtypes[i]->getName();
+         }
+         tname += '>';
+      }
    }
 
 public:
    NamedScope* cscope; // namespace scope for class
-   QoreParseTypeInfo* subtype = nullptr;
+   parse_type_vec_t subtypes;
 
-   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false, QoreParseTypeInfo* subtype = nullptr) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)), subtype(subtype) {
+   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
       setName();
       assert(strcmp(n_cscope, "any"));
+
+      //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
    }
 
-   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr), subtype(old.subtype ? new QoreParseTypeInfo(*old.subtype) : nullptr) {
+   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing, parse_type_vec_t&& subtypes) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)), subtypes(subtypes) {
+      setName();
+
+      //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
+   }
+
+   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr) {
+      // copy subtypes
+      for (const auto& i : old.subtypes)
+         subtypes.push_back(new QoreParseTypeInfo(*i));
    }
 
    DLLLOCAL ~QoreParseTypeInfo() {
       delete cscope;
-      delete subtype;
+      for (auto& i : subtypes)
+         delete i;
    }
 
    // static version of method, checking for null pointer

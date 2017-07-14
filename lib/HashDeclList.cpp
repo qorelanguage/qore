@@ -102,13 +102,8 @@ void HashDeclList::mergeUserPublic(const HashDeclList& old) {
         if (!typed_hash_decl_private::get(*i->second)->isUserPublic())
             continue;
 
-        TypedHashDecl* hd = find(i->first);
-        if (hd) {
-            assert(typed_hash_decl_private::get(*hd)->injected());
-            continue;
-        }
-
-        hd = new TypedHashDecl(*i->second);
+        assert(!find(i->first));
+        TypedHashDecl* hd = new TypedHashDecl(*i->second);
         addInternal(hd);
     }
 }
@@ -119,11 +114,8 @@ int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_priv
         if (i->second->isSystem()) {
             hm_qth_t::const_iterator ci = hm.find(i->second->getName());
             if (ci != hm.end()) {
-                if (!typed_hash_decl_private::get(*ci->second)->injected()) {
-                    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system hashdecl %s::%s due to an existing hashdecl without the injection flag set", ns->name.c_str(), ci->second->getName());
-                    break;
-                }
-                continue;
+                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system hashdecl %s::%s due to the presence of an existing hashdecl with the same name in the target namespace", ns->name.c_str(), ci->second->getName());
+                break;
             }
             //printd(5, "HashDeclList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
             TypedHashDecl* hd = new TypedHashDecl(*i->second);

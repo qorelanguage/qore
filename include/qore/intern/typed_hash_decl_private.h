@@ -69,10 +69,6 @@ public:
         return thd = new TypedHashDecl(this);
     }
 
-   DLLLOCAL bool injected() const {
-      return inject;
-   }
-
     DLLLOCAL bool isPublic() const {
         return pub;
     }
@@ -151,7 +147,6 @@ protected:
 
     bool pub = false;
     bool sys = false;
-    bool inject = false;
 
     bool parse_init_done = false;
 };
