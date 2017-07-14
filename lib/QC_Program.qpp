@@ -656,7 +656,7 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    Use @ref Program::getProgram function to attach currently running program
+    Use @ref Qore::Program::getProgram "Program::getProgram" function to attach currently running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -1664,7 +1664,7 @@ nothing Program::setGlobalVarValue(string name, any value) {
 }
 
 
-//! Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
+//! Assign @ref Breakpoint instance to @ref Qore::Program "Program". If breakpoint has been assigned to an program then is unassigned in the first step.
 /**
    @since %Qore 0.8.13
  */
@@ -1701,8 +1701,8 @@ list Program::getBreakpoints() {
    @return a hash of statement info
 
    @see
-      @ref Program::findStatementId()
-      @ref Program::findFunctionStatementId()
+      @ref Qore::Program::findStatementId "Program::findStatementId"
+      @ref Qore::Program::findFunctionStatementId "Program::findFunctionStatementId"
 
 
    @since %Qore 0.8.13
@@ -1728,8 +1728,7 @@ hash Program::getStatementIdInfo(string id) {
    @param line to find statement. In case of multiple statements of line the first one is found
 
    @see
-      @ref Program::resolveStatementId()
-      @ref Program::findFunctionStatementId()
+      @ref Qore::Program::findFunctionStatementId "Program::findFunctionStatementId"
 
    @since %Qore 0.8.13
 */
@@ -1744,10 +1743,10 @@ string Program::findStatementId(string file, int line) {
 //! Find the first statement if function
 /**
    @param function name
+   @param params param types to resolve particular variant
 
    @see
-      @ref Program::resolveStatementId()
-      @ref Program::findStatementId()
+      @ref Qore::Program::findStatementId "Program::findStatementId"
 
    @since %Qore 0.8.13
 */
@@ -1760,7 +1759,7 @@ string Program::findFunctionStatementId(string function, *list params) {
 }
 
 //! finds all variants of a function or class method and returns a list of the results
-/** @param the function or class method name; may also be namespace-justified
+/** @param function the function or class method name; may also be namespace-justified
 
     @return a list of hashes or nothing if the name cannot be resolved; when matched, each hash element has the following keys:
     - \c desc: a string description of the call which includes the name and the full text call signature
@@ -1778,7 +1777,7 @@ list Program::findFunctionVariants(string function) {
 //! Get program id
 /**
    @see
-      @ref Program::getProgramId()
+      @ref Qore::Program::getProgramId "Program::getProgramId"
 
    @since %Qore 0.8.13
  */
@@ -1789,9 +1788,9 @@ string Program::getProgramId() [flags=RET_VALUE_ONLY;] {
 //! Get instance of program id
 /**
    @see
-      @ref Program::resolveProgramId()
+      @ref Qore::Program::resolveProgramId "Program::resolveProgramId"
 
-   @throw PROGRAM-ERROR if the programId cannot identify @ref Program instance
+   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::Program "Program" instance
 
    @since %Qore 0.8.13
  */

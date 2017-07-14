@@ -55,8 +55,8 @@ const BreakpointPolicyReject = BKP_PO_REJECT;
 //@}
 
 
-//! Breakpoint class supports breakpoint setting for particular %Qore @ref Program when debugging.
-/** Breakpoint is assigned to one or more statement. When program flows through it then @ref DebugProgram callback is executed.
+//! Breakpoint class supports breakpoint setting for particular %Qore @ref Qore::Program "Program" when debugging.
+/** Breakpoint is assigned to one or more statement. When program flows through it then @ref DebugProgram "DebugProgram" callback is executed.
     Breakpoint activity may be limited to one or more threads.
 
     @par Example:
@@ -96,7 +96,7 @@ Breakpoint::copy() {
    self->setPrivate(CID_BREAKPOINT, qb);
 }
 
-//! Unlinks from @ref Breakpoint object and dereferences it
+//! Unlinks from @ref Breakpoint "Breakpoint" object and dereferences it
 /**
  *
  */
@@ -140,11 +140,11 @@ nothing Breakpoint::setPolicy(softint policy) {
 //! Get policy how thread list is evaluated. See @ref breakpoint_policy_options
 /**
  */
-int Breakpoint::getPolicy()) {
+int Breakpoint::getPolicy() {
    return (int)bkpt->policy;
 }
 
-//! Assign @ref Program to breakpoint.
+//! Assign @ref Qore::Program "Program" to breakpoint.
 /**
  *
  *  @param new_pgm Program to be assigned
@@ -154,7 +154,7 @@ nothing Breakpoint::assignProgram(Program[QoreProgram] pgm) {
    bkpt->assignProgram(pgm, xsink);
 }
 
-//! Unassign @ref Program from breakpoint and deletes all statement references
+//! Unassign @ref Qore::Program "Program" from breakpoint and deletes all statement references
 /**
  *
  */
@@ -186,7 +186,7 @@ nothing Breakpoint::unassignStatement(string statementId) {
 
 //! Get list of statements
 /**
- *  @see @ref Program::resolveStatementId()
+ *  @see @ref Qore::Program::resolveStatementId() "Program::resolveStatementId()"
  */
 list Breakpoint::getStatementIds() {
    return bkpt->getStatementIds(xsink);
@@ -255,8 +255,6 @@ nothing Breakpoint::clearThreadIds() {
 
 //! Get breakpoint id
 /**
-   @see
-      @ref Breakpoint::getBreakpointId()
  */
 string Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
    return bkpt->getBreakpointId();
@@ -264,9 +262,6 @@ string Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
 
 //! Get instance of breakpoint id
 /**
-   @see
-      @ref Breakpoint::resolveBreakpointId()
-
    @throw BREAKPOINT-ERROR if the breakpointId cannot identify @ref Breakpoint instance
 
  */

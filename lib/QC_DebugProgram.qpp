@@ -75,9 +75,9 @@ const DebugBlockBreak = RC_BREAK;
 const DebugBlockContinue = RC_CONTINUE;
 //@}
 
-//! DebugProgram class supports %Qore @ref Program debugging.
-/** One instance may be assigned to one or more @ref Program instances which may run in one or more threads.
-    @ref Program is added into debugging list, next the program being debugged notifies debugger when next qore script
+//! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging.
+/** One instance may be assigned to one or more @ref Qore::Program "Program" instances which may run in one or more threads.
+    @ref Qore::Program "Program" is added into debugging list, next the program being debugged notifies debugger when next qore script
     event occurs. Calling of notification method is performed always in program thread. When the program flow is to be interrupted
     then it happens in notification method of this class. Then debugger decides to continue then returns from notification function
     and passes @ref debug_step_options value "step option" code back.
@@ -190,7 +190,7 @@ DebugProgram::onStep(Program[QoreProgram] pgm, string blockStatement, *string st
 //! Executed when a function is entered.
 /**
     @see
-       @ref Program::getStatementIdInfo()
+       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
 DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, string statement, reference sb) {
 }
@@ -198,7 +198,7 @@ DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, string statement, refere
 //! Executed when a function is exited.
 /**
     @see
-       @ref Program::getStatementIdInfo()
+       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
 DebugProgram::onFunctionExit(Program[QoreProgram] pgm, string statement, reference returnValue, reference sb) {
 }
@@ -206,7 +206,7 @@ DebugProgram::onFunctionExit(Program[QoreProgram] pgm, string statement, referen
 //! Executed when an exception is raised.
 /**
     @see
-       @ref Program::getStatementIdInfo()
+       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
 DebugProgram::onException(Program[QoreProgram] pgm, string statement, hash ex, reference dismiss, reference sb) {
 }
