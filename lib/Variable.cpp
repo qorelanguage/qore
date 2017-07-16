@@ -378,7 +378,6 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
    ocvec.push_back(ObjCountRec(h));
 
    //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-   clearPtr();
    return qore_hash_private::get(*h)->getLValue(mem, *this, for_remove, vl.xsink);
 
    /*

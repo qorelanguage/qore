@@ -463,10 +463,10 @@ public:
       return (bool)v;
    }
 
-   DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = 0) {
+   DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
       if (val) {
          assert(!v);
-         val = 0;
+         val = nullptr;
       }
       else
          assert(v);
@@ -478,9 +478,9 @@ public:
 
    DLLLOCAL void clearPtr() {
       if (val)
-         val = 0;
-      v = 0;
-      typeInfo = 0;
+         val = nullptr;
+      v = nullptr;
+      typeInfo = nullptr;
       before = false;
    }
 

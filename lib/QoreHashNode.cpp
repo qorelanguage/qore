@@ -80,7 +80,7 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
    else
       m = (*(i->second));
 
-   lvh.setPtr(m->node, memTypeInfo);
+   lvh.resetPtr(&m->node, memTypeInfo);
    return 0;
 }
 
