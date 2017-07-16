@@ -64,6 +64,7 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
       const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
       if (!m) {
          xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
+         lvh.clearPtr();
          return -1;
       }
 
