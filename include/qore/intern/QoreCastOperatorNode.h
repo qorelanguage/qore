@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,48 +33,124 @@
 
 #define _QORE_QORECASTOPERATORNODE_H
 
-class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
-protected:
-   DLLLOCAL static QoreString cast_str;
-   NamedScope *path;
-   QoreClass *qc;
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      return qc ? qc->getTypeInfo() : objectTypeInfo;
-   }
-
-   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, QoreClass* q, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), path(0), qc(q) {
-   }
-
+class QoreParseCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
+friend class QoreCastOperatorNode;
 public:
-   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), path(new NamedScope(str)), qc(0) {
+   DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation& loc, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp), path(new NamedScope(str)) {
    }
 
-   DLLLOCAL virtual ~QoreCastOperatorNode() {
+   // type is unknown before resolution
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return anyTypeInfo;
+   }
+
+   DLLLOCAL virtual ~QoreParseCastOperatorNode() {
       delete path;
    }
 
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
 
    // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return cast_str.getBuffer();
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      assert(false);
+      return nullptr;
+   }
+
+protected:
+   DLLLOCAL static QoreString cast_str;
+   NamedScope* path;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+      assert(false);
+      return QoreValue();
+   }
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+};
+
+class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
+public:
+   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
+   }
+
+   DLLLOCAL virtual ~QoreCastOperatorNode() = default;
+
+   DLLLOCAL QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+      del = false;
+      return &QoreParseCastOperatorNode::cast_str;
+   }
+
+   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+      str.concat(&QoreParseCastOperatorNode::cast_str);
+      return 0;
+   }
+
+   // returns the type name as a c string
+   DLLLOCAL virtual const char* getTypeName() const {
+      return QoreParseCastOperatorNode::cast_str.getBuffer();
+   }
+
+protected:
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+      assert(false);
+      return nullptr;
+   }
+};
+
+class QoreClassCastOperatorNode : public QoreCastOperatorNode {
+public:
+   DLLLOCAL QoreClassCastOperatorNode(const QoreProgramLocation& loc, const QoreClass* qc, AbstractQoreNode *exp) : QoreCastOperatorNode(loc, exp), qc(qc) {
+   }
+
+   DLLLOCAL virtual ~QoreClassCastOperatorNode() = default;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return qc ? qc->getTypeInfo() : objectTypeInfo;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
-         return 0;
-      assert(!path);
+         return nullptr;
       assert(qc);
-      return new QoreCastOperatorNode(loc, qc, n_exp.release());
+      return new QoreClassCastOperatorNode(loc, qc, n_exp.release());
    }
+
+protected:
+   const QoreClass* qc;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+};
+
+class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
+public:
+   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
+   }
+
+   DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return hd ? hd->getTypeInfo() : hashTypeInfo;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return nullptr;
+      assert(hd);
+      return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release());
+   }
+
+protected:
+   const TypedHashDecl* hd;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

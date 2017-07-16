@@ -446,6 +446,11 @@ public:
    */
    DLLEXPORT void removeKey(const char* key, ExceptionSink* xsink);
 
+   //! returns the hash's type declaration, if any
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const TypedHashDecl* getHashDecl() const;
+
    //! returns the type name (useful in templates)
    /** @return the type name
     */

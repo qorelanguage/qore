@@ -1272,6 +1272,10 @@ public:
       return map.end();
    }
 
+   DLLLOCAL size_t size() const {
+      return list.size();
+   }
+
 protected:
    member_list_t list;
    member_map_t map;

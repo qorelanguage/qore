@@ -282,60 +282,87 @@ void VarRefDeclNode::makeGlobal() {
    new_decl = true;
 }
 
-void VarRefFunctionCallBase::parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const QoreClass *qc) {
-   if (qc) {
-      // throw an exception if trying to instantiate a class with abstract method variants
-      qore_class_private::get(*const_cast<QoreClass*>(qc))->parseCheckAbstractNew(loc);
+void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc) {
+    assert(qc);
+    // throw an exception if trying to instantiate a class with abstract method variants
+    qore_class_private::get(*const_cast<QoreClass*>(qc))->parseCheckAbstractNew(loc);
 
-      if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
-         parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
+    if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
+        parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
-      // FIXME: make common code with ScopedObjectCallNode
-      const QoreMethod *constructor = qc ? qc->parseGetConstructor() : 0;
-      const QoreTypeInfo *typeInfo;
-      lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : 0, typeInfo);
+    // FIXME: make common code with ScopedObjectCallNode
+    const QoreMethod* constructor = qc ? qc->parseGetConstructor() : nullptr;
+    const QoreTypeInfo* typeInfo;
+    lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : nullptr, typeInfo);
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
+    //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
-      if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
-         if (variant)
+    if (((constructor && (qore_method_private::parseGetAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
+        if (variant)
             parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
-         else
+        else
             parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
-      }
+    }
 
-      //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+    //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+}
+
+void VarRefNewObjectNode::parseInitHashDeclCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {
+    assert(hd);
+    lvids += typed_hash_decl_private::get(*QoreTypeInfo::getUniqueReturnHashDecl(typeInfo))->parseInitImpliedConstructor(loc, oflag, pflag, args, runtime_check);
+}
+
+AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
+   parseInitCommon(oflag, pflag, lvids, true);
+
+   const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+   if (qc) {
+      parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
+      vrn_type = VRN_OBJECT;
+   }
+   else {
+      const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+      if (hd) {
+         parseInitHashDeclCall(loc, oflag, pflag, lvids, hd);
+         vrn_type = VRN_HASHDECL;
+      }
+      else
+         parse_error(loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
    }
 
    if (pflag & PF_FOR_ASSIGNMENT)
-      parse_error(loc, "variable new object instantiation will be assigned when the object is created; it is an error to make an additional assignment");
-}
+      parse_error(loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
 
-AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   parseInitCommon(oflag, pflag, lvids, true);
-
-   const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
-   if (!qc)
-      parse_error(loc, "cannot instantiate type '%s' as a class", QoreTypeInfo::getName(typeInfo));
-
-   parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
    outTypeInfo = typeInfo;
    return this;
 }
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-   ReferenceHolder<QoreObject> obj(qore_class_private::execConstructor(*QoreTypeInfo::getUniqueReturnClass(typeInfo), variant, args, xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    ReferenceHolder<> value(xsink);
 
-   QoreObject* rv = *obj;
-   LValueHelper lv(this, xsink);
-   if (!lv)
-      return QoreValue();
-   lv.assign(obj.release());
-   if (*xsink)
-      return QoreValue();
-   needs_deref = false;
-   return QoreValue(rv);
+    switch (vrn_type) {
+        case VRN_OBJECT: {
+            assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+            value = qore_class_private::execConstructor(*QoreTypeInfo::getUniqueReturnClass(typeInfo), variant, args, xsink);
+            if (*xsink)
+                return QoreValue();
+            break;
+        }
+        case VRN_HASHDECL:
+            value = typed_hash_decl_private::get(*QoreTypeInfo::getUniqueReturnHashDecl(typeInfo))->newHash(args, runtime_check, xsink);
+            break;
+        default:
+            assert(false);
+            break;
+    }
+
+    LValueHelper lv(this, xsink);
+    if (!lv)
+        return QoreValue();
+    AbstractQoreNode* rv;
+    lv.assign(rv = value.release());
+    if (*xsink)
+        return QoreValue();
+    needs_deref = false;
+    return QoreValue(rv);
 }

@@ -40,9 +40,82 @@
 #include <string>
 
 class QoreParseHashNode : public ParseNode {
+public:
+   typedef std::vector<AbstractQoreNode*> nvec_t;
+
+   DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
+   }
+
+   DLLLOCAL ~QoreParseHashNode() {
+      assert(keys.size() == values.size());
+      for (size_t i = 0; i < keys.size(); ++i) {
+         discard(keys[i], 0);
+         discard(values[i], 0);
+      }
+      keys.clear();
+      values.clear();
+   }
+
+   DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v, const QoreProgramLocation& loc) {
+      keys.push_back(n);
+      values.push_back(v);
+      lvec.push_back(loc);
+
+      if (!n || n->is_value()) {
+         QoreStringValueHelper key(n);
+         checkDup(loc, key->getBuffer());
+      }
+   }
+
+   DLLLOCAL size_t size() {
+      return keys.size();
+   }
+
+   // used when converting to the hash map operator
+   DLLLOCAL AbstractQoreNode* takeFirstKeyNode() {
+      assert(keys.size() == 1);
+      AbstractQoreNode* rv = keys[0];
+      keys[0] = 0;
+      return rv;
+   }
+
+   // used when converting to the hash map operator
+   DLLLOCAL AbstractQoreNode* takeFirstValueNode() {
+      assert(values.size() == 1);
+      AbstractQoreNode* rv = values[0];
+      values[0] = 0;
+      return rv;
+   }
+
+   DLLLOCAL void setCurly() {
+      assert(!curly);
+      curly = true;
+   }
+
+   DLLLOCAL bool isCurly() const {
+      return curly;
+   }
+
+   DLLLOCAL void updateLastLine(int last_line) {
+      loc.end_line = last_line;
+   }
+
+   DLLLOCAL const nvec_t& getKeys() const{
+      return keys;
+   }
+
+   DLLLOCAL const nvec_t& getValues() const{
+      return values;
+   }
+
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual const char* getTypeName() const;
+
 protected:
    typedef std::map<std::string, bool> kmap_t;
-   typedef std::vector<AbstractQoreNode*> nvec_t;
    typedef std::vector<QoreProgramLocation> lvec_t;
    nvec_t keys, values;
    lvec_t lvec;
@@ -129,70 +202,6 @@ protected:
       }
       return h.release();
    }
-
-public:
-   DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
-   }
-
-   DLLLOCAL ~QoreParseHashNode() {
-      assert(keys.size() == values.size());
-      for (size_t i = 0; i < keys.size(); ++i) {
-         discard(keys[i], 0);
-         discard(values[i], 0);
-      }
-      keys.clear();
-      values.clear();
-   }
-
-   DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v, const QoreProgramLocation& loc) {
-      keys.push_back(n);
-      values.push_back(v);
-      lvec.push_back(loc);
-
-      if (!n || n->is_value()) {
-         QoreStringValueHelper key(n);
-         checkDup(loc, key->getBuffer());
-      }
-   }
-
-   DLLLOCAL size_t size() {
-      return keys.size();
-   }
-
-   // used when converting to the hash map operator
-   DLLLOCAL AbstractQoreNode* takeFirstKeyNode() {
-      assert(keys.size() == 1);
-      AbstractQoreNode* rv = keys[0];
-      keys[0] = 0;
-      return rv;
-   }
-
-   // used when converting to the hash map operator
-   DLLLOCAL AbstractQoreNode* takeFirstValueNode() {
-      assert(values.size() == 1);
-      AbstractQoreNode* rv = values[0];
-      values[0] = 0;
-      return rv;
-   }
-
-   DLLLOCAL void setCurly() {
-      assert(!curly);
-      curly = true;
-   }
-
-   DLLLOCAL bool isCurly() const {
-      return curly;
-   }
-
-   DLLLOCAL void updateLastLine(int last_line) {
-      loc.end_line = last_line;
-   }
-
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual const char* getTypeName() const;
 };
 
 #endif

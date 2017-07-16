@@ -83,6 +83,8 @@ public:
 
    DLLLOCAL void parseInit();
 
+   DLLLOCAL void parseCommit(HashDeclList& n);
+
    DLLLOCAL void reset();
 
    DLLLOCAL void assimilate(HashDeclList& n, qore_ns_private& ns);

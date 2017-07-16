@@ -154,9 +154,9 @@ public:
    DLLLOCAL void setExplicitScope() { explicit_scope = true; }
 
    // will only be called on *VarRefNewObjectNode objects, but this is their common class
-   DLLLOCAL virtual const char* getNewObjectClassName() const {
+   DLLLOCAL virtual const char* parseGetTypeName() const {
       assert(false);
-      return 0;
+      return nullptr;
    }
 
    // for checking for new object calls
@@ -350,29 +350,14 @@ public:
    }
 };
 
-class VarRefFunctionCallBase : public FunctionCallBase {
-protected:
-
-public:
-   DLLLOCAL VarRefFunctionCallBase(QoreListNode* n_args) : FunctionCallBase(n_args) {
-   }
-   DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc);
-};
-
-class VarRefNewObjectNode : public VarRefDeclNode, public VarRefFunctionCallBase {
-protected:
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   // initializes during parsing
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo);
-
+class VarRefNewObjectNode : public VarRefDeclNode, public FunctionCallBase {
 public:
    DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, QoreListNode* n_args, qore_var_t t) :
-               VarRefDeclNode(loc, n, t, n_typeInfo, n_parseTypeInfo, true), VarRefFunctionCallBase(n_args) {
+               VarRefDeclNode(loc, n, t, n_typeInfo, n_parseTypeInfo, true), FunctionCallBase(n_args) {
    }
 
    DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, Var* var, QoreListNode* n_args, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
-               VarRefDeclNode(loc, n, var, n_typeInfo, n_parseTypeInfo), VarRefFunctionCallBase(n_args) {
+               VarRefDeclNode(loc, n, var, n_typeInfo, n_parseTypeInfo), FunctionCallBase(n_args) {
    }
 
    /*
@@ -385,14 +370,26 @@ public:
       return true;
    }
 
-   // will only be called on *VarRefNewObjectNode objects, but this is their common class
-   DLLLOCAL virtual const char* getNewObjectClassName() const {
-      if (typeInfo) {
-         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-         return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
-      }
-      return parseTypeInfo->cscope->getIdentifier();
+   DLLLOCAL const char* parseGetTypeName() const {
+      return typeInfo ? QoreTypeInfo::getName(typeInfo) : parseTypeInfo->cscope->getIdentifier();
    }
+
+protected:
+   enum vrn_type_e : unsigned char {
+      VRN_NONE = 0,
+      VRN_OBJECT = 1,
+      VRN_HASHDECL = 2,
+   } vrn_type = VRN_NONE;
+   bool runtime_check = false;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   // initializes during parsing
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo);
+
+   DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc);
+
+   DLLLOCAL void parseInitHashDeclCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const TypedHashDecl* hd);
 };
 
 #endif

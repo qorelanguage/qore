@@ -83,42 +83,43 @@ const TypedHashDecl* HashDeclList::find(const char *name) const {
 }
 
 HashDeclList::HashDeclList(const HashDeclList& old, int64 po, qore_ns_private* ns) {
-    for (hm_qth_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-        if (!i->second->isSystem()) {
-            //printd(5, "HashDeclList::HashDeclList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_HASHDECLS: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_HASHDECLS ? "true": "false", typed_hash_decl_private::isPublic(*i->second) ? "true": "false");
-            if (po & PO_NO_INHERIT_USER_HASHDECLS || !typed_hash_decl_private::get(*i->second)->isPublic())
+    //printd(5, "HashDeclList::HashDeclList() this: %p ns: '%s' size: %d\n", this, ns->name.c_str(), (int)old.hm.size());
+    for (auto& i : old.hm) {
+        //printd(5, "HashDeclList::HashDeclList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_HASHDECLS: %s sys: %s pub: %s\n", this, i.second, i.second->getName(), po & PO_NO_INHERIT_USER_HASHDECLS ? "true": "false", i.second->isSystem() ? "true": "false", typed_hash_decl_private::get(*i.second)->isPublic() ? "true": "false");
+        if (!i.second->isSystem()) {
+            if (po & PO_NO_INHERIT_USER_HASHDECLS || !typed_hash_decl_private::get(*i.second)->isPublic())
                 continue;
         }
         else
             if (po & PO_NO_INHERIT_SYSTEM_HASHDECLS)
                 continue;
-        TypedHashDecl* hd = new TypedHashDecl(*i->second);
+        TypedHashDecl* hd = new TypedHashDecl(*i.second);
         addInternal(hd);
     }
 }
 
 void HashDeclList::mergeUserPublic(const HashDeclList& old) {
-    for (hm_qth_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-        if (!typed_hash_decl_private::get(*i->second)->isUserPublic())
+    for (auto& i : old.hm) {
+        if (!typed_hash_decl_private::get(*i.second)->isUserPublic())
             continue;
 
-        assert(!find(i->first));
-        TypedHashDecl* hd = new TypedHashDecl(*i->second);
+        assert(!find(i.first));
+        TypedHashDecl* hd = new TypedHashDecl(*i.second);
         addInternal(hd);
     }
 }
 
 int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_private* ns, ExceptionSink* xsink) {
     int cnt = 0;
-    for (hm_qth_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
-        if (i->second->isSystem()) {
-            hm_qth_t::const_iterator ci = hm.find(i->second->getName());
+    for (auto& i : source.hm) {
+        if (i.second->isSystem()) {
+            hm_qth_t::const_iterator ci = hm.find(i.second->getName());
             if (ci != hm.end()) {
                 xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system hashdecl %s::%s due to the presence of an existing hashdecl with the same name in the target namespace", ns->name.c_str(), ci->second->getName());
                 break;
             }
             //printd(5, "HashDeclList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
-            TypedHashDecl* hd = new TypedHashDecl(*i->second);
+            TypedHashDecl* hd = new TypedHashDecl(*i.second);
             addInternal(hd);
             ++cnt;
         }
@@ -127,10 +128,14 @@ int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_priv
 }
 
 void HashDeclList::parseInit() {
-     for (hm_qth_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+     for (auto& i : hm) {
           //printd(5, "HashDeclList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
-          typed_hash_decl_private::get(*(i->second))->parseInit();
+          typed_hash_decl_private::get(*(i.second))->parseInit();
      }
+}
+
+void HashDeclList::parseCommit(HashDeclList& n) {
+    assimilate(n);
 }
 
 void HashDeclList::reset() {

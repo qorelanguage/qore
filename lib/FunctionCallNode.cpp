@@ -113,7 +113,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
          //QoreValue& n = args->getEntryReference(i);
          AbstractQoreNode** n = args->get_entry_ptr(i);
          assert(*n);
-         argTypeInfo.push_back(0);
+         argTypeInfo.push_back(nullptr);
          //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s) oflag: %p pflag: %d func: %p i: %d/%d arg: %p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
          (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
          if (!have_arg_type_info && argTypeInfo[i])

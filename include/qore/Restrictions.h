@@ -139,7 +139,7 @@
 #define PO_NO_SYSTEM_API PO_SYSTEM_INHERITANCE_OPTIONS
 
 //! an alias of PO_INHERITANCE_OPTIONS
-#define PO_NO_API                     PO_INHERITANCE_OPTIONS
+#define PO_NO_API               PO_INHERITANCE_OPTIONS
 
 #define QDOM_DEFAULT            0                         //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)

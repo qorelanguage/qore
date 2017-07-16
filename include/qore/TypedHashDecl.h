@@ -47,9 +47,12 @@ public:
 
     DLLEXPORT TypedHashDecl(const TypedHashDecl& old);
 
+    //! returns the type info object for the hashdecl
+    DLLEXPORT const QoreTypeInfo* getTypeInfo(bool or_nothing = false) const;
+
     DLLEXPORT const char* getName() const;
 
-    DLLLOCAL bool isSystem() const;
+    DLLEXPORT bool isSystem() const;
 
 protected:
     //! deletes the object and frees all memory

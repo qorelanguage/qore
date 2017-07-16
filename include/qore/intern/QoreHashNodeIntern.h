@@ -64,6 +64,7 @@ class qore_hash_private {
 public:
    qhlist_t member_list;
    hm_hm_t hm;
+   const TypedHashDecl* hashdecl = nullptr;
    unsigned obj_count = 0;
 #ifdef DEBUG
    bool is_obj = false;
@@ -324,6 +325,16 @@ public:
       assert(obj_count || dt > 0);
       //printd(5, "qore_hash_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
+   }
+
+   DLLLOCAL const TypedHashDecl* getHashDecl() const {
+      return hashdecl;
+   }
+
+   DLLLOCAL static QoreHashNode* newHashDecl(const TypedHashDecl* hd) {
+      QoreHashNode* rv = new QoreHashNode;
+      rv->priv->hashdecl = hd;
+      return rv;
    }
 
    DLLLOCAL static qore_hash_private* get(QoreHashNode& h) {

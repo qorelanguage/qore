@@ -451,7 +451,7 @@ void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool need
    // see if this is a new object call
    if (v->has_effect()) {
       // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(loc, "parameter '%s' may not be declared with new object syntax; instead use: '%s %s = new %s()'", v->getName(), v->getNewObjectClassName(), v->getName(), v->getNewObjectClassName());
+      parse_error(loc, "parameter '%s' may not be declared with implicit constructor syntax; instead use: '%s %s = new %s()'", v->getName(), v->parseGetTypeName(), v->getName(), v->parseGetTypeName());
    }
 
    if (is_decl) {

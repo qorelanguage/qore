@@ -374,10 +374,29 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
          switch (t.typespec) {
             case QTS_CLASS:
                return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc));
-            case QTS_TYPE:
-               if (t.u.t == NT_ALL)
+            default: {
+               // NOTE: with %strict-types, this must return QTI_NOT_EQUAL
+               qore_type_t tt = t.getType();
+               if (tt == NT_ALL)
                   return QTI_AMBIGUOUS;
-               return t.u.t == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+               return tt == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+            }
+         }
+         return QTI_NOT_EQUAL;
+      }
+      case QTS_HASHDECL: {
+         switch (t.typespec) {
+            case QTS_HASHDECL:
+               return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+            default: {
+               return QTI_NOT_EQUAL;
+               /*
+               qore_type_t tt = t.getType();
+               if (tt == NT_ALL)
+                  return QTI_AMBIGUOUS;
+               return tt == NT_HASH ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+               */
+            }
          }
          return QTI_NOT_EQUAL;
       }
@@ -397,17 +416,44 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_CLASS:
                return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc), may_not_match);
-            case QTS_TYPE:
-               if (t.u.t == NT_ALL)
+            default: {
+               // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+               qore_type_t tt = t.getType();
+               if (tt == NT_ALL || tt == NT_OBJECT) {
+                  may_not_match = true;
                   return QTI_AMBIGUOUS;
-               return t.u.t == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+               }
+               return QTI_NOT_EQUAL;
+            }
+         }
+         return QTI_NOT_EQUAL;
+      }
+      case QTS_HASHDECL: {
+         switch (t.typespec) {
+            case QTS_HASHDECL:
+               return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+            default: {
+               /*
+               qore_type_t tt = t.getType();
+               if (tt == NT_ALL || tt == NT_HASH) {
+                  may_not_match = true;
+                  return QTI_AMBIGUOUS;
+               }
+               */
+               return QTI_NOT_EQUAL;
+            }
          }
          return QTI_NOT_EQUAL;
       }
       case QTS_TYPE: {
          qore_type_t ot = t.getType();
-         if (u.t == NT_ALL || ot == NT_ALL)
+         if (u.t == NT_ALL)
             return QTI_AMBIGUOUS;
+         // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+         if (ot == NT_ALL) {
+            may_not_match = true;
+            return QTI_AMBIGUOUS;
+         }
          return u.t == ot ? QTI_IDENT : QTI_NOT_EQUAL;
       }
    }
@@ -432,6 +478,13 @@ bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const 
          }
          return false;
       }
+      case QTS_HASHDECL: {
+         if (n.getType() == NT_HASH) {
+            const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+            return hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd));
+         }
+         return false;
+      }
       case QTS_TYPE:
          return u.t == NT_ALL || u.t == n.getType();
    }
@@ -446,6 +499,8 @@ bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
          return u.t == other.u.t;
       case QTS_CLASS:
          return qore_class_private::get(*u.qc)->equal(*qore_class_private::get(*other.u.qc));
+      case QTS_HASHDECL:
+         return typed_hash_decl_private::get(*u.hd)->equal(*typed_hash_decl_private::get(*other.u.hd));
    }
    return false;
 }
@@ -459,6 +514,10 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
       const QoreTypeSpec& t = accept_vec[0].spec;
       if (n.getType() == NT_OBJECT && t.getTypeSpec() == QTS_CLASS)
          return qore_class_private::runtimeCheckCompatibleClass(*t.getClass(), *n.get<const QoreObject>()->getClass());
+      if (n.getType() == NT_HASH && t.getTypeSpec() == QTS_HASHDECL) {
+         const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+         return hd && typed_hash_decl_private::get(*t.getHashDecl())->equal(*typed_hash_decl_private::get(*hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+      }
       qore_type_t at = t.getType();
       if (at == NT_ALL)
          return QTI_AMBIGUOUS;
@@ -466,19 +525,20 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
    }
 
    for (auto& t : accept_vec) {
-      switch (n.getType()) {
-         case NT_OBJECT:
-            if (t.spec.getTypeSpec() == QTS_CLASS) {
-               qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*t.spec.getClass(), *n.get<const QoreObject>()->getClass());
-               if (rv != QTI_NOT_EQUAL)
-                  return QTI_AMBIGUOUS;
-            }
-         // fall down to default
-         default:
-            qore_type_t at = t.spec.getType();
-            if (at == NT_ALL || n.getType() == at)
-               return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
-            break;
+      if (n.getType() == NT_OBJECT && t.spec.getTypeSpec() == QTS_CLASS) {
+         qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*t.spec.getClass(), *n.get<const QoreObject>()->getClass());
+         if (rv != QTI_NOT_EQUAL)
+            return QTI_AMBIGUOUS;
+      }
+      else if (n.getType() == NT_HASH && t.spec.getTypeSpec() == QTS_HASHDECL) {
+         const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+         if (hd && typed_hash_decl_private::get(*t.spec.getHashDecl())->equal(*typed_hash_decl_private::get(*hd)))
+            return QTI_AMBIGUOUS;
+      }
+      else {
+         qore_type_t at = t.spec.getType();
+         if (at == NT_ALL || n.getType() == at)
+            return QTI_AMBIGUOUS;
       }
    }
    return QTI_NOT_EQUAL;
@@ -524,14 +584,46 @@ bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& b) {
    return typespec_vec_compare<q_return_vec_t>(a, b);
 }
 
+const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) {
+   if (!strcmp(cscope->ostr, "hash")) {
+      if (subtypes.size() != 1) {
+         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'hash' takes a single hashdecl name as a subtype argument", getName());
+         return hashTypeInfo;
+      }
+
+      // resolve hashdecl
+      const TypedHashDecl* hd = qore_root_ns_private::get(*getRootNS())->parseFindHashDecl(loc, *subtypes[0]->cscope);
+      //printd(5, "QoreParseTypeInfo::resolveSubtype() this: %p '%s' hd: %p '%s' type: %p (pgm: %p)\n", this, getName(), hd, hd ? hd->getName() : "n/a", hd ? hd->getTypeInfo(false) : nullptr, getProgram());
+      return hd ? hd->getTypeInfo(or_nothing) : hashTypeInfo;
+   }
+   else if (!strcmp(cscope->ostr, "object")) {
+      if (subtypes.size() != 1) {
+         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
+         return hashTypeInfo;
+      }
+
+      // resolve class
+      return resolveClass(loc, *subtypes[0]->cscope, or_nothing);
+   }
+
+   parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
+   return anyTypeInfo;
+}
+
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
+   std::unique_ptr<QoreParseTypeInfo> holder(this);
+
+   if (!subtypes.empty())
+      return resolveSubtype(loc);
+
+   return resolveClass(loc, *cscope, or_nothing);
+}
+
+const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing) {
    // resolve class
-   const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
+   const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, cscope);
 
-   bool my_or_nothing = or_nothing;
-   delete this;
-
-   if (qc && my_or_nothing) {
+   if (qc && or_nothing) {
       const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
          parse_error(loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());

@@ -142,7 +142,7 @@ public:
    DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po)
       : name(old.name),
         classList(old.classList, po, this),
-        hashDeclList(old.hashDeclList),
+        hashDeclList(old.hashDeclList, po, this),
         constant(old.constant, po, this),
         pendConstant(this),
         nsl(old.nsl, po, *this),
@@ -324,6 +324,11 @@ public:
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool& is_new);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool& is_new);
 
+   DLLLOCAL TypedHashDecl* parseFindLocalHashDecl(const char* name) {
+      TypedHashDecl* rv = hashDeclList.find(name);
+      return rv ? rv : pendHashDeclList.find(name);
+   }
+
    DLLLOCAL AbstractQoreNode* getConstantValue(const char* name, const QoreTypeInfo*& typeInfo);
    DLLLOCAL QoreClass* parseFindLocalClass(const char* name);
    DLLLOCAL qore_ns_private* parseAddNamespace(QoreNamespace* nns);
@@ -348,8 +353,14 @@ public:
 
    DLLLOCAL QoreNamespace* resolveNameScope(const QoreProgramLocation& loc, const NamedScope& name) const;
    DLLLOCAL QoreNamespace* parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
+
+   DLLLOCAL TypedHashDecl* parseMatchScopedHashDecl(const NamedScope& name, unsigned& matched);
+
+   DLLLOCAL int parseMatchScopedClassOrHashDecl(const NamedScope& name, unsigned& matched, const QoreClass*& qc, const TypedHashDecl* &hd);
+
    DLLLOCAL QoreClass* parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
+
    DLLLOCAL AbstractQoreNode* parseCheckScopedReference(const QoreProgramLocation& loc, const NamedScope& ns, unsigned& m, const QoreTypeInfo*& typeInfo, bool abr) const;
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo);
@@ -1185,6 +1196,42 @@ protected:
       return i->second.obj->makeCallReference(get_runtime_location());
    }
 
+   DLLLOCAL TypedHashDecl* parseFindScopedHashDeclIntern(const NamedScope& nscope, unsigned& matched);
+
+   DLLLOCAL TypedHashDecl* parseFindHashDeclIntern(const char* hdname) {
+      {
+         // try to check in current namespace first
+         qore_ns_private* nscx = parse_get_ns();
+         if (nscx) {
+            TypedHashDecl* hd = nscx->parseFindLocalHashDecl(hdname);
+            if (hd)
+               return hd;
+         }
+      }
+
+      thdmap_t::iterator i = thdmap.find(hdname);
+      thdmap_t::iterator ip = pend_thdmap.find(hdname);
+
+      if (i != thdmap.end()) {
+         if (ip != pend_thdmap.end()) {
+            if (i->second.depth() < ip->second.depth())
+               return i->second.obj;
+            return ip->second.obj;
+         }
+
+         return i->second.obj;
+      }
+
+      if (ip != pend_thdmap.end())
+         return ip->second.obj;
+
+      //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
+      return nullptr;
+   }
+
+   DLLLOCAL int parseFindScopedClassOrHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreClass*& qc, const TypedHashDecl*& hd);
+   DLLLOCAL int parseFindScopedClassOrHashDeclIntern(const NamedScope& name, unsigned& matched, const QoreClass*& qc, const TypedHashDecl*& hd);
+
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseFindScopedClassWithMethodInternError(const QoreProgramLocation& loc, const NamedScope& name, bool error);
@@ -1226,7 +1273,7 @@ protected:
       }
 
       //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* name) {
@@ -1283,6 +1330,8 @@ protected:
    DLLLOCAL void parseAddConstantIntern(const QoreProgramLocation& loc, QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool pub);
 
    DLLLOCAL void parseAddClassIntern(const QoreProgramLocation& loc, const NamedScope& name, QoreClass* oc);
+
+   DLLLOCAL void parseAddHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& name, TypedHashDecl* hd);
 
    DLLLOCAL qore_ns_private* parseResolveNamespaceIntern(const QoreProgramLocation& loc, const NamedScope& nscope, qore_ns_private* sns);
    DLLLOCAL qore_ns_private* parseResolveNamespace(const QoreProgramLocation& loc, const NamedScope& nscope, qore_ns_private* sns);
@@ -1613,6 +1662,8 @@ public:
       }
    }
 
+   DLLLOCAL TypedHashDecl* parseFindHashDecl(const QoreProgramLocation& loc, const NamedScope& name);
+
    DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath, bool pub) {
       assert(nspath.size());
       bool is_new = false;
@@ -1772,6 +1823,10 @@ public:
       return qc;
    }
 
+   DLLLOCAL static int parseFindScopedClassOrHashDecl(const QoreProgramLocation& loc, const NamedScope& name, const QoreClass*& qc, const TypedHashDecl*& hd) {
+      return getRootNS()->rpriv->parseFindScopedClassOrHashDeclIntern(loc, name, qc, hd);
+   }
+
    DLLLOCAL static QoreClass* parseFindScopedClass(const QoreProgramLocation& loc, const NamedScope& name) {
       return getRootNS()->rpriv->parseFindScopedClassIntern(loc, name);
    }
@@ -1791,6 +1846,10 @@ public:
 
    DLLLOCAL static void parseAddClass(const QoreProgramLocation& loc, const NamedScope& name, QoreClass* oc) {
       getRootNS()->rpriv->parseAddClassIntern(loc, name, oc);
+   }
+
+   DLLLOCAL static void parseAddHashDecl(const QoreProgramLocation& loc, const NamedScope& name, TypedHashDecl* hd) {
+      getRootNS()->rpriv->parseAddHashDeclIntern(loc, name, hd);
    }
 
    DLLLOCAL static void parseAddNamespace(QoreNamespace* nns) {

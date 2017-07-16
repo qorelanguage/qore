@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -558,6 +558,10 @@ bool QoreHashNode::getAsBoolImpl() const {
    if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
       return false;
    return !empty();
+}
+
+const TypedHashDecl* QoreHashNode::getHashDecl() const {
+   return priv->getHashDecl();
 }
 
 class qhi_priv {

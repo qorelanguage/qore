@@ -47,6 +47,8 @@ public:
    DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
    }
 
+   DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
+
    DLLLOCAL void parseInit(const char* name, bool priv);
 };
 
@@ -57,16 +59,49 @@ public:
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc) : loc(loc) {
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
+
+    DLLLOCAL ~typed_hash_decl_private() {
+        delete typeInfo;
+        delete orNothingTypeInfo;
+    }
 
     DLLLOCAL TypedHashDecl* newTypedHashDecl(const char* n) {
         assert(name.empty());
         assert(!thd);
         name = n;
-        return thd = new TypedHashDecl(this);
+        thd = new TypedHashDecl(this);
+        typeInfo = new QoreHashDeclTypeInfo(thd, n);
+        orNothingTypeInfo = new QoreHashDeclOrNothingTypeInfo(thd, n);
+        return thd;
+    }
+
+    DLLLOCAL bool equal(const typed_hash_decl_private& other) const {
+        if (name != other.name || members.size() != other.members.size())
+            return false;
+
+        for (HashDeclMemberMap::DeclOrderIterator ti = members.beginDeclOrder(), oi = other.members.beginDeclOrder(), te = members.endDeclOrder(); ti != te; ++ti, ++oi) {
+            // if the member's name is different, return false
+            if (strcmp(oi->first, ti->first))
+               return false;
+            // if the member's type is different, return false
+            if (!ti->second->equal(*oi->second))
+               return false;
+        }
+
+        return true;
+    }
+
+    DLLLOCAL bool parseEqual(const typed_hash_decl_private& other) const {
+        const_cast<typed_hash_decl_private*>(this)->parseInit();
+        return equal(other);
+    }
+
+    DLLLOCAL const QoreTypeInfo* getTypeInfo(bool or_nothing = false) const {
+        return or_nothing ? orNothingTypeInfo : typeInfo;
     }
 
     DLLLOCAL bool isPublic() const {
@@ -112,7 +147,11 @@ public:
         }
     }
 
-    DLLLOCAL int runtimeInitMembers(QoreHashNode& h, ExceptionSink* xsink) const;
+    DLLLOCAL int parseInitImpliedConstructor(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const;
+
+    DLLLOCAL QoreHashNode* newHash(const QoreListNode* args, bool runtime_check, ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreHashNode* newHash(const QoreHashNode* init, bool runtime_check, ExceptionSink* xsink) const;
 
     DLLLOCAL void parseAdd(std::pair<char*, HashDeclMemberInfo*> pair) {
         members.addNoCheck(pair);
@@ -139,10 +178,17 @@ public:
     }
 
 protected:
-    mutable QoreReferenceCounter refs;       // references
+    // references
+    mutable QoreReferenceCounter refs;
     QoreProgramLocation loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
+
+    // type information
+    QoreHashDeclTypeInfo* typeInfo = nullptr;
+    QoreHashDeclOrNothingTypeInfo* orNothingTypeInfo = nullptr;
+
+    // member information
     HashDeclMemberMap members;
 
     bool pub = false;
