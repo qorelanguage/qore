@@ -1006,7 +1006,7 @@ public:
       return new ParserTypeStruct(getParseType(loc, id, or_nothing));
    }
 
-   DLLLOCAL static QoreParseTypeInfo* getParseType(QoreProgramLocation& loc, char* id, bool or_nothing) {
+   DLLLOCAL static QoreParseTypeInfo* getParseType(const QoreProgramLocation& loc, char* id, bool or_nothing) {
       char* p0 = strchr(id, '<');
       if (p0) {
          char* p1 = strrchr(id, '>');
@@ -1030,10 +1030,12 @@ public:
                   continue;
                }
 
+/*
                if (substr.find_first_of("<>") != std::string::npos) {
                   parse_error(loc, "unbalanced angle brackets in subtype declaration '%s<%s>'", id, typestr.c_str());
                   continue;
                }
+*/
 
                // add to the subtype vector
                const char* ptr = substr.c_str();
@@ -1560,7 +1562,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token <decimal> QFLOAT "floating-point value"
 %token <num> NUMBER "arbitrary-precision number"
 %token <string> IDENTIFIER "identifier"
-%token <string> ANGLE_IDENTIFIER "type identifier with angle brackets"
+%token <string> ANGLE_IDENTIFIER "complex type identifier"
 %token <string> VAR_REF "variable reference"
 %token <string> BACKQUOTE "backquote expression"
 %token <string> SELF_REF "in-object member reference"
@@ -3421,6 +3423,12 @@ exp_c:
            if (parse_check_parse_option(PO_NO_NEW))
               parse_error(QoreProgramLocation(@1.first_line, @5.last_line), "illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
         }
+        | TOK_NEW ANGLE_IDENTIFIER '(' myexp ')' {
+           QoreProgramLocation loc(@1.first_line, @5.last_line);
+           $$ = new ParseNewComplexTypeNode(loc, ParserTypeStruct::getParseType(loc, $2, false), make_args($4));
+           if (parse_check_parse_option(PO_NO_NEW))
+              parse_error(loc, "illegal use of the 'new' operator (conflicts with parse option PO_NO_NEW)");
+        }
         | TOK_BACKGROUND exp {
            $$ = new QoreBackgroundOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $2);
            // check to see if the expression is legal
@@ -3501,7 +3509,8 @@ exp_c:
            $$ = new QoreRemoveOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $2);
         }
         | QORE_CAST '(' exp ')' {
-           $$ = new QoreParseCastOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, $3);
+           QoreProgramLocation loc(@1.first_line, @4.last_line);
+           $$ = new QoreParseCastOperatorNode(loc, ParserTypeStruct::getParseType(loc, $1, false), $3);
         }
         ;
 

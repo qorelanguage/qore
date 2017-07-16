@@ -35,6 +35,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/typed_hash_decl_private.h"
 
 #include <string.h>
 #include <strings.h>
@@ -49,6 +50,39 @@
 #endif
 
 static const char* qore_hash_type_name = "hash";
+
+void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) {
+   for (auto& i : h.member_list) {
+      setKeyValue(i->key, i->node ? i->node->refSelf() : nullptr, xsink);
+   }
+}
+
+int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
+   const QoreTypeInfo* memTypeInfo = nullptr;
+
+   if (hashdecl) {
+      const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
+      if (!m) {
+         xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
+         return -1;
+      }
+
+      memTypeInfo = m->getTypeInfo();
+   }
+
+   hm_hm_t::const_iterator i = hm.find(key);
+   HashMember* m;
+   if (i == hm.end()) {
+      if (for_remove)
+         return -1;
+      m = findCreateMember(key);
+   }
+   else
+      m = (*(i->second));
+
+   lvh.setPtr(m->node, memTypeInfo);
+   return 0;
+}
 
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private) {
 }
@@ -401,7 +435,7 @@ AbstractQoreNode** QoreHashNode::getExistingValuePtr(const char* key) {
    if (i != priv->hm.end())
       return &(*i->second)->node;
 
-   return 0;
+   return nullptr;
 }
 
 bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
@@ -910,8 +944,11 @@ AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
 }
 
 void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-   AbstractQoreNode* old = swapImpl(v);
-   //qoreCheckContainer(v);
+   ReferenceHolder<> val(v, xsink);
+   if (h.hashdecl && typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink))
+      return;
+
+   AbstractQoreNode* old = swapImpl(val.release());
    if (old) {
       // "remove" logic here
       old->deref(xsink);

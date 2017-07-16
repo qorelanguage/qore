@@ -36,7 +36,7 @@
 class QoreParseCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 friend class QoreCastOperatorNode;
 public:
-   DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation& loc, char *str, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp), path(new NamedScope(str)) {
+   DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation& loc, QoreParseTypeInfo* pti, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp), pti(pti) {
    }
 
    // type is unknown before resolution
@@ -45,7 +45,7 @@ public:
    }
 
    DLLLOCAL virtual ~QoreParseCastOperatorNode() {
-      delete path;
+      delete pti;
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -64,7 +64,7 @@ public:
 
 protected:
    DLLLOCAL static QoreString cast_str;
-   NamedScope* path;
+   QoreParseTypeInfo* pti;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
       assert(false);
@@ -130,7 +130,7 @@ protected:
 
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
+   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp, bool runtime_check) : QoreCastOperatorNode(loc, exp), hd(hd), runtime_check(runtime_check) {
    }
 
    DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
@@ -144,11 +144,12 @@ public:
       if (*xsink)
          return nullptr;
       assert(hd);
-      return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release());
+      return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release(), runtime_check);
    }
 
 protected:
    const TypedHashDecl* hd;
+   bool runtime_check;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };

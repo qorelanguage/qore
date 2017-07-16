@@ -325,6 +325,7 @@ noinst_HEADERS = \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
+        include/qore/intern/NewComplexTypeNode.h \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \

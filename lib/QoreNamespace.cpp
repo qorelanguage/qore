@@ -1159,7 +1159,7 @@ TypedHashDecl* qore_root_ns_private::parseFindScopedHashDeclIntern(const NamedSc
       NamespaceMapIterator nmi(nsmap, nscope[0]);
       while (nmi.next()) {
          TypedHashDecl* hd;
-         //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+         //printd(5, "qore_root_ns_private::parseFindScopedHashDeclIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((hd = nmi.get()->parseMatchScopedHashDecl(nscope, matched)))
             return hd;
       }
@@ -1169,7 +1169,7 @@ TypedHashDecl* qore_root_ns_private::parseFindScopedHashDeclIntern(const NamedSc
       NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
       while (nmi.next()) {
          TypedHashDecl* hd;
-         //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+         //printd(5, "qore_root_ns_private::parseFindScopedHashDeclIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
          if ((hd = nmi.get()->parseMatchScopedHashDecl(nscope, matched)))
             return hd;
       }
@@ -1209,65 +1209,6 @@ TypedHashDecl* qore_root_ns_private::parseFindHashDecl(const QoreProgramLocation
 
    printd(5, "qore_root_ns_private::parseFindHashDecl('%s') returning %p\n", nscope.ostr, hd);
    return hd;
-}
-
-int qore_root_ns_private::parseFindScopedClassOrHashDeclIntern(const NamedScope& nscope, unsigned& matched, const QoreClass*& qc, const TypedHashDecl*& hd) {
-   assert(nscope.size() > 1);
-
-   // iterate all namespaces with the initial name and look for the match
-   {
-      NamespaceMapIterator nmi(nsmap, nscope[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseFindScopedClassOrHashDeclIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if (!nmi.get()->parseMatchScopedClassOrHashDecl(nscope, matched, qc, hd))
-            return 0;
-      }
-   }
-
-   {
-      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseFindScopedClassOrHashDeclIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if (!nmi.get()->parseMatchScopedClassOrHashDecl(nscope, matched, qc, hd))
-            return 0;
-      }
-   }
-
-   return -1;
-}
-
-int qore_root_ns_private::parseFindScopedClassOrHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& nscope, const QoreClass*& qc, const TypedHashDecl*& hd) {
-   // if there is no namespace specified, then just find class
-   if (nscope.size() == 1) {
-      qc = parseFindClassIntern(nscope.ostr);
-      if (qc)
-         return 0;
-      hd = parseFindHashDeclIntern(nscope.ostr);
-      if (hd)
-         return 0;
-      parse_error(loc, "reference to undefined class or hashdecl '%s'", nscope.ostr);
-      return -1;
-   }
-
-   unsigned m = 0;
-   if (!parseFindScopedClassOrHashDeclIntern(nscope, m, qc, hd))
-      return 0;
-
-   if (m != (nscope.size() - 1))
-      parse_error(loc, "cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
-   else {
-      QoreString err;
-      err.sprintf("cannot find class or hashdecl '%s' in any namespace '", nscope.getIdentifier());
-      for (unsigned i = 0; i < (nscope.size() - 1); i++) {
-         err.concat(nscope[i]);
-         if (i != (nscope.size() - 2))
-            err.concat("::");
-      }
-      err.concat("'");
-      parse_error(loc, err.getBuffer());
-   }
-
-   return -1;
 }
 
 QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& nscope, unsigned& matched) {
@@ -2426,46 +2367,6 @@ TypedHashDecl* qore_ns_private::parseMatchScopedHashDecl(const NamedScope& nscop
    if (!rv)
       rv = fns->priv->pendHashDeclList.find(nscope[nscope.size() - 1]);
    return rv;
-}
-
-int qore_ns_private::parseMatchScopedClassOrHashDecl(const NamedScope& nscope, unsigned& matched, const QoreClass*& qc, const TypedHashDecl* &hd) {
-   printd(5, "qore_ns_private::parseMatchScopedClassOrHashDecl() this: %p ns: %p '%s' nscope='%s' matched: %d\n", this, ns, name.c_str(), nscope.ostr, matched);
-
-   if (nscope[0] != name) {
-      QoreNamespace* fns = nsl.find(nscope[0]);
-      if (!fns)
-         fns = pendNSL.find(nscope[0]);
-      return fns ? fns->priv->parseMatchScopedClassOrHashDecl(nscope, matched, qc, hd) : -1;
-   }
-
-   // mark first namespace as matched
-   if (!matched)
-      matched = 1;
-
-   printd(5, "qore_ns_private::parseMatchScopedClassOrHashDecl() matched %s in %s\n", name.c_str(), nscope.ostr);
-
-   QoreNamespace* fns = ns;
-
-   // if we need to follow the namespaces, then do so
-   if (nscope.size() > 2) {
-      for (unsigned i = 1; i < (nscope.size() - 1); i++) {
-         fns = fns->priv->parseFindLocalNamespace(nscope[i]);
-         if (!fns)
-            return 0;
-         if (i >= matched)
-            matched = i + 1;
-      }
-   }
-   qc = fns->priv->findLoadClass(nscope[nscope.size() - 1]);
-   if (!qc)
-      qc = fns->priv->pendClassList.find(nscope[nscope.size() - 1]);
-   if (qc)
-      return 0;
-
-   hd = fns->priv->hashDeclList.find(nscope[nscope.size() - 1]);
-   if (!hd)
-      hd = fns->priv->pendHashDeclList.find(nscope[nscope.size() - 1]);
-   return hd ? 0 : -1;
 }
 
 QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsigned& matched) {

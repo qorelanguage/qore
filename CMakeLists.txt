@@ -374,6 +374,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreNothingNode.cpp
     lib/VarRefNode.cpp
     lib/FunctionCallNode.cpp
+    lib/NewComplexTypeNode.cpp
     lib/QoreClosureParseNode.cpp
     lib/QoreClosureNode.cpp
     lib/QoreImplicitArgumentNode.cpp

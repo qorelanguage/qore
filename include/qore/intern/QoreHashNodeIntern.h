@@ -203,7 +203,7 @@ public:
       internDeleteKey(li);
    }
 
-   DLLLOCAL AbstractQoreNode *takeKeyValue(const char* key) {
+   DLLLOCAL AbstractQoreNode* takeKeyValue(const char* key) {
       assert(key);
 
       hm_hm_t::iterator i = hm.find(key);
@@ -240,11 +240,9 @@ public:
       return list;
    }
 
-   DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink) {
-      for (qhlist_t::const_iterator i = h.member_list.begin(), e = h.member_list.end(); i != e; ++i) {
-         setKeyValue((*i)->key, (*i)->node ? (*i)->node->refSelf() : 0, xsink);
-      }
-   }
+   DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
+
+   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
    DLLLOCAL QoreHashNode* copy() const {
       QoreHashNode* h = new QoreHashNode;

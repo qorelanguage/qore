@@ -122,6 +122,7 @@ libqore_la_SOURCES = \
 	ContextRowNode.cpp \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
+	NewComplexTypeNode.cpp \
 	ReferenceNode.cpp \
 	lvalue_ref.cpp \
 	ScopedRefNode.cpp \

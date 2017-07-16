@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/typed_hash_decl_private.h"
 
 QoreString QoreHashObjectDereferenceOperatorNode::op_str(". or {} operator expression");
 
@@ -74,6 +76,26 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
                   const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->getBuffer();
                   const QoreTypeInfo* mti = 0;
                   qore_class_private::parseCheckMemberAccess(*qc, loc, member, mti, pflag);
+               }
+            }
+         }
+      }
+      else {
+         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(lti);
+         if (hd && right) {
+            qore_type_t rt = right->getType();
+            if (rt == NT_STRING) {
+               const char* member = reinterpret_cast<const QoreStringNode*>(right)->c_str();
+               typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
+            }
+            else if (rt == NT_LIST) { // check object slices as well if strings are available
+               ConstListIterator li(reinterpret_cast<const QoreListNode*>(right));
+               while (li.next()) {
+                  if (li.getValue() && li.getValue()->getType() == NT_STRING) {
+                     const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->c_str();
+                     const QoreTypeInfo* mti = nullptr;
+                     typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
+                  }
                }
             }
          }
@@ -128,7 +150,7 @@ QoreValue QoreHashObjectDereferenceOperatorNode::evalValueImpl(bool& needs_deref
       const QoreHashNode* h = lh->get<const QoreHashNode>();
 
       if (rh->getType() == NT_LIST)
-	 return h->getSlice(rh->get<const QoreListNode>(), xsink);
+         return h->getSlice(rh->get<const QoreListNode>(), xsink);
 
       QoreStringNodeValueHelper key(*rh);
       return h->evalKeyValue(*key, xsink);

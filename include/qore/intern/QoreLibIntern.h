@@ -380,6 +380,7 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include "qore/intern/Variable.h"
 #include "qore/intern/LocalVar.h"
 #include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/NewComplexTypeNode.h"
 #include "qore/intern/ScopedRefNode.h"
 #include "qore/intern/ClassRefNode.h"
 #include "qore/intern/Context.h"

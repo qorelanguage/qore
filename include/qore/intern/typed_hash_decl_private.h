@@ -149,9 +149,30 @@ public:
 
     DLLLOCAL int parseInitImpliedConstructor(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const;
 
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check) const;
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check) const;
+
     DLLLOCAL QoreHashNode* newHash(const QoreListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreHashNode* init, bool runtime_check, ExceptionSink* xsink) const;
+
+    DLLLOCAL int runtimeAssignKey(const char* key, ReferenceHolder<>& val, ExceptionSink* xsink) const {
+        const HashDeclMemberInfo* mem = members.find(key);
+        if (!mem) {
+            xsink->raiseException("HASHDECL-KEY-ERROR", "cannot assign unknown key '%s' to hashdecl '%s'", key, name.c_str());
+            return -1;
+        }
+        QoreValue v(val.release());
+        QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, v, xsink);
+        val = v.takeNode();
+        return 0;
+    }
+
+    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
+
+    DLLLOCAL const HashDeclMemberInfo* findMember(const char* m) const {
+        return members.find(m);
+    }
 
     DLLLOCAL void parseAdd(std::pair<char*, HashDeclMemberInfo*> pair) {
         members.addNoCheck(pair);

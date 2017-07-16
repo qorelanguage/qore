@@ -40,8 +40,6 @@ protected:
    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return oc ? oc->getTypeInfo() : objectTypeInfo;
    }
@@ -60,6 +58,8 @@ public:
    DLLLOCAL virtual ~ScopedObjectCallNode() {
       delete name;
    }
+
+   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
       the ExceptionSink is only needed for QoreObject where a method may be executed

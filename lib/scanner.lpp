@@ -592,7 +592,7 @@ static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
 
 static char* make_cast(const char* s) {
    QoreString str(s + 5);
-   str.trim_trailing('>');
+   str.terminate(str.size() - 1);
    str.trim();
    return str.giveBuffer();
 }
@@ -1522,8 +1522,8 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yyte
 (::{WORD})+                             yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\${WORD}                     yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
 (::{WORD})?::\${WORD}                   yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
-cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
-cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
+cast<{WS}*({WORD}::)+{WORD}{WS}*(<[<>a-zA-Z0-9_]+>)?{WS}*>  yylval->string = make_cast(yytext); return QORE_CAST;
+cast<{WS}*{WORD}{WS}*(<[<>a-zA-Z0-9_]+>)?{WS}*>             yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 @[Nn][Aa][Nn]@                          {
 #ifdef NAN

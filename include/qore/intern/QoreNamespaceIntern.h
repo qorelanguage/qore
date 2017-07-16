@@ -356,8 +356,6 @@ public:
 
    DLLLOCAL TypedHashDecl* parseMatchScopedHashDecl(const NamedScope& name, unsigned& matched);
 
-   DLLLOCAL int parseMatchScopedClassOrHashDecl(const NamedScope& name, unsigned& matched, const QoreClass*& qc, const TypedHashDecl* &hd);
-
    DLLLOCAL QoreClass* parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
 
@@ -1229,9 +1227,6 @@ protected:
       return nullptr;
    }
 
-   DLLLOCAL int parseFindScopedClassOrHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreClass*& qc, const TypedHashDecl*& hd);
-   DLLLOCAL int parseFindScopedClassOrHashDeclIntern(const NamedScope& name, unsigned& matched, const QoreClass*& qc, const TypedHashDecl*& hd);
-
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseFindScopedClassWithMethodInternError(const QoreProgramLocation& loc, const NamedScope& name, bool error);
@@ -1821,10 +1816,6 @@ public:
       if (!qc)
          parse_error(loc, "reference to undefined class '%s'", name);
       return qc;
-   }
-
-   DLLLOCAL static int parseFindScopedClassOrHashDecl(const QoreProgramLocation& loc, const NamedScope& name, const QoreClass*& qc, const TypedHashDecl*& hd) {
-      return getRootNS()->rpriv->parseFindScopedClassOrHashDeclIntern(loc, name, qc, hd);
    }
 
    DLLLOCAL static QoreClass* parseFindScopedClass(const QoreProgramLocation& loc, const NamedScope& name) {

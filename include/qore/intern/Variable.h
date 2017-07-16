@@ -447,6 +447,16 @@ public:
       before = needs_scan(ptr);
    }
 
+   DLLLOCAL void setPtr(AbstractQoreNode*& ptr, const QoreTypeInfo* ti) {
+      assert(!v);
+      assert(!val);
+      v = &ptr;
+      before = needs_scan(ptr);
+      if (!is_nothing(ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      typeInfo = ti;
+   }
+
    DLLLOCAL void setValue(QoreLValueGeneric& nv);
 
    DLLLOCAL bool isNode() const {

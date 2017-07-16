@@ -33,6 +33,7 @@
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/typed_hash_decl_private.h"
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -309,7 +310,7 @@ void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation& lo
 
 void VarRefNewObjectNode::parseInitHashDeclCall(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {
     assert(hd);
-    lvids += typed_hash_decl_private::get(*QoreTypeInfo::getUniqueReturnHashDecl(typeInfo))->parseInitImpliedConstructor(loc, oflag, pflag, args, runtime_check);
+    lvids += typed_hash_decl_private::get(*hd)->parseInitImpliedConstructor(loc, oflag, pflag, args, runtime_check);
 }
 
 AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
@@ -344,8 +345,6 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
         case VRN_OBJECT: {
             assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
             value = qore_class_private::execConstructor(*QoreTypeInfo::getUniqueReturnClass(typeInfo), variant, args, xsink);
-            if (*xsink)
-                return QoreValue();
             break;
         }
         case VRN_HASHDECL:
@@ -355,6 +354,9 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
             assert(false);
             break;
     }
+
+    if (*xsink)
+        return QoreValue();
 
     LValueHelper lv(this, xsink);
     if (!lv)

@@ -584,7 +584,7 @@ bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& b) {
    return typespec_vec_compare<q_return_vec_t>(a, b);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) const {
    if (!strcmp(cscope->ostr, "hash")) {
       if (subtypes.size() != 1) {
          parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'hash' takes a single hashdecl name as a subtype argument", getName());
@@ -606,17 +606,20 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       return resolveClass(loc, *subtypes[0]->cscope, or_nothing);
    }
 
-   parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
+   parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
    return anyTypeInfo;
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
-   std::unique_ptr<QoreParseTypeInfo> holder(this);
-
+const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation& loc) const {
    if (!subtypes.empty())
       return resolveSubtype(loc);
 
    return resolveClass(loc, *cscope, or_nothing);
+}
+
+const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
+   std::unique_ptr<QoreParseTypeInfo> holder(this);
+   return resolve(loc);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing) {

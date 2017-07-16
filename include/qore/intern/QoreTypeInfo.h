@@ -266,6 +266,12 @@ public:
    }
 
    // static version of method, checking for null pointer
+   DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+      if (ti)
+         ti->acceptInputIntern(false, -1, member_name, n, xsink);
+   }
+
+   // static version of method, checking for null pointer
    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
       assert(text && text[0] == '<');
       if (ti)
@@ -362,7 +368,7 @@ public:
       }
       else {
          if (obj)
-            doObjectTypeException(param_name, n, xsink);
+            doObjectHashDeclTypeException(param_name, n, xsink);
          else
             doTypeException(param_num + 1, param_name, n, xsink);
       }
@@ -433,7 +439,7 @@ protected:
       return -1;
    }
 
-   DLLLOCAL int doObjectTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+   DLLLOCAL int doObjectHashDeclTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
       desc->sprintf("member '%s' expects ", param_name);
@@ -687,7 +693,12 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
-      return pti ? pti->resolveAndDelete(loc) : 0;
+      return pti ? pti->resolveAndDelete(loc) : nullptr;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+      return pti ? pti->resolve(loc) : nullptr;
    }
 
 #ifdef DEBUG
@@ -746,9 +757,10 @@ private:
       return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
    }
 
+   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation& loc) const;
    // resolves the current type to an QoreTypeInfo pointer and deletes itself
    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
-   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc);
+   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc) const;
 
    DLLLOCAL const char* getName() const {
       return tname.c_str();

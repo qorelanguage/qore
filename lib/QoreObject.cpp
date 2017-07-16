@@ -489,14 +489,8 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
    }
    else
       m = odata->priv->findCreateMember(key);
-   lvh.setPtr(m->node);
 
-   // if it's an assigned reference, then return anyTypeInfo
-   if (get_node_type(m->node) != NT_NOTHING && (mti == referenceTypeInfo || mti == referenceOrNothingTypeInfo))
-      mti = anyTypeInfo;
-
-   // save lvalue type info
-   lvh.setTypeInfo(mti);
+   lvh.setPtr(m->node, mti);
 
    return 0;
 }
