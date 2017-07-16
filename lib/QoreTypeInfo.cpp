@@ -533,12 +533,12 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
       else if (n.getType() == NT_HASH && t.spec.getTypeSpec() == QTS_HASHDECL) {
          const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
          if (hd && typed_hash_decl_private::get(*t.spec.getHashDecl())->equal(*typed_hash_decl_private::get(*hd)))
-            return QTI_AMBIGUOUS;
+            return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
       }
       else {
          qore_type_t at = t.spec.getType();
          if (at == NT_ALL || n.getType() == at)
-            return QTI_AMBIGUOUS;
+            return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
       }
    }
    return QTI_NOT_EQUAL;

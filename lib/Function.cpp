@@ -704,18 +704,18 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
    // the lowest match length with the highest score wins
    int match_len = -1;
    int match = -1;
-   const AbstractQoreFunctionVariant* variant = 0;
+   const AbstractQoreFunctionVariant* variant = nullptr;
 
    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    // perfect match score
    unsigned nargs = args ? args->size() : 0;
 
-   const QoreFunction* aqf = 0;
-   AbstractFunctionSignature* sig = 0;
+   const QoreFunction* aqf = nullptr;
+   AbstractFunctionSignature* sig = nullptr;
 
    // parent class while iterating
-   const qore_class_private* last_class = 0;
+   const qore_class_private* last_class = nullptr;
    bool internal_access = false;
 
    int64 ppo = runtime_get_parse_options();
@@ -779,7 +779,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             if (args)
                n = args->retrieveEntry(pi);
 
-            //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, t.typeName(), n.typeName(n));
+            //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.getTypeName());
 
             int rc;
             if (n.isNothing() && sig->hasDefaultArg(pi))
@@ -816,7 +816,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
                continue;
          }
 
-         //printd(5, "QoreFunction::runtimeFindVariant() count: %d match: %d match_len: %d np: %d v: %p\n", count, match,          match_len, sig->numParams(), variant);
+         //printd(5, "QoreFunction::runtimeFindVariant() count: %d match: %d match_len: %d np: %d v: %p\n", count, match, match_len, sig->numParams(), variant);
 
          if (count > match || (count == match && (match_len == -1 || (sig->numParams() < (unsigned)match_len)))) {
             match = count;

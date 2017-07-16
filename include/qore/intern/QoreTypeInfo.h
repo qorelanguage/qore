@@ -207,6 +207,13 @@ public:
    }
 
    // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_t getSingleReturnType(const QoreTypeInfo* ti) {
+      if (!hasType(ti) || ti->return_vec.size() > 1)
+         return NT_ALL;
+      return ti->return_vec[0].spec.getType();
+   }
+
+   // static version of method, checking for null pointer
    DLLLOCAL static bool returnsSingle(const QoreTypeInfo* ti) {
       return ti && hasType(ti) ? ti->return_vec.size() == 1 : false;
    }

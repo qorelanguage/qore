@@ -118,7 +118,6 @@ public:
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return nullptr;
-      assert(qc);
       return new QoreClassCastOperatorNode(loc, qc, n_exp.release());
    }
 

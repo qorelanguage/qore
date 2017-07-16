@@ -172,7 +172,7 @@ float round() [flags=RUNTIME_NOOP] {
   *
   * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
-int ceil(softint num, int prec = 0) [flags=CONSTANT] {
+int ceil(int num, int prec = 0) [flags=CONSTANT] {
     return round_ceil_floor_intern(num, prec, CEIL);
 }
 
@@ -251,7 +251,7 @@ float ceil() [flags=RUNTIME_NOOP] {
   *
   * @since %Qore 0.8.13 this function accepts the <b>prec</b> argument to specify the rounding precision
   */
-int floor(softint num, int prec = 0) [flags=CONSTANT] {
+int floor(int num, int prec = 0) [flags=CONSTANT] {
     return round_ceil_floor_intern(num, prec, FLOOR);
 }
 
