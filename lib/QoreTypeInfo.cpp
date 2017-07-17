@@ -35,6 +35,7 @@
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/typed_hash_decl_private.h"
 
 const QoreAnyTypeInfo staticAnyTypeInfo;
 
