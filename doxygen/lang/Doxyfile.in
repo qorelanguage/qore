@@ -32,7 +32,7 @@ PROJECT_NAME           = "Qore Programming Language Reference Manual"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = QORE_VERSION
+PROJECT_NUMBER         = @VERSION@
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer
@@ -581,7 +581,7 @@ SHOW_NAMESPACES        = YES
 # provided by doxygen. Whatever the program writes to standard output
 # is used as the file version. See the manual for examples.
 
-FILE_VERSION_FILTER    = getrev.sh
+FILE_VERSION_FILTER    = @CMAKE_CURRENT_SOURCE_DIR@/getrev.sh
 
 # The LAYOUT_FILE tag can be used to specify a layout file which will be parsed
 # by doxygen. The layout file controls the global structure of the generated
@@ -662,8 +662,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @CMAKE_SOURCE_DIR@/lib \
-                         @CMAKE_SOURCE_DIR@/doxygen/lang
+INPUT                  = @QORE_DOX_SRC_STRING@ @QPP_DOX_SRC_STRING@
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -1749,7 +1748,7 @@ INTERACTIVE_SVG        = NO
 # The tag DOT_PATH can be used to specify the path where the dot tool can be
 # found. If left blank, it is assumed the dot tool can be found in the path.
 
-DOT_PATH               = MYDOT
+DOT_PATH               = @CMAKE_CURRENT_SOURCE_DIR@/doxygen/dot
 
 # The DOTFILE_DIRS tag can be used to specify one or more directories that
 # contain dot files that are included in the documentation (see the

@@ -51,13 +51,12 @@ ENDMACRO (QORE_WRAP_QPP)
 #
 MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
     set(options)
-    set(oneValueArgs)
+    set(oneValueArgs DOXLIST)
     set(multiValueArgs OPTIONS)
 
     cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
-
         GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
@@ -72,6 +71,10 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
                            VERBATIM
                         )
         SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
+        IF(_WRAP_QPP_DOXLIST)
+           SET(${_WRAP_QPP_DOXLIST} ${${_WRAP_QPP_DOXLIST}} ${_doxfile})
+        ENDIF(_WRAP_QPP_DOXLIST)
+        #MESSAGE(STATUS "DEBUG D: " _WRAP_QPP_DOXLIST " ${D}:" ${_WRAP_QPP_DOXLIST} " ${${D}}:" ${${_WRAP_QPP_DOXLIST}})
     ENDFOREACH (it)
 
 ENDMACRO (QORE_WRAP_QPP_VALUE)

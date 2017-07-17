@@ -471,7 +471,7 @@ const CRYPTO_ALG_CAST5_CFB = "cast5-cfb";
  */
 const CRYPTO_ALG_CAST5_OFB = "cast5-ofb";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case
 
     @note
@@ -481,7 +481,7 @@ const CRYPTO_ALG_CAST5_OFB = "cast5-ofb";
  */
 const CRYPTO_ALG_AES_128 = "aes128";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case.
 
     @note
@@ -491,7 +491,7 @@ const CRYPTO_ALG_AES_128 = "aes128";
  */
 const CRYPTO_ALG_AES_192 = "aes192";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case
 
     @note
