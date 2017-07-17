@@ -447,20 +447,54 @@ public:
       before = needs_scan(ptr);
    }
 
+   DLLLOCAL bool isNode() const {
+      return (bool)v;
+   }
+
+   DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+      assert(!v);
+      assert(!val);
+      val = &nv;
+
+      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+
+      /*
+      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
+   }
+
+   DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+      if (v) {
+         assert(!val);
+         v = nullptr;
+      }
+      else
+         assert(val);
+      val = &nv;
+
+      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+
+      /*
+      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
+   }
+
    DLLLOCAL void setPtr(AbstractQoreNode*& ptr, const QoreTypeInfo* ti) {
       assert(!v);
       assert(!val);
       v = &ptr;
+
       before = needs_scan(ptr);
+
+      /*
       if (!is_nothing(ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
          ti = nullptr;
+      */
       typeInfo = ti;
-   }
-
-   DLLLOCAL void setValue(QoreLValueGeneric& nv);
-
-   DLLLOCAL bool isNode() const {
-      return (bool)v;
    }
 
    DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
@@ -471,9 +505,14 @@ public:
       else
          assert(v);
       v = ptr;
-      typeInfo = ti;
 
       before = needs_scan(*ptr);
+
+      /*
+      if (!is_nothing(*ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
    }
 
    DLLLOCAL void clearPtr() {

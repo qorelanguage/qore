@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 207 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ class ResolvedCallReferenceNode;
    it is both a value type and can hold parse expressions as well (in which case it needs to be evaluated)
    the first element in the list is element 0
  */
-class QoreListNode : public AbstractQoreNode {   
+class QoreListNode : public AbstractQoreNode {
    friend class StackList;
    friend struct qore_list_private;
 
@@ -62,7 +62,7 @@ private:
 
 protected:
    //! this structure holds the private implementation for the type
-   /** therefore changes to the implementation will not affect the C++ ABI 
+   /** therefore changes to the implementation will not affect the C++ ABI
     */
    struct qore_list_private *priv;
 
@@ -94,7 +94,7 @@ protected:
 
    //! dereferences all elements of the list
    /** The ExceptionSink argument is needed for those types that could throw
-       an exception when they are deleted (ex: QoreObject) - which could be 
+       an exception when they are deleted (ex: QoreObject) - which could be
        contained in the list
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the object can be deleted, false if not (externally-managed)
@@ -266,7 +266,7 @@ public:
 
    //! evaluates the list and returns a value (or 0)
    /** return value requires a deref(xsink)
-       if the list does not require evaluation then "refSelf()" is used to 
+       if the list does not require evaluation then "refSelf()" is used to
        return the same object with an incremented reference count
        NOTE: if the object requires evaluation and there is an exception, 0 will be returned
        @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -277,7 +277,7 @@ public:
    /** return value requires a deref(xsink) if needs_deref is true
        NOTE: if the list requires evaluation and there is an exception, 0 will be returned
        NOTE: do not use this function directly, use the QoreListNodeEvalOptionalRefHolder class instead
-       @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced	  
+       @param needs_deref this is an output parameter, if needs_deref is true then the value returned must be dereferenced
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @see QoreListNodeEvalOptionalRefHolder
    */
@@ -293,52 +293,52 @@ public:
    DLLEXPORT QoreListNode* copyListFrom(qore_size_t index) const;
 
    //! returns a new list based on quicksorting the source list ("this")
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreListNode* sort() const;
 
    //! returns a new list based on quicksorting the source list ("this") using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreListNode* sort(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this")
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreListNode* sortStable() const;
 
    //! returns a new list based on executing mergesort on the source list ("this") using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreListNode* sortStable(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on quicksorting the source list ("this") in descending order
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreListNode* sortDescending() const;
 
    //! returns a new list based on quicksorting the source list ("this") in descending order, using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT QoreListNode* sortDescending(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns a new list based on executing mergesort on the source list ("this") in descending order
-   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of 
+   /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
        different data types and still be sorted
    */
    DLLEXPORT QoreListNode* sortDescendingStable() const;
 
    //! returns a new list based on executing mergesort on the source list ("this") in descending order, using the passed function reference to determine lexical order
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -357,14 +357,14 @@ public:
    DLLEXPORT AbstractQoreNode* max() const;
 
    //! returns the element having the lowest value (determined by calling the function reference passed to give lexical order)
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractQoreNode* min(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const;
 
    //! returns the element having the highest value (determined by calling the function reference passed to give lexical order)
-   /** 
+   /**
        @param fr the function reference to be executed for each comparison to give lexical order to the elements
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -517,8 +517,8 @@ protected:
    qore_offset_t pos;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t); 
-   
+   DLLLOCAL void *operator new(size_t);
+
 public:
    //! initializes the iterator to the position given or, if omitted, just before the first element
    /** @param lst the list to iterate

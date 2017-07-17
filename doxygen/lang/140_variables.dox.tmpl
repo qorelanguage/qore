@@ -64,6 +64,30 @@ global a = 1@endverbatim
 
     @note If parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" is set, then variable references <b>must</b> be made without the "$" character.  Because %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style" unless otherwise indicated.
 
+    @subsection variable_implicit_construction Variable Implicit Construction
+    Variables with supported type declarations can be instantiated with a special syntax as follows:
+    [@ref my "my"|@ref our "our"] <em>@ref data_type_declarations "var_type" var_name</em><tt>(</tt>[<em>@ref expressions "arg_expression"</em><tt>, ...]);</tt>
+
+    This allows a variable to be declared with a specific type and initialized at the same time.
+
+    The following types can be used for <em>@ref data_type_declarations "var_type" var_name</em>:
+    - a @ref qore_classes "class name" or <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_name"</em><tt>&gt;</tt> for object instantiation (the class name may have a namespace-prefixed path)
+    - <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_name"</em><tt>&gt;</tt> for @ref hashdecl "type-safe hash" instantiation (the type-safe hash name may have a namespace-prefixed path)
+
+    @par Examples
+    @code{.py}
+# simple object declaration and instantiation
+Mutex m();
+    @endcode
+    @code{.py}
+# equivalent to the example above
+object<Mutex> m();
+    @endcode
+    @code{.py}
+# type-safe hash declaration and instantiation
+hash<MyHash> h(("a": 1));
+    @endcode
+
     @section local_variables Local Variables
     Local variables are local to the block in which they are declared; they are also thread-local, meaning that each thread will have its own value of a local variable.
 

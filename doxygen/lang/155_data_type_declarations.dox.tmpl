@@ -18,8 +18,10 @@
     |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
     |@ref binary_type "binary"|@ref binary|@ref binary|Restricts values to @ref binary values
     |@ref hash_type "hash"|@ref hash|@ref hash|Restricts values to @ref hash values
+    |@ref hash_complex_type "hash<...>"|@ref hash|@ref hash|Restricts values to values of the referenced @ref hashdecl "type-safe hash"
     |@ref list_type "list"|@ref list|@ref list|Restricts values to @ref list values
     |@ref object_type "object"|@ref object|@ref object|Restricts values to @ref object values
+    |@ref classname_type "object<...>"|@ref object|@ref object|Restricts values to objects of the specific class
     |@ref classname_type "<classname>"|@ref object|@ref object|Restricts values to objects of the specific class given; either the class name can be given (ex: @ref Qore::Thread::Mutex "Mutex" or a qualified path to the class: @ref Qore::Thread::Mutex)
     |@ref null_type "null"|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
     |@ref nothing_type "nothing"|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
@@ -172,6 +174,24 @@ hash sub foo(hash h = ("foo": "bar", "x": 2)) {
 }
     @endcode
 
+    @subsection hash_complex_type Type-Safe Hash Type
+
+    The hash type declaration takes a single @ref hashdecl "type-safe hash" name (or namespace-
+    prefixed path) in angle brackets after \c "hash" which results in a type declaration
+    restricted to the declared @ref hashdecl "type-safe hash" as in the following example.
+
+    @par Example
+    @code{.py}
+hashdecl MyHash {
+    string foo = "empty";
+    int x = 1;
+}
+
+hash<MyHash> sub foo(hash<MyHash> h = new hash<MyHash>("foo": "bar", "x": 2)) {
+    return h;
+}
+    @endcode
+
     <hr>
     @section list_type list
 
@@ -199,6 +219,27 @@ object sub foo(object o = new Mutex()) {
     return o;
 }
     @endcode
+
+    @subsection object_complex_type Class-Specific Type Declaration
+
+    The object type declaration takes a single @ref qore_classes "class" name (or namespace-
+    prefixed path) in angle brackets after \c "object" which results in a type declaration
+    restricted to the declared @ref qore_classes "class" as in the following example.
+
+    @par Example
+    @code{.py}
+class MyClass {
+    public {
+       int x = 1;
+    }
+}
+
+object<MyClass> sub foo(MyClass o = new MyClass("foo": "bar", "x": 2)) {
+    return o;
+}
+    @endcode
+
+    @note this type declaration is equivalent to using the class name by itself
 
     <hr>
     @section classname_type \<classname\>

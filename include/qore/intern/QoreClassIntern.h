@@ -1147,11 +1147,10 @@ public:
    }
 
    DLLLOCAL void getLValue(LValueHelper& lvh) {
-      lvh.setTypeInfo(getTypeInfo());
       lvh.setAndLock(rwl);
       if (checkFinalized(lvh.vl.xsink))
          return;
-      lvh.setValue(val);
+      lvh.setValue(val, getTypeInfo());
    }
 
    DLLLOCAL void init() {

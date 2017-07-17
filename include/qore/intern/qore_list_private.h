@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,28 +44,40 @@ inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
 }
 
 struct qore_list_private {
-   AbstractQoreNode** entry;
-   qore_size_t length;
-   qore_size_t allocated;
-   unsigned obj_count;
+   AbstractQoreNode** entry = nullptr;
+   qore_size_t length = 0;
+   qore_size_t allocated = 0;
+   unsigned obj_count = 0;
    bool finalized : 1;
    bool vlist : 1;
 
-   DLLLOCAL qore_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
+   DLLLOCAL qore_list_private() : finalized(false), vlist(false) {
    }
 
    DLLLOCAL ~qore_list_private() {
       assert(!length);
 
       if (entry)
-	 free(entry);
+         free(entry);
    }
+
+   DLLLOCAL void resize(size_t num);
+
+   DLLLOCAL int getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
    DLLLOCAL void incScanCount(int dt) {
       assert(dt);
       assert(obj_count || (dt > 0));
       //printd(5, "qore_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
+   }
+
+   DLLLOCAL static const qore_list_private* get(const QoreListNode& l) {
+      return l.priv;
+   }
+
+   DLLLOCAL static qore_list_private* get(QoreListNode& l) {
+      return l.priv;
    }
 
    DLLLOCAL static unsigned getScanCount(const QoreListNode& l) {

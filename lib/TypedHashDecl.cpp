@@ -194,11 +194,13 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreListNode* args, bool ru
 }
 
 QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool runtime_check, ExceptionSink* xsink) const {
-    ConstHashIterator i(init);
-    while (i.next()) {
-        if (!members.find(i.getKey())) {
-            xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl hash initializer value contains unknown key '%s'", i.getKey());
-            return nullptr;
+    if (runtime_check) {
+        ConstHashIterator i(init);
+        while (i.next()) {
+            if (!members.find(i.getKey())) {
+                xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl hash initializer value contains unknown key '%s'", i.getKey());
+                return nullptr;
+            }
         }
     }
 

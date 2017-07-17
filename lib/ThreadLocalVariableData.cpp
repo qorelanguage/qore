@@ -82,7 +82,7 @@ int ThreadLocalVariableData::setVarValue(const char* name, const QoreValue& val,
 
          if (!var.skip && !strcmp(var.id, name)) {
             LValueHelper lvh(xsink);
-            if (var.getLValue(lvh, false))
+            if (var.getLValue(lvh, false, nullptr))
                return -1;
 
             return lvh.assign(val.refSelf(), "<API assignment>");

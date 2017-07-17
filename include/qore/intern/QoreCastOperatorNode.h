@@ -129,7 +129,7 @@ protected:
 
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp, bool runtime_check) : QoreCastOperatorNode(loc, exp), hd(hd), runtime_check(runtime_check) {
+   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
    }
 
    DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
@@ -143,12 +143,11 @@ public:
       if (*xsink)
          return nullptr;
       assert(hd);
-      return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release(), runtime_check);
+      return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release());
    }
 
 protected:
    const TypedHashDecl* hd;
-   bool runtime_check;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };

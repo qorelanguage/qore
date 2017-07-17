@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_value_list_private.h"
 #include "qore/intern/qore_list_private.h"
+#include "qore/intern/Variable.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +51,14 @@ static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
    l->push(e2.getReferencedValue());
    return l;
 }
+
+/*
+int qore_value_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
+   if (ind >= length)
+      resize(ind + 1);
+   lvh.resetValue(entry[ind], nullptr);
+}
+*/
 
 int qore_value_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascending, ExceptionSink* xsink) {
    //printd(5, "List::mergesort() ENTER this: %p, pgm: %p, f: %p length: %d\n", this, pgm, f, length);

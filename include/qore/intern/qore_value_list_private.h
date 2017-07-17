@@ -46,6 +46,8 @@ static QoreValueList* do_value_args(const QoreValue& e1, const QoreValue& e2) {
 }
 */
 
+class LValueHelper;
+
 struct qore_value_list_private {
    QoreValue* entry;
    qore_size_t length;
@@ -63,6 +65,8 @@ struct qore_value_list_private {
       if (entry)
 	 free(entry);
    }
+
+   //DLLLOCAL int getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
    DLLLOCAL void resize(size_t num) {
       if (num < length) { // make smaller

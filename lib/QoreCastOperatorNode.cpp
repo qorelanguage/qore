@@ -90,14 +90,13 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
    const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
    if (hd) {
       qore_type_result_e r = QoreTypeInfo::parseReturns(typeInfo, NT_HASH);
-      bool runtime_check = false;
       if (r == QTI_NOT_EQUAL)
          parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to (hashdecl) %s", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
 
       typeInfo = hd->getTypeInfo();
       if (exp) {
          ReferenceHolder<> holder(this, nullptr);
-         return new QoreHashDeclCastOperatorNode(loc, hd, takeExp(), runtime_check);
+         return new QoreHashDeclCastOperatorNode(loc, hd, takeExp());
       }
    }
    else {
@@ -153,5 +152,5 @@ QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, Excepti
       return rv.takeValue(needs_deref);
 
    // otherwise we try to do a runtime cast
-   return typed_hash_decl_private::get(*hd)->newHash(h, runtime_check, xsink);
+   return typed_hash_decl_private::get(*hd)->newHash(h, false, xsink);
 }

@@ -613,6 +613,7 @@ LANG_TMP_DOXYFILES_SRC = doxygen/lang/mainpage.dox \
 	doxygen/lang/205_namespaces.dox \
 	doxygen/lang/210_constants.dox \
 	doxygen/lang/215_classes.dox \
+	doxygen/lang/217_hashdecl.dox \
 	doxygen/lang/220_threading.dox \
 	doxygen/lang/225_exception_handling.dox \
 	doxygen/lang/230_signal_handling.dox \

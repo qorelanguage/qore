@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -75,6 +75,30 @@ public:
    }
    DLLLOCAL AbstractQoreNode* getAndClear(qore_size_t i);
 };
+
+int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
+   if (ind >= length)
+      resize(ind + 1);
+   lvh.resetPtr(&entry[ind], nullptr);
+   return 0;
+}
+
+void qore_list_private::resize(size_t num) {
+   if (num < length) { // make smaller
+      //priv->entry = (AbstractQoreNode** )realloc(priv->entry, sizeof (AbstractQoreNode** ) * num);
+      length = num;
+      return;
+   }
+   // make larger
+   if (num >= allocated) {
+      qore_size_t d = num >> 2;
+      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+      entry = (AbstractQoreNode**)realloc(entry, sizeof (AbstractQoreNode*) * allocated);
+      for (qore_size_t i = length; i < allocated; ++i)
+         entry[i] = nullptr;
+   }
+   length = num;
+}
 
 qore_size_t QoreListNode::check_offset(qore_offset_t offset) {
    if (offset < 0) {
@@ -679,20 +703,7 @@ bool QoreListNode::derefImpl(ExceptionSink* xsink) {
 }
 
 void QoreListNode::resize(qore_size_t num) {
-   if (num < priv->length) { // make smaller
-      //priv->entry = (AbstractQoreNode** )realloc(priv->entry, sizeof (AbstractQoreNode** ) * num);
-      priv->length = num;
-      return;
-   }
-   // make larger
-   if (num >= priv->allocated) {
-      qore_size_t d = num >> 2;
-      priv->allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-      priv->entry = (AbstractQoreNode**)realloc(priv->entry, sizeof (AbstractQoreNode*) * priv->allocated);
-      for (qore_size_t i = priv->length; i < priv->allocated; i++)
-	 priv->entry[i] = 0;
-   }
-   priv->length = num;
+   priv->resize(num);
 }
 
 QoreListNode* QoreListNode::splice_intern(qore_size_t offset, qore_size_t len, ExceptionSink* xsink, bool extract) {

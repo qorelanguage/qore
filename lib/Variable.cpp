@@ -76,12 +76,11 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
       return val.v.getPtr()->getLValue(lvh, for_remove);
    }
 
-   lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(rwl);
    if (checkFinalized(lvh.vl.xsink))
       return -1;
 
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
@@ -296,12 +295,6 @@ void LValueHelper::saveTemp(AbstractQoreNode* n) {
    tvec.push_back(n);
 }
 
-void LValueHelper::setValue(QoreLValueGeneric& nv) {
-   assert(!v);
-   assert(!val);
-   val = &nv;
-}
-
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
    return -1;
@@ -348,8 +341,11 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
    ocvec.push_back(ObjCountRec(l));
 
+   return qore_list_private::get(*l)->getLValue((size_t)ind, *this, for_remove, vl.xsink);
+   /*
    resetPtr(l->get_entry_ptr(ind));
    return 0;
+   */
 }
 
 int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
@@ -379,17 +375,6 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
 
    //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
    return qore_hash_private::get(*h)->getLValue(mem, *this, for_remove, vl.xsink);
-
-   /*
-   AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem) : h->getKeyValuePtr(mem);
-   if (!ptr) {
-      assert(for_remove);
-      return -1;
-   }
-
-   resetPtr(ptr);
-   return 0;
-   */
 }
 
 int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
@@ -509,9 +494,11 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    if (current_value && current_value->getType() == NT_REFERENCE) {
       const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
       if (val)
-         val = 0;
+         val = nullptr;
       if (v)
-         v = 0;
+         v = nullptr;
+      if (typeInfo)
+         typeInfo = nullptr;
       return doLValue(ref, for_remove);
    }
 
@@ -1240,7 +1227,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 #endif
 }
 
-int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
+int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo) const {
    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
    if (val.getType() == NT_REFERENCE) {
       ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
@@ -1249,7 +1236,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    // note: type info is not stored at runtime for local variables
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
@@ -1287,11 +1274,9 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       return helper ? lvh.doLValue(*ref, for_remove) : -1;
    }
 
-   lvh.setTypeInfo(typeInfo);
-
    lvh.set(rml);
    sl.stay_locked();
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
