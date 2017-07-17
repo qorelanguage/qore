@@ -1,0 +1,162 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HashDeclTest
+
+public hashdecl Container {
+    int i = 1;
+    string str = "hi";
+    number n;
+}
+
+public hashdecl Container2 {
+    int i = 2;
+    string str = "hi";
+    number n;
+    date d = now_us();
+}
+
+class HashDeclTest inherits QUnit::Test {
+    constructor() : QUnit::Test("HashDecl test", "1.0") {
+        addTestCase("Test HashDecl", \testHashDecl());
+        set_return_value(main());
+    }
+
+    testHashDecl() {
+        {
+            hash<Container> c();
+            assertEq(Type::Hash, c.type());
+            assertEq(1, c.i);
+            assertEq("hi", c.str);
+            assertEq(NOTHING, c.n);
+        }
+
+        {
+            hash<Container> c(("i": 2, "str": "other", "n": 1n));
+            assertEq(Type::Hash, c.type());
+            assertEq(2, c.i);
+            assertEq("other", c.str);
+            assertEq(1n, c.n);
+        }
+
+        {
+            hash<Container> c(("n": 1n));
+            assertEq(Type::Hash, c.type());
+            assertEq(1, c.i);
+            assertEq("hi", c.str);
+            assertEq(1n, c.n);
+        }
+
+        {
+            hash<Container> c();
+            hash h = c;
+            assertEq(Type::Hash, h.type());
+            assertEq(1, h.i);
+            assertEq("hi", h.str);
+            assertEq(NOTHING, h.n);
+
+            assertEq(h, c);
+            assertEq(c, h);
+        }
+
+        {
+            hash<Container> c();
+            hash h = c;
+            c = cast<hash<Container>>(h);
+            assertEq(Type::Hash, c.type());
+            assertEq(1, c.i);
+            assertEq("hi", c.str);
+            assertEq(NOTHING, c.n);
+
+            assertEq(h, c);
+            assertEq(c, h);
+        }
+
+        {
+            hash<Container> c1();
+            hash<Container> c2 = new hash<Container>();
+            assertEq(c1, c2);
+        }
+
+        {
+            hash<Container> c1(("i": 2, "str": "other", "n": 1n));
+            hash<Container> c2 = new hash<Container>(("i": 2, "str": "other", "n": 1n));
+            assertEq(c1, c2);
+            c2.n = 2n;
+            assertEq(True, c1 != c2);
+        }
+
+        {
+            hash<Container> c1();
+            hash<Container2> c2;
+            c2 = cast<hash<Container2>>(c1);
+            assertEq(Type::Date, c2.d.type());
+        }
+
+        {
+            hash<Container> c1;
+            hash<Container2> c2();
+            c1 = cast<hash<Container>>(c2);
+            assertEq(2, c1.i);
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() {hash<Container> c();}", "");
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c(); c = (\"i\": 2, \"str\": \"other\", \"n\": 1.1n);}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c1; hash<Container2> c2(); c1 = cast<hash<Container2>>(c2);}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c1; c1 = ('x1': 1);}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c1; hash<Container2> c2(); c1 = c2;}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() {hash h = ('x': 1); hash<Container2> c2(); c2 += h;}", "");
+            assertThrows("HASHDECL-KEY-ERROR", \p.callFunction(), ("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() {hash<Container> c(); string k = 'x1'; c{k} = 2;}", "");
+            assertThrows("INVALID-MEMBER", \p.callFunction(), ("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() {hash<Container> c(); c.x1 = 2;}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub tn(string str) {} sub t() {hash<Container> c(); tn(c.i);}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c(); c.i = 'str';}", ""));
+        }
+    }
+}
