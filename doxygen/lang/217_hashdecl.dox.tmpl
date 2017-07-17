@@ -1,0 +1,102 @@
+/** @page hashdecl Type-Safe Hashes
+
+    @tableofcontents
+
+    @section hashdecl_overview Type-Safe Hashes Overview
+    The <tt><b>hashdecl</b></tt> keyword allows for type-safe hashes to be declared; they can then
+    be instantiated with the @ref new "new" operator, the @ref cast "cast<>" operator, or with
+    @ref variable_implicit_construction "variable implicit construction".
+
+    @section hashdecl_syntax hashdecl Declaration Syntax
+    <tt><b>hashdecl</b></tt> <em>hashdecl_identifier</em> <tt>{</tt> \n
+    &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref data_type_declarations "member_type"</em><tt> </tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];</tt> \n
+    &nbsp;&nbsp;&nbsp;&nbsp;[...] \n
+    <tt>}</tt>
+
+    At least one member must be defined; it's not possible to declare an empty type-safe hash.
+
+    @par Example
+    @code{.py}
+hashdecl MyHash {
+    int i = 1;
+    string code = "other";
+}
+    @endcode
+
+    @note Each %Qore type has a "pseudo-class" associated with it; for hashes the type is @ref Qore::zzz8hashzzz9; methods from the data type's "pseudo-class" can be run on any value of that type.
+
+    @section hashdecl_creation Type-Safe Hash Creation
+    When type-safe hashes are created, the hash is automatically populated with the values given by
+    the initialization expressions in the <tt><b>hashdecl</b></tt> declaration (if any).
+
+    It is possible to override these declarations by passing a hash to be used for initialization;
+    this can be passed the single optional argument to the type-safe hash initialization as in the
+    following examples:
+
+    @par Examples
+    @code{.py}
+# type-safe hash declaration
+hashdecl Container {
+    int i = 1;
+}
+
+# implicit construction: default values are assigned from the declaration
+hash<Container> h1();
+
+# implicit construction: overrides the "i" member's initial value
+hash<Container> h2(("i": 2));
+
+# "new" construction: default values are assigned from the declaration
+hash<Container> h3 = new hash<Container>();
+
+# "new" construction: overrides the "i" member's initial value
+hash<Container> h4 = new hash<Container>(("i": 2));
+    @endcode
+
+    In such cases, the initialization expression for the members being overridden is never executed and the
+    supplied value is used instead.
+
+    @see
+    - @ref variable_implicit_construction
+    - @ref new
+
+    @section hashdecl_type_compatibility Type-Safe Hash Type Compatibility
+
+    Type-safe hashes can be assigned to any variable that accepts an untyped @ref hash_type "hash",
+    however variables declared hash a particular type-safe hash (ex: <tt>hash&lt;MyHash&gt;</tt>) can
+    only be assigned values of the given type; use the @ref cast "cast<>" operator to convert
+    untyped hashes or type-safe hashes of another type to the target type for assignment.
+
+    @par Example:
+    @code{.py}
+hashdecl Container1 {
+    int i = 1;
+    string str = "value";
+}
+
+hashdecl Container2 {
+    int i = 2;
+    bool check = False;
+}
+
+hash<Container1> c1();
+
+# afterwards c2 will be: {i: 1, check: False}
+hash<Container2> c2 = cast<hash<Container2>>(c1);
+
+hash h = ("i": 3, "other": "x");
+# afterwards c3 will be: {i: 3, check: False}
+hash<Container2> c3 = cast<hash<Container2>>(h);
+    @endcode
+
+    @see @ref cast "cast<>"
+
+    @section hashdecl_object_comparison Comparison of Type-Safe Hashes and Objects
+
+    Type-safe hashes are similar to objects in that they have members, but there are some important
+    differences as follows:
+    - type-safe hashes are always passed by value whereas objects are always passed by reference
+    - object classes can have methods, type-safe hashes cannot
+    - object classes allow for class members to have access restrictions; type-safe hashes are made up exclusively of public members
+    - object classes can participate in a hierarchy, type-safe hashes cannot
+*/
