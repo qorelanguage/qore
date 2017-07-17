@@ -332,13 +332,13 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
 
     @par Syntax
-    <tt><b>new</b></tt> <em>@ref qore_classes "class_identifier"</em><tt>(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
-    <tt><b>new</b></tt> <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
-    <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_arg</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <em>@ref qore_classes "class_identifier"</em><tt>(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_arg</em>]<tt>)</tt>
 
     @par Return Type
-    If the type given is a @ref qore_classes "class name", then this operator returns an object of the specific class given;
-    if the type given is a @ref hashdecl "hashdecl identifier", then this operator returns a type-safe hash of the given type.
+    - If the type given is a @ref qore_classes "class name", then this operator returns an object of the specific class given
+    - If the type given is a @ref hashdecl "hashdecl identifier", then this operator returns a type-safe hash of the given type.
 
     @par Example
     @code{.py}
@@ -448,8 +448,8 @@ hash nh = remove h.("a", "b", "c");
     - <tt><b>cast</b>\&lt;</tt><tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
 
     @par Return Type
-    If a class name if given, then this operator returns an object of the specific class given at runtime.
-    If a @ref hashdecl "type-safe hash" name is given, then this operator returns a hash of the given type
+    - If a class name if given, then this operator returns an object of the specific class given at runtime.
+    - If a @ref hashdecl "type-safe hash" name is given, then this operator returns a hash of the given type
     at runtime; in this case the hash also undergoes conversion and initialization to the specified type; see
     @ref hashdecl_creation for more information.
 
