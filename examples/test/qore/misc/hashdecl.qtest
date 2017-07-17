@@ -23,6 +23,12 @@ public hashdecl Container2 {
     date d = now_us();
 }
 
+public namespace Test;
+
+public hashdecl Test::Container3 {
+    int i = 3;
+}
+
 class HashDeclTest inherits QUnit::Test {
     constructor() : QUnit::Test("HashDecl test", "1.0") {
         addTestCase("Test HashDecl", \testHashDecl());
@@ -105,6 +111,11 @@ class HashDeclTest inherits QUnit::Test {
             hash<Container2> c2();
             c1 = cast<hash<Container>>(c2);
             assertEq(2, c1.i);
+        }
+
+        {
+            hash<Test::Container3> c3();
+            assertEq(3, c3.i);
         }
 
         {

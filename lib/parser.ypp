@@ -1030,13 +1030,6 @@ public:
                   continue;
                }
 
-/*
-               if (substr.find_first_of("<>") != std::string::npos) {
-                  parse_error(loc, "unbalanced angle brackets in subtype declaration '%s<%s>'", id, typestr.c_str());
-                  continue;
-               }
-*/
-
                // add to the subtype vector
                const char* ptr = substr.c_str();
                bool st_or_nothing;
