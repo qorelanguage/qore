@@ -137,6 +137,20 @@ void AstPrinter::printClassSignature(std::ostream& os, ASTClassDeclaration* d) {
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "class " << d->name.name;
+    size_t i = 0, count = d->inherits.size();
+    if (count)
+        os << " inherits";
+    for (; i < count; i++) {
+        ASTSuperclassDeclaration* sd = d->inherits[i];
+        if (sd) {
+            if (i == 0)
+                os << " ";
+            else
+                os << ", ";
+            AstTreePrinter::printModifiers(os, sd->modifiers, 0, true);
+            os << " " << sd->name.name;
+        }
+    }
 }
 
 void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration* d) {
