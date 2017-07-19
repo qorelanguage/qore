@@ -1694,6 +1694,8 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
+\.\.\.                                  return TOK_3_DOTS;
+\.\.                                    return TOK_2_DOTS;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
 \'[^\']*\'                              yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
 \$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(get_loc(yylloc), -1); return IMPLICIT_ARG_REF;

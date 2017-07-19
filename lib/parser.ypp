@@ -750,6 +750,19 @@ struct NSNodeList : public nsnode_list_t {
    }
 };
 
+static QoreListNode* range_expressions(int64 start, int64 stop) {
+    QoreListNode* l = new QoreListNode;
+    if (start < stop) {
+        for (int64 i = start; i <= stop; i++)
+            l->push(new QoreBigIntNode(i));
+    }
+    else {
+        for (int64 i = start; i >= stop; i--)
+            l->push(new QoreBigIntNode(i));
+    }
+    return l;
+}
+
 static QoreParseListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreNode* a2, const QoreProgramLocation& loc1, const QoreProgramLocation& loc2) {
    //tracein("splice_expressions()");
    if (a1 && a1->getType() == NT_PARSE_LIST) {
@@ -1627,6 +1640,8 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
+%token TOK_3_DOTS "..."
+%token TOK_2_DOTS ".."
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -3109,6 +3124,8 @@ list:
            }
            $$ = l;
         }
+        | INTEGER TOK_3_DOTS INTEGER { $$ = range_expressions($1, $3); }
+        | INTEGER TOK_2_DOTS INTEGER { $$ = range_expressions($1, $3); }
         ;
 
 list_n:
