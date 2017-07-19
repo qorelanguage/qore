@@ -944,7 +944,6 @@ public:
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
-      assert(false);
    }
 
 protected:

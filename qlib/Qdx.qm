@@ -251,6 +251,7 @@ public namespace Qdx {
             line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
             line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::&lt;$1&gt;::$2($3)'/g;
             line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
+            line =~ s/[Ss]truct /hashdecl /g;
 
             return line;
         }

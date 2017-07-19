@@ -137,6 +137,8 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                     const QoreTypeInfo* kti = getTypeInfoForValue(i.getValue());
                     bool may_not_match = false;
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), kti, may_not_match);
+                    if (may_not_match && !runtime_check)
+                        runtime_check = true;
                     if (res == QTI_IDENT
                         || ((res == QTI_AMBIGUOUS)
                             && (!strict_check || !may_not_match)))
@@ -166,6 +168,8 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                     const QoreTypeInfo* vti = vtypes[i];
                     bool may_not_match = false;
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), vti, may_not_match);
+                    if (may_not_match && !runtime_check)
+                        runtime_check = true;
                     if (res == QTI_IDENT
                         || ((res == QTI_AMBIGUOUS)
                             && (!strict_check || !may_not_match)))

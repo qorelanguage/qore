@@ -95,7 +95,7 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
          if (r == QTI_NOT_EQUAL)
              parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to (hashdecl) %s", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
 
-         bool runtime_check;
+         bool runtime_check = false;
          typed_hash_decl_private::get(*hd)->parseCheckHashDeclInitialization(loc, expTypeInfo, exp, "cast<> operation", runtime_check, false);
 
          typeInfo = hd->getTypeInfo();
