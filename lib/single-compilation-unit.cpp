@@ -55,6 +55,7 @@
 #include "VarRefNode.cpp"
 #include "FunctionCallNode.cpp"
 #include "NewComplexTypeNode.cpp"
+#include "QoreParseHashNode.cpp"
 #include "QoreClosureParseNode.cpp"
 #include "QoreClosureNode.cpp"
 #include "QoreImplicitArgumentNode.cpp"

@@ -130,7 +130,7 @@ public:
       // otherwise create the new hash entry
       HashMember* om = findMember(key);
       if (om)
-	 return om;
+         return om;
 
       om = new HashMember(key);
       member_list.push_back(om);
@@ -255,8 +255,9 @@ public:
       return h;
    }
 
-   DLLLOCAL QoreHashNode* copy() const {
-      QoreHashNode* h = getCopy();
+   // strip = copy without type information
+   DLLLOCAL QoreHashNode* copy(bool strip = false) const {
+      QoreHashNode* h = strip ? new QoreHashNode : getCopy();
 
       // copy all members to new object
       for (auto& i : member_list) {

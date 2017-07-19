@@ -18,7 +18,8 @@
     |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
     |@ref binary_type "binary"|@ref binary|@ref binary|Restricts values to @ref binary values
     |@ref hash_type "hash"|@ref hash|@ref hash|Restricts values to @ref hash values
-    |@ref hash_complex_type "hash<...>"|@ref hash|@ref hash|Restricts values to values of the referenced @ref hashdecl "type-safe hash"
+    |@ref hash_hashdecl_type "hash<...>"|@ref hash|@ref hash|Restricts values to values of the referenced @ref hashdecl "type-safe hash"
+    |@ref hash_complex_type "hash<string, ...>"|@ref hash|@ref hash|Restricts key values to the declared type
     |@ref list_type "list"|@ref list|@ref list|Restricts values to @ref list values
     |@ref object_type "object"|@ref object|@ref object|Restricts values to @ref object values
     |@ref classname_type "object<...>"|@ref object|@ref object|Restricts values to objects of the specific class
@@ -174,9 +175,9 @@ hash sub foo(hash h = ("foo": "bar", "x": 2)) {
 }
     @endcode
 
-    @subsection hash_complex_type Type-Safe Hash Type
+    @subsection hash_hashdecl_type Type-Safe Hash Type
 
-    The hash type declaration takes a single @ref hashdecl "type-safe hash" name (or namespace-
+    The hash type takes a single @ref hashdecl "type-safe hash" name (or namespace-
     prefixed path) in angle brackets after \c "hash" which results in a type declaration
     restricted to the declared @ref hashdecl "type-safe hash" as in the following example.
 
@@ -190,6 +191,22 @@ hashdecl MyHash {
 hash<MyHash> sub foo(hash<MyHash> h = new hash<MyHash>("foo": "bar", "x": 2)) {
     return h;
 }
+    @endcode
+
+    @subsection hash_complex_type Hash With Declared Value Type
+
+    The hash type also supports two arguments in angle brackets to specify the key and value
+    types, however the key type currently must always be @ref string_type "string".  This
+    results in a hash where the key values must always be of the declared type.  See the
+    following example for more information.
+
+    @par Example
+    @code{.py}
+hash<string, int> h = (
+    "code": 500,
+    "type": 300,
+    "value": 0,
+);
     @endcode
 
     <hr>

@@ -32,6 +32,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreString QoreParseCastOperatorNode::cast_str("cast operator expression");
 

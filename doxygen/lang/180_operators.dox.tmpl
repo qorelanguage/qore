@@ -446,12 +446,15 @@ hash nh = remove h.("a", "b", "c");
     - <tt><b>cast</b>\&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt><em>object_expression</em><tt>)</tt>
     - <tt><b>cast</b>\&lt;</tt><tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;&gt;(</tt><em>object_expression</em><tt>)</tt>
     - <tt><b>cast</b>\&lt;</tt><tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>\&lt;</tt><tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
 
     @par Return Type
     - If a class name if given, then this operator returns an object of the specific class given at runtime.
-    - If a @ref hashdecl "type-safe hash" name is given, then this operator returns a hash of the given type
+    - If a @ref hashdecl "type-safe hash" type is given, then this operator returns a hash of the given type
     at runtime; in this case the hash also undergoes conversion and initialization to the specified type; see
     @ref hashdecl_creation for more information.
+    - If a complex type is given, then this operator will convert the expression's value to the declared type
+    at runtime if possible.
 
     @par Examples
     @code{.py}
@@ -459,8 +462,10 @@ hash nh = remove h.("a", "b", "c");
 cast<SubClass>(obj).method();
 # cast with complex object type (class cast)
 cast<object<SubClass>>(obj).method();
-# hashdecl cast with value conversion
+# hashdecl cast with type conversion
 hash<MyType1> h = cast<hash<MyType1>>(h2);
+# complex hash cast
+hash<string, MyClass>h = cast<hash<string, MyClass>(get_untyped_hash());
     @endcode
 
     <b>Arguments Processed by cast<>()</b>

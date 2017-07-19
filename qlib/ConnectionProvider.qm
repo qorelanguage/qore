@@ -238,7 +238,7 @@ string connstr = get_connection(str);
 *hash<string, hash<ConnectionInfo>> h = get_connection_hash();
         @endcode
 
-        @param verbose display connection provider module errors on stdout (otherwise errors are ignored)
+        @param verbose display connection provider module errors on stdout (otherwise errors are silently ignored)
 
         @return a hash keyed by connection identifier; values are hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
 

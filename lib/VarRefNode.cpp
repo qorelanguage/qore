@@ -34,6 +34,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed

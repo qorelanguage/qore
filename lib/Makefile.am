@@ -230,6 +230,7 @@ libqore_la_SOURCES = \
 	SmartMutex.cpp \
 	QoreCounter.cpp \
 	CallReferenceNode.cpp \
+	QoreParseHashNode.cpp \
 	QoreClosureParseNode.cpp \
 	QoreClosureNode.cpp \
 	QoreImplicitArgumentNode.cpp \

@@ -696,3 +696,18 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& l
    // qc maybe NULL when the class is not found
    return qc ? qc->getTypeInfo() : objectTypeInfo;
 }
+
+void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
+   QoreHashNode* h = n.get<QoreHashNode>();
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   //printd(5, "map_get_plain_hash ph: %p hd: %p c: %p refs: %d\n", ph, ph->hashdecl, ph->complexTypeInfo, h->reference_count());
+   if (!ph->hashdecl && !ph->complexTypeInfo)
+      return;
+
+   if (!h->is_unique()) {
+      discard(n.assign(ph->copy(true)), xsink);
+      return;
+   }
+   ph->hashdecl = nullptr;
+   ph->complexTypeInfo = nullptr;
+}

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 Qore Technologies, sro
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,37 +31,66 @@
 #include <qore/Qore.h>
 
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreString QoreHashMapOperatorNode::map_str("map operator expression");
 
 // if del is true, then the returned QoreString * should be mapd, if false, then it must not be
-QoreString *QoreHashMapOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreHashMapOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = false;
    return &map_str;
 }
 
-int QoreHashMapOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+int QoreHashMapOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
    str.concat(&map_str);
    return 0;
 }
 
-AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids,
-                                                         const QoreTypeInfo *&typeInfo) {
+const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo) {
+   const QoreTypeInfo* typeInfo;
+
+   // this operator returns no value if the iterator expression has no value
+   bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
+   if (QoreTypeInfo::hasType(expTypeInfo2)) {
+      QoreStringMaker str("hash<string, %s>", QoreTypeInfo::getName(expTypeInfo2));
+      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(str.c_str(), expTypeInfo2);
+
+      if (or_nothing) {
+         str.prepend("*");
+         typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(str.c_str(), expTypeInfo2);
+      }
+      else
+         typeInfo = returnTypeInfo;
+   }
+   else {
+      returnTypeInfo = hashTypeInfo;
+      // this operator returns no value if the iterator expression has no value
+      typeInfo = or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
+   }
+
+   //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+
+   return typeInfo;
+}
+
+AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    assert(!typeInfo);
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
+   // check key expression
+   const QoreTypeInfo* expTypeInfo = nullptr;
    e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-   // check iterator expression2
-   const QoreTypeInfo* expTypeInfo2 = 0;
+   // check value expression2
+   const QoreTypeInfo* expTypeInfo2 = nullptr;
    e[1] = e[1]->parseInit(oflag, pflag, lvids, expTypeInfo2);
 
-   // check iteratorTypeInfo expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   // check iterator expression
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    e[2] = e[2]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+   typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
 
    return this;
 }
@@ -73,33 +102,33 @@ QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
    qore_type_t arglst_type = arg_lst->getType();
    assert(arglst_type != NT_NOTHING);
-   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode : 0, xsink);
+   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode : nullptr, xsink);
    if (NT_LIST != arglst_type) { // Single value
       // check if it's an AbstractIterator object
       if (NT_OBJECT == arglst_type) {
          AbstractIteratorHelper h(xsink, "hmap operator select",
-				  const_cast<QoreObject*>(arg_lst->get<const QoreObject>()));
+                                  const_cast<QoreObject*>(arg_lst->get<const QoreObject>()));
          if (*xsink)
-	    return QoreValue();
+            return QoreValue();
          if (h)
             return mapIterator(h, xsink); // TODO!!
-	 // passed iterator
+         // passed iterator
       }
 
       // check if value can be mapped
       SingleArgvContextHelper argv_helper(arg_lst.getReferencedValue(), xsink);
       ValueEvalRefHolder arg_key(e[0], xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       ValueEvalRefHolder arg_val(e[1], xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       // we have to convert to a string in the default encoding to use a hash key
       QoreStringValueHelper str_util(*arg_key, QCS_DEFAULT, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
 
       // Insert key-Value pair to the hash
       ret_val->setKeyValue(str_util->getBuffer(), arg_val.getReferencedValue(), xsink);
@@ -111,30 +140,34 @@ QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
          ImplicitElementHelper eh(li.index());
          SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
 
-	 {
-	    ValueEvalRefHolder ekey(e[0], xsink);
-	    if (*xsink)
-	       return QoreValue();
+         {
+            ValueEvalRefHolder ekey(e[0], xsink);
+            if (*xsink)
+               return QoreValue();
 
-	    // we have to convert to a string in the default encoding to use a hash key
-	    QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
-	    if (*xsink)
-	       return QoreValue();
+            // we have to convert to a string in the default encoding to use a hash key
+            QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
+            if (*xsink)
+               return QoreValue();
 
-	    ValueEvalRefHolder val(e[1], xsink);
-	    if (*xsink)
-	       return QoreValue();
+            ValueEvalRefHolder val(e[1], xsink);
+            if (*xsink)
+               return QoreValue();
 
-	    if (ref_rv)
-	       ret_val->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
-	 }
-	 // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
-	 if (*xsink)
-	    return QoreValue();
+            if (ref_rv)
+               ret_val->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
+         }
+         // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
+         if (*xsink)
+            return QoreValue();
       }
    }
    if (*xsink || !ref_rv)
       return QoreValue();
+
+   assert(ret_val->is_unique());
+   if (QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo))
+      qore_hash_private::get(**ret_val)->complexTypeInfo = returnTypeInfo;
 
    return ret_val.release();
 }
@@ -149,7 +182,7 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
       if (*xsink)
          return QoreValue();
       if (!has_next)
-	 break;
+         break;
 
       ImplicitElementHelper eh(i++);
 
@@ -161,25 +194,25 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
       SingleArgvContextHelper argv_helper(iv.release(), xsink);
 
       {
-	 ValueEvalRefHolder ekey(e[0], xsink);
-	 if (*xsink)
-	    return QoreValue();
+         ValueEvalRefHolder ekey(e[0], xsink);
+         if (*xsink)
+            return QoreValue();
 
-	 // we have to convert to a string in the default encoding to use a hash key
-	 QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    return QoreValue();
+         // we have to convert to a string in the default encoding to use a hash key
+         QoreStringValueHelper key(*ekey, QCS_DEFAULT, xsink);
+         if (*xsink)
+            return QoreValue();
 
-	 ValueEvalRefHolder val(e[1], xsink);
-	 if (*xsink)
-	    return QoreValue();
+         ValueEvalRefHolder val(e[1], xsink);
+         if (*xsink)
+            return QoreValue();
 
-	 if (ref_rv)
-	    rv->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
+         if (ref_rv)
+            rv->setKeyValue(key->getBuffer(), val.getReferencedValue(), xsink);
       }
       // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
 
    return rv.release();

@@ -1199,12 +1199,21 @@ protected:
    }
 };
 
-class QoreHashTypeInfo : public QoreBaseNoConvertTypeInfo {
+DLLLOCAL void map_get_plain_hash(QoreValue&, ExceptionSink*);
+
+class QoreHashTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreHashTypeInfo() : QoreBaseNoConvertTypeInfo("hash", NT_HASH) {
+   DLLLOCAL QoreHashTypeInfo() : QoreTypeInfo("hash", q_accept_vec_t {
+         {NT_HASH, map_get_plain_hash, true}},
+      q_return_vec_t {{NT_HASH, true}}) {
    }
 
 protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return true;
    }
@@ -1214,9 +1223,20 @@ protected:
    }
 };
 
-class QoreHashOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+class QoreHashOrNothingTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreHashOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*hash", NT_HASH) {
+   DLLLOCAL QoreHashOrNothingTypeInfo() : QoreTypeInfo("*hash", q_accept_vec_t {
+         {NT_HASH, map_get_plain_hash},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      },
+      q_return_vec_t {{NT_HASH}, {NT_NOTHING}}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
    }
 };
 

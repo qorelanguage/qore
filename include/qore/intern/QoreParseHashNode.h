@@ -127,11 +127,15 @@ protected:
    lvec_t lvec;
    // to detect duplicate values, only stored during parsing
    kmap_t kmap;
+   // common value type, if any
+   const QoreTypeInfo* vtype = nullptr;
+   // node type info (derivative of hash)
+   const QoreTypeInfo* typeInfo;
    // flag for a hash expression in curly brackets for the hash version of the map operator
    bool curly;
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return hashTypeInfo;
+      return typeInfo;
    }
 
    DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation& newoc1, const char* key);
@@ -147,70 +151,9 @@ protected:
       }
    }
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      typeInfo = hashTypeInfo;
-      assert(keys.size() == values.size());
-      bool needs_eval = false;
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-      // turn off "return value ignored" flag before performing parse init
-      pflag &= ~PF_RETURN_VALUE_IGNORED;
-
-      // initialize value type vector
-      vtypes.resize(keys.size());
-
-      for (size_t i = 0; i < keys.size(); ++i) {
-         const QoreTypeInfo* argTypeInfo = 0;
-         AbstractQoreNode* p = keys[i];
-         keys[i] = keys[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
-
-         if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
-            QoreStringValueHelper key(keys[i]);
-            checkDup(lvec[i], key->getBuffer());
-         }
-         else if (!needs_eval && keys[i] && keys[i]->needs_eval())
-            needs_eval = true;
-
-         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
-            QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
-         }
-
-         argTypeInfo = 0;
-         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
-         if (!needs_eval && values[i] && values[i]->needs_eval())
-            needs_eval = true;
-      }
-
-      kmap.clear();
-
-      if (needs_eval)
-         return this;
-
-      // evaluate immediately
-      ValueEvalRefHolder rv(this, 0);
-      deref();
-      return rv.getReferencedValue();
-   }
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      assert(keys.size() == values.size());
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
-      for (size_t i = 0; i < keys.size(); ++i) {
-         QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-
-         QoreNodeEvalOptionalRefHolder v(values[i], xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-
-         QoreStringValueHelper key(*k);
-         h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-      }
-      return h.release();
-   }
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

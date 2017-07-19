@@ -56,7 +56,7 @@ module HttpServerUtil {
     - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes providing basic logging methods
     - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
     - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
-    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstrct class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
+    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstract class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
     - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
 
     See also:

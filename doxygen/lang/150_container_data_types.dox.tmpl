@@ -127,7 +127,7 @@ element3 = hash{"this-element-1!"};
     @endcode \n
     A literal string after the dot "." hash member dereferencing operator must be a valid %Qore identifier; therefore if you want to use a hash key that's not a valid identifier, enclose the string in quotes.\n\n
     If you want to use the result of an expression to dereference the hash, then either the curly bracket syntax must be used or the expression must be enclosed in parentheses.\n\n
-    In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @verbatim hash{MyConstant} @endverbatim
+    In the case of using a literal string with the dot operator, keep in mind that the string is always interpreted as a literal string name of the member, even if there is a constant with the same name.  To use the value of a constant to dereference a hash, use curly brackets with the constant: ex: @code{.py} hash{MyConstant} @endcode
     Note that hash keys can also be given by constants (as long as the constant resolves to a string) when using curly brackets.\n
 
     @par Hash slicing:
@@ -144,25 +144,24 @@ hash h = {
 
 # Creates a new hash with key-value pairs "a" and "b" from the original hash.
 hash nh = h.("a", "b");
-printf("slice 1: %n\n", nh);
+printf("slice 1: %y\n", nh);
 
 # Creates a new hash with key-value pairs "x", "y" and "float" from the original hash.
-printf("slice 2: %n\n", h.("x", "y", "float"));
+printf("slice 2: %y\n", h.("x", "y", "float"));
 
 # Creates a new hash with a key-value pair "x" from the original hash.
-printf("slice 3: %n\n", h.("x", "random"));
+printf("slice 3: %y\n", h.("x", "random"));
 
 # Creates an empty hash because hash h does not contain keys "abc" or "xyz".
-printf("slice 4: %n\n", h.("abc", "xyz"));
+printf("slice 4: %y\n", h.("abc", "xyz"));
 
+# -------------------------
+# the output is as follows:
 
----------------------------------
-
-
-slice 1: hash: (a : 3, b : 5)
-slice 2: hash: (x : "test", y : 0, float : 2.71828)
-slice 3: hash: (x : "test")
-slice 4: <EMPTY HASH>
+slice 1: {a: 3, b: 5}
+slice 2: {x: "test", y: 0, float: 2.71828}
+slice 3: {x: "test"}
+slice 4: {}
     @endcode \n
 
     All keys matching with the original hash's key-value pairs will be included in the newly created hash. Keys which are not in the original hash will be silently ignored.
@@ -174,7 +173,7 @@ slice 4: <EMPTY HASH>
     Gives an empty hash (note that <tt>()</tt> gives an empty list):
     @verbatim hash h = {};@endverbatim
 
-    @par Complex Type Support for Hashes
+    @par typedecl Typed Hash Declarations
     The \c "hash" type supports complex types with a single argument giving a @ref hashdecl "type-safe hashdecl" identifier in angle brackets after the \c "hash" type.  Furthermore, type-safe hashes can be declared using the @ref hashdecl "hashdecl" keyword; the following example demonstrates a type-safe hash declaration and then a variable restricted to this type:\n
     @code{.py}
 hashdecl Container {
@@ -185,7 +184,17 @@ hashdecl Container {
 hash<Container> c();
     @endcode \n
 
-    @see hashdecl for more information
+    @see
+    - @ref hashdecl
+    - @ref hash_hashdecl_type
+
+    @par Complex Type Support for Hashes
+    The \c "hash" type also supports two type arguments which allow the value type of the hash to be delcared.  The key type is also included in the declaration, but is currently restricted to type @ref string_type "string"; the following example demonstrates a hash declaration with a specific value type:\n
+    @code{.py}
+hash<string, int> h(("key1": 2, "key2": 3));
+    @endcode
+
+    @see @ref hash_complex_type
 
     @par Pseudo Class for Type Hash:
     @ref Qore::zzz8hashzzz9
@@ -244,13 +253,10 @@ class_name_or_path var_name([argument list])
 
     For example (for a constructor taking no arguments or having only default values for the aguments, the list is empty):
     @code{.py}
+# simple object declaration and instantiation
 Mutex m();
-    @endcode
-
-    If parse option @ref new-style "%new-style" is set, the above example declaring a local variable of class @ref Qore::Thread::Mutex would look as follows:
-
-    @code{.py}
-Mutex m();
+# this is equivalent to the above
+object<Mutex> m1();
     @endcode
 
     Objects can also be instantiated using the @ref new "new operator" as follows.
@@ -260,12 +266,6 @@ new class_identifier([argument list])
     @endcode
 
     For example:
-
-    @code{.py}
-Mutex m = new Mutex();
-    @endcode
-
-    Or, with parse option %new-style:
 
     @code{.py}
 Mutex m = new Mutex();
@@ -286,12 +286,6 @@ object_reference.method_name([argument_list])
     @endcode
 
     Or, from within the class code itself to call another method from inside the same class hierarchy:
-
-    @code{.py}
-method_name([argument_list])
-    @endcode
-
-    Or, with parse option %new-style, the method call is made without the "$.":
 
     @code{.py}
 method_name([argument_list])
