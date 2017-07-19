@@ -366,6 +366,39 @@ void FindReferencesQuery::inStatement(std::vector<ASTNode*>* vec, ASTStatement* 
     }
 }
 
+void FindReferencesQuery::findIntern(ASTTree* tree, std::vector<ASTNode*>* vec, const std::string& name) {
+    for (size_t i = 0, count = tree->nodes.size(); i < count; i++) {
+        ASTNode* node = tree->nodes[i];
+        switch (node->getNodeType()) {
+            case ANT_Declaration: {
+                ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+                inDeclaration(vec, decl, name);
+                break;
+            }
+            case ANT_Expression: {
+                ASTExpression* expr = static_cast<ASTExpression*>(node);
+                inExpression(vec, expr, name);
+                break;
+            }
+            case ANT_Name: {
+                ASTName* n = static_cast<ASTName*>(node);
+                inName(vec, n, name);
+                break;
+            }
+            case ANT_ParseOption:
+                break;
+            case ANT_Statement: {
+                ASTStatement* stmt = static_cast<ASTStatement*>(node);
+                inStatement(vec, stmt, name);
+                break;
+            }
+            case ANT_None:
+            default:
+                break;
+        }
+    }
+}
+
 std::vector<ASTNode*>* FindReferencesQuery::find(ASTTree* tree, const std::string& name) {
     if (!tree)
         return nullptr;
@@ -373,35 +406,10 @@ std::vector<ASTNode*>* FindReferencesQuery::find(ASTTree* tree, const std::strin
     std::unique_ptr<std::vector<ASTNode*> > vec(new std::vector<ASTNode*>);
     if (!vec)
         return nullptr;
-    for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
-        ASTNode* node = tree->nodes[i];
-        switch (node->getNodeType()) {
-            case ANT_Declaration: {
-                ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-                inDeclaration(vec.get(), decl, name);
-                break;
-            }
-            case ANT_Expression: {
-                ASTExpression* expr = static_cast<ASTExpression*>(node);
-                inExpression(vec.get(), expr, name);
-                break;
-            }
-            case ANT_Name: {
-                ASTName* n = static_cast<ASTName*>(node);
-                inName(vec.get(), n, name);
-                break;
-            }
-            case ANT_ParseOption:
-                break;
-            case ANT_Statement: {
-                ASTStatement* stmt = static_cast<ASTStatement*>(node);
-                inStatement(vec.get(), stmt, name);
-                break;
-            }
-            case ANT_None:
-            default:
-                break;
-        }
+    findIntern(tree, vec.get(), name);
+    if (name[0] == '*') {
+        std::string nameWithoutAsterisk(name.c_str()+1);
+        findIntern(tree, vec.get(), nameWithoutAsterisk);
     }
     return vec.release();
 }
