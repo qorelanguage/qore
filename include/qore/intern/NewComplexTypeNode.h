@@ -130,4 +130,48 @@ public:
    }
 };
 
+class NewComplexHashNode : public ParseNode {
+protected:
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+      assert(false);
+      return nullptr;
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
+   }
+
+public:
+   const QoreTypeInfo* typeInfo;
+   QoreListNode* args;
+
+   DLLLOCAL NewComplexHashNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, QoreListNode* a) : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
+      assert(QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
+   }
+
+   DLLLOCAL virtual ~NewComplexHashNode() {
+      if (args)
+         args->deref(nullptr);
+   }
+
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+      str.sprintf("new complex hash operator expression ('%s')", QoreTypeInfo::getName(typeInfo));
+      return 0;
+   }
+
+   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+      del = true;
+      QoreString* rv = new QoreString;
+      getAsString(*rv, foff, xsink);
+      return rv;
+   }
+
+   DLLLOCAL virtual const char* getTypeName() const {
+      return "new complex hash operator expression";
+   }
+};
+
 #endif

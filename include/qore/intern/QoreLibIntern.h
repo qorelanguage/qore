@@ -611,12 +611,12 @@ class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
-   qore_object_private* o = 0;
+   qore_object_private* o = nullptr;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = nullptr);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
@@ -640,6 +640,10 @@ public:
 
    DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
       return swapImpl(v);
+   }
+
+   DLLLOCAL static hash_assignment_priv* get(HashAssignmentHelper& h) {
+      return h.priv;
    }
 };
 

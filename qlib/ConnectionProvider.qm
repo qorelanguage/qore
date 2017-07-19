@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
-/*  ConnectionProvider.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  ConnectionProvider.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

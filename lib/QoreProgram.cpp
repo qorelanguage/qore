@@ -38,6 +38,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreTypeInfo.h"
 
 #include <string>
 #include <set>
@@ -702,6 +703,13 @@ void qore_program_private::del(ExceptionSink* xsink) {
    // delete all root code
    // method call can be repeated
    sb.del();
+
+   // delete stored type information
+   for (auto& i : ch_map)
+      delete i.second;
+   for (auto& i : chon_map)
+      delete i.second;
+
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 }
 
@@ -742,6 +750,30 @@ LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeI
    LocalVar* lv = new LocalVar(name, typeInfo);
    local_var_list.push_back(lv);
    return lv;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexHashType(const char* name, const QoreTypeInfo* vti) {
+   AutoLocker al(chl);
+
+   tmap_t::iterator i = ch_map.lower_bound(vti);
+   if (i != ch_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(name, vti);
+   ch_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const char* name, const QoreTypeInfo* vti) {
+   AutoLocker al(chonl);
+
+   tmap_t::iterator i = chon_map.lower_bound(vti);
+   if (i != chon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(name, vti);
+   chon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
 }
 
 QoreProgram::~QoreProgram() {

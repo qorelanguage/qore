@@ -451,6 +451,16 @@ public:
    */
    DLLEXPORT const TypedHashDecl* getHashDecl() const;
 
+   //! returns the value type declaration (only possible if there is no hashdecl set)
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getValueTypeInfo() const;
+
+   //! returns the type info structure for the current value; also works for hashes derived from a TypedHashDecl or with a specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
    //! returns the type name (useful in templates)
    /** @return the type name
     */
@@ -747,20 +757,7 @@ public:
 
 //! use this class to make assignments to hash keys from a pointer to the key value
 class HashAssignmentHelper {
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL HashAssignmentHelper(const HashAssignmentHelper&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL HashAssignmentHelper& operator=(const HashAssignmentHelper&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void* operator new(size_t);
-
-protected:
-   //! private implementation
-   class hash_assignment_priv *priv;
-
+friend class hash_assignment_priv;
 public:
    //! constructor taking a const char*
    /** @param n_h the hash to use
@@ -842,6 +839,15 @@ public:
    /** @return the current value of the hash key
     */
    DLLEXPORT AbstractQoreNode* operator*() const;
+
+protected:
+   //! private implementation
+   class hash_assignment_priv *priv;
+
+private:
+   DLLLOCAL HashAssignmentHelper(const HashAssignmentHelper&) = delete;
+   DLLLOCAL HashAssignmentHelper& operator=(const HashAssignmentHelper&) = delete;
+   DLLLOCAL void* operator new(size_t) = delete;
 };
 
 #endif // _QORE_HASH_H

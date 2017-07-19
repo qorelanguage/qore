@@ -32,6 +32,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);
@@ -47,9 +48,18 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
     {
         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
         if (hd) {
+            ReferenceHolder<> holder(this, nullptr);
             bool runtime_check;
-            lvids += typed_hash_decl_private::get(*hd)->parseInitImpliedConstructor(loc, oflag, pflag, args, runtime_check);
+            lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, args, runtime_check);
             return new NewHashDeclNode(loc, hd, takeArgs(), runtime_check);
+        }
+    }
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+        if (ti) {
+            ReferenceHolder<> holder(this, nullptr);
+            lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, args, ti);
+            return new NewComplexHashNode(loc, typeInfo, takeArgs());
         }
     }
 
@@ -60,5 +70,9 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
 
 QoreValue NewHashDeclNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return typed_hash_decl_private::get(*hd)->newHash(args, runtime_check, xsink);
+}
+
+QoreValue NewComplexHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    return qore_hash_private::newComplexHash(typeInfo, args, xsink);
 }
 

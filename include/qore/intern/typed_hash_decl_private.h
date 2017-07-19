@@ -147,10 +147,15 @@ public:
         }
     }
 
-    DLLLOCAL int parseInitImpliedConstructor(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const;
+    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check) const;
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check) const;
+    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
+
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+
+    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation& loc, const QoreTypeInfo* vti) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
@@ -165,7 +170,7 @@ public:
         QoreValue v(val.release());
         QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, v, xsink);
         val = v.takeNode();
-        return 0;
+        return *xsink ? -1 : 0;
     }
 
     DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;

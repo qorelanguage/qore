@@ -76,7 +76,7 @@ protected:
 
 class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 public:
-   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
+   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
    }
 
    DLLLOCAL virtual ~QoreCastOperatorNode() = default;
@@ -130,12 +130,13 @@ protected:
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
    DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
+      assert(hd);
    }
 
    DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return hd ? hd->getTypeInfo() : hashTypeInfo;
+      return hd->getTypeInfo();
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
@@ -152,4 +153,28 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
+class QoreComplexHashCastOperatorNode : public QoreCastOperatorNode {
+public:
+   DLLLOCAL QoreComplexHashCastOperatorNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
+   }
+
+   DLLLOCAL virtual ~QoreComplexHashCastOperatorNode() = default;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return nullptr;
+      assert(typeInfo);
+      return new QoreComplexHashCastOperatorNode(loc, typeInfo, n_exp.release());
+   }
+
+protected:
+   const QoreTypeInfo* typeInfo;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+};
 #endif

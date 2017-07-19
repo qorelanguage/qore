@@ -379,6 +379,7 @@ protected:
       VRN_NONE = 0,
       VRN_OBJECT = 1,
       VRN_HASHDECL = 2,
+      VRN_COMPLEXHASH = 3,
    } vrn_type = VRN_NONE;
    bool runtime_check = false;
 
@@ -389,7 +390,9 @@ protected:
 
    DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc);
 
-   DLLLOCAL void parseInitHashDeclCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const TypedHashDecl* hd);
+   DLLLOCAL void parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const TypedHashDecl* hd);
+
+   DLLLOCAL void parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti);
 };
 
 #endif

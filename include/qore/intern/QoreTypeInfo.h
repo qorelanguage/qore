@@ -52,6 +52,7 @@ enum q_typespec_t : unsigned char {
    QTS_TYPE = 0,
    QTS_CLASS = 1,
    QTS_HASHDECL = 2,
+   QTS_COMPLEXHASH = 3,
 };
 
 class QoreTypeSpec {
@@ -74,9 +75,13 @@ public:
 
    DLLLOCAL qore_type_t getType() const {
       switch (typespec) {
-         case QTS_TYPE: return u.t;
-         case QTS_CLASS: return NT_OBJECT;
-         case QTS_HASHDECL: return NT_HASH;
+         case QTS_TYPE:
+            return u.t;
+         case QTS_CLASS:
+            return NT_OBJECT;
+         case QTS_COMPLEXHASH:
+         case QTS_HASHDECL:
+            return NT_HASH;
       }
    }
 
@@ -88,10 +93,14 @@ public:
       return typespec == QTS_HASHDECL ? u.hd : nullptr;
    }
 
+   DLLLOCAL const QoreTypeInfo* getComplexHash() const {
+      return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
+   }
+
    DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
       if (typespec == QTS_CLASS)
          return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_HASHDECL)
+      else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
          return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
       if (u.t == NT_ALL)
          return QTI_AMBIGUOUS;
@@ -113,13 +122,25 @@ public:
    DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
    DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
 
+protected:
+   DLLLOCAL QoreTypeSpec(const QoreTypeInfo* ti, q_typespec_t t) : typespec(t) {
+      u.ti = ti;
+   }
+
 private:
    union {
       qore_type_t t;
       const QoreClass* qc;
       const TypedHashDecl* hd;
+      const QoreTypeInfo* ti;
    } u;
    q_typespec_t typespec;
+};
+
+class QoreComplexHashTypeSpec : public QoreTypeSpec {
+public:
+   DLLLOCAL QoreComplexHashTypeSpec(const QoreTypeInfo* ti) : QoreTypeSpec(ti, QTS_COMPLEXHASH) {
+   }
 };
 
 struct QoreReturnSpec {
@@ -199,8 +220,12 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
-      if (!hasType(first) || !hasType(second))
+      if (!hasType(first))
          return QTI_AMBIGUOUS;
+      if (!hasType(second)) {
+         may_not_match = true;
+         return QTI_AMBIGUOUS;
+      }
       if (first == second)
          return QTI_IDENT;
       return first->parseAccepts(second, may_not_match);
@@ -235,6 +260,13 @@ public:
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
       return ti->return_vec[0].spec.getHashDecl();
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexHash(const QoreTypeInfo* ti) {
+      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+         return nullptr;
+      return ti->return_vec[0].spec.getComplexHash();
    }
 
    // static version of method, checking for null pointer
@@ -708,6 +740,11 @@ public:
       return pti ? pti->resolve(loc) : nullptr;
    }
 
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+      return pti ? pti->resolveAny(loc) : nullptr;
+   }
+
 #ifdef DEBUG
    DLLLOCAL const char* getCID() const { return cscope ? cscope->getIdentifier() : "n/a"; }
 
@@ -764,7 +801,10 @@ private:
       return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
    }
 
+   // resolves complex types (classes, hashdecls, etc)
    DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation& loc) const;
+   // also resolves base types
+   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation& loc) const;
    // resolves the current type to an QoreTypeInfo pointer and deletes itself
    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
    DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc) const;
@@ -870,6 +910,46 @@ public:
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
       str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+};
+
+class QoreComplexHashTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreComplexHashTypeInfo(const char* name, const QoreTypeInfo* vti) : QoreTypeInfo(name, q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
+   }
+
+protected:
+   DLLLOCAL QoreComplexHashTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+   }
+
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.sprintf("hash<string, %s>", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+};
+
+class QoreComplexHashOrNothingTypeInfo : public QoreComplexHashTypeInfo {
+public:
+   DLLLOCAL QoreComplexHashOrNothingTypeInfo(const char* name, const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(name, q_accept_vec_t {
+         {QoreComplexHashTypeSpec(vti), nullptr, true},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+         }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
+      assert(false);
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise

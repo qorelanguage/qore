@@ -42,6 +42,7 @@
 class QoreParseHashNode : public ParseNode {
 public:
    typedef std::vector<AbstractQoreNode*> nvec_t;
+   typedef std::vector<const QoreTypeInfo*> tvec_t;
 
    DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
    }
@@ -104,8 +105,12 @@ public:
       return keys;
    }
 
-   DLLLOCAL const nvec_t& getValues() const{
+   DLLLOCAL const nvec_t& getValues() const {
       return values;
+   }
+
+   DLLLOCAL const tvec_t& getValueTypes() const {
+      return vtypes;
    }
 
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
@@ -118,6 +123,7 @@ protected:
    typedef std::map<std::string, bool> kmap_t;
    typedef std::vector<QoreProgramLocation> lvec_t;
    nvec_t keys, values;
+   tvec_t vtypes;
    lvec_t lvec;
    // to detect duplicate values, only stored during parsing
    kmap_t kmap;
@@ -149,6 +155,9 @@ protected:
       // turn off "return value ignored" flag before performing parse init
       pflag &= ~PF_RETURN_VALUE_IGNORED;
 
+      // initialize value type vector
+      vtypes.resize(keys.size());
+
       for (size_t i = 0; i < keys.size(); ++i) {
          const QoreTypeInfo* argTypeInfo = 0;
          AbstractQoreNode* p = keys[i];
@@ -167,7 +176,7 @@ protected:
          }
 
          argTypeInfo = 0;
-         values[i] = values[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
+         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
          if (!needs_eval && values[i] && values[i]->needs_eval())
             needs_eval = true;
       }

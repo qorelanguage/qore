@@ -182,6 +182,13 @@ public:
    // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
    mutable QoreThreadLock plock;
 
+   QoreThreadLock chl,      // complex hash lock
+      chonl;                // complex hash or nothing lock
+
+   typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
+   tmap_t ch_map,          // complex hash map
+      chon_map;            // complex hash or nothing map
+
    // set of signals being handled by code in this Program (to be deleted on exit)
    int_set_t sigset;
 
@@ -1440,6 +1447,9 @@ public:
    }
 
    DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
+
+   DLLLOCAL const QoreTypeInfo* getComplexHashType(const char* name, const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const char* name, const QoreTypeInfo* vti);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
