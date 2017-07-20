@@ -33,6 +33,7 @@
 #include "qore/intern/ql_type.h"
 #include "qore/intern/qore_date_private.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <memory>
 
@@ -382,19 +383,24 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
    return h.release();
 }
 
-//! Returns itself
-/** This function is used as an initializer and type converter, so this identity-variant is provided for consistency's sake
-    @param h the has to return
+//! Returns a hash without any key type information
+/** This function is used as an initializer and type converter
 
-    @return the hash passed
+    @param h the hash to return
+
+    @return an untyped hash identical to the argument but with any key type information removed
 
     @par Example:
     @code{.py}
-hash h = hash(h);
+hash<string, int> h1(("string": 1));
+# get an untyped hash value from h1
+hash h2 = hash(h1);
     @endcode
+
+    @since %Qore 0.8.13 this function was modified to remove type information at runtime from typed hashes
 */
 hash hash(hash h) [flags=CONSTANT] {
-   return h->refSelf();
+   return qore_hash_private::getPlainHash(h->hashRefSelf());
 }
 
 //! Always returns the same hash passed

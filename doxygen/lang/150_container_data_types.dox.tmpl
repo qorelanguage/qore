@@ -174,15 +174,22 @@ slice 4: {}
     @verbatim hash h = {};@endverbatim
 
     @par typedecl Typed Hash Declarations
-    The \c "hash" type supports complex types with a single argument giving a @ref hashdecl "type-safe hashdecl" identifier in angle brackets after the \c "hash" type.  Furthermore, type-safe hashes can be declared using the @ref hashdecl "hashdecl" keyword; the following example demonstrates a type-safe hash declaration and then a variable restricted to this type:\n
+    The \c "hash" type supports a variant with pre-defined type-safe keys which can be specified with a single argument giving a @ref hashdecl "type-safe hashdecl" identifier in angle brackets after the \c "hash" type.  Furthermore, type-safe hashes can be declared using the @ref hashdecl "hashdecl" keyword; the following example demonstrates a type-safe hash declaration and then a variable restricted to this type:\n
     @code{.py}
+# hashdecl typed hash declaration
 hashdecl Container {
     int i = 1;
     string str = "default";
 }
 
-hash<Container> c();
+# declaration and initialization to default key values
+hash<Container> c1();
+
+# declaration and initialization with explicit values
+hash<Container> h2(("i": 10, "str": "other"));
     @endcode \n
+    This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
 
     @see
     - @ref hashdecl
@@ -192,7 +199,9 @@ hash<Container> c();
     The \c "hash" type also supports two type arguments which allow the value type of the hash to be delcared.  The key type is also included in the declaration, but is currently restricted to type @ref string_type "string"; the following example demonstrates a hash declaration with a specific value type:\n
     @code{.py}
 hash<string, int> h(("key1": 2, "key2": 3));
-    @endcode
+    @endcode \n
+    This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
 
     @see @ref hash_complex_type
 

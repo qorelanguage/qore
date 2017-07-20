@@ -17,7 +17,7 @@
     |@ref string_type "string"|@ref string|@ref string|Restricts values to @ref string values
     |@ref date_type "date"|@ref date|@ref date|Restricts values to @ref date values; values may be either @ref absolute_dates "absolute" or @ref relative_dates "relative"
     |@ref binary_type "binary"|@ref binary|@ref binary|Restricts values to @ref binary values
-    |@ref hash_type "hash"|@ref hash|@ref hash|Restricts values to @ref hash values
+    |@ref hash_type "hash"|@ref hash|@ref hash|Restricts values to @ref hash values without any key type information
     |@ref hash_hashdecl_type "hash<...>"|@ref hash|@ref hash|Restricts values to values of the referenced @ref hashdecl "type-safe hash"
     |@ref hash_complex_type "hash<string, ...>"|@ref hash|@ref hash|Restricts key values to the declared type
     |@ref list_type "list"|@ref list|@ref list|Restricts values to @ref list values
@@ -166,7 +166,7 @@ binary sub foo(binary b) {
 
     <b>hash Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c hash|@ref hash|@ref hash|Restricts values to %Qore's @ref hash type
+    |\c hash|@ref hash (all)|@ref hash (untyped)|Restricts values to %Qore's @ref hash type; if a typed hash is received, type information is removed for the lvalue assignment
 
     @par Example
     @code{.py}
@@ -177,37 +177,95 @@ hash sub foo(hash h = ("foo": "bar", "x": 2)) {
 
     @subsection hash_hashdecl_type Type-Safe Hash Type
 
+    <b>@ref hashdecl "hashdecl" Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c hash|@ref hash "hash"&lt;<em>@ref hashdecl "hashdecl"&gt;</em>|@ref hash "hash"&lt;<em>@ref hashdecl "hashdecl"&gt;</em>&gt;|Restricts values to hashes created from the given @ref hashdecl "hashdecl"
+
     The hash type takes a single @ref hashdecl "type-safe hash" name (or namespace-
     prefixed path) in angle brackets after \c "hash" which results in a type declaration
     restricted to the declared @ref hashdecl "type-safe hash" as in the following example.
 
-    @par Example
+    @par Examples
     @code{.py}
+# hashdecl typed hash declaration
 hashdecl MyHash {
     string foo = "empty";
     int x = 1;
 }
 
+# declaration and initialization to default key values
+hash<MyHash> h1();
+
+# declaration and initialization with explicit values
+hash<MyHash> h2(("foo": "string", "x": 10));
+
+# declaration and initialization with the new operator
+hash<MyHash> h3 = new hash<MyHash>(("foo": "string", "x": 10));
+
+# example of a function with a typed hash return type and parameter type
 hash<MyHash> sub foo(hash<MyHash> h = new hash<MyHash>("foo": "bar", "x": 2)) {
     return h;
 }
+
+# example of a function with a typed hash return type and a cast to a typed hash return type
+hash<MyHash> sub foo(int x) {
+    return cast<hash<MyHash>(get_hash(x));
+}
     @endcode
 
+    This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+
+    @see
+    - @ref hashdecl
+    - @ref new
+    - @ref cast
+
     @subsection hash_complex_type Hash With Declared Value Type
+
+    <b>@ref hashdecl "hashdecl" Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c hash|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|Restricts values to hashes with the given declared key type; use @ref cast "cast<>(...)" to convert values to this type at runtime.
 
     The hash type also supports two arguments in angle brackets to specify the key and value
     types, however the key type currently must always be @ref string_type "string".  This
     results in a hash where the key values must always be of the declared type.  See the
     following example for more information.
 
-    @par Example
+    @par Examples
     @code{.py}
-hash<string, int> h = (
+# 1: declaration and initialization (identical to 2 and 3)
+hash<string, int> h1((
+    "code": 500,
+    "type": 300,
+    "value": 0,
+));
+
+# 2: declaration and initialization with the assignment operator (identical to 1 and 3)
+hash<string, int> h2 = (
     "code": 500,
     "type": 300,
     "value": 0,
 );
+
+# 3: declaration and initialization with the new operator (identical to 1 and 2)
+hash<string, int> h3 = new hash<string, int>((
+    "code": 500,
+    "type": 300,
+    "value": 0,
+));
+
+# assignment from an untyped hash with the cast<> operator (can result in runtime type errors)
+hash<string, int> h4 = cast<hash<string, int>>(get_hash());
     @endcode
+
+    This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+
+    @see
+    - @ref hashdecl
+    - @ref new
+    - @ref cast
 
     <hr>
     @section list_type list

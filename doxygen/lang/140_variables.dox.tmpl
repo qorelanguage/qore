@@ -70,9 +70,10 @@ global a = 1@endverbatim
 
     This allows a variable to be declared with a specific type and initialized at the same time.
 
-    The following types can be used for <em>@ref data_type_declarations "var_type" var_name</em>:
+    The following types can be used for <em>@ref data_type_declarations "var_type"</em>:
     - a @ref qore_classes "class name" or <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_name"</em><tt>&gt;</tt> for object instantiation (the class name may have a namespace-prefixed path)
     - <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_name"</em><tt>&gt;</tt> for @ref hashdecl "type-safe hash" instantiation (the type-safe hash name may have a namespace-prefixed path)
+    - <tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;</tt> for @ref hash_complex_type "complex hash" instantiation with type-safe keys
 
     @par Examples
     @code{.py}
@@ -80,13 +81,22 @@ global a = 1@endverbatim
 Mutex m();
     @endcode
     @code{.py}
+
 # equivalent to the example above
 object<Mutex> m();
     @endcode
     @code{.py}
-# type-safe hash declaration and instantiation
-hash<MyHash> h(("a": 1));
+
+# type-safe hashdecl hash declaration and instantiation
+hash<MyHash> h1(("a": 1));
+
+# complex hash with type-safe keys declaration and instantiation
+hash<string, int> h2(("a": 1));
     @endcode
+
+    This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.  This is preferred to using the @ref new "new operator" with a variable declaration.
+
+    @see @ref new
 
     @section local_variables Local Variables
     Local variables are local to the block in which they are declared; they are also thread-local, meaning that each thread will have its own value of a local variable.
