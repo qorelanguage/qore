@@ -2396,8 +2396,10 @@ hashdecl_attrs:
         hashdecl_member {
            QoreProgramLocation loc(@1.first_line, @1.last_line);
            $$ = new typed_hash_decl_private(loc);
-           if ($1)
+           if ($1) {
               $$->parseAdd($1->getHashMemPair());
+              delete $1;
+           }
         }
         | hashdecl_attrs hashdecl_member {
            if ($2) {
