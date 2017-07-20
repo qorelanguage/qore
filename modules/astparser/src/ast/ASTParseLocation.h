@@ -62,6 +62,7 @@ struct ASTParseLocation {
         lastLine(lline),
         lastCol(lcol) {}
 
+    //! Set first line and column with first argument and last line and column with second argument.
     void set(const ASTParseLocation& first, const ASTParseLocation& last) {
         firstLine = first.firstLine;
         firstCol  = first.firstCol;
@@ -69,11 +70,13 @@ struct ASTParseLocation {
         lastCol   = last.lastCol;
     }
 
+    //! Set first line and column.
     void setFirst(const ASTParseLocation& first) {
         firstLine = first.firstLine;
         firstCol  = first.firstCol;
     }
 
+    //! Set last line and column.
     void setLast(const ASTParseLocation& last) {
         lastLine  = last.lastLine;
         lastCol   = last.lastCol;
@@ -91,13 +94,14 @@ struct ASTParseLocation {
         firstCol = savedFirstCol;
     }
 
+    //! Update according to flex parameters.
     void update(int lineno, int leng, const char* text) {
         firstLine = lastLine;
         firstCol = lastCol;
         if (firstLine == lineno)
             lastCol += leng;
         else {
-            unsigned int col = 1;
+            int col = 1;
             for (; (col <= leng) && (text[leng - col] != '\n'); ++col) {}
             lastCol = col;
             lastLine = lineno;
