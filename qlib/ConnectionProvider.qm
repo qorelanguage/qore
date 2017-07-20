@@ -64,6 +64,7 @@ module ConnectionProvider {
 
     Functions:
     - @ref ConnectionProvider::get_connection() "get_connection()"
+    - @ref ConnectionProvider::get_connection_hash() "get_connection_hash()"
     - @ref ConnectionProvider::get_connections() "get_connections()"
     - @ref ConnectionProvider::get_connection_url() "get_connection_url()"
 
@@ -240,7 +241,7 @@ string connstr = get_connection(str);
 
         @param verbose display connection provider module errors on stdout (otherwise errors are silently ignored)
 
-        @return a hash keyed by connection identifier; values are hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
+        @return a hash keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
 
         @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
@@ -391,19 +392,7 @@ string connstr = get_connection(str);
         #! returns a hash of information about the connection
         /** @param with_password determines if the password is returned or not
 
-            @return a hash of information about the connection including the following keys:
-            - \c name: the connection name
-            - \c desc: the connection description
-            - \c last_check: the date/time value of the last connection check (or @ref nothing if not checked)
-            - \c loopback: a boolean vaue indicating of the connection is a loopback connection
-            - \c monitor: a boolean vaue indicating of the connection should be monitored or not
-            - \c opts: the original options used to create the object
-            - \c status: a string giving the connection's status
-            - \c type: the connection type
-            - \c up: a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
-            - \c updated: the date/time value of the update (or @ref nothing if not updated)
-            - \c url: the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
-            - \c url_hash: a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+            @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
             hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh));
@@ -416,11 +405,7 @@ string connstr = get_connection(str);
         }
 
         #! returns a hash of static configuration information about the connection
-        /** @returns a hash of static configuration information about the connection with the following keys:
-            - \c "name": the name of the connection
-            - \c "desc": the description
-            - \c "url": the full URL (including any username & password)
-            - \c "opts": the options set on the connection
+        /** @returns a @ref ConfigInfo hash of static configuration information about the connection
          */
         hash<ConfigInfo> getConfigHash() {
             return cast<hash<ConfigInfo>>(self.("name", "desc", "url", "opts"));

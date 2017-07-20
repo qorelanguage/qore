@@ -1712,7 +1712,7 @@ top_level_command:
            delete $1;
         }
         | hashdecl_def {
-           qore_root_ns_private::parseAddHashDecl($1->loc, *($1->name), $1->hashdecl);
+           qore_root_ns_private::parseAddHashDecl($1->loc, *($1->name), $1->takeHashDecl());
            delete $1;
         }
         | scoped_const_decl {
