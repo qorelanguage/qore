@@ -178,6 +178,14 @@ public:
 
    DLLLOCAL ~HashDeclDef() {
       delete name;
+      if (hashdecl)
+         typed_hash_decl_private::get(*hashdecl)->deref();
+   }
+
+   DLLLOCAL TypedHashDecl* takeHashDecl() {
+      TypedHashDecl* rv = hashdecl;
+      hashdecl = nullptr;
+      return rv;
    }
 };
 
@@ -680,7 +688,8 @@ struct NSNode {
             delete n.ocd;
             break;
          case NSN_HASHDECL:
-            ns.parseAddPendingHashDecl(n.hashdecl->loc, *(n.hashdecl->name), n.hashdecl->hashdecl);
+            ns.parseAddPendingHashDecl(n.hashdecl->loc, *(n.hashdecl->name), n.hashdecl->takeHashDecl());
+            delete n.hashdecl;
             break;
          case NSN_CONST:
             ns.parseAddConstant(n.cn->loc, n.cn->name, n.cn->value, n.cn->pub);
