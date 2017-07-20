@@ -1217,6 +1217,10 @@ class TypeTest inherits QUnit::Test {
                 hash<string, int> h2;
                 map h1.$1 = 1, "a";
                 h2 = h1;
+
+                hash h3 = cast<hash>(h2);
+                h3.b = "string";
+                assertEq("string", h3.b);
             }
 
             {

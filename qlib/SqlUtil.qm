@@ -1898,6 +1898,12 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    public hashdecl ColumnOperatorInfo {
+        string cop;  #!< the column operator string code
+        any column;  #!< column sopecifier, may be a string or a complex hash
+        any arg;     #!< optional argument
+    }
+
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -2276,10 +2282,10 @@ public namespace SqlUtil {
 
         @note Normally this function is not called directly, but rather by the other column operator functions
     */
-    public hash sub make_cop(string cop, any column, any arg) {
+    public hash<ColumnOperatorInfo> sub make_cop(string cop, any column, any arg) {
         switch (column.typeCode()) {
             case NT_HASH:
-            case NT_STRING: return ("cop": cop, "column": column, "arg": arg);
+            case NT_STRING: return new hash<ColumnOperatorInfo>(("cop": cop, "column": column, "arg": arg));
             default: throw "MAKE-COLUMN-OPERATOR-ERROR", sprintf("invalid column value passed to make_cop(); got type %y, expecting \"string\" or \"hash\"", column.type());
         }
     }
@@ -2297,7 +2303,7 @@ public namespace SqlUtil {
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash sub cop_as(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
 
@@ -2316,7 +2322,7 @@ public namespace SqlUtil {
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash sub cop_cast(any column, string arg, *any arg1, *any arg2) {
+    public hash<ColumnOperatorInfo> sub cop_cast(any column, string arg, *any arg1, *any arg2) {
         return make_cop(COP_CAST, column, (arg, arg1, arg2));
     }
 
@@ -2331,7 +2337,7 @@ public namespace SqlUtil {
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_prepend(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_prepend(any column, string arg) {
         return make_cop(COP_PREPEND, column, arg);
     }
 
@@ -2346,7 +2352,7 @@ public namespace SqlUtil {
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_append(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_append(any column, string arg) {
         return make_cop(COP_APPEND, column, arg);
     }
 
@@ -2431,7 +2437,7 @@ hash: (9 members)
 sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421105657000000', 'YYYYMMDDHH24MISSFF6') as as_date,'foo bar' as as_string,'sysdate' as as_function_call,1 as as_bool,null as as_null,null as as_nothing from pvanek_omq.workflows fetch next %v rows only
     @endcode
     */
-    public hash sub cop_value(any arg) {
+    public hash<ColumnOperatorInfo> sub cop_value(any arg) {
         return make_cop(COP_VALUE, "", arg);
     }
 
@@ -2445,7 +2451,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_upper(any column) {
+    public hash<ColumnOperatorInfo> sub cop_upper(any column) {
         return make_cop(COP_UPPER, column);
     }
 
@@ -2459,7 +2465,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_lower(any column) {
+    public hash<ColumnOperatorInfo> sub cop_lower(any column) {
         return make_cop(COP_LOWER, column);
     }
 
@@ -2473,7 +2479,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_distinct(any column) {
+    public hash<ColumnOperatorInfo> sub cop_distinct(any column) {
         return make_cop(COP_DISTINCT, column);
     }
 
@@ -2487,7 +2493,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_min(any column) {
+    public hash<ColumnOperatorInfo> sub cop_min(any column) {
         return make_cop(COP_MIN, column);
     }
 
@@ -2501,7 +2507,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_max(any column) {
+    public hash<ColumnOperatorInfo> sub cop_max(any column) {
         return make_cop(COP_MAX, column);
     }
 
@@ -2515,7 +2521,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_avg(any column) {
+    public hash<ColumnOperatorInfo> sub cop_avg(any column) {
         return make_cop(COP_AVG, column);
     }
 
@@ -2529,7 +2535,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_sum(any column) {
+    public hash<ColumnOperatorInfo> sub cop_sum(any column) {
         return make_cop(COP_SUM, column);
     }
 
@@ -2541,7 +2547,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count(any column = "") {
+    public hash<ColumnOperatorInfo> sub cop_count(any column = "") {
         return make_cop(COP_COUNT, column);
     }
 
@@ -2553,7 +2559,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_over(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_over(any column, string arg) {
         return make_cop(COP_OVER, column, arg);
     }
 
@@ -2568,7 +2574,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_minus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_minus(any column1, any column2) {
         return make_cop(COP_MINUS, column1, column2);
     }
 
@@ -2583,7 +2589,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_plus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_plus(any column1, any column2) {
         return make_cop(COP_PLUS, column1, column2);
     }
 
@@ -2598,7 +2604,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_divide(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_divide(any column1, any column2) {
         return make_cop(COP_DIVIDE, column1, column2);
     }
 
@@ -2613,7 +2619,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_multiply(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_multiply(any column1, any column2) {
         return make_cop(COP_MULTIPLY, column1, column2);
     }
 
@@ -2627,7 +2633,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year(any column) {
         return make_cop(COP_YEAR, column);
     }
 
@@ -2641,7 +2647,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_month(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_month(any column) {
         return make_cop(COP_YEAR_MONTH, column);
     }
 
@@ -2655,7 +2661,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_day(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_day(any column) {
         return make_cop(COP_YEAR_DAY, column);
     }
 
@@ -2669,7 +2675,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_hour(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_hour(any column) {
         return make_cop(COP_YEAR_HOUR, column);
     }
 
@@ -2684,7 +2690,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq(string seq, *string as) {
+    public hash<ColumnOperatorInfo> sub cop_seq(string seq, *string as) {
         return make_cop(COP_SEQ, "", ("seq": seq, "as": as));
     }
 
@@ -2699,7 +2705,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq_currval(string seq, *string as) {
+    public hash<ColumnOperatorInfo> sub cop_seq_currval(string seq, *string as) {
         return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
     }
 
@@ -2716,7 +2722,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
     */
-    public hash sub cop_coalesce(any col1, any col2) {
+    public hash<ColumnOperatorInfo> sub cop_coalesce(any col1, any col2) {
         code check = sub (any c) {
             if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
                 throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
@@ -2746,7 +2752,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_substr(any column, int start, *int count) {
+    public hash<ColumnOperatorInfo> sub cop_substr(any column, int start, *int count) {
         return make_cop(COP_SUBSTR, column, (start, count));
     }
 
@@ -2762,7 +2768,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @since %SqlUtil 1.3.1
     */
-    public hash sub cop_length(any column) {
+    public hash<ColumnOperatorInfo> sub cop_length(any column) {
         return make_cop(COP_LENGTH, column);
     }
     #@}

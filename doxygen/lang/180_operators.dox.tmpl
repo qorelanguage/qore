@@ -358,7 +358,7 @@ hash<string, int> h2 = new hash<string, int>(("string": 2));
     |<tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>|A value of the declared hash with type-safe key values is instantiated and returned
 
     @note
-    - When instanitating a class, see the class's documentation for possibile exceptions
+    - When instantiating a class, see the class's documentation for possibile exceptions
 
     @see @ref variable_implicit_construction for a more concise way to declare and initialize variables.
 
@@ -475,14 +475,19 @@ hash nh = remove h.("a", "b", "c");
     @code{.py}
 # simple class cast
 cast<SubClass>(obj).method();
+
 # cast with complex object type (class cast)
 cast<object<SubClass>>(obj).method();
+
 # cast to object; ensures a valid object at runtime
 cast<object>(obj);
+
 # hashdecl cast with type conversion
 hash<MyType1> h = cast<hash<MyType1>>(h2);
+
 # complex hash cast
 hash<string, MyClass>h = cast<hash<string, MyClass>(get_untyped_hash());
+
 # removes key type information from a type-safe hash
 any h = cast<hash>(new hash<MyHashdecl>());
     @endcode

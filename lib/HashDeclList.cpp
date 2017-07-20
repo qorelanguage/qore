@@ -103,7 +103,8 @@ void HashDeclList::mergeUserPublic(const HashDeclList& old) {
         if (!typed_hash_decl_private::get(*i.second)->isUserPublic())
             continue;
 
-        assert(!find(i.first));
+        if (find(i.first))
+            continue;
         TypedHashDecl* hd = new TypedHashDecl(*i.second);
         addInternal(hd);
     }
