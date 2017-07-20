@@ -36,7 +36,7 @@
 
 QoreString QoreParseCastOperatorNode::cast_str("cast operator expression");
 
-// if del is true, then the returned QoreString*  should be castd, if false, then it must not be
+// if del is true, then the returned QoreString* should be deleted, if false, then it must not be
 QoreString* QoreParseCastOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
    del = false;
    return &cast_str;
@@ -54,18 +54,33 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
    if (exp)
       exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
 
-   // check special case of cast<object>(...)
-   if (pti->cscope->size() == 1 && !strcmp(pti->cscope->ostr, "object")) {
-      // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
-      if (QoreTypeInfo::parseReturns(typeInfo, NT_OBJECT) == QTI_NOT_EQUAL)
-         parse_error(loc, "cast<object>(%s) is invalid; cannot cast from %s to object", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
-      typeInfo = objectTypeInfo;
-      if (exp) {
-         ReferenceHolder<> holder(this, nullptr);
-         return new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+   // check special cases
+   if (pti->cscope->size() == 1 && pti->subtypes.empty()) {
+      // check special case of cast<object>(...)
+      if (!strcmp(pti->cscope->ostr, "object")) {
+         // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_OBJECT) == QTI_NOT_EQUAL)
+            parse_error(loc, "cast<object>(%s) is invalid; cannot cast from %s to object", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
+         typeInfo = objectTypeInfo;
+         if (exp) {
+            ReferenceHolder<> holder(this, nullptr);
+            return new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+         }
+         // parse exception already raised; current expression invalid
+         return this;
       }
-      // parse exception already raised; current expression invalid
-      return this;
+      // check special case of cast<hash>(...)
+      if (!strcmp(pti->cscope->ostr, "hash")) {
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_HASH) == QTI_NOT_EQUAL)
+            parse_error(loc, "cast<hash>(%s) is invalid; cannot cast from %s to hash", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
+         typeInfo = hashTypeInfo;
+         if (exp) {
+            ReferenceHolder<> holder(this, nullptr);
+            return new QoreHashDeclCastOperatorNode(loc, nullptr, takeExp());
+         }
+         // parse exception already raised; current expression invalid
+         return this;
+      }
    }
 
    typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);
@@ -168,7 +183,15 @@ QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, Excepti
    }
 
    const QoreHashNode* h = rv->get<const QoreHashNode>();
+
    const TypedHashDecl* vhd = h->getHashDecl();
+
+   if (!hd) {
+      if (!vhd)
+         return rv.takeValue(needs_deref);
+      needs_deref = true;
+      return qore_hash_private::getPlainHash(static_cast<QoreHashNode*>(rv.getReferencedValue()));
+   }
 
    // if we already have the expected type, then there's nothing more to do
    if (vhd && typed_hash_decl_private::get(*vhd)->equal(*typed_hash_decl_private::get(*hd)))

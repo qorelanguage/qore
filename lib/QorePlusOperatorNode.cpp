@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
@@ -48,9 +49,9 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       const QoreListNode* l = lh->get<const QoreListNode>();
       QoreListNode* rv = l->copy();
       if (rt == NT_LIST)
-	 rv->merge(rh->get<const QoreListNode>());
+         rv->merge(rh->get<const QoreListNode>());
       else
-	 rv->push(rh->getReferencedValue());
+         rv->push(rh->getReferencedValue());
       //printd(5, "QorePlusOperatorNode::evalValueImpl() returning list=%p size=%d\n", rv, rv->size());
       return rv;
    }
@@ -68,12 +69,12 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
       QoreStringNodeHolder str(new QoreStringNode(*lh->get<const QoreStringNode>()));
 
       if (rt == NT_STRING)
-	 str->concat(rh->get<const QoreStringNode>(), xsink);
+         str->concat(rh->get<const QoreStringNode>(), xsink);
       else {
-	 QoreStringValueHelper r(*rh, str->getEncoding(), xsink);
-	 if (*xsink)
-	    return QoreValue();
-	 str->concat(*r, xsink);
+         QoreStringValueHelper r(*rh, str->getEncoding(), xsink);
+         if (*xsink)
+            return QoreValue();
+         str->concat(*r, xsink);
       }
       return str.release();
    }
@@ -117,21 +118,16 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
    if (lt == NT_HASH) {
       const QoreHashNode* l = lh->get<const QoreHashNode>();
       if (rt == NT_HASH) {
-	 const QoreHashNode* r = rh->get<const QoreHashNode>();
-	 ReferenceHolder<QoreHashNode> rv(l->copy(), xsink);
-	 rv->merge(r, xsink);
-	 if (*xsink)
-	    return 0;
-	 return rv.release();
+         return qore_hash_private::get(*l)->plusEquals(rh->get<const QoreHashNode>(), xsink);
       }
       if (rt == NT_OBJECT) {
-	 QoreObject* r = rh->get<QoreObject>();
-	 ReferenceHolder<QoreHashNode> rv(l->copy(), xsink);
-	 qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
-	 if (*xsink)
-	    return 0;
+         QoreObject* r = rh->get<QoreObject>();
+         ReferenceHolder<QoreHashNode> rv(qore_hash_private::get(*l)->copy(true), xsink);
+         qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
+         if (*xsink)
+            return 0;
 
-	 return rv.release();
+         return rv.release();
       }
       return l->refSelf();
    }
@@ -139,16 +135,16 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
    if (lt == NT_OBJECT) {
       QoreObject* l = lh->get<QoreObject>();
       if (rt != NT_HASH)
-	 return l->refSelf();
+         return l->refSelf();
       const QoreHashNode* r = rh->get<const QoreHashNode>();
 
       ReferenceHolder<QoreHashNode> h(qore_object_private::get(*l)->getRuntimeMemberHash(xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       h->merge(r, xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       return h.release();
    }
@@ -159,7 +155,7 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
    if (lt == NT_BINARY) {
       if (rt != NT_BINARY)
-	 return lh->getReferencedValue();
+         return lh->getReferencedValue();
 
       BinaryNode* rv = lh->get<const BinaryNode>()->copy();
       rv->append(rh->get<const BinaryNode>());

@@ -246,6 +246,15 @@ public:
 
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
+   DLLLOCAL void getTypeName(QoreString& str) const {
+       if (hashdecl)
+          str.sprintf("hash<%s>", hashdecl->getName());
+       else if (complexTypeInfo)
+          str.concat(QoreTypeInfo::getName(complexTypeInfo));
+       else
+          str.concat("hash");
+   }
+
    DLLLOCAL QoreHashNode* getCopy() const {
       QoreHashNode* h = new QoreHashNode;
       if (hashdecl)
@@ -265,6 +274,13 @@ public:
          ha.swap(i->node ? i->node->refSelf() : nullptr);
       }
       return h;
+   }
+
+   DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {
+      bool strip = hashdecl || h->priv->hashdecl || !QoreTypeInfo::equal(complexTypeInfo, h->priv->complexTypeInfo);
+      ReferenceHolder<QoreHashNode> rv(copy(strip), xsink);
+      rv->merge(h, xsink);
+      return *xsink ? nullptr : rv.release();
    }
 
    DLLLOCAL AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
@@ -351,6 +367,14 @@ public:
 
    DLLLOCAL const TypedHashDecl* getHashDecl() const {
       return hashdecl;
+   }
+
+   DLLLOCAL static QoreHashNode* getPlainHash(QoreHashNode* h) {
+       if (!h->priv->hashdecl && !h->priv->complexTypeInfo)
+          return h;
+       // no exception is possible
+       ReferenceHolder<QoreHashNode> holder(h, nullptr);
+       return h->priv->copy(true);
    }
 
    DLLLOCAL static QoreHashNode* newHashDecl(const TypedHashDecl* hd) {

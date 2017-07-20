@@ -203,7 +203,7 @@ public:
 
    // static version of method, checking for null pointer
    // returns true if this type only returns the type given
-   DLLLOCAL static bool isType(const QoreTypeInfo* ti, QoreTypeSpec t) {
+   DLLLOCAL static bool isType(const QoreTypeInfo* ti, qore_type_t t) {
       return ti ? ti->isType(t) : false;
    }
 
@@ -528,10 +528,10 @@ protected:
    }
 
    // returns true if this type only returns the type given
-   DLLLOCAL bool isType(QoreTypeSpec t) const {
+   DLLLOCAL bool isType(qore_type_t t) const {
       if (return_vec.size() > 1)
          return false;
-      return t.match(return_vec[0].spec) == QTI_IDENT;
+      return t == return_vec[0].spec.getType();
    }
 
    // returns true if the type matches an accept type with a filter (type only checked)
@@ -1204,7 +1204,7 @@ DLLLOCAL void map_get_plain_hash(QoreValue&, ExceptionSink*);
 class QoreHashTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreHashTypeInfo() : QoreTypeInfo("hash", q_accept_vec_t {
-         {NT_HASH, map_get_plain_hash, true}},
+         {NT_HASH, map_get_plain_hash}},
       q_return_vec_t {{NT_HASH, true}}) {
    }
 

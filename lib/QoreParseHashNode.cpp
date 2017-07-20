@@ -97,12 +97,6 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     // evaluate immediately
     ValueEvalRefHolder rv(this, nullptr);
     deref();
-    assert(rv->getType() == NT_HASH && rv->getInternalNode()->is_unique());
-    if (vtype) {
-        QoreStringMaker str("hash<string, %s>", QoreTypeInfo::getName(vtype));
-        qore_hash_private::get(*rv->get<QoreHashNode>())->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(str.c_str(), vtype);
-    }
-
     return rv.getReferencedValue();
 }
 
@@ -124,11 +118,6 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
         if (xsink && *xsink)
             return QoreValue();
     }
-
-    assert(*h);
-    assert(h->is_unique());
-    if (vtype)
-        qore_hash_private::get(**h)->complexTypeInfo = typeInfo;
 
     return h.release();
 }

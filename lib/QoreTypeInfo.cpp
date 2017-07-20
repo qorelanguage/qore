@@ -415,7 +415,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
          qore_type_t ot = t.getType();
          if (u.t == NT_ALL || ot == NT_ALL)
             return QTI_AMBIGUOUS;
-         return u.t == ot ? QTI_IDENT : QTI_NOT_EQUAL;
+         if (u.t == ot) {
+            // check special cases
+            if (u.t == NT_HASH && t.typespec == QTS_COMPLEXHASH)
+               return QTI_AMBIGUOUS;
+            return QTI_IDENT;
+         }
+         return QTI_NOT_EQUAL;
       }
    }
    return QTI_NOT_EQUAL;
@@ -468,7 +474,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             may_not_match = true;
             return QTI_AMBIGUOUS;
          }
-         return u.t == ot ? QTI_IDENT : QTI_NOT_EQUAL;
+         if (u.t == ot) {
+            // check special cases
+            if (u.t == NT_HASH && t.typespec == QTS_COMPLEXHASH)
+               return QTI_AMBIGUOUS;
+            return QTI_IDENT;
+         }
+         return QTI_NOT_EQUAL;
       }
    }
    return QTI_NOT_EQUAL;
@@ -550,6 +562,15 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
       qore_type_t at = t.getType();
       if (at == NT_ALL)
          return QTI_AMBIGUOUS;
+
+      /*
+      // check special cases
+      if (at == NT_HASH && typespec == QTS_TYPE && n.getType() == NT_HASH) {
+         // if we are expecting an untyped hash, and the value is a typed hash, then return QTI_AMBIGUOUS
+         const QoreHashNode* h = n.get<const QoreHashNode>();
+         return h->getHashDecl() || h->getValueTypeInfo() ? QTI_AMBIGUOUS : QTI_IDENT;
+      }
+      */
       return n.getType() == at ? QTI_IDENT : QTI_NOT_EQUAL;
    }
 

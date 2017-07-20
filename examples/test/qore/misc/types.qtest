@@ -1206,18 +1206,34 @@ class TypeTest inherits QUnit::Test {
             }
 
             {
+                # make sure that a runtime assignment from a typed hash to an untyped hash results in an untyped hash assignment
+                hash h = new hash<string, int>(("a": 1));
+                h.b = "str";
+                assertEq("str", h.b);
+            }
+
+            {
+                hash<string, int> h1;
+                hash<string, int> h2;
+                map h1.$1 = 1, "a";
+                h2 = h1;
+            }
+
+            {
+                # however otherwise the typed hash keeps its type
                 Program p(PO_NEW_STYLE);
-                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash<string, softint> h(); h = new hash<string, int>(('b': 2, 'c': 3)); }", ""));
+                p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
             }
 
             {
                 Program p(PO_NEW_STYLE);
-                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
+                assertThrows("PARSE-TYPE-ERROR", "assignment", \p.parse(), ("sub t() { hash<string, softint> h(); h = new hash<string, int>(('b': 2, 'c': 3)); }", ""));
             }
 
             {
                 Program p(PO_NEW_STYLE);
-                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
+                assertThrows("PARSE-TYPE-ERROR", "complex", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
             }
         }
 

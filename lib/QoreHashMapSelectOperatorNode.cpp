@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 Qore Technologies, sro
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -153,10 +153,6 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
    }
    if (*xsink || !ref_rv)
       return QoreValue();
-
-   assert(ret_val->is_unique());
-   if (QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo))
-      qore_hash_private::get(**ret_val)->complexTypeInfo = returnTypeInfo;
 
    return ret_val.release();
 }

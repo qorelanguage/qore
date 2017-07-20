@@ -618,7 +618,7 @@ public:
       AbstractQoreNode** p;
       if (val) {
          if (makeNumber(desc))
-            return 0;
+            return nullptr;
          p = &val->v.n;
       }
       else {
@@ -637,7 +637,7 @@ public:
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
             typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
-            return 0;
+            return nullptr;
          }
 
          saveTemp(*p);
@@ -646,11 +646,7 @@ public:
       return reinterpret_cast<QoreNumberNode*>(*p);
    }
 
-   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
-   /*
-   DLLLOCAL int assignBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int assignFloat(double v, const char* desc = "<lvalue>");
-   */
+   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true);
 
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
    DLLLOCAL QoreValue remove(bool& static_assignment);

@@ -214,7 +214,7 @@ string connstr = get_connection(str);
         - @ref connectionprovider_modules
      */
     public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
-        hash<string, AbstractConnection> h;
+        hash<string, AbstractConnection> h();
         # process connection provider modules in declaration order
         if (ENV.QORE_CONNECTION_PROVIDERS) {
             list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);

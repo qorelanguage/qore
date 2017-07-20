@@ -130,20 +130,18 @@ protected:
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
    DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
-      assert(hd);
    }
 
    DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return hd->getTypeInfo();
+      return hd ? hd->getTypeInfo() : hashTypeInfo;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return nullptr;
-      assert(hd);
       return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release());
    }
 

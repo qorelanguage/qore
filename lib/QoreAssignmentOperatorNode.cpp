@@ -63,7 +63,10 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
        && !strcmp(static_cast<VarRefNode*>(left)->getName(), static_cast<VarRefNode*>(right)->getName()))
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
-   if (getProgram()->getParseExceptionSink() && !QoreTypeInfo::parseAccepts(ti, r)) {
+   qore_type_result_e res = QoreTypeInfo::parseAccepts(ti, r);
+   ident = res == QTI_IDENT;
+
+   if (getProgram()->getParseExceptionSink() && !res) {
       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
       QoreTypeInfo::getThisType(ti, *edesc);
       edesc->concat(", but right-hand side is ");
@@ -104,7 +107,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    assert(!*xsink);
 
    // assign new value
-   if (v.assign(new_value.takeReferencedValue()))
+   if (v.assign(new_value.takeReferencedValue(), "<lvalue>", !ident))
       return QoreValue();
 
    // reference return value if necessary

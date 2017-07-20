@@ -165,10 +165,6 @@ QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    if (*xsink || !ref_rv)
       return QoreValue();
 
-   assert(ret_val->is_unique());
-   if (QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo))
-      qore_hash_private::get(**ret_val)->complexTypeInfo = returnTypeInfo;
-
    return ret_val.release();
 }
 

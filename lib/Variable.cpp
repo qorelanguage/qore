@@ -543,17 +543,19 @@ double LValueHelper::getAsFloat() const {
    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
-int LValueHelper::assign(QoreValue n, const char* desc) {
+int LValueHelper::assign(QoreValue n, const char* desc, bool check_types) {
    assert(!*vl.xsink);
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = nullptr;
 
-   // check type for assignment
-   QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
-   if (*vl.xsink) {
-      //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-      saveTemp(n);
-      return -1;
+   if (check_types) {
+      // check type for assignment
+      QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
+      if (*vl.xsink) {
+         //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+         saveTemp(n);
+         return -1;
+      }
    }
 
    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {

@@ -113,18 +113,32 @@ class HashDeclTest inherits QUnit::Test {
         }
 
         {
+            # make sure that a runtime assignment from a hashdecl hash to an untyped hash results in an untyped hash assignment
+            hash h = new hash<Container>();
+            h.b = "str";
+            assertEq("str", h.b);
+        }
+
+        {
+            # however otherwise the hashdecl hash keeps its type
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hash<Container> c1; hash<Container2> c2(); c1 = cast<hash<Container>>(c2);", ""));
+            p.parse("sub t() {any h = new hash<Container>(); h.b = 'str';}", "");
+            assertThrows("INVALID-MEMBER", \p.callFunction(), "t");
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hash<string, int> h = new hash<Container>();", ""));
+            assertThrows("PARSE-EXCEPTION", "hashdecl", \p.parse(), ("sub t() {hash<Container> c1; hash<Container2> c2(); c1 = cast<hash<Container>>(c2);}", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hash<Container> c = new hash<string, int>(('x': 3));", ""));
+            assertThrows("PARSE-TYPE-ERROR", "assignment", \p.parse(), ("sub t() {hash<string, int> h = new hash<Container>();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "assignment", \p.parse(), ("sub t() {hash<Container> c = new hash<string, int>(('x': 3));}", ""));
         }
 
         {
