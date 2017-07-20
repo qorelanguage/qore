@@ -2090,7 +2090,7 @@ exp_c:
         | '(' exp ')' {
             $$ = $2;
         }
-        | '(' ')' { $$ = new ASTListExpression; }
+        | '(' ')' { $$ = new ASTListExpression; $$->loc.set(@1, @2); }
         | TOK_SUB '(' myexp ')' return_value block {
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration($5, $3, $6));
             cd->loc.set(@1, @6);
@@ -2148,7 +2148,7 @@ exp:
         exp_c
         | list                              { $$ = $1; }
         | alt_hash                          { $$ = $1; }
-        | '{' '}'                           { $$ = new ASTHashExpression; }
+        | '{' '}'                           { $$ = new ASTHashExpression; $$->loc.set(@1, @2); }
         | exp PLUS_EQUALS exp               { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_PlusEquals, $3); }
         | exp MINUS_EQUALS exp              { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_MinusEquals, $3); }
         | exp AND_EQUALS exp                { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_AndEquals, $3); }
