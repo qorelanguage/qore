@@ -115,14 +115,24 @@ public:
    // this is the "expecting" type, t is the type to match
    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
    // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const;
+   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
+      bool may_not_match = false;
+      bool may_need_filter = false;
+      return match(t, may_not_match, may_need_filter);
+   }
 
    // this is the "expecting" type, t is the type to match
    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
    // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const;
+   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
+      bool may_need_filter = false;
+      return match(t, may_not_match, may_need_filter);
+   }
 
-   //DLLLOCAL bool runtimeTestMatch(const QoreValue& n, bool& priv_error) const;
+   // this is the "expecting" type, t is the type to match
+   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+   // ex: this = NT_OBJECT, t = class, result = IDENT
+   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
 
    // returns true if there is a match or if an error has been raised
    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
@@ -237,6 +247,15 @@ public:
       if (!hasType(first))
          return QTI_AMBIGUOUS;
       if (!hasType(second)) {
+         if (!may_need_filter) {
+            // check if we could need a runtime filter
+            for (auto& i : first->accept_vec) {
+               if (i.map) {
+                  may_need_filter = true;
+                  break;
+               }
+            }
+         }
          may_not_match = true;
          return QTI_AMBIGUOUS;
       }
@@ -610,7 +629,7 @@ protected:
    DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
 
    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
-      qore_type_result_e res = at.spec.match(rt.spec, may_not_match);
+      qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
       switch (res) {
          case QTI_IDENT:
             if (at.exact && rt.exact) {
@@ -630,6 +649,7 @@ protected:
                      return QTI_AMBIGUOUS;
                }
             }
+
          // fall down to default
          default:
             break;
@@ -1224,7 +1244,7 @@ DLLLOCAL void map_get_plain_hash(QoreValue&, ExceptionSink*);
 class QoreHashTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreHashTypeInfo() : QoreTypeInfo("hash", q_accept_vec_t {
-         {NT_HASH, map_get_plain_hash}},
+         {NT_HASH, map_get_plain_hash, true}},
       q_return_vec_t {{NT_HASH, true}}) {
    }
 

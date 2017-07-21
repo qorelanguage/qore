@@ -375,62 +375,8 @@ const char* getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
-qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
-   switch (typespec) {
-      case QTS_CLASS: {
-         switch (t.typespec) {
-            case QTS_CLASS:
-               return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc));
-            default: {
-               // NOTE: with %strict-types, this must return QTI_NOT_EQUAL
-               qore_type_t tt = t.getType();
-               if (tt == NT_ALL)
-                  return QTI_AMBIGUOUS;
-               return tt == NT_OBJECT ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
-            }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_HASHDECL: {
-         switch (t.typespec) {
-            case QTS_HASHDECL: {
-               return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
-            }
-            default: {
-               return QTI_NOT_EQUAL;
-            }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_COMPLEXHASH: {
-         switch (t.typespec) {
-            case QTS_COMPLEXHASH:
-               return QoreTypeInfo::parseAccepts(u.ti, t.u.ti);
-            default: {
-               return QTI_NOT_EQUAL;
-            }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_TYPE: {
-         qore_type_t ot = t.getType();
-         if (u.t == NT_ALL || ot == NT_ALL)
-            return QTI_AMBIGUOUS;
-         if (u.t == ot) {
-            // check special cases
-            if (u.t == NT_HASH && t.typespec == QTS_COMPLEXHASH)
-               return QTI_AMBIGUOUS;
-            return QTI_IDENT;
-         }
-         return QTI_NOT_EQUAL;
-      }
-   }
-   return QTI_NOT_EQUAL;
-}
-
-qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match) const {
+qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
    //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
-
    switch (typespec) {
       case QTS_CLASS: {
          switch (t.typespec) {
@@ -463,7 +409,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_COMPLEXHASH:
                //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-               return QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match);
+               return QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -472,17 +418,20 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
       }
       case QTS_TYPE: {
          qore_type_t ot = t.getType();
-         if (u.t == NT_ALL)
+         if (u.t == NT_ALL) {
             return QTI_AMBIGUOUS;
+         }
          // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
          if (ot == NT_ALL) {
             may_not_match = true;
             return QTI_AMBIGUOUS;
          }
          if (u.t == ot) {
+            /*
             // check special cases
             if (u.t == NT_HASH && t.typespec == QTS_COMPLEXHASH)
                return QTI_AMBIGUOUS;
+            */
             return QTI_IDENT;
          }
          return QTI_NOT_EQUAL;
@@ -579,48 +528,6 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
    return false;
 }
 
-/*
-bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const {
-   assert(!priv_error);
-   switch (typespec) {
-      case QTS_CLASS: {
-         if (n.getType() == NT_OBJECT) {
-            bool priv;
-            if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
-               return false;
-            if (!priv)
-               return true;
-            // check access
-            if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc))
-               return true;
-            priv_error = true;
-            return false;
-         }
-         return false;
-      }
-      case QTS_HASHDECL: {
-         if (n.getType() == NT_HASH) {
-            const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
-            return hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd));
-         }
-         return false;
-      }
-      case QTS_COMPLEXHASH: {
-         if (n.getType() == NT_HASH) {
-            const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
-            bool may_not_match = false;
-            qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, ti, may_not_match);
-            return (res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) ? true : false;
-         }
-         return false;
-      }
-      case QTS_TYPE:
-         return u.t == NT_ALL || u.t == n.getType();
-   }
-   return false;
-}
-*/
-
 bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
    if (typespec != other.typespec)
       return false;
@@ -660,14 +567,6 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
       if (at == NT_ALL)
          return QTI_AMBIGUOUS;
 
-      /*
-      // check special cases
-      if (at == NT_HASH && typespec == QTS_TYPE && n.getType() == NT_HASH) {
-         // if we are expecting an untyped hash, and the value is a typed hash, then return QTI_AMBIGUOUS
-         const QoreHashNode* h = n.get<const QoreHashNode>();
-         return h->getHashDecl() || h->getValueTypeInfo() ? QTI_AMBIGUOUS : QTI_IDENT;
-      }
-      */
       return n.getType() == at ? QTI_IDENT : QTI_NOT_EQUAL;
    }
 

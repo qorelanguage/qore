@@ -366,9 +366,17 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
          return -1;
       }
 
-      //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(getValue());
-      assignIntern((h = new QoreHashNode));
+      //printd(5, "LValueHelper::doHashLValue() cv: %p ti: %p '%s' c: %p\n", getValue(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexHash(typeInfo)) {
+         assignIntern((h = new QoreHashNode));
+         qore_hash_private::get(*h)->complexTypeInfo = typeInfo;
+      }
+      else {
+         //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
+         saveTemp(getValue());
+         assignIntern((h = new QoreHashNode));
+      }
    }
 
    ocvec.push_back(ObjCountRec(h));
@@ -548,6 +556,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types) {
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = nullptr;
 
+   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types);
    if (check_types) {
       // check type for assignment
       QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);

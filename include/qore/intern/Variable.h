@@ -498,6 +498,7 @@ public:
    }
 
    DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
+      //printd(5, "LValueHelper::resetPtr() ptr: %p ti: %p '%s'\n", ptr, ti, QoreTypeInfo::getName(ti));
       if (val) {
          assert(!v);
          val = nullptr;

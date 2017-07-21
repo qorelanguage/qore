@@ -54,6 +54,8 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
    if (for_assignment && left && check_lvalue(left))
       parse_error(loc, "expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
 
+   const QoreTypeInfo* complexKeyTypeInfo = nullptr;
+
    if (QoreTypeInfo::hasType(lti)) {
       bool can_be_obj = QoreTypeInfo::parseAccepts(objectTypeInfo, lti);
       bool can_be_hash = QoreTypeInfo::parseAccepts(hashTypeInfo, lti);
@@ -82,28 +84,37 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
       }
       else {
          const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(lti);
-         if (hd && right) {
-            qore_type_t rt = right->getType();
-            if (rt == NT_STRING) {
-               const char* member = reinterpret_cast<const QoreStringNode*>(right)->c_str();
-               typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
-            }
-            else if (rt == NT_LIST) { // check object slices as well if strings are available
-               ConstListIterator li(reinterpret_cast<const QoreListNode*>(right));
-               while (li.next()) {
-                  if (li.getValue() && li.getValue()->getType() == NT_STRING) {
-                     const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->c_str();
-                     const QoreTypeInfo* mti = nullptr;
-                     typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
+         if (hd) {
+            if (right) {
+               qore_type_t rt = right->getType();
+               if (rt == NT_STRING) {
+                  const char* member = reinterpret_cast<const QoreStringNode*>(right)->c_str();
+                  typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
+               }
+               else if (rt == NT_LIST) { // check object slices as well if strings are available
+                  ConstListIterator li(reinterpret_cast<const QoreListNode*>(right));
+                  while (li.next()) {
+                     if (li.getValue() && li.getValue()->getType() == NT_STRING) {
+                        const char* member = reinterpret_cast<const QoreStringNode*>(li.getValue())->c_str();
+                        const QoreTypeInfo* mti = nullptr;
+                        typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
+                     }
                   }
                }
             }
          }
+         else {
+            complexKeyTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(lti);
+         }
       }
 
       // if we are taking a slice of an object or a hash, then the return type is a hash
-      if (QoreTypeInfo::hasType(rti) && QoreTypeInfo::isType(rti, NT_LIST) && (is_obj || is_hash))
-         returnTypeInfo = hashTypeInfo;
+      if (QoreTypeInfo::hasType(rti)) {
+         if (QoreTypeInfo::isType(rti, NT_LIST) && (is_obj || is_hash))
+            returnTypeInfo = complexKeyTypeInfo ? lti : hashTypeInfo;
+         else if (complexKeyTypeInfo && !QoreTypeInfo::parseReturns(rti, NT_LIST))
+            returnTypeInfo = complexKeyTypeInfo;
+      }
 
       // if we are trying to convert to a hash
       if (for_assignment) {
@@ -127,6 +138,8 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
    }
 
    //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() rightTypeInfo: %s !rightTypeInfo->canConvertToScalar(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", QoreTypeInfo::getName(rti), !QoreTypeInfo::canConvertToScalar(rti), !QoreTypeInfo::parseAccepts(listTypeInfo, rti));
+
+   //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: '%s' r: '%s' -> '%s'\n", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(rti), QoreTypeInfo::getName(returnTypeInfo));
 
    // issue a warning if the right side of the expression cannot be converted to a string
    // and can not be a list (for a slice)

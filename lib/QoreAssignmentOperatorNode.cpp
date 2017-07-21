@@ -66,7 +66,10 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    bool may_not_match = false;
    bool may_need_filter = false;
    qore_type_result_e res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
-   ident = (res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match && !may_need_filter));
+
+   ident = QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) && !may_need_filter);
+
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
 
    if (getProgram()->getParseExceptionSink() && !res) {
       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");

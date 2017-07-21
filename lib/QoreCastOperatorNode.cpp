@@ -178,7 +178,10 @@ QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, Excepti
       return QoreValue();
 
    if (rv->getType() != NT_HASH) {
-      xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to hashdecl '%s'", rv->getTypeName(), hd->getName());
+      if (hd)
+         xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to hashdecl '%s'", rv->getTypeName(), hd->getName());
+      else
+         xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to 'hash'", rv->getTypeName());
       return QoreValue();
    }
 
@@ -187,7 +190,7 @@ QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, Excepti
    const TypedHashDecl* vhd = h->getHashDecl();
 
    if (!hd) {
-      if (!vhd)
+      if (!vhd && !h->getValueTypeInfo())
          return rv.takeValue(needs_deref);
       needs_deref = true;
       return qore_hash_private::getPlainHash(static_cast<QoreHashNode*>(rv.getReferencedValue()));
