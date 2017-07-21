@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreRegexBase.h>
+#include "qore/intern/QoreRegexBase.h"
 
 void QoreRegexBase::setCaseInsensitive() {
    options |= PCRE_CASELESS;

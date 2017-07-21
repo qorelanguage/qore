@@ -37,8 +37,8 @@
 extern QoreListNode* ARGV, * QORE_ARGV;
 extern QoreHashNode* ENV;
 
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -90,200 +90,8 @@ public:
 
 typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 
-class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
-public:
-   // marks all variables as finalized on the stack
-   DLLLOCAL void finalize(arg_vec_t*& cl) {
-      ThreadLocalVariableData::iterator i(curr);
-      while (i.next()) {
-         AbstractQoreNode* n = i.get().finalize();
-         if (n && n->isReferenceCounted()) {
-            if (!cl)
-               cl = new arg_vec_t;
-            cl->push_back(n);
-         }
-      }
-   }
-
-   // deletes everything on the stack
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      // then we uninstantiate
-      while (curr->prev || curr->pos)
-         uninstantiate(xsink);
-   }
-
-   DLLLOCAL LocalVarValue* instantiate() {
-      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new Block(curr);
-	    //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
-      }
-      return &curr->var[curr->pos++];
-   }
-
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
-      uninstantiateIntern();
-      curr->var[curr->pos].uninstantiate(xsink);
-   }
-
-   DLLLOCAL void uninstantiateSelf() {
-      uninstantiateIntern();
-      curr->var[curr->pos].uninstantiateSelf();
-   }
-
-   DLLLOCAL void uninstantiateIntern() {
-      if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
-      }
-      --curr->pos;
-   }
-
-   DLLLOCAL LocalVarValue* find(const char* id) {
-      Block* w = curr;
-      while (true) {
-	 int p = w->pos;
-	 while (p) {
-	    if (w->var[--p].id == id && !w->var[p].skip)
-	       return &w->var[p];
-	 }
-	 w = w->prev;
-#ifdef DEBUG
-	 if (!w) {
-            printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
-            p = curr->pos - 1;
-            while (p >= 0) {
-               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].skip);
-               --p;
-            }
-         }
-#endif
-	 assert(w);
-      }
-      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-      return 0;
-   }
-};
-
-class ThreadClosureVariableStack : public ThreadLocalData<ClosureVarValue*> {
-private:
-   DLLLOCAL void instantiateIntern(ClosureVarValue* cvar) {
-      //printd(5, "ThreadClosureVariableStack::instantiateIntern(%p = '%s') this: %p pgm: %p\n", cvar->id, cvar->id, this, getProgram());
-
-      if (curr->pos == QORE_THREAD_STACK_BLOCK) {
-	 if (curr->next)
-	    curr = curr->next;
-	 else {
-	    curr->next = new Block(curr);
-	    //printf("this: %p: add curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    curr = curr->next;
-	 }
-      }
-      curr->var[curr->pos++] = cvar;
-   }
-
-public:
-   // marks all variables as finalized on the stack
-   DLLLOCAL void finalize(arg_vec_t*& cl) {
-      ThreadClosureVariableStack::iterator i(curr);
-      while (i.next()) {
-         AbstractQoreNode* n = i.get()->finalize();
-         if (n && n->isReferenceCounted()) {
-            if (!cl)
-               cl = new arg_vec_t;
-            cl->push_back(n);
-         }
-      }
-   }
-
-   // deletes everything on the stack
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      while (curr->prev || curr->pos)
-         uninstantiate(xsink);
-   }
-
-   DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-      ClosureVarValue* cvar = new ClosureVarValue(id, typeInfo, nval);
-      instantiateIntern(cvar);
-      return cvar;
-   }
-
-   DLLLOCAL void instantiate(ClosureVarValue* cvar) {
-      instantiateIntern(cvar);
-   }
-
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
-#if 0
-      if (!curr->pos)
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
-      else
-         printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
-#endif
-      if (!curr->pos) {
-	 if (curr->next) {
-	    //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
-	    delete curr->next;
-	    curr->next = 0;
-	 }
-	 curr = curr->prev;
-      }
-      curr->var[--curr->pos]->deref(xsink);
-   }
-
-   DLLLOCAL ClosureVarValue* find(const char* id) {
-      printd(5, "ThreadClosureVariableStack::find() this: %p id: %p\n", this, id);
-      Block* w = curr;
-      while (true) {
-         int p = w->pos;
-         while (p) {
-	    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, w->var[p - 1]->id, w->var[p - 1]->id, w->var[p - 1]->skip);
-	    if (w->var[--p]->id == id && !w->var[p]->skip) {
-	       printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, w->var[p]);
-	       return w->var[p];
-	    }
-	 }
-	 w = w->prev;
-#ifdef DEBUG
-	 if (!w) {
-	    printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
-            p = curr->pos - 1;
-            while (p >= 0) {
-               printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, curr->var[p]->id, curr->var[p]->id, curr->var[p]->skip);
-               --p;
-            }
-         }
-#endif
-	 assert(w);
-      }
-      // to avoid a warning on most compilers - note that this generates a warning on recent versions of aCC!
-      return 0;
-   }
-
-   DLLLOCAL cvv_vec_t* getAll() const {
-      cvv_vec_t* cv = 0;
-      Block* w = curr;
-      while (w) {
-         int p = w->pos;
-         while (p) {
-            --p;
-            if (!cv)
-               cv = new cvv_vec_t;
-            cv->push_back(w->var[p]->refSelf());
-	 }
-	 w = w->prev;
-      }
-      //printd(5, "ThreadClosureVariableStack::getAll() this: %p cv: %p size: %d\n", this, cv, cv ? cv->size() : 0);
-      return cv;
-   }
-};
+#include "qore/intern/ThreadLocalVariableData.h"
+#include "qore/intern/ThreadClosureVariableStack.h"
 
 struct ThreadLocalProgramData {
 private:
@@ -350,6 +158,9 @@ class qore_program_private_base {
 
 protected:
    DLLLOCAL void setDefines();
+
+   typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+   extmap_t extmap;
 
 public:
    LocalVariableList local_var_list;
@@ -438,8 +249,11 @@ public:
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
         thr_init(0), exec_class_rv(0), pgm(n_pgm) {
+      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
+
+#ifdef DEBUG
       pgm->priv = (qore_program_private*)this;
-      printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: "QLLD"\n", this, pgm, n_parse_options);
+#endif
 
       if (p_pgm)
 	 setParent(p_pgm, n_parse_options);
@@ -639,6 +453,20 @@ public:
       return 0;
    }
 
+   // throws a QoreStandardException if there is an error
+   DLLLOCAL void incThreadCount() {
+      int tid = gettid();
+
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      if (ptid && ptid != tid)
+         throw QoreStandardException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+
+      ++tidmap[tid];
+      ++thread_count;
+   }
+
    DLLLOCAL void decThreadCount(int tid) {
       // grab program-level lock
       AutoLocker al(plock);
@@ -667,8 +495,8 @@ public:
       }
 
       if (ptid && ptid != gettid()) {
-         assert(xsink);
-         xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
+         if (xsink)
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
          return -1;
       }
 
@@ -784,45 +612,46 @@ public:
 
    // call must push the current program on the stack and pop it afterwards
    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
-       //printd(5, "qore_program_private::internParsePending() code: %d bytes label: '%s' src: '%s' offset: %d\n", strlen(code), label, orig_src ? orig_src : "(null)", offset);
+      //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
-       assert(code && code[0]);
+      assert(code && code[0]);
 
-       // save this file name for storage in the parse tree and deletion
-       // when the QoreProgram object is deleted
-       char* sname = strdup(label);
-       addFile(sname);
-       char* src = orig_src ? strdup(orig_src) : 0;
-       if (src)
-           addFile(src);
+      // save this file name for storage in the parse tree and deletion
+      // when the QoreProgram object is deleted
+      char* sname = strdup(label);
+      addFile(sname);
+      char* src = orig_src ? strdup(orig_src) : 0;
+      if (src)
+         addFile(src);
 
-       QoreParseLocationHelper qplh(sname, src, offset);
+      QoreParseLocationHelper qplh(sname, src, offset);
 
-       beginParsing(sname, 0, src, offset);
+      beginParsing(sname, 0, src, offset);
 
-       // no need to save buffer, because it's deleted automatically in lexer
-       //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
+      // no need to save buffer, because it's deleted automatically in lexer
+      //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
 
-       yyscan_t lexer;
-       yylex_init(&lexer);
-       yy_scan_string(code, lexer);
-       yyset_lineno(1, lexer);
-       // yyparse() will call endParsing() and restore old pgm position
-       yyparse(lexer);
+      yyscan_t lexer;
+      yylex_init(&lexer);
 
-       printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
-       int rc = 0;
-       if (parseSink->isException()) {
-           rc = -1;
-           printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
-           internParseRollback();
-           requires_exception = false;
-       }
+      yy_scan_string(code, lexer);
+      yyset_lineno(1, lexer);
+      // yyparse() will call endParsing() and restore old pgm position
+      yyparse(lexer);
 
-       printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
-       yylex_destroy(lexer);
-       printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
-       return rc;
+      printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
+      int rc = 0;
+      if (parseSink->isException()) {
+         rc = -1;
+         printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
+         internParseRollback();
+         requires_exception = false;
+      }
+
+      printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
+      yylex_destroy(lexer);
+      printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
+      return rc;
    }
 
    DLLLOCAL void startParsing(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
@@ -1220,42 +1049,66 @@ public:
       pwo.parse_options = po;
    }
 
-   DLLLOCAL void setParseOptions(int64 po, ExceptionSink* xsink = 0) {
+   DLLLOCAL int setParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
       if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
-         if (xsink)
-            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-         else
-            parse_error("parse options have been locked on this program object");
-         return;
+         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         return -1;
       }
 
       setParseOptionsIntern(po);
+      return 0;
    }
 
-   DLLLOCAL void disableParseOptions(int64 po, ExceptionSink* xsink = 0) {
+   DLLLOCAL int disableParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
       if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
-         if (xsink)
-            xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
-         else
-            parse_error("parse options have been locked on this program object");
-         return;
+         xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
+         return -1;
       }
 
       disableParseOptionsIntern(po);
+      return 0;
    }
 
-   DLLLOCAL void replaceParseOptions(int64 po, ExceptionSink* xsink) {
+   DLLLOCAL int replaceParseOptions(int64 po, ExceptionSink* xsink) {
+      assert(xsink);
       if (!(getProgram()->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS)) {
          xsink->raiseException("OPTION-ERROR", "the calling Program does not have the PO_NO_CHILD_PO_RESTRICTIONS option set, and therefore cannot call Program::replaceParseOptions()");
-         return;
+         return -1;
       }
 
       //printd(5, "qore_program_private::replaceParseOptions() this: %p pgm: %p replacing po: %lld with po: %lld\n", this, pgm, pwo.parse_options, po);
       replaceParseOptionsIntern(po);
+      return 0;
+   }
+
+   DLLLOCAL int parseSetParseOptions(const QoreProgramLocation& loc, int64 po) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+         parse_error(loc, "parse options have been locked on this program object");
+         return -1;
+      }
+
+      setParseOptionsIntern(po);
+      return 0;
+   }
+
+   DLLLOCAL int parseDisableParseOptions(const QoreProgramLocation& loc, int64 po) {
+      // only raise the exception if parse options are locked and the option is not a "free option"
+      // also check if options may be made more restrictive and the option also does so
+      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+         parse_error(loc, "parse options have been locked on this program object");
+         return -1;
+      }
+
+      disableParseOptionsIntern(po);
+      return 0;
    }
 
    DLLLOCAL void parseSetTimeZone(const char* zone) {
@@ -1505,11 +1358,13 @@ public:
          pend_dom |= neg;
       }
 
-      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: "QLLD" po: "QLLD"\n", this, n_dom, pwo.parse_options);
+      //printd(5, "qore_program_private::parseAddDomain() this: %p n_dom: " QLLD " po: " QLLD "\n", this, n_dom, pwo.parse_options);
       return rv;
    }
 
    DLLLOCAL void exportGlobalVariable(const char* name, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink);
+
+   DLLLOCAL int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
 
    // returns true if there was already a thread init closure set, false if not
    DLLLOCAL bool setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink);
@@ -1541,7 +1396,7 @@ public:
 
       // see if top level statements are allowed
       if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
-         parse_error("illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+         parse_error(s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
    }
 
    DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0, bool inject = false);
@@ -1566,6 +1421,24 @@ public:
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+
+   DLLLOCAL void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
+      AutoLocker al(plock);
+      assert(extmap.find(owner) == extmap.end());
+      extmap.insert(extmap_t::value_type(owner, pud));
+   }
+
+   DLLLOCAL AbstractQoreProgramExternalData* getExternalData(const char* owner) const {
+      AutoLocker al(plock);
+      extmap_t::const_iterator i = extmap.find(owner);
+      return i == extmap.end() ? nullptr : i->second;
+   }
+
+   DLLLOCAL QoreHashNode* getGlobalVars() const {
+      return qore_root_ns_private::getGlobalVars(*RootNS);
+   }
+
+   DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

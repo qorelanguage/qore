@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module mysql
 %define NoMysql
 %endtry
@@ -40,6 +40,8 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
             );
@@ -150,6 +152,12 @@ class MysqlTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                MysqlTable t = new MysqlTable(ds, "mysql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new MysqlTestSchema(ds);
 
@@ -160,6 +168,11 @@ class MysqlTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

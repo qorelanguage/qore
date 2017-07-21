@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
  ObjectMethodReference.h
- 
+
  Qore Programming Language
- 
- Copyright (C) 2003 - 2015 David Nichols
- 
+
+ Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,7 +44,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
 public:
-   DLLLOCAL AbstractParseObjectMethodReferenceNode() : ParseNode(NT_OBJMETHREF) {
+   DLLLOCAL AbstractParseObjectMethodReferenceNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_OBJMETHREF) {
    }
 
    DLLLOCAL virtual ~AbstractParseObjectMethodReferenceNode() {
@@ -62,7 +62,7 @@ public:
       getAsString(*rv, foff, xsink);
       return rv;
    }
-   
+
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
       return "object method reference";
@@ -76,7 +76,7 @@ private:
    const QoreClass *qc;
    mutable const QoreMethod* m;
    mutable QoreThreadLock lck;
-   
+
    DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -89,9 +89,9 @@ protected:
        @see AbstractQoreNode::eval()
    */
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-   
+
 public:
-   DLLLOCAL ParseObjectMethodReferenceNode(AbstractQoreNode* n_exp, char* n_method);
+   DLLLOCAL ParseObjectMethodReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, char* n_method);
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
@@ -114,11 +114,11 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL ParseSelfMethodReferenceNode(char* n_method) : method(n_method), meth(0) {
+   DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation& loc, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
       free(n_method);
    }
 
-   DLLLOCAL ParseSelfMethodReferenceNode(const QoreMethod* m) : meth(m) {
+   DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation& loc, const QoreMethod* m) : AbstractParseObjectMethodReferenceNode(loc), meth(m) {
    }
 };
 
@@ -139,7 +139,7 @@ protected:
    }
 
 public:
-   DLLLOCAL ParseScopedSelfMethodReferenceNode(NamedScope *n_nscope);
+   DLLLOCAL ParseScopedSelfMethodReferenceNode(const QoreProgramLocation& loc, NamedScope *n_nscope);
 };
 
 #endif

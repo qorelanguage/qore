@@ -34,6 +34,8 @@
 #ifndef QORE_QORE_STRING_PRIVATE_H
 #define QORE_QORE_STRING_PRIVATE_H
 
+#include <vector>
+
 #define MAX_INT_STRING_LEN     48
 #define MAX_BIGINT_STRING_LEN  48
 #define MAX_FLOAT_STRING_LEN   48
@@ -45,6 +47,8 @@
 #define QUS_PATH     0
 #define QUS_QUERY    1
 #define QUS_FRAGMENT 2
+
+typedef std::vector<int> intvec_t;
 
 struct qore_string_private {
 private:
@@ -529,7 +533,7 @@ public:
 #ifdef HPUX
       // vsnprintf failed but didn't tell us how big the buffer should be
       if (i < 0) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
          // resize buffer
          allocated += STR_CLASS_EXTRA;
          buf = (char *)realloc(buf, sizeof(char) * allocated);
@@ -538,7 +542,7 @@ public:
       }
 #else
       if (i >= free) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated="QSD" len="QSD" buf=%p fmtlen="QSD" (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
          // resize buffer
          allocated = len + i + STR_CLASS_EXTRA;
          buf = (char *)realloc(buf, sizeof(char) * allocated);
@@ -581,6 +585,13 @@ public:
       return 0;
    }
 
+   DLLLOCAL int trimLeading(ExceptionSink* xsink, const intvec_t& vec);
+   DLLLOCAL int trimLeading(ExceptionSink* xsink, const qore_string_private* chars);
+   DLLLOCAL int trimTrailing(ExceptionSink* xsink, const intvec_t& vec);
+   DLLLOCAL int trimTrailing(ExceptionSink* xsink, const qore_string_private* chars);
+
+   DLLLOCAL void terminate(size_t size);
+
    DLLLOCAL int concatUnicode(unsigned code);
 
    DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false);
@@ -591,6 +602,19 @@ public:
 
    DLLLOCAL int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
    DLLLOCAL int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
+
+   DLLLOCAL int getUnicodeCharArray(intvec_t& vec, ExceptionSink* xsink) const {
+      size_t j = 0;
+      while (j < len) {
+         unsigned clen;
+         int c = getUnicodePointFromBytePos((qore_offset_t)j, clen, xsink);
+         if (*xsink)
+            return -1;
+         vec.push_back(c);
+         j += clen;
+      }
+      return 0;
+   }
 
    DLLLOCAL int allocate(unsigned requested_size) {
       if ((unsigned)allocated >= requested_size)
@@ -609,6 +633,18 @@ public:
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return charset ? charset : QCS_USASCII;
+   }
+
+   DLLLOCAL static bool inVector(int c, const intvec_t& vec) {
+      for (unsigned j = 0; j < vec.size(); ++j) {
+         if ((int)vec[j] == c)
+            return true;
+      }
+      return false;
+   }
+
+   DLLLOCAL static qore_string_private* get(QoreString& str) {
+      return str.priv;
    }
 
    DLLLOCAL static int getHex(const char*& p) {

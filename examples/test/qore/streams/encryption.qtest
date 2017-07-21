@@ -1,0 +1,228 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CryptoStreamTest
+
+class SrcStream inherits InputStream {
+    public {
+        data data;
+        int offset = 0;
+        int chunk = 1;
+    }
+
+    constructor(data d, int c = 1) {
+        data = d;
+        chunk = c;
+    }
+
+    *binary read(int limit) {
+        if (limit > chunk) {
+            limit = chunk;
+        }
+        if (limit > length(data) - offset) {
+            limit = length(data) - offset;
+        }
+        if (limit == 0) {
+            return NOTHING;
+        }
+        data b = data.substr(offset, limit);
+        offset += limit;
+        return binary(b);
+    }
+
+    int peek() {
+        *data b = data.substr(offset, 1);
+        return ord(b.toString(b, "UTF-8"), 0);
+    }
+}
+
+public class CryptoStreamTest inherits QUnit::Test {
+    public {
+        const Str = "Hello There This is a Test - 1234567890";
+        const Key = "1234567890abcabcdefghijklmnopqrstuvwxyz";
+        const Aad = "additional authenticated data";
+
+        const EncBlowfish = <82cf5c3ac4b9189a0477bbda43af0c7d1a57628e75e9cc6e0bc7523d4d9f3e6f3c9281bc6f03ff23>;
+        const EncDes = <57f3bf760167c4197f861d0d6f97316a47898aabc7c577d4b5ca2f845286258e8998e652bca39f2d>;
+        const EncDesEde = <d824e6d3264a7703b8a2ea74c68695cf7be59861d4093cf22ab91a2af90e774c9ef82cb16e2241b3>;
+        const EncDesEde3 = <bbccf89542807a04147eec7799f233870b7f7e79a0918490847d48f0582add928e1f60ccfd881985>;
+        const EncAes128 = <aefb3da77fa1f1333a33f5b6269ef2551829382b2627d661f1017407f380f24fa2240e0ea2406d>;
+        const EncAes192 = <25be4e7154c04b8ba236dbaf757eb8eef14e74569d763d0e7a8e391a85abc0aaabdcd002203b66>;
+        const EncAes256 = <e7c61fd4a94c05612229acb5af8364e53ea93a1fa32fb83013817a94cc5b49b9b9aa0f87c4cbe0>;
+    }
+
+    constructor() : Test("CryptoStreamTest", "1.0") {
+        addTestCase("crypto test", \cryptoTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    cryptoTest() {
+        assertEq(EncBlowfish, encryptInput(Str, CRYPTO_ALG_BLOWFISH, Key, NOTHING, 1, 10));
+        assertEq(EncDes, encryptInput(Str, CRYPTO_ALG_DES, Key, NOTHING, 1, 10));
+        assertEq(EncDesEde, encryptInput(Str, CRYPTO_ALG_DES_EDE, Key, NOTHING, 1, 10));
+        assertEq(EncDesEde3, encryptInput(Str, CRYPTO_ALG_DES_EDE3, Key, NOTHING, 1, 10));
+
+        binary mac_aes128;
+        binary mac_aes192;
+        binary mac_aes256;
+        assertEq(EncAes128, encryptInput(Str, CRYPTO_ALG_AES_128, Key, NOTHING, 1, 10, \mac_aes128, 16));
+        assertEq(EncAes192, encryptInput(Str, CRYPTO_ALG_AES_192, Key, NOTHING, 1, 10, \mac_aes192, 16));
+        assertEq(EncAes256, encryptInput(Str, CRYPTO_ALG_AES_256, Key, NOTHING, 1, 10, \mac_aes256, 16));
+
+        assertEq(EncBlowfish, encryptOutput(Str, CRYPTO_ALG_BLOWFISH, Key, NOTHING, 10));
+        assertEq(EncDes, encryptOutput(Str, CRYPTO_ALG_DES, Key, NOTHING, 10));
+        assertEq(EncDesEde, encryptOutput(Str, CRYPTO_ALG_DES_EDE, Key, NOTHING, 10));
+        assertEq(EncDesEde3, encryptOutput(Str, CRYPTO_ALG_DES_EDE3, Key, NOTHING, 10));
+
+        assertEq(EncAes128, encryptOutput(Str, CRYPTO_ALG_AES_128, Key, NOTHING, 10));
+        assertEq(EncAes192, encryptOutput(Str, CRYPTO_ALG_AES_192, Key, NOTHING, 10));
+        assertEq(EncAes256, encryptOutput(Str, CRYPTO_ALG_AES_256, Key, NOTHING, 10));
+
+        assertEq(Str, decryptInput(EncBlowfish, CRYPTO_ALG_BLOWFISH, Key, NOTHING, 1, 10).toString());
+        assertEq(Str, decryptInput(EncDes, CRYPTO_ALG_DES, Key, NOTHING, 1, 10).toString());
+        assertEq(Str, decryptInput(EncDesEde, CRYPTO_ALG_DES_EDE, Key, NOTHING, 1, 10).toString());
+        assertEq(Str, decryptInput(EncDesEde3, CRYPTO_ALG_DES_EDE3, Key, NOTHING, 1, 10).toString());
+        assertEq(Str, decryptInput(EncAes128, CRYPTO_ALG_AES_128, Key, NOTHING, 1, 10, mac_aes128).toString());
+        assertEq(Str, decryptInput(EncAes192, CRYPTO_ALG_AES_192, Key, NOTHING, 1, 10, mac_aes192).toString());
+        assertEq(Str, decryptInput(EncAes256, CRYPTO_ALG_AES_256, Key, NOTHING, 1, 10, mac_aes256).toString());
+
+        assertEq(Str, decryptOutput(EncBlowfish, CRYPTO_ALG_BLOWFISH, Key, NOTHING, 10).toString());
+        assertEq(Str, decryptOutput(EncDes, CRYPTO_ALG_DES, Key, NOTHING, 10).toString());
+        assertEq(Str, decryptOutput(EncDesEde, CRYPTO_ALG_DES_EDE, Key, NOTHING, 10).toString());
+        assertEq(Str, decryptOutput(EncDesEde3, CRYPTO_ALG_DES_EDE3, Key, NOTHING, 10).toString());
+        assertEq(Str, decryptOutput(EncAes128, CRYPTO_ALG_AES_128, Key, NOTHING, 10, mac_aes128).toString());
+        assertEq(Str, decryptOutput(EncAes192, CRYPTO_ALG_AES_192, Key, NOTHING, 10, mac_aes192).toString());
+        assertEq(Str, decryptOutput(EncAes256, CRYPTO_ALG_AES_256, Key, NOTHING, 10, mac_aes256).toString());
+
+        map testEncryptionStreams($1.key, $1.value), get_crypto_info().pairIterator();
+    }
+
+    private testEncryptionStreams(string alg, hash eh) {
+        binary mac;
+        binary bin = encryptInput(Str, alg, Key, NOTHING, 1, 10, \mac, 16);
+        assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac).toString());
+        assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac).toString());
+        bin = encryptOutput(Str, alg, Key, NOTHING, 10, \mac, 16);
+        assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac).toString());
+        assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac).toString());
+
+        # decryption must fail with an invalid key
+        try {
+            binary b = decryptInput(bin, alg, "x" + Key, NOTHING, 1, 10, mac);
+            assertEq(False, Str == b.toString());
+        }
+        catch (hash ex) {
+            assertEq("DECRYPT-ERROR", ex.err);
+        }
+        try {
+            binary b = decryptOutput(bin, alg, "x" + Key, NOTHING, 10, mac);
+            assertEq(False, Str == b.toString());
+        }
+        catch (hash ex) {
+            assertEq("DECRYPT-ERROR", ex.err);
+        }
+
+        # test with IVs if the algorithm supports it
+        if (eh.iv_len != -1) {
+            binary iv = get_random_bytes(12);
+            bin = encryptInput(Str, alg, Key, iv, 1, 10, \mac, 16);
+            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
+            bin = encryptOutput(Str, alg, Key, iv, 10, \mac, 16);
+            assertEq(Str, decryptInput(bin, alg, Key, iv, 1, 10, mac).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, iv, 10, mac).toString());
+
+            # decryption must fail with an invalid IV
+            try {
+                binary b = decryptInput(bin, alg, Key, NOTHING, 1, 10, mac);
+                assertEq(False, Str == b.toString());
+            }
+            catch (hash ex) {
+                if (ex.err != "DECRYPT-ERROR")
+                    printf("%y: %s\b", alg, get_exception_string(ex));
+                assertEq("DECRYPT-ERROR", ex.err);
+            }
+            try {
+                binary b = decryptOutput(bin, alg, Key, NOTHING, 10, mac);
+                assertEq(False, Str == b.toString());
+            }
+            catch (hash ex) {
+                assertEq("DECRYPT-ERROR", ex.err);
+            }
+        }
+
+        # test with AAD if the algorithm supports it
+        if (eh.type == "GCM") {
+            bin = encryptInput(Str, alg, Key, NOTHING, 1, 10, \mac, 16, Aad);
+            assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac, Aad).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac, Aad).toString());
+            bin = encryptOutput(Str, alg, Key, NOTHING, 10, \mac, 16, Aad);
+            assertEq(Str, decryptInput(bin, alg, Key, NOTHING, 1, 10, mac, Aad).toString());
+            assertEq(Str, decryptOutput(bin, alg, Key, NOTHING, 10, mac, Aad).toString());
+
+            # decryption must fail with invalid AAD
+            assertThrows("DECRYPT-ERROR", \decryptInput(), (bin, alg, Key, NOTHING, 1, 10, mac));
+            assertThrows("DECRYPT-ERROR", \decryptOutput(), (bin, alg, Key, NOTHING, 10, mac));
+        }
+    }
+
+    private binary encryptInput(data src, string alg, data key, *data iv, int chunk, int readSize, *reference mac, *int mac_size, *data aad) {
+        return processInput(src, get_encryptor(alg, key, iv, \mac, mac_size, aad), chunk, readSize);
+    }
+
+    private binary encryptOutput(data src, string alg, data key, *data iv, int writeSize, *reference mac, *int mac_size, *data aad) {
+        return processOutput(src, get_encryptor(alg, key, iv, \mac, mac_size, aad), writeSize);
+    }
+
+    private binary decryptInput(data src, string alg, data key, *data iv, int chunk, int readSize, *binary mac, *data aad) {
+        return processInput(src, get_decryptor(alg, key, iv, mac, aad), chunk, readSize);
+    }
+
+    private binary decryptOutput(data src, string alg, data key, *data iv, int writeSize, *binary mac, *data aad) {
+        return processOutput(src, get_decryptor(alg, key, iv, mac, aad), writeSize);
+    }
+
+    private binary processInput(data src, Transform t, int chunk, int readSize) {
+        TransformInputStream tis(new SrcStream(src, chunk), t);
+        binary out = binary();
+        while (True) {
+            *binary b = tis.read(readSize);
+            if (!b) {
+                break;
+            }
+            out = out + b;
+        }
+        return out;
+    }
+
+    private binary processOutput(data src, Transform t, int writeSize) {
+        BinaryOutputStream bos();
+        TransformOutputStream tos(bos, t);
+        int o = 0;
+        while (o < src.size()) {
+            int w = src.size() - o;
+            if (w > writeSize) {
+                w = writeSize;
+            }
+            tos.write(binary(src.substr(o, w)));
+            o += w;
+        }
+        tos.close();
+        return bos.getData();
+    }
+
+    private binary modify(binary b) {
+        int i = (b[b.size() - 1] + 1) & 255;
+        return b.substr(b.size() - 1) + parse_hex_string(sprintf("%02X", i));
+    }
+}
