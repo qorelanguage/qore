@@ -521,6 +521,7 @@ class qhi_priv;
 */
 class HashIterator {
    friend class HashAssignmentHelper;
+   friend class qhi_priv;
 
 protected:
    QoreHashNode* h;

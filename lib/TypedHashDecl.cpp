@@ -115,7 +115,7 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                 continue;
 
             if (res == QTI_AMBIGUOUS && may_not_match)
-                parse_error(loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has incompatible type '%s'; expecting '%s'; types may be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), i->first, hd.name.c_str(), context, QoreTypeInfo::getName(i->second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                parse_error(loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), i->first, hd.name.c_str(), context, QoreTypeInfo::getName(i->second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
             else
                 parse_error(loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has incompatible type '%s'; expecting '%s'", name.c_str(), i->first, hd.name.c_str(), context, QoreTypeInfo::getName(i->second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()));
         }
@@ -176,9 +176,9 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                         continue;
 
                     if (res == QTI_AMBIGUOUS && may_not_match)
-                        parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                        parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
                     else
-                        parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may be compatible at runtime", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                        parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
                 }
                 else if (!runtime_check)
                     runtime_check = true;

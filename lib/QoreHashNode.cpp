@@ -753,59 +753,6 @@ const QoreTypeInfo* QoreHashNode::getTypeInfo() const {
    return priv->getTypeInfo();
 }
 
-class qhi_priv {
-public:
-   qhlist_t::iterator i;
-   bool val;
-
-   DLLLOCAL qhi_priv() : val(false) {
-   }
-
-   DLLLOCAL qhi_priv(const qhi_priv& old) : i(old.i), val(old.val) {
-   }
-
-   DLLLOCAL bool valid() const {
-      return val;
-   }
-
-   DLLLOCAL bool next(qhlist_t& ml) {
-      //printd(0, "qhi_priv::next() this: %p val: %d\n", this, val);
-      if (!val) {
-	 if (ml.begin() != ml.end()) {
-	    i = ml.begin();
-	    val = true;
-	 }
-      }
-      else {
-	 ++i;
-	 if (i == ml.end())
-	    val = false;
-      }
-      return val;
-   }
-
-   DLLLOCAL bool prev(qhlist_t& ml) {
-      if (!val) {
-	 if (ml.begin() != ml.end()) {
-	    i = ml.end();
-	    --i;
-	    val = true;
-	 }
-      }
-      else {
-	 if (i == ml.begin())
-	    val = false;
-	 else
-	    --i;
-      }
-      return val;
-   }
-
-   DLLLOCAL void reset() {
-      val = false;
-   }
-};
-
 HashIterator::HashIterator(QoreHashNode* qh) : h(qh), priv(new qhi_priv()) {
 }
 

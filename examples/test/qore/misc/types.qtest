@@ -1224,15 +1224,26 @@ class TypeTest inherits QUnit::Test {
             }
 
             {
+                hash<string, hash> h = (("a": ("a": "a")));
+                assertEq("a", h.a.a);
+            }
+
+            {
+                hash<string, softint> h();
+                h = new hash<string, int>(('b': 2, 'c': 3));
+                assertEq(2, h.b);
+            }
+
+            {
+                hash<string, softint> h = ("a": "2");
+                assertEq(2, h.a);
+            }
+
+            {
                 # however otherwise the typed hash keeps its type
                 Program p(PO_NEW_STYLE);
                 p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
                 assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
-            }
-
-            {
-                Program p(PO_NEW_STYLE);
-                assertThrows("PARSE-TYPE-ERROR", "assignment", \p.parse(), ("sub t() { hash<string, softint> h(); h = new hash<string, int>(('b': 2, 'c': 3)); }", ""));
             }
 
             {

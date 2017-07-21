@@ -60,6 +60,64 @@ typedef HASH_MAP<const char*, qhlist_t::iterator, qore_hash_str, eqstr> hm_hm_t;
 typedef std::map<const char*, qhlist_t::iterator, ltstr> hm_hm_t;
 #endif
 
+// QoreHashIterator private class
+class qhi_priv {
+public:
+   qhlist_t::iterator i;
+   bool val;
+
+   DLLLOCAL qhi_priv() : val(false) {
+   }
+
+   DLLLOCAL qhi_priv(const qhi_priv& old) : i(old.i), val(old.val) {
+   }
+
+   DLLLOCAL bool valid() const {
+      return val;
+   }
+
+   DLLLOCAL bool next(qhlist_t& ml) {
+      //printd(0, "qhi_priv::next() this: %p val: %d\n", this, val);
+      if (!val) {
+         if (ml.begin() != ml.end()) {
+            i = ml.begin();
+            val = true;
+         }
+      }
+      else {
+         ++i;
+         if (i == ml.end())
+            val = false;
+      }
+      return val;
+   }
+
+   DLLLOCAL bool prev(qhlist_t& ml) {
+      if (!val) {
+         if (ml.begin() != ml.end()) {
+            i = ml.end();
+            --i;
+            val = true;
+         }
+      }
+      else {
+         if (i == ml.begin())
+            val = false;
+         else
+            --i;
+      }
+      return val;
+   }
+
+   DLLLOCAL void reset() {
+      val = false;
+   }
+
+   DLLLOCAL static qhi_priv* get(HashIterator& i) {
+       return i.priv;
+   }
+};
+
 class qore_hash_private {
 public:
    qhlist_t member_list;
@@ -264,16 +322,30 @@ public:
       return h;
    }
 
+   DLLLOCAL QoreHashNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
+      QoreHashNode* h = new QoreHashNode;
+      h->priv->complexTypeInfo = newComplexTypeInfo;
+      copyIntern(*h->priv);
+      return h;
+   }
+
    // strip = copy without type information
    DLLLOCAL QoreHashNode* copy(bool strip = false) const {
       QoreHashNode* h = strip ? new QoreHashNode : getCopy();
+      copyIntern(*h->priv);
+      return h;
+   }
 
+   DLLLOCAL void copyIntern(qore_hash_private& h) const {
       // copy all members to new object
       for (auto& i : member_list) {
-         hash_assignment_priv ha(*h->priv, i->key.c_str());
+         hash_assignment_priv ha(h, i->key.c_str());
+#ifdef DEBUG
+         assert(!ha.swap(i->node ? i->node->refSelf() : nullptr));
+#else
          ha.swap(i->node ? i->node->refSelf() : nullptr);
+#endif
       }
-      return h;
    }
 
    DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {

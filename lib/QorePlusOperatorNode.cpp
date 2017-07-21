@@ -175,7 +175,7 @@ AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
 
    assert(!parseTypeInfo);
 
-   const QoreTypeInfo* leftTypeInfo = 0, *rightTypeInfo = 0;
+   const QoreTypeInfo* leftTypeInfo = nullptr, *rightTypeInfo = nullptr;
 
    left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);

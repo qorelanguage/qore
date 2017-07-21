@@ -84,8 +84,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         vtype = nullptr;
 
     if (vtype) {
-        QoreStringMaker str("hash<string, %s>", QoreTypeInfo::getName(vtype));
-        this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(str.c_str(), vtype);
+        this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
     }
     else {
         this->typeInfo = typeInfo = hashTypeInfo;

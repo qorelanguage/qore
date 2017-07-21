@@ -64,7 +64,7 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
    qore_type_result_e res = QoreTypeInfo::parseAccepts(ti, r);
-   ident = res == QTI_IDENT;
+   ident = (res == QTI_IDENT);
 
    if (getProgram()->getParseExceptionSink() && !res) {
       QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");

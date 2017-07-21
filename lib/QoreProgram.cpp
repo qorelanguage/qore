@@ -752,26 +752,26 @@ LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeI
    return lv;
 }
 
-const QoreTypeInfo* qore_program_private::getComplexHashType(const char* name, const QoreTypeInfo* vti) {
+const QoreTypeInfo* qore_program_private::getComplexHashType(const QoreTypeInfo* vti) {
    AutoLocker al(chl);
 
    tmap_t::iterator i = ch_map.lower_bound(vti);
    if (i != ch_map.end() && i->first == vti)
       return i->second;
 
-   QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(name, vti);
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(vti);
    ch_map.insert(i, tmap_t::value_type(vti, ti));
    return ti;
 }
 
-const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const char* name, const QoreTypeInfo* vti) {
+const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const QoreTypeInfo* vti) {
    AutoLocker al(chonl);
 
    tmap_t::iterator i = chon_map.lower_bound(vti);
    if (i != chon_map.end() && i->first == vti)
       return i->second;
 
-   QoreComplexHashTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(name, vti);
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
    chon_map.insert(i, tmap_t::value_type(vti, ti));
    return ti;
 }

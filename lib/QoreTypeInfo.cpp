@@ -393,8 +393,9 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
       }
       case QTS_HASHDECL: {
          switch (t.typespec) {
-            case QTS_HASHDECL:
+            case QTS_HASHDECL: {
                return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+            }
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -428,6 +429,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t) const {
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match) const {
+   //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
+
    switch (typespec) {
       case QTS_CLASS: {
          switch (t.typespec) {
@@ -456,9 +459,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          return QTI_NOT_EQUAL;
       }
       case QTS_COMPLEXHASH: {
+         //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
          switch (t.typespec) {
             case QTS_COMPLEXHASH:
-               return QoreTypeInfo::equal(u.ti, t.u.ti) ? QTI_IDENT : QTI_NOT_EQUAL;
+               //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
+               return QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match);
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -486,6 +491,95 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
    return QTI_NOT_EQUAL;
 }
 
+bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const {
+   bool priv_error = false;
+   bool ok = false;
+
+   switch (typespec) {
+      case QTS_CLASS: {
+         if (n.getType() == NT_OBJECT) {
+            bool priv;
+            if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
+               break;
+            if (!priv) {
+               ok = true;
+               break;
+            }
+            // check access
+            if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc)) {
+               ok = true;
+               break;
+            }
+            priv_error = true;
+         }
+         break;
+      }
+      case QTS_HASHDECL: {
+         if (n.getType() == NT_HASH) {
+            const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+            if (hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd))) {
+               ok = true;
+               break;
+            }
+         }
+         break;
+      }
+      case QTS_COMPLEXHASH: {
+         if (n.getType() == NT_HASH) {
+            QoreHashNode* h = n.get<QoreHashNode>();
+            const QoreTypeInfo* ti = h->getValueTypeInfo();
+            bool may_not_match = false;
+            qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, ti, may_not_match);
+            if (res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) {
+               ok = true;
+               break;
+            }
+
+            // value types are not identical; we have to get a new hash
+            if (!h->is_unique()) {
+               discard(n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo)), xsink);
+               if (*xsink)
+                  return true;
+            }
+            else
+               qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
+
+            // now we have to fold the value types into our type
+            HashIterator i(h);
+            while (i.next()) {
+               hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
+               QoreValue hn(ha.swap(nullptr));
+               u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn);
+               ha.swap(hn.takeNode());
+               if (*xsink)
+                  return true;
+            }
+
+            ok = true;
+         }
+         break;
+      }
+      case QTS_TYPE:
+         if (u.t == NT_ALL || u.t == n.getType())
+            ok = true;
+         break;
+   }
+
+   if (ok) {
+      assert(!priv_error);
+      if (map)
+         map(n, xsink);
+      return true;
+   }
+
+   if (priv_error) {
+      typeInfo.doAcceptError(true, obj, param_num, param_name, n, xsink);
+      return true;
+   }
+   return false;
+}
+
+/*
 bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const {
    assert(!priv_error);
    switch (typespec) {
@@ -514,7 +608,9 @@ bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const 
       case QTS_COMPLEXHASH: {
          if (n.getType() == NT_HASH) {
             const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
-            return ti && QoreTypeInfo::equal(u.ti, ti);
+            bool may_not_match = false;
+            qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, ti, may_not_match);
+            return (res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) ? true : false;
          }
          return false;
       }
@@ -523,6 +619,7 @@ bool QoreTypeSpec::runtimeTestMatch(const QoreValue& n, bool& priv_error) const 
    }
    return false;
 }
+*/
 
 bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
    if (typespec != other.typespec)
@@ -657,13 +754,16 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
             if (QoreTypeInfo::hasType(valueType)) {
                QoreStringMaker str("%shash<string, %s>", or_nothing ? "*" : "", QoreTypeInfo::getName(valueType));
                return !or_nothing
-                  ? qore_program_private::get(*getProgram())->getComplexHashType(str.c_str(), valueType)
-                  : qore_program_private::get(*getProgram())->getComplexHashOrNothingType(str.c_str(), valueType);
+                  ? qore_program_private::get(*getProgram())->getComplexHashType(valueType)
+                  : qore_program_private::get(*getProgram())->getComplexHashOrNothingType(valueType);
             }
          }
       }
-      else
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName());
+      else {
+         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName(), (int)subtypes.size());
+         for (auto& i : subtypes)
+            printd(0, " + st '%s'\n", i->cscope->ostr);
+      }
       return or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
    }
    else if (!strcmp(cscope->ostr, "object")) {

@@ -233,7 +233,7 @@ string connstr = get_connection(str);
         return h;
     }
 
-    #! returns a hash of connection information keyed by connection identifier; values are hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
+    #! returns a hash of connection information keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
     /** @par Example:
         @code{.py}
 *hash<string, hash<ConnectionInfo>> h = get_connection_hash();
@@ -353,10 +353,7 @@ string connstr = get_connection(str);
         #! returns a hash with the results of the ping operation
         /** @param throw_exception throw an exception if a connection error occurs
 
-            @return a hash with the following keys:
-            - \c "ok": a boolean value giving the result of the ping
-            - \c "time": a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
-            - \c "info": a string giving the result of the ping (\c "OK" or an error message)
+            @return a @ref PingInfo hash
          */
         hash<PingInfo> ping(bool throw_exception = False) {
             hash<PingInfo> rv(hash(self).("name", "desc", "opts"));
@@ -378,7 +375,7 @@ string connstr = get_connection(str);
             }
         }
 
-        #! performs the ping by executing get()
+        #! performs the ping by executing get(); returns a @ref PingInfo hash
         private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
             date start = now_us();
             get();
@@ -389,7 +386,7 @@ string connstr = get_connection(str);
                 );
         }
 
-        #! returns a hash of information about the connection
+        #! returns a @ref ConnectionInfo hash of information about the connection
         /** @param with_password determines if the password is returned or not
 
             @return a @ref ConnectionInfo hash of information about the connection
@@ -404,7 +401,7 @@ string connstr = get_connection(str);
             return h;
         }
 
-        #! returns a hash of static configuration information about the connection
+        #! returns a @ref ConfigInfo hash of static configuration information about the connection
         /** @returns a @ref ConfigInfo hash of static configuration information about the connection
          */
         hash<ConfigInfo> getConfigHash() {

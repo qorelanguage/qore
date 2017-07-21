@@ -1448,8 +1448,8 @@ public:
 
    DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL const QoreTypeInfo* getComplexHashType(const char* name, const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const char* name, const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexHashType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const QoreTypeInfo* vti);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

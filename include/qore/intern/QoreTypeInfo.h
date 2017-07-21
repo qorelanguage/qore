@@ -55,6 +55,11 @@ enum q_typespec_t : unsigned char {
    QTS_COMPLEXHASH = 3,
 };
 
+class QoreTypeInfo;
+typedef std::function<void (QoreValue&, ExceptionSink*)> q_type_map_t;
+
+static q_type_map_t null_to_nothing = [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); };
+
 class QoreTypeSpec {
 public:
    DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
@@ -117,7 +122,10 @@ public:
    // ex: this = NT_OBJECT, t = class, result = IDENT
    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const;
 
-   DLLLOCAL bool runtimeTestMatch(const QoreValue& n, bool& priv_error) const;
+   //DLLLOCAL bool runtimeTestMatch(const QoreValue& n, bool& priv_error) const;
+
+   // returns true if there is a match or if an error has been raised
+   DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
 
    DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
    DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
@@ -153,10 +161,6 @@ struct QoreReturnSpec {
 
 typedef std::vector<QoreReturnSpec> q_return_vec_t;
 
-typedef std::function<void (QoreValue&, ExceptionSink*)> q_type_map_t;
-
-static q_type_map_t null_to_nothing = [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); };
-
 struct QoreAcceptSpec {
    const QoreTypeSpec spec;
    const q_type_map_t map;
@@ -176,6 +180,9 @@ DLLLOCAL bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& 
 class QoreTypeInfo {
 protected:
    QoreString tname;
+
+   DLLLOCAL QoreTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : accept_vec(a_vec), return_vec(r_vec) {
+   }
 
 public:
    const q_accept_vec_t accept_vec;
@@ -295,26 +302,26 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
       if (ti)
-         ti->acceptInputIntern(false, param_num, param_name, n, xsink);
+         ti->acceptInputIntern(xsink, false, param_num, param_name, n);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (ti)
-         ti->acceptInputIntern(true, -1, member_name, n, xsink);
+         ti->acceptInputIntern(xsink, true, -1, member_name, n);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (ti)
-         ti->acceptInputIntern(false, -1, member_name, n, xsink);
+         ti->acceptInputIntern(xsink, false, -1, member_name, n);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
       assert(text && text[0] == '<');
       if (ti)
-         ti->acceptInputIntern(false, -1, text, n, xsink);
+         ti->acceptInputIntern(xsink, false, -1, text, n);
    }
 
    // static version of method, checking for null pointer
@@ -431,19 +438,10 @@ public:
       return -1;
    }
 
-   DLLLOCAL void acceptInputIntern(bool obj, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) const {
+   DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, bool obj, int param_num, const char* param_name, QoreValue& n) const {
       for (auto& t : accept_vec) {
-         bool priv_error = false;
-         if (t.spec.runtimeTestMatch(n, priv_error)) {
-            assert(!priv_error);
-            if (t.map)
-               t.map(n, xsink);
+         if (t.spec.acceptInput(xsink, *this, t.map, obj, param_num, param_name, n))
             return;
-         }
-         if (priv_error) {
-            doAcceptError(true, obj, param_num, param_name, n, xsink);
-            return;
-         }
       }
       doAcceptError(false, obj, param_num, param_name, n, xsink);
    }
@@ -555,6 +553,7 @@ protected:
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
+      //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
       if (typeInfo->return_vec.size() > accept_vec.size()) {
          may_not_match = true;
       }
@@ -920,11 +919,13 @@ protected:
 
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashTypeInfo(const char* name, const QoreTypeInfo* vti) : QoreTypeInfo(name, q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
+   DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
+      tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
    }
 
 protected:
-   DLLLOCAL QoreComplexHashTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+   DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+      tname.prepend("*");
    }
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
@@ -939,7 +940,7 @@ protected:
 
 class QoreComplexHashOrNothingTypeInfo : public QoreComplexHashTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashOrNothingTypeInfo(const char* name, const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(name, q_accept_vec_t {
+   DLLLOCAL QoreComplexHashOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(q_accept_vec_t {
          {QoreComplexHashTypeSpec(vti), nullptr, true},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},

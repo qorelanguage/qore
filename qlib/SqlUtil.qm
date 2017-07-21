@@ -102,6 +102,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
 
     @subsection sqlutilv1_3_3 SqlUtil v1.3.3
     - fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
@@ -1898,6 +1899,28 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    #! generic column description hash in schema descriptions
+    public hashdecl GenericColumnInfo {
+        #! a qore type string that will be converted to a native DB type with some default conversion
+        string qore_type;
+        #! the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+        string native_type;
+        #! for data types requiring a size component, the size; for numeric columns this represents the precision for example
+        softint size;
+        #! for numeric data types, this value gives the scale
+        softint scale;
+        #! the default value for the column
+        any default_value;
+        #! a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        bool default_value_native = False;
+        #! an optional comment for the column
+        *string comment;
+        #! if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+        bool notnull = False;
+        #! this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
+        hash<string, hash> driver;
+    }
+
     #! SQL operator info hash as returned by all @ref sql_op_funcs "operator functions"
     public hashdecl OperatorInfo {
         string op;   #!< the operator string code
@@ -4379,11 +4402,10 @@ bool b = c.partialMatchKeys(l);
                 return False;
 
             # make a hash of the list for quick searching
-            hash h1;
-            map h1.$1 = True, l;
+            hash<string, bool> h1 = map {$1: True}, l;
 
             foreach string k in (h.keyIterator()) {
-                if (!h1.hasKey(k))
+                if (!h1{k})
                     return False;
             }
 

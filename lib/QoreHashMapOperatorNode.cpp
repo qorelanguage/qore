@@ -52,12 +52,10 @@ const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInf
    // this operator returns no value if the iterator expression has no value
    bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
    if (QoreTypeInfo::hasType(expTypeInfo2)) {
-      QoreStringMaker str("hash<string, %s>", QoreTypeInfo::getName(expTypeInfo2));
-      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(str.c_str(), expTypeInfo2);
+      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(expTypeInfo2);
 
       if (or_nothing) {
-         str.prepend("*");
-         typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(str.c_str(), expTypeInfo2);
+         typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(expTypeInfo2);
       }
       else
          typeInfo = returnTypeInfo;
