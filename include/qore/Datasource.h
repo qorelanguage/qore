@@ -3,11 +3,11 @@
   Datasource.h
 
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   The Datasource class provides the low-level interface to Qore DBI drivers.
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -53,6 +53,7 @@ class DBIDriver;
 */
 class Datasource {
    friend class QoreSQLStatement;
+   friend struct qore_ds_private;
 
 private:
    struct qore_ds_private *priv; // private implementation
@@ -62,11 +63,11 @@ private:
 
    //! this helper method shares code for exec() and execRaw() methods
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
-      
+
 protected:
    //! frees all connection values
    DLLEXPORT void freeConnectionValues();
-      
+
    //! copies pending values to current values
    DLLEXPORT void setConnectionValues();
 
@@ -316,14 +317,14 @@ public:
    DLLEXPORT AbstractQoreNode* execRaw(const QoreString* query_str, ExceptionSink* xsink);
 
    //! executes SQL that returns a result set and then returns a hash description of the result set
-   /** 
+   /**
        @param query_str the query to execute
        @param args this argument is ignored
        @param xsink if an error occurs, the Qore-language exception information will be added here
 
        @since %Qore 0.8.9
     */
-   DLLEXPORT QoreHashNode* describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);   
+   DLLEXPORT QoreHashNode* describe(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink);
 
    //! commits the current transaction to the database
    /** Calls the DBI driver's "commit" method.
@@ -433,6 +434,7 @@ public:
 
    //! executes the "get_client_version" function of the driver, if any, and returns the result
    /** the caller owns the AbstractQoreNode pointer's reference count returned (if the pointer is not 0)
+
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLEXPORT AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
@@ -447,13 +449,62 @@ public:
    /** The DBIDriver should raise its own exception when this call is made, as making this call will
        suppress further Qore exceptions from being raised in the Datasource destructor (at least for
        derived classes)
+
+       @note This call results in all open statements being closed and then the Datasource
+       itself is closed, resulting in the deletion of the driver-specific Datasource local
+       data; if the driver needs to free memory before the Datasource is closed, then the
+       driver should call connectionLost() instead, free its memory, and then call
+       the variant of function taking an ExceptionSink pointer argument.
+
+       @deprecated use connectionAborted(ExceptionSink*) instead
    */
    DLLEXPORT void connectionAborted();
+
+   //! should be called by the DBI driver if the connection to the server has been lost
+   /** The DBIDriver should raise its own exception when this call is made, as making this call will
+       suppress further Qore exceptions from being raised in the Datasource destructor (at least for
+       derived classes)
+
+       This function should be called after a connectionLost() call if the connection is
+       not able to be reopened.
+
+       @note This call results in all open statements being closed and then the Datasource
+       itself is closed, resulting in the deletion of the driver-specific Datasource local
+       data; if the driver needs to free memory before the Datasource is closed, then the
+       driver should call connectionLost() instead, free its memory, and then call
+       this function.
+
+       @since %Qore 0.8.12.10
+   */
+   DLLEXPORT void connectionAborted(ExceptionSink* xsink);
+
+   //! should be called be the DBI driver to signify that the connection to the server has been lost
+   /** This call does not result in the Datasource being closed, but rather ensures that
+       all open statements are closed while the driver-specific Datasource local data remains
+       in place.
+
+       This flag does not result in the connection aborted flag being set.
+
+       @since %Qore 0.8.12.10
+    */
+   DLLEXPORT void connectionLost(ExceptionSink* xsink);
+
+   //! should be called be the DBI driver to signify that the connection to the server has been recovered
+   /** This call does not result in the Datasource being closed, but rather ensures that
+       all open statements are closed and also that driver-specific Datasource local data
+       is deleted.
+
+       This function should be called after a connectionLost() call if the connection is
+       then reopened.
+
+       @since %Qore 0.8.12.10
+    */
+   DLLEXPORT void connectionRecovered(ExceptionSink* xsink);
 
    //! returns the connection aborted status
    /** @return the connection aborted status
     */
-   DLLEXPORT bool wasConnectionAborted() const;	  
+   DLLEXPORT bool wasConnectionAborted() const;
 
    //! called from subclasses when releasing the transaction lock
    /** Calls the DBI driver's "commit" method if autocommit is enabled and the current connection was not lost and the driver requires a commit
@@ -488,6 +539,17 @@ public:
 
        @return -1 for error (exception raised), 0 for OK
     */
+   DLLEXPORT int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
+
+   //! sets an option for the datasource
+   /** @param opt the option to set
+       @param val the value to set
+       @param xsink if any errors are raised (invalid option, etc), the exception info is raised here
+
+       @return -1 for error (exception raised), 0 for OK
+
+       @deprecated use setOption(const char*, const QoreValue, ExceptionSink*);
+    */
    DLLEXPORT int setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
 
    //! Returns the current value for the given option
@@ -518,13 +580,14 @@ public:
    DLLEXPORT QoreHashNode* getConfigHash() const;
 
    //! returns a string representing the configuration of the current object
-   /**
-      @since %Qore 0.8.8
+   /** @note must be connected before calling or a crash could result
+
+       @since %Qore 0.8.8
    */
    DLLEXPORT QoreStringNode* getConfigString() const;
 
    //! sets an event queue for datasource events
-   /** 
+   /**
        @since %Qore 0.8.9
    */
    DLLEXPORT void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
@@ -536,4 +599,3 @@ public:
 };
 
 #endif // _QORE_DATASOURCE_H
-

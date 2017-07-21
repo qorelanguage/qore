@@ -1,0 +1,18 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+any sub f() {
+    int a = 8;
+    background sub () {
+        printf("1: %y\n", a);
+        sub() {
+            printf("2: %y\n", a);
+        }();
+    }();
+}
+f();

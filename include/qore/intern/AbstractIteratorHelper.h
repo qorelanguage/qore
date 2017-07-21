@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   AbstractIteratorHelper.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -38,8 +38,9 @@
 class AbstractIteratorHelper {
 protected:
    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant(0, false, xsink));
+      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->findVariant((QoreValueList*)0, false, xsink));
       // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+      assert(xsink);
       if (*xsink)
          return 0;
       // we must have a variant here because we have an instance of AbstractIterator
@@ -73,14 +74,14 @@ public:
 
       obj = o;
       // get "next" method if accessible
-      nextMethod = qore_class_private::get(*o->getClass())->findMethod(fwd ? "next" : "prev", priv);
+      nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", priv);
       // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
       assert(nextMethod);
       nextVariant = getCheckVariant(op, nextMethod, xsink);
       if (!nextVariant)
          return;
       if (get_value) {
-         getValueMethod = qore_class_private::get(*o->getClass())->findMethod("getValue", priv);
+         getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", priv);
          // method must be found because we have an instance of AbstractIterator
          assert(getValueMethod);
          getValueVariant = getCheckVariant(op, getValueMethod, xsink);
@@ -97,13 +98,14 @@ public:
    DLLLOCAL bool next(ExceptionSink* xsink) {
       assert(nextMethod);
       assert(nextVariant);
-      return nextMethod->boolEvalNormalVariant(obj, nextVariant, 0, xsink);
+      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, obj, nextVariant, 0, xsink), xsink);
+      return rv->getAsBool();
    }
 
-   DLLLOCAL AbstractQoreNode* getValue(ExceptionSink* xsink) {
+   DLLLOCAL QoreValue getValue(ExceptionSink* xsink) {
       assert(getValueMethod);
       assert(getValueVariant);
-      return getValueMethod->evalNormalVariant(obj, getValueVariant, 0, xsink);
+      return qore_method_private::evalNormalVariant(*getValueMethod, obj, getValueVariant, 0, xsink);
    }
 
    /*

@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_SQLStatement.qpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -40,15 +40,15 @@
     This class does not differentiate between executing select statement or stored procedures or functions or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
 
     Here is an example executing a select statement:
-    @code
+    @code{.py}
 {
-    my SQLStatement $stmt($ds);
+    SQLStatement stmt(ds);
     # release transaction lock on exit
-    on_exit $stmt.commit();
-    $stmt.prepare("select * from table");
-    while ($stmt.next()) {
-        my hash $row = $stmt.fetchRow();
-        do_something($row);
+    on_exit stmt.commit();
+    stmt.prepare("select * from table");
+    while (stmt.next()) {
+        hash row = stmt.fetchRow();
+        do_something(row);
     }
 }
     @endcode
@@ -57,6 +57,7 @@
     - Most commands are executed implicitly; for example, in the example above there is no call to SQLStatement::exec() as it is executed implicitly in the initial call to SQLStatement::next().
     - Current column values in query results iterated with SQLStatement::next() as above can also be dereferenced directly from the SQLStatement object by using the column name in lower case as a member name (using SQLStatement::memberGate(), see that method for an example)
     - Query results can also be returned in blocks using SQLStatement::fetchRows() and SQLStatement::fetchColumns() ("rows" and "columns" in this case refer to the output data format; also using these methods there is no need to call SQLStatement::next())
+    - When using an SQLStatement object with a DatasourcePool, the statement must be prepared and executed on the same connection.  Attempts to execute a prepared statement on another connection will cause an \c SQLSTATEMENT-ERROR exception to be raised.
 
     The following methods are useful when executing all statements:
     - SQLStatement::prepare()
@@ -96,8 +97,8 @@ qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vpa
     @param ds The Datasource object to use for the DB connection for the SQLStatement object
 
     @par Example:
-    @code
-my SQLStatement $stmt($db);
+    @code{.py}
+SQLStatement stmt(db);
     @endcode
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
@@ -124,8 +125,8 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
     @param dsp The DatasourcePool object to use for the DB connection for the SQLStatement object
 
     @par Example:
-    @code
-my SQLStatement $stmt($db);
+    @code{.py}
+SQLStatement stmt(db);
     @endcode
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
@@ -147,10 +148,10 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
 }
 
 //! Closes the statement if it is open and destroys the object
-/** 
+/**
     @par Example:
-    @code
-delete $stmt;
+    @code{.py}
+delete stmt;
     @endcode
  */
 SQLStatement::destructor() {
@@ -159,7 +160,7 @@ SQLStatement::destructor() {
 }
 
 //! Throws an exception; objects of this class cannot be copied
-/** 
+/**
     @throw SQLSTATEMENT-COPY-ERROR SQLStatement objects cannot be copied
  */
 SQLStatement::copy() {
@@ -170,20 +171,20 @@ SQLStatement::copy() {
 //! Saves an SQL statement that will be prepared and executed later, along with optional arguments
 /** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
 
-    @note This method parses the SQL string for placeholders and bind by value tokens (<tt>%v</tt>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepareRaw().
+    @note This method parses the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepareRaw().
 
     @param sql The SQL string to prepare for execution on the DB server
 
     @par Example:
-    @code
-$stmt.prepare("select * from table where id = %v");
+    @code{.py}
+stmt.prepare("select * from table where id = %v");
     @endcode
  */
 nothing SQLStatement::prepare(string sql, ...) {
    ReferenceHolder<QoreListNode> l(xsink);
 
    if (num_args(args) > 1)
-      l = args->copyListFrom(1);
+      l = args->getOldList(1);
 
    stmt->prepare(*sql, *l, xsink);
 }
@@ -191,13 +192,13 @@ nothing SQLStatement::prepare(string sql, ...) {
 //! Saves an SQL statement that will be prepared and executed later
 /** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
 
-    @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepare().
-    
+    @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see SQLStatement::prepare().
+
     @param sql The SQL string to prepare for execution on the DB server
 
     @par Example:
-    @code
-$stmt.prepareRaw("select * from table");
+    @code{.py}
+stmt.prepareRaw("select * from table");
     @endcode
  */
 nothing SQLStatement::prepareRaw(string sql) {
@@ -216,22 +217,23 @@ nothing SQLStatement::prepareRaw(string sql) {
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.bind($h.id, $h.name);
-    $stmt.exec();
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bind(h.id, h.name);
+    stmt.exec();
 }
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
 nothing SQLStatement::bind(...) {
-   stmt->bind(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bind(**l, xsink);
 }
 
 //! Binds placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()
@@ -246,17 +248,17 @@ nothing SQLStatement::bind(...) {
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.bindArgs($args);
-    $stmt.exec();
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindArgs(args);
+    stmt.exec();
 }
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -278,20 +280,21 @@ nothing SQLStatement::bindArgs(softlist vargs) {
     @param ... Arguments to placeholder specifications (if required by the underlying DBI driver)
 
     @par Example:
-    @code
-$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-$stmt.bindPlaceholders(Type::Date);
-my date $d = $stmt.getOutput().sd;
+    @code{.py}
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+stmt.bindPlaceholders(Type::Date);
+date d = stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
 nothing SQLStatement::bindPlaceholders(...) {
-   stmt->bindPlaceholders(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bindPlaceholders(**l, xsink);
 }
 
 //! Binds placeholder buffer specifications given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()
@@ -307,15 +310,15 @@ nothing SQLStatement::bindPlaceholders(...) {
     @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver)
 
     @par Example:
-    @code
-$stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-my list $l = list(Type::Date);
-$stmt.bindPlaceholdersArgs($l);
-my date $d = $stmt.getOutput().sd;
+    @code{.py}
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+list l = list(Type::Date);
+stmt.bindPlaceholdersArgs(l);
+date d = stmt.getOutput().sd;
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
@@ -336,22 +339,23 @@ nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
     @param ... Arguments to bind by value arguments
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.bindValues($h.id, $h.name);
-    $stmt.exec();
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bindValues(h.id, h.name);
+    stmt.exec();
 }
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), and SQLStatement::bindValuesArgs().
  */
 nothing SQLStatement::bindValues(...) {
-   stmt->bindValues(*args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->bindValues(**l, xsink);
 }
 
 //! Binds values to value buffer specifications given as a list in the single argument to the method to value buffers defined in SQLStatement::prepare()
@@ -366,17 +370,17 @@ nothing SQLStatement::bindValues(...) {
     @param vargs Arguments to bind by value arguments
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.bindValuesArgs($args);
-    $stmt.exec();
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindValuesArgs(args);
+    stmt.exec();
 }
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
  */
 nothing SQLStatement::bindValuesArgs(softlist vargs) {
@@ -397,21 +401,22 @@ nothing SQLStatement::bindValuesArgs(softlist vargs) {
     @param ... Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    $stmt.exec($h.id, $h.name);
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.exec(h.id, h.name);
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare()
-    
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
     @see SQLStatement::execArgs()
  */
 nothing SQLStatement::exec(...) {
-   stmt->exec(args, xsink);
+   ReferenceHolder<QoreListNode> l(args ? args->getOldList() : 0, xsink);
+   stmt->exec(*l, xsink);
 }
 
 //! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in SQLStatement::prepare()
@@ -428,16 +433,16 @@ nothing SQLStatement::exec(...) {
     @param vargs Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
 
     @par Example:
-    @code
-$stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach my hash $h in ($l) {
-    my list $args = ($h.id, $h.name);
-    $stmt.execArgs($args);
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.execArgs(args);
 }
     @endcode
 
-    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
-    
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
+
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
 
     @see SQLStatement::exec()
@@ -450,8 +455,8 @@ nothing SQLStatement::execArgs(softlist vargs) {
 /** @return the number of rows affected by the last call to SQLStatement::exec()
 
     @par Example:
-    @code
-my int $rc = $stmt.affectedRows();
+    @code{.py}
+int rc = stmt.affectedRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -466,8 +471,8 @@ int SQLStatement::affectedRows() {
 /** @return Returns a hash of output buffers; result sets will be returned as hashes of lists. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @par Example:
-    @code
-my hash $h = $stmt.getOutput();
+    @code{.py}
+hash h = stmt.getOutput();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -482,8 +487,8 @@ hash SQLStatement::getOutput() {
 /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the hash is the same as the name given to the placeholder specification in the call to SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @par Example:
-    @code
-my hash $h = $stmt.getOutputRows();
+    @code{.py}
+hash h = stmt.getOutputRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -498,18 +503,18 @@ hash SQLStatement::getOutputRows() {
 /** It is not encessary to call this method manually; define operations are implicitly executed when needed when retrieving values from a select statement
 
     @par Example:
-    @code
+    @code{.py}
 {
-    my SQLStatement $stmt($ds);
+    SQLStatement stmt(ds);
     # release transaction lock on exit
-    on_exit $stmt.commit();
-    $stmt.prepare("select * from table");
-    $stmt.exec();
-    $stmt.define();
+    on_exit stmt.commit();
+    stmt.prepare("select * from table");
+    stmt.exec();
+    stmt.define();
     # note that the SQLStatement::next() would implicitly execute exec() and define()
-    while ($stmt.next()) {
-        my hash $row = $stmt.fetchRow();
-        do_something($row);
+    while (stmt.next()) {
+        hash row = stmt.fetchRow();
+        do_something(row);
     }
 }
     @endcode
@@ -519,10 +524,10 @@ nothing SQLStatement::define() {
 }
 
 //! Closes the statement if it is open, however this method does not release the connection or transaction lock
-/** 
+/**
     @par Example:
-    @code
-$stmt.close();
+    @code{.py}
+stmt.close();
     @endcode
  */
 nothing SQLStatement::close() {
@@ -530,10 +535,10 @@ nothing SQLStatement::close() {
 }
 
 //! Commits the transaction, releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
-/** 
+/**
     @par Example:
-    @code
-$stmt.commit();
+    @code{.py}
+stmt.commit();
     @endcode
 
     @note For possible exceptions; see DBI driver docs for the commit() method
@@ -543,10 +548,10 @@ nothing SQLStatement::commit() {
 }
 
 //! Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the SQLStatement::constructor(), and closes the SQLStatement
-/** 
+/**
     @par Example:
-    @code
-$stmt.rollback();
+    @code{.py}
+stmt.rollback();
     @endcode
 
     @note For possible exceptions; see DBI driver docs for the rollback() method
@@ -556,10 +561,10 @@ nothing SQLStatement::rollback() {
 }
 
 //! Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the SQLStatement::constructor()
-/** 
+/**
     @par Example:
-    @code
-$stmt.beginTransaction();
+    @code{.py}
+stmt.beginTransaction();
     @endcode
  */
 nothing SQLStatement::beginTransaction() {
@@ -572,9 +577,9 @@ nothing SQLStatement::beginTransaction() {
     @return @ref True if there is a row to retrieve, @ref False if not (no more rows to be retrieved)
 
     @par Example:
-    @code
-while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
 }
     @endcode
 
@@ -590,9 +595,9 @@ bool SQLStatement::next() {
 /** @return @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+    @code{.py}
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool SQLStatement::valid() [flags=CONSTANT] {
@@ -605,9 +610,9 @@ bool SQLStatement::valid() [flags=CONSTANT] {
     @return the current row as a hash where the keys are the column names and the values are the column values
 
     @par Example:
-    @code
-while ($stmt.next()) {
-    my hash $h = $stmt.fetchRow();
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
 }
     @endcode
 
@@ -625,9 +630,9 @@ while ($stmt.next()) {
     @return the current row as a hash where the keys are the column names and the values are the column values
 
     @par Example:
-    @code
-while ($stmt.next()) {
-    my hash $h = $stmt.getValue();
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.getValue();
 }
     @endcode
 
@@ -651,8 +656,8 @@ while ($stmt.next()) {
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
     @par Example:
-    @code
-my list $l = $stmt.fetchRows(-1);
+    @code{.py}
+list l = stmt.fetchRows(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -668,13 +673,13 @@ list SQLStatement::fetchRows(softint rows = -1) {
 //! Retrieves a block of rows as a hash of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call SQLStatement::next().
 /** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
 
-    If no more rows are available then a hash is returned where each key value is an empty list.
-
     @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
 
+    @return a hash (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty hash is returned
+
     @par Example:
-    @code
-my hash $h = $stmt.fetchColumns(-1);
+    @code{.py}
+hash h = stmt.fetchColumns(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -689,20 +694,13 @@ hash SQLStatement::fetchColumns(softint rows = -1) {
 
 //! Describes columns in the statement result.
 /**
-    @retval hash with ( column name : description hash ) pairs
-
-    This method has to be called after first \c next() (or its equivalent) call.
-
-    <b>Description Hash Structure</b>
-    <table>
-    <tr><th>Key</th><th>Description</th></tr>
-    <tr><td>name</td><td>Column name. String.</td></tr>
-    <tr><td>type</td><td>Qore data type constant as used in <value>::typeCode(). Integer.</td></tr>
-    <tr><td>maxsize</td><td>Maximum size of the data value as in the DB server. Integer.</td></tr>
-    <tr><td>native_type</td><td>Database data type. String.</td></tr>
-    <tr><td>internal_id</td><td>Database data type identifier. Integer.</td></tr>
-    </table>
-  */
+    @return a hash with (<i>column_name</i>: <i>description_hash</i>) format, where each <i>description_hash</i> has the following keys:
+    - \c "name": (string) the column name
+    - \c "type": (integer) the column type code (as returned by <value>::typeCode())
+    - \c "maxsize": (integer) the maximum size of the column
+    - \c "native_type": (string) the database-specific name of the type
+    - \c "internal_id": (integer) the database-specific type code of the type
+ */
 hash SQLStatement::describe() {
     return stmt->describe(xsink);
 }
@@ -711,8 +709,8 @@ hash SQLStatement::describe() {
 /** @return Returns the current SQL string set with the call to SQLStatement::prepare() or SQLStatement::prepareRaw() or @ref nothing if no SQL has been set
 
     @par Example:
-    @code
-my *string $sql = $stmt.getSQL();
+    @code{.py}
+*string sql = stmt.getSQL();
     @endcode
  */
 *string SQLStatement::getSQL() {
@@ -723,9 +721,9 @@ my *string $sql = $stmt.getSQL();
 /** @return @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
 
     @par Example:
-    @code
-if ($stmt.active())
-    $stmt.commit();
+    @code{.py}
+if (stmt.active())
+    stmt.commit();
     @endcode
  */
 bool SQLStatement::active() [flags=CONSTANT] {
@@ -738,13 +736,13 @@ bool SQLStatement::active() [flags=CONSTANT] {
     @return the current column value of the given row
 
     @par Example:
-    @code
-my SQLStatement $stmt($ds);
+    @code{.py}
+SQLStatement stmt(ds);
 # release transaction lock on exit
-on_exit $stmt.commit();
-$stmt.prepare("select name, birthdate from table");
-while ($stmt.next()) {
-    printf("name: %s birthdate: %y", $stmt.name, $stmt.birthdate);
+on_exit stmt.commit();
+stmt.prepare("select name, birthdate from table");
+while (stmt.next()) {
+    printf("name: %s birthdate: %y", stmt.name, stmt.birthdate);
 }
     @endcode
 
@@ -760,21 +758,31 @@ while ($stmt.next()) {
 any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<QoreHashNode> h(stmt->fetchRow(xsink), xsink);
    if (*xsink)
-      return 0;
-   if (!h) {
-      xsink->raiseException("SQLSTATEMENT-ITERATION-ERROR", "Cannot dereference statement iteration context to get current '%s' column value; make sure and call SQLStatement::next() before trying to dereference the current row being iterated", key->getBuffer());
-      return 0;
-   }
+      return QoreValue();
+   if (!h)
+      return xsink->raiseException("SQLSTATEMENT-ITERATION-ERROR", "Cannot dereference statement iteration context to get current '%s' column value; make sure and call SQLStatement::next() before trying to dereference the current row being iterated", key->getBuffer());
 
    bool exists = false;
    const AbstractQoreNode* rv = h->getKeyValueExistence(key, exists, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
-   if (!exists) {
-      xsink->raiseException("SQLSTATEMENT-COLUMN-ERROR", "The given column name ('%s') does not exist in the current row data", key->getBuffer());
-      return 0;
-   }
+   if (!exists)
+      return xsink->raiseException("SQLSTATEMENT-COLUMN-ERROR", "The given column name ('%s') does not exist in the current row data", key->getBuffer());
 
-   return rv ? rv->refSelf() : 0;
+   return rv ? rv->refSelf() : QoreValue();
+}
+
+//! Returns @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+/** @return @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+
+    @par Example:
+    @code{.py}
+bool b = stmt.currentThreadInTransaction();
+    @endcode
+
+    @since %Qore 0.8.12
+ */
+bool SQLStatement::currentThreadInTransaction() [flags=CONSTANT] {
+   return stmt->currentThreadInTransaction(xsink);
 }

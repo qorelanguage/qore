@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,14 @@
 */
 
 #include <qore/Qore.h>
+
+#include <stdlib.h>
+
+// check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
+static bool qore_check_this(const void* p) {
+   assert(p);
+   return p;
+}
 
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
@@ -58,7 +66,9 @@ bool ExceptionSink::isException() const {
 // ExceptionSink xsink;
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
-   return this && (priv->head || priv->thread_exit);
+   assert(this);
+   // FIXME: remove qore_check_this() in the next possible release of Qore
+   return qore_check_this(this) && (priv->head || priv->thread_exit);
 }
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {
@@ -99,9 +109,9 @@ void ExceptionSink::clear() {
 
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -126,9 +136,9 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, Qo
 
 AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, const char *fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -157,9 +167,9 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQore
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, AbstractQoreNode* arg, const char* fmt, ...) {
    QoreStringNode *desc = new QoreStringNode;
-   
+
    va_list args;
-   
+
    while (true) {
       va_start(args, fmt);
       int rc = desc->vsprintf(fmt, args);
@@ -240,6 +250,6 @@ void ExceptionSink::outOfMemory() {
    priv->insert(ex);
 #else
    printf("OUT OF MEMORY: aborting\n");
-   exit(1);
+   _Exit(1);
 #endif
 }

@@ -1,10 +1,10 @@
 /*
   QoreReferenceCounter.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,13 +33,17 @@
 QoreReferenceCounter::QoreReferenceCounter() : references(1) {
 }
 
+// we ignore the old reference count and set the new reference count to 1 as with all new objects
+QoreReferenceCounter::QoreReferenceCounter(const QoreReferenceCounter& old) : references(1) {
+}
+
 QoreReferenceCounter::~QoreReferenceCounter() {
 }
 
 void QoreReferenceCounter::ROreference() const {
 #ifdef DEBUG
    if (references < 0 || references > 10000000) {
-      printd(0, "QoreReferenceCounter::ROreference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROreference() this=%p references=%d\n", this, references);
       assert(false);
    }
 #endif
@@ -47,7 +51,7 @@ void QoreReferenceCounter::ROreference() const {
    atomic_inc(&references);
 #else
    mRO.lock();
-   ++references; 
+   ++references;
    mRO.unlock();
 #endif
 }
@@ -56,7 +60,7 @@ void QoreReferenceCounter::ROreference() const {
 bool QoreReferenceCounter::ROdereference() const {
 #ifdef DEBUG
    if (references <= 0 || references > 10000000) {
-      printd(0, "QoreReferenceCounter::ROdereference() this=%08p references=%d\n", this, references);
+      printd(0, "QoreReferenceCounter::ROdereference() this=%p references=%d\n", this, references);
       assert(false);
    }
 #endif

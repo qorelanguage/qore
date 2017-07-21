@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -36,14 +36,24 @@
 #define _QORE_DS_PRIVATE_H
 
 #include <qore/intern/qore_dbi_private.h>
+#include <qore/intern/QoreSQLStatement.h>
+
+#include <set>
+
+typedef std::set<QoreSQLStatement*> stmt_set_t;
 
 struct qore_ds_private {
+   // mutex
+   mutable QoreThreadLock m;
+
    Datasource* ds;
+
    bool in_transaction;
    bool active_transaction;
    bool isopen;
    bool autocommit;
    bool connection_aborted;
+
    mutable DBIDriver* dsl;
    const QoreEncoding* qorecharset;
    void* private_data;               // driver private data per connection
@@ -90,6 +100,7 @@ struct qore_ds_private {
 
    DLLLOCAL ~qore_ds_private() {
       assert(!private_data);
+      assert(stmt_set.empty());
       ExceptionSink xsink;
       if (opt)
          opt->deref(&xsink);
@@ -118,8 +129,7 @@ struct qore_ds_private {
       port        = p_port;
    }
 
-   // returns true if a new transaction was started
-   DLLLOCAL bool statementExecuted(int rc, ExceptionSink *xsink);
+   DLLLOCAL void statementExecuted(int rc);
 
    DLLLOCAL void copyOptions(const Datasource* ods);
 
@@ -177,6 +187,96 @@ struct qore_ds_private {
          h->setKeyValue("arg", event_arg->refSelf(), 0);
       return h;
    }
+
+   DLLLOCAL void addStatement(QoreSQLStatement* stmt) {
+      AutoLocker al(m);
+      assert(stmt_set.find(stmt) == stmt_set.end());
+      stmt_set.insert(stmt);
+   }
+
+   DLLLOCAL void removeStatement(QoreSQLStatement* stmt) {
+      AutoLocker al(m);
+      stmt_set_t::iterator i = stmt_set.find(stmt);
+      if (i != stmt_set.end())
+         stmt_set.erase(i);
+   }
+
+   DLLLOCAL void connectionAborted(ExceptionSink* xsink) {
+      assert(isopen);
+      // close all statements and clear private data, leave datasource allocated
+      transactionDone(false, true, xsink);
+      // mark connection aborted
+      connection_aborted = true;
+      // close the datasource
+      close();
+   }
+
+   DLLLOCAL void connectionLost(ExceptionSink* xsink) {
+      assert(isopen);
+      // close statements but do not clear datasource or statements in the datasource
+      transactionDone(false, false, xsink);
+   }
+
+   DLLLOCAL void connectionRecovered(ExceptionSink* xsink) {
+      assert(isopen);
+      // close all statements, clear private data, leave datasource allocation
+      transactionDone(false, true, xsink);
+   }
+
+   // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
+   DLLLOCAL void transactionDone(bool clear, bool close, ExceptionSink* xsink) {
+      AutoLocker al(m);
+      for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i)
+         (*i)->transactionDone(clear, close, xsink);
+      if (clear)
+         stmt_set.clear();
+   }
+
+   DLLLOCAL int commitIntern(ExceptionSink* xsink) {
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
+      return qore_dbi_private::get(*dsl)->commit(ds, xsink);
+   }
+
+   DLLLOCAL int rollbackIntern(ExceptionSink* xsink) {
+      //printd(5, "qore_ds_private::rollbackIntern() this: %p in_transaction: %d active_transaction: %d\n", this, in_transaction, active_transaction);
+      assert(isopen);
+      in_transaction = false;
+      active_transaction = false;
+      return qore_dbi_private::get(*dsl)->rollback(ds, xsink);
+   }
+
+   DLLLOCAL int commit(ExceptionSink* xsink) {
+      int rc = commitIntern(xsink);
+      transactionDone(true, true, xsink);
+      return rc;
+   }
+
+   DLLLOCAL int rollback(ExceptionSink* xsink) {
+      int rc = rollbackIntern(xsink);
+      transactionDone(true, true, xsink);
+      return rc;
+   }
+
+   DLLLOCAL int close() {
+      if (isopen) {
+         qore_dbi_private::get(*dsl)->close(ds);
+         isopen = false;
+         in_transaction = false;
+         active_transaction = false;
+         return 0;
+      }
+      return -1;
+   }
+
+   DLLLOCAL static qore_ds_private* get(Datasource& ds) {
+      return ds.priv;
+   }
+
+private:
+   // set of active SQLStatements on this datasource
+   stmt_set_t stmt_set;
 };
 
 #endif

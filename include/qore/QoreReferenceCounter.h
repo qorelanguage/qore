@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,11 @@ public:
    //! creates the reference counter object
    DLLEXPORT QoreReferenceCounter();
 
+   //! creates a new object with a reference count of 1
+   /** @since %Qore 0.8.12.9
+    */
+   DLLEXPORT QoreReferenceCounter(const QoreReferenceCounter& old);
+
    //! destroys the reference counter object
    DLLEXPORT ~QoreReferenceCounter();
 
@@ -58,16 +63,16 @@ public:
    /**
       @return returns the current reference count
    */
-   DLLLOCAL int reference_count() const { 
-      return references; 
+   DLLLOCAL int reference_count() const {
+      return references;
    }
 
    //! returns true if the reference count is 1
    /**
       @return returns true if the reference count is 1
    */
-   DLLLOCAL bool is_unique() const { 
-      return references == 1; 
+   DLLLOCAL bool is_unique() const {
+      return references == 1;
    }
 
    //! atomically increments the reference count

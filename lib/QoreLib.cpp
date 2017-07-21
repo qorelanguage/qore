@@ -1,9 +1,10 @@
+/* -*- indent-tabs-mode: nil -*- */
 /*
   QoreLib.cpp
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,22 +31,28 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/git-revision.h>
+#include <qore/intern/qore_number_private.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/qore_number_private.h>
+#include <qore/intern/qore_qd_private.h>
+#include <qore/intern/ql_crypto.h>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #include <grp.h>
+#include <dirent.h>
 #endif
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
+#include <string.h>
 #include <strings.h>
 #include <errno.h>
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 FeatureList qoreFeatureList;
 
@@ -53,7 +60,7 @@ FeatureList qoreFeatureList;
 #define cpp_xstr(s) cpp_str(s)
 
 // global library variables
-const char* qore_version_string      = VERSION "-" cpp_xstr(BUILD);
+const char* qore_version_string      = VERSION;
 int qore_version_major               = VERSION_MAJOR;
 int qore_version_minor               = VERSION_MINOR;
 int qore_version_sub                 = VERSION_SUB;
@@ -79,6 +86,10 @@ int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 
 DLLLOCAL QoreListNode* ARGV = 0;
 DLLLOCAL QoreListNode* QORE_ARGV = 0;
+
+QoreString random_salt;
+
+DLLLOCAL bool q_disable_gc = false;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL QoreThreadLock lck_localtime;
@@ -196,6 +207,20 @@ const qore_option_s qore_option_list_l[] = {
      "HAVE_FILE_LOCKING",
      QO_OPTION,
 #ifdef HAVE_STRUCT_FLOCK
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_DETERMINISTIC_GC,
+     "HAVE_DETEMINISTIC_GC",
+     QO_OPTION,
+     true
+   },
+   { QORE_OPT_SHA,
+     "HAVE_SHA",
+     QO_ALGORITHM,
+#ifdef HAVE_OPENSSL_SHA
      true
 #else
      false
@@ -336,7 +361,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_FUNC_STATVFS,
      "HAVE_STATVFS",
      QO_FUNCTION,
-#ifdef HAVE_SYS_STATVFS_H
+#ifdef Q_HAVE_STATVFS
      true
 #else
      false
@@ -384,14 +409,14 @@ bool q_get_option_constant_value(const char* opt) {
    return false;
 }
 
-static inline int get_number(char* *param) {
+static inline int get_number(char** param) {
    int num = 0;
    while (isdigit(**param)) {
       num = num*10 + (**param - '0');
       ++(*param);
    }
-   //printd(0, "get_number(%x: %s) num=%d\n", *param, *param, num);
-      return num;
+   //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
+   return num;
 }
 
 // print options
@@ -432,6 +457,7 @@ FeatureList::FeatureList() {
    // register default features
    push_back("sql");
    push_back("threads");
+   push_back("DGC");
 #ifdef DEBUG
    push_back("debug");
 #endif
@@ -441,7 +467,7 @@ FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* node, int type, int *taken, ExceptionSink *xsink) {
+static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, int *taken, ExceptionSink* xsink) {
    char* str = param;
    int opts = 0;
    int width = -1;
@@ -450,12 +476,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
    char fmt[20], *f;
    QoreString tbuf(cstr->getEncoding());
 
-   printd(5, "process_opt(): param=%s type=%d node=%p node->getType()=%s refs=%d\n",
-	  param, type, node, node ? node->getTypeName() : "(null)", node ? node->reference_count() : -1);
-   qore_type_t t = get_node_type(node);
+   printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
+	  param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
+   qore_type_t t = qv.getType();
 #ifdef DEBUG
    if (t == NT_STRING) {
-      const QoreStringNode* nstr = reinterpret_cast<const QoreStringNode*>(node);
+      const QoreStringNode* nstr = qv.get<const QoreStringNode>();
       printd(5, "process_opt() %p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
    }
 #endif
@@ -486,13 +512,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
    char p = *param;
    switch (*param) {
       case 's': {
-	 QoreStringValueHelper astr(node);
-
+	 QoreStringValueHelper astr(qv);
 	 length = astr->strlen();
 	 if ((width != -1) && (length > width) && !type)
 	    width = length;
 	 if ((width != -1) && (length > width)) {
-	    tbuf.concat(*astr, width, xsink); // string encodings are converted here if necessary
+	    tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
 	 }
 	 else {
 	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
@@ -532,7 +557,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	       *(f++) = '0';
 	    f += sprintf(f, "%d", width);
 	 }
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 *(f++) = 'I';
 	 *(f++) = '6';
 	 *(f++) = '4';
@@ -542,7 +567,7 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 #endif
 	 *(f++) = p; // 'd', etc;
 	 *f = '\0';
-         int64 val = !node ? 0 : node->getAsBigInt();
+         int64 val = qv.getAsBigInt();
 	 tbuf.sprintf(fmt, val);
 	 if (type && (width != -1))
 	    tbuf.terminate(width);
@@ -578,12 +603,12 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
 	    *(f++) = QORE_MPFR_SPRINTF_ARG;
             *(f++) = *param; // a|A|e|E|f|F|g|G
             *f = '\0';
-            qore_number_private::sprintf(*reinterpret_cast<const QoreNumberNode*>(node), tbuf, fmt);
+            qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
 	 }
 	 else {
 	    *(f++) = *param; // a|A|e|E|f|F|g|G
 	    *f = '\0';
-	    double val = !node ? 0.0 : node->getAsFloat();
+	    double val = qv.getAsFloat();
 	    tbuf.sprintf(fmt, val);
 	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
 	 }
@@ -593,14 +618,14 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
       }
       case 'n':
       case 'N': {
-	 QoreNodeAsStringHelper t(node, *param == 'N'
+	 QoreNodeAsStringHelper t(qv, *param == 'N'
 				  ? (width == -1 ? FMT_NORMAL : width)
 				  : FMT_NONE, xsink);
 	 tbuf.concat(*t, xsink);
 	 break;
       }
       case 'y': {
-	 QoreNodeAsStringHelper t(node, FMT_YAML_SHORT, xsink);
+	 QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
 	 tbuf.concat(*t, xsink);
 	 break;
       }
@@ -615,7 +640,8 @@ static int process_opt(QoreString *cstr, char* param, const AbstractQoreNode* no
    return (int)(param - str);
 }
 
-QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink *xsink) {
+QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
    const QoreStringNode* p;
 
@@ -627,7 +653,7 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
    j = 1 + offset;
 
    const char* pstr = p->getBuffer();
-   l = strlen(pstr);
+   l = p->strlen();
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
@@ -648,7 +674,8 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
    return buf.release();
 }
 
-QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink *xsink) {
+QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    const QoreStringNode* fmt;
 
    if (!(fmt = test_string_param(params, offset)))
@@ -696,13 +723,97 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
    return buf.release();
 }
 
+QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
+   unsigned i, j, l;
+
+   QoreValue pv = get_param_value(params, offset);
+   if (pv.getType() != NT_STRING)
+      return new QoreStringNode;
+
+   const QoreStringNode* p = pv.get<QoreStringNode>();
+
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
+
+   j = 1 + offset;
+
+   const char* pstr = p->getBuffer();
+   l = p->strlen();
+   for (i = 0; i < l; i++) {
+      int taken = 1;
+      if ((pstr[i] == '%') && (j < params->size())) {
+	 pv = get_param_value(params, j++);
+	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!taken)
+	    j--;
+      }
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+	     ++i;
+      }
+   }
+
+   return buf.release();
+}
+
+QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
+   QoreValue pv = get_param_value(params, offset);
+   if (pv.getType() != NT_STRING)
+      return new QoreStringNode;
+
+   const QoreStringNode* fmt = pv.get<QoreStringNode>();
+
+   pv = get_param_value(params, offset + 1);
+   const QoreListNode* arg_list = pv.getType() == NT_LIST ? pv.get<const QoreListNode>() : 0;
+
+   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+   unsigned j = 0;
+
+   const char* pstr = fmt->getBuffer();
+   size_t l = fmt->strlen();
+   for (unsigned i = 0; i < l; i++) {
+      int taken = 1;
+      bool havearg = false;
+
+      QoreValue cv;
+
+      if ((pstr[i] == '%')) {
+	 if (!pv.isNothing()) {
+	    havearg = true;
+	    if (arg_list && j < arg_list->size())
+	       cv = get_param(arg_list, j);
+	    else if (!j)
+	       cv = pv;
+	 }
+      }
+      if (havearg) {
+	 ++j;
+	 i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
+	 if (*xsink)
+	    return 0;
+	 if (!taken)
+	    --j;
+      }
+      else {
+	 buf->concat(pstr[i]);
+	 if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
+      }
+   }
+   return buf.release();
+}
+
 static void concatASCII(QoreString &str, unsigned char c) {
    str.sprintf("ascii %03d", c);
    if (c >= 32 || c < 127)
       str.sprintf(" ('%c')", c);
 }
 
-static inline char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink *xsink) {
+static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink* xsink) {
    while (buf[offset] == '\n' || buf[offset] == '\r')
       ++offset;
 
@@ -733,7 +844,7 @@ static inline char getBase64Value(const char* buf, qore_size_t &offset, bool end
 }
 
 // see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
-BinaryNode* parseBase64(const char* buf, int len, ExceptionSink *xsink) {
+BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
    if (!len)
       return new BinaryNode;
 
@@ -800,7 +911,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink *xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-int get_nibble(char c, ExceptionSink *xsink) {
+int get_nibble(char c, ExceptionSink* xsink) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -812,7 +923,7 @@ int get_nibble(char c, ExceptionSink *xsink) {
    return -1;
 }
 
-BinaryNode* parseHex(const char* buf, int len, ExceptionSink *xsink) {
+BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    if (!len)
       return new BinaryNode();
 
@@ -905,9 +1016,9 @@ char* make_class_name(const char* str) {
    return cn;
 }
 
-void print_node(FILE *fp, const AbstractQoreNode* node) {
-   printd(5, "print_node() node=%p (%s)\n", node, node ? node->getTypeName() : "(null)");
-   QoreStringValueHelper str(node);
+void print_node(FILE* fp, const QoreValue qv) {
+   printd(5, "print_node() node: %s\n", qv.getTypeName());
+   QoreStringValueHelper str(qv);
    fputs(str->getBuffer(), fp);
 }
 
@@ -965,7 +1076,7 @@ void delete_global_variables() {
       ENV->deref(0);
 }
 
-struct tm *q_localtime(const time_t *clock, struct tm *tms) {
+struct tm *q_localtime(const time_t* clock, struct tm* tms) {
 #ifdef HAVE_LOCALTIME_R
    localtime_r(clock, tms);
 #else
@@ -977,7 +1088,7 @@ struct tm *q_localtime(const time_t *clock, struct tm *tms) {
    return tms;
 }
 
-struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
+struct tm *q_gmtime(const time_t* clock, struct tm* tms) {
 #ifdef HAVE_GMTIME_R
    gmtime_r(clock, tms);
 #else
@@ -989,9 +1100,40 @@ struct tm *q_gmtime(const time_t *clock, struct tm *tms) {
    return tms;
 }
 
+const char* q_find_first_path_sep(const char* path) {
+#ifdef _Q_WINDOWS
+   // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
+   const char* p = path;
+   while (*p) {
+      if (*p == '/' || *p == '\\')
+	 return p;
+      ++p;
+   }
+   return 0;
+#else
+   return strchr(path, QORE_DIR_SEP);
+#endif
+}
+
+const char* q_find_last_path_sep(const char* path) {
+#ifdef _Q_WINDOWS
+   // on windows we have to find either '\\' (standard directory separator character) or '/' (UNIX-style, also accepted on Windows)
+   const char* p = path;
+   const char* rv = 0;
+   while (*p) {
+      if (*p == '/' || *p == '\\')
+	 rv = p;
+      ++p;
+   }
+   return rv;
+#else
+   return strrchr(path, QORE_DIR_SEP);
+#endif
+}
+
 // thread-safe basename function (resulting pointer must be free()ed)
 char* q_basename(const char* path) {
-   const char* p = strrchr(path, QORE_DIR_SEP);
+   const char* p = q_find_last_path_sep(path);
    if (!p)
       return strdup(path);
    return strdup(p + 1);
@@ -999,15 +1141,15 @@ char* q_basename(const char* path) {
 
 // returns a pointer within the same string
 char* q_basenameptr(const char* path) {
-   const char* p = strrchr(path, QORE_DIR_SEP);
+   const char* p = q_find_last_path_sep(path);
    if (!p)
       return (char* )path;
-   return (char* )p + 1;
+   return (char*)p + 1;
 }
 
-// thread-safe basename function (resulting pointer must be free()ed)
+// thread-safe dirname function (resulting pointer must be free()ed)
 char* q_dirname(const char* path) {
-   const char* p = strrchr(path, QORE_DIR_SEP);
+   const char* p = q_find_last_path_sep(path);
    if (!p || p == path) {
       char* x = (char* )malloc(sizeof(char) * 2);
       x[0] = !p ? '.' : QORE_DIR_SEP;
@@ -1020,7 +1162,7 @@ char* q_dirname(const char* path) {
    return x;
 }
 
-void *q_realloc(void *ptr, size_t size) {
+void *q_realloc(void* ptr, size_t size) {
    void *p = realloc(ptr, size);
    if (!p)
       free(ptr);
@@ -1036,7 +1178,7 @@ static inline void assign_hv(QoreHashNode* h, const char* key, int val) {
 }
 
 #ifdef HAVE_PWD_H
-static QoreHashNode* pwd2hash(const struct passwd &pw) {
+static QoreHashNode* pwd2hash(const struct passwd& pw) {
    QoreHashNode* h = new QoreHashNode;
    // assign values
    assign_hv(h, "pw_name", pw.pw_name);
@@ -1081,7 +1223,7 @@ QoreHashNode* q_getpwnam(const char* name) {
    return !pw ? 0 : pwd2hash(*pw);
 }
 
-int q_uname2uid(const char* name, uid_t &uid) {
+int q_uname2uid(const char* name, uid_t& uid) {
    struct passwd *pw;
 #ifdef HAVE_GETPWNAM_R
    struct passwd pw_rec;
@@ -1101,7 +1243,7 @@ int q_uname2uid(const char* name, uid_t &uid) {
 #endif
 }
 
-static QoreHashNode* gr2hash(struct group &gr) {
+static QoreHashNode* gr2hash(struct group& gr) {
    QoreHashNode* h = new QoreHashNode;
    // assign values
    assign_hv(h, "gr_name", gr.gr_name);
@@ -1239,13 +1381,13 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreListNode* makeArgs(AbstractQoreNode* arg) {
+QoreListNode* make_args(AbstractQoreNode* arg) {
    if (!arg)
       return 0;
 
    QoreListNode* l;
    if (arg->getType() == NT_LIST) {
-      l = reinterpret_cast<QoreListNode* >(arg);
+      l = reinterpret_cast<QoreListNode*>(arg);
       if (!l->isFinalized())
          return l;
    }
@@ -1255,7 +1397,7 @@ QoreListNode* makeArgs(AbstractQoreNode* arg) {
    return l;
 }
 
-const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink *xsink) {
+const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
    const AbstractQoreNode* p = h->getKeyValue(key);
    if (is_nothing(p))
       return 0;
@@ -1264,7 +1406,7 @@ const char* check_hash_key(const QoreHashNode* h, const char* key, const char* e
       xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
       return 0;
    }
-   return reinterpret_cast<const QoreStringNode* >(p)->getBuffer();
+   return reinterpret_cast<const QoreStringNode*>(p)->getBuffer();
 }
 
 void q_strerror(QoreString &str, int err) {
@@ -1276,7 +1418,7 @@ void q_strerror(QoreString &str, int err) {
 
    str.allocate(str.strlen() + STRERR_BUFSIZE);
    // ignore strerror() error message
-#if STRERROR_R_CHAR_P
+#ifdef STRERROR_R_CHAR_P
    // we can't help but get this version because some of the Linux
    // header files define _GNU_SOURCE for us :-(
    str.concat(strerror_r(err, (char* )(str.getBuffer() + str.strlen()), STRERR_BUFSIZE));
@@ -1310,120 +1452,10 @@ QoreStringNode* qore_reassign_signal(int sig, const char* name) {
 }
 #endif
 
-/*
-static int qoreCheckHash(QoreHashNode* h, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   int rc = 0;
-
-   HashIterator hi(h);
-   while (hi.next()) {
-      rc += qoreCheckContainer(hi.getValue(), omap, vl, xsink);
-   }
-
-   return rc;
-}
-
-static int qoreCheckList(QoreListNode* l, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   int rc = 0;
-
-   ListIterator li(l);
-   while (li.next()) {
-      rc += qoreCheckContainer(li.getValue(), omap, vl, xsink);
-   }
-
-   return rc;
-}
-
-int qoreCheckContainer(AbstractQoreNode* v, ObjMap &omap, AutoVLock &vl, ExceptionSink *xsink) {
-   printd(0, "qoreCheckContainer() v=%p (%s) omap size=%d\n", v, get_type_name(v), omap.size());
-   if (!v || omap.empty())
-      return 0;
-   qore_type_t t = v->getType();
-
-   if (t == NT_OBJECT) {
-      QoreObject *o = reinterpret_cast<QoreObject *>(v);
-      if (omap.check(o))
-	 return 1;
-
-      return qore_object_private::checkRecursive(o, omap, vl, xsink);
-   }
-
-   if (t == NT_HASH)
-      return qoreCheckHash(reinterpret_cast<QoreHashNode* >(v), omap, vl, xsink);
-
-   if (t == NT_LIST)
-      return qoreCheckList(reinterpret_cast<QoreListNode* >(v), omap, vl, xsink);
-
-   return 0;
-}
-
-void ObjMap::set(QoreObject *obj, const char* key) {
-   assert(omap.find(obj) == omap.end());
-   obj_map_t::iterator i = omap.insert(obj_map_t::value_type(obj, key)).first;
-   ovec.push_back(i);
-}
-
-void ObjMap::reset(QoreObject *obj, const char* key) {
-   obj_map_t::iterator i = omap.find(obj);
-   if (i == omap.end()) {
-      set(obj, key);
-      return;
-   }
-
-   // erase objects inserted from last key
-   popAll(i);
-   i->second = key;
-   return;
-}
-
-int ObjMap::check(QoreObject *obj) {
-   {
-      obj_map_t::iterator i = omap.find(obj);
-      if (i == omap.end()) {
-	 // now check if the object is already in the cycle list for any of the objects already in the list
-	 for (unsigned j = 0; j < ovec.size(); ++j) {
-	    if (qore_object_private::verifyRecursive(obj, ovec[j]->first)) {
-	       printd(0, "ObjMap::check() %p (%s) already mapped from %p (%s)\n", obj, obj->getClassName(), ovec[j]->first, ovec[j]->first->getClassName());
-	       return -1;
-	    }
-	 }
-
-	 printd(0, "ObjMap::check() %p (%s) not mapped, continuing\n", obj, obj->getClassName());
-	 return 0;
-      }
-   }
-
-   printd(0, "ObjMap::check() found recursive object refs (%ld): (obj=%p %s first=%p) ix range: [%d..%d]\n", ovec.size(), obj, obj->getClassName(), (*(ovec.begin()))->first, start, ovec.size());
-
-   unsigned i = start;
-   //if (i == ovec.size()) i = 0;
-   while (true) {
-      unsigned n = i + 1;
-      if (n == ovec.size())
-	 n = 0;
-
-      bool is_new = true;
-      printd(0, "  obj=%p (%s) '%s' -> %p (%s) '%s' i=%d/%d n=%d is_new=%d ix range: [%d..%d]\n", ovec[i]->first, ovec[i]->first->getClassName(), ovec[i]->second,
-	     ovec[n]->first, ovec[n]->first->getClassName(), ovec[n]->second, i, ovec.size(), n, is_new, start, ovec.size());
-
-      if (qore_object_private::addRecursive(ovec[i]->first, ovec[i]->second, ovec[n]->first, is_new)) {
-	 printd(0, "  ignoring rest of chain, last object already mapped\n");
-	 break;
-      }
-
-      if (!n)
-	 break;
-
-      ++i;
-   }
-   mark();
-   return 1;
-}
-*/
-
 // returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {
    qore_type_t ntype = node->getType();
-   //printd(5, "type=%s\n", node->getTypeName());
+   //printd(5, "type: %s\n", node->getTypeName());
    if (ntype == NT_VARREF) {
       if (assignment)
          reinterpret_cast<VarRefNode*>(node)->parseAssigned();
@@ -1436,12 +1468,17 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
    if (ntype == NT_CLASS_VARREF)
       return 0;
 
+   if (ntype == NT_OPERATOR) {
+      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+      if (op) {
+	 return check_lvalue(op->getLeft(), assignment);
+      }
+      return -1;
+   }
+
    if (ntype == NT_TREE) {
-      const QoreTreeNode* t = reinterpret_cast<const QoreTreeNode* >(node);
-      if (t->getOp() == OP_LIST_REF || t->getOp() == OP_OBJECT_REF)
-	 return check_lvalue(t->left);
-      else
-	 return -1;
+      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
+      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
    }
    return -1;
 }
@@ -1459,7 +1496,7 @@ static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& bloc
 #endif
 }
 
-QoreListNode* stat_to_list(const struct stat &sbuf) {
+QoreListNode* stat_to_list(const struct stat& sbuf) {
    QoreListNode* l = new QoreListNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
@@ -1485,7 +1522,7 @@ QoreListNode* stat_to_list(const struct stat &sbuf) {
    return l;
 }
 
-QoreHashNode* stat_to_hash(const struct stat &sbuf) {
+QoreHashNode* stat_to_hash(const struct stat& sbuf) {
    QoreHashNode* h = new QoreHashNode;
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
@@ -1518,8 +1555,8 @@ QoreHashNode* stat_to_hash(const struct stat &sbuf) {
    return h;
 }
 
-#ifdef HAVE_SYS_STATVFS_H
-QoreHashNode* statvfs_to_hash(const struct statvfs &vfs) {
+#ifdef Q_HAVE_STATVFS
+QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
    QoreHashNode* h = new QoreHashNode;
 
 #ifdef DARWIN
@@ -1569,7 +1606,7 @@ int qore_usleep(int64 usecs) {
 #ifdef HAVE_NANOSLEEP
    return qore_nanosleep(usecs * 1000);
 #else
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
    LARGE_INTEGER ft;
    ft.QuadPart = -(10 * usecs); // Convert to 100 nanosecond interval, negative value indicates relative time
 
@@ -1585,24 +1622,33 @@ int qore_usleep(int64 usecs) {
 }
 
 bool q_path_is_readable(const char* path) {
-#ifdef HAVE_ACCESS
-   return !access(path, R_OK);
-#elif defined HAVE_PWD_H
+#if defined HAVE_PWD_H
    struct stat sbuf;
    int rc;
 
    if ((rc = stat(path, &sbuf)))
       return false;
+   
+   if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
+      DIR* dp = opendir(path);
+      if (dp != NULL) {
+         closedir(dp);
+         return true;
+      }
+      return false;
+   }
 
-   uid_t euid = geteuid();
-   if (!euid || sbuf.st_mode & S_IROTH
-         || (euid      == sbuf.st_uid && (sbuf.st_mode & S_IRUSR))
-         || (getegid() == sbuf.st_gid && (sbuf.st_mode & S_IRGRP)))
+   rc = open(path, O_RDONLY);
+   if (rc != -1) {
+      close(rc);
       return true;
-
+   }
    return false;
+
+#elif defined(HAVE_ACCESS) && defined(_Q_WINDOWS)
+   // only use access(2) on Windows
+   return !access(path, R_OK);
 #else
-   // FIXME: implement properly for windows
    // check if it's a directory
    struct stat sbuf;
    int rc;
@@ -1650,6 +1696,13 @@ void QoreProgramLocation::toString(QoreString& str) const {
       str.sprintf(" (source \"%s\":%d)", source, start_line + offset);
 }
 
+void LVarSet::add(LocalVar* var) {
+   if (!needs_scan && var->needsScan())
+      needs_scan = true;
+   // insert var into the set
+   insert(var);
+}
+
 bool q_parse_bool(const AbstractQoreNode* n) {
    if (get_node_type(n) == NT_STRING)
       return q_parse_bool(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
@@ -1658,7 +1711,7 @@ bool q_parse_bool(const AbstractQoreNode* n) {
 }
 
 bool q_parse_bool(const char* str) {
-   if (!strcasecmp(str, "true") || !strcasecmp(str, "on") || !strcasecmp(str, "yes") || !strncasecmp(str, "enable", 6))
+   if (!strcasecmp(str, "true") || !strcasecmp(str, "on") || !strcasecmp(str, "yes") || !strncasecmp(str, "enable", 6) || !strcasecmp(str, "y"))
       return true;
 
    return (bool)atoi(str);
@@ -1750,9 +1803,11 @@ const char* q_mode_to_perm(mode_t mode, QoreString& perm) {
    // add other permission flags
    perm.concat(mode & S_IROTH ? 'r' : '-');
    perm.concat(mode & S_IWOTH ? 'w' : '-');
+#ifdef S_ISVTX
    if (mode & S_ISVTX)
       perm.concat(mode & S_IXOTH ? 't' : 'T');
    else
+#endif
       perm.concat(mode & S_IXOTH ? 'x' : '-');
 #else
    // Windows
@@ -1787,7 +1842,6 @@ char* strcasestr(const char* s1, const char* s2) {
 
    size_t len1 = strlen(s1);
    size_t len2 = strlen(s2);
-
    if (len2 > len1)
       return 0;
 
@@ -1802,4 +1856,250 @@ char* strcasestr(const char* s1, const char* s2) {
 #else
 #error no strcasestr implementation
 #endif
+#endif
+
+bool q_absolute_path_unix(const char* path) {
+   return path && path[0] == '/';
+}
+
+// returns true if the path is not relative; may not be strictly-speaking an absolute path
+bool q_absolute_path_windows(const char* path) {
+   if (!path)
+      return false;
+   // note that '\' and '/' are both accepted as path separator characters on Windows
+   if (path[0] == '\\' || path[0] == '/')
+      return true;
+   if (isalpha(path[0]) && path[1] == ':')
+      return true;
+   return false;
+}
+
+bool q_absolute_path(const char* path) {
+#ifdef _Q_WINDOWS
+   return q_absolute_path_windows(path);
+#else
+   return q_absolute_path_unix(path);
+#endif
+}
+
+#ifdef _Q_WINDOWS
+// this appends the root path
+int q_get_root_path(QoreString& root, const char* cwd = 0) {
+   QoreString Cwd;
+   if (cwd) {
+      Cwd.set(cwd);
+      q_realpath(Cwd, Cwd);
+   }
+   else
+      q_getcwd(Cwd);
+
+   // return without making any changes in case of an error
+   if (Cwd.empty())
+      return -1;
+
+   // see if we have a drive letter + ':'
+   if (isalpha(Cwd[0])) {
+      root.concat(Cwd[0]);
+      root.concat(':');
+      return 0;
+   }
+
+   // see if we have a UNC path, so we need to find the end of the \\server\share\ component
+   if (Cwd[0] == '\\' && Cwd[1] == '\\') {
+      char* c = strchr(Cwd.c_str() + 2, '\\');
+      if (c) {
+         c = strchr(c + 1, '\\');
+         root.concat(Cwd.c_str(), c ? c - Cwd.c_str() : Cwd.size());
+         return 0;
+      }
+   }
+   return -1;
+}
+#endif
+
+static void add_cwd(QoreString& path) {
+   QoreString cwd_str;
+   if (!q_getcwd(cwd_str))
+      path.prepend(cwd_str.getBuffer(), cwd_str.size());
+}
+
+void q_normalize_path(QoreString& path, const char* cwd) {
+   //printd(5, "q_normalize_path(path: '%s', cwd: '%s')\n", path.getBuffer(), cwd);
+   if (!path.empty()) {
+      if (!q_absolute_path(path.getBuffer())) {
+         path.insertch(QORE_DIR_SEP, 0, 1);
+         if (cwd) {
+            QoreString Cwd(cwd);
+            q_realpath(Cwd, Cwd);
+            path.prepend(Cwd.getBuffer());
+            if (path[0] == '.') {
+               path.insertch(QORE_DIR_SEP, 0, 1);
+               add_cwd(path);
+            }
+         }
+         else
+            add_cwd(path);
+      }
+#ifdef _Q_WINDOWS
+      // prepend drive or UNC path root to path if the path begins with a single slash or backslash
+      else if ((path[0] == '/' || path[0] == '\\')
+               && (path[1] != '/' && path[1] != '\\')) {
+         QoreString root;
+         q_get_root_path(root, cwd);
+         path.prepend(root.c_str());
+         //printd(5, "normalized root: '%s' path: '%s'\n", root.c_str(), path.c_str());
+      }
+#endif
+   }
+   std::string str = path.getBuffer();
+   str = qore_qd_private::normalizePath(str);
+   //printd(5, "q_normalize_path() '%s' -> '%s' (cwd: '%s')\n", path.getBuffer(), str.c_str(), cwd);
+   path = str;
+}
+
+int q_getcwd(QoreString& cwd) {
+   int bs = 512;
+   cwd.reserve(bs);
+
+   while (true) {
+      char* b = getcwd((char*)cwd.getBuffer(), bs);
+      if (!b) {
+          if (errno == ERANGE) {
+              bs *= 2;
+	      cwd.reserve(bs);
+              continue;
+          }
+	  //printd(5, "q_getcwd() failed: errno: %d\n", errno);
+          return -1;
+      }
+      break;
+   }
+
+   cwd.terminate(strlen(cwd.getBuffer()));
+   //printd(5, "q_getcwd() succeeded: '%s'\n", cwd.getBuffer());
+   return 0;
+}
+
+int q_get_mode(const QoreString& path) {
+   struct stat sbuf;
+
+   if (stat(path.getBuffer(), &sbuf))
+      return 0;
+
+   return sbuf.st_mode;
+}
+
+int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
+#ifdef HAVE_REALPATH
+#if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
+   char buf[PATH_MAX];
+   char* p = realpath(path.getBuffer(), buf);
+#else
+   char* p = realpath(path.getBuffer(), 0);
+#endif
+   if (!p) {
+      if (xsink)
+	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
+      return -1;
+   }
+#if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
+   rv.set(buf);
+#else
+   rv.takeAndTerminate(p, strlen(p));
+#endif
+#else
+#ifndef _Q_WINDOWS
+#error must implement an alternative to realpath on UNIX systems
+#endif
+   if (&rv != &path)
+      rv = path;
+   q_normalize_path(rv);
+   // verify that the path exists
+   if (!q_get_mode(rv)) {
+      if (xsink)
+	 xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
+      return -1;
+   }
+   return 0;
+#endif
+   return 0;
+}
+
+void qore_disable_gc() {
+   q_disable_gc = true;
+}
+
+bool qore_is_gc_enabled() {
+   return !q_disable_gc;
+}
+
+void qore_init_random_salt() {
+   random_salt.sprintf(QLLD, q_clock_getmicros());
+}
+
+int qore_get_ptr_hash(QoreString& str, const void* ptr) {
+   assert(!random_salt.empty());
+   QoreString tmp(random_salt);
+   tmp.sprintf("%p", ptr);
+   DigestHelper dh(tmp);
+   int rc = dh.doDigest(SHA1_ERR, EVP_sha1());
+   if (!rc)
+      dh.getString(str);
+   else
+      printd(0, "qore_get_ptr_hash() digest calculation failed for ptr %p\n", ptr);
+   return rc;
+}
+
+void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
+   assert(big_len && little_len);
+#ifdef HAVE_MEMMEM
+   return memmem(big, big_len, little, little_len);
+#else
+   const char* lt = (const char*)little;
+   const char* bg = (const char*)big;
+   const char* p = bg;
+   const char* end = bg + big_len;
+   while (p < end) {
+      const char* f = (const char*)memchr(p, lt[0], end - p);
+      if (!f || ((bg - f) < (ptrdiff_t)little_len))
+	 return 0;
+      p = f;
+      bool found = true;
+      for (size_t i = 1; i < little_len; ++i) {
+	 if (*f != lt[i]) {
+	    found = false;
+	    break;
+	 }
+	 ++f;
+      }
+      if (found)
+	 return (void*)p;
+      ++p;
+   }
+   return 0;
+#endif
+}
+
+#ifdef _Q_WINDOWS
+int statvfs(const char* path, struct statvfs* buf) {
+   ULARGE_INTEGER avail;
+   ULARGE_INTEGER total;
+   ULARGE_INTEGER free;
+
+   if (!GetDiskFreeSpaceEx(path, &avail, &total, &free)) {
+      return -1;
+   }
+
+   buf->set(avail.QuadPart, total.QuadPart, free.QuadPart);
+   return 0;
+}
+
+int q_fstatvfs(const char* filepath, struct statvfs* buf) {
+   char* dir = q_dirname(filepath);
+   if (!dir)
+      return -1;
+   ON_BLOCK_EXIT(free, dir);
+
+   return statvfs(dir, buf);
+}
 #endif

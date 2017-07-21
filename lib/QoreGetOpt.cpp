@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -93,7 +93,7 @@ static void addError(QoreHashNode* h, QoreStringNode* err) {
       l = new QoreListNode;
       ha.assign(l, 0);
    }
-      
+
    l->push(err);
 }
 
@@ -151,7 +151,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
       v = get_bool_node((bool)strtol(val, 0, 10));
    else // default string
       v = new QoreStringNode(val);
-   
+
    if (!(n->option & QGO_OPT_LIST_OR_ADD)) {
       ha.assign(v, 0);
       return;
@@ -167,7 +167,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
       l->push(v);
       return;
    }
-   
+
    // additive
    if (*ha) {
       if (n->argtype == NT_INT) {
@@ -216,7 +216,7 @@ void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHash
       opt = arg;
       val = tok + 1;
    }
-   else {  
+   else {
       opt = arg;
       val = 0;
    }
@@ -271,7 +271,7 @@ int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHash
    doOption(w, h, val);
    if (do_modify)
       l->pop_entry(--i, 0);
-   //printd(5, "processShortArg(%c) val=%08p %s returning %d\n", opt, val, val, !j);
+   //printd(5, "processShortArg(%c) val=%p %s returning %d\n", opt, val, val, !j);
    return !j;
 }
 
@@ -295,7 +295,7 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
 	       break;
 	    processLongArg(arg + 2, l, h, i, modify);
 	    if (modify) {
-	       //printd(5, "parse() opt=%s size=%d\n", arg, l->size()); 
+	       //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
 	       l->pop_entry(i--, 0);
 	       //printd(5, "parse() popped entry, size=%d\n", l->size());
 	    }
@@ -305,9 +305,10 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
 	 for (int j = 1; j < len; j++)
 	    if (processShortArg(arg, l, h, i, j, modify))
 	       break;
-	 l->pop_entry(i--, 0);
+         if (modify)
+            l->pop_entry(i--, 0);
       }
    }
-   //printd(5, "QoreGetOpt::parse() returning h=%08p (size %d)\n", h, h->size());
+   //printd(5, "QoreGetOpt::parse() returning h=%p (size %d)\n", h, h->size());
    return h;
 }

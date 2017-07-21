@@ -1,10 +1,10 @@
 /*
   QoreTreeNode.cpp
-  
+
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
-  
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), left(l), right(r) {
+QoreTreeNode::QoreTreeNode(AbstractQoreNode *l, Operator *o, AbstractQoreNode *r) : ParseNode(NT_TREE, true, o->hasEffect()), op(o), returnTypeInfo(0), inParenthesis(false), left(l), right(r) {
    //printd(5, "QoreTreeNode::QoreTreeNode() this=%p left=%p (%s) right=%p (%s) op=%s has_effect=%d\n", this, left, get_type_name(left), right, get_type_name(right), op->getDescription(), has_effect());
 }
 
@@ -44,6 +44,10 @@ QoreTreeNode::~QoreTreeNode() {
 
 void QoreTreeNode::ignoreReturnValue() {
    ignore_rv();
+}
+
+void QoreTreeNode::setInParenthesis() {
+    inParenthesis = true;
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -65,34 +69,12 @@ QoreString *QoreTreeNode::getAsString(bool &del, int foff, ExceptionSink *xsink)
 }
 
 // returns the type name as a c string
-const char *QoreTreeNode::getTypeName() const {
+const char* QoreTreeNode::getTypeName() const {
    return "expression tree";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *QoreTreeNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QoreTreeNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    return op->eval(left, right, need_rv(), xsink);
-}
-
-AbstractQoreNode *QoreTreeNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return op->eval(left, right, need_rv(), xsink);
-}
-
-int64 QoreTreeNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   return op->bigint_eval(left, right, xsink);
-}
-
-int QoreTreeNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return (int)op->bigint_eval(left, right, xsink);
-}
-
-bool QoreTreeNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return op->bool_eval(left, right, xsink);
-}
-
-double QoreTreeNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return op->float_eval(left, right, xsink);
 }
 
 AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -104,9 +86,19 @@ AbstractQoreNode *QoreTreeNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   // check argument types for operator   
+   // check argument types for operator
    AbstractQoreNode *n = op->parseInit(this, oflag, pflag, lvids, typeInfo);
    if (n == this)
       returnTypeInfo = typeInfo;
    return n;
+}
+
+AbstractQoreNode* QoreTreeNode::evalSubst(const QoreTypeInfo*& rtTypeInfo) {
+   SimpleRefHolder<QoreTreeNode> rh(this);
+   ParseExceptionSink xsink;
+
+   ValueEvalRefHolder v(this, *xsink);
+   AbstractQoreNode* rv = v.getReferencedValue();
+   rtTypeInfo = rv ? getTypeInfoForType(rv->getType()) : nothingTypeInfo;
+   return rv ? rv : nothing();
 }

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,39 @@ static int ampm(int hour) {
    return i ? i : 12;
 }
 
+static int get_uint(const char *&p, int digits) {
+   int rc = 0;
+   for (int i = 0; i < digits; ++i) {
+      if (*p < '0' || *p > '9')
+         return -1;
+      rc = (10 * rc) + ((*p) - '0');
+      ++p;
+   }
+   return rc;
+}
+
+static int get_int(const char *&p, bool &err) {
+   int rc = 0;
+
+   int sign = 1;
+   if (*p == '-') {
+      sign = -1;
+      ++p;
+   }
+
+   if (!isdigit(*p)) {
+      err = true;
+      return 0;
+   }
+
+   do {
+      rc = (10 * rc) + ((*p) - '0');
+      ++p;
+   } while (isdigit(*p));
+
+   return rc * sign;
+}
+
 bool qore_date_info::isLeapYear(int year) {
    if (!(year % 100))
       return !(year % 400) ? true : false;
@@ -94,6 +127,346 @@ int qore_date_info::getMonthIxFromAbbr(const char* abbr) {
    }
    // not found
    return -1;
+}
+
+void qore_absolute_time::set(const AbstractQoreZoneInfo* n_zone, const QoreValue v) {
+   switch (v.type) {
+      case QV_Bool: {
+         zone = n_zone;
+         epoch = v.v.b ? 1 : 0;
+         us = 0;
+         break;
+      }
+      case QV_Int: {
+         set(n_zone, v.v.i, 0);
+         break;
+      }
+      case QV_Float: {
+         set(v.v.f, n_zone);
+         break;
+      }
+      case QV_Node:
+         switch (get_node_type(v.v.n)) {
+            case NT_BOOLEAN: {
+               zone = n_zone;
+               epoch = reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue();
+               us = 0;
+               break;
+            }
+            case NT_INT: {
+               set(n_zone, reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
+               break;
+            }
+            case NT_FLOAT: {
+               double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
+               set(f, n_zone);
+               break;
+            }
+            case NT_STRING: {
+               const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
+               set(str, n_zone);
+               break;
+            }
+            case NT_DATE: {
+               const DateTimeNode* d = reinterpret_cast<const DateTimeNode*>(v.v.n);
+               if (d->priv->relative) {
+                  int64 us = d->priv->d.rel.getRelativeMicroseconds();
+                  int64 s = us / 1000000;
+                  us -= s * 1000000;
+                  set(n_zone, s, us);
+               }
+               else
+                  set(d->priv->d.abs);
+               break;
+            }
+            default: {
+               double f = v.v.n ? v.v.n->getAsFloat() : 0.0;
+               set(f, n_zone);
+               break;
+            }
+         }
+         break;
+      default:
+         assert(false);
+         break;
+   }
+}
+
+void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone, ExceptionSink* xsink) {
+   size_t len = strlen(str);
+
+   // we need at least YYYYMMDD
+   if (len < 8) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s' is too short; need at least 8 digits for a date/time value (ex: YYYYMMDD)", str);
+      set(n_zone, 0, 0);
+      return;
+   }
+
+   const char* p = str;
+
+   int year = get_uint(p, 4);
+   if (year < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse year value", str);
+      set(n_zone, 0, 0);
+      return;
+   }
+
+   bool needs_sep = false;
+   if (*p == '-') {
+      needs_sep = true;
+      ++p;
+   }
+
+   int month = get_uint(p, 2);
+   if (month < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse month value; expecting 1 - 12 inclusive", str);
+      set(n_zone, year, 1, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   if (xsink && (month < 1 || month > 12)) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid month value: %d; expecting 1 - 12 inclusive", str, month);
+      set(n_zone, year, month, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   if (needs_sep) {
+      if (*p == '-')
+         ++p;
+      else {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered unknown char '%c'", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered end of data after month", str);
+         }
+
+         set(n_zone, year, month, 1, 0, 0, 0, 0);
+         return;
+      }
+   }
+
+   int day = get_uint(p, 2);
+   if (day < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse day value", str);
+      set(n_zone, year, month, 1, 0, 0, 0, 0);
+      return;
+   }
+
+   // check if day is valid
+   if (xsink) {
+      if (day < 1) {
+         xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month);
+         set(n_zone, year, month, day, 0, 0, 0, 0);
+         return;
+      }
+      else if (day > 28) {
+         // check how many days in the given month
+         int dom = qore_date_info::getLastDayOfMonth(month, year);
+         if (day > dom) {
+            xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month, dom);
+            set(n_zone, year, month, day, 0, 0, 0, 0);
+            return;
+         }
+      }
+   }
+
+   //printd(5, "set: date: %04d-%02d-%02d\n", year, month, day);
+
+   if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
+      set(0, year, month, day, 0, 0, 0, 0);
+      return;
+   }
+
+   if (*p == ' ' || *p == 't' || *p == 'T' || *p == '-')
+      ++p;
+
+   int hour = get_uint(p, 2);
+   if (hour < 0) {
+      set(n_zone, year, month, day, 0, 0, 0, 0);
+      return;
+   }
+
+   if (xsink && hour > 23) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid hour value: %d; expecting 0 - 23 inclusive", str, hour);
+      set(n_zone, year, month, day, hour, 0, 0, 0);
+      return;
+   }
+
+   needs_sep = false;
+   if (*p == ':') {
+      needs_sep = true;
+      ++p;
+   }
+
+   int minute = get_uint(p, 2);
+   if (minute < 0) {
+      if (xsink)
+         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse minute value; expecting 0 - 59 inclusive", str);
+      set(n_zone, year, month, day, hour, 0, 0, 0);
+      return;
+   }
+
+   if (xsink && minute > 59)
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid minute value: %d; expecting 0 - 59 inclusive", str, minute);
+
+   if (needs_sep) {
+      if (*p == ':')
+         ++p;
+      else {
+         if (*p && xsink)
+            xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c'", str, *p);
+         set(n_zone, year, month, day, hour, minute, 0, 0);
+         return;
+      }
+   }
+
+   int second = get_uint(p, 2);
+   if (second < 0) {
+      set(n_zone, year, month, day, hour, minute, 0, 0);
+      return;
+   }
+
+   if (xsink && second > 59) {
+      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid second value: %d; expecting 0 - 59 inclusive", str, second);
+      set(n_zone, year, month, day, hour, minute, second, 0);
+      return;
+   }
+
+   if (!*p) {
+      set(n_zone, year, month, day, hour, minute, second, 0);
+      return;
+   }
+
+   int us = 0;
+   if (*p == '.') {
+      ++p;
+      if (!isdigit(*p)) {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing microseconds", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data after decimal point", str);
+         }
+         set(n_zone, year, month, day, hour, minute, second, 0);
+         return;
+      }
+
+      // read all digits
+      int dlen = 0;
+      while (isdigit(*p)) {
+         // ignore excess digits beyond microsecond resolution
+         if (dlen < 6) {
+            us *= 10;
+            us += *p - '0';
+         }
+	 ++dlen;
+	 ++p;
+      }
+
+      // adjust to microseconds
+      while (dlen < 6) {
+	 us *= 10;
+	 ++dlen;
+      }
+
+      if (!*p) {
+         set(n_zone, year, month, day, hour, minute, second, us);
+         return;
+      }
+   }
+
+   // get time zone offset
+
+   // read
+   if (*p == ' ')
+      ++p;
+
+   if (*p == 'Z') {
+      n_zone = 0;
+      ++p;
+   }
+   else if (*p == '+' || *p == '-') {
+      int mult = *p == '-' ? -1 : 1;
+
+      ++p;
+      if (!isdigit(*p)) {
+         if (xsink) {
+            if (*p)
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset", str, *p);
+            else
+               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset", str);
+         }
+         set(n_zone, year, month, day, hour, minute, second, us);
+         return;
+      }
+
+      int utc_h = *p - '0';
+      ++p;
+      if (isdigit(*p)) {
+	 utc_h = utc_h * 10 + (*p - '0');
+	 ++p;
+      }
+
+      int offset = utc_h * 3600;
+
+      if (*p) {
+	 if (*p == ':')
+            ++p;
+
+	 if (!isdigit(*p)) {
+            if (xsink) {
+               if (*p)
+                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset minutes", str, *p);
+               else
+                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset minutes", str);
+            }
+            // ignore any time zone passed
+            n_zone = findCreateOffsetZone(offset * mult);
+            set(n_zone, year, month, day, hour, minute, second, us);
+            return;
+         }
+
+	 int utc_m = *p - '0';
+	 ++p;
+	 if (isdigit(*p)) {
+	    utc_m = utc_m * 10 + (*p - '0');
+	    ++p;
+	 }
+
+	 offset += utc_m * 60;
+
+	 if (*p) {
+	    if (*p == ':')
+               ++p;
+
+	    if (!isdigit(*p)) {
+               // ignore any time zone passed
+               n_zone = findCreateOffsetZone(offset * mult);
+               set(n_zone, year, month, day, hour, minute, second, us);
+               return;
+            }
+
+	    int utc_s = *p - '0';
+	    ++p;
+	    if (isdigit(*p)) {
+	       utc_s = utc_s * 10 + (*p - '0');
+	       ++p;
+	    }
+
+	    offset += utc_s;
+	 }
+      }
+
+      // ignore any time zone passed
+      n_zone = findCreateOffsetZone(offset * mult);
+   }
+
+   set(n_zone, year, month, day, hour, minute, second, us);
 }
 
 int64 qore_absolute_time::getRelativeMicroseconds() const {
@@ -127,14 +500,14 @@ qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt)
    // break down date and do day, month, and year math
    if (dt.year || dt.month || dt.day) {
       // get the broken-down date values for the date in local time
-      qore_simple_tm2 tm(epoch + zone->getUTCOffset(epoch), us);
+      qore_simple_tm2 tm(epoch + AbstractQoreZoneInfo::getUTCOffset(zone, epoch), us);
 
 #ifdef DEBUG
       // only needed by the debugging statement at the bottom
       //int64 oe=epoch;
 #endif
       //printd(5, "absolute_time::operator+= this=%p %lld.%06d (%d) %04d-%02d-%02d %02d:%02d:%02d.%06d (+%dY %dM %dD %dh %dm %ds %dus)\n", this, epoch, us, zone ? zone->getUTCOffset(epoch) : 0, tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second, tm.us, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us);
-      
+
       // add years, months, and days
       tm.year += dt.year;
       tm.month += dt.month;
@@ -149,7 +522,7 @@ qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt)
       epoch = qore_date_info::getEpochSeconds(tm.year, tm.month, tm.day, tm.hour, tm.minute, tm.second);
 
       // adjust for new UTC offset for target day at the original time
-      epoch -= zone->getUTCOffset(epoch);
+      epoch -= AbstractQoreZoneInfo::getUTCOffset(zone, epoch);
 
       usecs = tm.us;
    }
@@ -204,6 +577,100 @@ qore_relative_time &qore_relative_time::operator-=(const qore_relative_time &dt)
    return *this;
 }
 
+qore_relative_time &qore_relative_time::operator-=(const qore_absolute_time &dt) {
+   second -= dt.epoch;
+   us -= dt.us;
+
+   normalize();
+
+   return *this;
+}
+
+void qore_relative_time::set(const QoreValue v) {
+   switch (v.type) {
+      case QV_Bool: {
+         set(0, 0, 0, 0, 0, (int)v.v.b, 0);
+         break;
+      }
+      case QV_Int: {
+         zero();
+         addSecondsTo(v.v.i);
+         break;
+      }
+      case QV_Float: {
+         zero();
+         addSecondsTo(v.v.f);
+         break;
+      }
+      case QV_Node:
+         switch (get_node_type(v.v.n)) {
+            case NT_BOOLEAN: {
+               set(0, 0, 0, 0, 0, (int)reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue(), 0);
+               break;
+            }
+            case NT_INT: {
+               addSecondsTo(reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
+               break;
+            }
+            case NT_FLOAT: {
+               double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
+               zero();
+               addSecondsTo(f);
+               break;
+            }
+            case NT_STRING: {
+               const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
+               set(str);
+               break;
+            }
+            case NT_DATE: {
+               const DateTimeNode* d = reinterpret_cast<const DateTimeNode*>(v.v.n);
+               if (d->priv->relative)
+                  set(d->priv->d.rel);
+               else {
+                  zero();
+                  addSecondsTo(d->priv->d.abs.epoch, d->priv->d.abs.us);
+               }
+               break;
+            }
+            default:
+               double f = v.v.n ? v.v.n->getAsFloat() : 0.0;
+               zero();
+               addSecondsTo(f);
+               break;
+         }
+         break;
+   }
+}
+
+void qore_relative_time::set(const char* str) {
+   if (*str == 'P' || *str == 'p') {
+      setIso8601(str);
+      return;
+   }
+
+#ifdef HAVE_STRTOLL
+   int64 date = strtoll(str, 0, 10);
+#else
+   int64 date = atoll(str);
+#endif
+   const char *p = strchr(str, '.');
+
+   int l = p ? p - str : strlen(str);
+   // for date-only strings, move the date up to the right position
+   if (l == 8)
+      date *= 1000000;
+
+   int us = p ? atoi(p + 1) : 0;
+   if (us) {
+      l = strlen(p + 1);
+      assert(l < 7);
+      us *= (int)pow((double)10, 6 - l);
+   }
+
+   setLiteral(date, us);
+}
+
 void concatOffset(int utcoffset, QoreString &str) {
    //printd(0, "concatOffset(%d)", utcoffset);
 
@@ -211,7 +678,7 @@ void concatOffset(int utcoffset, QoreString &str) {
       str.concat('Z');
       return;
    }
-   
+
    str.concat(utcoffset < 0 ? '-' : '+');
    if (utcoffset < 0)
       utcoffset = -utcoffset;
@@ -403,47 +870,13 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
    }
 }
 
-static int get_uint(const char *&p, int digits) {
-   int rc = 0;
-   for (int i = 0; i < digits; ++i) {
-      if (*p < '0' || *p > '9')
-         return -1;
-      rc = (10 * rc) + ((*p) - '0');
-      ++p;
-   }
-   return rc;
-}
-
-static int get_int(const char *&p, bool &err) {
-   int rc = 0;
-
-   int sign = 1;
-   if (*p == '-') {
-      sign = -1;
-      ++p;
-   }
-
-   if (!isdigit(*p)) {
-      err = true;
-      return 0;
-   }
-
-   do {
-      rc = (10 * rc) + ((*p) - '0');
-      ++p;
-   } while (isdigit(*p));
-
-   return rc * sign;
-}
-
-
-void qore_date_private::setISO8601RelativeDate(const char *str) {
+void qore_relative_time::setIso8601(const char* str) {
    const char *p = str;
    if (*p == 'P' || *p == 'p')
       ++p;
 
    bool time = false;
-   d.rel.zero();
+   zero();
 
    bool err = false;
    while (true) {
@@ -458,20 +891,20 @@ void qore_date_private::setISO8601RelativeDate(const char *str) {
       switch (*p) {
          case 'Y':
          case 'y':
-            d.rel.year += val;
+            year += val;
             break;
 
          case 'M':
          case 'm':
             if (time)
-               d.rel.minute += val;
+               minute += val;
             else
-               d.rel.month += val;
+               month += val;
             break;
 
          case 'D':
          case 'd':
-            d.rel.day += val;
+            day += val;
             break;
 
          case 'H':
@@ -479,7 +912,7 @@ void qore_date_private::setISO8601RelativeDate(const char *str) {
             if (!time)
                return;
 
-            d.rel.hour += val;
+            hour += val;
             break;
 
          case 'S':
@@ -487,7 +920,7 @@ void qore_date_private::setISO8601RelativeDate(const char *str) {
             if (!time)
                return;
 
-            d.rel.second += val;
+            second += val;
             break;
 
             // non-ISO-8601 extension: <int>u for microseconds
@@ -495,7 +928,7 @@ void qore_date_private::setISO8601RelativeDate(const char *str) {
             if (!time)
                return;
 
-            d.rel.us += val;
+            us += val;
             break;
          default:
             break;
@@ -506,233 +939,12 @@ void qore_date_private::setISO8601RelativeDate(const char *str) {
 
 void qore_date_private::setRelativeDate(const char *str) {
    relative = true;
-
-   if (*str == 'P' || *str == 'p') {
-      setISO8601RelativeDate(str);
-      return;
-   }
-
-#ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, 0, 10);
-#else
-   int64 date = atoll(str);
-#endif
-   const char *p = strchr(str, '.');
-
-   int l = p ? p - str : strlen(str);
-   // for date-only strings, move the date up to the right position
-   if (l == 8)
-      date *= 1000000;
-
-   int us = p ? atoi(p + 1) : 0;
-   if (us) {
-      l = strlen(p + 1);
-      assert(l < 7);
-      us *= (int)pow((double)10, 6 - l);
-   }         
-
-   d.rel.setLiteral(date, us);
+   d.rel.set(str);
 }
 
-void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone) {
+void qore_date_private::setAbsoluteDate(const char *str, const AbstractQoreZoneInfo *zone, ExceptionSink* xsink) {
    relative = false;
-
-   size_t len = strlen(str);
-
-   // we need at last YYYYMMDD
-   if (len < 8) {
-      d.abs.set(zone, 0, 0);
-      return;
-   }
-      
-   const char *p = str;
-
-   int year = get_uint(p, 4);
-   if (year < 0) {
-      d.abs.set(zone, 0, 0);
-      return;
-   }
-
-   bool needs_sep = false;
-   if (*p == '-') {
-      needs_sep = true;
-      ++p;
-   }
-   
-   int month = get_uint(p, 2);
-   if (month < 0) {
-      d.abs.set(zone, year, 1, 1, 0, 0, 0, 0);
-      return;
-   }
-
-   if (needs_sep) {
-      if (*p == '-')
-         ++p;
-      else {
-         d.abs.set(zone, year, month, 1, 0, 0, 0, 0);
-         return;
-      }
-   }
-
-   int day = get_uint(p, 2);
-   if (day < 0) {
-      d.abs.set(zone, year, month, 1, 0, 0, 0, 0);
-      return;
-   }
-
-   //printd(5, "date: %04d-%02d-%02d\n", year, month, day);
-
-   if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
-      d.abs.set(0, year, month, day, 0, 0, 0, 0);
-      return;
-   }
-
-   if (*p == ' ' || *p == 't' || *p == 'T' || *p == '-')
-      ++p;
-
-   int hour = get_uint(p, 2);
-   if (hour < 0) {
-      d.abs.set(zone, year, month, day, 0, 0, 0, 0);
-      return;
-   }
-
-   needs_sep = false;
-   if (*p == ':') {
-      needs_sep = true;
-      ++p;
-   }
-
-   int minute = get_uint(p, 2);
-   if (minute < 0) {
-      d.abs.set(zone, year, month, day, hour, 0, 0, 0);
-      return;
-   }
-
-   if (needs_sep) {
-      if (*p == ':')
-         ++p;
-      else {
-         d.abs.set(zone, year, month, day, hour, minute, 0, 0);
-         return;
-      }
-   }
-
-   int second = get_uint(p, 2);
-   if (second < 0) {
-      d.abs.set(zone, year, month, day, hour, minute, 0, 0);
-      return;
-   }
-
-   if (!*p) {
-      d.abs.set(zone, year, month, day, hour, minute, second, 0);
-      return;
-   }
-	 
-   int us = 0;
-   if (*p == '.') {
-      ++p;
-      if (!isdigit(*p)) {
-         d.abs.set(zone, year, month, day, hour, minute, second, 0);
-         return;
-      }
-	 
-      // read all digits
-      int dlen = 0;
-      while (isdigit(*p)) {
-         // ignore excess digits beyond microsecond resolution
-         if (dlen < 6) {
-            us *= 10;
-            us += *p - '0';
-         }
-	 ++dlen;
-	 ++p;
-      }
-	 
-      // adjust to microseconds
-      while (dlen < 6) {
-	 us *= 10;
-	 ++dlen;
-      }
-
-      if (!*p) {
-         d.abs.set(zone, year, month, day, hour, minute, second, us);
-         return;
-      }
-   }
-
-   // get time zone offset
-
-   // read 
-   if (*p == ' ')
-      ++p;
-
-   if (*p == 'Z') {
-      zone = 0;
-      ++p;
-   }
-   else if (*p == '+' || *p == '-') {
-      int mult = *p == '-' ? -1 : 1;
-	 
-      ++p;
-      if (!isdigit(*p)) {
-         d.abs.set(zone, year, month, day, hour, minute, second, us);
-         return;
-
-      }
-	 
-      int utc_h = *p - '0';
-      ++p;
-      if (isdigit(*p)) {
-	 utc_h = utc_h * 10 + (*p - '0');
-	 ++p;
-      }
-	 
-      int offset = utc_h * 3600;
-	 
-      if (*p) {
-	 if (*p == ':')
-            ++p;
-	    
-	 if (!isdigit(*p)) {
-            zone = findCreateOffsetZone(offset * mult);
-            d.abs.set(zone, year, month, day, hour, minute, second, us);
-            return;
-         }
-	    
-	 int utc_m = *p - '0';
-	 ++p;
-	 if (isdigit(*p)) {
-	    utc_m = utc_m * 10 + (*p - '0');
-	    ++p;
-	 }
-	    
-	 offset += utc_m * 60;
-	    
-	 if (*p) {
-	    if (*p == ':')
-               ++p;
-	       
-	    if (!isdigit(*p)) {
-               zone = findCreateOffsetZone(offset * mult);
-               d.abs.set(zone, year, month, day, hour, minute, second, us);
-               return;
-            }
-	       
-	    int utc_s = *p - '0';
-	    ++p;
-	    if (isdigit(*p)) {
-	       utc_s = utc_s * 10 + (*p - '0');
-	       ++p;
-	    }
-	       
-	    offset += utc_s;		    
-	 }
-      }
-	 
-      zone = findCreateOffsetZone(offset * mult);
-   }
-
-   d.abs.set(zone, year, month, day, hour, minute, second, us); 
+   d.abs.set(str, zone, xsink);
 }
 
 void qore_date_private::setDate(const char *str) {
@@ -743,6 +955,14 @@ void qore_date_private::setDate(const char *str) {
       setAbsoluteDate(str);
 }
 
+void qore_date_private::setDate(const char *str, ExceptionSink* xsink) {
+   assert(str);
+   if (*str == 'P' || *str == 'p')
+      setRelativeDate(str);
+   else
+      setAbsoluteDate(str, currentTZ(), xsink);
+}
+
 void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
    // get day of week of jan 1 of this year
    int jan1 = qore_date_info::getDayOfWeek(year, 1, 1);
@@ -751,7 +971,7 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
    int dn = qore_date_info::getDayNumber(year, month, day);
    int dow = (dn + jan1 - 1) % 7;
    wday = !dow ? 7 : dow;
-   
+
    //printd(5, "qore_simple_tm2::getISOWeek() year=%d, start=%d, daw=%d dn=%d offset=%d\n", year, jan1, dow, dn, (jan1 > 4 ? 9 - jan1 : 2 - jan1));
    if ((!jan1 && dn == 1) || (jan1 == 5 && dn < 4) || (jan1 == 6 && dn < 3)) {
       yr = year - 1;
@@ -764,7 +984,7 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
       return;
    }
    yr = year;
-   
+
    int offset = jan1 > 4 ? jan1 - 9 : jan1 - 2;
    week = ((dn + offset) / 7) + 1;
    if (week == 53) {

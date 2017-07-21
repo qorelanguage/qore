@@ -1,0 +1,26 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class FormatNumberTest
+
+public class FormatNumberTest inherits QUnit::Test {
+    constructor() : Test("FormatNumberTest", "1.0") {
+        addTestCase("Simple format_number() exercise", \formatNumberTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    formatNumberTestMethod() {
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349));
+        assertEq("32.000", format_number(".,0", 32000.1239));
+        assertEq("32.001", format_number(".", 32000.998));
+    }
+}

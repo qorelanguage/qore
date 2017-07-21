@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,8 @@ protected:
 
 public:
    //! increments the reference count of the object
+   /** FIXME: this function should be const
+    */
    DLLLOCAL void ref() {
       ROreference();
    }
@@ -56,7 +58,7 @@ public:
    /**
       @param xsink any Qore-language exception information is stored here
    */
-   DLLLOCAL virtual void deref(class ExceptionSink *xsink) {
+   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference())
          delete this;
    }

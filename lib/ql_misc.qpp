@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,14 +33,17 @@
 #include <qore/intern/ql_misc.h>
 #include <qore/intern/QoreSignal.h>
 #include <qore/intern/QoreNamespaceIntern.h>
+#include <qore/intern/QC_Program.h>
+#include <qore/intern/ModuleInfo.h>
+#include <qore/intern/qore_program_private.h>
 
 #include <string.h>
 #include <time.h>
 #include <errno.h>
 
-static const QoreFunction *get_builtin_func(const QoreStringNode *str, ExceptionSink *xsink) {
+static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
-   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
    if (f)
       return f;
 
@@ -48,7 +51,7 @@ static const QoreFunction *get_builtin_func(const QoreStringNode *str, Exception
    return 0;
 }
 
-static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
+static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 
 // signal constants - if they are not defined define them here
 #ifndef SIGABRT
@@ -186,6 +189,96 @@ static const char *tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 #ifndef SIGXRES
 #define SIGXRES 0
 #endif
+
+/** @defgroup StringConcatEncoding String Concatenation Encoding Codes
+
+    @see <string>::getEncoded()
+
+    @since %Qore 0.8.12
+ */
+//@{
+//! code for encoding HTML 5 symbols as named character references
+/** encodes all HTML 5 symbols as <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a>
+
+    @note to encode all non-ascii symbols as numeric character references as well, include @ref Qore::CE_NONASCII in the bitfield
+
+    @see @ref Qore::CD_HTML
+ */
+const CE_HTML = CE_HTML;
+//! code for encoding XML entities
+/** The following symbols are encoded:
+    - \c '\"': as \c "&quot;"
+    - \c "&": as \c "&amp;"
+    - \c "'": as \c "&apos;"
+    - \c "<": as \c "&lt;"
+    - \c ">": as \c "&gt;"
+
+    @note \c "'" / \c "&apos;" is the only character not included in @ref Qore::CE_HTML
+
+    @see @ref Qore::CD_XML
+ */
+const CE_XML = CE_XML;
+//! code for encoding all non-ASCII symbols as numeric character references
+/** using this code ensures that the resulting string has no non-ASCII characters
+
+    @see @ref Qore::CD_NUM_REF
+ */
+const CE_NONASCII = CE_NONASCII;
+//! code for encoding XHTML entities
+/** This code is a combination of @ref Qore::CE_HTML and @ref Qore::CE_XML
+
+    @see @ref Qore::CD_XHTML
+ */
+const CE_XHTML = CE_XHTML;
+//! code for encoding everything
+/** @see @ref Qore::CD_ALL
+ */
+const CE_ALL = CE_ALL;
+//@}
+
+/** @defgroup StringConcatDecoding String Concatenation Decoding Codes
+
+    @see <string>::getDecoded()
+
+    @since %Qore 0.8.12
+ */
+//@{
+//! code for decoding HTML 5 named character references to their native symbols
+/** decodes all HTML 5 <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a> to their native symbols
+
+    @note to decode all numeric character references as well, include @ref Qore::CD_NUM_REF in the bitfield
+
+    @see @ref Qore::CE_HTML
+ */
+const CD_HTML = CD_HTML;
+//! code for decoding XML entities
+/** The following symbols are decoded:
+    - \c '\"': as \c "&quot;"
+    - \c "&": as \c "&amp;"
+    - \c "'": as \c "&apos;"
+    - \c "<": as \c "&lt;"
+    - \c ">": as \c "&gt;"
+
+    @note \c "'" / \c "&apos;" is the only character not included in @ref Qore::CD_HTML
+
+    @see @ref Qore::CE_XML
+ */
+const CD_XML = CD_XML;
+//! code for decoding numeric character references to symbols
+/** @see @ref CE_NONASCII
+ */
+const CD_NUM_REF = CD_NUM_REF;
+//! code for decoding XHTML named character references to symbols
+/** This code is a combination of @ref Qore::CD_HTML and @ref Qore::CD_XML
+
+    @see @ref Qore::CE_XHTML
+ */
+const CD_XHTML = CD_XHTML;
+//! code for decoding everything
+/** @see @ref Qore::CE_ALL
+ */
+const CD_ALL = CD_ALL;
+//@}
 
 /** @defgroup signal_constants Signal Constants
     Signal constants - if any of the constants in this section are not defined on the host; the constant's value will be 0
@@ -396,7 +489,7 @@ const SignalToName = (
     @param f The code to execute when the signal is caught; this should accept an integer argument giving the signal number
 
     @par Example:
-    @code
+    @code{.py}
 set_signal_handler(SIGINT, \signal_handler());
     @endcode
 
@@ -404,20 +497,17 @@ set_signal_handler(SIGINT, \signal_handler());
 */
 nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX) {
-      xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return 0;
-   }
+   if (!signal || signal > QORE_SIGNAL_MAX)
+      return xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
 
    QSM.setHandler(signal, f, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
-   return 0;
 }
 
 //! Removes a signal handler and returns the signal handling state to the default
-/** 
+/**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SIGNAL_HANDLING
 
@@ -426,7 +516,7 @@ nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
     @param signal The signal number to process, see @ref signal_constants for possible values
 
     @par Example:
-    @code
+    @code{.py}
 remove_signal_handler(SIGINT);
     @endcode
 
@@ -434,15 +524,12 @@ remove_signal_handler(SIGINT);
 */
 nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX) {
-      xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-      return 0;
-   }
+   if (!signal || signal > QORE_SIGNAL_MAX)
+      return xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
    QSM.removeHandler(signal, xsink);
 #else
-   xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
 #endif
-   return 0;
 }
 //@}
 
@@ -451,15 +538,15 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
  */
 //@{
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the function
-/** 
+/**
     @param name The name of the function to call
     @param ... Any optional arguments to the function
 
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_function("func_name", $arg1, $arg2);
+    @code{.py}
+any result = call_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -471,19 +558,19 @@ any call_function(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
    return getProgram()->callFunction(name->getBuffer(), *vargs, xsink);
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, passing the remaining arguments to the @ref call_reference "call reference" or @ref closure "closure"
-/** 
+/**
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param ... Any optional arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
     @par Example:
-    @code
-my any $result = call_function($call_ref, $arg1, $arg2);
+    @code{.py}
+any result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
@@ -492,21 +579,21 @@ any call_function(code f, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
-   return f->exec(*vargs, xsink);
+   return f->execValue(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
-/** 
+/**
     @param name The name of the function to call
     @param vargs Optionally a single argument to the function or a list of arguments to the function
 
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_function_args("func_name", ($arg1, $arg2));
+    @code{.py}
+any result = call_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -519,31 +606,31 @@ any call_function_args(string name, *softlist vargs) {
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, using the optional second argument as a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
-/** 
+/**
     @param f The @ref call_reference "call reference" or @ref closure "closure"
     @param vargs Optionally a single argument to the @ref call_reference "call reference" or @ref closure "closure" or a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
 
     @par Example:
-    @code
-my any $result = call_function_args($call_ref, ($arg1, $arg2));
+    @code{.py}
+any result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 any call_function_args(code f, *softlist vargs) {
-   return f->exec(vargs, xsink);
+   return f->execValue(vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
-/** 
+/**
     @param name The name of the builtin function to call
     @param ... Any optional arguments to the function
 
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_builtin_function("func_name", $arg1, $arg2);
+    @code{.py}
+any result = call_builtin_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -554,28 +641,28 @@ my any $result = call_builtin_function("func_name", $arg1, $arg2);
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function(string name, ...) {
-   const QoreFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
-      return 0;
+      return QoreValue();
 
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
-      vargs = args->copyListFrom(1);
+      vargs = args->getOldList(1);
 
-   return f->evalDynamic(*vargs, xsink);
+   return f->evalDynamic(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
-/** 
+/**
     @param name The name of the builtin function to call
     @param vargs Optionally a single argument to the function or a list of arguments to the function
 
     @return The value returned by the called function
 
     @par Example:
-    @code
-my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
+    @code{.py}
+any result = call_builtin_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -586,11 +673,11 @@ my any $result = call_builtin_function_args("func_name", ($arg1, $arg2));
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 any call_builtin_function_args(string name, *softlist vargs) {
-   const QoreFunction *f = get_builtin_func(name, xsink);
+   const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
-      return 0;
+      return QoreValue();
 
-   return f->evalDynamic(vargs, xsink);
+   return f->evalDynamic(vargs, xsink).takeNode();
 }
 
 //! A function performing the same role as the @ref exists "exists operator"
@@ -599,14 +686,14 @@ any call_builtin_function_args(string name, *softlist vargs) {
     @return if only a single argument is passed, then this function returns @ref True if the single argument exists, @ref False if not; otherwise is multiple arguments are passed to the function, it always returns @ref True; this is to emulate the behavior of the @ref exists "exists operator"
 
     @par Example:
-    @code
-my bool $b = exists($val);
+    @code{.py}
+bool b = exists(val);
     @endcode
 */
 bool exists(...) [flags=CONSTANT] {
    // to emulate the exists operator, we must return True if more than one argument is passed
    // as this will appear to be a list to the exists operator, which is different from NOTHING
-   return (num_args(args) <= 1) ? !is_nothing(get_param(args, 0)) : true;
+   return (num_args(args) <= 1) ? !get_param_value(args, 0).isNothing() : true;
 }
 
 //! Returns @ref True if the function exists in the current program's function name space
@@ -614,15 +701,10 @@ bool exists(...) [flags=CONSTANT] {
 
     @return @ref True if the function exists in the current program's function name space, @ref False if not
 
-    @par Example:
-    @code
-my bool $b = existsFunction("func_name");
-    @endcode
+    @deprecated use exists_function(); camel-case function names were deprecated in %Qore 0.8.12
 */
-bool existsFunction(string name) [flags=CONSTANT] {
-   const char *str = name->getBuffer();
-   
-   return getProgram()->existsFunction(str);
+bool existsFunction(string name) [flags=CONSTANT,DEPRECATED] {
+   return getProgram()->existsFunction(name->getBuffer());
 }
 
 //! Always returns @ref True
@@ -631,40 +713,89 @@ bool existsFunction(string name) [flags=CONSTANT] {
     @param c a @ref call_reference "call reference" or @ref closure "closure":
 
     @return always returns @ref True
+
+    @deprecated use exists_function(); camel-case function names were deprecated in %Qore 0.8.12
 */
-bool existsFunction(code[doc] c) [flags=NOOP] {
+bool existsFunction(code[doc] c) [flags=NOOP,DEPRECATED] {
    return true;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing existsFunction() [flags=RUNTIME_NOOP] {
+nothing existsFunction() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns @ref True if the function exists in the current program's function name space
+/** @param name the name of the function to check
+
+    @return @ref True if the function exists in the current program's function name space, @ref False if not
+
+    @par Example:
+    @code{.py}
+bool b = exists_function("func_name");
+    @endcode
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case existsFunction()
+*/
+bool exists_function(string name) [flags=CONSTANT] {
+   return getProgram()->existsFunction(name->getBuffer());
+}
+
+//! Always returns @ref True
+/** This function variant is included for backwards-compatibility
+
+    @param c a @ref call_reference "call reference" or @ref closure "closure":
+
+    @return always returns @ref True
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case existsFunction()
+*/
+bool exists_function(code[doc] c) [flags=NOOP] {
+   return true;
 }
 
 //! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
-/** 
+/**
     @param name The function name to check
     @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
 
-    @par Example:
-    @code
-my *string $type = functionType("print");
-    @endcode
+    @deprecated use function_type(); camel-case function names were deprecated in %Qore 0.8.12
 */
-*string functionType(string name) {
+*string functionType(string name) [flags=CONSTANT,DEPRECATED] {
    const qore_ns_private* ns;
-   const QoreFunction *f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
    if (!f)
-      return 0;
+      return QoreValue();
 
    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing functionType() [flags=RUNTIME_NOOP] {
+nothing functionType() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
+/**
+    @param name The function name to check
+    @return \c "builtin" (for a builtin function), \c "user" (for a user function), or @ref nothing (if the function cannot be found) according to the function name passed
+
+    @par Example:
+    @code{.py}
+*string type = function_type("print");
+    @endcode
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case functionType()
+*/
+*string function_type(string name) {
+   const qore_ns_private* ns;
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
+   if (!f)
+      return QoreValue();
+
+   return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
 
 //! Returns a string with characters needing HTML escaping translated to HTML escape codes
@@ -673,18 +804,21 @@ nothing functionType() [flags=RUNTIME_NOOP] {
     @return the string passed as an argument with characters needing HTML escaping translated to HTML escape codes
 
     @par Example:
-    @code
-my string $str = html_encode("<hello>"); # returns "&lt;hello&gt;"
+    @code{.py}
+string str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @endcode
+
+    @note equivalent to <string>::getEncoded() with @ref Qore::CE_HTML
+
+    @see <string>::getEncoded()
 */
 string html_encode(string str) [flags=CONSTANT] {
-   QoreStringNode *ns = new QoreStringNode(str->getEncoding());
-   ns->concatAndHTMLEncode(str->getBuffer());
-   return ns;
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatEncode(xsink, *str, CE_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing html_encode() [flags=RUNTIME_NOOP] {
 }
@@ -695,18 +829,21 @@ nothing html_encode() [flags=RUNTIME_NOOP] {
     @return the string passed as an argument with any HTML escape codes translated to the original characters
 
     @par Example:
-    @code
-my string $str = html_decode("&lt;hello&gt;"); # returns "<hello>"
+    @code{.py}
+string str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @endcode
+
+    @note equivalent to <string>::getDecoded() with @ref Qore::CD_HTML
+
+    @see <string>::getDecoded()
 */
 string html_decode(string str) [flags=CONSTANT] {
-   QoreStringNode *ns = new QoreStringNode(str->getEncoding());
-   ns->concatAndHTMLDecode(str);
-   return ns;
+   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+   return rv->concatDecode(xsink, *str, CD_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing html_decode() [flags=RUNTIME_NOOP] {
 }
@@ -715,8 +852,8 @@ nothing html_decode() [flags=RUNTIME_NOOP] {
 /** @return the name of the @ref default_encoding "default character encoding"
 
     @par Example:
-    @code
-my string $encoding = get_default_encoding();
+    @code{.py}
+string encoding = get_default_encoding();
     @endcode
 */
 string get_default_encoding() {
@@ -724,7 +861,7 @@ string get_default_encoding() {
 }
 
 //! Adds the text passed to the current program's code, tagged with the given label
-/** 
+/**
     @param code the string of %Qore source code to parse; the parsed code will be added to the current program
     @param label a label identifying the code or the code's source
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
@@ -733,8 +870,8 @@ string get_default_encoding() {
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
     @par Example:
-    @code
-parse($code, $filename);
+    @code{.py}
+parse(code, filename);
     @endcode
 
     @note This function could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
@@ -754,9 +891,9 @@ parse($code, $filename);
       ExceptionSink wsink;
       getProgram()->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
-         return 0;
+         return QoreValue();
 
-      QoreException *e = wsink.catchException();
+      QoreException* e = wsink.catchException();
       return e->makeExceptionObjectAndDelete(xsink);
    }
 
@@ -764,29 +901,44 @@ parse($code, $filename);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parse() [flags=RUNTIME_NOOP;dom=EMBEDDED_LOGIC,IN_MODULE] {
 }
 
 //! Returns the class name of the object passed
-/** 
+/**
     @param obj the object to get the class name of
     @return the class name of the object passed
 
-    @par Example:
-    @code
-my string $name = getClassName($obj);
-    @endcode
+    @deprecated use get_class_name(); camel-case function names were deprecated in %Qore 0.8.12
 */
-string getClassName(object obj) {
+string getClassName(object obj) [flags=CONSTANT,DEPRECATED] {
    return new QoreStringNode(obj->getClass()->getName());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing getClassName() [flags=RUNTIME_NOOP] {
+nothing getClassName() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns the class name of the object passed
+/**
+    @param obj the object to get the class name of
+    @return the class name of the object passed
+
+    @par Example:
+    @code{.py}
+string name = get_class_name(obj);
+    @endcode
+
+    @note equivalent to <object>::className()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getClassName()
+*/
+string get_class_name(object obj) [flags=CONSTANT] {
+   return new QoreStringNode(obj->getClass()->getName());
 }
 
 //! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as a URL
@@ -802,23 +954,21 @@ nothing getClassName() [flags=RUNTIME_NOOP] {
     - \c port: any port number given in the URL
 
     @par Example:
-    @code
-my hash $hash = parse_url($url_string);
+    @code{.py}
+hash hash = parse_url(url_string);
     @endcode
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
 hash parse_url(string url, bool keep_brackets = False) {
-   QoreURL qurl(url, keep_brackets);
-   if (!qurl.isValid()) {
-      xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url->getBuffer());
-      return 0;
-   }
-
+   QoreURL qurl(url, keep_brackets, xsink);
+   if (*xsink)
+      return QoreValue();
+   assert(qurl.isValid());
    return qurl.getHash();
 }
 
@@ -835,36 +985,36 @@ hash parse_url(string url, bool keep_brackets = False) {
     - \c port: any port number given in the URL
 
     @par Example:
-    @code
-my *hash $hash = parseURL($url_string);
+    @code{.py}
+*hash hash = parseURL(url_string);
     @endcode
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=<url_encoded_path>/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
-*hash parseURL(string url, bool keep_brackets = False) {
+*hash parseURL(string url, bool keep_brackets = False) [flags=CONSTANT] {
    QoreURL qurl(url, keep_brackets);
-   return qurl.isValid() ? qurl.getHash() : 0;
+   return qurl.isValid() ? qurl.getHash() : QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing parseURL() [flags=RUNTIME_NOOP] {
 }
 
 //! Executes a process and returns a string of the output (stdout only)
-/** 
+/**
     @param cmd The shell command to executed as a subprocess
     @param rc an optional reference to an integer to return the return code of the process
-    
+
     @return The stdout of the shell command that was executed
 
     @par Example:
-    @code
-my int $rc;
-my string $files = $files = backquote("ls", \$rc);
+    @code{.py}
+int rc;
+string files = backquote("ls", \rc);
     @endcode
 
     @throw BACKQUOTE-ERROR An error occurred with the fork() or opening the stdout pipe
@@ -881,15 +1031,15 @@ string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
    if (!*xsink && rc) {
       QoreTypeSafeReferenceHelper rh(rc, xsink);
       if (!rh)
-         return 0;
+         return QoreValue();
 
-      rh.assignBigInt(prc);
+      rh.assign((int64)prc);
    }
    return str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing backquote() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
@@ -902,19 +1052,67 @@ nothing backquote() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 
     @return the base64-encoded string of the data passed
 
-    @par Example:
-    @code
-my string $base64 = makeBase64String($data, 64);
-    @endcode
-
     @since the maxlinelen parameter was added in %Qore 0.8.4
 
     @see
     - <string>::toBase64()
-    - makeHexString(string)
+    - make_hex_string(string)
+
+    @deprecated use make_base64_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
-string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
+string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT,DEPRECATED] {
+   QoreStringNode* rv = new QoreStringNode;
+   rv->concatBase64(str, maxlinelen);
+   return rv;
+}
+
+//! Returns a base64-encoded representation of a binary object
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param bin the data to encode
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
+    @since the maxlinelen parameter was added in %Qore 0.8.4
+
+    @see
+    - <binary>::toBase64()
+    - make_hex_string(binary)
+
+    @deprecated use make_base64_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+string makeBase64String(binary bin, softint maxlinelen = -1) [flags=CONSTANT,DEPRECATED] {
+   return new QoreStringNode(bin, maxlinelen);
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+ */
+nothing makeBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns a base64-encoded representation of a string
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the string to encode
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+
+    @return the base64-encoded string of the data passed
+
+    @par Example:
+    @code{.py}
+string base64 = make_base64_string(data, 64);
+    @endcode
+
+    @see
+    - <string>::toBase64()
+    - make_hex_string(string)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case makeBase64String()
+*/
+string make_base64_string(string str, softint maxlinelen = -1) [flags=CONSTANT] {
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatBase64(str, maxlinelen);
    return rv;
 }
@@ -928,24 +1126,43 @@ string makeBase64String(string str, softint maxlinelen = -1) [flags=CONSTANT] {
     @return the base64-encoded string of the data passed
 
     @par Example:
-    @code
-my string $base64 = makeBase64String($data, 64);
+    @code{.py}
+string base64 = make_base64_string(data, 64);
     @endcode
-
-    @since the maxlinelen parameter was added in %Qore 0.8.4
 
     @see
     - <binary>::toBase64()
-    - makeHexString(binary)
+    - make_hex_string(binary)
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case makeBase64String()
 */
-string makeBase64String(binary bin, softint maxlinelen = -1) [flags=CONSTANT] {
+string make_base64_string(binary bin, softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(bin, maxlinelen);
 }
 
+//! Parses a base64 encoded string and returns a binary object of the decoded data
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the base64-encoded input data to decode
+
+    @return a binary object of the decoded data
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @see
+    - parse_hex_string()
+    - parse_base64_string_to_string()
+
+    @deprecated use parse_base64_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+binary parseBase64String(string str) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   return str->parseBase64(xsink);
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing makeBase64String() [flags=RUNTIME_NOOP] {
+nothing parseBase64String() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Parses a base64 encoded string and returns a binary object of the decoded data
@@ -956,22 +1173,49 @@ nothing makeBase64String() [flags=RUNTIME_NOOP] {
     @return a binary object of the decoded data
 
     @par Example:
-    @code
-my binary $bin = parseBase64String($base64_string);
+    @code{.py}
+binary bin = parse_base64_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
 
-    @see parseHexString(), parseBase64StringToString()
+    @see
+    - parse_hex_string()
+    - parse_base64_string_to_string()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case parseBase64String()
 */
-binary parseBase64String(string str) {
+binary parse_base64_string(string str) [flags=RET_VALUE_ONLY] {
    return str->parseBase64(xsink);
 }
 
+//! Parses a base64 encoded string and returns a string of the decoded data
+/** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+
+    @param str the base64-encoded input data to decode
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed.
+
+    @return a string of the decoded data tagged with the given encoding
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @since the encoding parameter was added in %Qore 0.8.4
+
+    @see
+    - parse_hex_string()
+    - parse_base64_string()
+
+    @deprecated use parse_base64_string_to_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+string parseBase64StringToString(string str, *string encoding) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   return str->parseBase64ToString(qe, xsink);
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing parseBase64String() [flags=RUNTIME_NOOP] {
+nothing parseBase64StringToString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Parses a base64 encoded string and returns a string of the decoded data
@@ -983,25 +1227,45 @@ nothing parseBase64String() [flags=RUNTIME_NOOP] {
     @return a string of the decoded data tagged with the given encoding
 
     @par Example:
-    @code
-my string $str = parseBase64String($base64_string);
+    @code{.py}
+string str = parse_base64_string_to_string(base64_string);
     @endcode
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
 
     @since the encoding parameter was added in %Qore 0.8.4
 
-    @see parseBase64String()
+    @see
+    - parse_hex_string()
+    - parse_base64_string_to_string()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case parseBase64StringToString()
 */
-string parseBase64StringToString(string str, *string encoding) {
+string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VALUE_ONLY] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    return str->parseBase64ToString(qe, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
- */
-nothing parseBase64StringToString() [flags=RUNTIME_NOOP] {
+//! Returns a list of hashes describing the currently-loaded %Qore modules
+/** @return a list of hashes describing the currently-loaded %Qore modules; each element in the list is a hash with the following keys:
+    - \c filename: the path to the module
+    - \c name: the name of the module
+    - \c desc: the description of the module
+    - \c version: the version of the module
+    - \c author: the author of the module
+    - \c api_major: the major number of the %Qore module API version the module support
+    - \c api_minor: the minor number of the %Qore module API version the module support
+    - \c url: the module's URL
+    - \c license: the module's license
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
+
+    @see get_module_hash()
+
+    @deprecated use get_module_list(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+list getModuleList() [flags=DEPRECATED] {
+   return MM.getModuleList();
 }
 
 //! Returns a list of hashes describing the currently-loaded %Qore modules
@@ -1017,13 +1281,17 @@ nothing parseBase64StringToString() [flags=RUNTIME_NOOP] {
     - \c license: the module's license
 
     @par Example:
-    @code
-my list $list = getModuleList();
+    @code{.py}
+list list = get_module_list();
     @endcode
 
-    @see getModuleHash()
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
+
+    @see get_module_hash()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleList()
 */
-list getModuleList() [flags=CONSTANT] {
+list get_module_list() {
    return MM.getModuleList();
 }
 
@@ -1039,26 +1307,65 @@ list getModuleList() [flags=CONSTANT] {
     - \c url: the module's URL
     - \c license: the module's license
 
-    @par Example:
-    @code
-my hash $mh = getModuleHash();
-    @endcode
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 
     @since %Qore 0.8.1
+
+    @deprecated use get_module_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getModuleHash() [flags=CONSTANT] {
+hash getModuleHash() [flags=DEPRECATED] {
+   return MM.getModuleHash();
+}
+
+//! Returns a hash of hashes describing the currently-loaded %Qore modules; the top-level hash keys are the module names
+/** @return a hash of hashes describing the currently-loaded %Qore modules; the top-level hash keys are the module names; the values are hashes with the following keys:
+    - \c filename: the path to the module
+    - \c name: the name of the module
+    - \c desc: the description of the module
+    - \c version: the version of the module
+    - \c author: the author of the module
+    - \c api_major: the major number of the %Qore module API version the module support
+    - \c api_minor: the minor number of the %Qore module API version the module support
+    - \c url: the module's URL
+    - \c license: the module's license
+
+    @par Example:
+    @code{.py}
+hash mh = get_module_hash();
+    @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleHash()
+*/
+hash get_module_hash() {
    return MM.getModuleHash();
 }
 
 //! Returns a list of strings of the builtin and module-supplied features of Qore
 /** @return a list of strings of the builtin and module-supplied features of Qore
 
-    @par Example:
-    @code
-my list $list = getFeatureList();
-    @endcode
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
+
+    @deprecated use get_feature_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getFeatureList() [flags=CONSTANT] {
+list getFeatureList() [flags=DEPRECATED] {
+   return getProgram()->getFeatureList();
+}
+
+//! Returns a list of strings of the builtin and module-supplied features of Qore
+/** @return a list of strings of the builtin and module-supplied features of Qore
+
+    @par Example:
+    @code{.py}
+list list = get_feature_list();
+    @endcode
+
+    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case getFeatureList()
+*/
+list get_feature_list() {
    return getProgram()->getFeatureList();
 }
 
@@ -1068,8 +1375,8 @@ list getFeatureList() [flags=CONSTANT] {
     @return a list of all the values in the hash argument passed
 
     @par Example:
-    @code
-my list $vl = hash_values($vl);
+    @code{.py}
+list vl = hash_values(vl);
     @endcode
 
     @note equivalent to <hash>::values()
@@ -1077,7 +1384,7 @@ my list $vl = hash_values($vl);
     @see <hash>::keys()
 */
 list hash_values(hash h) [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
+   QoreListNode* l = new QoreListNode;
 
    ConstHashIterator hi(h);
    while (hi.next())
@@ -1087,21 +1394,21 @@ list hash_values(hash h) [flags=CONSTANT] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hash_values() [flags=RUNTIME_NOOP] {
 }
 
 //! Returns @ref True if the given key exists in the hash (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered
-/** 
+/**
     @param h the hash to check
     @param key the key name to check; this value will be converted to the @ref default_encoding "default character encoding" to check the hash
 
     @return @ref True if the given key exists in the hash (does not necessarily have to have a value assigned), @ref False if the key is not present at all
 
     @par Example:
-    @code
-my bool $b = has_key($hash, "key");
+    @code{.py}
+bool b = has_key(hash, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1113,10 +1420,10 @@ bool has_key(hash h, string key) {
 }
 
 //! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
-/** 
+/**
     @par Example:
-    @code
-my bool $b = has_key($obj, "key");
+    @code{.py}
+bool b = has_key(obj, "key");
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
@@ -1125,118 +1432,108 @@ my bool $b = has_key($obj, "key");
 */
 bool has_key(object obj, string key) {
    AutoVLock vl(xsink);
-   AbstractQoreNode **ptr = obj->getExistingValuePtr(key, &vl, xsink);
+   AbstractQoreNode* *ptr = obj->getExistingValuePtr(key, &vl, xsink);
    return (bool)ptr;
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param str the string data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $byte = get_byte($str, 2); # returns the third byte of the string
+    @code{.py}
+*int byte = get_byte(str, 2); # returns the third byte of the string
     @endcode
 
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return ptr[offset];
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param b the data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
+    @code{.py}
+*int byte = get_byte(bin, 2); # returns the third byte of the binary object
     @endcode
 
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return ptr[offset];
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param str the string data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example:
-    @code
-my *int $byte = get_byte($str, 2); # returns the third byte of the string
-    @endcode
-
     @note that for strings this function is not equivalent to the @ref list_element_operator "[] operator" for multi-byte character encodings, as this function works purely on bytes and the @ref list_element_operator "[] operator" operates on characters\n\n
     Furthermore this function is identical to get_byte(), except this function has a @ref RUNTIME_NOOP variant
 
-    @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
+    @deprecated since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
 *int getByte(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return ptr[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
-/** 
+/**
     @param b the data to process
     @param offset the byte offset of the data to retrieve (the first value is at offset 0)
 
     @return the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example:
-    @code
-my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
-    @endcode
-
     @note this function is equivalent to the more efficient @ref list_element_operator "[] operator" when used with a binary argument\n\n
     Furthermore this function is identical to get_byte(), except this function has a @ref RUNTIME_NOOP variant
 
-    @since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
+    @deprecated %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
 *int getByte(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= size || offset < 0)
-      return 0;
+      return QoreValue();
 
-   return new QoreBigIntNode(ptr[offset]);  
+   return ptr[offset];
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1248,21 +1545,20 @@ my *int $byte = get_byte($bin, 2); # returns the third byte of the binary object
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value in the string
+    @code{.py}
+*int val = get_word_16(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16_lsb()
 */
 *int get_word_16(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = ntohs(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohs(*((unsigned short*)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1274,22 +1570,20 @@ my *int $val = get_word_16($str, 2); # returns the third 2-byte (16-bit) value i
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+    @code{.py}
+*int val = get_word_16(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16_lsb()
 */
 *int get_word_16(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = ntohs(*((unsigned short *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return ntohs(*((unsigned short*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1301,8 +1595,8 @@ my *int $val = get_word_16($bin, 2); # returns the third 2-byte (16-bit) value i
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value in the string
+    @code{.py}
+*int val = get_word_32(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1310,14 +1604,13 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
     @see get_word_32_lsb()
 */
 *int get_word_32(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1329,8 +1622,8 @@ my *int $val = get_word_32($str, 4); # returns the third 4-byte (32-bit) value i
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+    @code{.py}
+*int val = get_word_32(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1338,15 +1631,13 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
     @see get_word_32_lsb()
 */
 *int get_word_32(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int*)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1357,24 +1648,18 @@ my *int $val = get_word_32($bin, 2); # returns the third 4-byte (32-bit) value i
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example:
-    @code
-my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in the string
-    @endcode
-
     @note This function is identical to get_word_32(), except this function has a @ref RUNTIME_NOOP variant
 
-    @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
+    @deprecated %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return ntohl(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1385,31 +1670,24 @@ my *int $val = getWord32($str, 4); # returns the third 4-byte (32-bit) value in 
 
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
-    @par Example:
-    @code
-my *int $val = getWord32($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
-    @endcode
-
     @note This function is identical to get_word_32(), except this function has a @ref RUNTIME_NOOP variant
 
-    @since %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
+    @deprecated %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(binary b, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = ntohl(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)ntohl(*((unsigned int *)&ptr[offset]));
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing getWord32() [flags=RUNTIME_NOOP] {
+nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1421,21 +1699,20 @@ nothing getWord32() [flags=RUNTIME_NOOP] {
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value in the string
+    @code{.py}
+*int val = get_word_64(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64_lsb()
 */
 *int get_word_64(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = MSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)MSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1447,22 +1724,20 @@ my *int $val = get_word_64($str, 4); # returns the third 8-byte (64-bit) value i
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+    @code{.py}
+*int val = get_word_64(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64_lsb()
 */
 *int get_word_64(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = MSBi8(*((int64 *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)MSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1474,21 +1749,20 @@ my *int $val = get_word_64($bin, 2); # returns the third 8-byte (64-bit) value i
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) value in the string
+    @code{.py}
+*int val = get_word_16_lsb(str, 2); # returns the third 2-byte (16-bit) value in the string
     @endcode
 
     @see get_word_16()
 */
 *int get_word_16_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = LSBi2(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi2(*((unsigned short *)&ptr[offset]));
 }
 
 //! Returns the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1500,21 +1774,20 @@ my *int $val = get_word_16_lsb($str, 2); # returns the third 2-byte (16-bit) val
     @return the 16-bit integer value at the given 2-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) value in the binary object
+    @code{.py}
+*int val = get_word_16_lsb(bin, 2); # returns the third 2-byte (16-bit) value in the binary object
     @endcode
 
     @see get_word_16()
 */
 *int get_word_16_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 1) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   short val = LSBi2(*((unsigned short *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi2(*((unsigned short *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1526,8 +1799,8 @@ my *int $val = get_word_16_lsb($bin, 2); # returns the third 2-byte (16-bit) val
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) value in the string
+    @code{.py}
+*int val = get_word_32_lsb(str, 4); # returns the third 4-byte (32-bit) value in the string
     @endcode
 
     @note This function is identical to getWord32(), except this function has no @ref RUNTIME_NOOP variant
@@ -1535,14 +1808,13 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
     @see get_word_32()
 */
 *int get_word_32_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi4(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1554,22 +1826,20 @@ my *int $val = get_word_32_lsb($str, 4); # returns the third 4-byte (32-bit) val
     @return the 32-bit integer value at the given 4-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) value in the binary object
+    @code{.py}
+*int val = get_word_32_lsb(bin, 2); # returns the third 4-byte (32-bit) value in the binary object
     @endcode
 
     @see get_word_32()
 */
 *int get_word_32_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 3) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi4(*((unsigned int *)&ptr[offset]));
-
-   return new QoreBigIntNode(val);
+   return (int64)LSBi4(*((unsigned int *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1581,21 +1851,20 @@ my *int $val = get_word_32_lsb($bin, 2); # returns the third 4-byte (32-bit) val
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) value in the string
+    @code{.py}
+*int val = get_word_64_lsb(str, 4); # returns the third 8-byte (64-bit) value in the string
     @endcode
 
     @see get_word_64()
 */
 *int get_word_64_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->getBuffer();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! Returns the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1607,21 +1876,20 @@ my *int $val = get_word_64_lsb($str, 4); # returns the third 8-byte (64-bit) val
     @return the 64-bit integer value at the given 8-byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
 
     @par Example:
-    @code
-my *int $val = get_word_64_lsb($bin, 2); # returns the third 8-byte (64-bit) value in the binary object
+    @code{.py}
+*int val = get_word_64_lsb(bin, 2); # returns the third 8-byte (64-bit) value in the binary object
     @endcode
 
     @see get_word_64()
 */
 *int get_word_64_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char *ptr = (unsigned char *)b->getPtr();
+   unsigned char* ptr = (unsigned char* )b->getPtr();
    int size = b->size();
 
    if (offset >= (size - 7) || offset < 0)
-      return 0;
+      return QoreValue();
 
-   int64 val = LSBi8(*((int64 *)&ptr[offset]));
-   return new QoreBigIntNode(val);
+   return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! This function always returns an empty string \c ""
@@ -1644,8 +1912,8 @@ string splice(string[doc] str) [flags=NOOP] {
     @return the processed string
 
     @par Example:
-    @code
-my string $str = splice($str2, 5);
+    @code{.py}
+string str = splice(str2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1653,7 +1921,7 @@ my string $str = splice($str2, 5);
 string splice(string str, softint start) {
    QoreStringNodeHolder pstr(str->copy());
    pstr->splice(start, xsink);
-   return *xsink ? 0 : pstr.release();
+   return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a string based on the argument string but optionally with characters removed and/or added from a certain character index
@@ -1667,8 +1935,8 @@ string splice(string str, softint start) {
     @return the processed string with characters removed and/or added according to the arguments
 
     @par Example:
-    @code
-my string $str = splice($str2, 5, 7, "hello");
+    @code{.py}
+string str = splice(str2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1676,7 +1944,7 @@ my string $str = splice($str2, 5, 7, "hello");
 string splice(string str, softint start, softint len, *string nstr) {
    QoreStringNodeHolder pstr(str->copy());
    pstr->splice(start, len, nstr, xsink);
-   return *xsink ? 0 : pstr.release();
+   return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a list based on the argument list but with elements removed from the given index to the end of the list
@@ -1686,8 +1954,8 @@ string splice(string str, softint start, softint len, *string nstr) {
     @param start the starting element (where the first element is 0) to start removing elements; if this value is negative, it gives the offset from the end of the list
 
     @par Example:
-    @code
-my list $l = splice($l2, 5);
+    @code{.py}
+list l = splice(l2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1695,7 +1963,7 @@ my list $l = splice($l2, 5);
 list splice(list l, softint start) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
    lst->splice(start, xsink);
-   return *xsink ? 0 : lst.release();
+   return *xsink ? QoreValue() : lst.release();
 }
 
 //! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
@@ -1709,8 +1977,8 @@ list splice(list l, softint start) {
     @return the processed list with elements removed and/or added according to the arguments
 
     @par Example:
-    @code
-my list $l = splice($l2, 5, 7, "hello");
+    @code{.py}
+list l = splice(l2, 5, 7, "hello");
     @endcode
 
     @see the @ref splice "splice operator"
@@ -1718,11 +1986,11 @@ my list $l = splice($l2, 5, 7, "hello");
 list splice(list l, softint start, softint len, *softlist nlist) {
    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
    lst->splice(start, len, nlist, xsink);
-   return *xsink ? 0 : lst.release();
+   return *xsink ? QoreValue() : lst.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing splice() [flags=RUNTIME_NOOP] {
 }
@@ -1732,18 +2000,62 @@ nothing splice() [flags=RUNTIME_NOOP] {
 
     @return a string of hex digits repsenting the bytes of the argument passed
 
+    @see
+    - <string>::toHex()
+    - make_base64_string(string, softint)
+    - parse_hex_string()
+
+    @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
+   QoreStringNode* rv = new QoreStringNode;
+   rv->concatHex(str);
+   return rv;
+}
+
+//! Returns a hex-encoded representation of a binary object
+/** @param bin the binary object to encode
+
+    @return a string of hex digits repsenting the bytes of the argument passed
+
+    @see
+    - <binary>::toHex()
+    - make_base64_string(string, softint)
+    - parse_hex_string()
+
+    @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+string makeHexString(binary bin) [flags=CONSTANT,DEPRECATED] {
+   QoreStringNode* str = new QoreStringNode;
+   str->concatHex(bin);
+   return str;
+}
+
+//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
+/**
+ */
+nothing makeHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
+}
+
+//! Returns a hex-encoded representation of a string
+/** @param str the string to encode
+
+    @return a string of hex digits repsenting the bytes of the argument passed
+
     @par Example:
-    @code
-my string $str = makeHexString($str2);
+    @code{.py}
+string str = make_hex_string(str2);
     @endcode
 
     @see
-    - <string>::toHex()
-    - makeBase64String(string)
-    - parseHexString()
+    - <binary>::toHex()
+    - make_base64_string(binary, softint)
+    - parse_hex_string()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
-string makeHexString(string str) [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
+string make_hex_string(string str) [flags=CONSTANT] {
+   QoreStringNode* rv = new QoreStringNode;
    rv->concatHex(str);
    return rv;
 }
@@ -1754,25 +2066,44 @@ string makeHexString(string str) [flags=CONSTANT] {
     @return a string of hex digits repsenting the bytes of the argument passed
 
     @par Example:
-    @code
-my string $str = makeHexString($bin);
+    @code{.py}
+string str = make_hex_string(bin);
     @endcode
 
     @see
     - <binary>::toHex()
-    - makeBase64String(binary)
-    - parseHexString()
+    - make_base64_string(binary, softint)
+    - parse_hex_string()
+
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
-string makeHexString(binary bin) {
-   QoreStringNode *str = new QoreStringNode;
+string make_hex_string(binary bin) [flags=CONSTANT] {
+   QoreStringNode* str = new QoreStringNode;
    str->concatHex(bin);
    return str;
 }
 
+//! Parses a hex-encoded string and returns the binary object
+/** @param hexstr a string of an even-number of only hexadecimal digits
+
+    @return a binary object of the decoded data
+
+    @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
+
+    @see
+    - parse_base64_string()
+    - make_hex_string()
+
+    @deprecated use parse_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
+*/
+binary parseHexString(string hexstr) [flags=RET_VALUE_ONLY,DEPRECATED] {
+   return hexstr->parseHex(xsink);
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
-nothing makeHexString() [flags=RUNTIME_NOOP] {
+nothing parseHexString() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
 //! Parses a hex-encoded string and returns the binary object
@@ -1781,23 +2112,20 @@ nothing makeHexString() [flags=RUNTIME_NOOP] {
     @return a binary object of the decoded data
 
     @par Example:
-    @code
-my binary $bin = parseHexString($hex_string);
+    @code{.py}
+binary bin = parseHexString(hex_string);
     @endcode
 
     @throw PARSE-HEX-ERROR A syntax error occurred parsing the hex string (odd number of digits, invalid hex character, etc)
 
-    @see parseBase64String()
-    @see makeHexString();
-*/
-binary parseHexString(string hexstr) {
-   return hexstr->parseHex(xsink);
-}
+    @see
+    - parse_base64_string()
+    - make_hex_string()
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
- */
-nothing parseHexString() [flags=RUNTIME_NOOP] {
+    @since %Qore 0.8.12 as a replacement for deprecated camel-case parseHexString()
+*/
+binary parse_hex_string(string hexstr) [flags=RET_VALUE_ONLY] {
+   return hexstr->parseHex(xsink);
 }
 
 //! Returns an integer for a hexadecimal string value; throws an exception if non-hex digits are found
@@ -1806,8 +2134,8 @@ nothing parseHexString() [flags=RUNTIME_NOOP] {
     @return the base-10 integer corresponding to the argument
 
     @par Example:
-    @code
-my int $i = hextoint("ab3d4e0f12");
+    @code{.py}
+int i = hextoint("ab3d4e0f12");
     @endcode
 
     @throw PARSE-HEX-ERROR invalid hex digit found
@@ -1818,7 +2146,7 @@ int hextoint(string str) {
 
    int64 rc = 0;
    int64 pow = 0;
-   const char *buf = str->getBuffer();
+   const char* buf = str->getBuffer();
    qore_size_t len = str->size();
    if (*buf == '0' && *(buf + 1) == 'x') {
       buf += 2;
@@ -1828,7 +2156,7 @@ int hextoint(string str) {
       buf++;
       --len;
    }
-   for (const char *p = buf + len - 1; p >= buf; p--) {
+   for (const char* p = buf + len - 1; p >= buf; p--) {
       int n = get_nibble(*p, xsink);
       if (xsink->isException())
 	 return 0;
@@ -1845,7 +2173,7 @@ int hextoint(string str) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing hextoint() [flags=RUNTIME_NOOP] {
 }
@@ -1853,14 +2181,14 @@ nothing hextoint() [flags=RUNTIME_NOOP] {
 //! parses a string representing a number in a configurable base and returns the integer
 /** @param num a string representing a number
     @param base the base of the number
-    
+
     @return the integer represented by the string and the base
 
     @par Example:
-    @code
-my int $i = strtoint("41", 8);
+    @code{.py}
+int i = strtoint("41", 8);
     @endcode
-    
+
     @throw STRTOINT-ERROR cannot parse string; unsupported base, etc
 */
 int strtoint(string num, softint base = 10) {
@@ -1872,7 +2200,7 @@ int strtoint(string num, softint base = 10) {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing strtoint() [flags=RUNTIME_NOOP] {
 }
@@ -1885,13 +2213,15 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
 
     @par Example:
-    @code
+    @code{.py}
 load_module("mysql");
     @endcode
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
 
-    @see getModuleHash(), getFeatureList()
+    @see
+    - get_module_hash()
+    - get_feature_list()
 
     @since %Qore 0.8.7 this function can also be used in user module code
 */
@@ -1900,9 +2230,52 @@ nothing load_module(string name) [dom=MODULES] {
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
+}
+
+//! Loads in a %Qore user module at run-time with using the given @ref Qore::Program "Program" object as the container for the user module code
+/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container
+
+    @par Example:
+    @code{.py}
+load_user_module_with_program("MyModule", p);
+    @endcode
+
+    @param name the name or path of the user module to load
+    @param pgm the @ref Qore::Program "Program" object to use as a container for the new user module, presumably this has a custom API that the user module can use; note that after this call the @ref Qore::Program "Program" object will be owned by the user module, therefore the object itself will no longer be valid and any accesses to the object after this call will result in an exception
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
+
+    @since %Qore 0.8.12
+ */
+nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
+}
+
+//! Reloads an already-loaded %Qore module subject to code injection at run-time into %Qore; the module's code is not imported into the current Program object
+/**
+    @param name a feature name for an already-loaded module
+
+    @par Example:
+    @code{.py}
+reload_module("FixedLengthUtil");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, etc
+
+    @note
+    - unlike load_module(), this function does not cause the given module's code to be loaded in the current Program object
+    - in case the given feature has not been loaded or has already been loaded and was not subject to code injection, this call is silently ignored
+
+    @see
+    - load_module()
+
+    @since %Qore 0.8.12
+*/
+nothing reload_module(string name) [dom=MODULES,INJECTION] {
+   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
@@ -1911,43 +2284,43 @@ nothing load_module() [flags=RUNTIME_NOOP;dom=MODULES] {
     @return the URL string in UTF-8 encoding with all percent-encodings decoded
 
     @par Example:
-    @code
-my string $decoded_url = decode_url($encoded_url);
+    @code{.py}
+string decoded_url = decode_url(encoded_url);
     @endcode
 
-    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
+    @note percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>
 
     @see
     - encode_url()
     - encode_uri_request()
-    - decode_uri_request()
+    - decode_uri_request() for a similar function that provides AJAX-compatible URI decoding for the URI query component
 */
 string decode_url(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
    str->concatDecodeUrl(*url, xsink);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/** 
+/**
  */
 nothing decode_url() [flags=RUNTIME_NOOP] {
 }
 
 //! Encodes URLs by substituting \c '%%' characters with \c '%25', spaces (\c ' ') with \c '%20', and non-ascii characters by percent-encoded representations
 /** @param url a URL string to encode
-    @param encode_all if @ref Qore::True "True", then in addition to \c '%%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']' 
+    @param encode_all if @ref Qore::True "True", then in addition to \c '%%', spaces (\c ' '), and non-ascii characters the following reserved characters (according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> are also encoded: \c '!', \c '*', \c '\'', \c '(', \c ')', \c ';', \c ':', \c '@', \c '&', \c '=', \c '+', \c '$', \c ',', \c '/', \c '?', \c '#', \c '[', \c ']'
 
     @return the URL string with encoded according to the arguments
 
     @par Example:
-    @code
-my string $encoded_url = encode_url($url);
+    @code{.py}
+string encoded_url = encode_url(url);
     @endcode
 
     @see
     - decode_url()
-    - encode_uri_request()
+    - encode_uri_request() for a similar function that provides AJAX-compatible URI encoding for the URI query component
     - decode_uri_request()
 
     @since %Qore 0.8.9
@@ -1955,22 +2328,28 @@ my string $encoded_url = encode_url($url);
 string encode_url(string url, softbool encode_all = False) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUrl(xsink, url, encode_all);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! Decodes percent-encoded codes in a URI path and converts \c "+" signs in the query component to spaces and returns the decoded string in UTF-8 encoding
-/** @param uri a URI request string to decode
+/** @par Example:
+    @code{.py}
+string decoded_uri = decode_uri_request("path/to/something%20else?query=1%2b1+%2b2");
+# results in: "path/to/something else?query=1+1 +2"
+    @endcode
+
+    @param uri a URI request string to decode
 
     @return the decoded URI request string in UTF-8 encoding
 
-    @par Example:
-    @code
-my string $decoded_uri = decode_uri_request($encoded_uri);
-    @endcode
+    The URI string is divided into three parts:
+    - the path, which is the first part of the URI string up until any \c "?" or \c "#" character
+    - the query, which is any string following a \c "?" character terminating the path and up to a possible \c "#" character
+    - the fragment, which is any string following a \c "#" character
 
-    @note
-    - percent decoding is made according to <a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986</a>
-    - the difference between this function and @ref Qore::decode_url() is in the logic for handling of the URI query string
+    For all parts, any percent-encoded codes (<a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>) are decoded to the corresponinding character.  The path component is identified and distinguished by a \c "?" or a \c "#" character.  The path component is subjected to standard percent encoding.  The query component is any part of the URI string following a \c "?" character up to the end of the URI string or until a \c "#" characer is found.  The query component is subjected to special decoding for AJAX compatibility; \c "+" characters are decoded to ASCII space (therefore any \c "+" charaters in the query component of the URI must be encoded with percent encoding, such is the case with @ref Qore::encode_uri_request() for example).  The fragment component is identified as any text following a \c "#" character, and this is decoded with the same rules as in the path component.
+
+    @note the difference between this function and @ref Qore::decode_url() is that this function employs special logic in the decoding of the different components of the URI string for compatibility with common AJAX libraries that encode ASCII spaces as \c "+" in the query component of the URI string.
 
     @see
     - encode_uri_request()
@@ -1979,44 +2358,53 @@ my string $decoded_uri = decode_uri_request($encoded_uri);
 
     @since %Qore 0.8.12
 */
-string decode_uri_request(string url) [flags=CONSTANT] {
+string decode_uri_request(string uri) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(QCS_UTF8));
-   str->concatDecodeUriRequest(*url, xsink);
-   return *xsink ? 0 : str.release();
+   str->concatDecodeUriRequest(*uri, xsink);
+   return *xsink ? QoreValue() : str.release();
 }
 
-//! Encodes URI requests by substituting all special characters according to <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a> in the path with percent-encoded ewquivalents and substituting spaces with \c "+" in the URI query component
-/** @param url a URL string to encode
+//! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
+/** @par Example:
+    @code{.py}
+string encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'
+# results in: "path/to/something%20else?query=1%2b1+%2b2"
+    @endcode
+
+    @param url a URL string to encode
 
     @return the URI request string with encoded according to the arguments
 
-    @par Example:
-    @code
-my string $encoded_uri = encode_uri_request($uri_request);
-    @endcode
+    The URI string is divided into three parts:
+    - the path, which is the first part of the URI string up until any \c "?" or \c "#" character
+    - the query, which is any string following a \c "?" character terminating the path and up to a possible \c "#" character
+    - the fragment, which is any string following a \c "#" character
 
-    @note
-    - the difference between this function and @ref Qore::encode_url() is in the logic for handling of the URI query string
+    For all parts, any non-ASCII characters and the \c "%" character are subjected to percent encoding (<a href="http://tools.ietf.org/html/rfc3986#section-2.1">RFC 3986 2.1</a>).  The path component is identified and distinguished by a \c "?" or a \c "#" character.  Any spaces in the path component are also subjected to percent encoding.  The query component is any part of the URI string following a \c "?" character up to the end of the URI string or until a \c "#" characer is found.  Spaces in the query component are encoded with \c "+" for compatibility with AJAX libraries, and \c "+" signs are subjected to percent encoding.  The fragment component is identified as any text following a \c "#" character, and this is encoded with the same rules as in the path component.
+
+    @note the difference between this function and @ref Qore::encode_url() is that this function employs special logic in the encoding of the different components of the URI string for compatibility with common AJAX libraries that encode ASCII spaces as \c "+" in the query component of the URI string
 
     @see
     - decode_uri_request()
     - decode_url()
     - encode_url()
+    - <a href="http://tools.ietf.org/html/rfc3986">RFC 3986</a>
+    - <a href="http://tools.ietf.org/html/rfc6874">RFC 6874</a>
 
     @since %Qore 0.8.12
 */
 string encode_uri_request(string url) [flags=CONSTANT] {
    QoreStringNodeHolder str(new QoreStringNode(url->getEncoding()));
    str->concatEncodeUriRequest(xsink, url);
-   return *xsink ? 0 : str.release();
+   return *xsink ? QoreValue() : str.release();
 }
 
 //! Returns the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 /** @return the path (directory and filename) of the current script or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_path();
+    @code{.py}
+*string str = get_script_path();
     @endcode
 */
 *string get_script_path() {
@@ -2027,8 +2415,8 @@ my *string $str = get_script_path();
 /** @return the name of the directory from which the current script was executed or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_dir();
+    @code{.py}
+*string str = get_script_dir();
     @endcode
 */
 *string get_script_dir() {
@@ -2039,8 +2427,8 @@ my *string $str = get_script_dir();
 /** @return the filename of the current script if known or @ref nothing if unknown (i.e. no parent script, script read from stdin, etc)
 
     @par Example:
-    @code
-my *string $str = get_script_name();
+    @code{.py}
+*string str = get_script_name();
     @endcode
 */
 *string get_script_name() {
@@ -2055,17 +2443,17 @@ my *string $str = get_script_name();
     - \c value: The boolean value of the option
 
     @par Example:
-    @code
-my list $l = get_qore_option_list();
+    @code{.py}
+list l = get_qore_option_list();
     @endcode
 
     @see get_qore_option_hash()
 */
 list get_qore_option_list() [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
+   QoreListNode* l = new QoreListNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode *h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
       h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
       h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
@@ -2083,8 +2471,8 @@ list get_qore_option_list() [flags=CONSTANT] {
     - \c value: The boolean value of the option
 
     @par Example:
-    @code
-my hash $h = get_qore_option_hash();
+    @code{.py}
+hash h = get_qore_option_hash();
     @endcode
 
     @see get_qore_option_list()
@@ -2092,10 +2480,10 @@ my hash $h = get_qore_option_hash();
     @since %Qore 0.8.4
 */
 hash get_qore_option_hash() [flags=CONSTANT] {
-   QoreHashNode *rv = new QoreHashNode;
+   QoreHashNode* rv = new QoreHashNode;
 
    for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode *h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode;
       h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
       h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
       h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
@@ -2122,16 +2510,16 @@ hash get_qore_option_hash() [flags=CONSTANT] {
     - \c LDFLAGS: The linker flags used to link the %Qore library
 
     @par Example:
-    @code
-my hash $h = get_qore_library_info();
+    @code{.py}
+hash h = get_qore_library_info();
     @endcode
 */
 hash get_qore_library_info() [flags=CONSTANT] {
-   QoreHashNode *h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode;
 
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
-   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);   
+   h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);
    h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
    h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
    h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
@@ -2153,8 +2541,8 @@ hash get_qore_library_info() [flags=CONSTANT] {
 
 //! returns the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
 /** @par Example:
-    @code
-my int $i = get_parse_options();
+    @code{.py}
+int i = get_parse_options();
     @endcode
 
     @return the current @ref parse_options "parse options" for the current @ref Qore::Program "Program" object
@@ -2165,14 +2553,30 @@ int get_parse_options() [flags=CONSTANT] {
    return runtime_get_parse_options();
 }
 
+//! sets the return value for a Program object when running with @ref exec-class "%exec-class"
+/** @par Example:
+    @code{.py}
+set_return_value(1);
+    @endcode
+
+    @param val the return value for the Program
+
+    @throw SETRETURNVALUE-ERROR this exception is thrown if the Program is not currently running in @ref exec-class "%exec-class" mode
+
+    @since %Qore 0.8.12
+ */
+set_return_value(any val) [dom=PROCESS] {
+   qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
+}
+
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument
 /** @par Example:
-    @code
+    @code{.py}
 try {
-    throw "oops", sprintf("arg %y is invalid", $arg);
+    throw "oops", sprintf("arg %y is invalid", arg);
 }
-catch (hash $ex) {
-    log("%s: %s: %s", get_ex_pos($ex), $ex.err, $ex.desc);
+catch (hash ex) {
+    log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
 }
     @endcode
 

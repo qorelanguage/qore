@@ -10,13 +10,14 @@
     @verbatim prompt$ qore -wdeprecated -wduplicate-hash-key script.q@endverbatim
 
     @par %Qore Code Example
-    @code
+    @code{.py}
 %enable-warning deprecated
 %enable-warning duplicate-hash-key
 %disable-warning excess-args
     @endcode
 
     @par List of All Warnings
+    - @ref warning-broken-logic-precedence broken-logic-precedence
     - @ref call-with-type-errors
     - @ref deprecated-warning
     - @ref duplicate-block-vars
@@ -33,6 +34,13 @@
     - @ref unreachable-code
     - @ref unreferenced-variable
     - @ref warning-mask-unchanged
+
+    <hr>
+    @section warning-broken-logic-precedence broken-logic-precedence
+    Only available with @ref broken-logic-precedence "%broken-logic-precedence" parse define.
+    Raised when the parser determins that meaning of an expression is affected by the @ref broken-logic-precedence "%broken-logic-precedence" parse define.
+
+    @since %Qore 0.8.12.11
 
     <hr>
     @section call-with-type-errors
