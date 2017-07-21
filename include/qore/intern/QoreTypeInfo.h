@@ -222,11 +222,18 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
       bool may_not_match = true;
-      return parseAccepts(first, second, may_not_match);
+      bool may_need_filter = true;
+      return parseAccepts(first, second, may_not_match, may_need_filter);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
+      bool may_need_filter = true;
+      return parseAccepts(first, second, may_not_match, may_need_filter);
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
       if (!hasType(first))
          return QTI_AMBIGUOUS;
       if (!hasType(second)) {
@@ -235,7 +242,7 @@ public:
       }
       if (first == second)
          return QTI_IDENT;
-      return first->parseAccepts(second, may_not_match);
+      return first->parseAccepts(second, may_not_match, may_need_filter);
    }
 
    // static version of method, checking for null pointer
@@ -552,7 +559,7 @@ protected:
       return false;
    }
 
-   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match) const {
+   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
       //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
       if (typeInfo->return_vec.size() > accept_vec.size()) {
          may_not_match = true;
@@ -562,25 +569,9 @@ protected:
       for (auto& rt : typeInfo->return_vec) {
          bool t_no_match = true;
          for (auto& at : accept_vec) {
-            qore_type_result_e res = at.spec.match(rt.spec, may_not_match);
-            switch (res) {
-               case QTI_IDENT:
-                  if (at.exact && rt.exact)
-                     return QTI_IDENT;
-                  // fall down to next case
-               case QTI_AMBIGUOUS:
-                  if (t_no_match) {
-                     t_no_match = false;
-                     if (!ok) {
-                        ok = true;
-                        if (may_not_match)
-                           return QTI_AMBIGUOUS;
-                     }
-                  }
-                  // fall down to default
-               default:
-                  break;
-            }
+            qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
+            if (res != QTI_NOT_EQUAL)
+               return res;
          }
          if (t_no_match) {
             if (!may_not_match) {
@@ -617,6 +608,34 @@ protected:
 
    // returns true if there is no type or if the type can be converted to a scalar (numeric, bool, int, string, etc) value, false true if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
+
+   DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
+      qore_type_result_e res = at.spec.match(rt.spec, may_not_match);
+      switch (res) {
+         case QTI_IDENT:
+            if (at.exact && rt.exact) {
+               if (at.map && !may_need_filter)
+                  may_need_filter = true;
+               return QTI_IDENT;
+            }
+         // fall down to next case
+         case QTI_AMBIGUOUS:
+            if (at.map && !may_need_filter)
+               may_need_filter = true;
+            if (t_no_match) {
+               t_no_match = false;
+               if (!ok) {
+                  ok = true;
+                  if (may_not_match)
+                     return QTI_AMBIGUOUS;
+               }
+            }
+         // fall down to default
+         default:
+            break;
+      }
+      return QTI_NOT_EQUAL;
+   }
 
    DLLLOCAL static void getNodeType(QoreString& str, const QoreValue& n) {
       qore_type_t nt = n.getType();
