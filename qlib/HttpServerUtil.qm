@@ -246,6 +246,12 @@ public namespace HttpServer {
 
         #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
         bool reply_sent = False;
+
+        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+        string log;
+
+        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+        string errlog;
     }
 
     #! the return value of HTTP handler methods with potentially unserialized message bodies
@@ -264,6 +270,12 @@ public namespace HttpServer {
 
         #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
         bool reply_sent = False;
+
+        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+        string log;
+
+        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+        string errlog;
     }
 
     #! returns a complete URL from a bind address

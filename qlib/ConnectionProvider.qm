@@ -107,7 +107,7 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 #! the ConnectionProvider namespace contains all the objects in the ConnectionProvider module
 public namespace ConnectionProvider {
     #! connection information hash as returned by @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()"
-    hashdecl ConnectionInfo {
+    public hashdecl ConnectionInfo {
         string name;      #!< the connection name
         string desc;      #!< the connection description
         *date last_check; #!< the date/time value of the last connection check (or @ref nothing if not checked)
@@ -123,7 +123,7 @@ public namespace ConnectionProvider {
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
-    hashdecl ConfigInfo {
+    public hashdecl ConfigInfo {
         string name;  #!< the name of the connection
         string desc;  #!< the description
         string url;   #!< the full URL (including any username & password)
@@ -131,7 +131,7 @@ public namespace ConnectionProvider {
     }
 
     #! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
-    hashdecl PingInfo {
+    public hashdecl PingInfo {
         string name;  #!< the name of the connection
         string desc;  #!< the description
         *hash opts;   #!< the options set on the connection

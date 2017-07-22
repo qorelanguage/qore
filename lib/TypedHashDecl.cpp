@@ -223,7 +223,7 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreListNode* args, bool ru
     if (runtime_check && *a && !a->empty()) {
         const AbstractQoreNode* n = a->retrieve_entry(0);
         if (get_node_type(n) != NT_HASH) {
-            xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl hash initializer value must be a hash; got type '%s' instead", get_type_name(n));
+            xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl '%s' hash initializer value must be a hash; got type '%s' instead", name.c_str(), get_type_name(n));
             return nullptr;
         }
 
@@ -243,7 +243,7 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
         ConstHashIterator i(init);
         while (i.next()) {
             if (!members.find(i.getKey())) {
-                xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl hash initializer value contains unknown key '%s'", i.getKey());
+                xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl '%s' hash initializer value contains unknown key '%s'", name.c_str(), i.getKey());
                 return nullptr;
             }
         }
