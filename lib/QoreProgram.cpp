@@ -491,6 +491,16 @@ void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_p
    qore_root_ns_private::runtimeImportSystemClasses(*RootNS, *spgm.RootNS, xsink);
 }
 
+void qore_program_private::runtimeImportSystemHashDeclsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
+   assert(&spgm != pgm->priv);
+   if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_HASHDECLS)) {
+      xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "cannot import system classes in a Program container where system classes have already been imported");
+      return;
+   }
+   pwo.parse_options &= ~PO_NO_INHERIT_SYSTEM_HASHDECLS;
+   qore_root_ns_private::runtimeImportSystemHashDecls(*RootNS, *spgm.RootNS, xsink);
+}
+
 void qore_program_private::runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
    assert(&spgm != pgm->priv);
    if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_CONSTANTS)) {
@@ -523,6 +533,15 @@ void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
 }
 
+void qore_program_private::runtimeImportSystemHashDecls(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
+}
+
 void qore_program_private::runtimeImportSystemConstants(ExceptionSink* xsink) {
    // must acquire current program before setting program context below
    const QoreProgram* spgm = getProgram();
@@ -546,11 +565,15 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
-   if (!*xsink) {
-      runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
-      if (!*xsink)
-         runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
-   }
+   if (*xsink)
+      return;
+   runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
+   if (*xsink)
+      return;
+   runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+   if (*xsink)
+      return;
+   runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 //! Methods in this pseudo-class can be executed on @ref date "date/time value types"
 /**
@@ -510,19 +511,19 @@ int <date>::getEpochSecondsLocalTime() [flags=CONSTANT] {
    return dt->isAbsolute() ? dt->getEpochSeconds() : 0;
 }
 
-//! Returns a hash of @ref date_info_hash "broken-down date/time information" for the date (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+//! Returns a @ref DateTimeInfo hash for the date (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** @par Example:
     @code{.py}
-hash h = date_info(date);
+hash<DateTimeInfo> h = date_info(date);
     @endcode
 
-    @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
+    @return a @ref DateTimeInfo hash for the given date argument
 
     @note equivalent to date_info(date)
 
     @since %Qore 0.8.8
 */
-hash <date>::info() [flags=CONSTANT] {
+hash<DateTimeInfo> <date>::info() [flags=CONSTANT] {
    return date_info(*dt);
 }
 
@@ -582,14 +583,14 @@ int <date>::isoDayOfWeek() [flags=CONSTANT] {
    return (!d ? 7 : d);
 }
 
-//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day")
+//! Returns an @ref Qore::IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day")
 /** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
 
-    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is used, then this method will return year=1970, week=1, day=1
+    @return an @ref Qore::IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is used, then this method will return year=1970, week=1, day=1
 
     @par Example:
     @code{.py}
-hash h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
+hash<IsoWeekInfo> h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
     @endcode
 
     @note equivalent to @ref Qore::get_iso_week_hash()
@@ -598,13 +599,15 @@ hash h = 2007-05-15.isoWeekHash(); # returns year=2007, week=20, day=2
 
     @since %Qore 0.8.12
 */
-hash <date>::isoWeekHash() [flags=CONSTANT] {
+hash<IsoWeekInfo> <date>::isoWeekHash() [flags=CONSTANT] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
-   QoreHashNode *h = new QoreHashNode;
-   h->setKeyValue("year", new QoreBigIntNode(year), 0);
-   h->setKeyValue("week", new QoreBigIntNode(week), 0);
-   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("year", new QoreBigIntNode(year));
+   ph->setKeyValueIntern("week", new QoreBigIntNode(week));
+   ph->setKeyValueIntern("day", new QoreBigIntNode(day));
 
    return h;
 }

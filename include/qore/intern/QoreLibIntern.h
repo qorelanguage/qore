@@ -455,7 +455,7 @@ DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
 DLLLOCAL QoreListNode* stat_to_list(const struct stat& sbuf);
-DLLLOCAL QoreHashNode* stat_to_hash(const struct stat& sbuf);
+DLLLOCAL QoreHashNode* stat_to_hash(const struct stat& sbuf, const TypedHashDecl* hd = hashdeclStatInfo);
 DLLLOCAL QoreHashNode* statvfs_to_hash(const struct statvfs& statvfs);
 
 // only called in stage 1 parsing: true means node requires run-time evaluation

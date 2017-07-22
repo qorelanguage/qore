@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,170 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_File.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <sys/types.h>
 #include <errno.h>
+
+QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
+    AutoLocker al(m);
+
+    if (dirname.empty()) {
+        xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
+        return nullptr;
+    }
+
+    SimpleRefHolder<QoreRegex> re(0);
+
+    if (regex) {
+        re = new QoreRegex(*regex, regex_options, xsink);
+        if (*xsink)
+            return nullptr;
+    }
+
+    // avoid memory leaks...
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+
+    DIR *dptr = opendir(dirname.c_str());
+    if (!dptr) {
+        xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory '%s' for reading", dirname.c_str());
+        return nullptr;
+    }
+    ON_BLOCK_EXIT(closedir, dptr);
+
+    struct dirent *de;
+    while ((de = readdir(dptr))) {
+        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+            continue;
+
+        // if there is a regular expression, see if the name matches
+        if (regex) {
+            QoreString targ(de->d_name, enc);
+            bool b = re->exec(&targ, xsink);
+            if (*xsink)
+                return nullptr;
+            if (!b)
+                continue;
+        }
+
+        // if we are filtering out directories, then we have to stat the file
+        if (full || stat_filter != -1) {
+            QoreString fname(dirname);
+            fname.concat(QORE_DIR_SEP);
+            fname.concat(de->d_name);
+            struct stat buf;
+            if (!full) {
+                if (stat(fname.getBuffer(), buf, xsink))
+                return 0;
+
+                if (!(buf.st_mode & stat_filter))
+                continue;
+
+                lst->push(new QoreStringNode(de->d_name, enc));
+                continue;
+            }
+#ifdef HAVE_LSTAT
+            if (lstat(fname.getBuffer(), buf, xsink))
+                return 0;
+
+            SimpleRefHolder<QoreStringNode> lpath;
+
+            if (S_ISLNK(buf.st_mode)) {
+                {
+                    char lbuf[QORE_PATH_MAX + 1];
+                    qore_offset_t len = readlink(fname.getBuffer(), lbuf, QORE_PATH_MAX);
+                    if (len < 0) {
+                        xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "readlink('%s') failed", fname.getBuffer());
+                        return 0;
+                    }
+                    assert(len <= QORE_PATH_MAX);
+                    lbuf[len] = '\0';
+                    lpath = new QoreStringNode(lbuf);
+                }
+
+                if (stat(fname.getBuffer(), buf, xsink))
+                    return 0;
+            }
+#else
+            if (stat(fname.getBuffer(), buf, xsink))
+                return 0;
+#endif
+            if (stat_filter != -1 && !(buf.st_mode & stat_filter))
+                continue;
+            QoreHashNode* h = stat_to_hash(buf, hashdeclDirStatInfo);
+            qore_hash_private::get(*h)->setKeyValueIntern("name", new QoreStringNode(de->d_name, enc));
+#ifdef HAVE_LSTAT
+            if (*lpath)
+                qore_hash_private::get(*h)->setKeyValueIntern("link", lpath.release());
+#endif
+            lst->push(h);
+            continue;
+        }
+
+        // not full, no filter
+        lst->push(new QoreStringNode(de->d_name, enc));
+        continue;
+    }
+
+    return lst.release();
+}
+
+QoreHashNode* qore_qd_private::hstat(ExceptionSink *xsink) const {
+    AutoLocker al(m);
+
+    if (dirname.empty()) {
+        xsink->raiseException("DIR-HSTAT-ERROR", "cannot stat; no directory is set");
+        return nullptr;
+    }
+
+    struct stat sbuf;
+    if (::stat(dirname.c_str(), &sbuf)) {
+        xsink->raiseErrnoException("DIR-HSTAT-FAILURE", errno, "stat() call failed on '%s'", dirname.c_str());
+        return nullptr;
+    }
+
+    return stat_to_hash(sbuf);
+}
+
+//! file status information hash as returned by @ref Qore::Dir::list() "Dir::list()", @ref Qore::Dir::listFiles() "Dir::listFiles()", and @ref Qore::Dir::listDirs() "Dir::listDirs()" if the appropriate arguments are used
+/** @since %Qore 0.8.13
+*/
+hashdecl DirStatInfo {
+    //! device inode number the file is on
+    int dev;
+    //! inode of the file
+    int inode;
+    //! inode protection mode
+    int mode;
+    //! number of hard links to this file
+    int nlink;
+    //! user ID of the owner
+    int uid;
+    //! group ID of the owner
+    int gid;
+    //! device type number
+    int rdev;
+    //! file size in bytes
+    int size;
+    //! last access time of the file
+    date atime;
+    //! last modified time of the file
+    date mtime;
+    //! last change time of the file's inode
+    date ctime;
+    //! block size; may be zero if the platform's internal %stat() (2) function does not provide this info
+    int blksize;
+    //! blocks allocated for the file; may be zero if the platform's internal %stat() (2) function does not provide this info
+    int blocks;
+    //! a string giving the file type; one of:\n - \c "BLOCK-DEVICE" \n - \c "DIRECTORY" \n - \c "CHARACTER-DEVICE" \n - \c "FIFO" \n - \c "SYMBOLIC-LINK" \n - \c "SOCKET" \n - \c "REGULAR" \n - \c "UNKNOWN"
+    string type;
+    //! a string giving UNIX-style permissions for the file (ex: \c "-rwxr-xr-x")
+    string perm;
+    //! a string giving the file or directory name
+    string name;
+    //! symbolic link target (if present)
+    *string link;
+}
 
 //! This class implements directory handling, file listing, creating/removing subdirectories, etc
 /** The %Dir class allows %Qore programs to list and manipulate directories.
@@ -375,9 +536,9 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -404,9 +565,9 @@ list Dir::list(bool full = False) {
 //! Gets all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -435,10 +596,10 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
 }
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name, otherwise a simple list of string names is returned
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+/** @param full if @ref Qore::True "True" then the return value is alist of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is alist of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -467,9 +628,9 @@ list Dir::listFiles(bool full = False) {
 //! Retrieves all files in the directory that match the given regular expression; if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -498,9 +659,9 @@ list Dir::listFiles(string regex, softint regex_options = 0, softbool full = Fal
 }
 
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+/** @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -529,9 +690,9 @@ list Dir::listDirs(bool full = False) {
 //! Gets all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
 /** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref stat_hash "file status value hashes" plus a \c "name" key with the file or directory name and optionally a \c "link" key for symbolic link targets, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -683,15 +844,15 @@ list Dir::stat() {
    return d->stat(xsink);
 }
 
-//! Returns a hash of file status information for the current directory
+//! Returns a @ref Qore::StatInfo "StatInfo" hash of file status information for the current directory
 /** If any errors occur an exception will be thrown
 
-    @return a @ref stat_hash giving information about the current directory
+    @return a @ref Qore::StatInfo "StatInfo" hash giving information about the current directory
 
     @par Example:
     @code{.py}
 try {
-    hash h = dir.hstat();
+    hash<StatInfo> h = dir.hstat();
 }
 catch (hash ex) {
     if (ex.arg)
@@ -704,12 +865,12 @@ catch (hash ex) {
     @throw DIR-HSTAT-ERROR no directory is set
     @throw DIR-HSTAT-FAILURE error stat'ing directory (\c arg will be assigned to the errno value)
  */
-hash Dir::hstat() {
+hash<StatInfo> Dir::hstat() {
    return d->hstat(xsink);
 }
 
-//! Returns a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
-/** @return a hash of @ref filesystem_status_hash "filesystem status values" for the current directory
+//! Returns a @ref FilesystemInfo hash for the current directory
+/** @return a @ref FilesystemInfo hash for the current directory
 
     @par Platform Availability:
     @ref Qore::Option::HAVE_STATVFS
@@ -730,7 +891,7 @@ catch (hash ex) {
     @throw DIR-STATVFS-ERROR no directory is set
     @throw DIR-STATVFS-FAILURE error in statvfs (\c arg will be assigned to the errno value)
  */
-hash Dir::statvfs() {
+hash<FilesystemInfo> Dir::statvfs() {
 #ifdef Q_HAVE_STATVFS
    return d->statvfs(xsink);
 #else

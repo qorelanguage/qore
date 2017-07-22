@@ -161,6 +161,8 @@ public:
 
     DLLLOCAL QoreHashNode* newHash(const QoreHashNode* init, bool runtime_check, ExceptionSink* xsink) const;
 
+    DLLLOCAL int initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
+
     DLLLOCAL int runtimeAssignKey(const char* key, ReferenceHolder<>& val, ExceptionSink* xsink) const {
         const HashDeclMemberInfo* mem = members.find(key);
         if (!mem) {
@@ -183,8 +185,15 @@ public:
         members.addNoCheck(pair);
     }
 
-    DLLLOCAL bool hasMember(const char* name) {
+    DLLLOCAL bool hasMember(const char* name) const {
         return members.inList(name);
+    }
+
+    DLLLOCAL void setSystemPublic() {
+        assert(!sys);
+        assert(!pub);
+        sys = true;
+        pub = true;
     }
 
     DLLLOCAL const char* getName() const {
@@ -201,6 +210,11 @@ public:
 
     DLLLOCAL static const typed_hash_decl_private* get(const TypedHashDecl& hashdecl) {
         return hashdecl.priv;
+    }
+
+    DLLLOCAL void addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val) {
+        assert(!members.find(name));
+        members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(QoreProgramLocation(RunTimeLocation), memberTypeInfo, nullptr, init_val.takeNode())));
     }
 
 protected:

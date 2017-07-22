@@ -250,7 +250,11 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
     }
 
     ReferenceHolder<QoreHashNode> h(qore_hash_private::newHashDecl(thd), xsink);
+    initHash(*h, init, xsink);
+    return *xsink ? nullptr : h.release();
+}
 
+int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const {
     for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
         // first try to use value given in init hash
         if (init) {
@@ -262,7 +266,7 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
                 QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
                 val = qv.takeNode();
                 if (*xsink)
-                    return nullptr;
+                    return -1;
                 AbstractQoreNode** v = h->getKeyValuePtr(i->first);
                 assert(!*v);
                 *v = val.release();
@@ -279,13 +283,13 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
 
             ReferenceHolder<> val(i->second->exp->eval(xsink), xsink);
             if (*xsink)
-                return nullptr;
+                return -1;
             // check types
             QoreValue qv(val.release());
             QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
             val = qv.takeNode();
             if (*xsink)
-                return nullptr;
+                return -1;
             *v = val.release();
         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
@@ -297,7 +301,7 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
 #endif
     }
 
-    return h.release();
+    return 0;
 }
 
 TypedHashDecl::TypedHashDecl(const char* name) : priv(new typed_hash_decl_private(get_runtime_location(), name, this)) {
@@ -311,6 +315,10 @@ TypedHashDecl::TypedHashDecl(const TypedHashDecl& old) : priv(new typed_hash_dec
 
 TypedHashDecl::~TypedHashDecl() {
     delete priv;
+}
+
+void TypedHashDecl::addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val) {
+    priv->addMember(name, memberTypeInfo, init_val);
 }
 
 const QoreTypeInfo* TypedHashDecl::getTypeInfo(bool or_nothing) const {

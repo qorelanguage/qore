@@ -1387,8 +1387,8 @@ while (i.next()) {
             return m_file_path;
         }
 
-        #! Returns a @ref stat_hash "stat hash" of the underlying file
-        hash hstat() {
+        #! Returns a @ref Qore::StatInfo "StatInfo" hash of the underlying file
+        hash<Qore::StatInfo> hstat() {
             return Qore::hstat(m_file_path);
         }
 

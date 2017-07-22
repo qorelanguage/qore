@@ -91,9 +91,9 @@ typedef GVList<GVEntryBase> gvblist_t;
 class qore_ns_private {
 private:
    // not implemented
-   DLLLOCAL qore_ns_private(const qore_ns_private&);
+   DLLLOCAL qore_ns_private(const qore_ns_private&) = delete;
    // not implemented
-   DLLLOCAL qore_ns_private& operator=(const qore_ns_private&);
+   DLLLOCAL qore_ns_private& operator=(const qore_ns_private&) = delete;
 
 protected:
    // called from the root namespace constructor only
@@ -153,7 +153,7 @@ public:
         pub(old.builtin ? true : false),
         builtin(old.builtin),
         imported(old.imported),
-        parent(0), class_handler(old.class_handler), ns(0) {
+        parent(nullptr), class_handler(old.class_handler), ns(nullptr) {
    }
 
    DLLLOCAL ~qore_ns_private() {
@@ -396,6 +396,7 @@ public:
    DLLLOCAL void setPublic();
 
    DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemHashDecls(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemConstants(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
 
@@ -1705,6 +1706,10 @@ public:
 
    DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
       rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv, xsink);
+   }
+
+   DLLLOCAL static void runtimeImportSystemHashDecls(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
+      rns.priv->runtimeImportSystemHashDecls(*source.priv, *rns.rpriv, xsink);
    }
 
    DLLLOCAL static void runtimeImportSystemConstants(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {

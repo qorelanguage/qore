@@ -14,8 +14,14 @@
     - the @ref synchronized "synchronized" keyword now operates differently depending on the context; <tt><b>synchronized</b></tt> functions have a global reentrant lock associated with the function (as in previous versions of %Qore), whereas now <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.  This aligns %Qore's @ref synchronized "synchronized" behavior with that of Java and <tt>[MethodImpl(MethodImplOptions.Synchronized)]</tt> .NET/CLR (<a href="https://github.com/qorelanguage/qore/issues/894">issue 894</a>).
 
     @subsection qore_0813_new_features New Features in Qore
-    - complex type declaration support
+    - complex type support
       - @ref hashdecl "type safe hashes" (@ref hash_hashdecl_type); ex: @code{.py} hash<MyInfo> = get_info(); @endcode
+      - new system types:
+        - @ref Qore::DateTimeInfo "DateTimeInfo"
+        - @ref Qore::DirStatInfo "DirStatInfo"
+        - @ref Qore::FilesystemInfo "FilesystemInfo"
+        - @ref Qore::IsoWeekInfo "IsoWeekInfo"
+        - @ref Qore::StatInfo "StatInfo"
       - @ref hash_complex_type "hash with type-safe values"; ex: @code{.py} hash<string, int>h = ("str": 1); @endcode
       - improved @ref new "new" and @ref cast "cast<>" operators
     - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
@@ -139,6 +145,7 @@
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - new methods:
       - @ref Qore::Program::getGlobalVars()
+      - @ref Qore::Program::importSystemHashDecls()
       - @ref Qore::Program::setGlobalVarValue()
       - @ref Qore::Program::setThreadInit()
       - @ref Qore::Socket::acceptAllCertificates()
@@ -152,6 +159,12 @@
         - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
         - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
         - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+      - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
+        - @ref Qore::ReadOnlyFile::hstat() "ReadOnlyFile::hstat()"
+        - @ref Qore::ReadOnlyFile::hlstat() "ReadOnlyFile::hlstat()"
+        - @ref Qore::ReadOnlyFile::lstat() "ReadOnlyFile::lstat()"
+        - @ref Qore::ReadOnlyFile::stat() "ReadOnlyFile::stat()"
+        - @ref Qore::ReadOnlyFile::statvfs() "ReadOnlyFile::statvfs()"
     - new pseudo-methods:
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)
@@ -1354,7 +1367,7 @@
       - Qore::Socket::listen(): now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
       - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo(): now takes an optional argument to avoid name lookups
       - Qore::Socket::readHTTPHeaderString(): new method
-      - Qore::Dir: all list*() methods now take an optional parameter to return a list of @ref stat_hash "file status value hashes" plus \c "name" and optionally \c "link" keys for symbolic links; additionally symbolic links are now followed and files and directories are differentiated based on their targets when processing symbolic links
+      - Qore::Dir: all list*() methods now take an optional parameter to return a list of file status value hashes plus \c "name" and optionally \c "link" keys for symbolic links; additionally symbolic links are now followed and files and directories are differentiated based on their targets when processing symbolic links
     - function changes
       - added optional \a start and \a end parameters to the @ref Qore::replace "replace()" function
     - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier

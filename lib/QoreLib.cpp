@@ -38,6 +38,8 @@
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/StringReaderHelper.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <sstream>
 #include <locale>
@@ -1530,35 +1532,42 @@ QoreListNode* stat_to_list(const struct stat& sbuf) {
    return l;
 }
 
-QoreHashNode* stat_to_hash(const struct stat& sbuf) {
-   QoreHashNode* h = new QoreHashNode;
+TypedHashDecl* qore_get_hashdecl(const char* name) {
+   TypedHashDecl* rv = qore_ns_private::get(*staticSystemNamespace->rootGetQoreNamespace())->hashDeclList.find(name);
+   assert(rv);
+   return rv;
+}
+
+QoreHashNode* stat_to_hash(const struct stat& sbuf, const TypedHashDecl* hd) {
+   QoreHashNode* h = new QoreHashNode(hd, nullptr);
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf.st_dev), 0);
-   h->setKeyValue("inode",   new QoreBigIntNode(sbuf.st_ino), 0);
-   h->setKeyValue("mode",    new QoreBigIntNode(sbuf.st_mode), 0);
-   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf.st_nlink), 0);
-   h->setKeyValue("uid",     new QoreBigIntNode(sbuf.st_uid), 0);
-   h->setKeyValue("gid",     new QoreBigIntNode(sbuf.st_gid), 0);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("dev",     (int64)sbuf.st_dev);
+   ph->setKeyValueIntern("inode",   (int64)sbuf.st_ino);
+   ph->setKeyValueIntern("mode",    (int64)sbuf.st_mode);
+   ph->setKeyValueIntern("nlink",   (int64)sbuf.st_nlink);
+   ph->setKeyValueIntern("uid",     (int64)sbuf.st_uid);
+   ph->setKeyValueIntern("gid",     (int64)sbuf.st_gid);
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf.st_rdev), 0);
-   h->setKeyValue("size",    new QoreBigIntNode(sbuf.st_size), 0);
+   ph->setKeyValueIntern("rdev",    (int64)sbuf.st_rdev);
+   ph->setKeyValueIntern("size",    (int64)sbuf.st_size);
 
-   h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime), 0);
-   h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
-   h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
+   ph->setKeyValueIntern("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime));
+   ph->setKeyValueIntern("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
+   ph->setKeyValueIntern("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
 
    int64 blksize, blocks;
    stat_get_blocks(sbuf, blksize, blocks);
-   h->setKeyValue("blksize", new QoreBigIntNode(blksize), 0);
-   h->setKeyValue("blocks",  new QoreBigIntNode(blocks), 0);
+   ph->setKeyValueIntern("blksize", (int64)blksize);
+   ph->setKeyValueIntern("blocks",  (int64)blocks);
 
    // process permissions
    QoreStringNode* perm = new QoreStringNode;
    const char* type = q_mode_to_perm(sbuf.st_mode, *perm);
 
-   h->setKeyValue("type", new QoreStringNode(type), 0);
-   h->setKeyValue("perm", perm, 0);
+   ph->setKeyValueIntern("type", new QoreStringNode(type));
+   ph->setKeyValueIntern("perm", perm);
 
    return h;
 }
@@ -1569,18 +1578,18 @@ QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
 
 #ifdef DARWIN
 #else
-   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), 0);
+   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), nullptr);
 #endif
-   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), 0);
-   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), 0);
-   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), 0);
-   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), 0);
-   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), 0);
-   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), 0);
-   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), 0);
-   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), 0);
-   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), 0);
-   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), 0);
+   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), nullptr);
+   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), nullptr);
+   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), nullptr);
+   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), nullptr);
+   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), nullptr);
+   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), nullptr);
+   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), nullptr);
+   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), nullptr);
+   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), nullptr);
+   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), nullptr);
 
    return h;
 }

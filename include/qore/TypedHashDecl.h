@@ -50,6 +50,9 @@ public:
     //! returns the type info object for the hashdecl
     DLLEXPORT const QoreTypeInfo* getTypeInfo(bool or_nothing = false) const;
 
+    //! adds an element to a built-in hashdecl
+    DLLEXPORT void addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val);
+
     DLLEXPORT const char* getName() const;
 
     DLLEXPORT bool isSystem() const;
@@ -93,5 +96,19 @@ private:
    TypedHashDecl* thd;
 };
 
+//! StatInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclStatInfo;
+
+//! DirStatInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclDirStatInfo;
+
+//! FilesystemStatInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclFilesystemStatInfo;
+
+//! DateTimeInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclDateTimeInfo;
+
+//! IsoWeekInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclIsoWeekInfo;
 
 #endif

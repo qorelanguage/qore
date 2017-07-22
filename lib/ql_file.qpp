@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -121,26 +121,76 @@ static bool is_writable_intern(const QoreStringNode* path) {
 #endif
 }
 
+//! file status information hash as returned from @ref Qore::hstat() "hstat()", @ref Qore::hlstat() "hlstat()", @ref Qore::Dir::hstat() "Dir::hstat()", @ref Qore::FileLineIterator::hstat() "FileLineIterator::hstat()", @ref Qore::ReadOnlyFile::hstat() "ReadOnlyFile::hstat()", and @ref Qore::ReadOnlyFile::hlstat() "ReadOnlyFile::hlstat()"
+/** @since %Qore 0.8.13
+*/
+hashdecl StatInfo {
+    //! device inode number the file is on
+    int dev;
+    //! inode of the file
+    int inode;
+    //! inode protection mode
+    int mode;
+    //! number of hard links to this file
+    int nlink;
+    //! user ID of the owner
+    int uid;
+    //! group ID of the owner
+    int gid;
+    //! device type number
+    int rdev;
+    //! file size in bytes
+    int size;
+    //! last access time of the file
+    date atime;
+    //! last modified time of the file
+    date mtime;
+    //! last change time of the file's inode
+    date ctime;
+    //! block size; may be zero if the platform's internal %stat() (2) function does not provide this info
+    int blksize;
+    //! blocks allocated for the file; may be zero if the platform's internal %stat() (2) function does not provide this info
+    int blocks;
+    //! a string giving the file type; one of:\n - \c "BLOCK-DEVICE" \n - \c "DIRECTORY" \n - \c "CHARACTER-DEVICE" \n - \c "FIFO" \n - \c "SYMBOLIC-LINK" \n - \c "SOCKET" \n - \c "REGULAR" \n - \c "UNKNOWN"
+    string type;
+    //! a string giving UNIX-style permissions for the file (ex: \c "-rwxr-xr-x")
+    string perm;
+}
+
+//! Filesystem info hash as returned by @ref Qore::statvfs() "statvfs", @ref Qore::Dir::statvfs() "Dir::statvfs", and @ref Qore::ReadOnlyFile::statvfs() "ReadOnlyFile::statvfs()""
+/** @since %Qore 0.8.13
+*/
+hashdecl FilesystemInfo {
+    //! The maximum length in mytes of file names on the filesystem
+    int namemax;
+    //! The filesystem ID; may not be set or meaningful on all filesystems/systems: see system documentation for statvfs()
+    int fsid;
+    //! The size in bytes of the minimum allocation unit on the filesystem
+    int frsize;
+    //! The filesystem's block size
+    int bsize
+    //! Flags describing mount options for the filesystem
+    int flag;
+    //! The total number of inodes on the filesystem
+    int files;
+    //! The number of free inodes available to unpriviledged users
+    int favail;
+    //! The total number of free indes available to priviledged users
+    int ffree;
+    //! The total number of blocks on the filesystem (capacity in bytes = \c bsize * \c blocks)
+    int blocks;
+    //! The number of free blocks available to unpriviledged users (bytes = \c bsize * \c bavail)
+    int bavail;
+    //! The total number of free indes available to priviledged users (bytes = \c bsize * \c bfree)
+    int bfree;
+}
+
 /** @defgroup filesystem_functions Filesystem Functions
     The following functions return information about or are related to the filesystem.
 
     All of the functions in this section (except umask()) are flagged with Qore::PO_NO_FILESYSTEM
 
     @see the @ref Qore::File "File" class for a class enabling files to be created, read or written, and the @ref Qore::Dir "Dir" class allowing directories to be manipulated
-
-    @section filesystem_status_hash Filesystem Status Hash
-    |!Key|!Description
-    |\c namemax|The maximum length in mytes of file names on the filesystem
-    |\c fsid|The filesystem ID; may not be set or meaningful on all filesystems/systems: see system documentation for statvfs()
-    |\c frsize|The size in bytes of the minimum allocation unit on the filesystem
-    |\c bsize|The filesystem's block size
-    |\c flag|Flags describing mount options for the filesystem
-    |\c files|The total number of inodes on the filesystem
-    |\c favail|The number of free inodes available to unpriviledged users
-    |\c ffree|The total number of free indes available to priviledged users
-    |\c blocks|The total number of blocks on the filesystem (capacity in bytes = \c bsize * \c blocks)
-    |\c bavail|The number of free blocks available to unpriviledged users (bytes = \c bsize * \c bavail)
-    |\c bfree|The total number of free indes available to priviledged users (bytes = \c bsize * \c bfree)
 
     @section stat_list Stat List
     |!Element|!Data Type|!Description
@@ -157,24 +207,6 @@ static bool is_writable_intern(const QoreStringNode* path) {
     |\c 10|@ref date_type|last change time of the file's inode
     |\c 11|@ref int_type|block size; may be zero if the platform's internal %stat() (2) function does not provide this info
     |\c 12|@ref int_type|blocks allocated for the file; may be zero if the platform's internal %stat() (2) function does not provide this info
-
-    @section stat_hash Stat Hash
-    |!Key|!Data Type|!Description
-    |\c dev|@ref int_type|device inode number the file is on
-    |\c inode|@ref int_type|inode of the file
-    |\c mode|@ref int_type|inode protection mode
-    |\c nlink|@ref int_type|number of hard links to this file
-    |\c uid|@ref int_type|user ID of the owner
-    |\c gid|@ref int_type|group ID of the owner
-    |\c rdev|@ref int_type|device type number
-    |\c size|@ref int_type|file size in bytes
-    |\c atime|@ref date_type|last access time of the file
-    |\c mtime|@ref date_type|last modified time of the file
-    |\c ctime|@ref date_type|last change time of the file's inode
-    |\c blksize|@ref int_type|block size; may be zero if the platform's internal %stat() (2) function does not provide this info
-    |\c blocks|@ref int_type|blocks allocated for the file; may be zero if the platform's internal %stat() (2) function does not provide this info
-    |\c type|@ref string_type|a string giving the file type; one of:\n - \c "BLOCK-DEVICE" \n - \c "DIRECTORY" \n - \c "CHARACTER-DEVICE" \n - \c "FIFO" \n - \c "SYMBOLIC-LINK" \n - \c "SOCKET" \n - \c "REGULAR" \n - \c "UNKNOWN"
-    |\c perm|@ref string_type|a string giving UNIX-style permissions for the file (ex: \c "-rwxr-xr-x")
 */
 //@{
 //! Returns @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
@@ -438,7 +470,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
     @param path the path to the filesystem (or on the filesystem)
 
-    @return a @ref filesystem_status_hash; or, if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
+    @return a @ref FilesystemInfo hash; or, if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
     @code{.py}
@@ -447,7 +479,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
     @see File::statvfs() for a static method in the @ref Qore::File "File class" that throws an exception instead of returning @ref nothing when errors occur
  */
-*hash statvfs(string path) [dom=FILESYSTEM] {
+*hash<FilesystemInfo> statvfs(string path) [dom=FILESYSTEM] {
 #ifdef Q_HAVE_STATVFS
    struct statvfs vfs;
    if (statvfs(path->getBuffer(), &vfs))
@@ -524,15 +556,15 @@ if (!exists l)
 nothing lstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
 
-//! Returns a @ref stat_hash "hash of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
+//! Returns a @ref StatInfo hash for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 /** @param path the path to retrieve information for
 
-    @return a @ref stat_hash "hash of file status values" for the path argument, following any symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
+    @return a @ref Qore::StatInfo "StatInfo" hash providing information about the path argument, following any symbolic links; if any errors occur (such as if the target path is not readable or the file does not exist for example), @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
     @code{.py}
-*hash h = hstat("/tmp/file.txt");
-if (!exists h)
+*hash<StatInfo> h = hstat("/tmp/file.txt");
+if (!h)
     printf("could not hstat /tmp/file.txt: %s\n", strerror());
     @endcode
 
@@ -540,7 +572,7 @@ if (!exists h)
     stat() for a version of this function that returns a traditional @ref stat_list "list" instead of a user-friendly hash\n\n
     File::hstat() for a static method in the File class that throws an exception instead of returning @ref nothing when errors occur
  */
-*hash hstat(string path) [dom=FILESYSTEM] {
+*hash<StatInfo> hstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
       return QoreValue();
@@ -554,14 +586,14 @@ if (!exists h)
 nothing hstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 }
 
-//! Returns a @ref stat_hash "hash of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
+//! Returns a @ref StatInfo hash for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
 /** @param path the path to retrieve information for
 
-    @return a @ref stat_hash "hash of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
+    @return a @ref Qore::StatInfo "StatInfo" hash providing information about the path argument, not following any symbolic links; if any errors occur (such as if the target path is not readable or the file does not exist for example), @ref nothing is returned and errno() can be used to retrieve the error number
 
     @par Example:
     @code{.py}
-*hash h = hlstat("/tmp/file.txt");
+*hash<StatInfo> h = hlstat("/tmp/file.txt");
 if (!exists h)
     printf("could not hlstat /tmp/file.txt: %s\n", strerror());
     @endcode
@@ -570,7 +602,7 @@ if (!exists h)
     lstat() for a version of this function that returns a traditional @ref stat_list "list" instead of a user-friendly hash\n\n
     File::hlstat() for a static method in the File class that throws an exception instead of returning @ref nothing when errors occur
  */
-*hash hlstat(string path) [dom=FILESYSTEM] {
+*hash<StatInfo> hlstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
 #ifdef HAVE_LSTAT
    if (lstat(path->getBuffer(), &sbuf))

@@ -237,6 +237,15 @@ QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(n
 QoreHashNode::QoreHashNode() : AbstractQoreNode(NT_HASH, true, false), priv(new qore_hash_private) {
 }
 
+QoreHashNode::QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink) : QoreHashNode() {
+    priv->hashdecl = hd;
+    typed_hash_decl_private::get(*hd)->initHash(this, nullptr, xsink);
+}
+
+QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
+    priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+}
+
 QoreHashNode::~QoreHashNode() {
    delete priv;
 }

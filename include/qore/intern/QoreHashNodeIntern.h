@@ -367,6 +367,15 @@ public:
       return h.release();
    }
 
+   DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {
+      hash_assignment_priv ha(*this, key);
+#ifdef DEBUG
+      assert(!ha.swap(v.takeNode()));
+#else
+      ha.swap(ha.swap(v.takeNode()));
+#endif
+   }
+
    DLLLOCAL void setKeyValue(const std::string& key, AbstractQoreNode* val, ExceptionSink* xsink) {
       hash_assignment_priv ha(*this, key.c_str());
       ha.assign(val, xsink);

@@ -160,7 +160,15 @@ DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 // constants defined in pseudo-class implementations
 DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 
+DLLLOCAL void preinitTimeZoneClass();
+
 StaticSystemNamespace* staticSystemNamespace;
+
+const TypedHashDecl* hashdeclStatInfo,
+      * hashdeclDirStatInfo,
+      * hashdeclFilesystemInfo,
+      * hashdeclDateTimeInfo,
+      * hashdeclIsoWeekInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -199,6 +207,30 @@ void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
    priv->setClassHandler(class_handler);
 }
 
+void QoreNamespace::addSystemHashDecl(TypedHashDecl* hd) {
+    // set sys and pub flags
+    typed_hash_decl_private::get(*hd)->setSystemPublic();
+#ifdef DEBUG
+   if (priv->hashDeclList.add(hd))
+      assert(false);
+   else {
+      assert(!priv->pendHashDeclList.find(hd->getName()));
+      assert(!priv->classList.find(hd->getName()));
+      assert(!priv->pendClassList.find(hd->getName()));
+   }
+#else
+   priv->hashDeclList.add(hd);
+#endif
+
+   // see if namespace is attached to the root
+   qore_root_ns_private* rns = priv->getRoot();
+   if (!rns)
+      return;
+
+   //printd(5, "QoreNamespace::addSystemHashDecl() adding '%s' %p to hashdecl map %p in ns '%s'\n", hd->getName(), hd, &rns->thdmap, priv->name.c_str());
+   rns->thdmap.update(hd->getName(), priv, hd);
+}
+
 // public, only called in single-threaded initialization
 void QoreNamespace::addSystemClass(QoreClass* oc) {
    QORE_TRACE("QoreNamespace::addSystemClass()");
@@ -212,8 +244,11 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
 #ifdef DEBUG
    if (priv->classList.add(oc))
       assert(false);
-   else
+   else {
+      assert(!priv->pendClassList.find(oc->getName()));
       assert(!priv->hashDeclList.find(oc->getName()));
+      assert(!priv->pendHashDeclList.find(oc->getName()));
+   }
 #else
    priv->classList.add(oc);
 #endif
@@ -275,6 +310,32 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, 
 
       nns->priv->runtimeImportSystemClasses(*i->second->priv, rns, xsink);
       //printd(5, "qore_ns_private::runtimeImportSystemClasses() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+      if (*xsink)
+         break;
+   }
+}
+
+void qore_ns_private::runtimeImportSystemHashDecls(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
+   assert(xsink);
+   if (hashDeclList.importSystemHashDecls(source.hashDeclList, this, xsink))
+      rns.runtimeRebuildHashDeclIndexes(this);
+
+   if (*xsink)
+      return;
+
+   // add sub namespaces
+   for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
+      QoreNamespace* nns = nsl.find(i->first);
+      if (!nns) {
+         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+         nns = npns->ns;
+         nns->priv->pub = i->second->priv->pub;
+         nns->priv->imported = true;
+         nsl.runtimeAdd(nns, this);
+      }
+
+      nns->priv->runtimeImportSystemHashDecls(*i->second->priv, rns, xsink);
+      //printd(5, "qore_ns_private::runtimeImportSystemHashDecls() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
       if (*xsink)
          break;
    }
@@ -817,6 +878,14 @@ QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {
 StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
    rpriv->qoreNS = new QoreNamespace("Qore");
    QoreNamespace& qns = *rpriv->qoreNS;
+
+   // first add hashdecls
+   hashdeclStatInfo = init_hashdecl_StatInfo(qns);
+   hashdeclDirStatInfo = init_hashdecl_DirStatInfo(qns);
+   hashdeclFilesystemInfo = init_hashdecl_FilesystemInfo(qns);
+   preinitTimeZoneClass();
+   hashdeclDateTimeInfo = init_hashdecl_DateTimeInfo(qns);
+   hashdeclIsoWeekInfo = init_hashdecl_IsoWeekInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 

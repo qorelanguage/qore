@@ -107,9 +107,18 @@ protected:
    DLLEXPORT virtual ~QoreHashNode();
 
 public:
-
    //! creates an empty hash
    DLLEXPORT QoreHashNode();
+
+   //! creates a hash of the specific type; the hash is initialized according to the hashdecl declaration
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink);
+
+   //! creates an empty hash with the specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreHashNode(const QoreTypeInfo* valueTypeInfo);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
