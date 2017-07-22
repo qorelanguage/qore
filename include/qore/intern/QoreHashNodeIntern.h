@@ -372,7 +372,7 @@ public:
 #ifdef DEBUG
       assert(!ha.swap(v.takeNode()));
 #else
-      ha.swap(ha.swap(v.takeNode()));
+      ha.swap(v.takeNode());
 #endif
    }
 
