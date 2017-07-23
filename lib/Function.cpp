@@ -1564,6 +1564,8 @@ int QoreFunction::parseCompareResolvedSignature(const VList& vlist, const Abstra
 
          // check for ambiguous matches
          if (typeInfo) {
+            //printd(5, "QoreFunction::parseCompareResolvedSignature() this: sig: '%s' vti: %s ti: %s ident: %d\n", vs->getSignatureText(), QoreTypeInfo::getName(variantTypeInfo), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo));
+
             if (!QoreTypeInfo::hasType(variantTypeInfo) && thisHasDefaultArg)
                ambiguous = true;
             else if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {
@@ -1631,6 +1633,8 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
          bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
          // FIXME: this is a horribly-complicated if/then/else structure
+
+         //printd(5, "QoreFunction::parseCheckDuplicateSignature() ti: '%s' pti: '%s' vti: '%s' vpti: '%s' ident: %d\n", QoreTypeInfo::getName(typeInfo), QoreParseTypeInfo::getName(parseTypeInfo), QoreTypeInfo::getName(variantTypeInfo), QoreParseTypeInfo::getName(variantParseTypeInfo), QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo));
 
          // check for ambiguous matches
          if (typeInfo || parseTypeInfo) {

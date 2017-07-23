@@ -205,12 +205,6 @@ static type_str_map_t type_str_map;
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
-void concatClass(std::string &str, const char *cn) {
-   str.append("<class: ");
-   str.append(cn);
-   str.push_back('>');
-}
-
 static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInfo, const QoreTypeInfo* orNothingTypeInfo) {
    str_typeinfo_map[name]          = typeInfo;
    str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
@@ -427,11 +421,9 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             return QTI_AMBIGUOUS;
          }
          if (u.t == ot) {
-            /*
             // check special cases
-            if (u.t == NT_HASH && t.typespec == QTS_COMPLEXHASH)
+            if (u.t == NT_HASH && t.typespec != QTS_TYPE)
                return QTI_AMBIGUOUS;
-            */
             return QTI_IDENT;
          }
          return QTI_NOT_EQUAL;
@@ -545,52 +537,47 @@ bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
 }
 
 bool QoreTypeSpec::operator!=(const QoreTypeSpec& other) const {
-   return (!(*this == other));
+   return !(*this == other);
+}
+
+qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, const QoreTypeInfo* typeInfo, bool exact) const {
+   qore_type_t ot = n.getType();
+   if (ot == NT_OBJECT && typespec == QTS_CLASS) {
+      qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc, *n.get<const QoreObject>()->getClass());
+      if (rv == QTI_NOT_EQUAL)
+         return rv;
+      return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
+   }
+   else if (ot == NT_HASH && typespec == QTS_HASHDECL) {
+      const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+      if (hd && typed_hash_decl_private::get(*u.hd)->equal(*typed_hash_decl_private::get(*hd)))
+         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+   }
+   else if (ot == NT_HASH && typespec == QTS_COMPLEXHASH) {
+      const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getTypeInfo();
+      if (ti && QoreTypeInfo::equal(typeInfo, ti))
+         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+   }
+   else {
+      // check special cases
+      if (u.t == NT_HASH && ot == NT_HASH) {
+         const qore_hash_private* h = qore_hash_private::get(*n.get<const QoreHashNode>());
+         if (h->hashdecl || h->complexTypeInfo)
+            return QTI_AMBIGUOUS;
+         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+      }
+
+      if (u.t == NT_ALL || u.t == ot)
+         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+   }
+   return QTI_NOT_EQUAL;
 }
 
 qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
-   if (accept_vec.size() == 1) {
-      const QoreTypeSpec& t = accept_vec[0].spec;
-      if (n.getType() == NT_OBJECT && t.getTypeSpec() == QTS_CLASS)
-         return qore_class_private::runtimeCheckCompatibleClass(*t.getClass(), *n.get<const QoreObject>()->getClass());
-      if (n.getType() == NT_HASH) {
-         if (t.getTypeSpec() == QTS_HASHDECL) {
-            const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
-            return hd && typed_hash_decl_private::get(*t.getHashDecl())->equal(*typed_hash_decl_private::get(*hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
-         }
-         else if (t.getTypeSpec() == QTS_COMPLEXHASH) {
-            const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getTypeInfo();
-            return ti && QoreTypeInfo::equal(this, ti) ? QTI_IDENT : QTI_NOT_EQUAL;
-         }
-      }
-      qore_type_t at = t.getType();
-      if (at == NT_ALL)
-         return QTI_AMBIGUOUS;
-
-      return n.getType() == at ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
-
    for (auto& t : accept_vec) {
-      if (n.getType() == NT_OBJECT && t.spec.getTypeSpec() == QTS_CLASS) {
-         qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*t.spec.getClass(), *n.get<const QoreObject>()->getClass());
-         if (rv != QTI_NOT_EQUAL)
-            return QTI_AMBIGUOUS;
-      }
-      else if (n.getType() == NT_HASH && t.spec.getTypeSpec() == QTS_HASHDECL) {
-         const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
-         if (hd && typed_hash_decl_private::get(*t.spec.getHashDecl())->equal(*typed_hash_decl_private::get(*hd)))
-            return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
-      }
-      else if (n.getType() == NT_HASH && t.spec.getTypeSpec() == QTS_COMPLEXHASH) {
-         const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getTypeInfo();
-         if (ti && QoreTypeInfo::equal(this, ti))
-            return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
-      }
-      else {
-         qore_type_t at = t.spec.getType();
-         if (at == NT_ALL || n.getType() == at)
-            return t.exact ? QTI_IDENT : QTI_AMBIGUOUS;
-      }
+      qore_type_result_e rv = t.spec.runtimeAcceptsValue(n, this, t.exact);
+      if (rv != QTI_NOT_EQUAL)
+         return rv;
    }
    return QTI_NOT_EQUAL;
 }

@@ -46,8 +46,6 @@ DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
 // returns the default value for any type >= 0 and < NT_OBJECT
 DLLLOCAL AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t);
 
-DLLLOCAL void concatClass(std::string& str, const char* cn);
-
 enum q_typespec_t : unsigned char {
    QTS_TYPE = 0,
    QTS_CLASS = 1,
@@ -133,6 +131,8 @@ public:
    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
    // ex: this = NT_OBJECT, t = class, result = IDENT
    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
+
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, const QoreTypeInfo* typeInfo, bool exact) const;
 
    // returns true if there is a match or if an error has been raised
    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
@@ -589,8 +589,14 @@ protected:
          bool t_no_match = true;
          for (auto& at : accept_vec) {
             qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
-            if (res != QTI_NOT_EQUAL)
+            if (res == QTI_IDENT)
                return res;
+            else if (res == QTI_AMBIGUOUS) {
+               assert(ok);
+               if (may_not_match)
+                  return QTI_AMBIGUOUS;
+               break;
+            }
          }
          if (t_no_match) {
             if (!may_not_match) {
@@ -601,7 +607,8 @@ protected:
          }
       }
       if (ok)
-         return typeInfo->return_vec.size() != accept_vec.size() ? QTI_AMBIGUOUS : QTI_IDENT;
+         return QTI_AMBIGUOUS;
+//         return typeInfo->return_vec.size() != accept_vec.size() ? QTI_AMBIGUOUS : QTI_IDENT;
       may_not_match = false;
       return QTI_NOT_EQUAL;
    }
@@ -808,35 +815,37 @@ public:
    }
 
 private:
-   // prototype (expecting type) should be "this"
-   // returns true if the prototype does not expect any type or the types are compatible,
-   // false if otherwise
-   DLLLOCAL bool parseStageOneEqual(const QoreParseTypeInfo* typeInfo) const {
-      return !strcmp(cscope->getIdentifier(), typeInfo->cscope->getIdentifier());
-   }
-
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo* typeInfo, bool& recheck) const {
       if (!typeInfo)
          return false;
 
       const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
-      if (!qc)
+      if (!qc) {
+         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+         if (!hd) {
+            const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+            if (!ti) {
+               return false;
+            }
+            if (subtypes.size() == 2 && !strcmp(cscope->getIdentifier(), "hash"))
+               return recheck = true;
+            return false;
+         }
+         if (subtypes.size() == 1 && !strcmp(cscope->getIdentifier(), "hash"))
+            return recheck = true;
          return false;
+      }
 
       // both have class info
       if (!strcmp(cscope->getIdentifier(), qc->getName()))
          return recheck = true;
-      else
-         return false;
+      return false;
    }
 
    // used when parsing user code to find duplicate signatures
    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
-      if (!typeInfo)
-         return false;
-
-      return !strcmp(cscope->ostr, typeInfo->cscope->ostr);
+      return tname == typeInfo->tname;
    }
 
    // resolves complex types (classes, hashdecls, etc)
@@ -852,7 +861,7 @@ private:
    }
 
    DLLLOCAL void concatName(std::string& str) const {
-      concatClass(str, cscope->getIdentifier());
+      str.append(tname);
    }
 
    DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing);
