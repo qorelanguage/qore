@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,24 @@ switch (h.typeCode()) {
  */
 int <hash>::typeCode() [flags=CONSTANT] {
    return NT_HASH;
+}
+
+//! returns @ref True if the hash has a complex type (@ref hashdecl or @ref hash_complex_type), @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True if the hash has a complex type (@ref hashdecl or @ref hash_complex_type), @ref False if not
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <hash>::complexType() [flags=CONSTANT] {
+   const qore_hash_private* hp = qore_hash_private::get(*h);
+   return hp->hashdecl || hp->complexTypeInfo ? true : false;
 }
 
 //! Returns a list of key names of the hash

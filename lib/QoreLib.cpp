@@ -2484,3 +2484,21 @@ void q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
       }
    }
 }
+
+const char* get_full_type_name(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_HASH: {
+         const qore_hash_private* h = qore_hash_private::get(*static_cast<const QoreHashNode*>(n));
+         if (h->hashdecl)
+            return QoreTypeInfo::getName(h->hashdecl->getTypeInfo());
+         if (h->complexTypeInfo)
+            return QoreTypeInfo::getName(h->complexTypeInfo);
+         break;
+      }
+      case NT_OBJECT:
+         return QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
+      default:
+         break;
+   }
+   return get_type_name(n);
+}

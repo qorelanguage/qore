@@ -80,6 +80,56 @@ string <value>::type() [flags=CONSTANT] {
    return new QoreStringNode(v.getTypeName());
 }
 
+//! returns @ref True if the value has a complex type, @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True if the value has a complex type, @ref False if not; if this pseudo-method returns @ref True, then the return value of <value>::fullType() will differ from that of <value>::type()
+
+    Complex types are:
+    - @ref hash_hashdecl_type
+    - @ref hash_complex_type
+    - @ref object_type "objects"
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <value>::complexType() [flags=CONSTANT] {
+   return false;
+}
+
+//! returns the full type name which differers from the simple type name in case of complex types and objects
+/** @par Example:
+    @code{.py}
+hash <string, int> h();
+# returns "hash<string, int>"
+string str = n.fullType();
+Mutex m();
+# returns "object<Mutex>"
+str = m.fullType();
+    @endcode
+
+    @return the full type name which differers from the simple type name in case of complex types and objects; for simepl types the return value is the same as for <value>::type()
+
+    Complex types are:
+    - @ref hash_hashdecl_type "hashdecl hashes": the complex type description is returned (ex: \c "hash<MyHash>")
+    - @ref hash_complex_type "complex hashes": the complex type description is returned (ex: \c "hash<string, int>")
+    - @ref object_type "objects": the complex type description is returned (ex: \c "object<MyClass>"; see @ref object_complex_type)
+
+    @see
+    - <value>::complexType()
+    - <value>::type()
+
+    @since %Qore 0.8.13
+*/
+string <value>::fullType() [flags=CONSTANT] {
+    return new QoreStringNode(v.getFullTypeName());
+}
+
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
 /** This pseudo-method will return @ref False in all non-container types; use <value>::val() to check if a generic
     expression that might not be a container type has a value instead.

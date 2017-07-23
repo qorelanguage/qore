@@ -608,7 +608,6 @@ protected:
       }
       if (ok)
          return QTI_AMBIGUOUS;
-//         return typeInfo->return_vec.size() != accept_vec.size() ? QTI_AMBIGUOUS : QTI_IDENT;
       may_not_match = false;
       return QTI_NOT_EQUAL;
    }
@@ -885,15 +884,16 @@ protected:
 
 class QoreClassTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreClassTypeInfo(const QoreClass* qc, const char* name) : QoreTypeInfo(name, q_accept_vec_t {{qc, nullptr, true}}, q_return_vec_t {{qc, true}}) {
+   DLLLOCAL QoreClassTypeInfo(const QoreClass* qc, const char* name) : QoreTypeInfo(q_accept_vec_t {{qc, nullptr, true}}, q_return_vec_t {{qc, true}}) {
+       tname.sprintf("object<%s>", name);
    }
 
 protected:
-   DLLLOCAL QoreClassTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+   DLLLOCAL QoreClassTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
    }
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("an object of class '%s'", accept_vec[0].spec.getClass()->getName());
+      str.concat(&tname);
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
@@ -904,13 +904,12 @@ protected:
 
 class QoreClassOrNothingTypeInfo : public QoreClassTypeInfo {
 public:
-   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(name,
-      q_accept_vec_t {
+   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(q_accept_vec_t {
          {qc, nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
       }, q_return_vec_t {{qc}, {NT_NOTHING}}) {
-      tname.prepend("*");
+       tname.sprintf("*object<%s>", name);
    }
 
 protected:
@@ -926,15 +925,16 @@ protected:
 
 class QoreHashDeclTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(name, q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
+   DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
+       tname.sprintf("hash<%s>", name);
    }
 
 protected:
-   DLLLOCAL QoreHashDeclTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+   DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
    }
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("hash<%s>", accept_vec[0].spec.getHashDecl()->getName());
+      str.concat(&tname);
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
@@ -945,44 +945,42 @@ protected:
 
 class QoreHashDeclOrNothingTypeInfo : public QoreHashDeclTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(name,
-      q_accept_vec_t {
+   DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(q_accept_vec_t {
          {hd, nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
       }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
-      tname.prepend("*");
+       tname.sprintf("*hash<%s>", name);
    }
 
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
+       str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
+       return false;
    }
 };
 
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
-      tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
+       tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
    }
 
 protected:
    DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-      tname.prepend("*");
    }
 
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("hash<string, %s>", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+       str.concat(&tname);
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
+       return false;
    }
 };
 
@@ -993,16 +991,17 @@ public:
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
+       tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
    }
 
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+       str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
+       return false;
    }
 };
 
@@ -1054,6 +1053,18 @@ protected:
 class QoreBaseNoConvertTypeInfo : public QoreBaseTypeInfo {
 public:
    DLLLOCAL QoreBaseNoConvertTypeInfo(const char* name, qore_type_t qt) : QoreBaseTypeInfo(name, qt) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+};
+
+class QoreObjectTypeInfo : public QoreBaseTypeInfo {
+public:
+   DLLLOCAL QoreObjectTypeInfo() : QoreBaseTypeInfo("object", NT_OBJECT) {
    }
 
 protected:
@@ -1201,12 +1212,6 @@ protected:
    // returns true if this type could contain an object or a closure
    DLLLOCAL virtual bool needsScanImpl() const {
       return false;
-   }
-};
-
-class QoreObjectTypeInfo : public QoreBaseNoConvertTypeInfo {
-public:
-   DLLLOCAL QoreObjectTypeInfo() : QoreBaseNoConvertTypeInfo("object", NT_OBJECT) {
    }
 };
 

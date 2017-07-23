@@ -291,8 +291,11 @@ public:
    //! returns the type of value contained
    DLLEXPORT qore_type_t getType() const;
 
-   //! returns a string type description of the value contained (ex: "nothing" for a null AbstractQoreNode pointer)
+   //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
    DLLEXPORT const char* getTypeName() const;
+
+   //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
+   DLLEXPORT const char* getFullTypeName() const;
 
    //! returns true if the object contains a non-null AbstractQoreNode pointer (ie type == QV_Node && v.n is not 0)
    DLLEXPORT bool hasNode() const;
