@@ -1415,7 +1415,7 @@ bool b = has_key(hash, "key");
 */
 bool has_key(hash h, string key) {
    bool exists;
-   h->getKeyValueExistence(key, exists, xsink);
+   h->getValueKeyValueExistence(key, exists, xsink);
    return exists;
 }
 
@@ -2587,15 +2587,25 @@ catch (hash ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash ex) [flags=CONSTANT] {
-   const AbstractQoreNode* n = ex->getKeyValue("file");
-   QoreStringNode* str = new QoreStringNode(get_node_type(n) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(n)->getBuffer() : "<unknown>");
-   bool found = false;
-   int ln = (int)ex->getKeyAsBigInt("line", found);
+   QoreValue n = ex->getValueKeyValue("file", xsink);
+   if (*xsink)
+      return QoreValue();
+   QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+   int ln = (int)ex->getValueKeyValue("line", xsink).getAsBigInt();
+   if (*xsink)
+      return QoreValue();
    str->sprintf(":%d", ln);
-   n = ex->getKeyValue("source");
-   if (get_node_type(n) == NT_STRING && !reinterpret_cast<const QoreStringNode*>(n)->empty()) {
-      int offset = (int)ex->getKeyAsBigInt("offset", found);
-      str->sprintf(" (source \"%s\":%d)", reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), ln + offset);
+   n = ex->getValueKeyValue("source", xsink);
+   if (*xsink)
+      return QoreValue();
+   if (n.getType() == NT_STRING) {
+      const QoreStringNode* sstr = n.get<const QoreStringNode>();
+      if (!sstr->empty()) {
+         int offset = (int)ex->getValueKeyValue("offset", xsink).getAsBigInt();
+         if (*xsink)
+            return QoreValue();
+         str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+      }
    }
 
    return str;

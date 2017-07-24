@@ -603,7 +603,7 @@ hash<IsoWeekInfo> <date>::isoWeekHash() [flags=CONSTANT] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo);
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
    qore_hash_private* ph = qore_hash_private::get(*h);
    ph->setKeyValueIntern("year", new QoreBigIntNode(year));
    ph->setKeyValueIntern("week", new QoreBigIntNode(week));

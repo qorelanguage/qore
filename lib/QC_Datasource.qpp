@@ -59,7 +59,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
       return;
    }
 
-   DBIDriver *db_driver = DBI.find(str, xsink);
+   DBIDriver* db_driver = DBI.find(str, xsink);
    if (!db_driver) {
       if (!*xsink)
          xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
@@ -89,25 +89,28 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (str) ds->setPendingHostName(str);
 
    bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
+   int port = (int)opts->getValueKeyValue("port", xsink).getAsBigInt();
+   if (*xsink)
+      return;
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
          return;
       }
-
       ds->setPendingPort(port);
    }
 
    {
-      const AbstractQoreNode* p = opts->getKeyValue("options");
+      QoreValue p = opts->getValueKeyValue("options", xsink);
+      if (*xsink)
+         return;
 
-      if (!is_nothing(p)) {
-         if (get_node_type(p) != NT_HASH) {
-            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", get_type_name(p));
+      if (!p.isNothing()) {
+         if (p.getType() != NT_HASH) {
+            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
             return;
          }
-         const QoreHashNode *oh = reinterpret_cast<const QoreHashNode*>(p);
+         const QoreHashNode* oh = p.get<const QoreHashNode>();
          if (ds_set_options(*ds, oh, xsink))
             return;
       }

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <pthread.h>
 #include "qore/intern/QC_TimeZone.h"
@@ -313,7 +314,7 @@ any get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_
    if (!tmp)
       return QoreValue();
    const QoreHashNode* h = getProgram()->getThreadData();
-   return h->getReferencedKeyValue(tmp->getBuffer());
+   return qore_hash_private::get(*h)->getReferencedKeyValueIntern(tmp->c_str());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

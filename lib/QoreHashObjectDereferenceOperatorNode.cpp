@@ -166,7 +166,8 @@ QoreValue QoreHashObjectDereferenceOperatorNode::evalValueImpl(bool& needs_deref
          return h->getSlice(rh->get<const QoreListNode>(), xsink);
 
       QoreStringNodeValueHelper key(*rh);
-      return h->evalKeyValue(*key, xsink);
+      QoreValue v = h->getValueKeyValue(**key, xsink);
+      return *xsink ? v.refSelf() : QoreValue();
    }
    if (lh->getType() != NT_OBJECT)
       return QoreValue();

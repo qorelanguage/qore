@@ -1406,15 +1406,15 @@ QoreListNode* make_args(AbstractQoreNode* arg) {
 }
 
 const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
-   const AbstractQoreNode* p = h->getKeyValue(key);
-   if (is_nothing(p))
-      return 0;
+   QoreValue p = h->getValueKeyValue(key, xsink);
+   if (*xsink || p.isNothing())
+      return nullptr;
 
-   if (p->getType() != NT_STRING) {
-      xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
-      return 0;
+   if (p.getType() != NT_STRING) {
+      xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, p.getTypeName());
+      return nullptr;
    }
-   return reinterpret_cast<const QoreStringNode*>(p)->getBuffer();
+   return p.get<const QoreStringNode>()->c_str();
 }
 
 void q_strerror(QoreString &str, int err) {

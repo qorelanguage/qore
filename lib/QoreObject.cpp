@@ -511,7 +511,7 @@ AbstractQoreNode* qore_object_private::getReferencedMemberNoMethod(const char* m
 
    const QoreHashNode* odata = internal_member ? getInternalData(class_ctx) : data;
 
-   AbstractQoreNode* rv = odata ? odata->getReferencedKeyValue(mem) : 0;
+   AbstractQoreNode* rv = odata ? qore_hash_private::get(*odata)->getReferencedKeyValueIntern(mem) : nullptr;
    //printd(5, "qore_object_private::getReferencedMemberNoMethod() this: %p mem: %p (%s) xsink: %p internal: %d data->size(): %d rv: %p %s\n", this, mem, mem, xsink, internal_member, odata ? odata->size() : -1, rv, get_type_name(rv));
    return rv;
 }
@@ -1005,11 +1005,11 @@ QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink)
 
       const QoreHashNode* odata = internal_member ? priv->getInternalData(class_ctx) : priv->data;
       if (!odata) {
-         rv = 0;
+         rv = nullptr;
          exists = false;
       }
       else
-         rv = odata->getReferencedKeyValue(mem, exists);
+         rv = qore_hash_private::get(*odata)->getReferencedKeyValueIntern(mem, exists);
    }
 
    // execute memberGate method for objects where no member exists
@@ -1224,7 +1224,7 @@ int64 QoreObject::getMemberAsBigInt(const char* mem, bool& found, ExceptionSink*
       return 0;
    }
 
-   return priv->data->getKeyAsBigInt(mem, found);
+   return priv->data->getValueKeyValueExistence(mem, found, xsink).getAsBigInt();
 }
 
 AbstractQoreNode* QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {

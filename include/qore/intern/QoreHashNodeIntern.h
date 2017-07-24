@@ -139,6 +139,31 @@ public:
       assert(member_list.empty());
    }
 
+   DLLLOCAL QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
+
+   DLLLOCAL int checkKey(const char* key, ExceptionSink* xsink) const;
+
+   DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const char* key) const {
+      bool exists;
+      return getReferencedKeyValueIntern(key, exists);
+   }
+
+   DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const char* key, bool& exists) const {
+      assert(key);
+
+      hm_hm_t::const_iterator i = hm.find(key);
+
+      if (i != hm.end()) {
+         exists = true;
+         if ((*i->second)->node)
+            return (*i->second)->node->refSelf();
+
+         return nullptr;
+      }
+      exists = false;
+      return nullptr;
+   }
+
    DLLLOCAL int64 getKeyAsBigInt(const char* key, bool &found) const {
       assert(key);
       hm_hm_t::const_iterator i = hm.find(key);

@@ -106,7 +106,7 @@ QoreHashNode* date_info(const DateTime& d) {
    qore_tm info;
    d.getInfo(info);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclDateTimeInfo);
+   QoreHashNode* h = new QoreHashNode(hashdeclDateTimeInfo, nullptr);
    qore_hash_private* ph = qore_hash_private::get(*h);
    ph->setKeyValueIntern("relative", get_bool_node(d.isRelative()));
    ph->setKeyValueIntern("year", new QoreBigIntNode(info.year));
@@ -1286,7 +1286,7 @@ hash<IsoWeekInfo> getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo);
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
    qore_hash_private* ph = qore_hash_private::get(*h);
    ph->setKeyValueIntern("year", new QoreBigIntNode(year));
    ph->setKeyValueIntern("week", new QoreBigIntNode(week));
@@ -1323,7 +1323,7 @@ hash<IsoWeekInfo> get_iso_week_hash(date dt) [flags=CONSTANT] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo);
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
    qore_hash_private* ph = qore_hash_private::get(*h);
    ph->setKeyValueIntern("year", new QoreBigIntNode(year));
    ph->setKeyValueIntern("week", new QoreBigIntNode(week));

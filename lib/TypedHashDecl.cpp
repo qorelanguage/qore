@@ -258,8 +258,9 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
     for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
         // first try to use value given in init hash
         if (init) {
+            const qore_hash_private* hi = qore_hash_private::get(*init);
             bool exists;
-            ReferenceHolder<> val(init->getReferencedKeyValue(i->first, exists), xsink);
+            ReferenceHolder<> val(hi->getReferencedKeyValueIntern(i->first, exists), xsink);
             if (exists) {
                 // check types
                 QoreValue qv(val.release());
