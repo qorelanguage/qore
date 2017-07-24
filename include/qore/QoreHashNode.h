@@ -38,6 +38,7 @@
 
 class HashMember;
 class LocalVar;
+class QoreString;
 
 //! This is the hash or associative list container type in Qore, dynamically allocated only, reference counted
 /**
@@ -194,11 +195,26 @@ public:
 
    //! returns the value of the given key
    /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const char* key, bool& exists) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
        @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
 
        @since %Qore 0.8.13
    */
    DLLEXPORT QoreValue getValueKeyValue(const char* key, ExceptionSink* xsink) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValue(const char* key) const;
 
    //! returns the value of the given key
    /** @param key the key to return
@@ -208,6 +224,14 @@ public:
        @since %Qore 0.8.13
    */
    DLLEXPORT QoreValue getValueKeyValueExistence(const QoreString& key, bool& exists, ExceptionSink* xsink) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const QoreString& key, bool& exists) const;
 
    //! returns the value of the given key
    /** @param key the key to return

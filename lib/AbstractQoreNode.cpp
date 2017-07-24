@@ -626,6 +626,14 @@ AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode*>(this);
 }
 
+int64 get_ms_zero(const QoreValue& n) {
+   if (n.isNothing())
+      return -1;
+   if (n.getType() == NT_DATE)
+      return n.get<const DateTimeNode>()->getRelativeMilliseconds();
+   return n.getAsBigInt();
+}
+
 bool needs_scan(const AbstractQoreNode* n) {
    if (!n)
       return false;

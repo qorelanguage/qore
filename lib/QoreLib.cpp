@@ -1406,8 +1406,8 @@ QoreListNode* make_args(AbstractQoreNode* arg) {
 }
 
 const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
-   QoreValue p = h->getValueKeyValue(key, xsink);
-   if (*xsink || p.isNothing())
+   QoreValue p = h->getValueKeyValue(key);
+   if (p.isNothing())
       return nullptr;
 
    if (p.getType() != NT_STRING) {

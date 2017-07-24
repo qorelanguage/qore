@@ -60,25 +60,23 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
       return;
    }
 
-   const char *user = check_hash_key(opts, "user", DSPC_ERR, xsink);
+   const char* user = check_hash_key(opts, "user", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
+   const char* pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *db = check_hash_key(opts, "db", DSPC_ERR, xsink);
+   const char* db = check_hash_key(opts, "db", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
+   const char* charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *host = check_hash_key(opts, "host", DSPC_ERR, xsink);
+   const char* host = check_hash_key(opts, "host", DSPC_ERR, xsink);
    if (*xsink) return;
 
    bool found;
-   int port = (int)opts->getValueKeyValue("port", xsink).getAsBigInt();
-   if (*xsink)
-      return;
+   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
@@ -87,19 +85,17 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    // get options
    int min = 0, max = 0;
 
-   QoreValue p = opts->getValueKeyValue("options", xsink);
-   if (*xsink)
-      return;
-   const QoreHashNode* oh;
-   if (p.isNothing()) {
+   QoreValue p = opts->getValueKeyValue("options");
+   const QoreHashNode* opt_hash;
+   if (!p.isNothing()) {
       if (p.getType() != NT_HASH) {
-         xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p.getTypeName());
+         xsink->raiseException(DSPC_ERR, "'options' key is not type 'hash', instead got type '%s'", p.getTypeName());
          return;
       }
 
-      oh = p.get<const QoreHashNode>();
+      opt_hash = p.get<const QoreHashNode>();
 
-      min = (int)oh->getValueKeyValueExistence("min", found, xsink).getAsBigInt();
+      min = (int)opt_hash->getValueKeyValueExistence("min", found, xsink).getAsBigInt();
       if (*xsink)
          return;
       if (found) {
@@ -109,7 +105,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
          }
       }
 
-      max = (int)oh->getValueKeyValueExistence("max", found, xsink).getAsBigInt();
+      max = (int)opt_hash->getValueKeyValueExistence("max", found, xsink).getAsBigInt();
       if (*xsink)
          return;
       if (found) {
@@ -120,7 +116,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
       }
    }
    else
-      oh = nullptr;
+      opt_hash = nullptr;
 
    if (!min)
       min = DP_MIN;
@@ -128,7 +124,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (!max)
       max = DP_MAX;
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg.getReferencedValue()));
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, opt_hash, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
    else

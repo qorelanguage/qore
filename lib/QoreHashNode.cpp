@@ -248,6 +248,10 @@ QoreValue qore_hash_private::getValueKeyValueExistence(const char* key, bool& ex
     if (checkKey(key, xsink))
        return QoreValue();
 
+    return getValueKeyValueExistenceIntern(key, exists);
+}
+
+QoreValue qore_hash_private::getValueKeyValueExistenceIntern(const char* key, bool& exists) const {
     hm_hm_t::const_iterator i = hm.find(key);
 
     if (i != hm.end()) {
@@ -257,6 +261,11 @@ QoreValue qore_hash_private::getValueKeyValueExistence(const char* key, bool& ex
 
     exists = false;
     return QoreValue();
+}
+
+QoreValue qore_hash_private::getValueKeyValueIntern(const char* key) const {
+    hm_hm_t::const_iterator i = hm.find(key);
+    return i != hm.end() ? (*i->second)->node : QoreValue();
 }
 
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private) {
@@ -282,8 +291,16 @@ AbstractQoreNode* QoreHashNode::realCopy() const {
    return copy();
 }
 
+QoreValue QoreHashNode::getValueKeyValue(const char* key) const {
+    return priv->getValueKeyValueIntern(key);
+}
+
 QoreValue QoreHashNode::getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const {
     return priv->getValueKeyValueExistence(key, exists, xsink);
+}
+
+QoreValue QoreHashNode::getValueKeyValueExistence(const char* key, bool& exists) const {
+    return priv->getValueKeyValueExistenceIntern(key, exists);
 }
 
 QoreValue QoreHashNode::getValueKeyValue(const char* key, ExceptionSink* xsink) const {

@@ -139,7 +139,11 @@ public:
       assert(member_list.empty());
    }
 
+   DLLLOCAL QoreValue getValueKeyValueIntern(const char* key) const;
+
    DLLLOCAL QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreValue getValueKeyValueExistenceIntern(const char* key, bool& exists) const;
 
    DLLLOCAL int checkKey(const char* key, ExceptionSink* xsink) const;
 

@@ -887,4 +887,6 @@ DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len)
 DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
 DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 
+DLLLOCAL int64 get_ms_zero(const QoreValue& v);
+
 #endif

@@ -30,10 +30,11 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
-static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
+static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
 static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
    ConstHashIterator hi(opts);
@@ -51,7 +52,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
 static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
+   const char* str = check_hash_key(opts, "type", DSC_ERR, xsink);
    if (*xsink) return;
 
    if (!str) {
@@ -89,9 +90,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (str) ds->setPendingHostName(str);
 
    bool found;
-   int port = (int)opts->getValueKeyValue("port", xsink).getAsBigInt();
-   if (*xsink)
-      return;
+   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -102,16 +101,13 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
 
    {
       QoreValue p = opts->getValueKeyValue("options", xsink);
-      if (*xsink)
-         return;
-
       if (!p.isNothing()) {
          if (p.getType() != NT_HASH) {
             xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
             return;
          }
-         const QoreHashNode* oh = p.get<const QoreHashNode>();
-         if (ds_set_options(*ds, oh, xsink))
+         const QoreHashNode* opt_hash = p.get<const QoreHashNode>();
+         if (ds_set_options(*ds, opt_hash, xsink))
             return;
       }
    }
