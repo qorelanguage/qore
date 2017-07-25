@@ -20,6 +20,9 @@ class TypeTest inherits QUnit::Test {
         {
             int i = 1;
             assertEq(1, i);
+            assertEq(True, i instanceof int);
+            assertEq(True, i instanceof softint);
+            assertEq(True, i instanceof *softint);
 
             {
                 Program p(PO_NEW_STYLE);
@@ -1237,6 +1240,7 @@ class TypeTest inherits QUnit::Test {
             {
                 hash<string, softint> h = ("a": "2");
                 assertEq(2, h.a);
+                assertEq(True, h instanceof hash<string, softint>);
             }
 
             {

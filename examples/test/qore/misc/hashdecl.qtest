@@ -42,6 +42,8 @@ class HashDeclTest inherits QUnit::Test {
             assertEq(1, c.i);
             assertEq("hi", c.str);
             assertEq(NOTHING, c.n);
+            assertEq("hash<Container>", c.fullType());
+            assertEq(True, c instanceof hash<Container>);
         }
 
         {

@@ -1919,6 +1919,8 @@ public namespace SqlUtil {
         bool notnull = False;
         #! this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
         hash<string, hash> driver;
+        #! @ref Qore::True "True" for DBs that support an auto-increment column
+        *bool auto_increment;
     }
 
     #! SQL operator info hash as returned by all @ref sql_op_funcs "operator functions"
@@ -3124,7 +3126,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public hash<string, hash<JoinOperatorInfo>> sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
         string hk = alias ? alias : table.getSqlName();
-        return new hash<string, hash<JoinOperatorInfo>>((hk: ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt)));
+        return new hash<string, hash<JoinOperatorInfo>>((hk: cast<hash<JoinOperatorInfo>>(("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt))));
     }
 
     #! returns a hash keyed with the table name assigned to a @ref JoinOperatorInfo hash
@@ -3134,7 +3136,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public hash<string, hash<JoinOperatorInfo>> sub make_jop(string jop, string table_name, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
         string hk = alias ? alias : table_name;
-        return new hash<string, hash<JoinOperatorInfo>>((hk: ("jop": jop, "table": table_name, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt)));
+        return new hash<string, hash<JoinOperatorInfo>>((hk:  cast<hash<JoinOperatorInfo>>(("jop": jop, "table": table_name, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt))));
     }
 
     #! returns a hash for standard inner joins with the given arguments
@@ -8061,8 +8063,10 @@ Table table("pgsql:user/pass@db%host", "table");
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": Type::NothingType,
-                "default_value_native" : Type::Boolean,
+                "default_value_native": Type::Boolean,
                 "comment": Type::String,
+                "notnull": Type::Boolean,
+                "driver": Type::Hash,
                 );
 
             #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
@@ -12356,7 +12360,7 @@ string sql = table.getSelectSql(sh, \args);
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
-                if (we.cop) {
+                if (we.hasKey("cop")) {
                     *hash psch_copy = psch;
                     string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
                     if (psch_copy != psch)

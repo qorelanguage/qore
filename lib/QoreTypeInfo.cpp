@@ -401,9 +401,16 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
       case QTS_COMPLEXHASH: {
          //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
          switch (t.typespec) {
-            case QTS_COMPLEXHASH:
+            case QTS_COMPLEXHASH: {
                //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-               return QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
+               qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
+               // even if types are 100% compatible, if they are not equal, then we perform type folding
+               if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(u.ti, t.u.ti)) {
+                  may_need_filter = true;
+                  res = QTI_AMBIGUOUS;
+               }
+               return res;
+            }
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -469,14 +476,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
          if (n.getType() == NT_HASH) {
             QoreHashNode* h = n.get<QoreHashNode>();
             const QoreTypeInfo* ti = h->getValueTypeInfo();
-            bool may_not_match = false;
-            qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, ti, may_not_match);
-            if (res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) {
+            if (QoreTypeInfo::equal(u.ti, ti)) {
                ok = true;
                break;
             }
 
-            // value types are not identical; we have to get a new hash
+            // try to fold values into our type; value types are not identical;
+            // we have to get a new hash
             if (!h->is_unique()) {
                discard(n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo)), xsink);
                if (*xsink)

@@ -1286,6 +1286,7 @@ my any $v = $c.name;
         }
 
         private bool checkExistenceImpl() {
+printf("name: %y\n", name);
             *hash qh = ds.selectRow("select name from sysobjects where type = %v and name = %v", "U", name);
             #*hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and table_name = %v", schema, name);
             if (qh)

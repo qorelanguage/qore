@@ -37,7 +37,7 @@
     |@ref shift_right_operator ">>"|\c 12|@ref shift_right_operator "bitwise shift right operator"|@code{.py} 0xff00 >> 8@endcode
     |@ref shift_left_operator "<<"|\c 12|@ref shift_left_operator "bitwise shift left operator"|@code{.py} 0xff00 << 8@endcode
     |@ref exists "exists"|\c 13|@ref exists "exists value operator"|@code{.py} exists var@endcode
-    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof class operator"|@code{.py} instanceof Qore::Mutex@endcode
+    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof operator"|@code{.py} instanceof Qore::Mutex@endcode
     |@ref logical_less_than_operator "<"|\c 14|@ref logical_less_than_operator "Logical less than operator"|@code{.py} a < 10@endcode
     |@ref logical_greater_than_operator ">"|\c 14|@ref logical_greater_than_operator "Logical greater than operator"|@code{.py} a > 10@endcode
     |@ref logical_equality_operator "=="|\c 14|@ref logical_equality_operator "Logical equality operator"|@code{.py} a == 10@endcode
@@ -1094,13 +1094,13 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection instanceof Class Instance Operator (instanceof)
+    @subsection instanceof Operator (instanceof)
 
     @par Synopsis
-    Tests if an expression is an instance of a given class or not.
+    Tests if an expression is an instance of the given type or not, meaning that the type can accept the value.
 
     @par Syntax
-    \a expression <tt><b>instanceof</b></tt> \a class_identifier
+    \a expression <tt><b>instanceof</b></tt> \a type_identifier
 
     @par Return Type
     @ref bool_type "bool"
@@ -1113,7 +1113,7 @@ if (obj instanceof Qore::Mutex)
 
     <b>Arguments Processed by instanceof</b>
     |!Argument|!Processing
-    |\a expression|If expression is an instance of the named class, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False". The operator will return @ref Qore::True "True" if the class is a base class, also even if it is privately inherited.
+    |\a expression|If expression is an instance of the named type, which is defined as the type is able to accept the value, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False".
 
     This operator does not throw any exceptions.
 
