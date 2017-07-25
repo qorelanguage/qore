@@ -46,17 +46,13 @@ int QoreInstanceOfOperatorNode::getAsString(QoreString& str, int foff, Exception
 }
 
 QoreValue QoreInstanceOfOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(r && r->getType() == NT_CLASSREF);
+   assert(ti);
 
    ValueEvalRefHolder v(exp, xsink);
    if (*xsink)
       return QoreValue();
 
-   if (v->getType() != NT_OBJECT)
-      return false;
-
-   const QoreObject *o = v->get<const QoreObject>();
-   return o->validInstanceOf(*r->getClass());
+   return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
 }
 
 AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -69,14 +65,19 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    const QoreTypeInfo* lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
-   const QoreTypeInfo* rti = 0;
-   // ClassRefNode::parseInit() always returns "this"
-   r->parseInit(oflag, pflag, lvids, rti);
 
-   if (QoreTypeInfo::hasType(lti) && !QoreTypeInfo::parseAccepts(objectTypeInfo, lti)) {
-      QoreStringNode* edesc = new QoreStringNode("the left hand argument given to the 'instanceof' operator is ");
-      QoreTypeInfo::getThisType(lti, *edesc);
-      edesc->concat(", so this expression will always return False; the 'instanceof' operator can only return True with objects of the class on the right hand side");
+   if (r) {
+      ti = QoreParseTypeInfo::resolveAny(r, loc);
+      delete r;
+      r = nullptr;
+   }
+#ifdef DEBUG
+   else
+      assert(ti);
+#endif
+
+   if (!QoreTypeInfo::parseAccepts(ti, lti)) {
+      QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s'always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
       qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 

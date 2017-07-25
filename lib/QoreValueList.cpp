@@ -382,14 +382,11 @@ double QoreValueList::floatEvalImpl(ExceptionSink* xsink) const {
 }
 
 QoreValueList* QoreValueList::copy() const {
-   QoreValueList* nl = new QoreValueList;
-   for (size_t i = 0; i < priv->length; ++i)
-      nl->push(priv->entry[i].refSelf());
-   return nl;
+   return priv->copy();
 }
 
 QoreValueList* QoreValueList::copyListFrom(size_t index) const {
-   QoreValueList* nl = new QoreValueList;
+   QoreValueList* nl = priv->getCopy();
    for (size_t i = index; i < priv->length; i++)
       nl->push(priv->entry[i].refSelf());
    return nl;
@@ -423,7 +420,7 @@ QoreValueList* QoreValueList::extract(ptrdiff_t offset, ExceptionSink* xsink) {
    assert(reference_count() == 1);
    size_t n_offset = priv->checkOffset(offset);
    if (n_offset == priv->length)
-      return new QoreValueList;
+      return priv->getCopy();
 
    return priv->spliceIntern(n_offset, priv->length - n_offset, xsink, true);
 }
@@ -433,7 +430,7 @@ QoreValueList* QoreValueList::extract(ptrdiff_t offset, ptrdiff_t len, Exception
    size_t n_offset, n_len;
    priv->checkOffset(offset, len, n_offset, n_len);
    if (n_offset == priv->length)
-      return new QoreValueList;
+      return priv->getCopy();
    return priv->spliceIntern(n_offset, n_len, xsink, true);
 }
 
@@ -614,7 +611,7 @@ QoreValue QoreValueList::maxValue(const ResolvedCallReferenceNode* fr, Exception
 }
 
 QoreValueList* QoreValueList::reverse() const {
-   QoreValueList* l = new QoreValueList;
+   QoreValueList* l = priv->getCopy();
    l->priv->resize(priv->length);
    for (size_t i = 0; i < priv->length; ++i) {
       QoreValue n = priv->entry[priv->length - i - 1];

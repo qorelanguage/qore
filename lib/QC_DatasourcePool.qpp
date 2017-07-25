@@ -113,6 +113,10 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
             xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
             return;
          }
+         if (!max) {
+            xsink->raiseException(DSPC_ERR, "maximum connections must be > 0 (value given: %d)", min, max);
+            return;
+         }
       }
    }
    else

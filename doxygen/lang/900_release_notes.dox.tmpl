@@ -24,6 +24,7 @@
         - @ref Qore::StatInfo "StatInfo"
       - @ref hash_complex_type "hash with type-safe values"; ex: @code{.py} hash<string, int>h = ("str": 1); @endcode
       - improved @ref new "new" and @ref cast "cast<>" operators
+      - the @ref instanceof "instanceof" operator now works with any type; ex: @code{.py} bool b = v instanceof hash<string, int>; @endcode
     - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
       - @ref Qore::BinaryInputStream "BinaryInputStream"
       - @ref Qore::BinaryOutputStream "BinaryOutputStream"

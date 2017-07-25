@@ -674,12 +674,11 @@ const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation& loc) c
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation& loc) const {
-   if (cscope->size() == 1) {
-      const QoreTypeInfo* rv = or_nothing ? getBuiltinUserOrNothingTypeInfo(cscope->ostr) : getBuiltinUserTypeInfo(cscope->ostr);
-      if (rv)
-         return rv;
-   }
-   return resolve(loc);
+   if (!subtypes.empty())
+      return resolveSubtype(loc);
+
+   const QoreTypeInfo* rv = or_nothing ? getBuiltinUserOrNothingTypeInfo(cscope->ostr) : getBuiltinUserTypeInfo(cscope->ostr);
+   return rv ? rv : resolveClass(loc, *cscope, or_nothing);
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {

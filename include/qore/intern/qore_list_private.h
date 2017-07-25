@@ -48,6 +48,7 @@ struct qore_list_private {
    qore_size_t length = 0;
    qore_size_t allocated = 0;
    unsigned obj_count = 0;
+   const QoreTypeInfo* complexTypeInfo = nullptr;
    bool finalized : 1;
    bool vlist : 1;
 
@@ -59,6 +60,55 @@ struct qore_list_private {
 
       if (entry)
          free(entry);
+   }
+
+   DLLLOCAL void getTypeName(QoreString& str) const {
+       if (complexTypeInfo)
+          str.concat(QoreTypeInfo::getName(complexTypeInfo));
+       else
+          str.concat("list");
+   }
+
+   DLLLOCAL QoreListNode* getCopy() const {
+      QoreListNode* l = new QoreListNode;
+      if (complexTypeInfo)
+         l->priv->complexTypeInfo = complexTypeInfo;
+      return l;
+   }
+
+   DLLLOCAL QoreListNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
+      QoreListNode* l = new QoreListNode;
+      l->priv->complexTypeInfo = newComplexTypeInfo;
+      copyIntern(*l->priv);
+      return l;
+   }
+
+   // strip = copy without type information
+   DLLLOCAL QoreListNode* copy(bool strip = false) const {
+      QoreListNode* l = strip ? new QoreListNode : getCopy();
+      copyIntern(*l->priv);
+      return l;
+   }
+
+   DLLLOCAL void copyIntern(qore_list_private& l) const {
+      l.reserve(length);
+      for (qore_size_t i = 0; i < length; ++i)
+         l.push(entry[i] ? entry[i]->refSelf() : nullptr);
+   }
+
+   DLLLOCAL void reserve(size_t num);
+
+   DLLLOCAL void push(AbstractQoreNode* val) {
+      AbstractQoreNode** v = getEntryPtr(length);
+      *v = val;
+      if (needs_scan(val))
+          incScanCount(1);
+   }
+
+   DLLLOCAL AbstractQoreNode** getEntryPtr(qore_size_t num) {
+      if (num >= length)
+          resize(num + 1);
+      return &entry[num];
    }
 
    DLLLOCAL void resize(size_t num);

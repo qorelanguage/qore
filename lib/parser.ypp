@@ -3578,8 +3578,12 @@ exp:
     | exp SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '=' exp                       { $$ = processAssignment(@1.first_line, @3.last_line, $1, $3); }
-    | exp TOK_INSTANCEOF IDENTIFIER     { QoreProgramLocation loc(@1.first_line, @3.last_line); $$ = new QoreInstanceOfOperatorNode(loc, $1, new ClassRefNode(loc, $3)); }
-    | exp TOK_INSTANCEOF SCOPED_REF     { QoreProgramLocation loc(@1.first_line, @3.last_line); $$ = new QoreInstanceOfOperatorNode(loc, $1, new ClassRefNode(loc, $3)); }
+    | exp TOK_INSTANCEOF uncqtypedef    {
+        QoreProgramLocation loc(@1.first_line, @3.last_line);
+        $$ = $3->getTypeInfo()
+            ? new QoreInstanceOfOperatorNode(loc, $1, $3->getTypeInfo())
+            : new QoreInstanceOfOperatorNode(loc, $1, $3->getParseTypeInfo());
+    }
     | exp NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '?' exp ':' exp               { $$ = new QoreQuestionMarkOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, $5); }
@@ -3635,8 +3639,12 @@ exp_n:
     | exp_n SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '=' exp                       { $$ = processAssignment(@1.first_line, @3.last_line, $1, $3); }
-    | exp_n TOK_INSTANCEOF IDENTIFIER     { QoreProgramLocation loc(@1.first_line, @3.last_line); $$ = new QoreInstanceOfOperatorNode(loc, $1, new ClassRefNode(loc, $3)); }
-    | exp_n TOK_INSTANCEOF SCOPED_REF     { QoreProgramLocation loc(@1.first_line, @3.last_line); $$ = new QoreInstanceOfOperatorNode(loc, $1, new ClassRefNode(loc, $3)); }
+    | exp_n TOK_INSTANCEOF uncqtypedef    {
+        QoreProgramLocation loc(@1.first_line, @3.last_line);
+        $$ = $3->getTypeInfo()
+            ? new QoreInstanceOfOperatorNode(loc, $1, $3->getTypeInfo())
+            : new QoreInstanceOfOperatorNode(loc, $1, $3->getParseTypeInfo());
+    }
     | exp_n NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '?' exp ':' exp               { $$ = new QoreQuestionMarkOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, $5); }

@@ -49,21 +49,67 @@ static QoreValueList* do_value_args(const QoreValue& e1, const QoreValue& e2) {
 class LValueHelper;
 
 struct qore_value_list_private {
-   QoreValue* entry;
-   qore_size_t length;
-   qore_size_t allocated;
-   unsigned obj_count;
+   QoreValue* entry = nullptr;
+   qore_size_t length = 0;
+   qore_size_t allocated = 0;
+   unsigned obj_count = 0;
+   const QoreTypeInfo* complexTypeInfo = nullptr;
    bool finalized : 1;
    bool vlist : 1;
 
-   DLLLOCAL qore_value_list_private() : entry(0), length(0), allocated(0), obj_count(0), finalized(false), vlist(false) {
+   DLLLOCAL qore_value_list_private() : finalized(false), vlist(false) {
    }
 
    DLLLOCAL ~qore_value_list_private() {
       assert(!length);
 
       if (entry)
-	 free(entry);
+         free(entry);
+   }
+
+   DLLLOCAL void getTypeName(QoreString& str) const {
+       if (complexTypeInfo)
+          str.concat(QoreTypeInfo::getName(complexTypeInfo));
+       else
+          str.concat("list");
+   }
+
+   DLLLOCAL QoreValueList* getCopy() const {
+      QoreValueList* l = new QoreValueList;
+      if (complexTypeInfo)
+         l->priv->complexTypeInfo = complexTypeInfo;
+      return l;
+   }
+
+   DLLLOCAL QoreValueList* copy(const QoreTypeInfo* newComplexTypeInfo) const {
+      QoreValueList* l = new QoreValueList;
+      l->priv->complexTypeInfo = newComplexTypeInfo;
+      copyIntern(*l->priv);
+      return l;
+   }
+
+   // strip = copy without type information
+   DLLLOCAL QoreValueList* copy(bool strip = false) const {
+      QoreValueList* l = strip ? new QoreValueList : getCopy();
+      copyIntern(*l->priv);
+      return l;
+   }
+
+   DLLLOCAL void copyIntern(qore_value_list_private& l) const {
+      l.reserve(length);
+      for (qore_size_t i = 0; i < length; ++i)
+         l.push(entry[i].refSelf());
+   }
+
+   DLLLOCAL void reserve(size_t num) {
+      if (num < length)
+         return;
+      // make larger
+      if (num >= allocated) {
+         qore_size_t d = num >> 2;
+         allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+         entry = (QoreValue*)realloc(entry, sizeof(QoreValue) * allocated);
+      }
    }
 
    //DLLLOCAL int getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
@@ -253,6 +299,14 @@ struct qore_value_list_private {
       assert(obj_count || (dt > 0));
       //printd(5, "qore_value_list_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
       obj_count += dt;
+   }
+
+   DLLLOCAL static qore_value_list_private* get(QoreValueList& l) {
+      return l.priv;
+   }
+
+   DLLLOCAL static const qore_value_list_private* get(const QoreValueList& l) {
+      return l.priv;
    }
 
    DLLLOCAL static unsigned getScanCount(const QoreValueList& l) {

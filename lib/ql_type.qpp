@@ -305,7 +305,7 @@ list list(...) [flags=CONSTANT] {
       l = new QoreListNode;
       QoreValue p0 = get_param_value(args, 0);
       if (!p0.isNothing())
-	 l->push(p0.getReferencedValue());
+         l->push(p0.getReferencedValue());
    }
    return l;
 }
@@ -343,9 +343,9 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper str(li.getValue());
-      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
+      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : nullptr, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
    return h.release();
 }
@@ -372,12 +372,12 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
    bool valid = true;
    while (ki.next()) {
       if (valid)
-	 valid = vi.next();
+         valid = vi.next();
 
       QoreStringValueHelper str(ki.getValue());
       h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
 
    return h.release();
@@ -463,7 +463,7 @@ string str = binary_to_string(b, "iso-8859-1");
     @endcode
 */
 string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (!b->size())
       return new QoreStringNode(qe);
    return new QoreStringNode((const char*)b->getPtr(), b->size(), qe);
