@@ -568,6 +568,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreQuestionMarkOperatorNode.cpp
     lib/QoreKeysOperatorNode.cpp
     lib/QoreSelectOperatorNode.cpp
+    lib/QoreRangeOperatorNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)

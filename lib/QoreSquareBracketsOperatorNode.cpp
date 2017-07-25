@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include <iostream>
+using namespace std;
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
@@ -61,7 +63,10 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             returnTypeInfo = stringOrNothingTypeInfo;
          }
          else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
-            returnTypeInfo = bigIntOrNothingTypeInfo;
+             if (QoreTypeInfo::hasType(rti) && QoreTypeInfo::isType(rti, NT_LIST))
+                 returnTypeInfo = binaryOrNothingTypeInfo;
+             else
+                 returnTypeInfo = bigIntOrNothingTypeInfo;
          }
          else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
             && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
@@ -90,9 +95,12 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
        && !QoreTypeInfo::parseAccepts(numberTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(boolTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(stringTypeInfo, rti)
-       && !QoreTypeInfo::parseAccepts(dateTypeInfo, rti)) {
+       && !QoreTypeInfo::parseAccepts(dateTypeInfo, rti)
+       && !QoreTypeInfo::parseAccepts(listTypeInfo, rti)) {
          */
-    if (!QoreTypeInfo::canConvertToScalar(rti)) {
+   if (!QoreTypeInfo::canConvertToScalar(rti)
+       && !QoreTypeInfo::parseAccepts(listTypeInfo, rti))
+   {
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");
@@ -125,21 +133,58 @@ QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, Excep
 }
 
 QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink) {
-   qore_type_t t = l.getType();
+    qore_type_t left_type = l.getType();
+    qore_type_t right_type = r.getType();
 
-   int64 offset = r.getAsBigInt();
-   switch (t) {
-      case NT_LIST:
-         return l.get<const QoreListNode>()->get_referenced_entry(offset);
-      case NT_STRING:
-         return l.get<const QoreStringNode>()->substr(offset, 1, xsink);
-      case NT_BINARY: {
-         const BinaryNode* b = l.get<const BinaryNode>();
-         if (offset < 0 || (size_t)offset >= b->size())
-            return QoreValue();
-         return (int64)(((unsigned char*)b->getPtr())[offset]);
-      }
-   }
+    if (right_type == NT_LIST) {
+        ConstListIterator it(r.get<const QoreListNode>());
+        switch (left_type) {
+            case NT_LIST: {
+                QoreListNode* ret = new QoreListNode();
+                while (it.next()) {
+                    QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
+                    ret->push(entry.getReferencedValue());
+                }
+                return ret;
+            }
+            case NT_STRING: {
+                QoreStringNode* ret = new QoreStringNode();
+                while (it.next()) {
+                    QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
+                    ret->concat(entry.get<QoreStringNode>());
+                }
+                return ret;
+            }
+            case NT_BINARY: {
+                qore_size_t size = r.get<const QoreListNode>()->size();
+                qore_size_t i = 0;
+                void* ptr = malloc(size);
+                while (it.next()) {
+                    QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
+                    int64 value = entry.getAsBigInt();
+                    memcpy((char*)ptr + i++, &value, 1);
+                }
+                return new BinaryNode(ptr, size);
+            }
+            default:
+                return QoreValue();
+        }
+    }
+    else {
+        int64 offset = r.getAsBigInt();
+        switch (left_type) {
+            case NT_LIST:
+                return l.get<const QoreListNode>()->get_referenced_entry(offset);
+            case NT_STRING:
+                return l.get<const QoreStringNode>()->substr(offset, 1, xsink);
+            case NT_BINARY: {
+                const BinaryNode* b = l.get<const BinaryNode>();
+                if (offset < 0 || (size_t)offset >= b->size())
+                    return QoreValue();
+                return (int64)(((unsigned char*)b->getPtr())[offset]);
+            }
+        }
+    }
 
-   return QoreValue();
+    return QoreValue();
 }

@@ -1694,8 +1694,6 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
-\.\.\.                                  return TOK_3_DOTS;
-\.\.                                    return TOK_2_DOTS;
 \`[^`]*\`                               yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE;
 \'[^\']*\'                              yylval->String = new QoreStringNode(remove_quotes(yytext)); return QUOTED_WORD;
 \$\$                                    yylval->implicit_arg = new QoreImplicitArgumentNode(get_loc(yylloc), -1); return IMPLICIT_ARG_REF;
@@ -1730,6 +1728,8 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \^=                                     return XOR_EQUALS;
 \>\>=                                   return SHIFT_RIGHT_EQUALS;
 \<\<=                                   return SHIFT_LEFT_EQUALS;
+\.\.\.                                  return RANGE_3_DOTS;
+\.\.                                    return RANGE_2_DOTS;
 
 \<{WS}+=                                check_broken_op(yylloc, yytext, "<="); return LOGICAL_LE;
 \>{WS}+=                                check_broken_op(yylloc, yytext, ">="); return LOGICAL_GE;
@@ -1760,6 +1760,9 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \>{WS}*\>{WS}+=                         check_broken_op(yylloc, yytext, ">>="); return SHIFT_RIGHT_EQUALS;
 \<{WS}+\<{WS}*=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
 \<{WS}*\<{WS}+=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
+\.{WS}+\.{WS}*\.                        check_broken_op(yylloc, yytext, "..."); return RANGE_3_DOTS;
+\.{WS}*\.{WS}+\.                        check_broken_op(yylloc, yytext, "..."); return RANGE_3_DOTS;
+\.{WS}+\.                               check_broken_op(yylloc, yytext, ".."); return RANGE_2_DOTS;
 
 \/\*                                    {
                                            int c;

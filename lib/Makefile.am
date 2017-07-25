@@ -317,6 +317,7 @@ libqore_la_SOURCES = \
 	QoreMinusOperatorNode.cpp \
 	QoreMultiplicationOperatorNode.cpp \
 	QoreBackgroundOperatorNode.cpp \
+	QoreRangeOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
