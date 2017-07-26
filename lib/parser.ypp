@@ -3592,6 +3592,7 @@ exp:
         $$ = $3->getTypeInfo()
             ? new QoreInstanceOfOperatorNode(loc, $1, $3->getTypeInfo())
             : new QoreInstanceOfOperatorNode(loc, $1, $3->getParseTypeInfo());
+        delete $3;
     }
     | exp NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
@@ -3653,6 +3654,7 @@ exp_n:
         $$ = $3->getTypeInfo()
             ? new QoreInstanceOfOperatorNode(loc, $1, $3->getTypeInfo())
             : new QoreInstanceOfOperatorNode(loc, $1, $3->getParseTypeInfo());
+        delete $3;
     }
     | exp_n NULL_COALESCING exp           { $$ = new QoreNullCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n VALUE_COALESCING exp          { $$ = new QoreValueCoalescingOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }

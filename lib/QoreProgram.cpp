@@ -732,6 +732,10 @@ void qore_program_private::del(ExceptionSink* xsink) {
       delete i.second;
    for (auto& i : chon_map)
       delete i.second;
+   for (auto& i : cl_map)
+      delete i.second;
+   for (auto& i : clon_map)
+      delete i.second;
 
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 }
