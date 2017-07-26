@@ -36,6 +36,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/qore_list_private.h"
 
 const QoreAnyTypeInfo staticAnyTypeInfo;
 
@@ -780,6 +781,11 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& l
 
    // qc maybe NULL when the class is not found
    return qc ? qc->getTypeInfo() : objectTypeInfo;
+}
+
+QoreValue QoreHashDeclTypeInfo::getDefaultQoreValueImpl() const {
+   return qore_hash_private::newHashDecl(accept_vec[0].spec.getHashDecl());
+   //return new QoreHashNode(accept_vec[0].spec.getHashDecl(), xsink);
 }
 
 void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {

@@ -127,7 +127,11 @@ protected:
    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
 public:
+   //! create an empty list
    DLLEXPORT QoreListNode();
+
+   //! creates an empty list with the given value type
+   DLLEXPORT QoreListNode(const QoreTypeInfo* valueTypeInfo);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -230,7 +234,16 @@ public:
    */
    DLLEXPORT void set_entry(qore_size_t index, AbstractQoreNode* val, ExceptionSink* xsink);
 
+   //! adds a value to the list
+   /** @deprecated use push(AbstractQoreNode*, ExceptionSink*) instead
+   */
    DLLEXPORT void push(AbstractQoreNode* val);
+
+   //! adds a value to the list
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT int push(AbstractQoreNode* val, ExceptionSink* xsink);
+
    DLLEXPORT void insert(AbstractQoreNode* val);
 
    //! returns the last element of the list, the length is decremented by one, caller owns the reference
@@ -245,7 +258,14 @@ public:
    DLLEXPORT AbstractQoreNode* shift();
 
    //! appends the elements of "list" to this list
+   /** @deprecated use merge(const QoreListNode*, ExceptionSink*) instead
+   */
    DLLEXPORT void merge(const QoreListNode* list);
+
+   //! appends the elements of "list" to this list
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT int merge(const QoreListNode* list, ExceptionSink* xsink);
 
    /**
       @param index the index of the element (first element is index 0)

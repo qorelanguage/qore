@@ -963,6 +963,12 @@ protected:
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
       return false;
    }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const;
 };
 
 class QoreHashDeclOrNothingTypeInfo : public QoreHashDeclTypeInfo {
@@ -1003,6 +1009,14 @@ protected:
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
        return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return new QoreHashNode(accept_vec[0].spec.getComplexHash());
    }
 };
 
@@ -1045,6 +1059,14 @@ protected:
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
        return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return new QoreListNode(accept_vec[0].spec.getComplexList());
    }
 };
 

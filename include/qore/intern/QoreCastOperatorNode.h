@@ -191,7 +191,6 @@ public:
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return nullptr;
-      assert(typeInfo);
       return new QoreComplexListCastOperatorNode(loc, typeInfo, n_exp.release());
    }
 

@@ -294,6 +294,10 @@ QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new 
    //printd(5, "QoreListNode::QoreListNode() 2 this=%p ne=%d v=%d\n", this, needs_eval_flag, value);
 }
 
+QoreListNode::QoreListNode(const QoreTypeInfo* valueTypeInfo) : QoreListNode() {
+   priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(valueTypeInfo);
+}
+
 QoreListNode::~QoreListNode() {
    delete priv;
 }
@@ -402,11 +406,13 @@ AbstractQoreNode* QoreListNode::eval_entry(qore_size_t num, ExceptionSink* xsink
    return rv;
 }
 
+// UNSAFE: remove this function - no type checking
 void QoreListNode::push(AbstractQoreNode* val) {
    assert(reference_count() == 1);
-   priv->push(val);
+   priv->pushIntern(val);
 }
 
+// UNSAFE: remove this function - no type checking
 void QoreListNode::merge(const QoreListNode* list) {
    assert(reference_count() == 1);
    int start = priv->length;
@@ -421,6 +427,14 @@ void QoreListNode::merge(const QoreListNode* list) {
       else
          priv->entry[start + i] = 0;
    }
+}
+
+int QoreListNode::push(AbstractQoreNode* val, ExceptionSink* xsink) {
+   return priv->push(val, xsink);
+}
+
+int QoreListNode::merge(const QoreListNode* list, ExceptionSink* xsink) {
+   return priv->merge(list, xsink);
 }
 
 // UNSAFE: remove this function

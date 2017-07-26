@@ -113,9 +113,9 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       v.ensureUnique(); // no exception possible here
       QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
       if (new_right->getType() == NT_LIST)
-         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
+         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
       else
-         l->push(new_right.getReferencedValue());
+         l->push(new_right.getReferencedValue(), xsink);
    } // do hash plus-equals if left side is a hash
    else if (vtype == NT_HASH) {
       if (new_right->getType() == NT_HASH) {

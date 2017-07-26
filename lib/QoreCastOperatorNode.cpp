@@ -81,6 +81,18 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
          // parse exception already raised; current expression invalid
          return this;
       }
+      // check special case of cast<list>(...)
+      if (!strcmp(pti->cscope->ostr, "list")) {
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            parse_error(loc, "cast<list>(%s) is invalid; cannot cast from %s to list", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
+         typeInfo = listTypeInfo;
+         if (exp) {
+            ReferenceHolder<> holder(this, nullptr);
+            return new QoreComplexListCastOperatorNode(loc, nullptr, takeExp());
+         }
+         // parse exception already raised; current expression invalid
+         return this;
+      }
    }
 
    typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);
@@ -142,13 +154,6 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
    {
       const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
       if (ti) {
-          /*
-         qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_LIST);
-         if (r == QTI_NOT_EQUAL) {
-             parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to list<%s>", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(ti));
-         }
-        */
-
          // check for cast<> compatibility
          qore_list_private::parseCheckComplexListInitialization(loc, ti, expTypeInfo, exp, "cast to", false);
 
@@ -234,7 +239,7 @@ QoreValue QoreComplexHashCastOperatorNode::evalValueImpl(bool& needs_deref, Exce
       return QoreValue();
    }
 
-   // do the runtime case
+   // do the runtime cast
    return qore_hash_private::newComplexHashFromHash(typeInfo, static_cast<QoreHashNode*>(rv.getReferencedValue()), xsink);
 }
 
@@ -243,6 +248,14 @@ QoreValue QoreComplexListCastOperatorNode::evalValueImpl(bool& needs_deref, Exce
    if (*xsink)
       return QoreValue();
 
-   // do the runtime case
+   // do the runtime cast
+   if (!typeInfo) {
+      if (rv->getType() != NT_LIST) {
+         xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to 'list'", rv->getTypeName());
+         return QoreValue();
+      }
+
+      return qore_list_private::getPlainList(rv.takeReferencedNode<QoreListNode>());
+   }
    return qore_list_private::newComplexListFromValue(typeInfo, rv.takeReferencedValue(), xsink);
 }

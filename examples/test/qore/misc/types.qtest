@@ -1412,7 +1412,8 @@ class TypeTest inherits QUnit::Test {
                 assertEq((1, 2), l);
                 assertEq(Type::List, l.type());
 
-                l = cast<list<softint>>(new list<int>(2, 3));
+                l = new list<int>(2, 3);
+                assertEq("list<softint>", l.fullType());
                 assertEq(2, l[0]);
                 assertEq(3, l[1]);
 
@@ -1421,6 +1422,10 @@ class TypeTest inherits QUnit::Test {
 
                 l += "20";
                 assertEq(20, l[4]);
+
+                l += ("5", 4.1);
+                assertEq(5, l[5]);
+                assertEq(4, l[6]);
             }
 
             {
@@ -1443,23 +1448,24 @@ class TypeTest inherits QUnit::Test {
                 assertEq("str", l[1]);
             }
 
+            {
+                list<int> l1;
+                list<int> l2;
+                map l1 += 1, "a";
+                l2 = l1;
+
+                list l3 = cast<list>(l2);
+                l3 += "string";
+                assertEq("string", l3[1]);
+            }
+
+            {
+                list<list> l = ((1, 2), ("a", "b"));
+                assertEq(1, l[0][0]);
+                assertEq("a", l[1][0]);
+            }
+
             /*
-            {
-                hash<string, int> h1;
-                hash<string, int> h2;
-                map h1.$1 = 1, "a";
-                h2 = h1;
-
-                hash h3 = cast<hash>(h2);
-                h3.b = "string";
-                assertEq("string", h3.b);
-            }
-
-            {
-                hash<string, hash> h = (("a": ("a": "a")));
-                assertEq("a", h.a.a);
-            }
-
             {
                 hash<string, softint> h();
                 h = new hash<string, int>(('b': 2, 'c': 3));

@@ -101,16 +101,52 @@ struct qore_list_private {
    DLLLOCAL void copyIntern(qore_list_private& l) const {
       l.reserve(length);
       for (qore_size_t i = 0; i < length; ++i)
-         l.push(entry[i] ? entry[i]->refSelf() : nullptr);
+         l.pushIntern(entry[i] ? entry[i]->refSelf() : nullptr);
    }
 
    DLLLOCAL void reserve(size_t num);
 
-   DLLLOCAL void push(AbstractQoreNode* val) {
+   DLLLOCAL int checkVal(ReferenceHolder<>& holder, ExceptionSink* xsink) {
+       if (complexTypeInfo) {
+          QoreValue v(holder.release());
+          QoreTypeInfo::acceptInputParam(QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo), -1, nullptr, v, xsink);
+          holder = v.takeNode();
+          return *xsink ? -1 : 0;
+       }
+       return 0;
+   }
+
+   DLLLOCAL int push(AbstractQoreNode* val, ExceptionSink* xsink) {
+      ReferenceHolder<> holder(val, xsink);
+      if (checkVal(holder, xsink))
+         return -1;
+      pushIntern(holder.release());
+      return 0;
+   }
+
+   DLLLOCAL int merge(const QoreListNode* list, ExceptionSink* xsink) {
+      reserve(length + list->size());
+      ConstListIterator i(list);
+      while (i.next()) {
+          if (push(i.getReferencedValue(), xsink))
+             return -1;
+      }
+      return 0;
+   }
+
+   DLLLOCAL void pushIntern(AbstractQoreNode* val) {
       AbstractQoreNode** v = getEntryPtr(length);
       *v = val;
       if (needs_scan(val))
           incScanCount(1);
+   }
+
+   DLLLOCAL static QoreListNode* getPlainList(QoreListNode* l) {
+       if (!l->priv->complexTypeInfo)
+          return l;
+       // no exception is possible
+       ReferenceHolder<QoreListNode> holder(l, nullptr);
+       return l->priv->copy(true);
    }
 
    DLLLOCAL AbstractQoreNode** getEntryPtr(qore_size_t num) {
