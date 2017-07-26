@@ -143,7 +143,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
                 QoreListNode* ret = new QoreListNode();
                 while (it.next()) {
                     QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
-                    ret->push(entry.getReferencedValue());
+                    if (!entry.isNothing())
+                        ret->push(entry.getReferencedValue());
                 }
                 return ret;
             }
@@ -151,7 +152,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
                 QoreStringNode* ret = new QoreStringNode();
                 while (it.next()) {
                     QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
-                    ret->concat(entry.get<QoreStringNode>());
+                    if (!entry.isNothing())
+                        ret->concat(entry.get<QoreStringNode>());
                 }
                 return ret;
             }
@@ -161,10 +163,12 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
                 void* ptr = malloc(size);
                 while (it.next()) {
                     QoreValue entry = doSquareBrackets(l, it.getValue(), xsink);
-                    int64 value = entry.getAsBigInt();
-                    memcpy((char*)ptr + i++, &value, 1);
+                    if (!entry.isNothing()) {
+                        int64 value = entry.getAsBigInt();
+                        memcpy((char*)ptr + i++, &value, 1);
+                    }
                 }
-                return new BinaryNode(ptr, size);
+                return new BinaryNode(ptr, i);
             }
             default:
                 return QoreValue();

@@ -1627,8 +1627,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
-%token RANGE_3_DOTS "... operator"
-%token RANGE_2_DOTS ".. operator"
+%token RANGE ".. operator"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -1679,7 +1678,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left '+' '-'                   // arithmetic plus and minus
 %left '%'                       // modulo
 %left '*' '/'                   // arithmetic multiply and divide
-%nonassoc RANGE_2_DOTS RANGE_3_DOTS
+%nonassoc RANGE
 %right TOK_ELEMENTS TOK_KEYS
 %nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG                     // unary minus, defined for precedence
@@ -3684,8 +3683,7 @@ exp:
     | exp '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp RANGE_3_DOTS exp              { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp RANGE_2_DOTS exp              { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
     | exp DOT_KW_IDENTIFIER             { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1, $2); }
     ;
@@ -3757,8 +3755,7 @@ exp_n:
     | exp_n '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n RANGE_3_DOTS exp              { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n RANGE_2_DOTS exp              { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
     | exp_n DOT_KW_IDENTIFIER             { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1, $2); }
     ;
