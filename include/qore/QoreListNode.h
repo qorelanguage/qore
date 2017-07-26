@@ -570,7 +570,7 @@ public:
    //! returns the current value with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
-   //! if the list is unique (has reference count = 1), returns the current value with the reference count that belongs to the list and sets the list entry to 0, otherwise returns getReferencesValue()
+   //! returns the current value with the reference count that belongs to the list and sets the list entry to 0; must be called with reference_count = 1
    DLLEXPORT AbstractQoreNode* takeValue();
 
    //! returns true when the iterator is pointing to the first element in the list
@@ -579,7 +579,8 @@ public:
    //! returns true when the iterator is pointing to the last element in the list
    DLLEXPORT bool last() const;
 
-   //DLLEXPORT void setValue(AbstractQoreNode* val, ExceptionSink* xsink) const;
+   //! swaps the current value with the given value and returns the old value; must be called with reference_count = 1
+   DLLEXPORT AbstractQoreNode* swapValue(AbstractQoreNode* val) const;
 
    //! returns the current iterator position in the list or -1 if not pointing at a valid element
    DLLLOCAL qore_size_t index() const { return pos; }

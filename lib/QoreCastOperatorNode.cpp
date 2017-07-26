@@ -139,6 +139,26 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
       }
    }
 
+   {
+      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+      if (ti) {
+          /*
+         qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_LIST);
+         if (r == QTI_NOT_EQUAL) {
+             parse_error(loc, "cast<%s>(%s) is invalid; cannot cast from %s to list<%s>", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(ti));
+         }
+        */
+
+         // check for cast<> compatibility
+         qore_list_private::parseCheckComplexListInitialization(loc, ti, expTypeInfo, exp, "cast to", false);
+
+         if (exp) {
+            ReferenceHolder<> holder(this, nullptr);
+            return new QoreComplexListCastOperatorNode(loc, typeInfo, takeExp());
+         }
+      }
+   }
+
    parse_error(loc, "cannot cast<> to type '%s'", QoreTypeInfo::getName(typeInfo));;
    return this;
 }
@@ -216,4 +236,13 @@ QoreValue QoreComplexHashCastOperatorNode::evalValueImpl(bool& needs_deref, Exce
 
    // do the runtime case
    return qore_hash_private::newComplexHashFromHash(typeInfo, static_cast<QoreHashNode*>(rv.getReferencedValue()), xsink);
+}
+
+QoreValue QoreComplexListCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   ValueEvalRefHolder rv(exp, xsink);
+   if (*xsink)
+      return QoreValue();
+
+   // do the runtime case
+   return qore_list_private::newComplexListFromValue(typeInfo, rv.takeReferencedValue(), xsink);
 }

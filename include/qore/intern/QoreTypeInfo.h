@@ -1030,6 +1030,7 @@ protected:
 class QoreComplexListTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+       assert(vti);
        tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
    }
 
@@ -1054,6 +1055,7 @@ public:
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+       assert(vti);
        tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
    }
 
@@ -1357,12 +1359,23 @@ protected:
    }
 };
 
-class QoreListTypeInfo : public QoreBaseNoConvertTypeInfo {
+DLLLOCAL void map_get_plain_list(QoreValue&, ExceptionSink*);
+
+class QoreListTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreListTypeInfo() : QoreBaseNoConvertTypeInfo("list", NT_LIST) {
+   DLLLOCAL QoreListTypeInfo() : QoreTypeInfo("list",
+      q_accept_vec_t {
+         {NT_LIST, map_get_plain_list, true},
+      },
+      q_return_vec_t {{NT_LIST, true}}) {
    }
 
 protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
+   }
+
    DLLLOCAL virtual bool hasDefaultValueImpl() const {
       return true;
    }
@@ -1372,9 +1385,21 @@ protected:
    }
 };
 
-class QoreListOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+class QoreListOrNothingTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreListOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*list", NT_LIST) {
+   DLLLOCAL QoreListOrNothingTypeInfo() : QoreTypeInfo("*list",
+      q_accept_vec_t {
+         {NT_LIST, map_get_plain_list},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      },
+      q_return_vec_t {{NT_LIST}, {NT_NOTHING}}) {
+   }
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return false;
    }
 };
 

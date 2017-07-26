@@ -49,6 +49,31 @@ int QoreMapOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *x
    return 0;
 }
 
+const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo) {
+   const QoreTypeInfo* typeInfo;
+
+   // this operator returns no value if the iterator expression has no value
+   bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
+      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(expTypeInfo);
+
+      if (or_nothing) {
+         typeInfo = qore_program_private::get(*getProgram())->getComplexListOrNothingType(expTypeInfo);
+      }
+      else
+         typeInfo = returnTypeInfo;
+   }
+   else {
+      returnTypeInfo = listTypeInfo;
+      // this operator returns no value if the iterator expression has no value
+      typeInfo = or_nothing ? listOrNothingTypeInfo : listTypeInfo;
+   }
+
+   //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+
+   return typeInfo;
+}
+
 AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
 
@@ -83,6 +108,8 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
             typeInfo = iteratorTypeInfo;
       }
    }
+   if (typeInfo == listTypeInfo)
+       typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
 
    return this;
 }

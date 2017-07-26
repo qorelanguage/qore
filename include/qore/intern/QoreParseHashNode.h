@@ -119,6 +119,8 @@ public:
 
    DLLLOCAL virtual const char* getTypeName() const;
 
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
 protected:
    typedef std::map<std::string, bool> kmap_t;
    typedef std::vector<QoreProgramLocation> lvec_t;
@@ -150,8 +152,6 @@ protected:
          i->second = true;
       }
    }
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };

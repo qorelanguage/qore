@@ -175,4 +175,30 @@ protected:
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
+
+class QoreComplexListCastOperatorNode : public QoreCastOperatorNode {
+public:
+   DLLLOCAL QoreComplexListCastOperatorNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
+   }
+
+   DLLLOCAL virtual ~QoreComplexListCastOperatorNode() = default;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return nullptr;
+      assert(typeInfo);
+      return new QoreComplexListCastOperatorNode(loc, typeInfo, n_exp.release());
+   }
+
+protected:
+   const QoreTypeInfo* typeInfo;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+};
+
 #endif

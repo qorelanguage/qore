@@ -111,7 +111,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    if (vtype == NT_LIST) {
       v.ensureUnique(); // no exception possible here
-      QoreListNode *l = reinterpret_cast<QoreListNode*>(v.getValue());
+      QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
       if (new_right->getType() == NT_LIST)
          l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
       else

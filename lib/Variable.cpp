@@ -333,10 +333,17 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
          return -1;
       }
 
-      // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(getValue());
-      assignIntern((l = new QoreListNode));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexList(typeInfo)) {
+         assignIntern((l = new QoreListNode));
+         qore_list_private::get(*l)->complexTypeInfo = typeInfo;
+      }
+      else {
+         // save the old value for dereferencing outside any locks that may have been acquired
+         saveTemp(getValue());
+         assignIntern((l = new QoreListNode));
+      }
    }
 
    ocvec.push_back(ObjCountRec(l));

@@ -2495,6 +2495,12 @@ const char* get_full_type_name(const AbstractQoreNode* n) {
             return QoreTypeInfo::getName(h->complexTypeInfo);
          break;
       }
+      case NT_LIST: {
+         const qore_list_private* l = qore_list_private::get(*static_cast<const QoreListNode*>(n));
+         if (l->complexTypeInfo)
+            return QoreTypeInfo::getName(l->complexTypeInfo);
+         break;
+      }
       case NT_OBJECT:
          return QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
       default:

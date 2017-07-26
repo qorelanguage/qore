@@ -319,37 +319,49 @@ void VarRefNewObjectNode::parseInitComplexHashInitialization(const QoreProgramLo
     lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, parse_args, ti);
 }
 
+void VarRefNewObjectNode::parseInitComplexListInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
+    assert(ti);
+    lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeParseArgs(), new_args, ti);
+}
+
 AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
-   parseInitCommon(oflag, pflag, lvids, true);
+    parseInitCommon(oflag, pflag, lvids, true);
 
-   const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
-   if (qc) {
-      parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
-      vrn_type = VRN_OBJECT;
-   }
-   else {
-      const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
-      if (hd) {
-         parseInitHashDeclInitialization(loc, oflag, pflag, lvids, hd);
-         vrn_type = VRN_HASHDECL;
-      }
-      else {
-         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
-         //printd(5, "VarRefNewObjectNode::parseInitImpl() ti: %p type: '%s' ti: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo), ti, QoreTypeInfo::getName(ti));
-         if (ti) {
-            parseInitComplexHashInitialization(loc, oflag, pflag, lvids, ti);
-            vrn_type = VRN_COMPLEXHASH;
-         }
-         else
-            parse_error(loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
-      }
-   }
+    const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+    if (qc) {
+        parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
+        vrn_type = VRN_OBJECT;
+    }
+    else {
+        const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+        if (hd) {
+            parseInitHashDeclInitialization(loc, oflag, pflag, lvids, hd);
+            vrn_type = VRN_HASHDECL;
+        }
+        else {
+            const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+            //printd(5, "VarRefNewObjectNode::parseInitImpl() ti: %p type: '%s' ti: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo), ti, QoreTypeInfo::getName(ti));
+            if (ti) {
+                parseInitComplexHashInitialization(loc, oflag, pflag, lvids, ti);
+                vrn_type = VRN_COMPLEXHASH;
+            }
+            else {
+                ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+                if (ti) {
+                    parseInitComplexListInitialization(loc, oflag, pflag, lvids, ti);
+                    vrn_type = VRN_COMPLEXLIST;
+                }
+                else
+                    parse_error(loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
+            }
+        }
+    }
 
-   if (pflag & PF_FOR_ASSIGNMENT)
-      parse_error(loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
+    if (pflag & PF_FOR_ASSIGNMENT)
+        parse_error(loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
 
-   outTypeInfo = typeInfo;
-   return this;
+    outTypeInfo = typeInfo;
+    return this;
 }
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -368,6 +380,10 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
 
         case VRN_COMPLEXHASH:
             value = qore_hash_private::newComplexHash(typeInfo, parse_args, xsink);
+            break;
+
+        case VRN_COMPLEXLIST:
+            value = qore_list_private::newComplexList(typeInfo, new_args, xsink);
             break;
 
         default:

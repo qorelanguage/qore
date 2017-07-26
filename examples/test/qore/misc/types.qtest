@@ -1406,6 +1406,87 @@ class TypeTest inherits QUnit::Test {
         }
 
         {
+            {
+                list<softint> l("1", "2");
+                assertEq("list<softint>", l.fullType());
+                assertEq((1, 2), l);
+                assertEq(Type::List, l.type());
+
+                l = cast<list<softint>>(new list<int>(2, 3));
+                assertEq(2, l[0]);
+                assertEq(3, l[1]);
+
+                l[3] = "50";
+                assertEq(50, l[3]);
+
+                l += "20";
+                assertEq(20, l[4]);
+            }
+
+            {
+                # make sure map operators return the correct parse- and runtime types
+                list<int> l = map 1, ("a",);
+                assertEq(1, l[0]);
+
+                # make sure parse hashes return the correct parse- and runtime types
+                l = (1,);
+                assertEq(1, l[0]);
+                int i = 0;
+                l[0] = (i,)[0];
+                assertEq(0, l[0]);
+            }
+
+            {
+                # make sure that a runtime assignment from a typed list to an untyped list results in an untyped list assignment
+                list l = new list<int>(1);
+                l[1] = "str";
+                assertEq("str", l[1]);
+            }
+
+            /*
+            {
+                hash<string, int> h1;
+                hash<string, int> h2;
+                map h1.$1 = 1, "a";
+                h2 = h1;
+
+                hash h3 = cast<hash>(h2);
+                h3.b = "string";
+                assertEq("string", h3.b);
+            }
+
+            {
+                hash<string, hash> h = (("a": ("a": "a")));
+                assertEq("a", h.a.a);
+            }
+
+            {
+                hash<string, softint> h();
+                h = new hash<string, int>(('b': 2, 'c': 3));
+                assertEq(2, h.b);
+            }
+
+            {
+                hash<string, softint> h = ("a": "2");
+                assertEq(2, h.a);
+                assertEq(True, h instanceof hash<string, softint>);
+            }
+
+            {
+                # however otherwise the typed hash keeps its type
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", "complex", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
+            }
+            */
+        }
+
+        {
             Mutex m();
             object i = m;
             assertEq(m, i);

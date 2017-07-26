@@ -85,6 +85,8 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
             typeInfo = iteratorTypeInfo;
       }
    }
+   if (typeInfo == listTypeInfo)
+       typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
 
    return this;
 }

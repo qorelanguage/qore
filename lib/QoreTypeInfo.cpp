@@ -796,3 +796,17 @@ void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
    ph->hashdecl = nullptr;
    ph->complexTypeInfo = nullptr;
 }
+
+void map_get_plain_list(QoreValue& n, ExceptionSink* xsink) {
+   QoreListNode* l = n.get<QoreListNode>();
+   qore_list_private* pl = qore_list_private::get(*l);
+   //printd(5, "map_get_plain_list pl: %p c: %p refs: %d\n", ph, pl->complexTypeInfo, l->reference_count());
+   if (!pl->complexTypeInfo)
+      return;
+
+   if (!l->is_unique()) {
+      discard(n.assign(pl->copy(true)), xsink);
+      return;
+   }
+   pl->complexTypeInfo = nullptr;
+}

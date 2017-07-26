@@ -351,7 +351,7 @@ public:
    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
 
-   //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
+   //! returns a QoreValue object and leaves the current object empty; the caller owns any reference contained in the return value
    DLLEXPORT QoreValue release();
 
    //! assigns the object, any currently-held value is dereferenced before the assignment
