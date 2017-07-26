@@ -1389,19 +1389,19 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreListNode* make_args(AbstractQoreNode* arg) {
+QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg) {
    if (!arg)
-      return 0;
+      return nullptr;
 
-   QoreListNode* l;
-   if (arg->getType() == NT_LIST) {
-      l = reinterpret_cast<QoreListNode*>(arg);
+   QoreParseListNode* l;
+   if (arg->getType() == NT_PARSE_LIST) {
+      l = reinterpret_cast<QoreParseListNode*>(arg);
       if (!l->isFinalized())
          return l;
    }
 
-   l = new QoreListNode(arg->needs_eval());
-   l->push(arg);
+   l = new QoreParseListNode(loc);
+   l->add(arg, loc);
    return l;
 }
 

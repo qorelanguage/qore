@@ -685,7 +685,7 @@ QoreString* QoreValueList::getAsString(bool &del, int foff, ExceptionSink* xsink
 
    TempString rv(new QoreString);
    if (getAsString(*(*rv), foff, xsink))
-      return 0;
+      return nullptr;
 
    del = true;
    return rv.release();
@@ -700,7 +700,7 @@ bool QoreValueList::getAsBoolImpl() const {
 
 QoreListNode* QoreValueList::getOldList() const {
    if (empty())
-      return 0;
+      return nullptr;
 
    QoreListNode* rv = new QoreListNode;
    for (size_t i = 0; i < priv->length; ++i) {
@@ -712,7 +712,7 @@ QoreListNode* QoreValueList::getOldList() const {
 
 QoreListNode* QoreValueList::getOldList(size_t start) const {
    if (start >= priv->length)
-      return 0;
+      return nullptr;
 
    QoreListNode* rv = new QoreListNode;
    for (size_t i = start; i < priv->length; ++i) {
@@ -720,6 +720,14 @@ QoreListNode* QoreValueList::getOldList(size_t start) const {
       rv->push(v.getReferencedValue());
    }
    return rv;
+}
+
+const QoreTypeInfo* QoreValueList::getValueTypeInfo() const {
+   return priv->getValueTypeInfo();
+}
+
+const QoreTypeInfo* QoreValueList::getTypeInfo() const {
+   return priv->getTypeInfo();
 }
 
 ValueListIterator::ValueListIterator(QoreValueList* lst, size_t n_pos) : l(lst) {

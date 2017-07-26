@@ -1490,13 +1490,16 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
          // find constructor variant
          const QoreMethod* m = sclass->getConstructor();
          int lvids = 0;
-         const QoreTypeInfo* argTypeInfo;
          if (m) {
+            const QoreTypeInfo* argTypeInfo = nullptr;
             lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), argTypeInfo);
          }
          else {
-            if (args)
-               args = args->parseInitList(qore_class_private::getSelfId(*sclass), 0, lvids, argTypeInfo);
+            if (parse_args) {
+               type_vec_t argTypeInfo;
+               lvids += parse_args->initArgs(qore_class_private::getSelfId(*sclass), 0, argTypeInfo, args);
+               parse_args = nullptr;
+            }
          }
          if (lvids) {
             parse_error(loc, "illegal local variable declaration in base class constructor argument");

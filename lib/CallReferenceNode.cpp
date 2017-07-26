@@ -38,6 +38,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreParseListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), parse_args(n_args) {
+}
+
 CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), args(n_args) {
 }
 
@@ -46,6 +49,8 @@ CallReferenceCallNode::~CallReferenceCallNode() {
       //printd(5, "CallReferenceCallNode::~CallReferenceCallNode() this: %p exp: %p '%s' type: %d refs: %d\n", this, exp, get_type_name(exp), get_node_type(exp), exp->reference_count());
       exp->deref(0);
    }
+   if (parse_args)
+      parse_args->deref();
    if (args)
       args->deref(0);
 }
@@ -105,25 +110,10 @@ AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar* oflag, int pfla
       }
    }
 
-   if (args) {
-      bool needs_eval = args->needs_eval();
-
-      // turn off PF_RETURN_VALUE_IGNORED
-      pflag &= ~PF_RETURN_VALUE_IGNORED;
-
-      ListIterator li(args);
-      while (li.next()) {
-         AbstractQoreNode** n = li.getValuePtr();
-         if (*n) {
-            const QoreTypeInfo* argTypeInfo = 0;
-            (*n) = (*n)->parseInit(oflag, pflag, lvids, argTypeInfo);
-
-            if (!needs_eval && (*n)->needs_eval()) {
-               args->setNeedsEval();
-               needs_eval = true;
-            }
-         }
-      }
+   if (parse_args) {
+      type_vec_t argTypeInfo;
+      lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
+      parse_args = nullptr;
    }
 
    return this;

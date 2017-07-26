@@ -1347,12 +1347,12 @@ public:
    char* name;
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
+   DLLLOCAL BCANode(NamedScope* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
       assert(start_line > 0);
    }
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(char* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
+   DLLLOCAL BCANode(char* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
       assert(start_line > 0);
    }
 

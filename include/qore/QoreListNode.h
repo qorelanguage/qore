@@ -441,11 +441,15 @@ public:
    //! returns "this" with an incremented reference count
    DLLEXPORT QoreListNode* listRefSelf() const;
 
-   //! swaps the value at the given position with the value given, caller owns any reference returned
-   DLLEXPORT AbstractQoreNode* swap(qore_offset_t offset, AbstractQoreNode* val);
+   //! returns the value type declaration (if set)
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getValueTypeInfo() const;
 
-   //! takes the value at the given position and replaces with NULL, only if the list position exists
-   DLLEXPORT AbstractQoreNode* takeExists(qore_offset_t offset);
+   //! returns the type info structure for the current value; also works for lists with a specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 
    // needed only while parsing
    //! this function is not exported in the qore library

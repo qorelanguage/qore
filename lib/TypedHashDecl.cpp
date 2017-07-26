@@ -76,7 +76,7 @@ typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& 
         members.addNoCheck(strdup(i->first), i->second ? new HashDeclMemberInfo(*i->second) : nullptr);
 }
 
-int typed_hash_decl_private::parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const {
+int typed_hash_decl_private::parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const {
     runtime_check = false;
 
     int lvids = 0;
@@ -213,26 +213,20 @@ int typed_hash_decl_private::parseCheckMemberAccess(const QoreProgramLocation& l
     return 0;
 }
 
-QoreHashNode* typed_hash_decl_private::newHash(const QoreListNode* args, bool runtime_check, ExceptionSink* xsink) const {
+QoreHashNode* typed_hash_decl_private::newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const {
     assert(!args || args->empty() || args->size() == 1);
-    QoreListNodeEvalOptionalRefHolder a(args, xsink);
+    ValueEvalRefHolder a(args && !args->empty() ? args->get(0) : nullptr, xsink);
     if (*xsink)
         return nullptr;
 
     const QoreHashNode* init = nullptr;
-    if (runtime_check && *a && !a->empty()) {
-        const AbstractQoreNode* n = a->retrieve_entry(0);
-        if (get_node_type(n) != NT_HASH) {
-            xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl '%s' hash initializer value must be a hash; got type '%s' instead", name.c_str(), get_type_name(n));
+    if (a->getType() != NT_NOTHING) {
+        if (runtime_check && a->getType() != NT_HASH) {
+            xsink->raiseException("HASHDECL-INIT-ERROR", "hashdecl '%s' hash initializer value must be a hash; got type '%s' instead", name.c_str(), a->getTypeName());
             return nullptr;
         }
 
-        init = reinterpret_cast<const QoreHashNode*>(n);
-    }
-    else if (*a && !a->empty()) {
-        assert(a->size() == 1);
-        assert(get_node_type(a->retrieve_entry(0)) == NT_HASH);
-        init = reinterpret_cast<const QoreHashNode*>(a->retrieve_entry(0));
+        init = a->get<const QoreHashNode>();
     }
 
     return newHash(init, runtime_check, xsink);

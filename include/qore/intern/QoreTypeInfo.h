@@ -51,6 +51,7 @@ enum q_typespec_t : unsigned char {
    QTS_CLASS = 1,
    QTS_HASHDECL = 2,
    QTS_COMPLEXHASH = 3,
+   QTS_COMPLEXLIST = 4,
 };
 
 class QoreTypeInfo;
@@ -85,6 +86,8 @@ public:
          case QTS_COMPLEXHASH:
          case QTS_HASHDECL:
             return NT_HASH;
+         case QTS_COMPLEXLIST:
+            return NT_LIST;
       }
    }
 
@@ -100,11 +103,17 @@ public:
       return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
    }
 
+   DLLLOCAL const QoreTypeInfo* getComplexList() const {
+      return typespec == QTS_COMPLEXLIST ? u.ti : nullptr;
+   }
+
    DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
       if (typespec == QTS_CLASS)
          return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
       else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
          return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
+      else if (typespec == QTS_COMPLEXLIST)
+         return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
       if (u.t == NT_ALL)
          return QTI_AMBIGUOUS;
       return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
@@ -158,6 +167,12 @@ private:
 class QoreComplexHashTypeSpec : public QoreTypeSpec {
 public:
    DLLLOCAL QoreComplexHashTypeSpec(const QoreTypeInfo* ti) : QoreTypeSpec(ti, QTS_COMPLEXHASH) {
+   }
+};
+
+class QoreComplexListTypeSpec : public QoreTypeSpec {
+public:
+   DLLLOCAL QoreComplexListTypeSpec(const QoreTypeInfo* ti) : QoreTypeSpec(ti, QTS_COMPLEXLIST) {
    }
 };
 
@@ -300,6 +315,13 @@ public:
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
       return ti->return_vec[0].spec.getComplexHash();
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
+      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+         return nullptr;
+      return ti->return_vec[0].spec.getComplexList();
    }
 
    // static version of method, checking for null pointer
@@ -997,6 +1019,47 @@ public:
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
        str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+       return false;
+   }
+};
+
+class QoreComplexListTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+       tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
+   }
+
+protected:
+   DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+   }
+
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+       str.concat(&tname);
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+       return false;
+   }
+};
+
+class QoreComplexListOrNothingTypeInfo : public QoreComplexListTypeInfo {
+public:
+   DLLLOCAL QoreComplexListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
+         {QoreComplexListTypeSpec(vti), nullptr, true},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+         }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+       tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+       str.sprintf("list<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexList()));
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise

@@ -33,6 +33,7 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/qore_list_private.h"
+#include "qore/intern/QoreParseListNode.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -369,20 +370,20 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
       return;
    }
 
-   if (params->getType() != NT_LIST) {
+   if (params->getType() != NT_PARSE_LIST) {
       param_error();
       return;
    }
 
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(params);
+   QoreParseListNode* l = reinterpret_cast<QoreParseListNode*>(params);
 
    parseTypeList.reserve(l->size());
    typeList.reserve(l->size());
    defaultArgList.reserve(l->size());
 
-   ListIterator li(l);
-   while (li.next()) {
-      AbstractQoreNode* n = li.getValue();
+   QoreParseListNode::nvec_t& vl = l->getValues();
+   for (unsigned i = 0; i < l->size(); ++i) {
+      AbstractQoreNode* n = l->get(i);
       qore_type_t t = n ? n->getType() : 0;
       if (t == NT_OPERATOR)
          pushParam(reinterpret_cast<QoreOperatorNode*>(n), needs_types);
@@ -397,7 +398,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
       }
 
       // add a comma to the signature string if it's not the last parameter
-      if (!li.last())
+      if (i != (l->size() - 1))
          str.append(", ");
    }
 }

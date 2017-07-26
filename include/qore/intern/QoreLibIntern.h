@@ -366,6 +366,8 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
+class QoreParseListNode;
+
 #include "qore/intern/NamedScope.h"
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/ParseNode.h"
@@ -446,7 +448,7 @@ DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, i
 DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreListNode* make_args(AbstractQoreNode* arg);
+DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue n, ExceptionSink* xsink);

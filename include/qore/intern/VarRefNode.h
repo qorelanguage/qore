@@ -352,11 +352,11 @@ public:
 
 class VarRefNewObjectNode : public VarRefDeclNode, public FunctionCallBase {
 public:
-   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, QoreListNode* n_args, qore_var_t t) :
+   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, QoreParseListNode* n_args, qore_var_t t) :
                VarRefDeclNode(loc, n, t, n_typeInfo, n_parseTypeInfo, true), FunctionCallBase(n_args) {
    }
 
-   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, Var* var, QoreListNode* n_args, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
+   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation& loc, char* n, Var* var, QoreParseListNode* n_args, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
                VarRefDeclNode(loc, n, var, n_typeInfo, n_parseTypeInfo), FunctionCallBase(n_args) {
    }
 

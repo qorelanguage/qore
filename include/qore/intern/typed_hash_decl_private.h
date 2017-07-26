@@ -147,7 +147,7 @@ public:
         }
     }
 
-    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, bool& runtime_check) const;
+    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
 
     DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
 
@@ -157,7 +157,7 @@ public:
 
     DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation& loc, const QoreTypeInfo* vti) const;
 
-    DLLLOCAL QoreHashNode* newHash(const QoreListNode* args, bool runtime_check, ExceptionSink* xsink) const;
+    DLLLOCAL QoreHashNode* newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreHashNode* init, bool runtime_check, ExceptionSink* xsink) const;
 

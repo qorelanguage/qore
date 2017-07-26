@@ -231,6 +231,7 @@ libqore_la_SOURCES = \
 	QoreCounter.cpp \
 	CallReferenceNode.cpp \
 	QoreParseHashNode.cpp \
+	QoreParseListNode.cpp \
 	QoreClosureParseNode.cpp \
 	QoreClosureNode.cpp \
 	QoreImplicitArgumentNode.cpp \

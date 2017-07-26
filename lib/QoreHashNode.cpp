@@ -32,6 +32,7 @@
 #include <qore/minitest.hpp>
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QoreParseHashNode.h"
+#include "qore/intern/QoreParseListNode.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/qore_program_private.h"
@@ -89,7 +90,7 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
    return 0;
 }
 
-int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, QoreListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
+int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
     assert(!lvids);
     assert(!argTypeInfo);
 
@@ -103,7 +104,7 @@ int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& lo
     }
 
     // initialize argument
-    AbstractQoreNode** n = args->get_entry_ptr(0);
+    AbstractQoreNode** n = args->getPtr(0);
     (*n) = (*n)->parseInit(oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
     assert(*n);
     arg = *n;
@@ -116,7 +117,7 @@ int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& lo
     return 0;
 }
 
-int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreListNode* args, const QoreTypeInfo* vti) {
+int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti) {
 
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
@@ -186,20 +187,22 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
     }
 }
 
-QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, const QoreListNode* args, ExceptionSink* xsink) {
+QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args, ExceptionSink* xsink) {
     assert(!args || args->empty() || args->size() == 1);
 
     QoreHashNode* init = nullptr;
 
     if (args && !args->empty()) {
-        QoreNodeEvalOptionalRefHolder h(args->retrieve_entry(0), xsink);
+        ValueEvalRefHolder a(args->get(0), xsink);
+        if (*xsink)
+            return nullptr;
 
-        if (get_node_type(*h) != NT_HASH) {
-            xsink->raiseException("HASH-INIT-ERROR", "typed hash initializer value must be a hash; got type '%s' instead", get_type_name(*h));
+        if (a->getType() != NT_HASH) {
+            xsink->raiseException("HASH-INIT-ERROR", "typed hash initializer value must be a hash; got type '%s' instead", a->getTypeName());
             return nullptr;
         }
 
-        init = static_cast<QoreHashNode*>(h.getReferencedValue());
+        init = a.takeReferencedNode<QoreHashNode>();
     }
 
     return newComplexHashFromHash(typeInfo, init, xsink);

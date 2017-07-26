@@ -113,6 +113,12 @@ void qore_list_private::reserve(size_t num) {
    }
 }
 
+AbstractQoreNode** qore_list_private::getExistingEntryPtr(qore_size_t num) {
+   if (num >= length)
+      return nullptr;
+   return &entry[num];
+}
+
 qore_size_t QoreListNode::check_offset(qore_offset_t offset) {
    if (offset < 0) {
       offset = priv->length + offset;
@@ -1192,18 +1198,10 @@ AbstractQoreNode* QoreListNode::parseInit(LocalVar* oflag, int pflag, int& lvids
    return parseInitList(oflag, pflag, lvids, typeInfo);
 }
 
-AbstractQoreNode* QoreListNode::swap(qore_offset_t offset, AbstractQoreNode* val) {
-   AbstractQoreNode** ptr = get_entry_ptr(offset);
-   AbstractQoreNode* rv = *ptr;
-   *ptr = val;
-   return rv;
+const QoreTypeInfo* QoreListNode::getValueTypeInfo() const {
+   return priv->getValueTypeInfo();
 }
 
-AbstractQoreNode* QoreListNode::takeExists(qore_offset_t offset) {
-   AbstractQoreNode** ptr = getExistingEntryPtr(offset);
-   if (!ptr)
-      return 0;
-   AbstractQoreNode* rv = *ptr;
-   *ptr = 0;
-   return rv;
+const QoreTypeInfo* QoreListNode::getTypeInfo() const {
+   return priv->getTypeInfo();
 }

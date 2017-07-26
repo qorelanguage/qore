@@ -430,6 +430,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreObject.cpp
     lib/RSet.cpp
     lib/RSection.cpp
+    lib/QoreParseListNode.cpp
     lib/QoreListNode.cpp
     lib/QoreValueList.cpp
     lib/qore-main.cpp

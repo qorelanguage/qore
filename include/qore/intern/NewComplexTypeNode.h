@@ -37,7 +37,7 @@
 
 class ParseNewComplexTypeNode : public ParseNoEvalNode {
 public:
-   DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation& loc, QoreParseTypeInfo* pti, QoreListNode* a) : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
+   DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation& loc, QoreParseTypeInfo* pti, QoreParseListNode* a) : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
    }
 
    DLLLOCAL ~ParseNewComplexTypeNode() {
@@ -70,7 +70,7 @@ public:
 
 protected:
    QoreParseTypeInfo* pti;
-   QoreListNode* args;
+   QoreParseListNode* args;
 
    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
@@ -79,8 +79,8 @@ protected:
       return QoreValue();
    }
 
-   DLLLOCAL QoreListNode* takeArgs() {
-      QoreListNode* rv = args;
+   DLLLOCAL QoreParseListNode* takeArgs() {
+      QoreParseListNode* rv = args;
       args = nullptr;
       return rv;
    }
@@ -101,10 +101,10 @@ protected:
 
 public:
    const TypedHashDecl* hd;
-   QoreListNode* args;
+   QoreParseListNode* args;
    bool runtime_check;
 
-   DLLLOCAL NewHashDeclNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, QoreListNode* a, bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
+   DLLLOCAL NewHashDeclNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, QoreParseListNode* a, bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
    }
 
    DLLLOCAL virtual ~NewHashDeclNode() {
@@ -145,9 +145,9 @@ protected:
 
 public:
    const QoreTypeInfo* typeInfo;
-   QoreListNode* args;
+   QoreParseListNode* args;
 
-   DLLLOCAL NewComplexHashNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, QoreListNode* a) : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
+   DLLLOCAL NewComplexHashNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, QoreParseListNode* a) : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
       assert(QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
    }
 

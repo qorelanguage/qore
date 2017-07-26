@@ -794,8 +794,32 @@ const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const Qore
    if (i != chon_map.end() && i->first == vti)
       return i->second;
 
-   QoreComplexHashTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
+   QoreComplexHashOrNothingTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
    chon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexListType(const QoreTypeInfo* vti) {
+   AutoLocker al(cll);
+
+   tmap_t::iterator i = cl_map.lower_bound(vti);
+   if (i != cl_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListTypeInfo* ti = new QoreComplexListTypeInfo(vti);
+   cl_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const QoreTypeInfo* vti) {
+   AutoLocker al(clonl);
+
+   tmap_t::iterator i = clon_map.lower_bound(vti);
+   if (i != clon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
+   clon_map.insert(i, tmap_t::value_type(vti, ti));
    return ti;
 }
 

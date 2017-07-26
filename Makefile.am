@@ -390,6 +390,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreClosureNode.h \
 	include/qore/intern/QoreClosureParseNode.h \
 	include/qore/intern/QoreParseHashNode.h \
+	include/qore/intern/QoreParseListNode.h \
 	include/qore/intern/QoreImplicitArgumentNode.h \
 	include/qore/intern/QoreImplicitElementNode.h \
 	include/qore/intern/qore_string_private.h \

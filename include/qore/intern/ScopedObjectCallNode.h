@@ -34,6 +34,7 @@
 #define _QORE_SCOPEDOBJECTCALLNODE_H
 
 #include "qore/intern/FunctionCallNode.h"
+#include "qore/intern/QoreParseListNode.h"
 
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
 protected:
@@ -49,10 +50,10 @@ public:
    const QoreClass* oc;
    QoreString desc;
 
-   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, NamedScope* n, QoreListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(n), oc(nullptr) {
+   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, NamedScope* n, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(n), oc(nullptr) {
    }
 
-   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, const QoreClass* qc, QoreListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(nullptr), oc(qc) {
+   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, const QoreClass* qc, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(nullptr), oc(qc) {
    }
 
    DLLLOCAL virtual ~ScopedObjectCallNode() {

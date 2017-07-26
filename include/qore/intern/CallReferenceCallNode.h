@@ -33,10 +33,13 @@
 
 #define _QORE_FUNCTIONREFERENCECALLNODE_H
 
+#include "qore/intern/QoreParseListNode.h"
+
 class CallReferenceCallNode : public ParseNode {
 private:
    AbstractQoreNode* exp;    // must evaluate to an AbstractCallReference
-   QoreListNode* args;
+   QoreParseListNode* parse_args = nullptr;
+   QoreListNode* args = nullptr;
 
    //! optionally evaluates the argument
    /** return value requires a deref(xsink) if needs_deref is true
@@ -46,12 +49,14 @@ private:
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      return 0;
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return nullptr;
    }
 
 public:
-   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreListNode* n_args);
+   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreParseListNode* n_args);
+
+   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreListNode* args);
 
    DLLLOCAL virtual ~CallReferenceCallNode();
 

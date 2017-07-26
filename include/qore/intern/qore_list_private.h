@@ -62,6 +62,14 @@ struct qore_list_private {
          free(entry);
    }
 
+   DLLLOCAL const QoreTypeInfo* getValueTypeInfo() const {
+      return complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo) : nullptr;
+   }
+
+   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+      return complexTypeInfo ? complexTypeInfo : listTypeInfo;
+   }
+
    DLLLOCAL void getTypeName(QoreString& str) const {
        if (complexTypeInfo)
           str.concat(QoreTypeInfo::getName(complexTypeInfo));
@@ -110,6 +118,48 @@ struct qore_list_private {
           resize(num + 1);
       return &entry[num];
    }
+
+   DLLLOCAL AbstractQoreNode* swapIntern(qore_offset_t offset, AbstractQoreNode* val) {
+      AbstractQoreNode** ptr = getEntryPtr(offset);
+
+      AbstractQoreNode* rv = *ptr;
+      *ptr = val;
+
+      return rv;
+   }
+
+   DLLLOCAL AbstractQoreNode* swap(qore_offset_t offset, AbstractQoreNode* val) {
+      AbstractQoreNode** ptr = getEntryPtr(offset);
+
+      bool before = needs_scan(*ptr);
+      bool after = needs_scan(val);
+      if (before) {
+         if (!after)
+            --obj_count;
+      }
+      else if (after) {
+         ++obj_count;
+      }
+
+      AbstractQoreNode* rv = *ptr;
+      *ptr = val;
+
+      return rv;
+   }
+
+   DLLLOCAL AbstractQoreNode* takeExists(qore_size_t offset) {
+      assert(offset < length);
+      AbstractQoreNode** ptr = &entry[offset];
+      if (!ptr)
+         return nullptr;
+      AbstractQoreNode* rv = *ptr;
+      *ptr = nullptr;
+      if (needs_scan(rv))
+         --obj_count;
+      return rv;
+   }
+
+   DLLLOCAL AbstractQoreNode** getExistingEntryPtr(qore_size_t num);
 
    DLLLOCAL void resize(size_t num);
 

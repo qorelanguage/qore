@@ -167,7 +167,7 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
    assert(type == VT_GLOBAL);
    if (ref.var->hasTypeInfo()) {
       QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
-      VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), ref.var, make_args(args), pti ? 0 : ref.var->getTypeInfo(), pti);
+      VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), ref.var, make_args(loc, args), pti ? 0 : ref.var->getTypeInfo(), pti);
       deref();
       return rv;
    }
@@ -267,7 +267,7 @@ AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int 
 
 // for checking for new object calls
 AbstractQoreNode* VarRefDeclNode::makeNewCall(AbstractQoreNode* args) {
-   VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), make_args(args), type);
+   VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), make_args(loc, args), type);
    deref();
    return rv;
 }
@@ -311,12 +311,12 @@ void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation& lo
 
 void VarRefNewObjectNode::parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {
     assert(hd);
-    lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, args, runtime_check);
+    lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, parse_args, runtime_check);
 }
 
 void VarRefNewObjectNode::parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
     assert(ti);
-    lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, args, ti);
+    lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, parse_args, ti);
 }
 
 AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
@@ -363,11 +363,11 @@ QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
         }
 
         case VRN_HASHDECL:
-            value = typed_hash_decl_private::get(*QoreTypeInfo::getUniqueReturnHashDecl(typeInfo))->newHash(args, runtime_check, xsink);
+            value = typed_hash_decl_private::get(*QoreTypeInfo::getUniqueReturnHashDecl(typeInfo))->newHash(parse_args, runtime_check, xsink);
             break;
 
         case VRN_COMPLEXHASH:
-            value = qore_hash_private::newComplexHash(typeInfo, args, xsink);
+            value = qore_hash_private::newComplexHash(typeInfo, parse_args, xsink);
             break;
 
         default:
