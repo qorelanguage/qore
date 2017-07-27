@@ -287,15 +287,17 @@ binary binary(binary bin) [flags=CONSTANT] {
    return bin->refSelf();
 }
 
-//! Returns a list of the arguments passed at the top level
+//! Returns an untyped list of the arguments passed at the top level
 /** @param ... the arguments that will be returned as a list
 
-    @return a list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
+    @return an untyped list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
 
     @par Example:
     @code{.py}
 list l = list(1, 2, 3, 4);
     @endcode
+
+    @note if the only argument to this function is a typed list, the type information will be removed in the return value
 */
 list list(...) [flags=CONSTANT] {
    QoreListNode *l;

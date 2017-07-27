@@ -1251,6 +1251,12 @@ class TypeTest inherits QUnit::Test {
             }
 
             {
+                # cast to hash from a non-hash must fail at parse time
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any h = cast<hash>(1); }", ""));
+            }
+
+            {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", "complex", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
             }
@@ -1478,10 +1484,25 @@ class TypeTest inherits QUnit::Test {
             }
 
             {
+                any l = list(new list<int>(1));
+                l += "2";
+                assertEq("2", l[1]);
+            }
+
+            {
+                # cast to list from a non-list must fail at parse time
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any l = cast<list>(1); }", ""));
+            }
+
+            {
                 # however otherwise the typed list keeps its type
                 Program p(PO_NEW_STYLE);
                 p.parse("sub t() { any l = new list<int>(1); l[0] = 'str'; }", "");
                 assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+
+                p.parse("sub t1() { any l = new list<int>(1); l += 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t1");
             }
         }
 

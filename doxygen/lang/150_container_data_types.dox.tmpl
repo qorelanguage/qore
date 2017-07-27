@@ -69,6 +69,16 @@ element3 = list[2];
     - @ref list_type, @ref softlist_type
     - @ref list_functions
 
+    @par Complex Type Support for Lists
+    The \c "list" type also supports an optional type argument which allows the value type of list elements to be declared; the following example demonstrates a list declaration with a specific value type:\n
+    @code{.py}
+list<int> h(2, 3);
+    @endcode \n
+    This type is supported at parse-time and at runtime; to convert such values to an untyped list, assign it
+    to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, or call the @ref Qore::list() "list()" function on the value.  Each of these options can be used to convert a type-safe list to an untyped list.
+
+    @see @ref list_complex_type
+
     @note
     - Trailing commas can be left on the end of a list (or a @ref hash "hash"), making it easier to insert and remove elements at the end of a multi-line list.
     - List elements are dereferenced using square brackets: \c "[" and \c "]". The first element in a list has index zero.
@@ -196,7 +206,7 @@ hash<Container> h2(("i": 10, "str": "other"));
     - @ref hash_hashdecl_type
 
     @par Complex Type Support for Hashes
-    The \c "hash" type also supports two type arguments which allow the value type of the hash to be delcared.  The key type is also included in the declaration, but is currently restricted to type @ref string_type "string"; the following example demonstrates a hash declaration with a specific value type:\n
+    The \c "hash" type also supports two type arguments which allow the value type of the hash to be declared.  The key type is also included in the declaration, but is currently restricted to type @ref string_type "string"; the following example demonstrates a hash declaration with a specific value type:\n
     @code{.py}
 hash<string, int> h(("key1": 2, "key2": 3));
     @endcode \n

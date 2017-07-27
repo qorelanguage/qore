@@ -332,11 +332,13 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     - <tt><b>new</b></tt> <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
     - <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>
     - <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>list_initializer_args, ...</em>]<tt>)</tt>
 
     @par Return Type
     - If the type given is a @ref qore_classes "class name" or complex object type with a class name, then this operator returns an object of the specific class given
     - If the type given is a @ref hash_hashdecl_type "hashdecl hash type", then this operator returns a type-safe hash of the given type.
     - If the type given is a @ref hash_complex_type "complex hash type", then this operator returns a hash with type-safe key values of the given type.
+    - If the type given is a @ref list_complex_type "complex list type", then this operator returns a list with type-safe element values of the given type.
 
     @par Examples
     @code{.py}
@@ -348,6 +350,9 @@ hash<MyHash> h1 = new hash<MyHash>();
 
 # instantiate a new hash with type-safe key values
 hash<string, int> h2 = new hash<string, int>(("string": 2));
+
+# instantiate a new list with type-safe element values
+list<int> l1 = new list<int>(2);
     @endcode
 
     <b>Arguments Processed by new</b>
@@ -356,6 +361,7 @@ hash<string, int> h2 = new hash<string, int>(("string": 2));
     |<tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>|same as above
     |<tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>|The \a hashdecl_identifier must be an existing declared type-safe hash name or a namespace-prefixed path to an existing type-safe hash; if so, the operator instantiates a hash of this type (see @ref hashdecl_creation for more info).
     |<tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>|A value of the declared hash with type-safe key values is instantiated and returned
+    |<tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>list_initializer_args, ...</em>]<tt>)</tt>|A value of the declared list with type-safe key values is instantiated and returned
 
     @note
     - When instantiating a class, see the class's documentation for possibile exceptions
@@ -448,7 +454,7 @@ hash nh = remove h.("a", "b", "c");
     @subsection cast Cast Operator (cast<>())
 
     @par Synopsis
-    The cast<>() operator provides a way to tell the parser that the type value is not actually the declared type but rather another compatible type as given between the angle brackets.  Parse-time and runtime checks are performed for compatibility.  Casts to @ref hashdecl "hashdecl" types and to the @ref hash_type "hash" type can result in data conversions; see below for more information.
+    The cast<>() operator provides a way to tell the parser that the type value is not actually the declared type but rather another compatible type as given between the angle brackets.  Parse-time and runtime checks are performed for compatibility.  Casts to @ref hashdecl "hashdecl" types, to the @ref hash_type "hash", and to the @ref list_type "list" types can result in data conversions; see below for more information.
 
     @par Syntax
     - <tt><b>cast</b>&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt><em>object_expression</em><tt>)</tt>
@@ -456,6 +462,8 @@ hash nh = remove h.("a", "b", "c");
     - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
     - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
     - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
 
     @par Return Type
     - If a @ref qore_classes "class name" is given as the target type, then this operator returns an object of the specific class given at runtime.
@@ -466,10 +474,12 @@ hash nh = remove h.("a", "b", "c");
     - If a complex type is given as the target type, then this operator will convert the expression's value to the declared type
     at runtime if possible.
     - If @ref hash_type "hash" is given as the target type, the runtime type must be a valid hash or a runtime exception will be raised, additionally, any type-safe information is removed and an untyped hash is returned
+    - If @ref list_type "list" is given as the target type, the runtime type must be a valid list or a runtime exception will be raised, additionally, any type-safe information is removed and an untyped list is returned
 
     @par Data Conversions with <tt>cast<>(...)</tt>
     - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>: performs initialization of @ref hashdecl "hashdecl" keys with initializer expressions for keys not present in the output evaluated hash expression
     - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>: removes any type-safe information from the output evaluated hash expression
+    - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>: removes any type-safe information from the output evaluated list expression
 
     @par Examples
     @code{.py}
@@ -490,6 +500,9 @@ hash<string, MyClass>h = cast<hash<string, MyClass>(get_untyped_hash());
 
 # removes key type information from a type-safe hash
 any h = cast<hash>(new hash<MyHashdecl>());
+
+# removes element type information from a type-safe list
+any l = cast<list>(new list<int>(1));
     @endcode
 
     <b>Target Type Argument Processed by cast<>()</b>
@@ -498,6 +511,7 @@ any h = cast<hash>(new hash<MyHashdecl>());
     |<tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;</tt>|this is equivalent to <em>@ref qore_classes "class_identifier"</em> alone; a runtime check for compatibility with the target class is performed on the evaluated expression
     |<em>@ref hashdecl "hashdecl_identifier"</em>|This must be a literal unquoted string giving a @ref hashdecl "type-safe hash" name or a namespace-qualified path to a type-safe hash (ex: \c Namespace::MyHash); a runtime check for compatibility with the target @ref hashdecl "hashdecl" is performed on the evaluated expression; any keys missing from the expression that have default initializer expressions in the @ref hashdecl "hashdecl" are initialized accordingly
     |<tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;</tt>|The second type in the type parameter list gives the hash key value type; runtime type compatibility checks are performed but no conversions are made; a runtime exception will be thrown if the evaluated expression does not correspond to the declared type
+    |<tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;</tt>|The single type in the type parameter list gives the list element value type; runtime type compatibility checks are performed but no conversions are made; a runtime exception will be thrown if the evaluated expression does not correspond to the declared type
 
     @throw RUNTIME-CAST-ERROR The expression given does not evaluate to a value that can be converted to the given type
 
