@@ -328,7 +328,7 @@ class MyClass {
     }
 }
 
-object<MyClass> sub foo(MyClass o = new MyClass("foo": "bar", "x": 2)) {
+object<MyClass> sub foo(MyClass o = new MyClass(("foo": "bar", "x": 2))) {
     return o;
 }
     @endcode
