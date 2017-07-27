@@ -1465,31 +1465,24 @@ class TypeTest inherits QUnit::Test {
                 assertEq("a", l[1][0]);
             }
 
-            /*
             {
-                hash<string, softint> h();
-                h = new hash<string, int>(('b': 2, 'c': 3));
-                assertEq(2, h.b);
+                list<softint> l();
+                l = new list<int>(2, 3);
+                assertEq(2, l[0]);
             }
 
             {
-                hash<string, softint> h = ("a": "2");
-                assertEq(2, h.a);
-                assertEq(True, h instanceof hash<string, softint>);
+                list<softint> l = ("2",);
+                assertEq(2, l[0]);
+                assertEq(True, l instanceof list<softint>);
             }
 
             {
-                # however otherwise the typed hash keeps its type
+                # however otherwise the typed list keeps its type
                 Program p(PO_NEW_STYLE);
-                p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
+                p.parse("sub t() { any l = new list<int>(1); l[0] = 'str'; }", "");
                 assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
             }
-
-            {
-                Program p(PO_NEW_STYLE);
-                assertThrows("PARSE-TYPE-ERROR", "complex", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
-            }
-            */
         }
 
         {

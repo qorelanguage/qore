@@ -38,10 +38,10 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   assert(left && left->getType() == NT_LIST);
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(left);
+   assert(left && left->getType() == NT_PARSE_LIST);
+   QoreParseListNode* l = static_cast<QoreParseListNode*>(left);
 
-   QoreListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
+   QoreParseListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
    QorePossibleListNodeParseInitHelper ri(&right, oflag, pflag, lvids);
 
    const QoreTypeInfo* argInfo;
@@ -86,8 +86,8 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
 }
 
 QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(left && left->getType() == NT_LIST);
-   const QoreListNode* llv = reinterpret_cast<const QoreListNode*>(left);
+   assert(left && left->getType() == NT_PARSE_LIST);
+   const QoreParseListNode* llv = reinterpret_cast<const QoreParseListNode*>(left);
 
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
@@ -102,7 +102,7 @@ QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Excep
 
    // get values and save
    for (unsigned i = 0; i < llv->size(); i++) {
-      const AbstractQoreNode* lv = llv->retrieve_entry(i);
+      const AbstractQoreNode* lv = llv->get(i);
 
       // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
       LValueHelper v(lv, xsink);

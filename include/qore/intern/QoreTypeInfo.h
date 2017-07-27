@@ -59,6 +59,13 @@ typedef std::function<void (QoreValue&, ExceptionSink*)> q_type_map_t;
 
 static q_type_map_t null_to_nothing = [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); };
 
+// returns type info for base types
+DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
+// returns type info information for parse types (values)
+DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
+// returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
+DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
+
 class QoreTypeSpec {
 public:
    DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
@@ -105,6 +112,27 @@ public:
 
    DLLLOCAL const QoreTypeInfo* getComplexList() const {
       return typespec == QTS_COMPLEXLIST ? u.ti : nullptr;
+   }
+
+   DLLLOCAL bool isComplex() const {
+      return typespec == QTS_COMPLEXHASH
+             || typespec == QTS_COMPLEXLIST;
+   }
+
+   DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
+      switch (typespec) {
+         case QTS_HASHDECL:
+         case QTS_COMPLEXHASH:
+            return hashTypeInfo;
+         case QTS_COMPLEXLIST:
+            return listTypeInfo;
+         case QTS_CLASS:
+            return objectTypeInfo;
+         case QTS_TYPE:
+            return getTypeInfoForType(u.t);
+      }
+      assert(false);
+      return nullptr;
    }
 
    DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
@@ -246,14 +274,14 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      bool may_not_match = true;
-      bool may_need_filter = true;
+      bool may_not_match = false;
+      bool may_need_filter = false;
       return parseAccepts(first, second, may_not_match, may_need_filter);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
-      bool may_need_filter = true;
+      bool may_need_filter = false;
       return parseAccepts(first, second, may_not_match, may_need_filter);
    }
 
@@ -453,6 +481,47 @@ public:
          str.append(NO_TYPE_INFO);
    }
 
+   // check for a common type
+   DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
+      assert(QoreTypeInfo::hasType(ctype));
+      if (ctype == ntype)
+         return true;
+      if (!QoreTypeInfo::hasType(ntype)) {
+         ctype = nullptr;
+         return false;
+      }
+
+      // ctype |* NOTHING -> *type
+      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::parseAcceptsReturns(ntype, NT_NOTHING)) {
+         const QoreTypeInfo* ti = get_or_nothing_type(ctype);
+         ctype = ti;
+         return ti ? true : false;
+      }
+
+      // ctype |* *ctype -> *ctype
+      // if the new type is a superset of the existing common type, then use the new type
+      if (ntype->superSetOf(ctype)) {
+         ctype = ntype;
+         return true;
+      }
+
+      // try to find a common base type
+      // if we're dealing with types that return multiple types, then they are not compatible
+      if (ctype->return_vec.size() > 1 || ntype->return_vec.size() > 1) {
+         ctype = nullptr;
+         return false;
+      }
+
+      // see if we have a complex type
+      const QoreTypeInfo* bti = ctype->return_vec[0].spec.getBaseTypeInfo();
+      if (bti == ntype->return_vec[0].spec.getBaseTypeInfo()) {
+         ctype = bti;
+         return true;
+      }
+      ctype = nullptr;
+      return false;
+   }
+
    DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       if (priv_error) {
          if (obj)
@@ -534,6 +603,24 @@ protected:
       desc->concat(" instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
+   }
+
+   // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
+   DLLLOCAL bool superSetOf(const QoreTypeInfo* t) const {
+      if (accept_vec.size() <= t->accept_vec.size() || return_vec.size() <= t->return_vec.size())
+         return false;
+
+      for (unsigned i = 0; i < t->accept_vec.size(); ++i) {
+         if (t->accept_vec[i].spec != accept_vec[i].spec)
+            return false;
+      }
+
+      for (unsigned i = 0; i < t->return_vec.size(); ++i) {
+         if (t->return_vec[i].spec != return_vec[i].spec)
+            return false;
+      }
+
+      return true;
    }
 
    DLLLOCAL qore_type_t getSingleType() const {
@@ -2474,10 +2561,5 @@ protected:
       return false;
    }
 };
-
-// returns type info for base types
-DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
-// returns type info information for parse types (values)
-DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 
 #endif // _QORE_QORETYPEINFO_H

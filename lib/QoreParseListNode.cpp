@@ -47,20 +47,27 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     vtypes.resize(values.size());
 
     // try to find a common value type, if any
-    bool vcommon = true;
+    bool vcommon = false;
 
     for (size_t i = 0; i < values.size(); ++i) {
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
-        if (!i)
-            vtype = vtypes[i];
-        else if (vcommon && vtypes[i] != vtype) {
-            vcommon = false;
-            vtype = nullptr;
+        //printd(5, "QoreParseListNode::parseInitIntern() %d: vcommon: %d vt: %p '%s' vtype: %p '%s'\n", i, vcommon, vtypes[i], QoreTypeInfo::getName(vtypes[i]), vtype, QoreTypeInfo::getName(vtype));
+
+        if (!i) {
+            if (QoreTypeInfo::hasType(vtypes[i])) {
+                vtype = vtypes[i];
+                vcommon = true;
+            }
         }
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
+            vcommon = false;
 
         if (!needs_eval && values[i] && values[i]->needs_eval())
             needs_eval = true;
+
+        if (!has_effect() && node_has_effect(values[i]))
+           set_effect(true);
     }
 
     if (vtype && !QoreTypeInfo::hasType(vtype))
@@ -72,6 +79,8 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     else {
         this->typeInfo = typeInfo = listTypeInfo;
     }
+
+    //printd(5, "QoreParseListNode::parseInitIntern() typeInfo: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo));
 
     return needs_eval;
 }

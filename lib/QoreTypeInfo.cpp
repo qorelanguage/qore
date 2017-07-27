@@ -203,6 +203,10 @@ static type_typeinfo_map_t extern_type_info_map;
 typedef std::map<qore_type_t, const char* > type_str_map_t;
 static type_str_map_t type_str_map;
 
+// map from simple types to "or nothing" types
+typedef std::map<const QoreTypeInfo*, const QoreTypeInfo*> typeinfo_map_t;
+static typeinfo_map_t typeinfo_map;
+
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
@@ -212,6 +216,7 @@ static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInf
    type_typeinfo_map[t]            = typeInfo;
    type_ornothingtypeinfo_map[t]   = orNothingTypeInfo;
    type_str_map[t]                 = name;
+   typeinfo_map[typeInfo]          = orNothingTypeInfo;
 }
 
 // at least the NullString must be created after the default character encoding is set
@@ -298,6 +303,35 @@ void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
    QoreAutoRWWriteLocker al(extern_type_info_map_lock);
    assert(extern_type_info_map.find(t) == extern_type_info_map.end());
    extern_type_info_map[t] = typeInfo;
+}
+
+const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
+   assert(!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING));
+
+   typeinfo_map_t::iterator i = typeinfo_map.find(typeInfo);
+   if (i != typeinfo_map.end())
+      return i->second;
+
+   // see if we have a complex type
+   {
+      const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+      if (hd)
+         return hd->getTypeInfo(true);
+   }
+
+   {
+      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+      if (ti)
+         return qore_program_private::get(*getProgram())->getComplexHashOrNothingType(ti);
+   }
+
+   {
+      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+      if (ti)
+         return qore_program_private::get(*getProgram())->getComplexListOrNothingType(ti);
+   }
+
+   return nullptr;
 }
 
 static const QoreTypeInfo* getExternalTypeInfoForType(qore_type_t t) {
@@ -405,6 +439,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             case QTS_COMPLEXHASH: {
                //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
                qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
+               if (may_not_match)
+                  return QTI_NOT_EQUAL;
                // even if types are 100% compatible, if they are not equal, then we perform type folding
                if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(u.ti, t.u.ti)) {
                   may_need_filter = true;
@@ -424,6 +460,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             case QTS_COMPLEXLIST: {
                //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
                qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
+               if (may_not_match)
+                  return QTI_NOT_EQUAL;
                // even if types are 100% compatible, if they are not equal, then we perform type folding
                if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(u.ti, t.u.ti)) {
                   may_need_filter = true;

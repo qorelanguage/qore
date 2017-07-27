@@ -44,10 +44,10 @@ class QoreParseListNode : public ParseNode {
 public:
    typedef std::vector<AbstractQoreNode*> nvec_t;
 
-   DLLLOCAL QoreParseListNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_PARSE_LIST, true) {
+   DLLLOCAL QoreParseListNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_PARSE_LIST, false) {
    }
 
-   DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old.loc, NT_PARSE_LIST, true), vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
+   DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old), vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
       values.reserve(old.values.size());
       lvec.reserve(old.lvec.size());
 
@@ -170,6 +170,8 @@ public:
       return n;
    }
 
+   DLLLOCAL bool parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
 protected:
    typedef std::vector<QoreProgramLocation> lvec_t;
    nvec_t values;
@@ -187,8 +189,6 @@ protected:
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
-
-   DLLLOCAL bool parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 

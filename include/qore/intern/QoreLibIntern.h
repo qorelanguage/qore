@@ -490,20 +490,60 @@ public:
    DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
-      typeInfo = 0;
+      typeInfo = nullptr;
       AbstractQoreNode** n = getValuePtr();
       if (n && *n) {
-	 (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
+         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
 
-	 //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
-
-	 if (!getList()->needs_eval() && (*n) && (*n)->needs_eval())
-	    getList()->setNeedsEval();
+         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
 
          return *n;
       }
 
-      return 0;
+      return nullptr;
+   }
+};
+
+class QoreParseListNodeParseInitHelper {
+private:
+   QoreParseListNode* l;
+   int pos = -1;
+   LocalVar* oflag;
+   int pflag;
+   int& lvids;
+
+public:
+   DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
+      l(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
+   }
+
+   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
+      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
+
+      typeInfo = nullptr;
+      AbstractQoreNode** n = l->getPtr(pos);
+      if (n && *n) {
+         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
+
+         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
+
+         return *n;
+      }
+
+      return nullptr;
+   }
+
+   DLLLOCAL bool next() {
+      ++pos;
+      if (pos == l->size()) {
+         pos = -1;
+         return false;
+      }
+      return true;
+   }
+
+   DLLLOCAL int index() {
+      return pos;
    }
 };
 
@@ -546,7 +586,7 @@ public:
       ++pos;
 
       if (finished)
-	 return false;
+         return false;
 
       if (pos == l->size()) {
          finished = true;
@@ -557,7 +597,7 @@ public:
 
    DLLLOCAL AbstractQoreNode** getValuePtr() {
       if (finished)
-	 return 0;
+         return 0;
 
       return l->get_entry_ptr(pos);
    }
@@ -586,12 +626,12 @@ public:
          typeInfo = nothingTypeInfo;
       }
       else {
-	 (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
+         (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
 
-	 //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
+         //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
 
-	 if (l && !l->needs_eval() && (*p) && (*p)->needs_eval())
-	    l->setNeedsEval();
+         if (l && !l->needs_eval() && (*p) && (*p)->needs_eval())
+            l->setNeedsEval();
       }
    }
 };
@@ -743,12 +783,12 @@ public:
    DLLLOCAL ~ThreadLocalData() {
 #ifdef DEBUG
       //if (curr->pos)
-	 //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+         //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
 #endif
       assert(!curr->prev);
       assert(!curr->pos);
       if (curr->next)
-	 delete curr->next;
+         delete curr->next;
       delete curr;
    }
 #ifdef DEBUG

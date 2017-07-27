@@ -45,7 +45,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     vtypes.resize(keys.size());
 
     // try to find a common value type, if any
-    bool vcommon = true;
+    bool vcommon = false;
 
     for (size_t i = 0; i < keys.size(); ++i) {
         const QoreTypeInfo* argTypeInfo = 0;
@@ -67,12 +67,14 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         argTypeInfo = 0;
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
-        if (!i)
-            vtype = vtypes[i];
-        else if (vcommon && vtypes[i] != vtype) {
-            vcommon = false;
-            vtype = nullptr;
+        if (!i) {
+            if (QoreTypeInfo::hasType(vtypes[i])) {
+                vtype = vtypes[i];
+                vcommon = true;
+            }
         }
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
+            vcommon = false;
 
         if (!needs_eval && values[i] && values[i]->needs_eval())
             needs_eval = true;
