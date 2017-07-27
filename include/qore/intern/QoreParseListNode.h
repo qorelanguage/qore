@@ -44,7 +44,7 @@ class QoreParseListNode : public ParseNode {
 public:
    typedef std::vector<AbstractQoreNode*> nvec_t;
 
-   DLLLOCAL QoreParseListNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_PARSE_LIST, false) {
+   DLLLOCAL QoreParseListNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_PARSE_LIST, true) {
    }
 
    DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old), vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
@@ -66,6 +66,14 @@ public:
    DLLLOCAL void add(AbstractQoreNode* v, const QoreProgramLocation& loc) {
       values.push_back(v);
       lvec.push_back(loc);
+
+      if (!size()) {
+         if (node_has_effect(v))
+            set_effect(true);
+      }
+      else if (has_effect() && !node_has_effect(v)) {
+         set_effect(false);
+      }
    }
 
    DLLLOCAL AbstractQoreNode* shift() {

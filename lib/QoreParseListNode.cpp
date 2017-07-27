@@ -65,9 +65,6 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
 
         if (!needs_eval && values[i] && values[i]->needs_eval())
             needs_eval = true;
-
-        if (!has_effect() && node_has_effect(values[i]))
-           set_effect(true);
     }
 
     if (vtype && !QoreTypeInfo::hasType(vtype))
