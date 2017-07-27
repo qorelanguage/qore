@@ -1265,7 +1265,7 @@ string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VA
 
     @deprecated use get_module_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getModuleList() [flags=DEPRECATED] {
+list<hash> getModuleList() [flags=DEPRECATED] {
    return MM.getModuleList();
 }
 
@@ -1283,7 +1283,7 @@ list getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list list = get_module_list();
+list l = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1292,7 +1292,7 @@ list list = get_module_list();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleList()
 */
-list get_module_list() {
+list<hash> get_module_list() {
    return MM.getModuleList();
 }
 
@@ -1314,7 +1314,7 @@ list get_module_list() {
 
     @deprecated use get_module_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getModuleHash() [flags=DEPRECATED] {
+hash<string, hash> getModuleHash() [flags=DEPRECATED] {
    return MM.getModuleHash();
 }
 
@@ -1339,7 +1339,7 @@ hash mh = get_module_hash();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleHash()
 */
-hash get_module_hash() {
+hash<string, hash> get_module_hash() {
    return MM.getModuleHash();
 }
 

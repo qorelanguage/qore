@@ -207,6 +207,14 @@ static type_str_map_t type_str_map;
 typedef std::map<const QoreTypeInfo*, const QoreTypeInfo*> typeinfo_map_t;
 static typeinfo_map_t typeinfo_map;
 
+static QoreThreadLock ctl; // complex type lock
+
+typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
+tmap_t ch_map,          // complex hash map
+   chon_map,            // complex hash or nothing map
+   cl_map,              // complex list map
+   clon_map;            // complex list or nothing map
+
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
 
@@ -295,8 +303,18 @@ void delete_qore_types() {
    Zero->deref();
    OneDate->deref();
    ZeroDate->deref();
-   emptyList->deref(0);
-   emptyHash->deref(0);
+   emptyList->deref(nullptr);
+   emptyHash->deref(nullptr);
+
+   // delete stored type information
+   for (auto& i : ch_map)
+      delete i.second;
+   for (auto& i : chon_map)
+      delete i.second;
+   for (auto& i : cl_map)
+      delete i.second;
+   for (auto& i : clon_map)
+      delete i.second;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
@@ -332,6 +350,54 @@ const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
    }
 
    return nullptr;
+}
+
+const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = ch_map.lower_bound(vti);
+   if (i != ch_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(vti);
+   ch_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = chon_map.lower_bound(vti);
+   if (i != chon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashOrNothingTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
+   chon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_get_complex_list_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = cl_map.lower_bound(vti);
+   if (i != cl_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListTypeInfo* ti = new QoreComplexListTypeInfo(vti);
+   cl_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = clon_map.lower_bound(vti);
+   if (i != clon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
+   clon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
 }
 
 static const QoreTypeInfo* getExternalTypeInfoForType(qore_type_t t) {

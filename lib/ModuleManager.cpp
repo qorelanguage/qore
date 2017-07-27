@@ -1371,7 +1371,7 @@ QoreHashNode* ModuleManager::getModuleHash() {
 
 QoreHashNode* QoreModuleManager::getModuleHash() {
    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(hashTypeInfo);
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())
@@ -1386,7 +1386,7 @@ QoreListNode* ModuleManager::getModuleList() {
 
 QoreListNode* QoreModuleManager::getModuleList() {
    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
-   QoreListNode* l = new QoreListNode;
+   QoreListNode* l = new QoreListNode(hashTypeInfo);
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())

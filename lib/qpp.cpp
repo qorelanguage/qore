@@ -58,6 +58,7 @@
 #include <map>
 #include <set>
 #include <utility>
+#include <algorithm>
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n"
     " -d, --dox-output=arg   doxygen output file name\n"
@@ -397,6 +398,14 @@ int parse_attributes(const char* fileName, unsigned &lineNumber, attr_t& attr, s
         amap_t::iterator ai = amap.find(pre[xi]);
         if (ai == amap.end()) {
             if (!return_type.empty()) {
+                size_t nopen = std::count(return_type.begin(), return_type.end(), '<');
+                size_t nclose = std::count(return_type.begin(), return_type.end(), '>');
+                log(LL_DEBUG, "'%s' ('%s') nopen: %d nclose: %d\n", return_type.c_str(), pre[xi].c_str(), (int)nopen, (int)nclose);
+                if (nopen > nclose) {
+                    return_type += pre[xi];
+                    continue;
+                }
+
                 error("%s:%d: multiple return types or unknown code attribute '%s' given\n", fileName, lineNumber, pre[xi].c_str());
                 return -1;
             }
@@ -655,18 +664,53 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
 
         // see if it's a complex type
         if (!qt.compare(on ? 1 : 0, 5, "hash<")) {
+            // extract subtype name
+            std::string subtype = qt.substr((on ? 6 : 5), qt.size() - (on ? 7 : 6));
+
             // cannot support complex hash types other than hashdecls yet
-            if (qt.find(',') != std::string::npos) {
-                log(LL_CRITICAL, "unsupported complex hash type found: '%s'\n", qt.c_str());
+            if (subtype.find(',') != std::string::npos) {
+                if (!subtype.compare(0, 7, "string,")) {
+                    subtype.erase(0, 7);
+                    trim(subtype);
+                    std::string subtype_qt;
+                    get_qore_type(subtype, subtype_qt);
+
+                    // generate type name
+                    if (on)
+                        qc = "qore_get_complex_hash_or_nothing_type(" + subtype_qt + ")";
+                    else
+                        qc = "qore_get_complex_hash_type(" + subtype_qt + ")";
+                    log(LL_DEBUG, "registering complex hash return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+                }
+                else {
+                    log(LL_CRITICAL, "unsupported complex hash type found: '%s'\n", qt.c_str());
+                    assert(false);
+                }
+            }
+            else {
+                // generate type name
+                qc = "hashdecl" + subtype + "->getTypeInfo(" + (on ? "true" : "false") + ")";
+                log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+            }
+        }
+        else if (!qt.compare(on ? 1 : 0, 5, "list<")) {
+            // extract subtype name
+            std::string subtype = qt.substr((on ? 6 : 5), qt.size() - (on ? 7 : 6));
+
+            if (subtype.find(',') != std::string::npos) {
+                log(LL_CRITICAL, "unsupported complex list type found: '%s'\n", qt.c_str());
                 assert(false);
             }
 
-            // extract hashdecl name
-            std::string hashdecl = qt.substr((on ? 6 : 5), qt.size() - (on ? 7 : 6));
+            std::string subtype_qt;
+            get_qore_type(subtype, subtype_qt);
 
             // generate type name
-            qc = "hashdecl" + hashdecl + "->getTypeInfo(" + (on ? "true" : "false") + ")";
-            log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+            if (on)
+                qc = "qore_get_complex_list_or_nothing_type(" + subtype_qt + ")";
+            else
+                qc = "qore_get_complex_list_type(" + subtype_qt + ")";
+            log(LL_DEBUG, "registering complex list return type '%s': '%s'\n", qt.c_str(), qc.c_str());
         }
         else {
             // assume a Qore object of the given class
