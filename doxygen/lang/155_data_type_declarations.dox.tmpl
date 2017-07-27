@@ -322,13 +322,7 @@ list<int> l4 = cast<list<int>>(get_list());
 
     @par Example
     @code{.py}
-class MyClass {
-    public {
-       int x = 1;
-    }
-}
-
-object<MyClass> sub foo(MyClass o = new MyClass(("foo": "bar", "x": 2))) {
+object<MyClass> sub foo(MyClass o = new MyClass()) {
     return o;
 }
     @endcode
