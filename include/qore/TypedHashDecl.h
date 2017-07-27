@@ -79,12 +79,20 @@ public:
    //! deletes the TypedHashDecl object if still managed
    DLLEXPORT ~TypedHashDeclHolder();
 
-   //! implicit conversion to QoreClass*
-   DLLLOCAL operator TypedHashDecl*() const {
+   //! implicit conversion to TypedHashDecl*
+   DLLLOCAL TypedHashDecl* operator*() const {
       return thd;
    }
 
-   //! releases the QoreClass*
+   //! implicit conversion to TypedHashDecl*
+   DLLLOCAL TypedHashDecl* operator->() const {
+      return thd;
+   }
+
+   //! assign new TypedHashDecl value; any managed object is deleted if still managed
+   DLLLOCAL TypedHashDecl* operator=(TypedHashDecl* nhd);
+
+   //! releases the TypedHashDecl*
    DLLLOCAL TypedHashDecl* release() {
       auto rv = thd;
       thd = nullptr;
@@ -110,5 +118,8 @@ DLLEXPORT extern const TypedHashDecl* hashdeclDateTimeInfo;
 
 //! IsoWeekInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclIsoWeekInfo;
+
+//! CallStackInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclCallStackInfo;
 
 #endif

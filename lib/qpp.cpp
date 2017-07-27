@@ -2773,7 +2773,7 @@ public:
     }
 
     virtual int serializeCpp(FILE* fp) {
-        fprintf(fp, "const TypedHashDecl* init_hashdecl_%s(QoreNamespace& ns) {\n", name.c_str());
+        fprintf(fp, "TypedHashDecl* init_hashdecl_%s(QoreNamespace& ns) {\n", name.c_str());
         fprintf(fp, "    TypedHashDecl* hd = new TypedHashDecl(\"%s\");\n", name.c_str());
 
         for (auto& i : hdmap) {

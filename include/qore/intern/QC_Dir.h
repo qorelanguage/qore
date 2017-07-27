@@ -37,7 +37,7 @@ DLLEXPORT extern qore_classid_t CID_DIR;
 DLLLOCAL extern QoreClass* QC_DIR;
 DLLLOCAL QoreClass* initDirClass(QoreNamespace& ns);
 
-DLLLOCAL const TypedHashDecl* init_hashdecl_DirStatInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_DirStatInfo(QoreNamespace& ns);
 
 #include "qore/intern/QoreDir.h"
 

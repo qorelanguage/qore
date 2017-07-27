@@ -2251,7 +2251,7 @@ QoreHashNode* getAllCallStacks() {
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo()));
    QoreString str;
 
    // grab the call stack write lock
@@ -2261,6 +2261,8 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
    if (exiting)
       return h;
 
+   auto ph = qore_hash_private::get(*h);
+
    while (i.next()) {
       // get call stack
       if (entry[*i].callStack) {
@@ -2269,10 +2271,10 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
             // make hash entry
             str.clear();
             str.sprintf("%d", *i);
-            h->setKeyValue(str.getBuffer(), l, 0);
+            ph->setKeyValueIntern(str.getBuffer(), l);
          }
          else
-            l->deref(0);
+            l->deref(nullptr);
       }
    }
 

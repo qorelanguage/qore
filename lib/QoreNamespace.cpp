@@ -168,7 +168,8 @@ const TypedHashDecl* hashdeclStatInfo,
       * hashdeclDirStatInfo,
       * hashdeclFilesystemInfo,
       * hashdeclDateTimeInfo,
-      * hashdeclIsoWeekInfo;
+      * hashdeclIsoWeekInfo,
+      * hashdeclCallStackInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -886,6 +887,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitTimeZoneClass();
    hashdeclDateTimeInfo = init_hashdecl_DateTimeInfo(qns);
    hashdeclIsoWeekInfo = init_hashdecl_IsoWeekInfo(qns);
+   hashdeclCallStackInfo = init_hashdecl_CallStackInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 

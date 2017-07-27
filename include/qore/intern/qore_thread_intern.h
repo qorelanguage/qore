@@ -408,7 +408,7 @@ protected:
    bool restore;
 
 public:
-   DLLLOCAL QoreProgramOptionalLocationHelper(QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+   DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
       if (n_loc)
          loc = update_get_runtime_location(*n_loc);
    }

@@ -17,6 +17,7 @@
     - complex type support
       - @ref hashdecl "type safe hashes" (@ref hash_hashdecl_type); ex: @code{.py} hash<MyInfo> = get_info(); @endcode
       - new system types:
+        - @ref Qore::CallStackInfo "CallStackInfo"
         - @ref Qore::DateTimeInfo "DateTimeInfo"
         - @ref Qore::DirStatInfo "DirStatInfo"
         - @ref Qore::FilesystemInfo "FilesystemInfo"
@@ -1522,7 +1523,7 @@
         - @ref Qore::Program::parse() "Program::parse()"
         - @ref Qore::Program::parsePending() "Program::parsePending()"
         - @ref Qore::parse() "parse()"
-      - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
+      - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in exception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way

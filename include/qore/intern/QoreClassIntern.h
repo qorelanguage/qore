@@ -1617,13 +1617,17 @@ public:
 // base constructor evaluated argument node; created locally at run time
 class BCEANode {
 public:
-   QoreListNode* args;
-   const AbstractQoreFunctionVariant* variant;
-   bool execed;
-   bool member_init_done;
+   const QoreProgramLocation* loc;
+   QoreListNode* args = nullptr;
+   const AbstractQoreFunctionVariant* variant = nullptr;
+   bool execed = false;
+   bool member_init_done = false;
 
-   DLLLOCAL BCEANode(QoreListNode* args, const AbstractQoreFunctionVariant* variant) : args(args), variant(reinterpret_cast<const MethodVariant*>(variant)), execed(false), member_init_done(false) {}
-   DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : args(0), variant(0), execed(n_execed), member_init_done(mid) {}
+   DLLLOCAL BCEANode(const QoreProgramLocation& loc, QoreListNode* args, const AbstractQoreFunctionVariant* variant) : loc(&loc), args(args), variant(reinterpret_cast<const MethodVariant*>(variant)) {
+   }
+
+   DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : execed(n_execed), member_init_done(mid) {
+   }
 };
 
 /*
@@ -1650,7 +1654,7 @@ public:
    DLLLOCAL void deref(ExceptionSink* xsink);
    // evaluates arguments, returns -1 if an exception was thrown
    DLLLOCAL int add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, QoreProgramLocation& loc, ExceptionSink* xsink);
-   DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant);
+   DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant, const QoreProgramLocation*& loc);
    /*
    DLLLOCAL bool initMembers(qore_classid_t classid) {
       bceamap_t::iterator i = lower_bound(classid);

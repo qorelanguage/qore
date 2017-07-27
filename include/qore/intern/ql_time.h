@@ -37,7 +37,7 @@
 
 DLLLOCAL void init_time_functions(QoreNamespace& ns);
 
-DLLLOCAL const TypedHashDecl* init_hashdecl_DateTimeInfo(QoreNamespace& ns);
-DLLLOCAL const TypedHashDecl* init_hashdecl_IsoWeekInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_DateTimeInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_IsoWeekInfo(QoreNamespace& ns);
 
 #endif

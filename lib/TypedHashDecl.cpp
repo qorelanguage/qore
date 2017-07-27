@@ -332,3 +332,10 @@ TypedHashDeclHolder::~TypedHashDeclHolder() {
     if (thd)
         typed_hash_decl_private::get(*thd)->deref();
 }
+
+TypedHashDecl* TypedHashDeclHolder::operator=(TypedHashDecl* nhd) {
+    if (thd)
+        typed_hash_decl_private::get(*thd)->deref();
+    return thd = nhd;
+}
+

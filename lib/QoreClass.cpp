@@ -997,8 +997,10 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
    // no lock is sent with constructor, because no variable has been assigned yet
    bool already_executed;
    const AbstractQoreFunctionVariant* variant;
-   QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant);
+   const QoreProgramLocation* aloc;
+   QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
    if (!already_executed) {
+      QoreProgramOptionalLocationHelper plh(aloc);
       constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
    }
 }
@@ -1401,27 +1403,28 @@ void qore_class_private::setPublic() {
    pub = true;
 }
 
-QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant) {
+QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant, const QoreProgramLocation*& loc) {
    bceamap_t::iterator i = lower_bound(classid);
    // not found
    if (i == end() || i->first != classid) {
       insert(i, bceamap_t::value_type(classid, new BCEANode));
       *aexeced = false;
-      variant = 0;
-      return 0;
+      variant = nullptr;
+      return nullptr;
    }
 
    // already executed
    if (i->second->execed) {
       *aexeced = true;
-      variant = 0;
-      return 0;
+      variant = nullptr;
+      return nullptr;
    }
 
    // found and not yet executed
    *aexeced = false;
    i->second->execed = true;
    variant = i->second->variant;
+   loc = i->second->loc;
    return i->second->args;
 }
 
@@ -1441,7 +1444,7 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
 
    // save arguments
    if (n)
-      insert(i, bceamap_t::value_type(classid, new BCEANode(nargs.release(), variant)));
+      insert(i, bceamap_t::value_type(classid, new BCEANode(loc, nargs.release(), variant)));
    else {
       assert(!i->second->args);
       assert(!i->second->variant);
@@ -1797,8 +1800,6 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
    // do not execute constructors for virtual base classes
    if (is_virtual)
       return;
-   // set runtime location
-   QoreProgramLocationHelper l(loc);
    sclass->priv->execBaseClassConstructor(o, bceal, xsink);
 }
 
