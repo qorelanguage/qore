@@ -223,12 +223,9 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
         const QoreTypeInfo* lti = qore_list_private::get(*l)->complexTypeInfo;
         if (lti && QoreTypeInfo::equal(typeInfo, lti))
             return holder.release().get<QoreListNode>();
-
         // try to fold the type
-        if (!l->is_unique()) {
-            holder.release();
+        if (!l->is_unique())
             holder = init = l = l->copy();
-        }
 
         const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
         ListIterator i(l);

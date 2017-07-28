@@ -87,12 +87,13 @@ AbstractQoreNode* QoreParseListNode::parseInitImpl(LocalVar* oflag, int pflag, i
         return this;
 
     // evaluate immediately
+    SimpleRefHolder<QoreParseListNode> holder(this);
     ValueEvalRefHolder rv(this, nullptr);
-    deref();
     return rv.getReferencedValue();
 }
 
 QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref);
     ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
     qore_list_private::get(**l)->reserve(values.size());
 
