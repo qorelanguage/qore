@@ -2296,18 +2296,24 @@ case_code:
 try_statement:
         TOK_TRY statement_or_block TOK_CATCH '(' myexp ')' statement_or_block {
            char* param = 0;
-           const QoreTypeInfo *typeInfo = 0;
+           const QoreTypeInfo* typeInfo = nullptr;
+           QoreParseTypeInfo* parseTypeInfo = nullptr;
            if ($5) {
               if ($5->getType() == NT_VARREF) {
                  VarRefNode *varRefNode = static_cast<VarRefNode*>($5);
                  param = varRefNode->takeName();
                  if (varRefNode->isDecl()) {
-                    VarRefDeclNode *varRefDeclNode = static_cast<VarRefDeclNode*>(varRefNode);
+                    VarRefDeclNode* varRefDeclNode = static_cast<VarRefDeclNode*>(varRefNode);
+                    parseTypeInfo = varRefDeclNode->takeParseTypeInfo();
+                    if (!parseTypeInfo)
+                       typeInfo = varRefDeclNode->getTypeInfo();
+                    /*
                     if (varRefDeclNode->getParseTypeInfo() || QoreTypeInfo::parseAccepts(varRefDeclNode->getTypeInfo(), hashTypeInfo) == QTI_NOT_EQUAL) {
                        parse_error(QoreProgramLocation(@1.first_line, @7.last_line), "the type of catch parameter '%s' must be 'hash'", param);
                     }
                     else
                       typeInfo = varRefDeclNode->getTypeInfo();
+                    */
                  }
               } else if ($5->getType() == NT_BAREWORD) {
                  param = reinterpret_cast<BarewordNode*>($5)->takeString();
@@ -2315,9 +2321,10 @@ try_statement:
                     parse_error(QoreProgramLocation(@1.first_line, @7.last_line), "local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
               } else
                  parse_error(QoreProgramLocation(@1.first_line, @7.last_line), "only one parameter accepted in catch block for exception hash");
-           $5->deref(0);
+              $5->deref(0);
            }
-           $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param, typeInfo);
+           QoreProgramLocation vloc($5 ? @5.first_line : 0, $5 ? @5.last_line : 0);
+           $$ = new TryStatement(@1.first_line, @7.last_line, $2, $7, param, typeInfo, parseTypeInfo, vloc);
         }
         ;
 

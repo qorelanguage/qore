@@ -10,25 +10,7 @@
 
     Information about the exception, including the context in which the exception occurred, is saved in the exception hash, which can be retrieved by using a parameter variable in the @ref try "catch block".
 
-    The exception hash contains the following members:
-
-    @anchor exception_hash
-    <b>Exception Hash Keys</b>
-    |!Name|!Type|!Description
-    |\c type|@ref string_type "string"|see @ref exception_type_constants for possible values
-    |\c file|@ref string_type "string"|The parse label where exception occurred; this is normally the file name; this corresponds to the \a label parameter of the @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" methods and the @ref Qore::parse() function, for example
-    |\c line|@ref int_type "int"|The starting line number where exception occurred
-    |\c endline|@ref int_type "int"|The ending line number where the exception occurred
-    |\c source|@ref string_or_nothing_type "*string"|An optional source string for the exception; if multiple sections of a file were parsed with different parse labels, then the source file name will normally go here and the \c "file" key will have the parse label; this corresponds to the \a source parameter of the @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" methods, for example
-    |\c offset|@ref int_type "int"|The line number offset for the \c "source" key
-    |\c callStack|@ref list_type "list" of @ref Qore::CallStackInfo hashes|@ref callstack "Backtrace information"
-    |\c err|@ref any_type "any"|This key is populated with the value of the first expression of the @ref throw "throw statement". For system exceptions, this is a string giving the exception code.
-    |\c desc|@ref any_type "any"|This key is populated with the value of the second expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is a string giving a text description of the error.
-    |\c arg|@ref any_type "any"|This key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
-
-    @anchor callstack
-
-    See @ref Qore::CallStackInfo for a description of the call stack hash
+    The exception hash is defined in the @ref Qore::ExceptionInfo "ExceptionInfo" @ref hashdecl "hashdecl".
 
     System exceptions always throw at least 2 values, populating the \c "err" and \c "desc" keys of the exception hash, giving the exception string code and the exception description string, respectively, and occassionally, depending on the function, the \c "arg" key may be populated with supporting information. User exceptions have no restrictions, any values given in the @ref throw "throw statement" will be mapped to exception keys as per the table above.
 

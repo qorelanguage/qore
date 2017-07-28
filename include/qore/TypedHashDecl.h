@@ -122,4 +122,7 @@ DLLEXPORT extern const TypedHashDecl* hashdeclIsoWeekInfo;
 //! CallStackInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclCallStackInfo;
 
+//! ExceptionInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclExceptionInfo;
+
 #endif

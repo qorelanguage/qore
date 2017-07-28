@@ -2618,10 +2618,14 @@ struct HashDeclInfo {
     HashDeclInfo(std::string&& comment, std::string&& type, std::string&& value) : comment(comment), type(type), value(value) {
     }
 
-    int serializeCpp(FILE* fp, const char* name) {
+    int serializeCpp(FILE* fp, const char* name, const std::string& hdname) {
         std::string qtype;
         if (get_qore_type(type, qtype))
             return -1;
+
+        size_t i = qtype.find(hdname);
+        if (i != std::string::npos)
+            qtype.replace(i, hdname.size(), "hd");
 
         std::string valexp;
         if (!value.empty()) {
@@ -2776,8 +2780,10 @@ public:
         fprintf(fp, "TypedHashDecl* init_hashdecl_%s(QoreNamespace& ns) {\n", name.c_str());
         fprintf(fp, "    TypedHashDecl* hd = new TypedHashDecl(\"%s\");\n", name.c_str());
 
+        // get type name to substitute references to self if necessary
+        std::string tname = "hashdecl" + name;
         for (auto& i : hdmap) {
-            if (i.second.serializeCpp(fp, i.first.c_str()))
+            if (i.second.serializeCpp(fp, i.first.c_str(), tname))
                 return -1;
         }
 

@@ -296,7 +296,7 @@ public:
 
    DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
       QoreParseTypeInfo* ti = parseTypeInfo;
-      parseTypeInfo = 0;
+      parseTypeInfo = nullptr;
       return ti;
    }
    DLLLOCAL QoreParseTypeInfo* getParseTypeInfo() {
