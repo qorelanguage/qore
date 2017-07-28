@@ -1617,13 +1617,13 @@ public:
 // base constructor evaluated argument node; created locally at run time
 class BCEANode {
 public:
-   const QoreProgramLocation* loc;
+   QoreProgramLocation loc;
    QoreListNode* args = nullptr;
    const AbstractQoreFunctionVariant* variant = nullptr;
    bool execed = false;
    bool member_init_done = false;
 
-   DLLLOCAL BCEANode(const QoreProgramLocation& loc, QoreListNode* args, const AbstractQoreFunctionVariant* variant) : loc(&loc), args(args), variant(reinterpret_cast<const MethodVariant*>(variant)) {
+   DLLLOCAL BCEANode(const QoreProgramLocation& loc, QoreListNode* args, const AbstractQoreFunctionVariant* variant) : loc(loc), args(args), variant(reinterpret_cast<const MethodVariant*>(variant)) {
    }
 
    DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : execed(n_execed), member_init_done(mid) {

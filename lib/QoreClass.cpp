@@ -997,7 +997,7 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
    // no lock is sent with constructor, because no variable has been assigned yet
    bool already_executed;
    const AbstractQoreFunctionVariant* variant;
-   const QoreProgramLocation* aloc;
+   const QoreProgramLocation* aloc = nullptr;
    QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
    if (!already_executed) {
       QoreProgramOptionalLocationHelper plh(aloc);
@@ -1424,7 +1424,7 @@ QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const Ab
    *aexeced = false;
    i->second->execed = true;
    variant = i->second->variant;
-   loc = i->second->loc;
+   loc = &i->second->loc;
    return i->second->args;
 }
 
