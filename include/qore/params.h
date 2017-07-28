@@ -352,20 +352,20 @@ static inline const QoreEncoding* get_hard_qore_encoding_param(const QoreListNod
 static inline QoreValue get_param_value(const QoreValueList* n, qore_size_t i) {
    if (!n)
       return QoreValue();
-   return n->size() > i ? n->retrieveEntry(i) : QoreValue();
+   return n->retrieveEntry(i);
 }
 
 //! returns the given type for hard typed parameters
 template <typename T>
 static inline T* get_hard_value_or_nothing_param(const QoreValueList* n, qore_size_t i) {
    assert(n);
-   return n->size() > i ? n->retrieveEntry(i).get<T>() : nullptr;
+   return n->retrieveEntry(i).get<T>();
 }
 
 //! returns the given type for hard typed parameters
 static QoreValue get_hard_value_param(const QoreValueList* n, qore_size_t i) {
    assert(n);
-   return n->size() > i ? n->retrieveEntry(i) : QoreValue();
+   return n->retrieveEntry(i);
 }
 
 //! returns a hard typed parameter
