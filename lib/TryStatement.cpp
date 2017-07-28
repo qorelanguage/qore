@@ -53,6 +53,7 @@ TryStatement::~TryStatement() {
       free(param);
    delete try_block;
    delete catch_block;
+   delete parseTypeInfo;
 }
 
 int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
@@ -105,8 +106,10 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    // prepare catch block and params
    if (param) {
       // initialize/check catch exception variable type (if any)
-      if (parseTypeInfo)
+      if (parseTypeInfo) {
          typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+         parseTypeInfo = nullptr;
+      }
 
       if (!QoreTypeInfo::parseAccepts(typeInfo, hashdeclExceptionInfo->getTypeInfo())) {
          parse_error(loc, "catch block exception variable is not compatible with exception hashdecl type '%s'", QoreTypeInfo::getName(typeInfo));

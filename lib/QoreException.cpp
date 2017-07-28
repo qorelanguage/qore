@@ -99,7 +99,7 @@ QoreHashNode* QoreException::makeExceptionObject() {
 
 QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) {
    QORE_TRACE("makeExceptionObjectAndDelete()");
-   QoreHashNode *rv = makeExceptionObject();
+   QoreHashNode* rv = makeExceptionObject();
    del(xsink);
 
    return rv;
