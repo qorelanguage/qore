@@ -111,7 +111,7 @@ DLLEXPORT extern const TypedHashDecl* hashdeclStatInfo;
 DLLEXPORT extern const TypedHashDecl* hashdeclDirStatInfo;
 
 //! FilesystemStatInfo hashdecl
-DLLEXPORT extern const TypedHashDecl* hashdeclFilesystemStatInfo;
+DLLEXPORT extern const TypedHashDecl* hashdeclFilesystemInfo;
 
 //! DateTimeInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclDateTimeInfo;

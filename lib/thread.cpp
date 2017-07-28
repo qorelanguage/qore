@@ -39,6 +39,7 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"

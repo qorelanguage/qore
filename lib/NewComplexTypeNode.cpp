@@ -33,6 +33,7 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/ScopedObjectCallNode.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);

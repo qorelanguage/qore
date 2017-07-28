@@ -40,6 +40,7 @@
 #include "qore/intern/StringReaderHelper.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 #include <sstream>
 #include <locale>

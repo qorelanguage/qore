@@ -33,6 +33,7 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 QoreString QoreParseCastOperatorNode::cast_str("cast operator expression");
 

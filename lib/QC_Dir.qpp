@@ -33,6 +33,7 @@
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_File.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_qd_private.h"
 
 #include <sys/types.h>
 #include <errno.h>
