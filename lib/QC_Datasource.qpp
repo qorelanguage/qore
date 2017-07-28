@@ -89,7 +89,6 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
-   bool found;
    int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {

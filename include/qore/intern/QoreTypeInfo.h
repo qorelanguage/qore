@@ -101,6 +101,8 @@ public:
          case QTS_COMPLEXLIST:
             return NT_LIST;
       }
+      assert(false);
+      return NT_NOTHING;
    }
 
    DLLLOCAL const QoreClass* getClass() const {

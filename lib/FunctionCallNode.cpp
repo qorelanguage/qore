@@ -97,7 +97,6 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
    // argument type list
    type_vec_t argTypeInfo;
 
-   bool have_arg_type_info = num_args ? false : true;
    // initialize arguments and setup argument type list (argTypeInfo)
    if (num_args) {
       lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
@@ -124,7 +123,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
       QoreProgram* pgm = getProgram();
 
-      //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p have_arg_type_info: %d variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+      //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
 
       if (variant) {
          //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));

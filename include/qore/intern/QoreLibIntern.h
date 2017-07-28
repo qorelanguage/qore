@@ -535,7 +535,7 @@ public:
 
    DLLLOCAL bool next() {
       ++pos;
-      if (pos == l->size()) {
+      if (pos == (int)l->size()) {
          pos = -1;
          return false;
       }

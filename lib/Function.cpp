@@ -381,7 +381,6 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
    typeList.reserve(l->size());
    defaultArgList.reserve(l->size());
 
-   QoreParseListNode::nvec_t& vl = l->getValues();
    for (unsigned i = 0; i < l->size(); ++i) {
       AbstractQoreNode* n = l->get(i);
       qore_type_t t = n ? n->getType() : 0;
