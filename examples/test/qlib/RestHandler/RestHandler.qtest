@@ -131,6 +131,8 @@ public class RestHandlerTest inherits QUnit::Test {
 
         map testSerialization($1.key, $1.value), DataValues.pairIterator();
 
+        mClient.setSerialization("auto");
+
         {
             hash info;
             on_error printf("info: %N\n", info);
@@ -140,8 +142,6 @@ public class RestHandlerTest inherits QUnit::Test {
             h = mClient.put("test?action=echo", LargerHashValue, \info);
             assertEq(LargerHashValue, h.body);
             h = mClient.get("test?action=echo", HashValue, \info);
-            assertEq(HashValue, h.body);
-            h = mClient.put("test?action=echo", HashValue, \info);
             assertEq(HashValue, h.body);
             h = mClient.put("test?action=echo", "1", \info);
             assertEq("1", h.body);
@@ -196,8 +196,6 @@ public class RestHandlerTest inherits QUnit::Test {
         on_error printf("info: %N\n", info);
 
         foreach any val in (values) {
-            hash info;
-            on_error printf("info: %N\n", info);
             hash h = mClient.get("test?action=echo", val, \info);
             assertEq(val, h.body, sprintf("GET %s: %s", data, val.type()));
             h = mClient.put("test?action=echo", val, \info);

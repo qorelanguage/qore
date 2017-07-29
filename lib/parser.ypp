@@ -2504,7 +2504,7 @@ hashdecl_member:
            else if (pti->subtypes.size())
               new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
-              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup(pti->cscope->ostr)), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
            $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, t, pti, new_call));
 
@@ -2655,7 +2655,7 @@ classvardecl:
            else if (pti->subtypes.size())
               new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@5.first_line, @5.last_line), $5));
            else
-              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($2->getClassName())), make_args(QoreProgramLocation(@5.first_line, @5.last_line), $5));
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup(pti->cscope->ostr)), make_args(QoreProgramLocation(@5.first_line, @5.last_line), $5));
 
            $$ = new ClassVarInfo($3, new QoreVarInfo(loc, t, pti, new_call));
 
@@ -2691,7 +2691,7 @@ member2:
            else if (pti && pti->subtypes.size())
               new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
-              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup(pti->cscope->ostr)), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
            $$ = new MemberInfo($2, new QoreMemberInfo(loc, t, pti, new_call));
 
@@ -2726,7 +2726,7 @@ member2:
            else if (pti->subtypes.size())
               new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
-              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
+              new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup(pti->cscope->ostr)), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
            $$ = new MemberInfo($2, new QoreMemberInfo(loc, t, pti, new_call));
 
