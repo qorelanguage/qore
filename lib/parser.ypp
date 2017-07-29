@@ -2494,16 +2494,19 @@ hashdecl_member:
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
            QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
-           ScopedObjectCallNode* new_call = nullptr;
+           AbstractQoreNode* new_call = nullptr;
+           QoreParseTypeInfo* pti = ParserTypeStruct::getParseTypeInfo($1);
 
            if (!$1)
               parse_error(loc, "cannot call constructor without declaring the class");
            else if (t)
               parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+           else if (pti->subtypes.size())
+              new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
-           $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new HashDeclMemberInfo(loc, t, pti, new_call));
 
            delete $1;
         }
@@ -2644,14 +2647,17 @@ classvardecl:
         | TOK_STATIC uncqtypedef IDENTIFIER '(' myexp ')' ';' {
            QoreProgramLocation loc(@1.first_line, @6.last_line);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($2);
-           ScopedObjectCallNode* new_call = 0;
+           AbstractQoreNode* new_call = nullptr;
+           QoreParseTypeInfo* pti = ParserTypeStruct::getParseTypeInfo($2);
 
            if (t)
               parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+           else if (pti->subtypes.size())
+              new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@5.first_line, @5.last_line), $5));
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($2->getClassName())), make_args(QoreProgramLocation(@5.first_line, @5.last_line), $5));
 
-           $$ = new ClassVarInfo($3, new QoreVarInfo(loc, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2), new_call));
+           $$ = new ClassVarInfo($3, new QoreVarInfo(loc, t, pti, new_call));
 
            delete $2;
         }
@@ -2675,16 +2681,19 @@ member2:
         | qtypedef SELF_REF '(' myexp ')' ';' {
            QoreProgramLocation loc($1 ? @1.first_line : @2.first_line, @5.last_line);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
-           ScopedObjectCallNode* new_call = 0;
+           AbstractQoreNode* new_call = nullptr;
+           QoreParseTypeInfo* pti = $1 ? ParserTypeStruct::getParseTypeInfo($1) : nullptr;
 
            if (!$1)
               parse_error(loc, "cannot call constructor without declaring the class");
            else if (t)
               parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+           else if (pti && pti->subtypes.size())
+              new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
-           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, t, pti, new_call));
 
            delete $1;
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -2707,16 +2716,19 @@ member2:
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
            QoreProgramLocation loc(@1.first_line, @5.last_line);
            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
-           ScopedObjectCallNode* new_call = 0;
+           AbstractQoreNode* new_call = nullptr;
+           QoreParseTypeInfo* pti = ParserTypeStruct::getParseTypeInfo($1);
 
            if (!$1)
               parse_error(loc, "cannot call constructor without declaring the class");
            else if (t)
               parse_error(loc, "cannot call constructor for non-class base type '%s'", QoreTypeInfo::getName(t));
+           else if (pti->subtypes.size())
+              new_call = new ParseNewComplexTypeNode(loc, new QoreParseTypeInfo(*pti), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
            else
               new_call = new ScopedObjectCallNode(loc, new NamedScope(strdup($1->getClassName())), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
 
-           $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), new_call));
+           $$ = new MemberInfo($2, new QoreMemberInfo(loc, t, pti, new_call));
 
            delete $1;
            if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))

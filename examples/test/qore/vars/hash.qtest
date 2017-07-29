@@ -57,9 +57,25 @@ class TestC inherits Socket {
     }
 }
 
+hashdecl MyHash {
+    int i;
+}
+
+class HTTest {
+    public {
+        hash<MyHash> hd();
+        hash<string, int> hi();
+        list<int> l();
+
+        static hash<MyHash> vhd();
+        static hash<string, int> vhi();
+        static list<int> vl();
+    }
+}
+
 class HashTest inherits QUnit::Test {
     constructor () : Test("Hash test", "1.0") {
-        addTestCase("Hash test", \testHash(), NOTHING);
+        addTestCase("Hash test", \testHash());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -165,5 +181,13 @@ class HashTest inherits QUnit::Test {
         assertEq(( "key": 3, "unique" : 100, "asd" : "dasd" ), c, "hash minus-equals operator with list argument");
         hash nh += ( "new-hash" : 1 );
         assertEq(( "new-hash" : 1 ), nh, "hash plus-equals, lhs NOTHING");
+
+        HTTest ht();
+        assertEq(Type::Hash, ht.hd.type());
+        assertEq(Type::Hash, ht.hi.type());
+        assertEq(Type::List, ht.l.type());
+        assertEq(Type::Hash, HTTest::vhd.type());
+        assertEq(Type::Hash, HTTest::vhi.type());
+        assertEq(Type::List, HTTest::vl.type());
     }
 }
