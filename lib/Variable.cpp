@@ -118,49 +118,11 @@ QoreValue Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
    QoreAutoVarRWReadLocker al(rwl);
+   if (val.getType() == NT_WEAKREF) {
+      return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+   }
    return val.getReferencedValue();
 }
-
-
-/*
-AbstractQoreNode* Var::eval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->eval();
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getReferencedValue();
-}
-
-AbstractQoreNode* Var::eval(bool &needs_deref) const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->eval(needs_deref);
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getReferencedValue(needs_deref, true);
-}
-
-bool Var::boolEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->boolEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsBool();
-}
-
-int64 Var::bigIntEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->bigIntEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsBigInt();
-}
-
-double Var::floatEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->floatEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsFloat();
-}
-*/
 
 void Var::deref(ExceptionSink* xsink) {
    //printd(5, "Var::deref() this: %p '%s' %d -> %d\n", this, getName(), reference_count(), reference_count() - 1);
@@ -406,10 +368,13 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
       return -1;
 
    qore_type_t t = getType();
-   if (t != NT_OBJECT)
+   QoreObject* o;
+   if (t == NT_WEAKREF)
+      o = static_cast<const WeakReferenceNode*>(getValue())->get();
+   else if (t == NT_OBJECT)
+      o = reinterpret_cast<QoreObject*>(getValue());
+   else
       return doHashLValue(t, mem->c_str(), for_remove);
-
-   QoreObject* o = reinterpret_cast<QoreObject*>(getValue());
 
    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
 
@@ -558,7 +523,7 @@ double LValueHelper::getAsFloat() const {
    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
-int LValueHelper::assign(QoreValue n, const char* desc, bool check_types) {
+int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool weak_assignment) {
    assert(!*vl.xsink);
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = nullptr;
@@ -578,12 +543,24 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types) {
       saveTemp(n);
       return doRecursiveException();
    }
+
+   // process weak assignment
+   if (weak_assignment) {
+      if (n.getType() == NT_OBJECT) {
+         QoreObject* o = n.get<QoreObject>();
+         n = new WeakReferenceNode(o);
+         // cannot dereference object in lock
+         saveTemp(o);
+      }
+   }
+
+   // perform assignment
    if (val) {
       saveTemp(val->assignAssume(n));
       return 0;
    }
 
-   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
+   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
    saveTemp(*v);
    *v = n.takeNode();
    return 0;

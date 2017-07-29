@@ -37,6 +37,7 @@
 #include "qore/intern/QoreLValue.h"
 #include "qore/intern/RSection.h"
 #include "qore/intern/RSet.h"
+#include "qore/intern/WeakReferenceNode.h"
 
 #include <atomic>
 
@@ -191,6 +192,11 @@ public:
          return erh.takeValue(needs_deref);
       }
 
+      if (val.getType() == NT_WEAKREF) {
+         needs_deref = false;
+         return static_cast<WeakReferenceNode*>(val.v.n)->get();
+      }
+
       return val.getReferencedValue(needs_deref);
    }
 
@@ -203,6 +209,10 @@ public:
 
          ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
          return *xsink ? QoreValue() : erh.takeReferencedValue();
+      }
+
+      if (val.getType() == NT_WEAKREF) {
+         return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
       }
 
       return val.getReferencedValue();
@@ -268,6 +278,11 @@ public:
          return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : QoreValue();
       }
 
+      if (val.getType() == NT_WEAKREF) {
+         needs_deref = false;
+         return static_cast<WeakReferenceNode*>(val.v.n)->get();
+      }
+
       return val.getReferencedValue();
    }
 
@@ -278,6 +293,10 @@ public:
          sl.unlock();
          LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
          return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : QoreValue();
+      }
+
+      if (val.getType() == NT_WEAKREF) {
+         return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
       }
 
       return val.getReferencedValue();

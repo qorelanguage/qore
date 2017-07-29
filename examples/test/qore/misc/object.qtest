@@ -35,6 +35,13 @@ class Test {
     }
     private p1() {
     }
+    private p2() {
+        p1();
+    }
+    hello() {
+        p2();
+        ++calls_hello;
+    }
 }
 
 class Other {
@@ -50,13 +57,13 @@ class Child inherits Parent, Other {
     }
 }
 
-private Test::p2() {
-    p1();
-}
+class MyClass {
+    public {
+        int i = 1;
+    }
 
-Test::hello() {
-    p2();
-    calls_hello++;
+    get() {
+    }
 }
 
 sub et(Test t) {
@@ -83,6 +90,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
         addTestCase("Test", \testObj());
         addTestCase("create_object", \testCreateObject());
         addTestCase("inheritance", \inheritance());
+        addTestCase("weak refs", \weakRefTest());
         set_return_value(main());
     }
 
@@ -127,5 +135,47 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
     inheritance() {
         # causes a crash without the fix for #1169
         Child c();
+    }
+
+    weakRefTest() {
+        MyClass m;
+
+        {
+            MyClass m1();
+
+            m := m1;
+
+            assertEq(True, m == m1);
+            assertEq(False, m != m1);
+            assertEq(True, m instanceof MyClass);
+            assertEq(Type::Object, m.type());
+            assertEq(1, m1.i);
+            assertEq(1, m.i);
+            m.i = 2;
+            assertEq(2, m1.i);
+            assertEq(2, m.i);
+
+            our MyClass m2 := m1;
+            assertEq(True, m2 == m1);
+            assertEq(False, m2 != m1);
+            assertEq(True, m2 instanceof MyClass);
+            assertEq(Type::Object, m2.type());
+            assertEq(2, m2.i);
+            m2.i = 3;
+            assertEq(3, m1.i);
+            assertEq(3, m2.i);
+
+            hash h.m := m1;
+            assertEq(True, h.m == m1);
+            assertEq(False, h.m != m1);
+            assertEq(True, h.m instanceof MyClass);
+            assertEq(Type::Object, h.m.type());
+            assertEq(3, h.m.i);
+            h.m.i = 4;
+            assertEq(4, m1.i);
+            assertEq(4, h.m.i);
+        }
+
+        assertThrows("OBJECT-ALREADY-DELETED", \m.get());
     }
 }

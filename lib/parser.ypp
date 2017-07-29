@@ -1307,10 +1307,19 @@ static qore_var_t get_var_type() {
    return parse_check_parse_option(PO_ASSUME_LOCAL) ? VT_LOCAL : VT_UNRESOLVED;
 }
 
-static QoreOperatorNode* processAssignment(int sline, int eline, AbstractQoreNode* $1, AbstractQoreNode* $3) {
+static QoreOperatorNode* process_assignment(int sline, int eline, AbstractQoreNode* $1, AbstractQoreNode* $3) {
    return ($1 && $1->getType() == NT_PARSE_LIST)
       ? static_cast<QoreOperatorNode*>(new QoreListAssignmentOperatorNode(QoreProgramLocation(sline, eline), $1, $3))
       : static_cast<QoreOperatorNode*>(new QoreAssignmentOperatorNode(QoreProgramLocation(sline, eline), $1, $3));
+}
+
+static QoreOperatorNode* process_weak_assignment(int sline, int eline, AbstractQoreNode* $1, AbstractQoreNode* $3) {
+   QoreProgramLocation loc(sline, eline);
+   if ($1 && $1->getType() == NT_LIST) {
+       parse_error(loc, "the ':=' operator is not valid with list assignments");
+       return static_cast<QoreOperatorNode*>(new QoreAssignmentOperatorNode(loc, $1, $3));
+   }
+   return static_cast<QoreOperatorNode*>(new QoreWeakAssignmentOperatorNode(loc, $1, $3));
 }
 
 static AbstractQoreNode* processCall(int sline, int eline, AbstractQoreNode* $1, AbstractQoreNode* $3, const QoreProgramLocation& argloc) {
@@ -1604,6 +1613,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token IMPLICIT_ELEMENT "$# operator"
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
+%token WEAK_ASSIGNMENT ":= operator"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -1641,7 +1651,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 // FIXME: check precedence
 %nonassoc TOK_UNSHIFT TOK_PUSH TOK_SPLICE TOK_EXTRACT TOK_MAP TOK_FOLDR TOK_FOLDL TOK_SELECT
 %left ','
-%right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS '='
+%right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS '=' WEAK_ASSIGNMENT
 %right '?' ':'
 %right NULL_COALESCING VALUE_COALESCING
 %left LOGICAL_OR
@@ -3593,7 +3603,8 @@ exp:
     | exp XOR_EQUALS exp                { $$ = new QoreXorEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp '=' exp                       { $$ = processAssignment(@1.first_line, @3.last_line, $1, $3); }
+    | exp '=' exp                       { $$ = process_assignment(@1.first_line, @3.last_line, $1, $3); }
+    | exp WEAK_ASSIGNMENT exp           { $$ = process_weak_assignment(@1.first_line, @3.last_line, $1, $3); }
     | exp TOK_INSTANCEOF uncqtypedef    {
         QoreProgramLocation loc(@1.first_line, @3.last_line);
         $$ = $3->getTypeInfo()
@@ -3655,7 +3666,8 @@ exp_n:
     | exp_n XOR_EQUALS exp                { $$ = new QoreXorEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n SHIFT_LEFT_EQUALS exp         { $$ = new QoreShiftLeftEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n SHIFT_RIGHT_EQUALS exp        { $$ = new QoreShiftRightEqualsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n '=' exp                       { $$ = processAssignment(@1.first_line, @3.last_line, $1, $3); }
+    | exp_n '=' exp                       { $$ = process_assignment(@1.first_line, @3.last_line, $1, $3); }
+    | exp_n WEAK_ASSIGNMENT exp           { $$ = process_weak_assignment(@1.first_line, @3.last_line, $1, $3); }
     | exp_n TOK_INSTANCEOF uncqtypedef    {
         QoreProgramLocation loc(@1.first_line, @3.last_line);
         $$ = $3->getTypeInfo()

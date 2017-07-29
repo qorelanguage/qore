@@ -1588,6 +1588,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 ===                                     return ABSOLUTE_EQ;
 \!==                                    return ABSOLUTE_NE;
 ==                                      return LOGICAL_EQ;
+:=                                      return WEAK_ASSIGNMENT;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;
 \|\|                                    return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;

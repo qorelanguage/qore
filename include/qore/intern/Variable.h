@@ -647,7 +647,7 @@ public:
       return reinterpret_cast<QoreNumberNode*>(*p);
    }
 
-   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true);
+   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true, bool weak_assignment = false);
 
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
    DLLLOCAL QoreValue remove(bool& static_assignment);

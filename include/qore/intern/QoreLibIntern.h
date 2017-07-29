@@ -414,6 +414,7 @@ class QoreParseListNode;
 #include "qore/intern/SwitchStatement.h"
 #include "qore/intern/QorePseudoMethods.h"
 #include "qore/intern/ParseReferenceNode.h"
+#include "qore/intern/WeakReferenceNode.h"
 
 DLLLOCAL extern std::atomic<bool> qore_shutdown;
 
