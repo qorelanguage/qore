@@ -73,7 +73,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
 
    if (getProgram()->getParseExceptionSink() && !res) {
-      QoreStringNode* edesc = new QoreStringNodeMaker("lvalue for %sassignment operator '%s' expects ", weak_assignment ? "weak " : "", weak_assignment ? "=" : ":=");
+      QoreStringNode* edesc = new QoreStringNodeMaker("lvalue for %sassignment operator '%s' expects ", weak_assignment ? "weak " : "", weak_assignment ? ":=" : "=");
       QoreTypeInfo::getThisType(ti, *edesc);
       edesc->concat(", but right-hand side is ");
       QoreTypeInfo::getThisType(r, *edesc);
