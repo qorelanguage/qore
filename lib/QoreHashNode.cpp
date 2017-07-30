@@ -303,7 +303,8 @@ QoreHashNode::QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink) : Qore
 }
 
 QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
-    priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+    if (QoreTypeInfo::hasType(valueTypeInfo))
+       priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
 }
 
 QoreHashNode::~QoreHashNode() {

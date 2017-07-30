@@ -76,17 +76,21 @@ AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check key expression
-   const QoreTypeInfo* expTypeInfo = nullptr;
-   e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
-
-   // check value expression2
-   const QoreTypeInfo* expTypeInfo2 = nullptr;
-   e[1] = e[1]->parseInit(oflag, pflag, lvids, expTypeInfo2);
-
    // check iterator expression
    const QoreTypeInfo* iteratorTypeInfo = nullptr;
    e[2] = e[2]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   const QoreTypeInfo* expTypeInfo2 = nullptr;
+   {
+      // set implicit argv arg type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+
+      // check key expression
+      e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
+      // check value expression2
+      e[1] = e[1]->parseInit(oflag, pflag, lvids, expTypeInfo2);
+   }
 
    typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
 

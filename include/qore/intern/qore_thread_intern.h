@@ -249,6 +249,9 @@ DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 
+DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
+DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
+
 DLLLOCAL int64 parse_get_parse_options();
 DLLLOCAL int64 runtime_get_parse_options();
 
@@ -431,6 +434,20 @@ private:
    // not implemented
    CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
    void* operator new(size_t) = delete;
+};
+
+// allows for implicit argument types to be set at parse time
+class ParseImplicitArgTypeHelper {
+public:
+   DLLLOCAL ParseImplicitArgTypeHelper(const QoreTypeInfo* ti) : ati(parse_set_implicit_arg_type_info(ti)) {
+   }
+
+   DLLLOCAL ~ParseImplicitArgTypeHelper() {
+      parse_set_implicit_arg_type_info(ati);
+   }
+
+private:
+   const QoreTypeInfo* ati;
 };
 
 // acquires a TID and thread entry, returns -1 if not successful

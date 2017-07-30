@@ -100,6 +100,10 @@ public:
       const_cast<QoreListNode*>(getList())->deref(xsink);
    }
 
+   DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+      return getList()->getValueTypeInfo();
+   }
+
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
