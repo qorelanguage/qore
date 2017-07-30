@@ -36,5 +36,20 @@ public class ListTest inherits QUnit::Test {
             list l = new list<int>();
             assertEq(False, l.complexType());
         }
+        {
+            list<int> l();
+            l = map $1, l, $1;
+            assertEq(True, l.complexType());
+            assertEq("list<int>", l.fullType());
+            assertEq((), l);
+            l = map $1, l;
+            assertEq(True, l.complexType());
+            assertEq("list<int>", l.fullType());
+            assertEq((), l);
+            l = select l, $1;
+            assertEq(True, l.complexType());
+            assertEq("list<int>", l.fullType());
+            assertEq((), l);
+        }
     }
 }

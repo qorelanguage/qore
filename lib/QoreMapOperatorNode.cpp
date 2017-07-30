@@ -39,7 +39,7 @@
 QoreString QoreMapOperatorNode::map_str("map operator expression");
 
 // if del is true, then the returned QoreString * should be mapd, if false, then it must not be
-QoreString *QoreMapOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreMapOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &map_str;
 }
@@ -74,18 +74,22 @@ const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& 
    return typeInfo;
 }
 
-AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    assert(!typeInfo);
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
-
    // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+   // check iterated expression
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   {
+      // set implicit argument type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+      left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
@@ -120,7 +124,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    if (*xsink || value_type == nothing)
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
    while (true) {
       ValueOptionalRefHolder iv(xsink);
@@ -144,7 +148,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
    if (iterator_func) {
       std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
       if (*xsink || value_type == nothing)
-         return 0;
+         return nullptr;
       return new QoreFunctionalMapOperator(this, f.release());
    }
 
@@ -157,7 +161,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
       if (t == NT_OBJECT) {
          AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
          if (*xsink)
-            return 0;
+            return nullptr;
          if (h) {
             bool temp = marg.isTemp();
             marg.clearTemp();
@@ -167,7 +171,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
       }
       if (t == NT_NOTHING) {
          value_type = nothing;
-         return 0;
+         return nullptr;
       }
 
       value_type = single;

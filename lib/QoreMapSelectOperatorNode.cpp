@@ -52,17 +52,21 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
-
    // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    e[1] = e[1]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
-   // check select expression
-   const QoreTypeInfo* selectTypeInfo = 0;
-   e[2] = e[2]->parseInit(oflag, pflag, lvids, selectTypeInfo);
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   const QoreTypeInfo* selectTypeInfo = nullptr;
+   {
+      // set implicit argument type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+      // check iterated expression
+      e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
+
+      // check select expression
+      e[2] = e[2]->parseInit(oflag, pflag, lvids, selectTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(e[1]);
@@ -85,6 +89,7 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
             typeInfo = iteratorTypeInfo;
       }
    }
+   //printd(5, "QoreMapSelectOperatorNode::parseInitImpl() r: '%s' e: '%s' i: '%s' arg: '%s' t: '%s'\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(iteratorTypeInfo), QoreTypeInfo::getName(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo)), QoreTypeInfo::getName(typeInfo));
    if (typeInfo == listTypeInfo)
        typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
 
@@ -97,7 +102,7 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
    if (*xsink || value_type == nothing)
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
    while (true) {
       ValueOptionalRefHolder iv(xsink);

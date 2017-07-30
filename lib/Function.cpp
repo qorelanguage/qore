@@ -1885,6 +1885,9 @@ void UserFunctionVariant::parseInit(QoreFunction* f) {
    // resolve and push current return type on stack
    ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());
 
+   // set implicit argv arg type as unknown
+   ParseImplicitArgTypeHelper pia(nullptr);
+
    // can (and must) be called even if statements is NULL
    statements->parseInit(this);
 

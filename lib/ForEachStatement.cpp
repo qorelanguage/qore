@@ -198,7 +198,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 
-   const QoreTypeInfo *argTypeInfo = 0;
+   const QoreTypeInfo* argTypeInfo = 0;
    if (var)
       var = var->parseInit(oflag, pflag, lvids, argTypeInfo);
 
