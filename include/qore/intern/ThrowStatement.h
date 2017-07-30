@@ -43,11 +43,18 @@ private:
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 
 public:
-   DLLLOCAL ThrowStatement(int start_line, int end_line, AbstractQoreNode* v);
-   DLLLOCAL virtual ~ThrowStatement();
+   DLLLOCAL ThrowStatement(int start_line, int end_line, AbstractQoreNode* v) : AbstractStatement(start_line, end_line), args(v) {
+   }
+
+   DLLLOCAL virtual ~ThrowStatement() {
+     if (args)
+        args->deref(nullptr);
+   }
+
    DLLLOCAL virtual bool endsBlock() const {
       return true;
    }
+
    DLLLOCAL virtual bool hasFinalReturn() const {
       // throwing an exception trumps any return statement
       return true;
