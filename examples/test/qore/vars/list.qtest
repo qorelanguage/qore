@@ -50,6 +50,11 @@ public class ListTest inherits QUnit::Test {
             assertEq(True, l.complexType());
             assertEq("list<int>", l.fullType());
             assertEq((), l);
+            assertEq(1, test(new list<int>(), new list<string>()));
         }
+    }
+
+    int test(list<int> l1, list<string> l2) {
+        return 1;
     }
 }
