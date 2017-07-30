@@ -515,11 +515,19 @@ public:
    */
    DLLEXPORT AbstractQoreNode* takeKeyValue(const char* key);
 
-   //! returns a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+   //! returns a QoreListNode of QoreStringNode pointers representing all keys in the hash, caller owns the reference count returned
    /** to iterate through a hash, use HashIterator, ReverseHashIterator, ConstHashIterator, or ReverseConstHashIterator
-       @return a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+       @return a QoreListNode of QoreStringNode pointers representing all keys in the hash, caller owns the reference count returned
    */
    DLLEXPORT QoreListNode* getKeys() const;
+
+   //! returns a QoreListNode of AbstractQoreNode pointers representing all values in the hash; caller owns the reference count returned
+   /** to iterate through a hash, use HashIterator, ReverseHashIterator, ConstHashIterator, or ReverseConstHashIterator
+       @return a QoreListNode of AbstractQoreNode pointers representing all values in the hash; caller owns the reference count returned
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreListNode* getValues() const;
 
    //! does a deep "soft" compare of all hash elements (types may be converted for the comparison) and returns true if the hashes are equal
    /** @note that if the hashes have a different number or names of keys then the comparison fails immediately

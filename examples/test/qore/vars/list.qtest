@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+# Allow child Program objects to have more liberal permissions than the parent.
+%no-child-restrictions
+
+%exec-class ListTest
+
+hashdecl T {
+    int i = 0;
+}
+
+public class ListTest inherits QUnit::Test {
+    constructor() : Test("ListTest", "1.0") {
+        addTestCase("list test", \listTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    listTest() {
+        hash<string, list<hash<T>>> h();
+        {
+            list<string> l = h.keys();
+            assertEq(True, l.complexType());
+        }
+        {
+            # assigning a complex type to a list lvalue strips the type info
+            list l = new list<int>();
+            assertEq(False, l.complexType());
+        }
+    }
+}

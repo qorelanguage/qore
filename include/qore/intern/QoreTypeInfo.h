@@ -802,14 +802,15 @@ protected:
          str.concat(param_name);
          str.concat(' ');
       }
-      str.concat("parameter ");
       if (param_num) {
-         str.sprintf("%d ", param_num);
+         str.sprintf("parameter %d ", param_num);
          if (param_name && param_name[0] != '<')
             str.sprintf("('%s') ", param_name);
       }
+      else if (param_name)
+         str.sprintf("parameter '%s' ", param_name);
       else
-         str.sprintf("'%s' ", param_name);
+         str.concat("lvalue ");
    }
 };
 

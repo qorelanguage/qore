@@ -98,7 +98,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          meth = pseudo_classes_find_method(typeInfo, mname, qc, possible_match);
 
          if (meth) {
-            m->setPseudo();
+            m->setPseudo(typeInfo);
             // save method for optimizing calls later
             m->parseSetClassAndMethod(qc, meth);
 
@@ -162,7 +162,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          // check if it could be a pseudo-method call
          meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
          if (meth)
-            m->setPseudo();
+            m->setPseudo(qc->getTypeInfo());
          else
             raise_nonexistent_method_call_warning(loc, qc, mname);
       }

@@ -1994,7 +1994,7 @@ public:
         if (doconly)
             return 0;
 
-        serializeQorePrototypeComment(fp, 3);
+        serializeQorePrototypeComment(fp, 4);
 
         // get return type
         std::string cppt;
@@ -2971,7 +2971,7 @@ protected:
 
     int serializeCppConstructorBinding(FILE* fp, const char* cname, const char* UC) const {
         fputc('\n', fp);
-        serializeQoreConstructorPrototypeComment(fp, cname, 3);
+        serializeQoreConstructorPrototypeComment(fp, cname, 4);
 
         fprintf(fp, "    QC_%s->%s(%s_%s, %s, ", UC, use_value ? "addConstructor" : "setConstructorExtended3", cname, vname.c_str(), attr & QCA_PRIVATE ? "true" : "false");
         flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
@@ -2988,14 +2988,14 @@ protected:
 
     int serializeCppDestructorBinding(FILE* fp, const char* cname, const char* UC) const {
         fputc('\n', fp);
-        serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+        serializeQoreDestructorCopyPrototypeComment(fp, cname, 4);
         fprintf(fp, "    QC_%s->setDestructor((q_destructor_t)%s_destructor);\n", UC, cname);
         return 0;
     }
 
     int serializeCppCopyBinding(FILE* fp, const char* cname, const char* UC) const {
         fputc('\n', fp);
-        serializeQoreDestructorCopyPrototypeComment(fp, cname, 3);
+        serializeQoreDestructorCopyPrototypeComment(fp, cname, 4);
         fprintf(fp, "    QC_%s->setCopy((q_copy_t)%s_copy);\n", UC, cname);
         return 0;
     }
@@ -3164,7 +3164,7 @@ public:
             return serializeCppCopyBinding(fp, cname, UC);
 
         fputc('\n', fp);
-        serializeQorePrototypeComment(fp, cname, 3);
+        serializeQorePrototypeComment(fp, cname, 4);
 
         // get return type
         std::string cppt;
@@ -3224,7 +3224,7 @@ public:
             return 0;
 
         fputc('\n', fp);
-        serializeQorePrototypeComment(fp, cname, 3);
+        serializeQorePrototypeComment(fp, cname, 4);
 
         // get return type
         std::string cppt;
