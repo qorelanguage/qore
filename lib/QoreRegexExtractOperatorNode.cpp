@@ -45,7 +45,7 @@ AbstractQoreNode* QoreRegexExtractOperatorNode::parseInitImpl(LocalVar* oflag, i
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   typeInfo = listOrNothingTypeInfo;
+   typeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
 
    const QoreTypeInfo *lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);

@@ -2,7 +2,7 @@
 /*
   QoreRegex.cpp
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -122,14 +122,14 @@ bool QoreRegex::exec(const char* str, size_t len) const {
 #endif
       rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
       if (!rc) {
-	 // rc == 0 means not enough space was available in ovector
-	 printd(0, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
-	 vsize <<= 1;
-	 if (vsize >= OVECMAX) {
-	    rc = -1;
-	    break;
-	 }
-	 continue;
+         // rc == 0 means not enough space was available in ovector
+         printd(0, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+         vsize <<= 1;
+         if (vsize >= OVECMAX) {
+            rc = -1;
+            break;
+         }
+         continue;
       }
       break;
    }
@@ -162,14 +162,14 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
       //printd(5, "QoreRegex::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
 
       if (!rc) {
-	 // rc == 0 means not enough space was available in ovector
-	 //printd(5, "QoreRegex::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
-	 vsize <<= 1;
-	 if (vsize >= OVECMAX) {
-	    xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d limit: %d)", vsize, OVECMAX);
-	    return 0;
-	 }
-	 continue;
+         // rc == 0 means not enough space was available in ovector
+         //printd(5, "QoreRegex::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+         vsize <<= 1;
+         if (vsize >= OVECMAX) {
+            xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d limit: %d)", vsize, OVECMAX);
+            return 0;
+         }
+         continue;
       }
 
       if (rc < 1)
@@ -180,14 +180,16 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
          while (++x < rc) {
             int pos = x * 2;
             if (ovector[pos] == -1) {
-               if (!l) l = new QoreListNode;
+               if (!l)
+                  l = new QoreListNode(stringTypeInfo);
                l->push(nothing());
                continue;
             }
             QoreStringNode* tstr = new QoreStringNode;
             //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
             tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
-            if (!l) l = new QoreListNode;
+            if (!l)
+               l = new QoreListNode(stringTypeInfo);
             l->push(tstr);
          }
 
