@@ -37,6 +37,7 @@
 #include "qore/intern/ParserSupport.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/qore_list_private.h"
 
 #include <string.h>
 #include <strings.h>
@@ -51,6 +52,26 @@
 #endif
 
 static const char* qore_hash_type_name = "hash";
+
+QoreListNode* qore_hash_private::getKeys() const {
+    QoreListNode* list = new QoreListNode(stringTypeInfo);
+    qore_list_private::get(*list)->reserve(member_list.size());
+
+    for (auto& i : member_list) {
+        list->push(new QoreStringNode(i->key));
+    }
+    return list;
+}
+
+QoreListNode* qore_hash_private::getValues(bool with_type_info) const {
+    QoreListNode* list = new QoreListNode(with_type_info ? complexTypeInfo : nullptr);
+    qore_list_private::get(*list)->reserve(member_list.size());
+
+    for (auto& i : member_list) {
+        list->push(i->node ? i->node->refSelf() : nullptr);
+    }
+    return list;
+}
 
 void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) {
    for (auto& i : h.member_list) {
@@ -118,7 +139,6 @@ int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& lo
 }
 
 int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti) {
-
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
     const AbstractQoreNode* arg;
@@ -517,6 +537,11 @@ const AbstractQoreNode* QoreHashNode::getKeyValue(const QoreString* key, Excepti
 // retrieve keys in order they were inserted
 QoreListNode* QoreHashNode::getKeys() const {
    return priv->getKeys();
+}
+
+// retrieve values in order they were inserted
+QoreListNode* QoreHashNode::getValues() const {
+   return priv->getValues();
 }
 
 // adds all elements (and references them) from the hash passed, leaves the

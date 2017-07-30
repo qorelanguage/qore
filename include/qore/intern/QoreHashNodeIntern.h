@@ -320,14 +320,9 @@ public:
       return member_list.empty() ? nullptr : member_list.back()->key.c_str();
    }
 
-   DLLLOCAL QoreListNode* getKeys() const {
-      QoreListNode* list = new QoreListNode;
+   DLLLOCAL QoreListNode* getKeys() const;
 
-      for (qhlist_t::const_iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
-         list->push(new QoreStringNode((*i)->key));
-      }
-      return list;
-   }
+   DLLLOCAL QoreListNode* getValues(bool with_type_info = true) const;
 
    DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
 

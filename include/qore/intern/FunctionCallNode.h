@@ -277,7 +277,8 @@ public:
 class MethodCallNode : public AbstractMethodCallNode {
 protected:
    char* c_str;
-   bool pseudo;
+   const QoreTypeInfo* pseudoTypeInfo = nullptr;
+   bool pseudo = false;
 
    using AbstractFunctionCallNode::evalImpl;
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -293,7 +294,7 @@ protected:
    }
 
 public:
-   DLLLOCAL MethodCallNode(const QoreProgramLocation& loc, char* name, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_METHOD_CALL, n_args), c_str(name), pseudo(false) {
+   DLLLOCAL MethodCallNode(const QoreProgramLocation& loc, char* name, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_METHOD_CALL, n_args), c_str(name) {
       //printd(0, "MethodCallNode::MethodCallNode() this=%p name='%s' args=%p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
    }
 
@@ -356,13 +357,18 @@ public:
       assert(method);
    }
 
-   DLLLOCAL void setPseudo() {
-      assert(!pseudo);
+   DLLLOCAL void setPseudo(const QoreTypeInfo* pti) {
+      assert(!pseudo && !pseudoTypeInfo);
       pseudo = true;
+      pseudoTypeInfo = pti;
    }
 
    DLLLOCAL bool isPseudo() const {
       return pseudo;
+   }
+
+   DLLLOCAL const QoreTypeInfo* getPseudoTypeInfo() const {
+      return pseudoTypeInfo;
    }
 };
 

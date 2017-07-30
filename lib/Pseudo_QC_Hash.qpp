@@ -95,7 +95,7 @@ list l = h.keys();
 
     @see <hash>::values()
  */
-list <hash>::keys() [flags=CONSTANT] {
+list<string> <hash>::keys() [flags=CONSTANT] {
    return h->getKeys();
 }
 
@@ -111,17 +111,12 @@ list l = h.values();
     @note
     - equivalent to hash_values()
     - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+    - a hash with a declared value type will have a plain untyped list returned; this will be fixed in a future version of %Qore
 
     @see <hash>::keys()
  */
 list <hash>::values() [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
-
-   ConstHashIterator hi(h);
-   while (hi.next())
-      l->push(hi.getReferencedValue());
-
-   return l;
+    return qore_hash_private::get(*h)->getValues(false);
 }
 
 //! Returns the first key name in the hash or @ref nothing if the hash has no keys
