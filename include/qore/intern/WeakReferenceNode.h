@@ -76,6 +76,10 @@ protected:
         return obj;
     }
 
+    DLLLOCAL virtual bool getAsBoolImpl() const {
+        return obj->getAsBoolImpl();
+    }
+
     DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const {
         return obj->getAsString(str, foff, xsink);
     }

@@ -133,6 +133,7 @@ public:
       needs_deref = true;
       //return evalValueImpl(needs_deref, xsink);
       QoreValue rv = evalValueImpl(needs_deref, xsink);
+      ///*
       // process weak references -> object
       if (rv.getType() == NT_WEAKREF) {
          QoreObject* o = rv.get<WeakReferenceNode>()->get();
@@ -142,6 +143,7 @@ public:
          }
          rv = o;
       }
+      //*/
 
       return rv;
    }

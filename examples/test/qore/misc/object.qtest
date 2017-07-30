@@ -148,6 +148,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
             assertEq(True, m == m1);
             assertEq(False, m != m1);
             assertEq(True, m instanceof MyClass);
+            assertEq(True, boolean(m));
             assertEq(Type::Object, m.type());
             assertEq(1, m1.i);
             assertEq(1, m.i);
@@ -159,6 +160,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
             assertEq(True, m2 == m1);
             assertEq(False, m2 != m1);
             assertEq(True, m2 instanceof MyClass);
+            assertEq(True, boolean(m2));
             assertEq(Type::Object, m2.type());
             assertEq(2, m2.i);
             m2.i = 3;
@@ -169,6 +171,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
             assertEq(True, h.m == m1);
             assertEq(False, h.m != m1);
             assertEq(True, h.m instanceof MyClass);
+            assertEq(True, boolean(h.m));
             assertEq(Type::Object, h.m.type());
             assertEq(3, h.m.i);
             h.m.i = 4;
