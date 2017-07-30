@@ -1035,7 +1035,7 @@ public:
                   return;
                }
                const char* e = strrchr(str, '>');
-               if (!e) {
+               if (!e || e < p) {
                   parse_error(loc, "unbalanced angle brackets in subtype specification in '%s'", str);
                   return;
                }
