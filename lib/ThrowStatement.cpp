@@ -31,30 +31,6 @@
 #include <qore/Qore.h>
 #include "qore/intern/ThrowStatement.h"
 
-ThrowStatement::ThrowStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line) {
-   if (!v) {
-      args = 0;
-      return;
-   }
-   switch (get_node_type(v)) {
-       case NT_LIST:
-       case NT_PARSE_LIST:
-          args = v;
-          break;
-       default: {
-          QoreListNode* l = new QoreListNode(v->needs_eval());
-          l->push(v);
-          args = l;
-          break;
-       }
-   }
-}
-
-ThrowStatement::~ThrowStatement() {
-   if (args)
-      args->deref(nullptr);
-}
-
 int ThrowStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    QoreNodeEvalOptionalRefHolder a(args, xsink);
    if (*xsink)
@@ -75,6 +51,20 @@ int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
       const QoreTypeInfo* argTypeInfo = nullptr;
       args = args->parseInit(oflag, pflag, lvids, argTypeInfo);
+
+      switch (get_node_type(args)) {
+         case NT_LIST:
+         case NT_PARSE_LIST:
+            break;
+         default: {
+            //printd(5, "ThrowStatement::parseInitImpl() v: %p '%s' e: %d\n", args, get_type_name(args), args->needs_eval());
+            QoreListNode* l = new QoreListNode(args->needs_eval());
+            l->push(args);
+            args = l;
+            break;
+         }
+      }
+
       return lvids;
    }
    return 0;
