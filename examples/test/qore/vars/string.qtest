@@ -47,7 +47,9 @@ class StringTest inherits QUnit::Test {
         assertEq(chr(104), "h", "chr()");
 
         str = "gee this is a long string";
-        list a = split(" ", str);
+        list<string> a = split(" ", str);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
         assertEq(a[2], "is", "first string split()");
         assertEq(a[5], "string", "second string split()");
 
@@ -440,6 +442,14 @@ class StringTest inherits QUnit::Test {
         assertEq("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
         assertEq("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
         assertEq(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
+        {
+            *list<string> l = ("xmlns:wsdl" =~ x/(\w+):(\w+)/);
+            assertEq(True, l.complexType());
+            assertEq("list<string>", l.fullType());
+            l = regex_extract("xmlns:wsdl", "(\\w+):(\\w+)");
+            assertEq(True, l.complexType());
+            assertEq("list<string>", l.fullType());
+        }
 
         # regex operator tests
         assertTrue("hello" =~ /^hel*/, "regular expression positive match");
