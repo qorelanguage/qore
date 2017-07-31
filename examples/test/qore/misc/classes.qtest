@@ -73,6 +73,12 @@ class Test2 {
     }
 }
 
+class Test3 {
+    public {
+        Test3 t();
+    }
+}
+
 %exec-class ClassesTest
 
 public class ClassesTest inherits QUnit::Test {
@@ -81,6 +87,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
         addTestCase("misc test", \miscTest());
+        addTestCase("recursive test", \recursiveTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -151,5 +158,12 @@ public class ClassesTest inherits QUnit::Test {
     miscTest() {
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
+    }
+
+    recursiveTest() {
+        if (!Option::HAVE_STACK_GUARD)
+            testSkip("Qore library was not built with stack protection support");
+
+        assertThrows("STACK-LIMIT-EXCEEDED", sub () { Test3 t(); });
     }
 }

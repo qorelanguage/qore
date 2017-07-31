@@ -890,6 +890,11 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
    if (members.empty())
       return 0;
 
+#ifdef QORE_MANAGE_STACK
+   if (check_stack(xsink))
+      return -1;
+#endif
+
    // make sure the object context is set before evaluating members
    CodeContextHelper cch("constructor", &o, xsink);
    SelfInstantiatorHelper sih(&selfid, &o);
