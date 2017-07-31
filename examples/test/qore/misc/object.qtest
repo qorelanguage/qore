@@ -5,6 +5,7 @@
 %enable-all-warnings
 %new-style
 %no-child-restrictions
+%allow-weak-references
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -177,6 +178,11 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
             h.m.i = 4;
             assertEq(4, m1.i);
             assertEq(4, h.m.i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-EXCEPTION", "weak", \p.parse(), ("any x := 1;", ""));
+            }
         }
 
         assertThrows("OBJECT-ALREADY-DELETED", \m.get());
