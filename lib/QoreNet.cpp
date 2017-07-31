@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -223,7 +223,8 @@ QoreHashNode* q_gethostbyname_to_hash(const char* host) {
    }
 
    struct addrinfo* addrInfo = qai.getAddrInfo();
-   result->setKeyValue("name", new QoreStringNode(addrInfo->ai_canonname), &xsink);
+   // NOTE: Darwin returns an empty name when the host argument is an address
+   result->setKeyValue("name", new QoreStringNode(addrInfo->ai_canonname ? addrInfo->ai_canonname : host), &xsink);
    result->setKeyValue("aliases", new QoreListNode, &xsink);
    int ai_family = addrInfo->ai_family;
    switch (ai_family) {
