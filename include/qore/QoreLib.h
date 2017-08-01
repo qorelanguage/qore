@@ -293,6 +293,9 @@ DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode* a);
 DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
+DLLEXPORT int getMsZeroInt(const AbstractQoreNode* a);
+
+//! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
 DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode* a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
