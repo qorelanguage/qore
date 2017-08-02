@@ -169,8 +169,14 @@ static bool isRegexSubstModifier(ASTRegexSubstExpression* rs, int c) {
 
 static char* make_cast(const char* s) {
     size_t size = strlen(s+5);
-    char* str = strndup(s+5, --size); // copy and cut off the trailing '>'
-    while (size > 0 && str[--size] == ' ') str[size] = '\0'; // trim
+
+    // copy and cut off the trailing '>'
+    char* str = (char*) malloc(size--);
+    memcpy(str, s+5, size);
+    str[size] = '\0';
+
+    // trim
+    while (size > 0 && str[--size] == ' ') str[size] = '\0';
     return str;
 }
 
