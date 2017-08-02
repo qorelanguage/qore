@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
-QoreString QoreRangeOperatorNode::op_str(".. (range) operator expression (or ...)");
+QoreString QoreRangeOperatorNode::op_str(".. (range) operator expression");
 
 QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     int64 start = left->bigIntEval(xsink);
@@ -42,14 +42,8 @@ QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
         return QoreValue();
 
     QoreListNode* l = new QoreListNode();
-    if (start < stop) {
-        for (int64 i = start; i <= stop; i++)
-            l->push(new QoreBigIntNode(i));
-    }
-    else {
-        for (int64 i = start; i >= stop; i--)
-            l->push(new QoreBigIntNode(i));
-    }
+    for (int64 i = start; i <= stop; i++)
+        l->push(new QoreBigIntNode(i));
     return l;
 }
 

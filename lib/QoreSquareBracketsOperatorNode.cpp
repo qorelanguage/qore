@@ -30,8 +30,6 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
-#include <iostream>
-using namespace std;
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
@@ -42,7 +40,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
    assert(!typeInfo);
    assert(!returnTypeInfo);
 
-   const QoreTypeInfo* lti = nullptr, *rti = nullptr;
+   const QoreTypeInfo *lti = 0, *rti = 0;
 
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);

@@ -494,6 +494,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMultiplicationOperatorNode.h \
 	include/qore/intern/QoreBackgroundOperatorNode.h \
 	include/qore/intern/QoreRangeOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsRangeOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
