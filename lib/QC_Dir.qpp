@@ -87,10 +87,10 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
             struct stat buf;
             if (!full) {
                 if (stat(fname.getBuffer(), buf, xsink))
-                return 0;
+                  return 0;
 
                 if (!(buf.st_mode & stat_filter))
-                continue;
+                  continue;
 
                 lst->push(new QoreStringNode(de->d_name, enc));
                 continue;
@@ -597,8 +597,8 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
 }
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is alist of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
-    @param full if @ref Qore::True "True" then the return value is alist of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+/**
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 

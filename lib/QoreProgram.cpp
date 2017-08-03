@@ -602,7 +602,7 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
          const qore_ns_private* tcns = nullptr;
          const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
          if (oc) {
-            // get inejcted target class pointer for new injected class
+            // get injected target class pointer for new injected class
             injectedClass = qore_class_private::get(*oc);
             // mark source class as compatible with the injected target class as well
             const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;

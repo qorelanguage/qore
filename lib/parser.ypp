@@ -1633,7 +1633,6 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token <implicit_arg> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
 %token <trymod> TRY_MODULE_ERROR "%try-module error token"
-%token <string> TYPESPEC "<type specification>"
 
 %nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE

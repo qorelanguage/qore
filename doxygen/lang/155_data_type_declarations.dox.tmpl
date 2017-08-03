@@ -210,7 +210,7 @@ hash<MyHash> sub foo(hash<MyHash> h = new hash<MyHash>("foo": "bar", "x": 2)) {
 
 # example of a function with a typed hash return type and a cast to a typed hash return type
 hash<MyHash> sub foo(int x) {
-    return cast<hash<MyHash>(get_hash(x));
+    return cast<hash<MyHash>>(get_hash(x));
 }
     @endcode
 
@@ -229,9 +229,9 @@ hash<MyHash> sub foo(int x) {
     |\c hash|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|Restricts values to hashes with the given declared key type; use @ref cast "cast<>(...)" to convert values to this type at runtime.
 
     The hash type also supports two arguments in angle brackets to specify the key and value
-    types, however the key type currently must always be @ref string_type "string".  This
-    results in a hash where the key values must always be of the declared type.  See the
-    following example for more information.
+    types, however the key type currently must always be @ref string_type "string".
+    This results in a hash where the keys and values must always be of the declared type.
+    See the following example for more information.
 
     @par Examples
     @code{.py}
@@ -308,7 +308,7 @@ list<int> l4 = cast<list<int>>(get_list());
     @endcode
 
     This type is supported at parse-time and at runtime; to convert such values to an untyped list, assign it
-    to a @ref list_type "list" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::list() "list()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+    to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, or call the @ref Qore::list() "list()" function on the value.  Each of these options can be used to convert a type-safe list to an untyped list.
 
     @see
     - @ref new

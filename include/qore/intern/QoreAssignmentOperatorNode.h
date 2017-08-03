@@ -43,7 +43,7 @@ public:
    }
 
 protected:
-   // foag for identical match with assignment types (lvalue & rvalue)
+   // flag for identical match with assignment types (lvalue & rvalue)
    bool ident = false;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);

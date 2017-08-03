@@ -77,7 +77,7 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
 #endif
 
    if (!QoreTypeInfo::parseAccepts(ti, lti)) {
-      QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s'always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
+      QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
       qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 

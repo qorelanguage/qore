@@ -161,7 +161,7 @@ hashdecl StatInfo {
 /** @since %Qore 0.8.13
 */
 hashdecl FilesystemInfo {
-    //! The maximum length in mytes of file names on the filesystem
+    //! The maximum length in bytes of file names on the filesystem
     int namemax;
     //! The filesystem ID; may not be set or meaningful on all filesystems/systems: see system documentation for statvfs()
     int fsid;
@@ -173,15 +173,15 @@ hashdecl FilesystemInfo {
     int flag;
     //! The total number of inodes on the filesystem
     int files;
-    //! The number of free inodes available to unpriviledged users
+    //! The number of free inodes available to unprivileged users
     int favail;
-    //! The total number of free indes available to priviledged users
+    //! The total number of free inodes available to privileged users
     int ffree;
     //! The total number of blocks on the filesystem (capacity in bytes = \c bsize * \c blocks)
     int blocks;
-    //! The number of free blocks available to unpriviledged users (bytes = \c bsize * \c bavail)
+    //! The number of free blocks available to unprivileged users (bytes = \c bsize * \c bavail)
     int bavail;
-    //! The total number of free indes available to priviledged users (bytes = \c bsize * \c bfree)
+    //! The total number of free indes available to privileged users (bytes = \c bsize * \c bfree)
     int bfree;
 }
 
