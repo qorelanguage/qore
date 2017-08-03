@@ -74,8 +74,20 @@ class Test2 {
 }
 
 # issue #2030
-class B2030 { constructor() {} }
-class C2030 inherits B2030 { constructor() : B2030(argv) {}}
+class B2030 {
+    public {
+        *list l;
+    }
+
+    constructor() {
+        l = argv[0];
+    }
+}
+
+class C2030 inherits B2030 {
+    constructor() : B2030(argv) {
+    }
+}
 
 %exec-class ClassesTest
 
@@ -156,8 +168,9 @@ public class ClassesTest inherits QUnit::Test {
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
         {
-            C2030 c();
+            C2030 c(1, 2, 3);
             assertEq(Type::Object, c.type());
+            assertEq((1, 2, 3), c.l);
         }
     }
 }
