@@ -74,18 +74,28 @@ class Test2 {
 }
 
 # issue #2030
-class B2030 {
+class B2030_1 {
     public {
-        *list l;
+        *list l0;
     }
 
     constructor() {
-        l = argv[0];
+        l0 = argv[0];
     }
 }
 
-class C2030 inherits B2030 {
-    constructor() : B2030(argv) {
+class B2030_2 {
+    public {
+        *list l1;
+    }
+
+    constructor() {
+        l1 = argv[0];
+    }
+}
+
+class C2030 inherits B2030_1, B2030_2 {
+    constructor() : B2030_1(argv), B2030_2(argv) {
     }
 }
 
@@ -170,7 +180,8 @@ public class ClassesTest inherits QUnit::Test {
         {
             C2030 c(1, 2, 3);
             assertEq(Type::Object, c.type());
-            assertEq((1, 2, 3), c.l);
+            assertEq((1, 2, 3), c.l0);
+            assertEq((1, 2, 3), c.l1);
         }
     }
 }
