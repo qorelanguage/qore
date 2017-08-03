@@ -380,8 +380,16 @@ public:
       assert(signature.selfid);
       signature.selfid->instantiateSelf(self);
 
+      // instantiate argv and push id on stack
+      ReferenceHolder<QoreListNode>& argv = uveh.getArgv();
+      signature.argvid->instantiate(argv ? argv->refSelf() : 0);
+      ArgvContextHelper argv_helper(argv.release(), xsink);
+
       if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
          evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+
+      // uninstantiate argv
+      signature.argvid->uninstantiate(xsink);
 
       // if self then uninstantiate
       signature.selfid->uninstantiateSelf();
