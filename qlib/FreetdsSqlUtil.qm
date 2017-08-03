@@ -115,6 +115,7 @@ module FreetdsSqlUtil {
 
     @subsection freetdssqlutilv11 FreetdsSqlUtil v1.2
     - fixed a bug where @ref SqlUtil::BLOB columns were created as \c VARBINARY columns instead of \c VARBINARY(MAX) (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection freetdssqlutilv11 FreetdsSqlUtil v1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -1069,6 +1070,29 @@ my any $v = $c.name;
                         return sprintf("len(%s)", cve);
                     },
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, any arg) {
+                        if (!FreetdsTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, FreetdsTruncDate.keys());
+                        }
+                        string cmd = FreetdsTruncDate{arg};
+                        return replace(cmd, "%s", arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            /*  Impl. note here. There is shorter workaround for this, but it does not work with seconds
+                and with dates older than 1.1.1970. (minutes will overflow later too etc.).
+                So no usage for: dateadd(ss, datediff(ss, 0, %s), 0) for example
+             */
+            const FreetdsTruncDate = (
+                    DT_YEAR     : "datetimefromparts(datepart(year, %s), 1, 1, 0, 0, 0, 0)",
+                    DT_MONTH    : "datetimefromparts(datepart(year, %s), datepart(month, %s), 1, 0, 0, 0, 0)",
+                    DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), 0, 0, 0, 0)",
+                    DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), 0, 0, 0)",
+                    DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), 0, 0)",
+                    DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
                 );
 
             #! a hash of default value operator descriptions for FreeTDS
