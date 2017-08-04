@@ -154,6 +154,7 @@ $function$
 
     @subsection pgsqlsqlutilv112 PgsqlSqlUtil v1.1.2
     - fixed a bug in setting a \c comment for a table column (<a href="https://github.com/qorelanguage/qore/issues/1886">issue 1886</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection pgsqlsqlutilv111 PgsqlSqlUtil v1.1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -1444,6 +1445,24 @@ my any $v = $c.name;
                         return sql;
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, any arg) {
+                        if (!PgsqlTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, PgsqlTruncDate.keys());
+                        }
+                        return sprintf("date_trunc(%s, %s)", PgsqlTruncDate{arg}, arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
+            const PgsqlTruncDate = (
+                    DT_YEAR     : "'year'",
+                    DT_MONTH    : "'month'",
+                    DT_DAY      : "'day'",
+                    DT_HOUR     : "'hour'",
+                    DT_MINUTE   : "'minute'",
+                    DT_SECOND   : "'second'",
                 );
 
             #! a hash of default value operator descriptions for PostgreSQL
