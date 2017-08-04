@@ -370,6 +370,40 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+
+
+        # feature #2032: sqlutil: new operator to allow transparent datetime truncation across various DBMS
+        # negative args first
+        try {
+            cop_trunc_date("dt", "foobar");
+            assertEq(False, True, "The call above must throw and exception");
+        }
+        catch (hash ex) {
+            assertEq("COP-TRUNC-DATE-ERROR", ex.err, "Excaption COP-TRUNC-DATE-ERROR is expected here");
+            assertEq(True, ex.desc =~ /Not allowed format argument: "foobar"/, "Expected ex description must be received");
+        }
+
+        # real data test - using timestamp (timestamp_f) from driver's test
+        hash test_cases = (
+                DT_YEAR     : 2016-01-01T00:00:00,
+                DT_MONTH    : 2016-02-01T00:00:00,
+                DT_DAY      : 2016-02-11T00:00:00,
+                DT_HOUR     : 2016-02-11T09:00:00,
+                DT_MINUTE   : 2016-02-11T09:26:00,
+                DT_SECOND   : 2016-02-11T09:26:14,
+            );
+
+        HashIterator it(test_cases);
+        while (it.next()) {
+            hash sh = (
+                    "columns" : cop_as(cop_trunc_date("timestamp_f", it.getKey()), "ret"),
+                    "where" : ( "id" : 1),
+                );
+            date r = table.selectRow(sh, \sql).ret;
+            assertEq(it.getValue(), r, sprintf("cop_trunc_date for mask: '%s'", it.getKey()));
+        }
+        # end of feature #2032
+
     }
 
     updateOperatorTest() {

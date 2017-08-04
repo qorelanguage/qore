@@ -102,7 +102,9 @@ module SqlUtil {
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
     - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
+
 
     @subsection sqlutilv1_3_3 SqlUtil v1.3.3
     - fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
@@ -2164,6 +2166,13 @@ public namespace SqlUtil {
     */
     public const COP_LENGTH = "length";
 
+    #! to return the date with truncated value
+    /** @see cop_trunc_date()
+        See also @ref sql_cop_trunc_date_enum
+     */
+    public const COP_TRUNC_DATE = "truncate_date";
+
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2321,6 +2330,7 @@ public namespace SqlUtil {
         - @ref cop_year_day(): return the year to day value of the given date column
         - @ref cop_year_hour(): return the year to hour value of the given date column
         - @ref cop_year_month(): return the year and month value of the given date column
+        - @ref cop_trunc_date(): return truncated date regarding the mask
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2827,6 +2837,69 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     public hash<ColumnOperatorInfo> sub cop_length(any column) {
         return make_cop(COP_LENGTH, column);
     }
+
+    #! Truncates a date column or value regarding the given mask. The resulting value remains Qore::date (no conversion to eg. string)
+    /** @par Example:
+        @code{.py}
+*list rows = table.selectRows(("columns": cop_trunc_date("mydate", DF_MINUTE));
+# input: 2017-02-01 14:22:37
+# output 2017-02-01 14:22:00
+        @endcode
+
+        @param column the column specification for the column (string name or dot notation for use in joins)
+        @param mask the string with one of specified values rederenced in @ref sql_cop_trunc_date_enum
+
+        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash sub cop_trunc_date(any column, string mask) {
+        if (!inlist(mask, DT_ALL_VALUES)) {
+            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", mask, DT_ALL_VALUES);
+        }
+        return make_cop(COP_TRUNC_DATE, column, mask);
+    }
+    #@}
+
+    /** @defgroup sql_cop_trunc_date_enum cop_trunc_date formats
+        These are formatting constant which can be used in @ref cop_trunc_date() formatting argument.
+
+        Input date used in the table below: 20.4.2017 14:27:34
+
+        |!Constant|!Meaning|!Example
+        |@ref DT_YEAR|Truncate date up to year|1.1.2017 00:00:00
+        |@ref DT_MONTH|Truncate date up to month|1.4.2017 00:00:00
+        |@ref DT_DAY|Truncate date up to day|20.4.2017 00:00:00
+        |@ref DT_HOUR|Truncate date up to hour|20.4.2017 14:00:00
+        |@ref DT_MINUTE|Truncate date up to minute|20.4.2017 14:27:00
+        |@ref DT_SECOND|Truncate date up to second|20.4.2017 14:27:34
+
+        @note Oracle: using \c DT_SECOND for \c DATE type does not make sense as the \c DATE resolution
+              is up to seconds out of the box. On the other side \c TINESTAMP is truncated up to seconds
+              with this operator.
+
+     */
+    #@{
+    #! Format unit: year
+    public const DT_YEAR = "Y";
+
+    #! Format unit: month
+    public const DT_MONTH = "M";
+
+    #! Format unit: day
+    public const DT_DAY = "D";
+
+    #! Format unit: hour
+    public const DT_HOUR = "H";
+
+    #! Format unit: minute
+    public const DT_MINUTE = "m";
+
+    #! Format unit: hour
+    public const DT_SECOND = "S";
+
+    # let's simulate and enum here'
+    const DT_ALL_VALUES = ( DT_YEAR, DT_MONTH, DT_DAY, DT_HOUR, DT_MINUTE, DT_SECOND );
     #@}
 
     /** @defgroup sql_uops SQL Update Operators

@@ -257,6 +257,7 @@ my hash $schema = (
 
     @subsection v123 OracleSqlUtil v1.2.3
     - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection v122 OracleSqlUtil v1.2.2
     - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
@@ -1990,6 +1991,29 @@ my any $v = $c.name;
                         return sql;
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, any arg) {
+                        if (!OracleTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, OracleTruncDate.keys());
+                        }
+                        # seconds are not part of TRUNC() in oracle
+                        if (exists OracleTruncDate{arg}) {
+                            return sprintf("trunc(%s, %s)", arg1, OracleTruncDate{arg});
+                        }
+                        # for timestamps
+                        return sprintf("cast (%s as date)", arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            const OracleTruncDate = (
+                    DT_YEAR     : "'YYYY'",
+                    DT_MONTH    : "'MM'",
+                    DT_DAY      : "'DD'",
+                    DT_HOUR     : "'HH24'",
+                    DT_MINUTE   : "'MI'",
+                    DT_SECOND   : NOTHING,
                 );
 
             #! a hash of default value operator descriptions for Oracle

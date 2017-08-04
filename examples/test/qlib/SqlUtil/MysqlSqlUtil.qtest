@@ -108,9 +108,9 @@ class MysqlTest inherits SqlTestBase {
             "float": 1.5,
             "double": 3.1415927,
 
-            "date": 2016-01-11,
-            "datetime": 2016-01-11T09:26:14,
-            "timestamp": 2016-01-11T09:27:59,
+            "date": 2016-02-11,
+            "datetime": 2016-02-11T09:26:14,
+            "timestamp": 2016-02-11T09:26:14,
             "time": 09:26:52,
             "year": 2016, # XXX: this is likely just an integer
 
