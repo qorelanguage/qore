@@ -7956,20 +7956,8 @@ Table table("pgsql:user/pass@db%host", "table");
             */
             const TriggerOptions = AbstractDatabase::CreationOptions;
 
-            #! default select options
-            /** the possible keys for select options are as follows (all keys are optional):
-                - @ref select_option_alias "alias": provides a table alias for the main table
-                - @ref select_option_columns "columns": describes the output columns and any output column operations
-                - @ref select_option_where "where": describes how any \c "where" clause will be built
-                - @ref select_option_orderby "orderby": describes the ordering of the results
-                - @ref select_option_desc "desc": specifies descending order for results
-                - @ref select_option_limit "limit": specifies the maximum number of results to be returned
-                - @ref select_option_offset "offset": specifies the starting offset of the first record to be returned (starting with 0)
-                - @ref select_option_join "join": specifies any SQL join operations to return results from multiple tables
-                - @ref select_option_groupby "groupby": specifies grouping for aggregate column functions
-                - @ref select_option_having "having": specifies filtering for results with aggregate column functions
-                - @ref select_option_superquery "superquery": specifies that the rest of the argument belong to a subquery and the hash arguments under this key will select from the subquery
-                - @ref select_option_forupdate "forupdate": allows for the rows selected to be locked for updating
+            #! default possible select options; can be extended by driver-specific modules
+            /** @see @ref select_option_hash for more information on the default possible select options; see driver-specific information for any additional select options supported by the driver-specific module
              */
             const SelectOptions = (
                 "alias": Type::String,
