@@ -38,6 +38,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreTypeInfo.h"
 
 #include <string>
 #include <set>
@@ -490,6 +491,16 @@ void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_p
    qore_root_ns_private::runtimeImportSystemClasses(*RootNS, *spgm.RootNS, xsink);
 }
 
+void qore_program_private::runtimeImportSystemHashDeclsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
+   assert(&spgm != pgm->priv);
+   if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_HASHDECLS)) {
+      xsink->raiseException("IMPORT-SYSTEM-CLASSES-ERROR", "cannot import system classes in a Program container where system classes have already been imported");
+      return;
+   }
+   pwo.parse_options &= ~PO_NO_INHERIT_SYSTEM_HASHDECLS;
+   qore_root_ns_private::runtimeImportSystemHashDecls(*RootNS, *spgm.RootNS, xsink);
+}
+
 void qore_program_private::runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
    assert(&spgm != pgm->priv);
    if (!(pwo.parse_options & PO_NO_INHERIT_SYSTEM_CONSTANTS)) {
@@ -522,6 +533,15 @@ void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
 }
 
+void qore_program_private::runtimeImportSystemHashDecls(ExceptionSink* xsink) {
+   // must acquire current program before setting program context below
+   const QoreProgram* spgm = getProgram();
+   // acquire safe access to parse structures in the source program
+   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+
+   runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
+}
+
 void qore_program_private::runtimeImportSystemConstants(ExceptionSink* xsink) {
    // must acquire current program before setting program context below
    const QoreProgram* spgm = getProgram();
@@ -545,11 +565,15 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
    runtimeImportSystemClassesIntern(*spgm->priv, xsink);
-   if (!*xsink) {
-      runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
-      if (!*xsink)
-         runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
-   }
+   if (*xsink)
+      return;
+   runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
+   if (*xsink)
+      return;
+   runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+   if (*xsink)
+      return;
+   runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {
@@ -563,7 +587,8 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       return;
    }
 
-   const qore_ns_private* vns = 0;
+   const qore_class_private* injectedClass = nullptr;
+   const qore_ns_private* vns = nullptr;
    const QoreClass* c;
    {
       // acquire safe access to parse structures in the source program
@@ -571,6 +596,19 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
       if (*xsink)
          return;
       c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
+
+      // must mark injected class so it can claim type compatibility with the class it's substituting
+      if (inject) {
+         const qore_ns_private* tcns = nullptr;
+         const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
+         if (oc) {
+            // get injected target class pointer for new injected class
+            injectedClass = qore_class_private::get(*oc);
+            // mark source class as compatible with the injected target class as well
+            const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
+         }
+         //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
+      }
    }
 
    if (!c) {
@@ -587,13 +625,14 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    QoreNamespace* tns;
    if (new_name && strstr(new_name, "::")) {
       NamedScope nscope(new_name);
+
       tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
    }
    else {
       tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
       //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject);
+      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
    }
 }
 
@@ -687,6 +726,17 @@ void qore_program_private::del(ExceptionSink* xsink) {
    // delete all root code
    // method call can be repeated
    sb.del();
+
+   // delete stored type information
+   for (auto& i : ch_map)
+      delete i.second;
+   for (auto& i : chon_map)
+      delete i.second;
+   for (auto& i : cl_map)
+      delete i.second;
+   for (auto& i : clon_map)
+      delete i.second;
+
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 }
 
@@ -727,6 +777,54 @@ LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeI
    LocalVar* lv = new LocalVar(name, typeInfo);
    local_var_list.push_back(lv);
    return lv;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexHashType(const QoreTypeInfo* vti) {
+   AutoLocker al(chl);
+
+   tmap_t::iterator i = ch_map.lower_bound(vti);
+   if (i != ch_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(vti);
+   ch_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const QoreTypeInfo* vti) {
+   AutoLocker al(chonl);
+
+   tmap_t::iterator i = chon_map.lower_bound(vti);
+   if (i != chon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexHashOrNothingTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
+   chon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexListType(const QoreTypeInfo* vti) {
+   AutoLocker al(cll);
+
+   tmap_t::iterator i = cl_map.lower_bound(vti);
+   if (i != cl_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListTypeInfo* ti = new QoreComplexListTypeInfo(vti);
+   cl_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const QoreTypeInfo* vti) {
+   AutoLocker al(clonl);
+
+   tmap_t::iterator i = clon_map.lower_bound(vti);
+   if (i != clon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
+   clon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
 }
 
 QoreProgram::~QoreProgram() {

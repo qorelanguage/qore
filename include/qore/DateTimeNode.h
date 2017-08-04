@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@
 #include <qore/DateTime.h>
 
 class qore_date_private;
+class LocalVar;
 
 //! Qore's parse tree/value type for date-time values, reference-counted, dynamically-allocated only
 class DateTimeNode : public SimpleValueQoreNode, public DateTime {
@@ -258,6 +259,9 @@ public:
 
    //! returns this with an incremented ref count
    DLLEXPORT DateTimeNode* refSelf() const;
+
+   //! returns the type information
+   DLLEXPORT virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    //! returns the type name (useful in templates)
    DLLLOCAL static const char* getStaticTypeName() {

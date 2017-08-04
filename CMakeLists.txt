@@ -223,6 +223,7 @@ set(QORE_DOX_TMPL_SRC
     doxygen/lang/205_namespaces.dox.tmpl
     doxygen/lang/210_constants.dox.tmpl
     doxygen/lang/215_classes.dox.tmpl
+    doxygen/lang/217_hashdecl.dox.tmpl
     doxygen/lang/220_threading.dox.tmpl
     doxygen/lang/225_exception_handling.dox.tmpl
     doxygen/lang/230_signal_handling.dox.tmpl
@@ -336,8 +337,8 @@ set(QORE_QPP_EXECUTABLE ${CMAKE_BINARY_DIR}/qpp)
 target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
-qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC ${LIBQORE_QPP_SRC})
-qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC ${PSEUDO_QPP_SRC})
+qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC DOXLIST QPP_DOX_SRC ${LIBQORE_QPP_SRC})
+qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC DOXLIST QPP_DOX_SRC ${PSEUDO_QPP_SRC})
 
 add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC} ${PSEUDO_QPP_CPP_SRC})
 add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
@@ -374,6 +375,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreNothingNode.cpp
     lib/VarRefNode.cpp
     lib/FunctionCallNode.cpp
+    lib/NewComplexTypeNode.cpp
+    lib/QoreParseHashNode.cpp
     lib/QoreClosureParseNode.cpp
     lib/QoreClosureNode.cpp
     lib/QoreImplicitArgumentNode.cpp
@@ -405,6 +408,7 @@ set(LIBQORE_CPP_SRC
     lib/ExceptionSink.cpp
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
+    lib/TypedHashDecl.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp
@@ -426,6 +430,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreObject.cpp
     lib/RSet.cpp
     lib/RSection.cpp
+    lib/QoreParseListNode.cpp
     lib/QoreListNode.cpp
     lib/QoreValueList.cpp
     lib/qore-main.cpp
@@ -434,6 +439,7 @@ set(LIBQORE_CPP_SRC
     lib/DBI.cpp
     lib/ConstantList.cpp
     lib/QoreClassList.cpp
+    lib/HashDeclList.cpp
     lib/thread.cpp
     lib/AbstractThreadResource.cpp
     lib/ThreadResourceList.cpp
@@ -681,6 +687,12 @@ if (DOXYGEN_FOUND)
     add_custom_target(QORE_DOX_FILES DEPENDS ${QORE_DOX_SRC})
     add_dependencies(QORE_DOX_FILES qpp)
 
+    # get space-separated string from list of generated files
+    string(REPLACE ";" " " QORE_DOX_SRC_STRING "${QORE_DOX_SRC}")
+
+    # get space-separated string from list of generated files
+    string(REPLACE ";" " " QPP_DOX_SRC_STRING "${QPP_DOX_SRC}")
+
     add_dependencies(libqore QORE_DOX_FILES)
 
     # library
@@ -689,8 +701,8 @@ if (DOXYGEN_FOUND)
     add_custom_target(docs-lib
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/library/html
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
     )
     add_dependencies(docs docs-lib)
@@ -701,8 +713,9 @@ if (DOXYGEN_FOUND)
     add_custom_target(docs-lang
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/lang/html
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/*.js
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.js
+        DEPENDS QORE_DOX_FILES
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
     )
     add_dependencies(docs docs-lang)

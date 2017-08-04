@@ -36,7 +36,7 @@
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
-   const QoreTypeInfo* returnTypeInfo;
+   const QoreTypeInfo* returnTypeInfo = nullptr;
 
    DLLLOCAL static QoreString map_str;
 
@@ -59,29 +59,31 @@ protected:
 
 public:
    DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
-      QoreNOperatorNodeBase<3>(loc, p0, p1, p2), returnTypeInfo(nullptr) {
+      QoreNOperatorNodeBase<3>(loc, p0, p1, p2) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    // returns the type name as a c string
-   inline DLLLOCAL virtual const char* getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return map_str.getBuffer();
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
       if (*xsink)
-         return 0;
+         return nullptr;
       ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
       if (*xsink)
-         return 0;
+         return nullptr;
       ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
       if (*xsink)
-         return 0;
+         return nullptr;
       return new QoreHashMapOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release());
    }
+
+   DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo);
 };
 
 #endif // QOREHASHMAPOPERATORNODE_H

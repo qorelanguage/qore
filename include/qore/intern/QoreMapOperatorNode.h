@@ -83,6 +83,8 @@ public:
       rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
       return rv;
    }
+
+    DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo);
 };
 
 class QoreFunctionalMapListOperator : public FunctionalOperatorInterface, public ConstListIterator {
@@ -96,6 +98,10 @@ public:
 
    DLLLOCAL virtual ~QoreFunctionalMapListOperator() {
       const_cast<QoreListNode*>(getList())->deref(xsink);
+   }
+
+   DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+      return getList()->getValueTypeInfo();
    }
 
    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);

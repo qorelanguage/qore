@@ -1,0 +1,4897 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class TypeTest
+
+class TypeTest inherits QUnit::Test {
+    constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("types", \testTypes());
+        set_return_value(main());
+    }
+
+    testTypes() {
+        {
+            int i = 1;
+            assertEq(1, i);
+            assertEq(True, i instanceof int);
+            assertEq(True, i instanceof softint);
+            assertEq(True, i instanceof *softint);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { int i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            float i = 1.0;
+            assertEq(1.0, i);
+            i = 1;
+            assertEq(1.0, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { float i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            number i = 1n;
+            assertEq(1n, i);
+            i = 1.0;
+            assertEq(1n, i);
+            i = 1;
+            assertEq(1n, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { number i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            string i = "1";
+            assertEq("1", i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = True; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { string i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            bool i = True;
+            assertEq(True, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { bool i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            date i = 2017-07-10;
+            assertEq(2017-07-10, i);
+            i = 1s;
+            assertEq(1s, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = \"\"; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { date i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            binary i = <ab>;
+            assertEq(<ab>, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            hash i = {};
+            assertEq({}, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { hash i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            {
+                hash<string, softint> h(("a": "23"));
+                assertEq(23, h.a);
+                assertEq(Type::Hash, h.type());
+
+                h = cast<hash<string, softint>>(new hash<string, int>(("b": 2, "c": 3)));
+                assertEq(2, h.b);
+                assertEq(3, h.c);
+
+                h.d = "50";
+                assertEq(50, h.d);
+            }
+
+            {
+                # make sure map operators return the correct parse- and runtime types
+                hash<string, int> h = map {$1: 1}, "a";
+                assertEq(1, h.a);
+
+                # make sure parse hashes return the correct parse- and runtime types
+                h = ("a": 1);
+                assertEq(1, h.a);
+                int i = 0;
+                h = ("a": i);
+                assertEq(0, h.a);
+            }
+
+            {
+                # make sure that a runtime assignment from a typed hash to an untyped hash results in an untyped hash assignment
+                hash h = new hash<string, int>(("a": 1));
+                h.b = "str";
+                assertEq("str", h.b);
+            }
+
+            {
+                hash<string, int> h1;
+                hash<string, int> h2;
+                map h1.$1 = 1, "a";
+                h2 = h1;
+
+                hash h3 = cast<hash>(h2);
+                h3.b = "string";
+                assertEq("string", h3.b);
+            }
+
+            {
+                hash<string, hash> h = (("a": ("a": "a")));
+                assertEq("a", h.a.a);
+            }
+
+            {
+                hash<string, softint> h();
+                h = new hash<string, int>(('b': 2, 'c': 3));
+                assertEq(2, h.b);
+            }
+
+            {
+                hash<string, softint> h = ("a": "2");
+                assertEq(2, h.a);
+                assertEq(True, h instanceof hash<string, softint>);
+            }
+
+            {
+                # however otherwise the typed hash keeps its type
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                # cast to hash from a non-hash must fail at parse time
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any h = cast<hash>(1); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", "complex", \p.parse(), ("sub t() { hash<int, int> h(); }", ""));
+            }
+        }
+
+        {
+            list i = ();
+            assertEq((), i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            {
+                list<softint> l("1", "2");
+                assertEq("list<softint>", l.fullType());
+                assertEq((1, 2), l);
+                assertEq(Type::List, l.type());
+
+                l = new list<int>(2, 3);
+                assertEq("list<softint>", l.fullType());
+                assertEq(2, l[0]);
+                assertEq(3, l[1]);
+
+                l[3] = "50";
+                assertEq(50, l[3]);
+
+                l += "20";
+                assertEq(20, l[4]);
+
+                l += ("5", 4.1);
+                assertEq(5, l[5]);
+                assertEq(4, l[6]);
+            }
+
+            {
+                # make sure map operators return the correct parse- and runtime types
+                list<int> l = map 1, ("a",);
+                assertEq(1, l[0]);
+
+                # make sure parse hashes return the correct parse- and runtime types
+                l = (1,);
+                assertEq(1, l[0]);
+                int i = 0;
+                l[0] = (i,)[0];
+                assertEq(0, l[0]);
+            }
+
+            {
+                # make sure that a runtime assignment from a typed list to an untyped list results in an untyped list assignment
+                list l = new list<int>(1);
+                l[1] = "str";
+                assertEq("str", l[1]);
+            }
+
+            {
+                list<int> l1;
+                list<int> l2;
+                map l1 += 1, "a";
+                l2 = l1;
+
+                list l3 = cast<list>(l2);
+                l3 += "string";
+                assertEq("string", l3[1]);
+            }
+
+            {
+                list<list> l = ((1, 2), ("a", "b"));
+                assertEq(1, l[0][0]);
+                assertEq("a", l[1][0]);
+            }
+
+            {
+                list<softint> l();
+                l = new list<int>(2, 3);
+                assertEq(2, l[0]);
+            }
+
+            {
+                list<softint> l = ("2",);
+                assertEq(2, l[0]);
+                assertEq(True, l instanceof list<softint>);
+            }
+
+            {
+                any l = list(new list<int>(1));
+                l += "2";
+                assertEq("2", l[1]);
+            }
+
+            {
+                # cast to list from a non-list must fail at parse time
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any l = cast<list>(1); }", ""));
+            }
+
+            {
+                # however otherwise the typed list keeps its type
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any l = new list<int>(1); l[0] = 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+
+                p.parse("sub t1() { any l = new list<int>(1); l += 'str'; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t1");
+            }
+        }
+
+        {
+            Mutex m();
+            object i = m;
+            assertEq(m, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { object i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            timeout i = 1970-01-01;
+            assertEq(0, i);
+            i = 1;
+            assertEq(1, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = \"\"; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { timeout i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            data i = "";
+            assertEq("", i);
+            i = <ab>;
+            assertEq(<ab>, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { data i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            null i = NULL;
+            assertEq(NULL, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            nothing i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { nothing i = NULL; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NULL; nothing i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *int i = 1;
+            assertEq(1, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *int i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *int i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *float i = 1.0;
+            assertEq(1.0, i);
+            i = 1;
+            assertEq(1.0, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *float i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *float i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *number i = 1n;
+            assertEq(1n, i);
+            i = 1.0;
+            assertEq(1n, i);
+            i = 1;
+            assertEq(1n, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *number i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *number i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *string i = "1";
+            assertEq("1", i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = True; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *string i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *string i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *bool i = True;
+            assertEq(True, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *bool i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *bool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+        }
+
+        {
+            *date i = 2017-07-10;
+            assertEq(2017-07-10, i);
+            i = 1s;
+            assertEq(1s, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = \"\"; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *date i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *date i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+        }
+
+        {
+            *binary i = <ab>;
+            assertEq(<ab>, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *binary i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *binary i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *hash i = {};
+            assertEq({}, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *hash i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *hash i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *list i = ();
+            assertEq((), i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *list i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *list i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            Mutex m();
+            *object i = m;
+            assertEq(m, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = \"\"; }", ""));
+            }
+
+            # issue #2001
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = 2017-07-10; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *object i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *object i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *timeout i = 1970-01-01;
+            assertEq(0, i);
+            i = 1;
+            assertEq(1, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = \"\"; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *timeout i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \"\"; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *timeout i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *data i = "";
+            assertEq("", i);
+            i = <ab>;
+            assertEq(<ab>, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *data i = \\i; }", ""));
+            }
+
+            # issue #2002
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); *data i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *null i = NULL;
+            assertEq(NULL, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { null i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1.0; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1n; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = 1; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = True; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = now(); null i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softint i = 1;
+            assertEq(1, i);
+            i = 1.0;
+            assertEq(1, i);
+            i = 1.9;
+            assertEq(1, i);
+            i = 1.9n;
+            assertEq(1, i);
+            i = "1.9";
+            assertEq(1, i);
+            i = 1s + 590ms;
+            assertEq(1, i);
+            i = True;
+            assertEq(1, i);
+            i = False;
+            assertEq(0, i);
+            i = NULL;
+            assertEq(0, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softint i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softfloat i = 1;
+            assertEq(1.0, i);
+            i = 1.0n;
+            assertEq(1.0, i);
+            i = 1.9n;
+            assertEq(1.9, i);
+            i = "1.9";
+            assertEq(1.9, i);
+            i = 1s + 590ms;
+            assertEq(1.0, i);
+            i = True;
+            assertEq(1.0, i);
+            i = False;
+            assertEq(0.0, i);
+            i = NULL;
+            assertEq(0.0, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softfloat i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softnumber i = 1;
+            assertEq(1n, i);
+            i = 1.0;
+            assertEq(1n, i);
+            i = 1.5;
+            assertEq(1.5n, i);
+            i = 1;
+            assertEq(1n, i);
+            i = "1.9";
+            assertEq(1.9n, i);
+            i = 1s + 590ms;
+            assertEq(1n, i);
+            i = True;
+            assertEq(1n, i);
+            i = False;
+            assertEq(0n, i);
+            i = NULL;
+            assertEq(0n, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softnumber i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softbool i = 1;
+            assertEq(True, i);
+            i = 1.0;
+            assertEq(True, i);
+            i = 1.9;
+            assertEq(True, i);
+            i = 1.9n;
+            assertEq(True, i);
+            i = "1.9";
+            assertEq(True, i);
+            i = 1s + 590ms;
+            assertEq(True, i);
+            i = True;
+            assertEq(True, i);
+            i = False;
+            assertEq(False, i);
+            i = NULL;
+            assertEq(False, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbool i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softstring i = 1;
+            assertEq("1", i);
+            i = 1.0;
+            assertEq("1", i);
+            i = 1.9;
+            assertEq("1.9", i);
+            i = 1.9n;
+            assertEq("1.9", i);
+            i = "1.9";
+            assertEq("1.9", i);
+            i = 1s + 590ms;
+            assertEq("00000000000001", i);
+            i = True;
+            assertEq("1", i);
+            i = False;
+            assertEq("0", i);
+            i = NULL;
+            assertEq("", i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softstring i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softdate i = 1;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.0;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.9;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.5n;
+            assertEq(1970-01-01T00:00:01.5, i);
+            i = "2017-07-10";
+            assertEq(2017-07-10, i);
+            i = 1s + 590ms;
+            assertEq(1s + 590ms, i);
+            i = True;
+            assertEq(1970-01-01T00:00:01, i);
+            i = False;
+            assertEq(1970-01-01, i);
+            i = NULL;
+            assertEq(1970-01-01, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softdate i = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x1; any x = \\x1; softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = NOTHING; softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            softlist i = 1;
+            assertEq((1,), i);
+            i = 1.0;
+            assertEq((1.0,), i);
+            i = 1n;
+            assertEq((1n,), i);
+            i = 1s;
+            assertEq((1s,), i);
+            i = True;
+            assertEq((True,), i);
+            i = "hi";
+            assertEq(("hi",), i);
+            i = ();
+            assertEq((), i);
+            i = {};
+            assertEq(({},), i);
+            Mutex m();
+            i = m;
+            assertEq((m,), i);
+            i = \printf();
+            assertEq((\printf(),), i);
+            i = <ab>;
+            assertEq((<ab>,), i);
+            i = NULL;
+            assertEq((NULL,), i);
+            i = NOTHING;
+            assertEq((), i);
+        }
+
+        {
+            *softint i = 1;
+            assertEq(1, i);
+            i = 1.0;
+            assertEq(1, i);
+            i = 1.9;
+            assertEq(1, i);
+            i = 1.9n;
+            assertEq(1, i);
+            i = "1.9";
+            assertEq(1, i);
+            i = 1s + 590ms;
+            assertEq(1, i);
+            i = True;
+            assertEq(1, i);
+            i = False;
+            assertEq(0, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softint i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softint i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softfloat i = 1;
+            assertEq(1.0, i);
+            i = 1.0n;
+            assertEq(1.0, i);
+            i = 1.9n;
+            assertEq(1.9, i);
+            i = "1.9";
+            assertEq(1.9, i);
+            i = 1s + 590ms;
+            assertEq(1.0, i);
+            i = True;
+            assertEq(1.0, i);
+            i = False;
+            assertEq(0.0, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softfloat i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softfloat i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softnumber i = 1;
+            assertEq(1n, i);
+            i = 1.0;
+            assertEq(1n, i);
+            i = 1.5;
+            assertEq(1.5n, i);
+            i = 1;
+            assertEq(1n, i);
+            i = "1.9";
+            assertEq(1.9n, i);
+            i = 1s + 590ms;
+            assertEq(1n, i);
+            i = True;
+            assertEq(1n, i);
+            i = False;
+            assertEq(0n, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softnumber i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softnumber i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softbool i = 1;
+            assertEq(True, i);
+            i = 1.0;
+            assertEq(True, i);
+            i = 1.9;
+            assertEq(True, i);
+            i = 1.9n;
+            assertEq(True, i);
+            i = "1.9";
+            assertEq(True, i);
+            i = 1s + 590ms;
+            assertEq(True, i);
+            i = True;
+            assertEq(True, i);
+            i = False;
+            assertEq(False, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softbool i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softbool i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softstring i = 1;
+            assertEq("1", i);
+            i = 1.0;
+            assertEq("1", i);
+            i = 1.9;
+            assertEq("1.9", i);
+            i = 1.9n;
+            assertEq("1.9", i);
+            i = "1.9";
+            assertEq("1.9", i);
+            i = 1s + 590ms;
+            assertEq("00000000000001", i);
+            i = True;
+            assertEq("1", i);
+            i = False;
+            assertEq("0", i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softstring i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softstring i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softdate i = 1;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.0;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.9;
+            assertEq(1970-01-01T00:00:01, i);
+            i = 1.5n;
+            assertEq(1970-01-01T00:00:01.5, i);
+            i = "2017-07-10";
+            assertEq(2017-07-10, i);
+            i = 1s + 590ms;
+            assertEq(1s + 590ms, i);
+            i = True;
+            assertEq(1970-01-01T00:00:01, i);
+            i = False;
+            assertEq(1970-01-01, i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = \\i; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { *softdate i = <ab>; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = {}; *softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = (); *softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = new Mutex(); *softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = \\printf(); *softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { any x = <ab>; *softdate i = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
+            *softlist i = 1;
+            assertEq((1,), i);
+            i = 1.0;
+            assertEq((1.0,), i);
+            i = 1n;
+            assertEq((1n,), i);
+            i = 1s;
+            assertEq((1s,), i);
+            i = True;
+            assertEq((True,), i);
+            i = "hi";
+            assertEq(("hi",), i);
+            i = ();
+            assertEq((), i);
+            i = {};
+            assertEq(({},), i);
+            Mutex m();
+            i = m;
+            assertEq((m,), i);
+            i = \printf();
+            assertEq((\printf(),), i);
+            i = <ab>;
+            assertEq((<ab>,), i);
+            i = NULL;
+            assertEq(NOTHING, i);
+            i = NOTHING;
+            assertEq(NOTHING, i);
+        }
+    }
+}

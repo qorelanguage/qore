@@ -142,8 +142,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
-    - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the call must have sandbox permission @ref Qore::PO_FILESYSTEM which is checked at runtime
-    - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the call must have sandbox permission @ref Qore::PO_FILESYSTEM which is checked at runtime
+    - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
+    - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
     - \c ssl_key_password: the password to the private key given with \c ssl_key_path
     - \c ssl_verify_cert: if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
@@ -152,12 +152,12 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
-    @throw ILLEGAL-FILESYSTEM-ACCESS if the called does not have the @ref Qore::PO_FILESYSTEM sandboxing permission and one of the following options is used: \c ssl_cert_path or \c ssl_key_path
+    @throw ILLEGAL-FILESYSTEM-ACCESS if the calling context is restricted with the @ref Qore::PO_NO_FILESYSTEM sandboxing restriction and one of the following options is used: \c ssl_cert_path or \c ssl_key_path
 
     @note
     - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
     - other I/O errors can be thrown opening and reading the certificate and/or private key files if the \c ssl_cert_path or \c ssl_key_path options are used
-    - the @ref Qore::PO_FILESYSTEM sandbox restriction is checked at runtime if one of the following options is used: \c ssl_cert_path or \c ssl_key_path
+    - the @ref Qore::PO_NO_FILESYSTEM sandbox restriction is checked at runtime if one of the following options is used: \c ssl_cert_path or \c ssl_key_path
 
     @since %Qore 0.8.13 added the following options:
     - \c ssl_cert_path

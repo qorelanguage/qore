@@ -90,9 +90,9 @@ void AbstractQoreNode::ref() const {
 #endif
    if (!there_can_be_only_one) {
       if (custom_reference_handlers)
-	 customRef();
+         customRef();
       else
-	 ROreference();
+         ROreference();
    }
 }
 
@@ -132,10 +132,10 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
 #endif
    if (references.load() > 10000000 || references.load() <= 0){
       if (type == NT_STRING)
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
-		this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
+         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
+                this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
       else
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
+         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
       assert(false);
    }
 #endif
@@ -151,7 +151,7 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    }
    else if (ROdereference()) {
       if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
-	 delete this;
+         delete this;
    }
 }
 
@@ -426,9 +426,15 @@ static inline QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink*
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return l.release();
+}
+
+static inline QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSink* xsink) {
+   assert(xsink);
+   ReferenceHolder<QoreParseListNode> l(new QoreParseListNode(*n, xsink), xsink);
+   return *xsink ? nullptr : l.release();
 }
 
 static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
@@ -437,7 +443,7 @@ static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSin
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return l.release();
 }
@@ -449,7 +455,7 @@ static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionS
    while (hi.next()) {
       h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return h.release();
 }
@@ -467,7 +473,7 @@ static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, Excep
    if (na)
       na = crlr_list_copy(na, xsink);
 
-   return new FunctionCallNode(n->loc, n->getFunction(), na, n->getProgram());
+   return new FunctionCallNode(*n, na);
 }
 
 static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
@@ -477,7 +483,7 @@ static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, Excepti
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return nullptr;
 
       args = args_holder.release();
    }
@@ -492,12 +498,13 @@ static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, 
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       args = args_holder.release();
    }
 
-   return new StaticMethodCallNode(m->loc, m->getMethod(), args);
+   return new StaticMethodCallNode(*m, args);
+//   return new StaticMethodCallNode(m->loc, m->getMethod(), args);
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
@@ -510,7 +517,7 @@ static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, Exce
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       args = args_holder.release();
    }
@@ -540,6 +547,9 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
 
    if (ntype == NT_LIST)
       return crlr_list_copy(reinterpret_cast<const QoreListNode*>(n), xsink);
+
+   if (ntype == NT_PARSE_LIST)
+      return crlr_list_copy(reinterpret_cast<const QoreParseListNode*>(n), xsink);
 
    if (ntype == NT_HASH)
       return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
@@ -624,6 +634,14 @@ double SimpleValueQoreNode::floatEvalImpl(ExceptionSink* xsink) const {
 
 AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode*>(this);
+}
+
+int64 get_ms_zero(const QoreValue& n) {
+   if (n.isNothing())
+      return -1;
+   if (n.getType() == NT_DATE)
+      return n.get<const DateTimeNode>()->getRelativeMilliseconds();
+   return n.getAsBigInt();
 }
 
 bool needs_scan(const AbstractQoreNode* n) {

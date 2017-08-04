@@ -39,7 +39,7 @@
 QoreString QoreSelectOperatorNode::select_str("select operator expression");
 
 // if del is true, then the returned QoreString * should be selectd, if false, then it must not be
-QoreString *QoreSelectOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreSelectOperatorNode::getAsString(bool& del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &select_str;
 }
@@ -55,12 +55,20 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    left = left->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
+   // get list element type, if any
+   const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo);
+
    // check filter expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   right = right->parseInit(oflag, pflag, lvids, expTypeInfo);
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   {
+      // set implicit argv arg type
+      ParseImplicitArgTypeHelper pia(elementTypeInfo);
+
+      right = right->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(left);
@@ -78,11 +86,14 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = listTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }
+
+   if (typeInfo == listTypeInfo && elementTypeInfo)
+      typeInfo = iteratorTypeInfo;
 
    return this;
 }
@@ -93,7 +104,7 @@ QoreValue QoreSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    if (*xsink || value_type == nothing)
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
    while (true) {
       ValueOptionalRefHolder iv(xsink);

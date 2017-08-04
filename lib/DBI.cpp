@@ -257,7 +257,9 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    tmp = true;
    val->ref();
-   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
+   QoreValue qv(val);
+   QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", qv, xsink);
+   val = qv.takeNode();
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {

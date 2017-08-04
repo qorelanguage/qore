@@ -177,7 +177,7 @@ public:
       val.unassignIgnore();
    }
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
+   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo) const;
    DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
@@ -336,7 +336,7 @@ public:
    }
 
    DLLLOCAL void instantiate(QoreValue nval) const {
-      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p val: %s\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName());
+      //printd(5, "LocalVar::instantiate(%s) this: %p '%s' value closure_use: %s pgm: %p val: %s type: '%s'\n", nval.getTypeName(), this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName(), QoreTypeInfo::getName(typeInfo));
 
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
@@ -377,6 +377,7 @@ public:
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
       if (!closure_use) {
          LocalVarValue* val = get_var();
+         //printd(5, "LocalVar::evalValue '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
          return val->evalValue(needs_deref, xsink);
       }
 
@@ -412,8 +413,8 @@ public:
    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, bool initial_assignment) const {
       //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d\n", this, getName(), for_remove, closure_use);
       if (!closure_use) {
-         lvh.setTypeInfo(ref_type && !initial_assignment ? anyTypeInfo : typeInfo);
-         return get_var()->getLValue(lvh, for_remove);
+         //lvh.setTypeInfo(ref_type && !initial_assignment ? anyTypeInfo : typeInfo);
+         return get_var()->getLValue(lvh, for_remove, typeInfo);
       }
 
       return thread_find_closure_var(name.c_str())->getLValue(lvh, for_remove);

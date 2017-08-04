@@ -14,6 +14,20 @@
     - the @ref synchronized "synchronized" keyword now operates differently depending on the context; <tt><b>synchronized</b></tt> functions have a global reentrant lock associated with the function (as in previous versions of %Qore), whereas now <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.  This aligns %Qore's @ref synchronized "synchronized" behavior with that of Java and <tt>[MethodImpl(MethodImplOptions.Synchronized)]</tt> .NET/CLR (<a href="https://github.com/qorelanguage/qore/issues/894">issue 894</a>).
 
     @subsection qore_0813_new_features New Features in Qore
+    - complex type support
+      - @ref hashdecl "type safe hashes" (@ref hash_hashdecl_type); ex: @code{.py} hash<MyInfo> = get_info(); @endcode
+      - new system types:
+        - @ref Qore::CallStackInfo "CallStackInfo"
+        - @ref Qore::DateTimeInfo "DateTimeInfo"
+        - @ref Qore::DirStatInfo "DirStatInfo"
+        - @ref Qore::ExceptionInfo "ExceptionInfo"
+        - @ref Qore::FilesystemInfo "FilesystemInfo"
+        - @ref Qore::IsoWeekInfo "IsoWeekInfo"
+        - @ref Qore::StatInfo "StatInfo"
+      - @ref hash_complex_type "hash with type-safe values"; ex: @code{.py} hash<string, int> h = ("str": 1); @endcode
+      - @ref list_complex_type "list with type-safe values"; ex: @code{.py} list<int> l = (1); @endcode
+      - improved @ref new "new", @ref cast "cast<>", and @ref instanceof "instanceof" operators
+      - the @ref instanceof "instanceof" operator now works with any type; ex: @code{.py} bool b = v instanceof hash<string, int>; @endcode
     - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
       - @ref Qore::BinaryInputStream "BinaryInputStream"
       - @ref Qore::BinaryOutputStream "BinaryOutputStream"
@@ -135,6 +149,7 @@
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - new methods:
       - @ref Qore::Program::getGlobalVars()
+      - @ref Qore::Program::importSystemHashDecls()
       - @ref Qore::Program::setGlobalVarValue()
       - @ref Qore::Program::setThreadInit()
       - @ref Qore::Socket::acceptAllCertificates()
@@ -148,6 +163,12 @@
         - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
         - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
         - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+      - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
+        - @ref Qore::ReadOnlyFile::hstat() "ReadOnlyFile::hstat()"
+        - @ref Qore::ReadOnlyFile::hlstat() "ReadOnlyFile::hlstat()"
+        - @ref Qore::ReadOnlyFile::lstat() "ReadOnlyFile::lstat()"
+        - @ref Qore::ReadOnlyFile::stat() "ReadOnlyFile::stat()"
+        - @ref Qore::ReadOnlyFile::statvfs() "ReadOnlyFile::statvfs()"
     - new pseudo-methods:
       - <int>::format(int, string, string)
       - <float>::format(int, string, string)
@@ -156,6 +177,8 @@
       - <int>::toBase(int)
       - <number>::toBase(int)
       - <float>::toBase(int)
+      - <value>::complexType()
+      - <value>::fullType()
     - new functions:
       - @ref Qore::decrypt_to_binary()
       - @ref Qore::decrypt_to_string()
@@ -176,6 +199,7 @@
       - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
       - @ref Qore::ceil() "ceil()": now allows the precision to be specified
       - @ref Qore::floor() "floor()": now allows the precision to be specified
+      - @ref Qore::hash() "hash()": now returns an untyped hash stripped of any key type information
       - @ref Qore::mkdir() "mkdir()": now allows parent directories to be created in the same call
       - @ref Qore::round() "round()": now allows the precision to be specified
       - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
@@ -235,6 +259,7 @@
     - fixed <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
     - fixed bugs with inconsistent conversions of @ref int_type "int", @ref float_type "float", and @ref bool_type "boolean" values to date/time values, now they are all converted uniformly to @ref relative_dates "relative date/time values" (<a href="https://github.com/qorelanguage/qore/issues/1156">issue 1156</a>)
     - fixed a bug where Qore allowed code to be declared both public and private without a warning (<a href="https://github.com/qorelanguage/qore/issues/1187">issue 1187</a>)
+    - fixed a bug where the @ref instanceof "instanceof" operator would return @ref Qore::True "True" with objects that did not publically inherit the given class or where the given class is not accessible (<a href="https://github.com/qorelanguage/qore/issues/1191">issue 1191</a>)
     - fixed a bug in qpp support of the 'final' class flag (<a href="https://github.com/qorelanguage/qore/issues/1222">issue 1222</a>)
     - fixed a bug where the @ref plus_operator "+ operator" provided access to private members from outside the class (<a href="https://github.com/qorelanguage/qore/issues/1209">issue 1209</a>)
     - fixed a bug where different @ref overloading "overloaded" method variant resolution rules were used at parse time (best match in hierarchy) and runtime (best match in first matching class) in a class hierarchy (<a href="https://github.com/qorelanguage/qore/issues/1229">issue 1229</a>)
@@ -255,6 +280,8 @@
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
     - rewrote %Qore functions @ref gethostbyname(), @ref gethostbyname_long() and @ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
     - fixed cmake builds on Darwin (<a href="https://github.com/qorelanguage/qore/issues/1980">issue 1980</a>)
+    - fixed a bug where immediate date-time values were not marked with their type at parse time (<a href="https://github.com/qorelanguage/qore/issues/2001">issue 2001</a>)
+    - fixed a bug where the @ref data_or_nothing_type "*data" type restriction would allow all types to be assigned at runtime (<a href="https://github.com/qorelanguage/qore/issues/2002">issue 2002</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
@@ -1347,7 +1374,7 @@
       - Qore::Socket::listen(): now has a new \a backlog parameter; the default backlog queue size was changed from 5 to 20
       - Qore::Socket::getPeerInfo() and Qore::Socket::getSocketInfo(): now takes an optional argument to avoid name lookups
       - Qore::Socket::readHTTPHeaderString(): new method
-      - Qore::Dir: all list*() methods now take an optional parameter to return a list of @ref stat_hash "file status value hashes" plus \c "name" and optionally \c "link" keys for symbolic links; additionally symbolic links are now followed and files and directories are differentiated based on their targets when processing symbolic links
+      - Qore::Dir: all list*() methods now take an optional parameter to return a list of file status value hashes plus \c "name" and optionally \c "link" keys for symbolic links; additionally symbolic links are now followed and files and directories are differentiated based on their targets when processing symbolic links
     - function changes
       - added optional \a start and \a end parameters to the @ref Qore::replace "replace()" function
     - all @ref data_type_declarations "data type declarations" that optionally accept @ref nothing also now accept @ref null and map @ref null to @ref nothing; this makes direct assignments from values derived from SQL queries much easier
@@ -1497,7 +1524,7 @@
         - @ref Qore::Program::parse() "Program::parse()"
         - @ref Qore::Program::parsePending() "Program::parsePending()"
         - @ref Qore::parse() "parse()"
-      - see @ref exception_hash "Exception Hash" and @ref callstack "Call Stacks" for new keys in eception and call stack information hashes
+      - see @ref Qore::ExceptionInfo "Exception Hash" and @ref Qore::CallStackInfo "Call Stacks" for new keys in exception and call stack information hashes
     - <date>::format() now accepts \c "us" for microseconds (see @ref date_formatting)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module improvements:
       - added automatic recognition and support of the \c "STARTTLS" command when connecting to an ESMTP server; this way

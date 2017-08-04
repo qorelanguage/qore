@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,9 @@ QoreValue QorePushOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
    if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(listTypeInfo)))
+      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(listTypeInfo)))
          return QoreValue();
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(softListTypeInfo)))
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(softListTypeInfo)))
          return QoreValue();
    }
 

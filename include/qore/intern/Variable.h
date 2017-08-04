@@ -342,7 +342,7 @@ protected:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
-            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
             return 0;
          }
          if (!(*v))
@@ -447,30 +447,82 @@ public:
       before = needs_scan(ptr);
    }
 
-   DLLLOCAL void setValue(QoreLValueGeneric& nv);
-
    DLLLOCAL bool isNode() const {
       return (bool)v;
    }
 
-   DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = 0) {
+   DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+      assert(!v);
+      assert(!val);
+      val = &nv;
+
+      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+
+      /*
+      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
+   }
+
+   DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+      if (v) {
+         assert(!val);
+         v = nullptr;
+      }
+      else {
+         assert(val);
+      }
+      val = &nv;
+
+      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+
+      /*
+      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
+   }
+
+   DLLLOCAL void setPtr(AbstractQoreNode*& ptr, const QoreTypeInfo* ti) {
+      assert(!v);
+      assert(!val);
+      v = &ptr;
+
+      before = needs_scan(ptr);
+
+      /*
+      if (!is_nothing(ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
+   }
+
+   DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
+      //printd(5, "LValueHelper::resetPtr() ptr: %p ti: %p '%s'\n", ptr, ti, QoreTypeInfo::getName(ti));
       if (val) {
          assert(!v);
-         val = 0;
+         val = nullptr;
       }
-      else
+      else {
          assert(v);
+      }
       v = ptr;
-      typeInfo = ti;
 
       before = needs_scan(*ptr);
+
+      /*
+      if (!is_nothing(*ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
+         ti = nullptr;
+      */
+      typeInfo = ti;
    }
 
    DLLLOCAL void clearPtr() {
       if (val)
-         val = 0;
-      v = 0;
-      typeInfo = 0;
+         val = nullptr;
+      v = nullptr;
+      typeInfo = nullptr;
       before = false;
    }
 
@@ -569,7 +621,7 @@ public:
       AbstractQoreNode** p;
       if (val) {
          if (makeNumber(desc))
-            return 0;
+            return nullptr;
          p = &val->v.n;
       }
       else {
@@ -587,8 +639,8 @@ public:
       }
       else {
          if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-            QoreTypeInfo::doTypeException(typeInfo, 0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
-            return 0;
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+            return nullptr;
          }
 
          saveTemp(*p);
@@ -597,11 +649,7 @@ public:
       return reinterpret_cast<QoreNumberNode*>(*p);
    }
 
-   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>");
-   /*
-   DLLLOCAL int assignBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int assignFloat(double v, const char* desc = "<lvalue>");
-   */
+   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true);
 
    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
    DLLLOCAL QoreValue remove(bool& static_assignment);

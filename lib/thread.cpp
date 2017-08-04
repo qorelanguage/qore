@@ -39,6 +39,7 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -312,6 +313,9 @@ public:
 
    // parse-time block return type
    const QoreTypeInfo* parse_return_type_info = nullptr;
+
+   // parse-time implicit argument type
+   const QoreTypeInfo* implicit_arg_type_info = nullptr;
 
    // current implicit element offset
    int element = 0;
@@ -850,6 +854,17 @@ const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* cur
 
 cvv_vec_t* thread_get_all_closure_vars() {
    return thread_data.get()->tlpd->cvstack.getAll();
+}
+
+const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti) {
+   ThreadData* td = thread_data.get();
+   const QoreTypeInfo* rv = td->implicit_arg_type_info;
+   td->implicit_arg_type_info = ti;
+   return rv;
+}
+
+const QoreTypeInfo* parse_get_implicit_arg_type_info() {
+   return thread_data.get()->implicit_arg_type_info;
 }
 
 void parse_set_try_reexport(bool tr) {
@@ -2251,7 +2266,7 @@ QoreHashNode* getAllCallStacks() {
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo()));
    QoreString str;
 
    // grab the call stack write lock
@@ -2261,6 +2276,8 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
    if (exiting)
       return h;
 
+   auto ph = qore_hash_private::get(*h);
+
    while (i.next()) {
       // get call stack
       if (entry[*i].callStack) {
@@ -2269,10 +2286,10 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
             // make hash entry
             str.clear();
             str.sprintf("%d", *i);
-            h->setKeyValue(str.getBuffer(), l, 0);
+            ph->setKeyValueIntern(str.getBuffer(), l);
          }
          else
-            l->deref(0);
+            l->deref(nullptr);
       }
    }
 

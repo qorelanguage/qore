@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
- ThrowStatement.h
+  ThrowStatement.h
 
- Qore Programming Language
+  Qore Programming Language
 
- Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,17 +37,24 @@
 
 class ThrowStatement : public AbstractStatement {
 private:
-   QoreListNode *args;
+   AbstractQoreNode* args;
 
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink);
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 
 public:
-   DLLLOCAL ThrowStatement(int start_line, int end_line, class AbstractQoreNode *v);
-   DLLLOCAL virtual ~ThrowStatement();
+   DLLLOCAL ThrowStatement(int start_line, int end_line, AbstractQoreNode* v) : AbstractStatement(start_line, end_line), args(v) {
+   }
+
+   DLLLOCAL virtual ~ThrowStatement() {
+     if (args)
+        args->deref(nullptr);
+   }
+
    DLLLOCAL virtual bool endsBlock() const {
       return true;
    }
+
    DLLLOCAL virtual bool hasFinalReturn() const {
       // throwing an exception trumps any return statement
       return true;

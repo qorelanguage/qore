@@ -485,20 +485,11 @@ public:
    DLLLOCAL operator bool() const { return m != 0; }
 };
 
-qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 dom, QoreTypeInfo* n_typeInfo)
-   : cls(n_cls),
-     ns(0),
-     scl(0),
+qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom, QoreTypeInfo* n_typeInfo)
+   : name(nme),
+     cls(n_cls),
      pend_constlist(this),   // pending constants
      constlist(this),        // committed constants
-     system_constructor(0),
-     constructor(0),
-     destructor(0),
-     copyMethod(0),
-     methodGate(0),
-     memberGate(0),
-     deleteBlocker(0),
-     memberNotification(0),
      classID(classIDSeq.next()),
      methodID(classID),
      sys(false),
@@ -522,20 +513,15 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
      num_user_methods(0),
      num_static_methods(0),
      num_static_user_methods(0),
-     typeInfo(n_typeInfo ? n_typeInfo : new QoreTypeInfo(cls)),
-     orNothingTypeInfo(0),
+     typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str())),
+     orNothingTypeInfo(nullptr),
      selfid("self", typeInfo),
      ptr(0),
      mud(0),
-     new_copy(0),
      spgm(0) {
    assert(methodID == classID);
+   assert(!name.empty());
 
-   if (nme)
-      name = nme;
-   else {
-      name = parse_pop_name();
-   }
    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
@@ -543,19 +529,11 @@ qore_class_private::qore_class_private(QoreClass* n_cls, const char* nme, int64 
 qore_class_private::qore_class_private(const qore_class_private& old, QoreClass* n_cls)
    : name(old.name),
      cls(n_cls),
-     ns(0),
-     scl(0), // parent class list must be copied after new_copy set in old
      ahm(old.ahm),
      pend_constlist(this),                 // pending constants
      constlist(old.constlist, 0, this),    // committed constants
      system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
-     constructor(0), // method pointers set below when methods are copied
-     destructor(0),
-     copyMethod(0),
-     methodGate(0),
-     memberGate(0),
-     deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : 0),
-     memberNotification(0),
+     deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : nullptr),
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
@@ -580,12 +558,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      num_static_user_methods(old.num_static_user_methods),
      typeInfo(old.typeInfo),
      orNothingTypeInfo(old.orNothingTypeInfo),
+     injectedClass(old.injectedClass),
      selfid(old.selfid),
      hash(old.hash),
      ptr(old.ptr),
-     mud(old.mud ? old.mud->copy() : 0),
-     new_copy(0),
-     spgm(old.spgm ? old.spgm->programRefSelf() : 0) {
+     mud(old.mud ? old.mud->copy() : nullptr),
+     spgm(old.spgm ? old.spgm->programRefSelf() : nullptr) {
    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), classID, cls, old.cls, sys);
 
@@ -975,16 +953,19 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
          AbstractQoreNode** v = qore_object_private::get(o)->getMemberValuePtrForInitialization(i->first, i->second->access == Internal ? this : 0);
          assert(!*v);
          if (i->second->exp) {
+            // set runtime location
+            QoreProgramLocationHelper l(i->second->loc);
             ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
             if (*xsink)
                return -1;
             // check types
-            AbstractQoreNode* nv = QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
+            QoreValue qv(val.release());
+            QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
+            val = qv.takeNode();
             if (*xsink)
                return -1;
-            *v = nv;
-            val.release();
-            if (needs_scan(nv)) {
+            *v = val.release();
+            if (needs_scan(*v)) {
                qore_object_private::incScanCount(o, 1);
                if (!need_scan)
                   need_scan = true;
@@ -994,7 +975,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
          }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
          else
-            *v = QoreTypeInfo::getDefaultValue(i->second->getTypeInfo());
+            *v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo()).takeNode();
 #endif
       }
    }
@@ -1016,8 +997,10 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
    // no lock is sent with constructor, because no variable has been assigned yet
    bool already_executed;
    const AbstractQoreFunctionVariant* variant;
-   QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant);
+   const QoreProgramLocation* aloc = nullptr;
+   QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
    if (!already_executed) {
+      QoreProgramOptionalLocationHelper plh(aloc);
       constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
    }
 }
@@ -1046,7 +1029,7 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
    // create new object
    QoreObject* self = new QoreObject(cls, getProgram());
 
-   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : nullptr, xsink);
 
    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
 
@@ -1420,27 +1403,28 @@ void qore_class_private::setPublic() {
    pub = true;
 }
 
-QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant) {
+QoreListNode* BCEAList::findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant, const QoreProgramLocation*& loc) {
    bceamap_t::iterator i = lower_bound(classid);
    // not found
    if (i == end() || i->first != classid) {
       insert(i, bceamap_t::value_type(classid, new BCEANode));
       *aexeced = false;
-      variant = 0;
-      return 0;
+      variant = nullptr;
+      return nullptr;
    }
 
    // already executed
    if (i->second->execed) {
       *aexeced = true;
-      variant = 0;
-      return 0;
+      variant = nullptr;
+      return nullptr;
    }
 
    // found and not yet executed
    *aexeced = false;
    i->second->execed = true;
    variant = i->second->variant;
+   loc = &i->second->loc;
    return i->second->args;
 }
 
@@ -1451,7 +1435,7 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
    if (!n && i->second->execed)
       return 0;
 
-   QoreProgramOptionalLocationHelper plh(arg ? &loc : 0);
+   QoreProgramOptionalLocationHelper plh(arg ? &loc : nullptr);
    assert(!arg || loc.start_line > 0);
    // evaluate arguments
    ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
@@ -1460,7 +1444,7 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
 
    // save arguments
    if (n)
-      insert(i, bceamap_t::value_type(classid, new BCEANode(nargs.release(), variant)));
+      insert(i, bceamap_t::value_type(classid, new BCEANode(loc, nargs.release(), variant)));
    else {
       assert(!i->second->args);
       assert(!i->second->variant);
@@ -1486,7 +1470,7 @@ void BCEAList::deref(ExceptionSink* xsink) {
 
 // resolves classes, parses arguments, and attempts to find constructor variant
 void BCANode::parseInit(BCList* bcl, const char* classname) {
-   QoreClass* sclass = 0;
+   QoreClass* sclass = nullptr;
    if (ns) {
       sclass = qore_root_ns_private::parseFindScopedClass(loc, *ns);
       printd(5, "BCANode::parseInit() this: %p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
@@ -1509,13 +1493,16 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
          // find constructor variant
          const QoreMethod* m = sclass->getConstructor();
          int lvids = 0;
-         const QoreTypeInfo* argTypeInfo;
          if (m) {
+            const QoreTypeInfo* argTypeInfo = nullptr;
             lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), argTypeInfo);
          }
          else {
-            if (args)
-               args = args->parseInitList(qore_class_private::getSelfId(*sclass), 0, lvids, argTypeInfo);
+            if (parse_args) {
+               type_vec_t argTypeInfo;
+               lvids += parse_args->initArgs(qore_class_private::getSelfId(*sclass), 0, argTypeInfo, args);
+               parse_args = nullptr;
+            }
          }
          if (lvids) {
             parse_error(loc, "illegal local variable declaration in base class constructor argument");
@@ -1741,10 +1728,10 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_a
 const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return 0;
+      return nullptr;
 
    if (access == Internal && !toplevel)
-      return 0;
+      return nullptr;
 
    const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, false);
 
@@ -2198,7 +2185,7 @@ const QoreClass* BCList::parseGetClass(const qore_class_private& qc, ClassAccess
          return rv;
    }
 
-   return 0;
+   return nullptr;
 }
 
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
@@ -2230,7 +2217,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
 
 int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink) const {
    for (auto& i : *this) {
-      if (bceal->add((*i).classid, (*i).getArgs(), (*i).getVariant(), (*i).loc, xsink))
+      if (bceal->add(i->classid, i->getArgs(), i->getVariant(), i->loc, xsink))
          return -1;
    }
    return 0;
@@ -2384,7 +2371,7 @@ void QoreClass::addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
    assert(!xargs);
    if (!priv->scl)
       priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(qc));
+   priv->scl->push_back(new BCNode(QoreProgramLocation(), qc));
    priv->scl->sml.add(this, qc, false);
 }
 
@@ -2401,7 +2388,7 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    //printd(5, "adding %s as virtual base class to %s\n", qc->priv->name.c_str(), priv->name.c_str());
    if (!priv->scl)
       priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(qc, true));
+   priv->scl->push_back(new BCNode(QoreProgramLocation(), qc, true));
 
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
@@ -2904,19 +2891,19 @@ void BCSMList::resolveCopy() {
    }
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, nme, dom)) {
-   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), nme);
+QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
+   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
    priv->owns_ornothingtypeinfo = true;
 }
 
-QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, nme, dom)) {
-   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), nme);
+QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
+   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
    priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    assert(typeInfo);
-   priv = new qore_class_private(this, nme, dom, const_cast<QoreTypeInfo*>(typeInfo));
+   priv = new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo));
 
    printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
 
@@ -2924,15 +2911,13 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
    if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
       priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
    else {
-      if (!QoreTypeInfo::hasInputFilter(typeInfo)) {
-         priv->orNothingTypeInfo = new OrNothingTypeInfo(*typeInfo, nme);
-         priv->owns_ornothingtypeinfo = true;
-      }
+      priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
+      priv->owns_ornothingtypeinfo = true;
    }
 }
 
-QoreClass::QoreClass() : priv(new qore_class_private(this, 0)) {
-   priv->orNothingTypeInfo = new OrNothingTypeInfo(*(priv->typeInfo), priv->name.c_str());
+QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
+   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
    priv->owns_ornothingtypeinfo = true;
 }
 
@@ -2994,7 +2979,7 @@ void QoreClass::insertStaticMethod(QoreMethod* m) {
 const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const {
    n_access = Public;
    const_cast<qore_class_private*>(this)->initialize();
-   if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+   if (parseEqual(qc))
       return (QoreClass*)cls;
    return scl ? scl->parseGetClass(qc, n_access, true) : 0;
 }
@@ -3058,7 +3043,7 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
 }
 
 bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool toplevel) const {
-   QoreMemberInfo *info = members.findByName(str);
+   QoreMemberInfo* info = members.find(str);
    if (info) {
       ClassAccess ma = info->getAccess();
       if (ma != Internal || toplevel)
@@ -4060,7 +4045,7 @@ void qore_class_private::resolveCopy() {
       scl->resolveCopy();
 }
 
-int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBase* mi, const QoreMemberInfoBase* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
+int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
    //printd(5, "qore_class_private::checkExistingVarMember() name: %s priv: %d is_priv: %d sclass: %s\n", name.c_str(), priv, is_priv, sclass->getName());
 
    // here we know that the member or var already exists, so either it will be a
@@ -4126,13 +4111,11 @@ QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const Abstra
 
 bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* opc) const {
    // see if shouldBeClass is a parent class of the class currently being parsed
-   //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this, name.c_str(), pc, pc ? pc->getName() : "n/a", pc ? pc->getClass(classID) : 0);
+   //ClassAccess access1 = Public;
+   //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this, name.c_str(), opc, opc ? opc->name.c_str() : "n/a", opc ? opc->getClass(*this, access1) : nullptr);
 
    if (!opc)
       return false;
-
-   if (opc->classID == classID || (opc->name == name && parseCheckEqualHash(*opc)))
-      return true;
 
    ClassAccess access = Public;
    return opc->parseGetClass(*this, access) || (scl && scl->parseGetClass(*opc, access, true));
@@ -4141,14 +4124,34 @@ bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* 
 bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private* qc) const {
    if (!qc) {
       //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
-      return QTI_NOT_EQUAL;
+      return false;
    }
+
    ClassAccess access = Public;
    //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
-   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true)) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true));
 }
 
-qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc) const {
+qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const {
+   qore_type_result_e rv = parseCheckCompatibleClassIntern(oc, may_not_match);
+   if (rv != QTI_NOT_EQUAL)
+      return rv;
+   if (injectedClass) {
+      rv = injectedClass->parseCheckCompatibleClass(oc, may_not_match);
+      if (rv != QTI_NOT_EQUAL)
+         return rv;
+   }
+   // FIXME: with %strict-types, this check should not be made (cast<>s are obligatory in that case)
+   if (oc.injectedClass) {
+      qore_type_result_e rv = oc.injectedClass->parseCheckCompatibleClass(*this, may_not_match);
+      if (!may_not_match && rv != QTI_NOT_EQUAL)
+         may_not_match = true;
+      return rv;
+   }
+   return QTI_NOT_EQUAL;
+}
+
+qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const {
    // make sure both classes are initialized
    const_cast<qore_class_private*>(this)->initialize();
    const_cast<qore_class_private&>(oc).initialize();
@@ -4160,21 +4163,46 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_clas
    printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
 #endif
 
-   if (classID == oc.classID || (oc.name == name && parseCheckEqualHash(oc)))
+   if (parseEqual(oc))
       return QTI_IDENT;
 
+   // FIXME: with %strict-types, the second check should not be made (cast<>s are obligatory in that case)
    ClassAccess access;
-   if (!parseGetClass(oc, access) && !oc.parseGetClass(*this, access))
-      return QTI_NOT_EQUAL;
+   if (!parseGetClass(oc, access)) {
+      if (!oc.parseGetClass(*this, access))
+         return QTI_NOT_EQUAL;
+      may_not_match = true;
+   }
 
    if (access == Public)
       return QTI_AMBIGUOUS;
 
-   return parseCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+   if (parseCheckPrivateClassAccess())
+      return QTI_AMBIGUOUS;
+
+   if (!parseCheckPrivateClassAccess()) {
+      if (may_not_match)
+         may_not_match = false;
+      return QTI_NOT_EQUAL;
+   }
+
+   return QTI_AMBIGUOUS;
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_class_private& oc) const {
-   if (classID == oc.classID || (oc.name == name && oc.hash == hash))
+   qore_type_result_e rv = runtimeCheckCompatibleClassIntern(oc);
+   if (rv != QTI_NOT_EQUAL)
+      return rv;
+   if (injectedClass) {
+      rv = injectedClass->runtimeCheckCompatibleClassIntern(oc);
+      if (rv != QTI_NOT_EQUAL)
+         return rv;
+   }
+   return QTI_NOT_EQUAL;
+}
+
+qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const {
+   if (equal(oc))
       return QTI_IDENT;
 
    ClassAccess access = Public;
@@ -4611,7 +4639,7 @@ void UserConstructorVariant::parseInit(QoreFunction* f) {
    if (bcal && !parent_class.hasParentClass()) {
       parse_error(signature.getParseLocation(), "base constructor arguments given for class '%s' that has no parent classes", parent_class.getName());
       delete bcal;
-      bcal = 0;
+      bcal = nullptr;
    }
 
    //printd(5, "UserConstructorVariant::parseInitConstructor() this: %p %s::constructor() params: %d\n", this, parent_class.getName(), signature.numParams());
@@ -4694,13 +4722,13 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
    if (signature.numParams()) {
       const QoreTypeInfo* typeInfo = signature.getParamTypeInfo(0);
       if (typeInfo) {
-         if (typeInfo->parseReturnsClass(&parent_class) == QTI_NOT_EQUAL) {
+         if (QoreTypeInfo::parseReturns(typeInfo, &parent_class) == QTI_NOT_EQUAL) {
             // raise parse exception if parse exceptions have not been suppressed
             if (getProgram()->getParseExceptionSink()) {
                QoreStringNode* desc = new QoreStringNode("the copy constructor will be passed ");
                QoreTypeInfo::getThisType(parent_class.getTypeInfo(), *desc);
                desc->concat(", but the object's parameter was defined expecting ");
-               typeInfo->getThisType(*desc);
+               QoreTypeInfo::getThisType(typeInfo, *desc);
                desc->concat(" instead");
                qore_program_private::makeParseException(getProgram(), signature.getParseLocation(), "PARSE-TYPE-ERROR", desc);
             }
