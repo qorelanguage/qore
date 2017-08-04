@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
-/*  ConnectionProvider.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  ConnectionProvider.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -57,8 +57,14 @@ module ConnectionProvider {
     Class:
     - @ref ConnectionProvider::AbstractConnection "AbstractConnection"
 
+    Hashdecls:
+    - @ref ConnectionProvider::ConfigInfo "ConfigInfo"
+    - @ref ConnectionProvider::ConnectionInfo "ConnectionInfo"
+    - @ref ConnectionProvider::PingInfo "PingInfo"
+
     Functions:
     - @ref ConnectionProvider::get_connection() "get_connection()"
+    - @ref ConnectionProvider::get_connection_hash() "get_connection_hash()"
     - @ref ConnectionProvider::get_connections() "get_connections()"
     - @ref ConnectionProvider::get_connection_url() "get_connection_url()"
 
@@ -100,6 +106,41 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
 #! the ConnectionProvider namespace contains all the objects in the ConnectionProvider module
 public namespace ConnectionProvider {
+    #! connection information hash as returned by @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()"
+    public hashdecl ConnectionInfo {
+        string name;      #!< the connection name
+        string desc;      #!< the connection description
+        *date last_check; #!< the date/time value of the last connection check (or @ref nothing if not checked)
+        bool loopback;    #!< a boolean vaue indicating if the connection is a loopback connection
+        bool monitor;     #!< a boolean vaue indicating if the connection should be monitored or not
+        *hash opts;       #!< the original options used to create the object
+        string status;    #!< a string giving the connection's status
+        string type;      #!< the connection type
+        bool up = False;  #!< a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
+        *date updated;    #!< the date/time value of the update (or @ref nothing if not updated)
+        string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
+        hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+    }
+
+    #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
+    public hashdecl ConfigInfo {
+        string name;  #!< the name of the connection
+        string desc;  #!< the description
+        string url;   #!< the full URL (including any username & password)
+        *hash opts;   #!< the options set on the connection
+    }
+
+    #! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
+    public hashdecl PingInfo {
+        string name;  #!< the name of the connection
+        string desc;  #!< the description
+        *hash opts;   #!< the options set on the connection
+        string url;   #!< a safe version of the URL (without passwords)
+        bool ok;      #!< a boolean value giving the result of the ping
+        date time;    #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
+        string info;  #!< a string giving the result of the ping (\c "OK" or an error message)
+    }
+
     #! returns a URL string for the given identifier if the identifier is known to a registered connection provider or returns the URL itself if the identifier is a valid URL
     /** @par Example:
         @code{.py}
@@ -160,7 +201,7 @@ string connstr = get_connection(str);
     #! returns all known connections as a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
     /** @par Example:
         @code{.py}
-*hash h = get_connections();
+*hash<string, AbstractConnection> h = get_connections();
         @endcode
 
         @param verbose display connection provider module errors on stdout (otherwise errors are ignored)
@@ -173,8 +214,8 @@ string connstr = get_connection(str);
         - get_connection_hash()
         - @ref connectionprovider_modules
      */
-    public *hash sub get_connections(*bool verbose) {
-        hash h;
+    public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
+        hash<string, AbstractConnection> h();
         # process connection provider modules in declaration order
         if (ENV.QORE_CONNECTION_PROVIDERS) {
             list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);
@@ -192,15 +233,15 @@ string connstr = get_connection(str);
         return h;
     }
 
-    #! returns a hash of connection information keyed by connection identifier; values are hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
+    #! returns a hash of connection information keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
     /** @par Example:
         @code{.py}
-*hash h = get_connection_hash();
+*hash<string, hash<ConnectionInfo>> h = get_connection_hash();
         @endcode
 
-        @param verbose display connection provider module errors on stdout (otherwise errors are ignored)
+        @param verbose display connection provider module errors on stdout (otherwise errors are silently ignored)
 
-        @return a hash keyed by connection identifier; values are hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
+        @return a hash keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
 
         @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
@@ -208,8 +249,8 @@ string connstr = get_connection(str);
         - get_connections()
         - @ref connectionprovider_modules
      */
-    public *hash sub get_connection_hash(*bool verbose) {
-        return map {$1.key: $1.value.getInfo(True)}, get_connections(verbose).pairIterator();
+    public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
+        return cast<hash<string, hash<ConnectionInfo>>>(map {$1.key: $1.value.getInfo(True)}, get_connections(verbose).pairIterator());
     }
 
     #! abstract base class for connections
@@ -312,13 +353,10 @@ string connstr = get_connection(str);
         #! returns a hash with the results of the ping operation
         /** @param throw_exception throw an exception if a connection error occurs
 
-            @return a hash with the following keys:
-            - \c "ok": a boolean value giving the result of the ping
-            - \c "time": a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
-            - \c "info": a string giving the result of the ping (\c "OK" or an error message)
+            @return a @ref PingInfo hash
          */
-        hash ping(bool throw_exception = False) {
-            hash rv = hash(self).("name", "desc", "opts");
+        hash<PingInfo> ping(bool throw_exception = False) {
+            hash<PingInfo> rv(hash(self).("name", "desc", "opts"));
             rv.url = safe_url;
 
             last_check = now_us();
@@ -330,62 +368,44 @@ string connstr = get_connection(str);
                 return pingIntern(rv);
             }
             catch (hash ex) {
-                return rv + (
+                return rv += (
                     "ok": False,
                     "info": sprintf("%s: %s", ex.err, ex.desc),
                     );
             }
         }
 
-        #! performs the ping by executing get()
-        private hash pingIntern(hash rv) {
+        #! performs the ping by executing get(); returns a @ref PingInfo hash
+        private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
             date start = now_us();
             get();
-            return rv + (
+            return rv += (
                 "ok": True,
                 "time": now_us() - start,
                 "info": "OK",
                 );
         }
 
-        #! returns a hash of information about the connection
+        #! returns a @ref ConnectionInfo hash of information about the connection
         /** @param with_password determines if the password is returned or not
 
-            @return a hash of information about the connection including the following keys:
-            - \c name: the connection name
-            - \c desc: the connection description
-            - \c last_check: the date/time value of the last connection check (or @ref nothing if not checked)
-            - \c loopback: a boolean vaue indicating of the connection is a loopback connection
-            - \c monitor: a boolean vaue indicating of the connection should be monitored or not
-            - \c opts: the original options used to create the object
-            - \c status: a string giving the connection's status
-            - \c type: the connection type
-            - \c up: a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
-            - \c updated: the date/time value of the update (or @ref nothing if not updated)
-            - \c url: the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
-            - \c url_hash: a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+            @return a @ref ConnectionInfo hash of information about the connection
          */
-        hash getInfo(bool with_password = False) {
-            hash h = self.("name", "desc", "url", "safe_url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh);
-            if (with_password)
-                delete h.safe_url;
-            else {
-                h.url = remove h.safe_url;
+        hash<ConnectionInfo> getInfo(bool with_password = False) {
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh));
+            if (!with_password) {
+                h.url = safe_url;
                 delete h.url_hash.password;
             }
             h.opts = orig_opts;
             return h;
         }
 
-        #! returns a hash of static configuration information about the connection
-        /** @returns a hash of static configuration information about the connection with the following keys:
-            - \c "name": the name of the connection
-            - \c "desc": the description
-            - \c "url": the full URL (including any username & password)
-            - \c "opts": the options set on the connection
+        #! returns a @ref ConfigInfo hash of static configuration information about the connection
+        /** @returns a @ref ConfigInfo hash of static configuration information about the connection
          */
-        hash getConfigHash() {
-            return self.("name", "desc", "url", "opts");
+        hash<ConfigInfo> getConfigHash() {
+            return cast<hash<ConfigInfo>>(self.("name", "desc", "url", "opts"));
         }
 
         #! returns static / initialization options

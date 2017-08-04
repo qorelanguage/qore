@@ -40,97 +40,10 @@
 #include <string>
 
 class QoreParseHashNode : public ParseNode {
-protected:
-   typedef std::map<std::string, bool> kmap_t;
-   typedef std::vector<AbstractQoreNode*> nvec_t;
-   typedef std::vector<QoreProgramLocation> lvec_t;
-   nvec_t keys, values;
-   lvec_t lvec;
-   // to detect duplicate values, only stored during parsing
-   kmap_t kmap;
-   // flag for a hash expression in curly brackets for the hash version of the map operator
-   bool curly;
-
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return hashTypeInfo;
-   }
-
-   DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation& newoc1, const char* key);
-
-   DLLLOCAL void checkDup(const QoreProgramLocation& loc, const char* key) {
-      std::string kstr(key);
-      kmap_t::iterator i = kmap.lower_bound(kstr);
-      if (i == kmap.end() || i->first != kstr)
-         kmap.insert(i, kmap_t::value_type(kstr, false));
-      else if (!i->second) {
-         doDuplicateWarning(loc, key);
-         i->second = true;
-      }
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      typeInfo = hashTypeInfo;
-      assert(keys.size() == values.size());
-      bool needs_eval = false;
-
-      // turn off "return value ignored" flag before performing parse init
-      pflag &= ~PF_RETURN_VALUE_IGNORED;
-
-      for (size_t i = 0; i < keys.size(); ++i) {
-         const QoreTypeInfo* argTypeInfo = 0;
-         AbstractQoreNode* p = keys[i];
-         keys[i] = keys[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
-
-         if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
-            QoreStringValueHelper key(keys[i]);
-            checkDup(lvec[i], key->getBuffer());
-         }
-         else if (!needs_eval && keys[i] && keys[i]->needs_eval())
-            needs_eval = true;
-
-         if (QoreTypeInfo::nonStringValue(argTypeInfo)) {
-            QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            QoreTypeInfo::doNonStringWarning(argTypeInfo, lvec[i], str.getBuffer());
-         }
-
-         argTypeInfo = 0;
-         values[i] = values[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
-         if (!needs_eval && values[i] && values[i]->needs_eval())
-            needs_eval = true;
-      }
-
-      kmap.clear();
-
-      if (needs_eval)
-         return this;
-
-      // evaluate immediately
-      ValueEvalRefHolder rv(this, 0);
-      deref();
-      return rv.getReferencedValue();
-   }
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      assert(keys.size() == values.size());
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
-      for (size_t i = 0; i < keys.size(); ++i) {
-         QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-
-         QoreNodeEvalOptionalRefHolder v(values[i], xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-
-         QoreStringValueHelper key(*k);
-         h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
-         if (xsink && *xsink)
-            return QoreValue();
-      }
-      return h.release();
-   }
-
 public:
+   typedef std::vector<AbstractQoreNode*> nvec_t;
+   typedef std::vector<const QoreTypeInfo*> tvec_t;
+
    DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
    }
 
@@ -188,11 +101,59 @@ public:
       loc.end_line = last_line;
    }
 
+   DLLLOCAL const nvec_t& getKeys() const{
+      return keys;
+   }
+
+   DLLLOCAL const nvec_t& getValues() const {
+      return values;
+   }
+
+   DLLLOCAL const tvec_t& getValueTypes() const {
+      return vtypes;
+   }
+
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual const char* getTypeName() const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+protected:
+   typedef std::map<std::string, bool> kmap_t;
+   typedef std::vector<QoreProgramLocation> lvec_t;
+   nvec_t keys, values;
+   tvec_t vtypes;
+   lvec_t lvec;
+   // to detect duplicate values, only stored during parsing
+   kmap_t kmap;
+   // common value type, if any
+   const QoreTypeInfo* vtype = nullptr;
+   // node type info (derivative of hash)
+   const QoreTypeInfo* typeInfo;
+   // flag for a hash expression in curly brackets for the hash version of the map operator
+   bool curly;
+
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return typeInfo;
+   }
+
+   DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation& newoc1, const char* key);
+
+   DLLLOCAL void checkDup(const QoreProgramLocation& loc, const char* key) {
+      std::string kstr(key);
+      kmap_t::iterator i = kmap.lower_bound(kstr);
+      if (i == kmap.end() || i->first != kstr)
+         kmap.insert(i, kmap_t::value_type(kstr, false));
+      else if (!i->second) {
+         doDuplicateWarning(loc, key);
+         i->second = true;
+      }
+   }
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

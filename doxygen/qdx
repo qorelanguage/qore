@@ -264,6 +264,9 @@ class qdx {
         # namespace stack
         list nss = ();
 
+        # hashdecl flag
+        bool hashdecl_flag;
+
         while (ins.next()) {
             string line = ins.getValue();
             line =~ s/\$\.//g;
@@ -313,6 +316,12 @@ class qdx {
             }
             line =~ s/my //g;
             line =~ s/sub //;
+
+            # change hashdecl to struct
+            if (line =~ /hashdecl /) {
+                line =~ s/hashdecl /struct /g;
+                hashdecl_flag = True;
+            }
 
             # take "public" off namespace, class, constant and global variable declarations
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
@@ -463,7 +472,13 @@ class qdx {
                         }
                     }
                 }
-                else if (exists ns_name) {
+                else if (hashdecl_flag) {
+                    if (line =~ /}/) {
+                        line =~ s/}/};/;
+                        remove hashdecl_flag;
+                    }
+                }
+                else if (ns_name) {
                     if (line =~ /{/) {
                         if (line !~ /}/)
                             ++nbc;

@@ -56,7 +56,7 @@ module HttpServerUtil {
     - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes providing basic logging methods
     - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
     - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
-    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstrct class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
+    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstract class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
     - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
 
     See also:
@@ -73,6 +73,7 @@ module HttpServerUtil {
     @subsection httputil0312 HttpServerUtil 0.3.12
     - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
 
     @subsection httputil03112 HttpServerUtil 0.3.11.2
     - eliminated excess logging of each HTTP chunk sent or received
@@ -220,6 +221,63 @@ public namespace HttpServer {
     public const LP_LEVELMASK = LP_LOGPARAMS - 1;
     #@}
 
+    #! the return value of the @ref HttpServerUtil::parse_uri_query() "parse_uri_query()" function
+    public hashdecl UriQueryInfo {
+        #! the part of the URI path before the first \c "?" character or the entire path if no \c "?" character is present in the path
+        string method;
+
+        #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref Qore::True "True"
+        *hash params;
+    }
+
+    #! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
+    public hashdecl HttpResponseInfo {
+        #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
+        int code;
+
+        #! the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        *data body;
+
+        #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        softbool close = False;
+
+        #! set this key to a hash of extra header information to be returned with the response
+        *hash hdr;
+
+        #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
+        bool reply_sent = False;
+
+        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+        string log;
+
+        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+        string errlog;
+    }
+
+    #! the return value of HTTP handler methods with potentially unserialized message bodies
+    public hashdecl HttpHandlerResponseInfo {
+        #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
+        int code;
+
+        #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
+        any body;
+
+        #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        softbool close = False;
+
+        #! set this key to a hash of extra header information to be returned with the response
+        *hash hdr;
+
+        #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
+        bool reply_sent = False;
+
+        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+        string log;
+
+        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+        string errlog;
+    }
+
     #! returns a complete URL from a bind address
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
@@ -259,22 +317,20 @@ public namespace HttpServer {
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
     /** @param path the URI path to parse
 
-        @return a hash with the following keys:
-        - \c method: (@ref string_type "string") the part of the path before the first \c "?" character or the entire path if no \c "?" character is present in the path
-        - \c params: (@ref hash_type "hash") optional, only if a "?" character is present in the input; the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref True
+        @return a @ref UriQueryInfo hash
 
         @since 0.3.11 the \a params key value is always returned as a hash
     */
-    public hash sub parse_uri_query(string path) {
+    public hash<UriQueryInfo> sub parse_uri_query(string path) {
         int i = path.find("?");
         if (i == -1)
-            return ("method": path);
+            return new hash<UriQueryInfo>(("method": path));
 
         # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
-        hash h = (
+        hash<UriQueryInfo> h((
             "method": path.substr(0, i),
-            "params": (),
-            );
+            "params": {},
+            ));
 
         # remove method and "?" char; leave only args in path
         splice path, 0, i + 1;
@@ -396,7 +452,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
   */
 public class HttpServer::AbstractAuthenticator {
     #! called to check if the connection requires authentication
-    /** @return @ref True if authentication is enabled, @ref False if not (@ref False is the default value returned)
+    /** @return @ref Qore::True "True" if authentication is enabled, @ref Qore::False "False" if not (@ref Qore::False "False" is the default value returned)
       */
     bool requiresAuthentication() {
         return False;
@@ -410,7 +466,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called to authenticate a user for a connection
-    /** This method will only be called if requiresAuthentication() returns @ref True
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
         @param user the username to authenticate
         @param pass the password for the user
 
@@ -420,7 +476,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
-    /** This method will only be called if requiresAuthentication() returns @ref True and no authentication credentials are supplied with the request
+    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
         @param ip the IP address of the source connection
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
 
@@ -433,12 +489,13 @@ public class HttpServer::AbstractAuthenticator {
         return ("WWW-Authenticate": sprintf("Basic realm=%y", getRealm()));
     }
 
-    private hash do401(string msg = "Authentication is required to access this server") {
-        return (
+    #! returns a 401 repsonse with the given string argument as the message body
+    private hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server") {
+        return new hash<HttpResponseInfo>((
             "code": 401,
             "body": msg,
             "hdr": getAuthHeader(),
-            );
+            ));
     }
 
     #! primary method called to authenticate each request
@@ -460,7 +517,7 @@ public class HttpServer::AbstractAuthenticator {
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
         #printf("HTTP DEBUG %s::authenticateRequest() called\n", self.className());
         if (!requiresAuthentication())
             return;
@@ -528,7 +585,7 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
 
         @return returns @ref nothing indicating that the request is authenticated
     */
-    *hash authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
         return;
     }
 }
@@ -583,7 +640,7 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     #! handles the request
-    hash handleRequest() {
+    hash<HttpHandlerResponseInfo> handleRequest() {
         # handle message body
         if (exists body) {
             hash dh = ("data": body, "chunked": False);
@@ -610,11 +667,11 @@ public class HttpServer::AbstractStreamRequest {
     #! called to either create the response hash or send a chunked response directly
     /** This method calls getResponseHeaderMessageImpl() to get the response code, headers and optionally a response message body.
         If a \c "Content-Encoding: chunked" header is included, then the response is sent chunked using the send() callback;
-        in this case the \c "reply_sent" key in the response is set to @ref True.
+        in this case the \c "reply_sent" key in the response is set to @ref Qore::True "True".
         Otherwise, any message body is immediately encoded (if accepted by the requestor).
     */
-    private hash sendResponse() {
-        hash rv = getResponseHeaderMessage();
+    private hash<HttpHandlerResponseInfo> sendResponse() {
+        hash<HttpHandlerResponseInfo> rv = getResponseHeaderMessage();
         if (rv.hdr."Transfer-Encoding" != "chunked")
             return rv;
 
@@ -632,13 +689,13 @@ public class HttpServer::AbstractStreamRequest {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
     */
-    private hash getResponseHeaderMessage() {
-        return getResponseHeaderMessageImpl();
+    private hash<HttpHandlerResponseInfo> getResponseHeaderMessage() {
+        return cast<hash<HttpHandlerResponseInfo>>(getResponseHeaderMessageImpl());
     }
 
     #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
@@ -687,24 +744,24 @@ private logChunk(bool send, int size) {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
     */
-    private hash getResponseHeaderMessageImpl() {
-        return (
+    private hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
+        return new hash<HttpResponseInfo>((
             "code": 501,
             "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
-            );
+            ));
     }
 
     #! callback method for receiving chunked data; the default implementation in this base class does nothing
     /**
         @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
         - \c "data": the string or binary data
-        - \c "chunked": @ref True if the data was received with chunked transfer encoding, @ref False if not
+        - \c "chunked": @ref Qore::True "True" if the data was received with chunked transfer encoding, @ref Qore::False "False" if not
         .
         Header or trailer data is placed in a hash with the following keys:
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
@@ -724,7 +781,7 @@ private logChunk(bool send, int size) {
 #! abstract class that all HTTP request handler objects must inherit from
 /** Reimplement handleRequest() in subclasses
 
-    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref True in the constructor() method
+    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref Qore::True "True" in the constructor() method
     and implement getStreamRequestImpl() to return the HTTP stream request handler.
 
     @see AbstractStreamRequest for information about HTTP stream request handlers
@@ -737,7 +794,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         #! if POSTed data should be decompressed automatically if there is content-encoding
         bool decompress = True;
 
-        #! if automatically decompressed POSTed data should be converted to a string (if @ref False, then it will be decompressed to a binary)
+        #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
         bool decompress_to_string = True;
 
         #! if the handler supports streaming requests/responses with chunked data
@@ -755,14 +812,14 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-        @param n_stream if @ref True then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
+        @param n_stream if @ref Qore::True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
       */
     constructor(*AbstractAuthenticator n_auth, softbool n_stream = False) {
         auth = n_auth;
         stream = n_stream;
     }
 
-    #! returns @ref True if the current connection is persistent, @ref False if not
+    #! returns @ref Qore::True "True" if the current connection is persistent, @ref Qore::False "False" if not
     bool isPersistent() {
         return boolean(get_thread_data(PersistenceThreadKey));
     }
@@ -849,35 +906,35 @@ public class HttpServer::AbstractHttpRequestHandler {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
     */
-    hash handleRequest(hash cx, hash hdr, *data body) {
-        return (
+    hash<HttpResponseInfo> handleRequest(hash cx, hash hdr, *data body) {
+        return new hash<HttpResponseInfo>((
             "code": 501,
             "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
-            );
+            ));
     }
 
     #! top-level request handling method
-    hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+    hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
         if (!stream) {
             any rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
             switch (rv.typeCode()) {
-                case NT_HASH: return rv;
+                case NT_HASH: return cast<hash<HttpResponseInfo>>(rv);
                 case NT_STRING:
-                case NT_BINARY: return ("code": 200, "body": rv);
+                case NT_BINARY: return cast<hash<HttpResponseInfo>>(("code": 200, "body": rv));
                 default:
                 throw "HANDLER-ERROR", sprintf("handler returned type %s; expecting \"hash\"; value: %y", rv.type(), rv);
             }
         }
 
         AbstractStreamRequest req = getStreamRequestImpl(listener, s, cx, hdr, body);
-        return req.handleRequest();
+        return cast<hash<HttpResponseInfo>>(req.handleRequest());
     }
 
     #! returns the AbstractStreamRequest object for handling chunked requests
@@ -1003,61 +1060,61 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash makeResponse(int code, string fmt) {
-        return (
+    static hash<HttpResponseInfo> makeResponse(int code, string fmt) {
+        return new hash<HttpResponseInfo>((
             "code": code,
             "body": vsprintf(fmt, argv),
-            );
+            ));
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash makeResponse(hash hdr, int code, string fmt) {
-        return (
+    static hash<HttpResponseInfo> makeResponse(hash hdr, int code, string fmt) {
+        return new hash<HttpResponseInfo>((
             "code": code,
             "body": vsprintf(fmt, argv),
             "hdr": hdr,
-            );
+            ));
     }
 
     #! creates a hash for an HTTP response with the response code and a literal response message body
-    static hash makeResponse(int code, *data body, *hash hdr) {
-        return (
+    static hash<HttpResponseInfo> makeResponse(int code, *data body, *hash hdr) {
+        return new hash<HttpResponseInfo>((
             "code": code,
             "body": body,
             "hdr": hdr,
-            );
+            ));
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash make400(string fmt) {
+    static hash<HttpResponseInfo> make400(string fmt) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash make400(hash hdr, string fmt) {
+    static hash<HttpResponseInfo> make400(hash hdr, string fmt) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv), hdr);
     }
 
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash make501(string fmt) {
+    static hash<HttpResponseInfo> make501(string fmt) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash make501(hash hdr, string fmt) {
+    static hash<HttpResponseInfo> make501(hash hdr, string fmt) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv), hdr);
     }
 
     #! generates a redirect hash for the given path
-    static hash redirect(hash cx, hash hdr, string path) {
+    static hash<HttpResponseInfo> redirect(hash cx, hash hdr, string path) {
         # make sure no forward slashes are doubled in the path
         path =~ s/\/+/\//g;
         string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
-        return (
+        return cast<hash<HttpResponseInfo>>((
             "code": 301,
             "hdr": ("Location": uri),
             "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
-            );
+            ));
     }
 }
 
@@ -1191,14 +1248,14 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param b message body, if any
 
-        @return to accept a dedicated connection, return a hash with the following key:
+        @return to accept a dedicated connection, return a hash (ideally an @ref HttpRequestInfo hash) with the following key:
         - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
         .
         or, to handle the request without a dedicated connection, return a hash with the following keys
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
      */
     abstract hash handleRequest(hash cx, hash hdr, *data b);

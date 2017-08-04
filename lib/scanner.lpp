@@ -592,8 +592,9 @@ static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
 
 static char* make_cast(const char* s) {
    QoreString str(s + 5);
-   str.trim_trailing('>');
+   str.terminate(str.size() - 1);
    str.trim();
+   //printd(5, "make_cast() '%s'\n", str.c_str());
    return str.giveBuffer();
 }
 
@@ -663,6 +664,22 @@ static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
    qore_program_private::get(*getProgram())->parseDisableParseOptions(get_loc(yylloc), po);
 }
 
+static bool angle_balanced(const char* p) {
+   //printd(5, "angle_balanced() '%s'\n", p);
+   int ob = 0;
+   int cb = 0;
+   while (*p) {
+      switch (*p) {
+         case '<': ++ob; break;
+         case '>': ++cb; break;
+      }
+      ++p;
+   }
+   //printd(5, "angle_balanced() %d == %d\n", ob, cb);
+
+   return ob == cb;
+}
+
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
@@ -680,7 +697,7 @@ static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -1411,6 +1428,7 @@ trim                                    return TOK_TRIM;
 on_exit                                 return TOK_ON_EXIT;
 on_success                              return TOK_ON_SUCCESS;
 on_error                                return TOK_ON_ERROR;
+hashdecl                                return TOK_HASHDECL;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
@@ -1521,8 +1539,7 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yyte
 (::{WORD})+                             yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\${WORD}                     yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
 (::{WORD})?::\${WORD}                   yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
-cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
-cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
+cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 @[Nn][Aa][Nn]@                          {
 #ifdef NAN
@@ -1569,6 +1586,31 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); par
 namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
 {WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
+{WORD}<[a-zA-Z<:_0-9 \t,]+>             {
+                                           if (angle_balanced(yytext)) {
+                                               yylval->string = strdup(yytext);
+                                               return ANGLE_IDENTIFIER;
+                                           }
+
+                                           yylval->String = new QoreStringNode(yytext);
+                                           yylloc->saveFirst();
+                                           BEGIN(angle_state);
+}
+<angle_state>{
+      >                                 {
+                                           yylval->String->concat('>');
+                                           if (angle_balanced(yylval->String->c_str())) {
+                                              char* str = yylval->String->giveBuffer();
+                                              yylval->String->deref();
+                                              yylval->string = str;
+                                              yylloc->restoreFirst();
+                                              BEGIN(INITIAL);
+                                              return ANGLE_IDENTIFIER;
+                                           }
+                                        }
+      [^>]                              yylval->String->concat(yytext);
+}
+#{WORD}<[a-zA-Z<>:_0-9 \t,]+>            yylval->string = strdup(yytext); return ANGLE_IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;

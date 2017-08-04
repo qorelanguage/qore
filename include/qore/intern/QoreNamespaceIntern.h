@@ -33,6 +33,7 @@
 #define _QORE_QORENAMESPACEINTERN_H
 
 #include "qore/intern/QoreClassList.h"
+#include "qore/intern/HashDeclList.h"
 #include "qore/intern/QoreNamespaceList.h"
 #include "qore/intern/ConstantList.h"
 #include "qore/intern/FunctionList.h"
@@ -90,9 +91,9 @@ typedef GVList<GVEntryBase> gvblist_t;
 class qore_ns_private {
 private:
    // not implemented
-   DLLLOCAL qore_ns_private(const qore_ns_private&);
+   DLLLOCAL qore_ns_private(const qore_ns_private&) = delete;
    // not implemented
-   DLLLOCAL qore_ns_private& operator=(const qore_ns_private&);
+   DLLLOCAL qore_ns_private& operator=(const qore_ns_private&) = delete;
 
 protected:
    // called from the root namespace constructor only
@@ -105,6 +106,8 @@ public:
 
    QoreClassList classList,       // committed class map
       pendClassList;              // pending class map
+   HashDeclList hashDeclList,     // committed hashdecl map
+      pendHashDeclList;           // pending hashdecl map
    ConstantList constant,         // committed constant map
       pendConstant;               // pending constant map
    QoreNamespaceList nsl,         // committed namespace map
@@ -139,6 +142,7 @@ public:
    DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po)
       : name(old.name),
         classList(old.classList, po, this),
+        hashDeclList(old.hashDeclList, po, this),
         constant(old.constant, po, this),
         pendConstant(this),
         nsl(old.nsl, po, *this),
@@ -149,7 +153,7 @@ public:
         pub(old.builtin ? true : false),
         builtin(old.builtin),
         imported(old.imported),
-        parent(0), class_handler(old.class_handler), ns(0) {
+        parent(nullptr), class_handler(old.class_handler), ns(nullptr) {
    }
 
    DLLLOCAL ~qore_ns_private() {
@@ -193,6 +197,9 @@ public:
       classList.reset();
       pendClassList.reset();
 
+      hashDeclList.reset();
+      pendHashDeclList.reset();
+
       nsl.reset();
       pendNSL.reset();
    }
@@ -235,6 +242,9 @@ public:
    DLLLOCAL int parseAddPendingClass(const QoreProgramLocation& loc, const NamedScope& n, QoreClass* oc);
    DLLLOCAL int parseAddPendingClass(const QoreProgramLocation& loc, QoreClass* oc);
 
+   DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation& loc, const NamedScope& n, TypedHashDecl* hashdecl);
+   DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation& loc, TypedHashDecl* hashdecl);
+
    DLLLOCAL cnemap_t::iterator parseAddConstant(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* value, bool pub);
 
    DLLLOCAL void parseAddConstant(const QoreProgramLocation& loc, const NamedScope& name, AbstractQoreNode* value, bool pub);
@@ -271,6 +281,14 @@ public:
          xsink->raiseException("CLASS-IMPORT-ERROR", "class '%s' is already pending in namespace '%s'", cname, name.c_str());
          return -1;
       }
+      if (hashDeclList.find(cname)) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "hashdecl '%s' already exists in namespace '%s'", cname, name.c_str());
+         return -1;
+      }
+      if (pendHashDeclList.find(cname)) {
+         xsink->raiseException("CLASS-IMPORT-ERROR", "hashdecl '%s' is already pending in namespace '%s'", cname, name.c_str());
+         return -1;
+      }
       if (nsl.find(cname)) {
          xsink->raiseException("CLASS-IMPORT-ERROR", "a subnamespace named '%s' already exists in namespace '%s'", cname, name.c_str());
          return -1;
@@ -283,11 +301,11 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
+   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
       if (checkImportClass(new_name ? new_name : c->getName(), xsink))
-         return 0;
+         return nullptr;
 
-      QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject);
+      QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
       qore_class_private::setNamespace(nc, this);
       classList.add(nc);
 
@@ -305,6 +323,11 @@ public:
    DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool& is_new, qore_root_ns_private* rns);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool& is_new);
    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool& is_new);
+
+   DLLLOCAL TypedHashDecl* parseFindLocalHashDecl(const char* name) {
+      TypedHashDecl* rv = hashDeclList.find(name);
+      return rv ? rv : pendHashDeclList.find(name);
+   }
 
    DLLLOCAL AbstractQoreNode* getConstantValue(const char* name, const QoreTypeInfo*& typeInfo);
    DLLLOCAL QoreClass* parseFindLocalClass(const char* name);
@@ -330,8 +353,12 @@ public:
 
    DLLLOCAL QoreNamespace* resolveNameScope(const QoreProgramLocation& loc, const NamedScope& name) const;
    DLLLOCAL QoreNamespace* parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
+
+   DLLLOCAL TypedHashDecl* parseMatchScopedHashDecl(const NamedScope& name, unsigned& matched);
+
    DLLLOCAL QoreClass* parseMatchScopedClass(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched);
+
    DLLLOCAL AbstractQoreNode* parseCheckScopedReference(const QoreProgramLocation& loc, const NamedScope& ns, unsigned& m, const QoreTypeInfo*& typeInfo, bool abr) const;
 
    DLLLOCAL AbstractQoreNode* parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo);
@@ -369,6 +396,7 @@ public:
    DLLLOCAL void setPublic();
 
    DLLLOCAL void runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemHashDecls(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemConstants(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink);
 
@@ -859,6 +887,8 @@ typedef RootMap<ConstantEntry> cnmap_t;
 
 typedef RootMap<QoreClass> clmap_t;
 
+typedef RootMap<TypedHashDecl> thdmap_t;
+
 typedef RootMap<Var> varmap_t;
 
 struct GVEntry : public GVEntryBase {
@@ -917,8 +947,8 @@ protected:
    }
 
    // performed at runtime
-   DLLLOCAL int runtimeImportClass(ExceptionSink* xsink, qore_ns_private& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
-      QoreClass* nc = ns.runtimeImportClass(xsink, c, spgm, new_name, inject);
+   DLLLOCAL int runtimeImportClass(ExceptionSink* xsink, qore_ns_private& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
+      QoreClass* nc = ns.runtimeImportClass(xsink, c, spgm, new_name, inject, injectedClass);
       if (!nc)
          return -1;
 
@@ -1041,6 +1071,11 @@ protected:
          clmap.update(i);
       pend_clmap.clear();
 
+      // commit pending hashdecl lookup entries
+      for (thdmap_t::iterator i = pend_thdmap.begin(), e = pend_thdmap.end(); i != e; ++i)
+         thdmap.update(i);
+      pend_thdmap.clear();
+
       // commit pending global variable lookup entries
       for (varmap_t::iterator i = pend_varmap.begin(), e = pend_varmap.end(); i != e; ++i)
          varmap.update(i);
@@ -1059,6 +1094,7 @@ protected:
       pend_fmap.clear();
       pend_cnmap.clear();
       pend_clmap.clear();
+      pend_thdmap.clear();
 
       // must delete unassigned global vars
       /*
@@ -1159,6 +1195,39 @@ protected:
       return i->second.obj->makeCallReference(get_runtime_location());
    }
 
+   DLLLOCAL TypedHashDecl* parseFindScopedHashDeclIntern(const NamedScope& nscope, unsigned& matched);
+
+   DLLLOCAL TypedHashDecl* parseFindHashDeclIntern(const char* hdname) {
+      {
+         // try to check in current namespace first
+         qore_ns_private* nscx = parse_get_ns();
+         if (nscx) {
+            TypedHashDecl* hd = nscx->parseFindLocalHashDecl(hdname);
+            if (hd)
+               return hd;
+         }
+      }
+
+      thdmap_t::iterator i = thdmap.find(hdname);
+      thdmap_t::iterator ip = pend_thdmap.find(hdname);
+
+      if (i != thdmap.end()) {
+         if (ip != pend_thdmap.end()) {
+            if (i->second.depth() < ip->second.depth())
+               return i->second.obj;
+            return ip->second.obj;
+         }
+
+         return i->second.obj;
+      }
+
+      if (ip != pend_thdmap.end())
+         return ip->second.obj;
+
+      //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
+      return nullptr;
+   }
+
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
    DLLLOCAL QoreClass* parseFindScopedClassWithMethodInternError(const QoreProgramLocation& loc, const NamedScope& name, bool error);
@@ -1200,7 +1269,7 @@ protected:
       }
 
       //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL QoreClass* runtimeFindClass(const char* name) {
@@ -1257,6 +1326,8 @@ protected:
    DLLLOCAL void parseAddConstantIntern(const QoreProgramLocation& loc, QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool pub);
 
    DLLLOCAL void parseAddClassIntern(const QoreProgramLocation& loc, const NamedScope& name, QoreClass* oc);
+
+   DLLLOCAL void parseAddHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& name, TypedHashDecl* hd);
 
    DLLLOCAL qore_ns_private* parseResolveNamespaceIntern(const QoreProgramLocation& loc, const NamedScope& nscope, qore_ns_private* sns);
    DLLLOCAL qore_ns_private* parseResolveNamespace(const QoreProgramLocation& loc, const NamedScope& nscope, qore_ns_private* sns);
@@ -1382,6 +1453,12 @@ protected:
          clmap.update(cli.getName(), ns, cli.get());
    }
 
+   DLLLOCAL static void rebuildHashDeclIndexes(thdmap_t& thdmap, HashDeclList& hdl, qore_ns_private* ns) {
+      HashDeclListIterator hdli(hdl);
+      while (hdli.next())
+         thdmap.update(hdli.getName(), ns, hdli.get());
+   }
+
    DLLLOCAL static void rebuildFunctionIndexes(fmap_t& fmap, fl_map_t& flmap, qore_ns_private* ns) {
       for (fl_map_t::iterator i = flmap.begin(), e = flmap.end(); i != e; ++i) {
          assert(i->second->getFunction()->getNamespace() == ns);
@@ -1403,6 +1480,9 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // process hashdecl indexes
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
 
       // reindex namespace
       nsmap.update(ns);
@@ -1439,6 +1519,12 @@ protected:
 
       // process class indexes
       rebuildClassIndexes(clmap, ns->classList, ns);
+
+      // process pending hashdecl indexes
+      rebuildHashDeclIndexes(pend_thdmap, ns->pendHashDeclList, ns);
+
+      // process hashdecl indexes
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
 
       // reindex namespace
       pend_nsmap.update(ns);
@@ -1497,6 +1583,9 @@ public:
 
    clmap_t clmap,       // root class map
       pend_clmap;       // root pending class map (used only during parsing)
+
+   thdmap_t thdmap,     // root hashdecl map
+      pend_thdmap;      // root pending hashdecl map (used only during parsing)
 
    varmap_t varmap,     // root variable map
       pend_varmap;      // root pending variable map (used only during parsing)
@@ -1569,6 +1658,8 @@ public:
       }
    }
 
+   DLLLOCAL TypedHashDecl* parseFindHashDecl(const QoreProgramLocation& loc, const NamedScope& name);
+
    DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath, bool pub) {
       assert(nspath.size());
       bool is_new = false;
@@ -1601,6 +1692,10 @@ public:
       rebuildClassIndexes(clmap, ns->classList, ns);
    }
 
+   DLLLOCAL void runtimeRebuildHashDeclIndexes(qore_ns_private* ns) {
+      rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
+   }
+
    DLLLOCAL void runtimeRebuildFunctionIndexes(qore_ns_private* ns) {
       rebuildFunctionIndexes(fmap, ns->func_list, ns);
    }
@@ -1611,6 +1706,10 @@ public:
 
    DLLLOCAL static void runtimeImportSystemClasses(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
       rns.priv->runtimeImportSystemClasses(*source.priv, *rns.rpriv, xsink);
+   }
+
+   DLLLOCAL static void runtimeImportSystemHashDecls(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
+      rns.priv->runtimeImportSystemHashDecls(*source.priv, *rns.rpriv, xsink);
    }
 
    DLLLOCAL static void runtimeImportSystemConstants(RootQoreNamespace& rns, const RootQoreNamespace& source, ExceptionSink* xsink) {
@@ -1645,8 +1744,8 @@ public:
       return rns.rpriv->runtimeImportFunction(xsink, *ns.priv, u, new_name, inject);
    }
 
-   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false) {
-      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, spgm, new_name, inject);
+   DLLLOCAL static int runtimeImportClass(RootQoreNamespace& rns, ExceptionSink* xsink, QoreNamespace& ns, const QoreClass* c, QoreProgram* spgm, const char* new_name = 0, bool inject = false, const qore_class_private* injectedClass = nullptr) {
+      return rns.rpriv->runtimeImportClass(xsink, *ns.priv, c, spgm, new_name, inject, injectedClass);
    }
 
    DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {
@@ -1743,6 +1842,10 @@ public:
 
    DLLLOCAL static void parseAddClass(const QoreProgramLocation& loc, const NamedScope& name, QoreClass* oc) {
       getRootNS()->rpriv->parseAddClassIntern(loc, name, oc);
+   }
+
+   DLLLOCAL static void parseAddHashDecl(const QoreProgramLocation& loc, const NamedScope& name, TypedHashDecl* hd) {
+      getRootNS()->rpriv->parseAddHashDeclIntern(loc, name, hd);
    }
 
    DLLLOCAL static void parseAddNamespace(QoreNamespace* nns) {

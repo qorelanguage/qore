@@ -1415,7 +1415,7 @@ InboundTableMapperIterator i(input, mapper);
             @param mapv the mapper to transform the data
             @param commit_limit row count before a commit is made; if <= 0 then no commits are made by this object, otherwise a commit is made for each \a commit_limit rows processed by this object, commits are made in calls to @ref next()
         */
-        constructor(Qore::AbstractIterator i, TableMapper::InboundTableMapper mapv, int commit_limit = 0) : Mapper::AbstractMapperIterator(i) {
+        constructor(Qore::AbstractIterator i, TableMapper::InboundTableMapper mapv, int commit_limit) : Mapper::AbstractMapperIterator(i) {
             mapc = mapv;
             commit_limit = commit_limit > 0 ? commit_limit : 0;
         }

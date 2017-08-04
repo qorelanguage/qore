@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,6 @@
 #define _QORE_QORENUMBERNODE_H
 
 class LocalVar;
-class QoreTypeInfo;
 
 /** @defgroup number_format_flags Number Format Flags
     used with QoreNumberNode::toString()

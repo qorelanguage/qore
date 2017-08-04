@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <pthread.h>
 #include "qore/intern/QC_TimeZone.h"
@@ -52,8 +53,8 @@ static void delete_thread_data_intern(const QoreValueList* args, ExceptionSink* 
       QoreValue p = get_param_value(args, i);
       if (!p.isNothing()) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    break;
+         if (*xsink)
+            break;
 
          data->deleteKey(*t, xsink);
          if (*xsink)
@@ -74,11 +75,11 @@ static QoreHashNode *remove_thread_data_intern(const QoreValueList* args, Except
       QoreValue p = get_param_value(args, i);
       if (!p.isNothing()) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    break;
+         if (*xsink)
+            break;
 
-	 rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
-	 assert(!*xsink);
+         rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
+         assert(!*xsink);
       }
    }
 
@@ -95,8 +96,8 @@ static void delete_thread_data_intern(const QoreListNode* args, ExceptionSink* x
       const AbstractQoreNode* p = get_param(args, i);
       if (!is_nothing(p)) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    break;
+         if (*xsink)
+            break;
 
          data->deleteKey(*t, xsink);
          if (*xsink)
@@ -117,15 +118,44 @@ static QoreHashNode *remove_thread_data_intern(const QoreListNode* args, Excepti
       const AbstractQoreNode* p = get_param(args, i);
       if (!is_nothing(p)) {
          QoreStringValueHelper t(p, QCS_DEFAULT, xsink);
-	 if (*xsink)
-	    break;
+         if (*xsink)
+            break;
 
-	 rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
-	 assert(!*xsink);
+         rv->setKeyValue(*t, data->takeKeyValue((*t)->getBuffer()), xsink);
+         assert(!*xsink);
       }
    }
 
    return rv;
+}
+
+//! call stack hash description
+/** @since %Qore 0.8.13
+*/
+hashdecl CallStackInfo {
+    //! function or method name
+    string function;
+
+    //! starting line number
+    int line;
+
+    //! ending line number
+    int endline;
+
+    //! The parse label of the code; this is normally the file name; this corresponds to the label parameter of the Program::parse() and Program::parsePending() methods and the Qore::parse() function, for example (if known, for user code only)
+    string file;
+
+    //! An optional source string; if multiple sections of a file were parsed with different parse labels, then the source file name will normally go here and the "file" key will have the parse label; this corresponds to the source parameter of the Program::parse() and Program::parsePending() methods, for example (if known, for user code only)
+    string source;
+
+    //! The line number offset for the \c "source" key (if known, for user code only)
+    int offset;
+
+    //! the call type; see @ref call_type_constants for possible values
+    int typecode;
+
+    //! a type string; either \c "user", \c "builtin", \c "new-thread" or \c "rethrow" (for rethrown exceptions)
+    string type;
 }
 
 /** @defgroup threading_functions Threading Functions
@@ -174,7 +204,7 @@ list l = thread_list();
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-list thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
+list<int> thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
    return get_thread_list();
 }
 
@@ -313,7 +343,7 @@ any get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_
    if (!tmp)
       return QoreValue();
    const QoreHashNode* h = getProgram()->getThreadData();
-   return h->getReferencedKeyValue(tmp->getBuffer());
+   return qore_hash_private::get(*h)->getReferencedKeyValueIntern(tmp->c_str());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -338,16 +368,16 @@ hash get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO]
    return h->copy();
 }
 
-//! Returns a hash of call stacks keyed by each TID (thread ID)
+//! Returns a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
-    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
+    @return a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
 
     @deprecated use get_all_thread_call_stacks(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] {
+hash<string, list<hash<CallStackInfo>>> getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
@@ -355,20 +385,20 @@ hash getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] 
 #endif
 }
 
-//! Returns a hash of call stacks keyed by each TID (thread ID)
+//! Returns a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
-    @return a hash of call stacks keyed by each TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
+    @return a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
 
     @par Example:
     @code{.py}
-hash cs = get_all_thread_call_stacks();
+hash<string, list<hash<CallStackInfo>>> cs = get_all_thread_call_stacks();
 foreach string tid in (cs.keyIterator()) {
     printf("TID %d\n", tid);
     int i;
-    foreach hash l in (cs{tid})
+    foreach hash<CallStackInfo> l in (cs{tid})
         if (l.type != "new-thread")
             printf(" %d: %s() called at %s:%d (%s function)\n", ++i, l.function, l.file, l.line, l.type);
         else
@@ -378,7 +408,7 @@ foreach string tid in (cs.keyIterator()) {
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getAllThreadCallStacks()
 */
-hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
+hash<string, list<hash<CallStackInfo>>> get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getAllCallStacks();
 #else
@@ -386,17 +416,17 @@ hash get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
 #endif
 }
 
-//! Returns a call stack for current TID (thread ID). As it is called always inside thread then no locking is applied as in @ref get_all_thread_call_stacks.
+//! Returns a list of @ref CallStackInfo hashes for the current TID (thread ID); because it is always from the same thread being read, no locking is applied as in @ref get_all_thread_call_stacks()
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE
 
-    @return a call stack for current TID (thread ID); see @ref callstack "call stacks" for the format of the hash values
+    @return a list of @ref CallStackInfo hashes for the current TID (thread ID)
 
     @par Example:
     @code{.py}
-list cs = get_thread_call_stack();
-  foreach hash l in (cs)
+list<hash<CallStackInfo>> cs = get_thread_call_stack();
+  foreach hash<CallStackInfo> l in (cs)
     if (l.type != "new-thread")
       printf(" %d: %s() called at %s:%d (%s function)\n", ++i, l.function, l.file, l.line, l.type);
     else
@@ -406,7 +436,7 @@ list cs = get_thread_call_stack();
 
     @since %Qore 0.8.13
 */
-list get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
+list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
    return getCallStack()->getCallStack();
 #else

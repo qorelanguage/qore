@@ -65,9 +65,9 @@ public:
    DLLLOCAL bool find(const char* str) const {
       const_iterator i = begin();
       while (i != end()) {
-	 if (*i == str)
-	    return true;
-	 ++i;
+         if (*i == str)
+            return true;
+         ++i;
       }
 
       return false;
@@ -182,6 +182,17 @@ public:
    // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
    mutable QoreThreadLock plock;
 
+   QoreThreadLock chl,      // complex hash lock
+      chonl,                // complex hash or nothing lock
+      cll,                  // complex list lock
+      clonl;                // complex list or nothing lock
+
+   typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
+   tmap_t ch_map,          // complex hash map
+      chon_map,            // complex hash or nothing map
+      cl_map,              // complex list map
+      clon_map;            // complex list or nothing map
+
    // set of signals being handled by code in this Program (to be deleted on exit)
    int_set_t sigset;
 
@@ -256,20 +267,20 @@ public:
 #endif
 
       if (p_pgm)
-	 setParent(p_pgm, n_parse_options);
+         setParent(p_pgm, n_parse_options);
       else {
-	 TZ = QTZM.getLocalZoneInfo();
-	 newProgram();
+         TZ = QTZM.getLocalZoneInfo();
+         newProgram();
       }
 
       // initialize global vars
       Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
       if (var && ARGV)
-	 var->setInitial(ARGV->copy());
+         var->setInitial(ARGV->copy());
 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
       if (var && QORE_ARGV)
-	 var->setInitial(QORE_ARGV->copy());
+         var->setInitial(QORE_ARGV->copy());
 
       var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
       if (var)
@@ -414,7 +425,7 @@ public:
 
       assert(thread_count > 0);
       if (!--thread_count && thread_waiting)
-	 pcond.broadcast();
+         pcond.broadcast();
    }
 
    // called from the new thread once the thread has been started (after preregisterNewThread())
@@ -478,7 +489,7 @@ public:
 
       assert(thread_count > 0);
       if (!--thread_count && thread_waiting)
-	 pcond.broadcast();
+         pcond.broadcast();
    }
 
    DLLLOCAL int lockParsing(ExceptionSink* xsink) {
@@ -486,7 +497,7 @@ public:
       AutoLocker al(plock);
 
       bool curr = (pgm == getProgram());
-      if (parse_count && !curr) {
+      if (!curr) {
          while (parse_count) {
             ++thread_waiting;
             pcond.wait(plock);
@@ -512,6 +523,7 @@ public:
          pcond.broadcast();
    }
 
+   // called only with plock held
    DLLLOCAL void waitForAllThreadsToTerminateIntern() {
       int tid = gettid();
 
@@ -569,23 +581,23 @@ public:
 
    DLLLOCAL void setScriptPath(const char* path) {
       if (!path) {
-	 script_dir.clear();
-	 script_path.clear();
-	 script_name.clear();
+         script_dir.clear();
+         script_path.clear();
+         script_name.clear();
       }
       else {
-	 // find file name
-	 const char* p = q_basenameptr(path);
-	 if (p == path) {
-	    script_name = path;
-	    script_dir = "." QORE_DIR_SEP_STR;
-	    script_path = script_dir + script_name;
-	 }
-	 else {
-	    script_path = path;
-	    script_name = p;
-	    script_dir.assign(path, p - path);
-	 }
+         // find file name
+         const char* p = q_basenameptr(path);
+         if (p == path) {
+            script_name = path;
+            script_dir = "." QORE_DIR_SEP_STR;
+            script_path = script_dir + script_name;
+         }
+         else {
+            script_path = path;
+            script_name = p;
+            script_dir.assign(path, p - path);
+         }
       }
    }
 
@@ -600,10 +612,10 @@ public:
       QoreListNode* l = new QoreListNode;
 
       for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-	 l->push(new QoreStringNode(*i));
+         l->push(new QoreStringNode(*i));
 
       for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
-	 l->push(new QoreStringNode(*i));
+         l->push(new QoreStringNode(*i));
 
       return l;
    }
@@ -724,8 +736,8 @@ public:
       // try to get one character from file
       int c = fgetc(fp);
       if (feof(fp)) {
-	 printd(5, "QoreProgram::parse(fp: %p, name: %s) EOF\n", fp, name);
-	 return;
+         printd(5, "QoreProgram::parse(fp: %p, name: %s) EOF\n", fp, name);
+         return;
       }
       // push back read character
       ungetc(c, fp);
@@ -739,29 +751,29 @@ public:
 
          startParsing(xsink, wS, wm);
 
-	 // save this file name for storage in the parse tree and deletion
-	 // when the QoreProgram object is deleted
-	 char* sname = strdup(name);
-	 addFile(sname);
+         // save this file name for storage in the parse tree and deletion
+         // when the QoreProgram object is deleted
+         char* sname = strdup(name);
+         addFile(sname);
 
-	 QoreParseLocationHelper qplh(sname, 0, 0);
+         QoreParseLocationHelper qplh(sname, 0, 0);
 
-	 beginParsing(sname);
+         beginParsing(sname);
 
-	 //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
-	 yylex_init(&lexer);
-	 yyset_in(fp, lexer);
-	 // yyparse() will call endParsing() and restore old pgm position
-	 yyparse(lexer);
+         //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
+         yylex_init(&lexer);
+         yyset_in(fp, lexer);
+         // yyparse() will call endParsing() and restore old pgm position
+         yyparse(lexer);
 
-	 // finalize parsing, back out or commit all changes
-	 internParseCommit();
+         // finalize parsing, back out or commit all changes
+         internParseCommit();
 
 #ifdef DEBUG
-	 parseSink = 0;
+         parseSink = 0;
 #endif
-	 warnSink = 0;
-	 // release program-level parse lock
+         warnSink = 0;
+         // release program-level parse lock
       }
 
       yylex_destroy(lexer);
@@ -772,17 +784,17 @@ public:
    DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
       assert(xsink);
       if (!str->strlen())
-	 return;
+         return;
 
       // ensure code string has correct character set encoding
       TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
       if (*xsink)
-	 return;
+         return;
 
       // ensure label string has correct character set encoding
       TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
       if (*xsink)
-	 return;
+         return;
 
       TempEncodingHelper src;
       if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
@@ -805,7 +817,7 @@ public:
 
       // parse text given
       if (!internParsePending(code, label, orig_src, offset))
-	 internParseCommit();   // finalize parsing, back out or commit all changes
+         internParseCommit();   // finalize parsing, back out or commit all changes
 
 #ifdef DEBUG
       parseSink = 0;
@@ -820,10 +832,10 @@ public:
 
       FILE *fp;
       if (!(fp = fopen(filename, "r"))) {
-	 if ((only_first_except && !exceptions_raised) || !only_first_except)
-	    xsink->raiseErrnoException("PARSE-EXCEPTION", errno, "cannot open qore script '%s'", filename);
-	 exceptions_raised++;
-	 return;
+         if ((only_first_except && !exceptions_raised) || !only_first_except)
+            xsink->raiseErrnoException("PARSE-EXCEPTION", errno, "cannot open qore script '%s'", filename);
+         exceptions_raised++;
+         return;
       }
       ON_BLOCK_EXIT(fclose, fp);
 
@@ -843,12 +855,12 @@ public:
       // ensure code string has correct character set encoding
       TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
       if (*xsink)
-	 return;
+         return;
 
       // ensure label string has correct character set encoding
       TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
       if (*xsink)
-	 return;
+         return;
 
       TempEncodingHelper src;
       if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
@@ -1005,8 +1017,8 @@ public:
 
    DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = 0, bool inject = false) {
       if (this == p) {
-	 xsink->raiseException("FUNCTION-IMPORT-ERROR", "cannot import a function from the same Program object");
-	 return;
+         xsink->raiseException("FUNCTION-IMPORT-ERROR", "cannot import a function from the same Program object");
+         return;
       }
 
       if (inject && !(p->pwo.parse_options & PO_ALLOW_INJECTION)) {
@@ -1021,14 +1033,14 @@ public:
          ProgramRuntimeParseAccessHelper rah(xsink, pgm);
          if (*xsink)
             return;
-	 u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ns);
+         u = qore_root_ns_private::runtimeFindFunction(*RootNS, name, ns);
       }
 
       if (!u)
-	 xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
+         xsink->raiseException("PROGRAM-IMPORTFUNCTION-NO-FUNCTION", "function '%s' does not exist in the current program scope", name);
       else {
          assert(ns);
-	 p->importFunction(xsink, const_cast<QoreFunction*>(u), *ns, new_name, inject);
+         p->importFunction(xsink, const_cast<QoreFunction*>(u), *ns, new_name, inject);
       }
    }
 
@@ -1412,10 +1424,12 @@ public:
    DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctionsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemHashDeclsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
 
    DLLLOCAL void runtimeImportSystemClasses(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemConstants(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemFunctions(ExceptionSink* xsink);
+   DLLLOCAL void runtimeImportSystemHashDecls(ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemApi(ExceptionSink* xsink);
 
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
@@ -1439,6 +1453,11 @@ public:
    }
 
    DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
+
+   DLLLOCAL const QoreTypeInfo* getComplexHashType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexListType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexListOrNothingType(const QoreTypeInfo* vti);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
@@ -1476,6 +1495,10 @@ public:
 
    DLLLOCAL static void runtimeImportSystemClasses(QoreProgram& pgm, ExceptionSink* xsink) {
       pgm.priv->runtimeImportSystemClasses(xsink);
+   }
+
+   DLLLOCAL static void runtimeImportSystemHashDecls(QoreProgram& pgm, ExceptionSink* xsink) {
+      pgm.priv->runtimeImportSystemHashDecls(xsink);
    }
 
    DLLLOCAL static void runtimeImportSystemConstants(QoreProgram& pgm, ExceptionSink* xsink) {
@@ -1757,7 +1780,7 @@ public:
    }
    DLLLOCAL ~ParseWarnHelper() {
       if (restore)
-	 qore_program_private::setParseWarnOptions(getProgram(), *this);
+         qore_program_private::setParseWarnOptions(getProgram(), *this);
    }
 };
 

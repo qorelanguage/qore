@@ -73,9 +73,15 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             returnTypeInfo = nothingTypeInfo;
          }
       }
+      if (!returnTypeInfo) {
+         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
+         if (ti)
+             returnTypeInfo = ti;
+      }
    }
 
    // see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
+/*
    if (QoreTypeInfo::hasType(rti)
        && !QoreTypeInfo::parseAccepts(bigIntTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(floatTypeInfo, rti)
@@ -83,6 +89,8 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
        && !QoreTypeInfo::parseAccepts(boolTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(stringTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(dateTypeInfo, rti)) {
+         */
+    if (!QoreTypeInfo::canConvertToScalar(rti)) {
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");

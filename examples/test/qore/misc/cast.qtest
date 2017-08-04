@@ -27,8 +27,9 @@ class CastingTest inherits QUnit::Test {
     testCasting() {
         Child c();
 
-        code func = sub() { Base b = cast<Base>(c); remove b; };
-
-        testAssertion("neg-cast-1", func, NOTHING, new TestResultExceptionType("RUNTIME-CAST-ERROR"));
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() {code func = sub() { Base b = cast<Base>(c); remove b; };}", ""));
+        }
     }
 }

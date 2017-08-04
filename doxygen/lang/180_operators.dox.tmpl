@@ -14,7 +14,7 @@
     |@ref post_increment_operator "++"|\c 2|@ref post_increment_operator "post-increment operator"|@code{.py} a++@endcode
     |@ref pre_decrement_operator "--"|\c 2|@ref pre_decrement_operator "pre-decrement operator"|@code{.py} --a@endcode
     |@ref post_decrement_operator "--"|\c 2|@ref post_decrement_operator "post-decrement operator"|@code{.py} a--@endcode
-    |@ref new "new"|\c 3|@ref new "class instantiation/new object operator"|@code{.py} new Socket()@endcode
+    |@ref new "new"|\c 3|@ref new "value instantiation/new operator"|@code{.py} new Socket()@endcode
     |@ref background "background"|\c 3|@ref background "background/thread creation operator"|@code{.py} background mainThread()@endcode
     |@ref delete "delete"|\c 3|@ref delete "delete operator"|@code{.py} delete var@endcode
     |@ref remove "remove"|\c 3|@ref remove "remove operator"|@code{.py} remove var@endcode
@@ -37,7 +37,7 @@
     |@ref shift_right_operator ">>"|\c 12|@ref shift_right_operator "bitwise shift right operator"|@code{.py} 0xff00 >> 8@endcode
     |@ref shift_left_operator "<<"|\c 12|@ref shift_left_operator "bitwise shift left operator"|@code{.py} 0xff00 << 8@endcode
     |@ref exists "exists"|\c 13|@ref exists "exists value operator"|@code{.py} exists var@endcode
-    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof class operator"|@code{.py} instanceof Qore::Mutex@endcode
+    |@ref instanceof "instanceof"|\c 13|@ref instanceof "instanceof operator"|@code{.py} instanceof Qore::Mutex@endcode
     |@ref logical_less_than_operator "<"|\c 14|@ref logical_less_than_operator "Logical less than operator"|@code{.py} a < 10@endcode
     |@ref logical_greater_than_operator ">"|\c 14|@ref logical_greater_than_operator "Logical greater than operator"|@code{.py} a > 10@endcode
     |@ref logical_equality_operator "=="|\c 14|@ref logical_equality_operator "Logical equality operator"|@code{.py} a == 10@endcode
@@ -319,31 +319,54 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection new New Object Operator (new)
+    @subsection new New Value Operator (new)
 
     @par Sandbox Restrictions
     @ref Qore::PO_NO_NEW
 
     @par Synopsis
-    Creates an instance of a class by running the class' constructor on the new class (if any exists) and returns the new object.\n\n
-    Note that if possible it is normally better to declare an object with its type and use the abbreviated form to construct the object as follows:\n
-    @code{.py} Mutex m();@endcode
-    This provides type information to the parser which allows more errors to be caught at parse time (instead of at run time), and furthermore allows %Qore to improve performance by performing more work once at parse time rather than for every time the object is accessed at run time (for example, method and variant resolution), and normally requires less typing.
+    This operator instantiates values according to the type and any argument(s) given.
 
     @par Syntax
-    <tt><b>new</b></tt> <em>class_identifier</em><tt>(</tt><em>constructor_args ...</em><tt>)</tt>
+    - <tt><b>new</b></tt> <em>@ref qore_classes "class_identifier"</em><tt>(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>
+    - <tt><b>new</b></tt> <tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>list_initializer_args, ...</em>]<tt>)</tt>
 
     @par Return Type
-    an object of the specific class given
+    - If the type given is a @ref qore_classes "class name" or complex object type with a class name, then this operator returns an object of the specific class given
+    - If the type given is a @ref hash_hashdecl_type "hashdecl hash type", then this operator returns a type-safe hash of the given type.
+    - If the type given is a @ref hash_complex_type "complex hash type", then this operator returns a hash with type-safe key values of the given type.
+    - If the type given is a @ref list_complex_type "complex list type", then this operator returns a list with type-safe element values of the given type.
 
-    @par Example
-    @code{.py} Mutex obj = new Qore::Mutex();@endcode
+    @par Examples
+    @code{.py}
+# create an object
+Mutex obj = new Qore::Mutex();
+
+# instantiate a new type-safe hash
+hash<MyHash> h1 = new hash<MyHash>();
+
+# instantiate a new hash with type-safe key values
+hash<string, int> h2 = new hash<string, int>(("string": 2));
+
+# instantiate a new list with type-safe element values
+list<int> l1 = new list<int>(2);
+    @endcode
 
     <b>Arguments Processed by new</b>
     |!Argument|!Processing
-    |\a class_identifier|The class_identifier must be an existing class name; if so, the operator instantiates an object of this class, executes the constructor for the class (if any exists, along with any base class constructors, if applicable) on the new object, and returns the object (for constructor execution order in an inherited class, see @ref inheritance). If an exception is thrown in the constructor, the object is deleted immediately.
+    |<em>@ref qore_classes "class_identifier"</em><tt>(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>|The \a class_identifier must be an existing class name or a namespace-prefixed path to an existing class; if so, the operator instantiates an object of this class, executes the constructor for the class (if any exists, along with any base class constructors, if applicable) on the new object, and returns the object (for constructor execution order in an inherited class, see @ref inheritance). If an exception is thrown in the constructor, the object is deleted immediately.
+    |<tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt>[<em>constructor_args, ...</em>]<tt>)</tt>|same as above
+    |<tt>@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>|The \a hashdecl_identifier must be an existing declared type-safe hash name or a namespace-prefixed path to an existing type-safe hash; if so, the operator instantiates a hash of this type (see @ref hashdecl_creation for more info).
+    |<tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>hash_initializer_arg</em>]<tt>)</tt>|A value of the declared hash with type-safe key values is instantiated and returned
+    |<tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "type"</em><tt>&gt;(</tt>[<em>list_initializer_args, ...</em>]<tt>)</tt>|A value of the declared list with type-safe key values is instantiated and returned
 
-    @note See class documentation for possible exceptions
+    @note
+    - When instantiating a class, see the class's documentation for possible exceptions
+
+    @see @ref variable_implicit_construction for a more concise way to declare and initialize variables.
 
     <hr>
     @subsection background Background Operator (background)
@@ -431,23 +454,66 @@ hash nh = remove h.("a", "b", "c");
     @subsection cast Cast Operator (cast<>())
 
     @par Synopsis
-    The cast<>() operator provides a way to tell the parser that the type of object is not actually the declared type but rather a subclass as given between the angle brackets.
+    The cast<>() operator provides a way to tell the parser that the type value is not actually the declared type but rather another compatible type as given between the angle brackets.  Parse-time and runtime checks are performed for compatibility.  Casts to @ref hashdecl "hashdecl" types, to the @ref hash_type "hash", and to the @ref list_type "list" types can result in data conversions; see below for more information.
 
     @par Syntax
-    <tt><b>cast</b></tt>\<<em>class_identifier</em><tt>\>(</tt><em>object_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt><em>object_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;&gt;(</tt><em>object_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
 
     @par Return Type
-    the specific class given
+    - If a @ref qore_classes "class name" is given as the target type, then this operator returns an object of the specific class given at runtime.
+    - If @ref object_type "object" is given as the target type, the runtime type must be a valid object or a runtime exception will be raised; no conversion is performed on the object.
+    - If a @ref hashdecl "type-safe hash" type is given as the target type, then this operator returns a hash of the given type
+    at runtime; in this case the hash also undergoes conversion and initialization to the specified type; see
+    @ref hashdecl_creation for more information.
+    - If a complex type is given as the target type, then this operator will convert the expression's value to the declared type
+    at runtime if possible.
+    - If @ref hash_type "hash" is given as the target type, the runtime type must be a valid hash or a runtime exception will be raised, additionally, any type-safe information is removed and an untyped hash is returned
+    - If @ref list_type "list" is given as the target type, the runtime type must be a valid list or a runtime exception will be raised, additionally, any type-safe information is removed and an untyped list is returned
 
-    @par Example
-    @code{.py} cast<SubClass>(obj).method();@endcode
+    @par Data Conversions with <tt>cast<>(...)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>: performs initialization of @ref hashdecl "hashdecl" keys with initializer expressions for keys not present in the output evaluated hash expression
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>: removes any type-safe information from the output evaluated hash expression
+    - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>: removes any type-safe information from the output evaluated list expression
 
-    <b>Arguments Processed by cast<>()</b>
+    @par Examples
+    @code{.py}
+# simple class cast
+cast<SubClass>(obj).method();
+
+# cast with complex object type (class cast)
+cast<object<SubClass>>(obj).method();
+
+# cast to object; ensures a valid object at runtime
+cast<object>(obj);
+
+# hashdecl cast with type conversion
+hash<MyType1> h = cast<hash<MyType1>>(h2);
+
+# complex hash cast
+hash<string, MyClass>h = cast<hash<string, MyClass>(get_untyped_hash());
+
+# removes key type information from a type-safe hash
+any h = cast<hash>(new hash<MyHashdecl>());
+
+# removes element type information from a type-safe list
+any l = cast<list>(new list<int>(1));
+    @endcode
+
+    <b>Target Type Argument Processed by cast<>()</b>
     |!Argument|!Processing
-    |\a class_identifier|This must be a literal unquoted string giving a class name or a namespace-qualified path to a class (ex: \c Namespace::MyClass)
-    |\a object_expression|This must be an expression that evaluates to an object that can be cast to the given class; this is mostly useful at parse time to avoid @ref non-existent-method-call "non-existent-method-call warnings"
+    |<em>@ref qore_classes "class_identifier"</em>|This must be a literal unquoted string giving a class name or a namespace-qualified path to a class (ex: \c Namespace::MyClass); a runtime check for compatibility with the target class is performed on the evaluated expression
+    |<tt>@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;</tt>|this is equivalent to <em>@ref qore_classes "class_identifier"</em> alone; a runtime check for compatibility with the target class is performed on the evaluated expression
+    |<em>@ref hashdecl "hashdecl_identifier"</em>|This must be a literal unquoted string giving a @ref hashdecl "type-safe hash" name or a namespace-qualified path to a type-safe hash (ex: \c Namespace::MyHash); a runtime check for compatibility with the target @ref hashdecl "hashdecl" is performed on the evaluated expression; any keys missing from the expression that have default initializer expressions in the @ref hashdecl "hashdecl" are initialized accordingly
+    |<tt>@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;</tt>|The second type in the type parameter list gives the hash key value type; runtime type compatibility checks are performed but no conversions are made; a runtime exception will be thrown if the evaluated expression does not correspond to the declared type
+    |<tt>@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;</tt>|The single type in the type parameter list gives the list element value type; runtime type compatibility checks are performed but no conversions are made; a runtime exception will be thrown if the evaluated expression does not correspond to the declared type
 
-    @throw RUNTIME-CAST-ERROR The expression given does not evaluate to an object that can be cast to the given class
+    @throw RUNTIME-CAST-ERROR The expression given does not evaluate to a value that can be converted to the given type
 
     <hr>
     @subsection logical_negation_operator Logical Not Operator (!)
@@ -1042,13 +1108,13 @@ foreach string key in (keys hash)
     This operator does not throw any exceptions.
 
     <hr>
-    @subsection instanceof Class Instance Operator (instanceof)
+    @subsection instanceof Operator (instanceof)
 
     @par Synopsis
-    Tests if an expression is an instance of a given class or not.
+    Tests if an expression is an instance of the given type or not, meaning that the type can accept the value.
 
     @par Syntax
-    \a expression <tt><b>instanceof</b></tt> \a class_identifier
+    \a expression <tt><b>instanceof</b></tt> \a type_identifier
 
     @par Return Type
     @ref bool_type "bool"
@@ -1061,7 +1127,7 @@ if (obj instanceof Qore::Mutex)
 
     <b>Arguments Processed by instanceof</b>
     |!Argument|!Processing
-    |\a expression|If expression is an instance of the named class, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False". The operator will return @ref Qore::True "True" if the class is a base class, also even if it is privately inherited.
+    |\a expression|If expression is an instance of the named type, which is defined as the type is able to accept the value, then the operator returns @ref Qore::True "True", otherwise returns @ref Qore::False "False".
 
     This operator does not throw any exceptions.
 

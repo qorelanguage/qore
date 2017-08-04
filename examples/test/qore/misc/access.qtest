@@ -479,12 +479,20 @@ class TestInheritB {
         assertEq(2.0, c1.pubtest(1.0));
         assertEq(2.0, call_object_method(c1, "pubtest", 1.0));
 
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("Base sub () {PrivChild c2(); return cast<Base>(c2);}", ""));
+        }
+
         PrivChild c2();
-        assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c2);});
         assertEq(c2, c2.test());
 
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("Base sub () {IntChild c3(); return cast<Base>(c3);}", ""));
+        }
+
         IntChild c3();
-        assertThrows("RUNTIME-CAST-ERROR", Base sub () {return cast<Base>(c3);});
         assertEq(c3, c3.test());
         assertEq(1, c3.getInt());
         assertEq(1, c3.getCode()());

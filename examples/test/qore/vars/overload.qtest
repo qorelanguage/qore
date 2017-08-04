@@ -11,6 +11,10 @@
 
 %exec-class OverloadTest
 
+hashdecl MyHash {
+    int x = 1;
+}
+
 string sub f1_test(string x) {
     return type(x);
 }
@@ -74,6 +78,18 @@ int sub f6(int i, *string s1) {
 
 int sub f6(int i) {
     return 1;
+}
+
+int sub f7(hash h) {
+    return 1;
+}
+
+int sub f7(hash<string, int> h) {
+    return 2;
+}
+
+int sub f7(hash<MyHash> h) {
+    return 3;
 }
 
 public class OverloadTest inherits QUnit::Test {
@@ -158,6 +174,11 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(4, f6(1, a, a, {}));
         assertEq(4, f6(1, NOTHING, NOTHING, NOTHING));
         assertEq(4, f6(1, a, a, a));
+        # check overload resolution with complex types
+        assertEq(1, f7({}));
+        assertEq(2, f7(("a": 1)));
+        assertEq(2, f7(cast<hash<string, int>>(("a": 1))));
+        assertEq(3, f7(new hash<MyHash>()));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));
