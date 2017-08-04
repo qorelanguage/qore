@@ -11,15 +11,50 @@
 
 %exec-class DebugWrapper
 
+class DebugCommandLineLocal inherits DebugCommandLine {
+	public {
+		DebugProgramControl dpc;
+	}
+	constructor (DebugProgramControl n_dpc): DebugCommandLine() {
+	    dpc = n_dpc;
+		dpc.dcl = self;
+	}
+	public nothing doCommandImpl(hash data) {
+		dpc.processCommand(dpc.cx, data);
+	}
+}
+
+class DebugProgramControlLocal inherits DebugProgramControl {
+	public {
+		DebugCommandLine dcl;
+	}
+	const cx = ('id': 1);
+	constructor () {
+		registerConnection(cx);
+	}
+	destructor() {
+		unregisterConnection(cx);
+	}
+    public nothing sendDataImpl(hash cx, any data) {    # TODO: nothing needed. why? I cannot reproduce in simple case to report issue
+		dcl.printData(data);
+	}
+    public nothing broadcastDataImpl(any data) {
+		dcl.printData(data);
+	}
+	public log(int verbosity, string fmt) {
+		dcl.log(verbosity, fmt);
+	}
+}
+
 class DebugWrapper {
 	private {
         hash opts = (
     		'help': 'h,help',
-	    	'verbose': 'v,verbose',
+	    	'verbose': 'v,verbose:+',
 			'run': 'r,run',
             'listen': 'l,listen=s@',
         );
-		DebugProgramHelper dph;
+		DebugCommandLineLocal dcl;
 	}
 
 	constructor() {
@@ -47,21 +82,21 @@ class DebugWrapper {
 		if (opt.help) {
 			help();
 		}
-		dph = new DebugProgramHelper();
+		dcl = new DebugCommandLineLocal(new DebugProgramControlLocal());
         if (opt.verbose) {
-            dph.verbose = True;
+            dcl.verbose = opt.verbose;
         }
 printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 #exit(1);
         try {
 			if (exists fileName) {
-				dph.createProgram(fileName, ARGV);
-				dph.info("run program");
-				background dph.pgm.run();
+				Program pgm = dcl.dpc.createProgram(fileName, ARGV);
+				dcl.log(DUV_INFO, "run program");
+				background pgm.run();
 				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
 			}
 
-			dph.runCmdLine();
+			dcl.runCmdLine();
 
         } catch (hash e) {
             stderr.printf("%s: %s\n", e.err, e.desc);

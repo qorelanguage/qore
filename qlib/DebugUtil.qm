@@ -30,8 +30,10 @@
 %enable-all-warnings
 %new-style
 
+#TODO: class DebugLogger
+
 module DebugUtil {
-    version = "0.1";
+    version = "1.0";
     desc = "user module providing common debug stuff";
     author = "Tomas Mandys <tomas.mandys@qore.org>";
     url = "http://qore.org";
@@ -46,7 +48,7 @@ module DebugUtil {
 
     The %DebugUtil module provides common functionality for implementing debugger utilities (client, server, ...)
 
-    @subsection du_v01 v0.1
+    @subsection du_v10 v1.0
     - the initial version of the DebugUtil module
 */
 
@@ -133,11 +135,13 @@ public namespace DebugUtil {
         }
     }
 
-    public class DebugProgramHelper {
+
+    public const DUV_INFO = 1;
+    public const DUV_DEBUG = 2;
+
+    public class DebugCommandLine {
         public {
-            DebugProgram dpgm;
-            Program pgm;
-            bool verbose = False;
+            int verbose = DUV_INFO;
             string ln_prompt = 'qdbg> ';
         }
 
@@ -147,31 +151,31 @@ public namespace DebugUtil {
                     'help': (
                         '**': (
                             'desc': 'help/*',
-                            'enum': list sub(DebugProgramHelper dph, softlist path, softlist args) {
+                            'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 shift path;
                                 if (path[0] == 'help') return ();
 #                            printf("--152>%y, %y\r\n", path, args);
-                                *hash cmd = dph.findCmd(path + args, True);
+                                *hash cmd = dcl.findCmd(path + args, True);
 #            printf("%N\r\n", cmd);
                                 if (!cmd.variants) return ();
                                 return keys cmd.variants;
                             },
-                            'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 shift path; # remove help arg
-                                *hash cmd = dph.findCmd(path + args, True);
+                                *hash cmd = dcl.findCmd(path + args, True);
                                 if (cmd.cmd) {
                                     printf("%s: %s\n", (path+args).join(' '), cmd.cmd.desc);
                                 }
-                                cmd = dph.findCmd(path + args + (''), True);
+                                cmd = dcl.findCmd(path + args + (''), True);
                                 if (cmd.variants.typeCode()==NT_HASH) {
                                     printf("\nSubcommand list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
                                 }
                             },
                         ),
                         'desc': 'get help about command',
-                        'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             shift path; # remove help arg
-                            *hash cmd = dph.findCmd(list('') , True);
+                            *hash cmd = dcl.findCmd(list('') , True);
                             printf("Command root list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
                         },
                     ),
@@ -179,20 +183,20 @@ public namespace DebugUtil {
                         '>': (
                             'load': (
                                 'desc': 'load history from file',
-                                'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dph.info("load history: %y", fn);
+                                        dcl.log(DUV_INFO, sprintf("load history: %y", fn));
                                         Linenoise::history_load(fn);
                                     }
                                 },
                             ),
                             'save': (
                                 'desc': 'save history to file',
-                                'action': sub(DebugProgramHelper dph, softlist path, softlist args) {
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dph.info("save history: %y", fn);
+                                        dcl.log(DUV_INFO, sprintf("save history: %y", fn));
                                         Linenoise::history_save(fn);
                                     }
                                 },
@@ -203,8 +207,18 @@ public namespace DebugUtil {
                     ),
                     'quit': (
                         'desc': 'quit debugger',
-                        'action': bool sub(DebugProgramHelper dph, softlist path, softlist args) {
+                        'action': bool sub(DebugCommandLine dcl, softlist path, softlist args) {
                             return True;
+                        },
+                    ),
+
+                    'load': (
+                        'desc': 'load and run script, filename [args..]',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'program/create';
+                            data.filename = shift args;
+                            data.args = args;
+                            dcl.doCommandImpl(data);
                         },
                     ),
                 ),
@@ -213,38 +227,10 @@ public namespace DebugUtil {
         }
 
         constructor() {
-            dpgm = new DebugProgram();
         }
 
-        public createProgram(*string fileName, list args) {
-            log("create program: %y", fileName);
-			pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
-			# restore default options
-			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
-			# update arguments without debug options
-			pgm.setGlobalVarValue('ARGV', ARGV);
-			pgm.define('Q_DEBUGGING', 1);
-            log("add program");
-			dpgm.addProgram(pgm);
-
-			string s;
-s = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
-			if (fileName == '') {
-				pgm.setScriptPath('<stdin>');
-				info("read stdin");
-				s = stdin.read(-1, 0);
-				info("%s", s);
-			} else {
-				pgm.setScriptPath(fileName);
-				info("read file: %y", fileName);
-				s = ReadOnlyFile::readTextFile(fileName);
-			}
-			info("parse code");
-			*hash wh = pgm.parse(s, "debug", WARN_DEFAULT);
-			if (wh) {
-				log("warning: %N", wh);
-			}
-        }
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugControlProgram)
+        abstract public doCommandImpl(hash data);
 
         private list splitCmd(string line) {
             list ret = ();
@@ -368,7 +354,7 @@ s = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
         }
 
         private list ln_callback(string line) {
-            list args = splitCmd(line); 
+            list args = splitCmd(line);
             if (line =~ / $/ || line == '') {
                 args += '';
             } else {
@@ -431,14 +417,633 @@ Linenoise::history_add('history load filename');
 
         }
 
-	    public log(string fmt) {
-	        stdout.vprintf(fmt+"\n", argv);
+	    public log(int verbosity, string fmt) {
+            if (verbose >= verbosity)
+    	        stdout.print(fmt+"\n");
         }
 
-	    public info(string fmt) {
-    		if (verbose) {
-	    	    stdout.vprintf(fmt+"\n", argv);
-		    }
+        public printData(any data) {
+            stdout.printf("%y\n", data);
+        }
+
+    }
+
+    #! Class to implement @ref DebugProgram control using commands
+    public class DebugProgramControl inherits DebugProgram {
+        private {
+            #!data pool related to suspended thread, key is threadId
+            hash ctxThread;
+            #! data pool for data related to cx.id
+            hash ctxConnection;
+            #! lock for @ref ctxThread access
+            Qore::Thread::RWLock rwlThread();
+            #! lock for @ref ctxConnection access
+            Qore::Thread::RWLock rwlConnection();
+
+            const runStateStrings = ('detach': DebugDetach, 'run': DebugRun, 'step': DebugStep, 'stepover': DebugStepOver, 'untilreturn': DebugUntilReturn);
+            const retCodeStrings = ('return': DebugBlockReturn, 'break': DebugBlockBreak, 'continue': DebugBlockContinue);
+            const boolStrings = ('false': False, 'true': True);
+            const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
+
+            const frameOffset = 2;
+        }
+        constructor() : DebugProgram() {
+        }
+
+        #! register context for new connection
+        public registerConnection(hash cx) {
+            rwlConnection.writeLock();
+            on_exit rwlConnection.writeUnlock();
+            ctxConnection{cx.id} = ();
+        }
+
+        public unregisterConnection(hash cx) {
+            rwlConnection.writeLock();
+            on_exit rwlConnection.writeUnlock();
+            delete ctxConnection{cx.id};
+            # if (!ctxConnection)  run stopped programs ?
+        }
+
+        private updateConnectionContext(hash cx, any cx_data) {
+        }
+
+        #! send data to particular client
+        abstract public sendDataImpl(hash cx, any data);
+        #! send data to all clients
+        abstract public broadcastDataImpl(any data);
+
+        #! implement logging
+        /**
+          @param verbosity use DPC_xxx constants
+        */
+	    public log(int verbosity, string fmt) {}
+
+        #! Create new program
+        public Program createProgram(string fileName, list args, *string script) {
+            log(DUV_DEBUG, sprintf("create program: %y", fileName));
+			Program pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
+			# restore default options
+			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
+			# update arguments without debug options
+			pgm.setGlobalVarValue('ARGV', args);
+			pgm.define('Q_DEBUGGING', 1);
+            log(DUV_DEBUG, "add program");
+			addProgram(pgm);
+
+script = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
+            if ((script ?? '') == '') {
+                if (fileName == '/dev/stdin') {  # is exception needed ??
+                    log(DUV_DEBUG, "read stdin");
+                    script = stdin.read(-1, 0);
+                    log(DUV_DEBUG, sprintf("%s", script));
+                } else {
+                    log(DUV_DEBUG, sprintf("read file: %y", fileName));
+                    script = ReadOnlyFile::readTextFile(fileName);
+                }
+            }
+			pgm.setScriptPath(fileName);
+			log(DUV_DEBUG, "parse code");
+			*hash wh = pgm.parse(script, "debug", WARN_DEFAULT);
+			if (wh) {
+				log(DUV_INFO, sprintf("warning: %N", wh));
+			}
+            return pgm;
+        }
+
+        #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
+        public processCommand(hash cx, hash receiveData) {
+            hash sendData;
+            any result;
+            try {
+                list cmd = receiveData.cmd.split('/');
+
+                switch (shift cmd) {
+                case 'help':
+                    result = list('TODO: help text');
+                    break;
+
+                case 'program':
+                    Program pgm;
+                    switch (cmd[0]) {
+                    case 'list':
+                    case 'create':
+                        break;
+                    default:
+                        pgm = Program::resolveProgramId(shift cmd);
+                    }
+                    switch (shift cmd) {
+                    case 'stop':
+                        # no locking
+                        breakProgram(pgm);
+                        result = 'ok';
+                        break;
+
+                    case 'thread':
+                        softint tid = shift cmd;
+                        switch (shift cmd) {
+                        case 'stop':
+                            breakProgramThread(pgm, tid);
+                            result = 'ok';
+                            break;
+                        }
+                        break;
+
+                    case 'list':
+                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), Program::getAllPrograms();
+                        map result{$1.getProgramId()}.debug = True, getAllPrograms();
+                        {
+                            rwlThread.readLock();
+                            on_exit rwlThread.readUnlock();
+                            foreach int tid in (keys ctxThread) {
+                                if (exists ctxThread{tid}.pgmId) {
+                                    result{ctxThread{tid}.pgmId}.interrupted += list(tid);
+                                }
+                            }
+                        }
+                        break;
+                    case 'create':
+                        pgm = createProgram(receiveData.filename, receiveData.args);
+                        break;
+                    case 'add':
+                        addProgram(pgm);
+                        result = 'ok';
+                        break;
+
+                    case 'remove':
+                        removeProgram(pgm);
+                        result = 'ok';
+                        break;
+
+                    case 'var':
+                        string name = shift cmd;
+                        switch (shift cmd) {
+                        case 'set':
+                            pgm.setGlobalVarValue(name, receiveData.value);
+                            result = 'ok';
+                            break;
+
+                        case 'get':
+                            bool existF;
+                            any v = pgm.getGlobalVariable(name, \existF);
+                            if (existF) {
+                                result = v;
+                            }
+                            break;
+                        }
+                        break;
+
+                    case 'breakpoint':
+                        Breakpoint b;
+                        switch (cmd[0]) {
+                        case 'list':
+                            break;
+                        case 'create':
+                            b = new Breakpoint();
+                            break;
+                        default:
+                            b = resolveBreakpoint(pgm, shift cmd);
+                            break;
+                        }
+                        switch (shift cmd) {
+                        case 'list':
+                            list bkpts = pgm.getBreakpoints();
+                            result = ();
+                            foreach Breakpoint b2 in (bkpts) {
+                                push result, serializeBreakpoint(b2);
+                            }
+                            break;
+
+                        case 'create':
+                            b.assignProgram(pgm);
+                            result = serializeBreakpoint(b);
+                            break;
+
+                        case 'delete':
+                            # TODO: if (b.getProgram().getProgramId() != pgm.getProgramId()
+                            #  throw DEBUG-HANDLER-ERROR, "Program mismatch";
+                            b.unassignProgram();
+                            b.clearThreadIds();
+                            list sl = b.getStatementIds();
+                            foreach string s in (sl) {
+                                b.unassignStatement(s);
+                            }
+                            # delete b;   ??
+                            result = 'ok';
+                            break;
+
+                        case 'enable':
+                            b.setEnabled(True);
+                            result = 'ok';
+                            break;
+
+                        case 'disable':
+                            b.setEnabled(False);
+                            result = 'ok';
+                            break;
+
+                        case 'statement':
+                            switch (shift cmd) {
+                            case 'list':
+                                result = b.getStatementIds();
+                                break;
+
+                            case 'assign':
+                                b.assignStatement(shift cmd);
+                                result = 'ok';
+                                break;
+
+                            case 'unassign':
+                                b.unassignStatement(shift cmd);
+                                result = 'ok';
+                                break;
+                            }
+                            break;
+
+                        case 'thread':
+                            switch (shift cmd) {
+                            case 'add':
+                                b.addThreadId(receiveData.value);
+                                result = 'ok';
+                                break;
+                            case 'remove':
+                                b.removeThreadId(receiveData.value);
+                                result = 'ok';
+                                break;
+                            case 'get':
+                                result = b.getThreadIds();
+                                result = 'ok';
+                                break;
+                            case 'set':
+                                b.setThreadIds(list(receiveData.value));
+                                result = 'ok';
+                                break;
+                            }
+                            break;
+
+                        case 'policy':
+                            switch (shift cmd) {
+                            case 'get':
+                                result = b.getPolicy();
+                                break;
+                            case 'set':
+                                b.setPolicy(receiveData.value);
+                                result = 'ok';
+                                break;
+                            }
+                            break;
+                        }
+                        break;
+                    }
+                    break;
+
+                case 'thread':
+
+                default:
+                    if (exists receiveData.tid) {
+                        rwlThread.readLock();
+                        on_exit rwlThread.readUnlock();
+                        if (ctxThread{receiveData.tid}) {
+                            ctxThread{receiveData.tid}.queue.push(('cx': cx, 'data': receiveData));
+                        } else {
+                            throw "DEBUG-HANDLER-ERROR", sprintf("threadId %y is not stopped", receiveData.tid);
+                        }
+                    } else {
+                        throw "DEBUG-HANDLER-ERROR", sprintf("cannot process command %y", receiveData.cmd);
+                    }
+                }
+                if (result) {
+                    sendData.type = 'response';
+                }
+            } catch (hash ex) {
+                sendData.type = 'error';
+                result.err = ex.err;
+                result.desc = ex.desc;
+            }
+            if (sendData) {
+                sendData.uid = receiveData.uid;
+                sendData.cmd = receiveData.cmd;
+                if (exists receiveData.tid) {
+                    sendData.tid = receiveData.tid;
+                }
+                sendData.result = result;
+                sendDataImpl(cx, sendData);
+            }
+        }
+
+        private hash serializeBreakpoint(Breakpoint b) {
+
+        }
+
+        private Breakpoint resolveBreakpoint(Program pgm, string bkptId) {
+        }
+
+        private any resolveValue(string name, *string val, hash strings, any defVal) {
+            if (exists val) {
+                if (!exists strings{val}) {
+                    throw "DEBUG-HANDLER-ERROR", sprintf("%y value %y is not found in %y", name, val, keys strings);
+                }
+                return strings{val};
+            } else {
+                return defVal;
+            }
+        }
+
+        private string encodeValue(string name, any val, hash strings) {
+            foreach string k in (keys strings) {
+                if (strings{k} == val) {
+                    return k;
+                }
+            }
+            throw "DEBUG-HANDLER-ERROR", sprintf("Cannot encode %y value %y", name, val);
+        }
+
+        private *hash handleInterrupt(string func, Program pgm, reference runState, *string statementId, *string refName, *reference refValue, *hash except) {
+            # serialize data, send to all websockets, break/suspend thread
+            int tid = gettid();
+            hash ctx.queue = new Thread::Queue();
+            ctx.pgmId = pgm.getProgramId();
+            {
+                rwlThread.writeLock();
+                on_exit rwlThread.writeUnlock();
+             #   assert(!exists ctxThread{tid});
+                ctxThread{tid} = ctx;
+            }
+            hash sendData1 = (
+              'type': 'event',
+              'cmd': 'interrupt',
+              'tid': tid,
+              'func': func,
+              'runstate': runState,
+              'frame': 0,
+            );
+            if (exists statementId) {
+                hash location = pgm.getStatementIdInfo(statementId);
+                sendData1.file = location.file;
+                sendData1.line = location.start_line;
+            }
+            if (exists except) {
+                sendData1.exception = except;
+            }
+            if (exists refName) {
+                sendData1{refName} = refValue;
+            }
+            broadcastDataImpl(sendData1);
+
+            {
+                rwlConnection.writeLock();
+                on_exit rwlConnection.writeUnlock();
+                hash ctxCT;
+                # default values
+                ctxCT.runstate = runState;
+                ctxCT{refName} = refValue;
+                ctxCT.frameId = 0;
+                ctxConnection{ctx.id}.thread{tid} = ctxCT;
+            }
+
+            # wait to process command passed as marshalled call from websocket thread
+            bool ret = False;
+            while (!ret) {
+                hash response;
+                hash sd;
+                hash cx;
+                hash ctxCT;
+                any qrd = ctx.queue.get();
+                {
+                    rwlConnection.readLock();
+                    on_exit rwlConnection.readUnlock();
+                    ctxCT = ctxConnection{ctx.id}.thread{tid};
+                }
+                try {
+                    hash rd = qrd.data;
+                    cx = qrd.cx;
+                    list cmd = rd.cmd.split('/');
+                    shift cmd;  # remove thread
+                    switch (shift cmd) {
+                    case 'go':
+                        runState = ctxCT.runstate;
+                        if (exists refName) {
+                            refValue = ctxCT{refName};
+                        }
+                        ret = True;
+                        break;
+
+                    case 'local':
+                        switch (shift cmd) {
+                        case 'get':
+                            hash lv = get_local_vars(ctxCT.frameId + frameOffset);
+                            if (exists lv{rd.name}) {
+                                response.value = lv{rd.name};
+                            }
+                            break;
+                        case 'set':
+                            set_local_var_value(rd.name, rd.value);
+                            break;
+                        }
+                        break;
+
+                    case 'debug':
+                        switch (shift cmd) {
+                        case 'get':
+                            switch (shift cmd) {
+                            case 'runstate':
+                                ctxCT{rd.name} = resolveValue(rd.name, rd.value, runStateStrings, ctxCT{rd.name});
+                                break;
+
+                            case 'loop':
+                                if (rd.name == refName) {
+                                    ctxCT{rd.name} = resolveValue(rd.name, rd.value, retCodeStrings, ctxCT{rd.name});
+                                }
+                                break;
+
+                            case 'dismiss':
+                                if (rd.name == refName) {
+                                    ctxCT{rd.name} = resolveValue(rd.name, rd.value, boolStrings, ctxCT{rd.name});
+                                }
+                                break;
+
+                            case 'result':
+                                if (rd.name == refName) {
+                                    ctxCT{rd.name} = rd.value;
+                                }
+                                break;
+
+                            case 'frame':
+                                if (rd.value <= 0) {
+                                    ctxCT.frameId = 0;
+                                } else {
+                                    ctxCT.frameId = int(rd.value);
+                                }
+                                break;
+                            }
+                            break;
+                        }
+                        break;
+
+                    case 'get':
+                        switch (rd.type) {
+                        case 'local':
+                            hash lv = get_local_vars(ctxCT.frameId + frameOffset);
+                            if (exists lv{rd.name}) {
+                                response.value = lv{rd.name};
+                            }
+                            break;
+
+                        case 'global':
+                            bool existF;
+                            any v = pgm.getGlobalVariable(rd.name, existF);
+                            if (existF) {
+                                response.value = v;
+                            }
+                            break;
+
+                        case 'debug':
+                            switch (rd.name) {
+                            case 'runstate':
+                                response.value = encodeValue(rd.name, ctxCT{rd.name}, runStateStrings);
+                                break;
+
+                            case 'loop':
+                                if (rd.name == refName) {
+                                    response.value = encodeValue(rd.name, ctxCT{rd.name}, retCodeStrings);
+                                }
+                                break;
+
+                            case 'dismiss':
+                                if (rd.name == refName) {
+                                    response.value = encodeValue(rd.name, ctxCT{rd.name}, boolStrings);
+                                }
+                                break;
+
+                            case 'result':
+                                if (rd.name == refName) {
+                                    response.value = ctxCT{rd.name};
+                                }
+                                break;
+
+                            case 'frame':
+                                response.value = ctxCT.frameId;
+                                break;
+
+                            case 'program':
+                                response.value.programId = pgm.getProgramId();
+                                break;
+                            }
+                            break;
+                        }
+                        break;
+
+                    case 'list':
+                        switch (rd.name) {
+                        case 'programs':
+                        case 'breakpoint':
+                        case 'stack':
+                        }
+                        break;
+
+                    case 'stack':
+                        list stack = get_thread_call_stack();
+                        int i = frameOffset;
+                        while (i > 0) {
+                            shift stack;
+                            i--;
+                        }
+                        response.stack = stack;
+                        break;
+
+                    case 'breakpoint':
+
+                        break;
+                    }
+
+                } catch (hash ex) {
+                    sd = ('event': 'error', 'description': ex.description);
+                    sendDataImpl(cx, sd);
+
+                }
+                if (response) {
+                    sd = ('event': 'response');
+                    sd.event = 'response';
+                    sd.tid = tid;
+                    sd += response;
+                    try {
+                        sendDataImpl(cx, sd);
+                    } catch (hash ex) {
+                    }
+                }
+            }
+            {
+                rwlThread.writeLock();
+                on_exit rwlThread.writeUnlock();
+                remove ctxThread{tid};
+            }
+            # notify program is running again
+            hash sd = (
+              'type': 'event',
+              'cmd': 'run',
+              'tid': tid,
+              'runstate': runState,
+            );
+            broadcastDataImpl(sd);
+
+
+
+/*
+            #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, sb, location, extra);
+            hash it = (
+              'func': stResolve{func},
+              'tid': gettid(),
+            );
+            *hash location;
+            if (statementId) {
+              location = pgm.getStatementIdInfo(statementId);
+              it.file = location.file;
+              it.line = location.start_line;
+            }
+            any act = getAction(func);
+            if (exists act.localVars) {
+              hash v = get_local_vars(2); # get local vars from program being debugged
+              hash vv;
+              foreach string lv in (act.localVars) {
+                vv{lv}= v{lv}.value;
+              }
+              it.localVars = vv;
+            }
+            it += extra;
+            push traceLog, it;
+            if (exists act) {
+              shift actions;
+              if (act.typeCode() == NT_HASH) {
+                if (exists act.sb)
+                  sb = act.sb;
+              } else {
+                sb = act;
+              }
+            }
+        #printf("it:%y, sb:%d, act:%y\n", it, sb, act);  */
+        }
+
+        onAttach(Program pgm, reference rs) {
+            handleInterrupt("attach", pgm, \rs);
+          }
+
+        onDetach(Program pgm, reference rs) {
+            handleInterrupt("detach", pgm, \rs);
+        }
+
+        onStep(Program pgm, string blockStatementId, *string statementId, reference retCode, reference rs) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "loop", \retCode);
+        }
+
+        onFunctionEnter(Program pgm, string statementId, reference rs) {
+            handleInterrupt('funcEnter', pgm, \rs, statementId);
+        }
+
+        onFunctionExit(Program pgm, string statementId, reference result, reference rs) {
+            handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
+        }
+
+        onException(Program pgm, string statementId, hash ex, reference dismiss, reference rs) {
+            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
         }
     }
 
