@@ -79,6 +79,32 @@ class Test3 {
     }
 }
 
+# issue #2030
+class B2030_1 {
+    public {
+        *list l0;
+    }
+
+    constructor() {
+        l0 = argv[0];
+    }
+}
+
+class B2030_2 {
+    public {
+        *list l1;
+    }
+
+    constructor() {
+        l1 = argv[0];
+    }
+}
+
+class C2030 inherits B2030_1, B2030_2 {
+    constructor() : B2030_1(argv), B2030_2(argv) {
+    }
+}
+
 %exec-class ClassesTest
 
 public class ClassesTest inherits QUnit::Test {
@@ -158,6 +184,12 @@ public class ClassesTest inherits QUnit::Test {
     miscTest() {
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
+        {
+            C2030 c(1, 2, 3);
+            assertEq(Type::Object, c.type());
+            assertEq((1, 2, 3), c.l0);
+            assertEq((1, 2, 3), c.l1);
+        }
     }
 
     recursiveTest() {

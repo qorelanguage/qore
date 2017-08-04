@@ -1375,19 +1375,14 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
    if (!n && i->second->execed)
       return 0;
 
-   // evaluate arguments
-   ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
-   if (*xsink)
-      return -1;
-
-   // save arguments
+   // save arguments for evaluation in the constructor
    if (n)
-      insert(i, bceamap_t::value_type(classid, new BCEANode(nargs.release(), variant)));
+      insert(i, bceamap_t::value_type(classid, new BCEANode(arg ? arg->listRefSelf() : 0, variant)));
    else {
       assert(!i->second->args);
       assert(!i->second->variant);
       assert(!i->second->execed);
-      i->second->args = nargs.release();
+      i->second->args = arg ? arg->listRefSelf() : 0;
       i->second->variant = variant;
    }
    return 0;
