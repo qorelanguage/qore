@@ -91,6 +91,7 @@ bool b = n.complexType();
     Complex types are:
     - @ref hash_hashdecl_type
     - @ref hash_complex_type
+    - @ref list_complex_type
     - @ref object_type "objects"
 
     @see
@@ -102,7 +103,7 @@ bool <value>::complexType() [flags=CONSTANT] {
    return false;
 }
 
-//! returns the full type name which differers from the simple type name in case of complex types and objects
+//! returns the full type name which differs from the simple type name in case of complex types and objects
 /** @par Example:
     @code{.py}
 hash <string, int> h();
@@ -113,11 +114,12 @@ Mutex m();
 str = m.fullType();
     @endcode
 
-    @return the full type name which differers from the simple type name in case of complex types and objects; for simepl types the return value is the same as for <value>::type()
+    @return the full type name which differs from the simple type name in case of complex types and objects; for simple types the return value is the same as for <value>::type()
 
     Complex types are:
     - @ref hash_hashdecl_type "hashdecl hashes": the complex type description is returned (ex: \c "hash<MyHash>")
     - @ref hash_complex_type "complex hashes": the complex type description is returned (ex: \c "hash<string, int>")
+    - @ref list_complex_type "complex lists": the complex type description is returned (ex: \c "list<int>")
     - @ref object_type "objects": the complex type description is returned (ex: \c "object<MyClass>"; see @ref object_complex_type)
 
     @see

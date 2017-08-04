@@ -470,8 +470,9 @@ public:
          assert(!val);
          v = nullptr;
       }
-      else
+      else {
          assert(val);
+      }
       val = &nv;
 
       before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
@@ -503,8 +504,9 @@ public:
          assert(!v);
          val = nullptr;
       }
-      else
+      else {
          assert(v);
+      }
       v = ptr;
 
       before = needs_scan(*ptr);

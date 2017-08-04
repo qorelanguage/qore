@@ -106,8 +106,8 @@ public:
 
    QoreClassList classList,       // committed class map
       pendClassList;              // pending class map
-   HashDeclList hashDeclList,     // committed class map
-      pendHashDeclList;           // pending class map
+   HashDeclList hashDeclList,     // committed hashdecl map
+      pendHashDeclList;           // pending hashdecl map
    ConstantList constant,         // committed constant map
       pendConstant;               // pending constant map
    QoreNamespaceList nsl,         // committed namespace map
@@ -1523,7 +1523,7 @@ protected:
       // process pending hashdecl indexes
       rebuildHashDeclIndexes(pend_thdmap, ns->pendHashDeclList, ns);
 
-      // process class indexes
+      // process hashdecl indexes
       rebuildHashDeclIndexes(thdmap, ns->hashDeclList, ns);
 
       // reindex namespace
@@ -1584,8 +1584,8 @@ public:
    clmap_t clmap,       // root class map
       pend_clmap;       // root pending class map (used only during parsing)
 
-   thdmap_t thdmap,     // root class map
-      pend_thdmap;      // root pending class map (used only during parsing)
+   thdmap_t thdmap,     // root hashdecl map
+      pend_thdmap;      // root pending hashdecl map (used only during parsing)
 
    varmap_t varmap,     // root variable map
       pend_varmap;      // root pending variable map (used only during parsing)

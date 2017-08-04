@@ -52,7 +52,7 @@ public:
       lvec.reserve(old.lvec.size());
 
       for (unsigned i = 0; i < old.values.size(); ++i) {
-         add(copy_and_resolve_lvar_refs(old.values[i], xsink), lvec[i]);
+         add(copy_and_resolve_lvar_refs(old.values[i], xsink), old.lvec[i]);
          if (*xsink)
             return;
       }

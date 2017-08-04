@@ -127,7 +127,7 @@ public namespace ConnectionProvider {
         string name;  #!< the name of the connection
         string desc;  #!< the description
         string url;   #!< the full URL (including any username & password)
-        *hash opts;    #!< the options set on the connection
+        *hash opts;   #!< the options set on the connection
     }
 
     #! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"

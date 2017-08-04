@@ -56,17 +56,17 @@ HashDeclList::~HashDeclList() {
 }
 
 void HashDeclList::addInternal(TypedHashDecl* hd) {
-    printd(5, "hdL::addInternal() this: %p '%s' (%p)\n", this, hd->getName(), hd);
+    //printd(5, "hdL::addInternal() this: %p '%s' (%p)\n", this, hd->getName(), hd);
 
     assert(!find(hd->getName()));
     hm[hd->getName()] = hd;
 }
 
 int HashDeclList::add(TypedHashDecl* hd) {
-    printd(5, "hdL::add() this: %p '%s' (%p)\n", this, hd->getName(), hd);
+    //printd(5, "hdL::add() this: %p '%s' (%p)\n", this, hd->getName(), hd);
 
     if (find(hd->getName()))
-        return 1;
+        return -1;
 
     hm[hd->getName()] = hd;
     return 0;

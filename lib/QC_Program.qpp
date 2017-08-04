@@ -1530,7 +1530,7 @@ pgm.importSystemHashDecls();
 
     @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS from the parse option mask after a successful completion
 
-    @since %Qore 0.8.12
+    @since %Qore 0.8.13
 */
 Program::importSystemHashDecls() {
    qore_program_private::runtimeImportSystemHashDecls(*p, xsink);
