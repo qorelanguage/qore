@@ -63,8 +63,9 @@ the qore library contains xxHash source code under the following license:
    - xxHash source repository : http://code.google.com/p/xxhash/
 */
 
-the qore executable contains getopt_long (used if it's not available in an external library)
-source code under the following license:
+the qore executable contains getopt_long source code
+(used if it's not available in an external library)
+under the following license:
 /*
  * Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
  *
@@ -113,8 +114,9 @@ source code under the following license:
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-the qore library contains inet_ntop and inet_pton (used if it's not available in an external library)
-source code under the following license:
+the qore library contains inet_ntop and inet_pton source code
+(used if it's not available in an external library)
+under the following license:
 /* Copyright (c) 1996 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
