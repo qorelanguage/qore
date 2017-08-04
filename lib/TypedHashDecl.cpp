@@ -249,6 +249,11 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
 }
 
 int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const {
+#ifdef QORE_MANAGE_STACK
+    if (check_stack(xsink))
+        return -1;
+#endif
+
     for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
         // first try to use value given in init hash
         if (init) {
