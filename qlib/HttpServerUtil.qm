@@ -239,7 +239,7 @@ public namespace HttpServer {
         *data body;
 
         #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
-        bool close = False;
+        softbool close = False;
 
         #! set this key to a hash of extra header information to be returned with the response
         *hash hdr;
