@@ -73,6 +73,12 @@ class Test2 {
     }
 }
 
+class Test3 {
+    public {
+        Test3 t();
+    }
+}
+
 # issue #2030
 class B2030_1 {
     public {
@@ -107,6 +113,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
         addTestCase("misc test", \miscTest());
+        addTestCase("recursive test", \recursiveTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -183,5 +190,12 @@ public class ClassesTest inherits QUnit::Test {
             assertEq((1, 2, 3), c.l0);
             assertEq((1, 2, 3), c.l1);
         }
+    }
+
+    recursiveTest() {
+        if (!Option::HAVE_STACK_GUARD)
+            testSkip("Qore library was not built with stack protection support");
+
+        assertThrows("STACK-LIMIT-EXCEEDED", sub () { Test3 t(); });
     }
 }
