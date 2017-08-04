@@ -147,7 +147,7 @@ static void split_add_element(QoreListNode* l, const char* str, unsigned len, co
 }
 
 QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
-   QoreListNode* l = new QoreListNode();
+   QoreListNode* l = new QoreListNode(stringTypeInfo);
    const char* ostr = str;
    while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
       split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
@@ -176,7 +176,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
       return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
 
-   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
    const char* ostr = str->getBuffer();
    qore_size_t sl = str->strlen();
    const char* tpattern = pat->getBuffer();
@@ -888,14 +888,14 @@ nothing chr() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-list list = split(":", "some:text:here"); # returns ("some", "text", "here")
+list<string> l = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @note equivalent to <string>::split(string, bool)
  */
-list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+list<string> split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
@@ -916,7 +916,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
 
     @par Example:
     @code{.py}
-list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
+list<string> l = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -926,7 +926,7 @@ list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", 
 
     @since %Qore 0.8.6 the \c trim_unquoted parameter was added
  */
-list split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+list<string> split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
    return split_with_quote(sep, str, quote, trim_unquoted, xsink);
 }
 
@@ -939,20 +939,20 @@ list split(string sep, string str, string quote, bool trim_unquoted = False) [fl
 
     @par Example:
     @code{.py}
-list l = split(sep, bin);
+list<string> l = split(sep, bin);
     @endcode
 
     @note equivalent to <binary>::split(binary)
  */
-list split(binary sep, binary data) [flags=CONSTANT] {
+list<string> split(binary sep, binary data) [flags=CONSTANT] {
    return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)data->getPtr(), data->size(), 0);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-list split() [flags=RUNTIME_NOOP] {
-   return new QoreListNode;
+list<string> split() [flags=RUNTIME_NOOP] {
+   return new QoreListNode(stringTypeInfo);
 }
 
 //! Returns a string describing the character encoding of the string argument passed
@@ -1146,7 +1146,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
 
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
-*list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+*list<string> regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();

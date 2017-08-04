@@ -310,6 +310,7 @@ Content-Length: 36
     @subsection rh_1_2 RestHandler v1.2
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - added @ref RestHandler::RestHandler::handleExternalRequest "RestHandler::handleExternalRequest()" to allow for REST API methods to be called internally (i.e. without an HTTP call)
+    - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -388,10 +389,10 @@ public namespace RestHandler {
 
             @note this method is called after the message body has been received
         */
-        hash getResponseHeaderMessage() {
-            hash h;
+        hash<HttpHandlerResponseInfo> getResponseHeaderMessage() {
+            hash<HttpHandlerResponseInfo> h;
             try {
-                h = getResponseHeaderMessageImpl();
+                h = cast<hash<HttpHandlerResponseInfo>>(getResponseHeaderMessageImpl());
             }
             catch (hash n_ex) {
                 ex = n_ex;
@@ -465,7 +466,7 @@ public namespace RestHandler {
 
         #! this method should return the response message description hash
         /**
-            @return a hash with the following keys:
+            @return an @ref HttpHandlerResponseInfo hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
             - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
@@ -544,7 +545,7 @@ public namespace RestHandler {
 
             @note this method is called after the message body has been received
         */
-        private hash getResponseHeaderMessageImpl() {
+        private hash<HttpHandlerResponseInfo> getResponseHeaderMessageImpl() {
             return stream.getResponseHeaderMessage();
         }
 
@@ -603,7 +604,7 @@ public namespace RestHandler {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {
+        hash<HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {
             if (!args && cx.body.typeCode() == NT_HASH)
                 args = cx.body;
             if (cl) {
@@ -625,7 +626,7 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
+        private hash<HttpHandlerResponseInfo> dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
             AbstractRestStreamRequestHandler rsh;
             try {
@@ -637,7 +638,7 @@ public namespace RestHandler {
                     if (cx.hdr."transfer-encoding" == "chunked")
                         cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
 
-                    return dispatch(rh, mn, ah, cx);
+                    return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mn, ah, cx));
                 }
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
@@ -676,9 +677,9 @@ public namespace RestHandler {
 
             @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
          */
-        private hash dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
+        private hash<HttpHandlerResponseInfo> dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
             try {
-                return call_object_method_args(self, mn, (cx, ah));
+                return cast<hash<HttpHandlerResponseInfo>>(call_object_method_args(self, mn, (cx, ah)));
             }
             catch (hash ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
@@ -701,14 +702,14 @@ public namespace RestHandler {
                     }
                     if (!brk) {
                         if (!hl)
-                            return RestHandler::make501("REST class %y (%s) does not implement method %y", name(), self.className(), cx.orig_method ? cx.orig_method : mn);
+                            return cast<hash<HttpHandlerResponseInfo>>(RestHandler::make501("REST class %y (%s) does not implement method %y", name(), self.className(), cx.orig_method ? cx.orig_method : mn));
 
                         string ml = foldl $1 + "," + $2, hl;
                         string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", cx.hdr.method, name(), self.className());
                         if (cx.orig_method)
                             desc += sprintf(" REST method %y", cx.orig_method);
                         desc += sprintf(", available methods: %s", ml);
-                        return HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": ml), 405, desc);
+                        return cast<hash<HttpHandlerResponseInfo>>(HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": ml), 405, desc));
                     }
                 }
                 string desc = !cx.debug
@@ -720,7 +721,7 @@ public namespace RestHandler {
         }
 
         #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
-        private hash unknownSubClassError(string n_name) {
+        private hash<HttpHandlerResponseInfo> unknownSubClassError(string n_name) {
             throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", name(), n_name);
         }
     }
@@ -739,10 +740,10 @@ public namespace RestHandler {
     public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
-            const Err501 = (
+            const Err501 = new hash<HttpResponseInfo>((
                 "code": 501,
                 "body": "not implemented",
-                );
+                ));
 
             #! supported HTTP methods
             const Methods = (
@@ -941,7 +942,7 @@ public namespace RestHandler {
             # socket object needed for call; will not be used
             Socket s();
 
-            hash rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
+            hash<HttpHandlerResponseInfo> rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             if (rv.code < 200 || rv.code >= 300)
                 throw "REST-ERROR", rv.body, rv.code;
             return rv.body;
@@ -970,7 +971,7 @@ public namespace RestHandler {
             - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
+        hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
             if (b) {
@@ -1077,7 +1078,7 @@ public namespace RestHandler {
             cx += ("hdr": hdr, "body": body, "aih": aih);
 
             # handle call with class
-            hash rv;
+            hash<HttpHandlerResponseInfo> rv;
 
             try {
                 AbstractRestClass rcls;
@@ -1104,47 +1105,41 @@ public namespace RestHandler {
 
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
                 logError(desc);
-                rv = (
+                rv = new hash<HttpHandlerResponseInfo>((
                     "code": 409,
                     "body": ex,
-                    );
+                    ));
             }
 
             #logDebug("DBG: rv: %y", rv);
 
             if (!rv.reply_sent) {
                 # serialize response according to client's capabilities if necessary
-                bool encoded;
-                if (rv.already_encoded)
-                    encoded = True;
-
                 # process Accept values in the order sent by the sender
-                if (!encoded && !rv.reply_sent) {
-                    *code ds;
-                    foreach string a in (aih.keyIterator()) {
-                        ds = MimeDataTypes{a}.serialize;
+                *code ds;
+                foreach string a in (aih.keyIterator()) {
+                    ds = MimeDataTypes{a}.serialize;
+                    if (ds) {
+                        rv.body = ds(rv.body);
+                        rv.hdr += ("Content-Type": a);
+                        break;
+                    }
+                }
+
+                # if still not encoded and the client accepts anything, encode with the first possible serialization method
+                if (!ds && aih."*/*") {
+                    foreach string k in (MimeDataTypes.keyIterator()) {
+                        ds = MimeDataTypes{k}.serialize;
                         if (ds) {
                             rv.body = ds(rv.body);
-                            rv.hdr += ("Content-Type": a);
+                            rv.hdr += ("Content-Type": k);
                             break;
                         }
                     }
-
-                    # if still not encoded and the client accepts anything, encode with the first possible serialization method
-                    if (!ds && aih."*/*") {
-                        foreach string k in (MimeDataTypes.keyIterator()) {
-                            ds = MimeDataTypes{k}.serialize;
-                            if (ds) {
-                                rv.body = ds(rv.body);
-                                rv.hdr += ("Content-Type": k);
-                                break;
-                            }
-                        }
-                        if (!ds) {
-                            responseSerializationError(cx, aih, rv);
-                            # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
-                            return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), MimeDataTypes.keys(), rv.body);
-                        }
+                    if (!ds) {
+                        responseSerializationError(cx, aih, rv);
+                        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
+                        return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), MimeDataTypes.keys(), rv.body);
                     }
                 }
 
@@ -1153,7 +1148,7 @@ public namespace RestHandler {
 
             #logDebug("REST DBG: rv: %N", rv);
 
-            return rv;
+            return cast<hash<HttpResponseInfo>>(rv);
         }
 
         #! default implementation is empty

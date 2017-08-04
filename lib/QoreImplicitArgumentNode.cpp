@@ -40,10 +40,19 @@ QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation& lo
 QoreImplicitArgumentNode::~QoreImplicitArgumentNode() {
 }
 
-const AbstractQoreNode *QoreImplicitArgumentNode::get() const {
-   const QoreListNode *argv = thread_get_implicit_args();
+AbstractQoreNode* QoreImplicitArgumentNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+   typeInfo = parse_get_implicit_arg_type_info();
+   return this;
+}
+
+const QoreTypeInfo* QoreImplicitArgumentNode::getTypeInfo() const {
+   return parse_get_implicit_arg_type_info();
+}
+
+const AbstractQoreNode* QoreImplicitArgumentNode::get() const {
+   const QoreListNode* argv = thread_get_implicit_args();
    if (!argv)
-      return 0;
+      return nullptr;
    //printd(5, "QoreImplicitArgumentNode::get() offset=%d v=%p\n", offset, argv->retrieve_entry(offset));
    return argv->retrieve_entry(offset);
 }

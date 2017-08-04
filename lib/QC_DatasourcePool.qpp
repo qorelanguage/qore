@@ -45,37 +45,38 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    ReferenceHolder<Queue> q(queue, xsink);
 
    const char *str = check_hash_key(opts, "type", DSPC_ERR, xsink);
-   if (*xsink) return;
+   if (*xsink)
+      return;
 
    if (!str) {
       xsink->raiseException(DSPC_ERR, "expecting a string value with the 'type' key giving the driver name");
       return;
    }
 
-   DBIDriver *db_driver = DBI.find(str);
+   DBIDriver* db_driver = DBI.find(str);
    if (!db_driver) {
       if (!*xsink)
          xsink->raiseException("DATASOURCEPOOL-UNSUPPORTED-DATABASE", "no DBI driver can be found for database type '%s'", str);
       return;
    }
 
-   const char *user = check_hash_key(opts, "user", DSPC_ERR, xsink);
+   const char* user = check_hash_key(opts, "user", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
+   const char* pass = check_hash_key(opts, "pass", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *db = check_hash_key(opts, "db", DSPC_ERR, xsink);
+   const char* db = check_hash_key(opts, "db", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
+   const char* charset = check_hash_key(opts, "charset", DSPC_ERR, xsink);
    if (*xsink) return;
 
-   const char *host = check_hash_key(opts, "host", DSPC_ERR, xsink);
+   const char* host = check_hash_key(opts, "host", DSPC_ERR, xsink);
    if (*xsink) return;
 
    bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
+   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
@@ -84,16 +85,19 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    // get options
    int min = 0, max = 0;
 
-   const AbstractQoreNode *p = opts->getKeyValue("options");
-   if (!is_nothing(p)) {
-      if (p->getType() != NT_HASH) {
-         xsink->raiseException(DSPC_ERR, "'options' key is not hash, instead got type '%s'", p->getTypeName());
+   QoreValue p = opts->getValueKeyValue("options");
+   const QoreHashNode* opt_hash;
+   if (!p.isNothing()) {
+      if (p.getType() != NT_HASH) {
+         xsink->raiseException(DSPC_ERR, "'options' key is not type 'hash', instead got type '%s'", p.getTypeName());
          return;
       }
 
-      const QoreHashNode* h = reinterpret_cast<const QoreHashNode *>(p);
+      opt_hash = p.get<const QoreHashNode>();
 
-      min = (int)h->getKeyAsBigInt("min", found);
+      min = (int)opt_hash->getValueKeyValueExistence("min", found, xsink).getAsBigInt();
+      if (*xsink)
+         return;
       if (found) {
          if (min < 0) {
             xsink->raiseException(DSPC_ERR, "minimum connections must be > 0 (value given: %d)", min);
@@ -101,16 +105,22 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
          }
       }
 
-      max = (int)h->getKeyAsBigInt("max", found);
+      max = (int)opt_hash->getValueKeyValueExistence("max", found, xsink).getAsBigInt();
+      if (*xsink)
+         return;
       if (found) {
          if (max < min) {
             xsink->raiseException(DSPC_ERR, "maximum connections must be >= min(%d) (value given: %d)", min, max);
             return;
          }
+         if (!max) {
+            xsink->raiseException(DSPC_ERR, "maximum connections must be > 0 (value given: %d)", min, max);
+            return;
+         }
       }
    }
-   // here we cast either a non-hash NULL pointer to a hash or a hash to a hash
-   const QoreHashNode* oh = reinterpret_cast<const QoreHashNode*>(p);
+   else
+      opt_hash = nullptr;
 
    if (!min)
       min = DP_MIN;
@@ -118,7 +128,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (!max)
       max = DP_MAX;
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, oh, q.release(), arg.getReferencedValue()));
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, opt_hash, q.release(), arg.getReferencedValue()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
    else

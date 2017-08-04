@@ -102,6 +102,7 @@ module SqlUtil {
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
 
     @subsection sqlutilv1_3_3 SqlUtil v1.3.3
     - fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
@@ -770,7 +771,7 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt>.
 
-    Joins on multiple tables are performed by combining the results of @ref sql_op_funcs "join functions" with the @ref plus_operator "+ operator"
+    Joins on multiple tables are performed by combining the results of @ref sql_jop_funcs "join functions" with the @ref plus_operator "+ operator"
     as follows:
     @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner(table3, "t3")));
@@ -779,7 +780,7 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     automatically detected primary key to foreign key relationship between the two tables.
 
     Joins are by default made with the primary table; to join with another join table, then give the alias for the table as the first
-    argument to the @ref sql_op_funcs "join function" as in the following example:
+    argument to the @ref sql_jop_funcs "join function" as in the following example:
     @code{.py}
 *list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3, "t3")));
     @endcode
@@ -1898,6 +1899,67 @@ db.computeStatistics(opts);
 
 #! the SqlUtil namespace contains all the objects in the SqlUtil module
 public namespace SqlUtil {
+    #! generic column description hash in schema descriptions
+    public hashdecl GenericColumnInfo {
+        #! a qore type string that will be converted to a native DB type with some default conversion
+        string qore_type;
+        #! the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
+        string native_type;
+        #! for data types requiring a size component, the size; for numeric columns this represents the precision for example
+        softint size;
+        #! for numeric data types, this value gives the scale
+        softint scale;
+        #! the default value for the column
+        any default_value;
+        #! a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+        bool default_value_native = False;
+        #! an optional comment for the column
+        *string comment;
+        #! if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+        bool notnull = False;
+        #! this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
+        hash<string, hash> driver;
+        #! @ref Qore::True "True" for DBs that support an auto-increment column
+        *bool auto_increment;
+    }
+
+    #! SQL operator info hash as returned by all @ref sql_op_funcs "operator functions"
+    public hashdecl OperatorInfo {
+        string op;   #!< the operator string code
+        any arg;     #!< optional argument
+    }
+
+    #! column operator info hash as returned by all @ref sql_cop_funcs "column operator functions"
+    public hashdecl ColumnOperatorInfo {
+        string cop;  #!< the column operator string code
+        any column;  #!< column sopecifier, may be a string or a complex hash
+        any arg;     #!< optional argument
+    }
+
+    #! insert operator info hash as returned by all @ref sql_iop_funcs() "insert operator functions"
+    public hashdecl InsertOperatorInfo {
+        string _iop;  #!< the insert operator string code
+        any arg;      #!< optional argument
+    }
+
+    #! update operator info hash as returned by all @ref sql_uop_funcs() "update operator functions"
+    public hashdecl UpdateOperatorInfo {
+        string uop;  #!< the update operator string code
+        any arg;     #!< optional argument
+        *hash nest;  #!< option nested operation hash
+    }
+
+    #! join operator info hash as returned by all @ref sql_jop_funcs "join operator functions"
+    public hashdecl JoinOperatorInfo {
+        string jop;           #!< the join operator string code
+        any table;            #!< the table to join with (either an @ref SqlUtil::AbstractTable "AbstractTable" object or a string table name)
+        *string alias;        #!< optional alias for \a table in the query
+        *hash jcols;          #!< the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
+        *hash cond;           #!< additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
+        *string ta;           #!< optional table name or alias of the other table to join with when not joining with the primary table
+        *hash opt;            #!< optional join options (for example, to specify a partition for the join if supported)
+    }
+
     /* @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
@@ -2267,24 +2329,24 @@ public namespace SqlUtil {
         @endcode
      */
     #@{
-    #! returns a hash with \c cop, \c column, and \c arg keys
+    #! returns a @ref ColumnOperatorInfo hash
     /** @param cop the column operator (one of @ref sql_cops)
         @param column the column name
         @param arg the argument to the operator
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         @note Normally this function is not called directly, but rather by the other column operator functions
     */
-    public hash sub make_cop(string cop, any column, any arg) {
+    public hash<ColumnOperatorInfo> sub make_cop(string cop, any column, any arg) {
         switch (column.typeCode()) {
             case NT_HASH:
-            case NT_STRING: return ("cop": cop, "column": column, "arg": arg);
+            case NT_STRING: return new hash<ColumnOperatorInfo>(("cop": cop, "column": column, "arg": arg));
             default: throw "MAKE-COLUMN-OPERATOR-ERROR", sprintf("invalid column value passed to make_cop(); got type %y, expecting \"string\" or \"hash\"", column.type());
         }
     }
 
-    #! returns a hash for the \c "as" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "as" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
@@ -2293,15 +2355,15 @@ public namespace SqlUtil {
         @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
         @param arg the new name of the output column
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash sub cop_as(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_as(any column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
 
-    #! returns a hash for the \c "cast" operator with the given argument(s)
+    #! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
@@ -2312,15 +2374,15 @@ public namespace SqlUtil {
         @param arg1 optional, type dependent, specification (e.g. size or precision)
         @param arg2 optional, type dependent, specification (e.g. scale)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash sub cop_cast(any column, string arg, *any arg1, *any arg2) {
+    public hash<ColumnOperatorInfo> sub cop_cast(any column, string arg, *any arg1, *any arg2) {
         return make_cop(COP_CAST, column, (arg, arg1, arg2));
     }
 
-    #! returns a hash for the \c "prepend" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "prepend" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_prepend("name", "migrated-")), "where": ("type": "user")));
@@ -2329,13 +2391,13 @@ public namespace SqlUtil {
         @param column the column specification for the column (string name or dot notation for use in joins)
         @param arg the text to prepend to the row values in the output column
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_prepend(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_prepend(any column, string arg) {
         return make_cop(COP_PREPEND, column, arg);
     }
 
-    #! returns a hash for the \c "append" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "append" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_append("name", "-migrated")), "where": ("type": "user")));
@@ -2344,13 +2406,13 @@ public namespace SqlUtil {
         @param column the column specification for the column (string name or dot notation for use in joins)
         @param arg the text to append (ie concatenate) to the row values in the output column
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_append(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_append(any column, string arg) {
         return make_cop(COP_APPEND, column, arg);
     }
 
-    #! returns a hash for the \c "value" (literal) operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "value" (literal) operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
@@ -2358,7 +2420,7 @@ public namespace SqlUtil {
 
         @param arg the value to be returned in the column
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         SQL literals can be useful in some cases - as dummy values for select
         statements where there is exact columns required, unions, expected values
@@ -2379,14 +2441,14 @@ public namespace SqlUtil {
         |\c NULL|Direct null literal|\c NULL|\c null
         |\c NOTHING|Direct null literal|\c NOTHING|\c null
 
-        @note Passing an existing SQL function name as a value to the op_value
+        @note Passing an existing SQL function name as a value to the cop_value() function
               does not result in function call. The string value is escaped as it is.
               Example: sysdate becomes 'sysdate'. See example below.
 
-        The most useful SqlUtil::cop_value usage is with cooperation of SqlUtil::cop_as which allows
-        nice and human readable column name aliases.
+        The most useful SqlUtil::cop_value() usage is with cooperation of SqlUtil::cop_as() which allows
+        human readable column name aliases.
 
-        @warning Using SqlUtil::cop_value without SqlUtil::cop_as can result in errors
+        @warning Using SqlUtil::cop_value() without SqlUtil::cop_as() can result in errors
                  depending on the DB backend. For example Oracle's use of <tt>cop_value(1), cop_value(True)</tt>
                  ends with <tt>ORA-00918: column ambiguously defined</tt>
                  because both values are interpreted as 1 in the resulting SQL.
@@ -2431,11 +2493,11 @@ hash: (9 members)
 sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421105657000000', 'YYYYMMDDHH24MISSFF6') as as_date,'foo bar' as as_string,'sysdate' as as_function_call,1 as as_bool,null as as_null,null as as_nothing from pvanek_omq.workflows fetch next %v rows only
     @endcode
     */
-    public hash sub cop_value(any arg) {
+    public hash<ColumnOperatorInfo> sub cop_value(any arg) {
         return make_cop(COP_VALUE, "", arg);
     }
 
-    #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
+    #! returns a @ref ColumnOperatorInfo hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_upper("name")), "where": ("type": "user")));
@@ -2443,13 +2505,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_upper(any column) {
+    public hash<ColumnOperatorInfo> sub cop_upper(any column) {
         return make_cop(COP_UPPER, column);
     }
 
-    #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
+    #! returns a @ref ColumnOperatorInfo hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_lower("name")), "where": ("type": "user")));
@@ -2457,13 +2519,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_lower(any column) {
+    public hash<ColumnOperatorInfo> sub cop_lower(any column) {
         return make_cop(COP_LOWER, column);
     }
 
-    #! returns a hash for the \c "distinct" operator with the given argument; returns distinct column values
+    #! returns a @ref ColumnOperatorInfo hash for the \c "distinct" operator with the given argument; returns distinct column values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_distinct("name")), "where": ("type": "user")));
@@ -2471,13 +2533,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_distinct(any column) {
+    public hash<ColumnOperatorInfo> sub cop_distinct(any column) {
         return make_cop(COP_DISTINCT, column);
     }
 
-    #! returns a hash for the \c "min" operator; returns minimum column values
+    #! returns a @ref ColumnOperatorInfo hash for the \c "min" operator; returns minimum column values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": (cop_min("id")), "where": ("type": "user")));
@@ -2485,13 +2547,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_min(any column) {
+    public hash<ColumnOperatorInfo> sub cop_min(any column) {
         return make_cop(COP_MIN, column);
     }
 
-    #! returns a hash for the \c "max" operator; returns maximum column values
+    #! returns a @ref ColumnOperatorInfo hash for the \c "max" operator; returns maximum column values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": (cop_max("id")), "where": ("type": "user")));
@@ -2499,13 +2561,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_max(any column) {
+    public hash<ColumnOperatorInfo> sub cop_max(any column) {
         return make_cop(COP_MAX, column);
     }
 
-    #! returns a hash for the \c "avg" operator; returns average column values
+    #! returns a @ref ColumnOperatorInfo hash for the \c "avg" operator; returns average column values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": (cop_avg("quantity")), "where": ("order_type": "wholesale")));
@@ -2513,13 +2575,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_avg(any column) {
+    public hash<ColumnOperatorInfo> sub cop_avg(any column) {
         return make_cop(COP_AVG, column);
     }
 
-    #! returns a hash for the \c "sum" operator; returns the total sum of a numeric column.
+    #! returns a @ref ColumnOperatorInfo hash for the \c "sum" operator; returns the total sum of a numeric column.
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
@@ -2527,37 +2589,37 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_sum(any column) {
+    public hash<ColumnOperatorInfo> sub cop_sum(any column) {
         return make_cop(COP_SUM, column);
     }
 
-    #! returns a hash for the \c "count" operator; returns row counts
+    #! returns a @ref ColumnOperatorInfo hash for the \c "count" operator; returns row counts
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_count(any column = "") {
+    public hash<ColumnOperatorInfo> sub cop_count(any column = "") {
         return make_cop(COP_COUNT, column);
     }
 
-    #! returns a hash for the \c "over" clause
+    #! returns a @ref ColumnOperatorInfo hash for the \c "over" clause
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("account_type", cop_count(), cop_as(cop_over(cop_max("qty"), "account_id"), "max_qty_per_account")), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_over(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_over(any column, string arg) {
         return make_cop(COP_OVER, column, arg);
     }
 
-    #! returns a hash for the \c "-" operator with the given arguments
+    #! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_minus("complete_count", "error_count")), "where": ("type": "user")));
@@ -2566,13 +2628,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_minus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_minus(any column1, any column2) {
         return make_cop(COP_MINUS, column1, column2);
     }
 
-    #! returns a hash for the \c "+" operator with the given arguments
+    #! returns a @ref ColumnOperatorInfo hash for the \c "+" operator with the given arguments
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_plus("complete_count", "error_count")), "where": ("type": "user")));
@@ -2581,13 +2643,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_plus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_plus(any column1, any column2) {
         return make_cop(COP_PLUS, column1, column2);
     }
 
-    #! returns a hash for the \c "/" operator with the given arguments
+    #! returns a @ref ColumnOperatorInfo hash for the \c "/" operator with the given arguments
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_divide("complete_count", "error_count")), "where": ("type": "user")));
@@ -2596,13 +2658,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_divide(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_divide(any column1, any column2) {
         return make_cop(COP_DIVIDE, column1, column2);
     }
 
-    #! returns a hash for the \c "*" operator with the given arguments
+    #! returns a @ref ColumnOperatorInfo hash for the \c "*" operator with the given arguments
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_multiply("complete_count", "error_count")), "where": ("type": "user")));
@@ -2611,13 +2673,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
         @param column2 the column specification for the second argument (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_multiply(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_multiply(any column1, any column2) {
         return make_cop(COP_MULTIPLY, column1, column2);
     }
 
-    #! returns a hash for the \c "year" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "year" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year("error_time")), "where": ("type": "user")));
@@ -2625,13 +2687,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year(any column) {
         return make_cop(COP_YEAR, column);
     }
 
-    #! returns a hash for the \c "year_month" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "year_month" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_month("error_time")), "where": ("type": "user")));
@@ -2639,13 +2701,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_month(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_month(any column) {
         return make_cop(COP_YEAR_MONTH, column);
     }
 
-    #! returns a hash for the \c "year_day" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "year_day" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_day("error_time")), "where": ("type": "user")));
@@ -2653,13 +2715,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_day(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_day(any column) {
         return make_cop(COP_YEAR_DAY, column);
     }
 
-    #! returns a hash for the \c "year_hour" operator with the given argument
+    #! returns a @ref ColumnOperatorInfo hash for the \c "year_hour" operator with the given argument
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_year_hour("error_time")), "where": ("type": "user")));
@@ -2667,13 +2729,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_year_hour(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_hour(any column) {
         return make_cop(COP_YEAR_HOUR, column);
     }
 
-    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    #! returns a @ref ColumnOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xis")), "where": ("type": "user")));
@@ -2682,13 +2744,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param seq the name of the sequence whose value should be returned
         @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq(string seq, *string as) {
+    public hash<ColumnOperatorInfo> sub cop_seq(string seq, *string as) {
         return make_cop(COP_SEQ, "", ("seq": seq, "as": as));
     }
 
-    #! returns a hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
+    #! returns a @ref ColumnOperatorInfo hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xid_val"), cop_seq_currval("xid", "xid_current")), "where": ("type": "user")));
@@ -2697,13 +2759,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param seq the name of the sequence whose current value should be returned
         @param as an optional column name that should be returned for the sequence value (so that @ref SqlUtil::cop_as() need not be used)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_seq_currval(string seq, *string as) {
+    public hash<ColumnOperatorInfo> sub cop_seq_currval(string seq, *string as) {
         return make_cop(COP_SEQ_CURRVAL, "", ("seq": seq, "as": as));
     }
 
-    #! returns a hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
+    #! returns a @ref ColumnOperatorInfo hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
@@ -2712,11 +2774,11 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param col1 the name or column operator hash for the first value
         @param col2 the name or column operator hash for the second value, additional values should follow this argument
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
     */
-    public hash sub cop_coalesce(any col1, any col2) {
+    public hash<ColumnOperatorInfo> sub cop_coalesce(any col1, any col2) {
         code check = sub (any c) {
             if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
                 throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
@@ -2734,7 +2796,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         return make_cop(COP_COALESCE, "", ("args": args));
     }
 
-    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    #! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
@@ -2744,13 +2806,13 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @param start position where the substring starts
         @param count length of the substring in characters
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub cop_substr(any column, int start, *int count) {
+    public hash<ColumnOperatorInfo> sub cop_substr(any column, int start, *int count) {
         return make_cop(COP_SUBSTR, column, (start, count));
     }
 
-    #! returns a hash for the \c "len" operator with the given argument; returns the length of the given text field
+    #! returns a @ref ColumnOperatorInfo hash for the \c "len" operator with the given argument; returns the length of the given text field
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
@@ -2758,11 +2820,11 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @param column the column specification for the column (string name or dot notation for use in joins)
 
-        @return a column operator description hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+        @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
 
         @since %SqlUtil 1.3.1
     */
-    public hash sub cop_length(any column) {
+    public hash<ColumnOperatorInfo> sub cop_length(any column) {
         return make_cop(COP_LENGTH, column);
     }
     #@}
@@ -2844,20 +2906,20 @@ int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lowe
         @endcode
      */
     #@{
-    #! returns a hash with \c uop, \c arg, and \c nest keys
+    #! returns an @ref UpdateOperatorInfo hash
     /** @param uop the update operator (one of @ref sql_uops)
         @param arg the argument to the operator
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
 
         @note Normally this function is not called directly, but rather by the other update operator functions
     */
-    public hash sub make_uop(string uop, any arg, *hash nest) {
-        return ("uop": uop, "arg": arg, "nest": nest);
+    public hash<UpdateOperatorInfo> sub make_uop(string uop, any arg, *hash<UpdateOperatorInfo> nest) {
+        return new hash<UpdateOperatorInfo>(("uop": uop, "arg": arg, "nest": nest));
     }
 
-    #! returns a hash for the \c "prepend" operator with the given argument
+    #! returns an @ref UpdateOperatorInfo hash for the \c "prepend" operator with the given argument
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_lower())));
@@ -2866,13 +2928,13 @@ int rows_updated = t.update(("permission_type": uop_prepend("migrated-", uop_low
         @param arg the text to prepend to the row values in the output column
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_prepend(string arg, *hash nest) {
+    public hash<UpdateOperatorInfo> sub uop_prepend(string arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_PREPEND, arg, nest);
     }
 
-    #! returns a hash for the \c "append" or concatenate operator with the given argument
+    #! returns an @ref UpdateOperatorInfo hash for the \c "append" or concatenate operator with the given argument
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
@@ -2881,13 +2943,13 @@ int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lowe
         @param arg the text to prepend to the row values in the output column
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_append(string arg, *hash nest) {
+    public hash<UpdateOperatorInfo> sub uop_append(string arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_APPEND, arg, nest);
     }
 
-    #! returns a hash for the \c "upper" operator with the given argument; returns a column value in upper case
+    #! returns an @ref UpdateOperatorInfo hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("permission_type": uop_upper()));
@@ -2895,13 +2957,13 @@ int rows_updated = t.update(("permission_type": uop_upper()));
 
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_upper(*hash nest) {
+    public hash<UpdateOperatorInfo> sub uop_upper(*hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_UPPER, NOTHING, nest);
     }
 
-    #! returns a hash for the \c "lower" operator with the given argument; returns a column value in lower case
+    #! returns an @ref UpdateOperatorInfo hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("permission_type": uop_lower()));
@@ -2909,13 +2971,13 @@ int rows_updated = t.update(("permission_type": uop_lower()));
 
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_lower(*hash nest) {
+    public hash<UpdateOperatorInfo> sub uop_lower(*hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_LOWER, NOTHING, nest);
     }
 
-    #! returns a hash for the \c "substr" operator with the given arguments; returns a substring of a column value
+    #! returns an @ref UpdateOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("first_name": uop_substr(1, 1)));
@@ -2925,13 +2987,13 @@ int rows_updated = t.update(("first_name": uop_substr(1, 1)));
         @param count length of the substring in characters
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_substr(int start, *int count, *hash nest) {
+    public hash<UpdateOperatorInfo> sub uop_substr(int start, *int count, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_SUBSTR, (start, count), nest);
     }
 
-    #! returns a hash for the \c "+" operator with the given arguments
+    #! returns an @ref UpdateOperatorInfo hash for the \c "+" operator with the given arguments
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("counter": uop_plus(1)));
@@ -2940,13 +3002,13 @@ int rows_updated = t.update(("counter": uop_plus(1)));
         @param arg numeric value to add to the column
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_plus (any arg, *hash nest) {
-        return make_uop (COP_PLUS, arg, nest);
+    public hash<UpdateOperatorInfo> sub uop_plus(any arg, *hash<UpdateOperatorInfo> nest) {
+        return make_uop(COP_PLUS, arg, nest);
     }
 
-    #! returns a hash for the \c "-" operator with the given arguments
+    #! returns an @ref UpdateOperatorInfo hash for the \c "-" operator with the given arguments
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("counter": uop_minus(1)));
@@ -2955,13 +3017,13 @@ int rows_updated = t.update(("counter": uop_minus(1)));
         @param arg numeric value to subtract from the column
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_minus (any arg, *hash nest) {
-        return make_uop (COP_MINUS, arg, nest);
+    public hash<UpdateOperatorInfo> sub uop_minus(any arg, *hash<UpdateOperatorInfo> nest) {
+        return make_uop(COP_MINUS, arg, nest);
     }
 
-    #! returns a hash for the \c "*" operator with the given arguments
+    #! returns an @ref UpdateOperatorInfo hash for the \c "*" operator with the given arguments
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("counter": uop_multiply(2)));
@@ -2970,13 +3032,13 @@ int rows_updated = t.update(("counter": uop_multiply(2)));
         @param arg numeric value to multiply the column by
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_multiply (any arg, *hash nest) {
-        return make_uop (COP_MULTIPLY, arg, nest);
+    public hash<UpdateOperatorInfo> sub uop_multiply(any arg, *hash<UpdateOperatorInfo> nest) {
+        return make_uop(COP_MULTIPLY, arg, nest);
     }
 
-    #! returns a hash for the \c "/" operator with the given arguments
+    #! returns an @ref UpdateOperatorInfo hash for the \c "/" operator with the given arguments
     /** @par Example:
         @code{.py}
 int rows_updated = t.update(("counter": uop_divide(2)));
@@ -2985,13 +3047,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @param arg numeric value to divide the column by
         @param nest any nested operation to the operator
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_divide (any arg, *hash nest) {
-        return make_uop (COP_DIVIDE, arg, nest);
+    public hash<UpdateOperatorInfo> sub uop_divide(any arg, *hash<UpdateOperatorInfo> nest) {
+        return make_uop(COP_DIVIDE, arg, nest);
     }
 
-    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
+    #! returns an @ref UpdateOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
 *list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
@@ -2999,13 +3061,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param seq the name of the sequence whose value should be returned
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_seq(string seq) {
+    public hash<UpdateOperatorInfo> sub uop_seq(string seq) {
         return make_uop(COP_SEQ, seq);
     }
 
-    #! returns a hash for the \c "seq" operator with the given argument giving the sequence name whose current value should be returned
+    #! returns an @ref UpdateOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
 *list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
@@ -3013,9 +3075,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param seq the name of the sequence whose current value should be returned
 
-        @return an update operator description hash corresponding to the arguments for use in update statements
+        @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash sub uop_seq_currval(string seq) {
+    public hash<UpdateOperatorInfo> sub uop_seq_currval(string seq) {
         return make_uop(COP_SEQ_CURRVAL, seq);
     }
     #@}
@@ -3058,25 +3120,23 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @note for join functions, explicit join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
      */
     #@{
-    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond, \c alias, and \c ta keys
+    #! returns hash keyed with the table name assigned to a @ref JoinOperatorInfo hash
     /**
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
     */
-    public hash sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub make_jop(string jop, AbstractTable table, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
         string hk = alias ? alias : table.getSqlName();
-        hash h{hk} = ("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
-        return h;
+        return new hash<string, hash<JoinOperatorInfo>>((hk: cast<hash<JoinOperatorInfo>>(("jop": jop, "table": table, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt))));
     }
 
-    #! returns a hash keyed with the table name assigned to a hash with \c jop, \c table, \c jcols, \c cond, \c alias, and \c ta keys
+    #! returns a hash keyed with the table name assigned to a @ref JoinOperatorInfo hash
     /** This version is used for deferred table resolution at join time
 
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
     */
-    public hash sub make_jop(string jop, string table_name, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub make_jop(string jop, string table_name, *string alias, *hash jcols, *hash cond, *string ta, *hash opt) {
         string hk = alias ? alias : table_name;
-        hash h{hk} = ("jop": jop, "table": table_name, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt);
-        return h;
+        return new hash<string, hash<JoinOperatorInfo>>((hk:  cast<hash<JoinOperatorInfo>>(("jop": jop, "table": table_name, "jcols": jcols, "cond": cond, "alias": alias, "ta": ta, "opt": opt))));
     }
 
     #! returns a hash for standard inner joins with the given arguments
@@ -3099,7 +3159,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3123,7 +3183,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3147,7 +3207,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table_name, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3174,7 +3234,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table, alias, jcols, cond, ta, opt);
     }
 
@@ -3199,7 +3259,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_inner(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
@@ -3226,7 +3286,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_inner_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_inner_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_INNER, table_name, alias, jcols, cond, ta, opt);
     }
 
@@ -3250,7 +3310,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3274,7 +3334,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3300,7 +3360,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_left(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3325,7 +3385,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table, alias, jcols, cond, ta, opt);
     }
 
@@ -3350,7 +3410,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_left(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
@@ -3377,7 +3437,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_left_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_left_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_LEFT, table_name, alias, jcols, cond, ta, opt);
     }
 
@@ -3401,7 +3461,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right(AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3425,7 +3485,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right(Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3451,7 +3511,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_right(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right(string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, NOTHING, opt);
     }
 
@@ -3476,7 +3536,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right(string ta, AbstractTable table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table, alias, jcols, cond, ta, opt);
     }
 
@@ -3501,7 +3561,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return a join description hash corresponding to the arguments for use in the @ref select_option_join "join" argument of a @ref select_option_hash "select option hash"
     */
-    public hash sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right(string ta, Table table, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table.getTable(), alias, jcols, cond, ta, opt);
     }
 
@@ -3528,7 +3588,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @since %SqlUtil 1.3
     */
-    public hash sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
+    public hash<string, hash<JoinOperatorInfo>> sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
     }
     #@}
@@ -3770,12 +3830,12 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         - wop_or(): for combining SQL expressions with \c "or"
      */
     #@{
-    #! returns a hash with \c op and \c arg keys
-    public hash sub make_op(string op, any arg) {
-        return ("op": op, "arg": arg);
+    #! returns an @ref OperatorInfo hash
+    public hash<OperatorInfo> sub make_op(string op, any arg) {
+        return new hash<OperatorInfo>(("op": op, "arg": arg));
     }
 
-    #! returns a hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_like("%smith%"))));
@@ -3783,13 +3843,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param str the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
     */
-    public hash sub op_like(string str) {
+    public hash<OperatorInfo> sub op_like(string str) {
         return make_op(OP_LIKE, str);
     }
 
-    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_lt("Zebra"))));
@@ -3797,15 +3857,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_clt() for a function to be used when comparing two column values
     */
-    public hash sub op_lt(any arg) {
+    public hash<OperatorInfo> sub op_lt(any arg) {
         return make_op(OP_LT, arg);
     }
 
-    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_le("Zebra"))));
@@ -3813,15 +3873,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_cle() for a function to be used when comparing two column values
     */
-    public hash sub op_le(any arg) {
+    public hash<OperatorInfo> sub op_le(any arg) {
         return make_op(OP_LE, arg);
     }
 
-    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_gt("Apple"))));
@@ -3829,15 +3889,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_cgt() for a function to be used when comparing two column values
     */
-    public hash sub op_gt(any arg) {
+    public hash<OperatorInfo> sub op_gt(any arg) {
         return make_op(OP_GT, arg);
     }
 
-    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ge("Apple"))));
@@ -3845,15 +3905,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_cge() for a function to be used when comparing two column values
     */
-    public hash sub op_ge(any arg) {
+    public hash<OperatorInfo> sub op_ge(any arg) {
         return make_op(OP_GE, arg);
     }
 
-    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ne("Smith"))));
@@ -3861,17 +3921,17 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_cne() for a function to be used when comparing two column values
 
         This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NOT NULL</tt> clause.
     */
-    public hash sub op_ne(any arg) {
+    public hash<OperatorInfo> sub op_ne(any arg) {
         return make_op(OP_NE, arg);
     }
 
-    #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
+    #! returns an @ref OperatorInfo hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_eq("Smith"))));
@@ -3879,17 +3939,17 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the argument for the operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_ceq() for a function to be used when comparing two column values
 
         This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NULL</tt> clause.
     */
-    public hash sub op_eq(any arg) {
+    public hash<OperatorInfo> sub op_eq(any arg) {
         return make_op(OP_EQ, arg);
     }
 
-    #! returns a hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_between("US", "UX"))));
@@ -3898,11 +3958,11 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @param l the lower bound for the \c "between" operator
         @param r the upper bound for the \c "between" operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
      */
-    public hash sub op_between(any l, any r) {
+    public hash<OperatorInfo> sub op_between(any l, any r) {
         if (!exists l || l === NULL)
             throw "BETWEEN-ERROR", sprintf("the first argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", l);
         if (!exists r || r === NULL)
@@ -3910,21 +3970,21 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         return make_op(OP_BETWEEN, (l, r));
     }
 
-    #! returns a hash for the \c "in" operator with all arguments passed to the function; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "in" operator with all arguments passed to the function; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
         @endcode
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
     */
-    public hash sub op_in() {
+    public hash<OperatorInfo> sub op_in() {
         return make_op(OP_IN, argv);
     }
 
-    #! returns a hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_in(idlist))));
@@ -3932,27 +3992,27 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param args a list of values for the \c "in" operator
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
     */
-    public hash sub op_in(list args) {
+    public hash<OperatorInfo> sub op_in(list args) {
         return make_op(OP_IN, args);
     }
 
-    #! returns a hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
         @endcode
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
     */
-    public hash sub op_not(hash arg) {
+    public hash<OperatorInfo> sub op_not(hash arg) {
         return make_op(OP_NOT, arg);
     }
 
-    #! returns a hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_clt("other_name"))));
@@ -3960,15 +4020,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_lt() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_clt(string arg) {
+    public hash<OperatorInfo> sub op_clt(string arg) {
         return make_op(OP_CLT, arg);
     }
 
-    #! returns a hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cle("other_name"))));
@@ -3976,15 +4036,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_le() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_cle(string arg) {
+    public hash<OperatorInfo> sub op_cle(string arg) {
         return make_op(OP_CLE, arg);
     }
 
-    #! returns a hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cgt("other_name"))));
@@ -3992,15 +4052,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_gt() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_cgt(string arg) {
+    public hash<OperatorInfo> sub op_cgt(string arg) {
         return make_op(OP_CGT, arg);
     }
 
-    #! returns a hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cge("other_name"))));
@@ -4008,15 +4068,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_ge() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_cge(string arg) {
+    public hash<OperatorInfo> sub op_cge(string arg) {
         return make_op(OP_CGE, arg);
     }
 
-    #! returns a hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_cne("other_name"))));
@@ -4024,15 +4084,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_ne() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_cne(string arg) {
+    public hash<OperatorInfo> sub op_cne(string arg) {
         return make_op(OP_CNE, arg);
     }
 
-    #! returns a hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
+    #! returns an @ref OperatorInfo hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ceq("other_name"))));
@@ -4040,15 +4100,15 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @param arg the name of the column to compare against
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
 
         @see op_eq() for a function to be used when comparing a column against an immediate value
     */
-    public hash sub op_ceq(string arg) {
+    public hash<OperatorInfo> sub op_ceq(string arg) {
         return make_op(OP_CEQ, arg);
     }
 
-    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_substr(1, 6, "Martin"))));
@@ -4058,13 +4118,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @param count length of the substring in characters
         @param text what substring should match
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
      */
-    public hash sub op_substr(int start, *int count, string text) {
+    public hash<OperatorInfo> sub op_substr(int start, *int count, string text) {
         return make_op(OP_SUBSTR, (start, count, text));
     }
 
-    #! returns a hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("hex": op_substr(5, "BEEF"))));
@@ -4073,13 +4133,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         @param start position where the substring starts
         @param text what substring should match
 
-        @return a where operation description hash for use in @ref where_clauses "where clauses"
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
      */
-    public hash sub op_substr(int start, string text) {
+    public hash<OperatorInfo> sub op_substr(int start, string text) {
         return make_op(OP_SUBSTR, (start, NOTHING, text));
     }
 
-    #! returns a hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"
+    #! returns an @ref OperatorInfo hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
 *list rows = table.selectRows(("where": ("name": op_ceq("other_name")) + wop_or(("type": "C", "validation_flag": op_ne(NULL)), ("expiration_date": op_ge(date)))));
@@ -4092,16 +4152,16 @@ select * from schema.table where name = other_name and ((type = %v and validatio
         @param h1 the hash of expressions to combine with \c "or" logic
         @param ... remaining expressions to combine with \c "or" logic
 
-        @return a hash with a fake column name (\c "_OR_" with a numeric prefix for uniqueness) for use in a where operation description hash for use in @ref where_clauses "where clauses"
+        @return a hash with an @ref OperatorInfo hash value keyed by a fake column name (\c "_OR_" with a numeric prefix for uniqueness) for use in a where operation description hash for use in @ref where_clauses "where clauses"
 
         @note a random prefix is used so that multiple uses of the function can be used to generate a single @ref where_clauses "where clause hash"
     */
-    public hash sub wop_or(hash h1, hash h2) {
+    public hash<string, hash<OperatorInfo>> sub wop_or(hash h1, hash h2) {
         softlist l = h1;
         l += h2;
         if (argv)
             l += argv;
-        return (sprintf("%d:_OR_", rand() % 10000000): make_op(OP_OR, l));
+        return new hash<string, hash<OperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): make_op(OP_OR, l)));
     }
     #@}
 
@@ -4130,19 +4190,19 @@ select * from schema.table where name = other_name and ((type = %v and validatio
         - @ref iop_seq(): insert the value of a sequence into the column
     */
     #@{
-    #! returns a hash with \c _iop and \c arg keys
+    #! returns an @ref InsertOperatorInfo hash
     /** @param iop the value operator (one of @ref sql_iops)
         @param arg the argument to the operator
 
-        @return an insert operator description hash corresponding to the arguments for use as values in insert queries
+        @return an @ref InsertOperatorInfo hash corresponding to the arguments for use as values in insert queries
 
         @note Normally this function is not called directly, but rather by the other insert operator functions
     */
-    public hash sub make_iop(string iop, any arg) {
-        return ("_iop": iop, "arg": arg);
+    public hash<InsertOperatorInfo> sub make_iop(string iop, any arg) {
+        return new hash<InsertOperatorInfo>(("_iop": iop, "arg": arg));
     }
 
-    #! returns a hash for retrieving the value of the given sequence in insert queries
+    #! returns an @ref InsertOperatorInfo hash for retrieving the value of the given sequence in insert queries
     /** @par Example:
         @code{.py}
 table.insert(("id": id, "ref": iop_seq("xid")));
@@ -4150,13 +4210,13 @@ table.insert(("id": id, "ref": iop_seq("xid")));
 
         @param arg the name of the sequence whose value should be inserted into the column
 
-        @return a value operator description hash corresponding to the arguments for use in insert queries
+        @return an @ref InsertOperatorInfo hash corresponding to the arguments for use in insert queries
     */
-    public hash sub iop_seq(string arg) {
+    public hash<InsertOperatorInfo> sub iop_seq(string arg) {
         return make_iop(IOP_SEQ, arg);
     }
 
-    #! returns a hash for retrieving the current value of the given sequence in insert queries
+    #! returns an @ref InsertOperatorInfo hash for retrieving the current value of the given sequence in insert queries
     /** @par Example:
         @code{.py}
 table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
@@ -4164,9 +4224,9 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
         @param arg the name of the sequence whose current value should be inserted into the column
 
-        @return a value operator description hash corresponding to the arguments for use in insert queries
+        @return an @ref InsertOperatorInfo hash corresponding to the arguments for use in insert queries
     */
-    public hash sub iop_seq_currval(string arg) {
+    public hash<InsertOperatorInfo> sub iop_seq_currval(string arg) {
         return make_iop(IOP_SEQ_CURRVAL, arg);
     }
     #@}
@@ -4344,11 +4404,10 @@ bool b = c.partialMatchKeys(l);
                 return False;
 
             # make a hash of the list for quick searching
-            hash h1;
-            map h1.$1 = True, l;
+            hash<string, bool> h1 = map {$1: True}, l;
 
             foreach string k in (h.keyIterator()) {
-                if (!h1.hasKey(k))
+                if (!h1{k})
                     return False;
             }
 
@@ -7992,8 +8051,10 @@ Table table("pgsql:user/pass@db%host", "table");
                 "size": Type::Int,
                 "scale": Type::Int,
                 "default_value": Type::NothingType,
-                "default_value_native" : Type::Boolean,
+                "default_value_native": Type::Boolean,
                 "comment": Type::String,
+                "notnull": Type::Boolean,
+                "driver": Type::Hash,
                 );
 
             #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
@@ -12287,7 +12348,7 @@ string sql = table.getSelectSql(sh, \args);
         private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
-                if (we.cop) {
+                if (we.hasKey("cop")) {
                     *hash psch_copy = psch;
                     string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
                     if (psch_copy != psch)
@@ -12586,7 +12647,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return execData(opt, sql, args);
         }
 
-        private string getUpdateExpression(string col, hash uh) {
+        private string getUpdateExpression(string col, hash<UpdateOperatorInfo> uh) {
             hash um = getUpdateOperatorMap();
 
             *hash cmd = um{uh.uop};
@@ -12624,7 +12685,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 }
             }
 
-            string arg = (uh.nest ? getUpdateExpression(col, uh.nest) : col);
+            string arg = (uh.nest ? getUpdateExpression(col, cast<hash<UpdateOperatorInfo>>(uh.nest)) : col);
 
             return cmd.code(arg, uh.arg);
         }

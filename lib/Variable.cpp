@@ -76,12 +76,11 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
       return val.v.getPtr()->getLValue(lvh, for_remove);
    }
 
-   lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(rwl);
    if (checkFinalized(lvh.vl.xsink))
       return -1;
 
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
@@ -296,12 +295,6 @@ void LValueHelper::saveTemp(AbstractQoreNode* n) {
    tvec.push_back(n);
 }
 
-void LValueHelper::setValue(QoreLValueGeneric& nv) {
-   assert(!v);
-   assert(!val);
-   val = &nv;
-}
-
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
    return -1;
@@ -340,16 +333,26 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
          return -1;
       }
 
-      // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(getValue());
-      assignIntern((l = new QoreListNode));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexList(typeInfo)) {
+         assignIntern((l = new QoreListNode));
+         qore_list_private::get(*l)->complexTypeInfo = typeInfo;
+      }
+      else {
+         // save the old value for dereferencing outside any locks that may have been acquired
+         saveTemp(getValue());
+         assignIntern((l = new QoreListNode));
+      }
    }
 
    ocvec.push_back(ObjCountRec(l));
 
+   return qore_list_private::get(*l)->getLValue((size_t)ind, *this, for_remove, vl.xsink);
+   /*
    resetPtr(l->get_entry_ptr(ind));
    return 0;
+   */
 }
 
 int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
@@ -370,22 +373,23 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
          return -1;
       }
 
-      //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(getValue());
-      assignIntern((h = new QoreHashNode));
+      //printd(5, "LValueHelper::doHashLValue() cv: %p ti: %p '%s' c: %p\n", getValue(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexHash(typeInfo)) {
+         assignIntern((h = new QoreHashNode));
+         qore_hash_private::get(*h)->complexTypeInfo = typeInfo;
+      }
+      else {
+         //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
+         saveTemp(getValue());
+         assignIntern((h = new QoreHashNode));
+      }
    }
 
    ocvec.push_back(ObjCountRec(h));
 
    //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-   AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem) : h->getKeyValuePtr(mem);
-   if (!ptr) {
-      assert(for_remove);
-      return -1;
-   }
-
-   resetPtr(ptr);
-   return 0;
+   return qore_hash_private::get(*h)->getLValue(mem, *this, for_remove, vl.xsink);
 }
 
 int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
@@ -505,9 +509,11 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    if (current_value && current_value->getType() == NT_REFERENCE) {
       const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
       if (val)
-         val = 0;
+         val = nullptr;
       if (v)
-         v = 0;
+         v = nullptr;
+      if (typeInfo)
+         typeInfo = nullptr;
       return doLValue(ref, for_remove);
    }
 
@@ -552,17 +558,20 @@ double LValueHelper::getAsFloat() const {
    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
-int LValueHelper::assign(QoreValue n, const char* desc) {
+int LValueHelper::assign(QoreValue n, const char* desc, bool check_types) {
    assert(!*vl.xsink);
    if (n.type == QV_Node && n.v.n == &Nothing)
-      n.v.n = 0;
+      n.v.n = nullptr;
 
-   // check type for assignment
-   QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
-   if (*vl.xsink) {
-      //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-      saveTemp(n);
-      return -1;
+   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types);
+   if (check_types) {
+      // check type for assignment
+      QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
+      if (*vl.xsink) {
+         //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+         saveTemp(n);
+         return -1;
+      }
    }
 
    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
@@ -1236,7 +1245,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 #endif
 }
 
-int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
+int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo) const {
    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
    if (val.getType() == NT_REFERENCE) {
       ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
@@ -1245,7 +1254,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    // note: type info is not stored at runtime for local variables
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
@@ -1283,11 +1292,9 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       return helper ? lvh.doLValue(*ref, for_remove) : -1;
    }
 
-   lvh.setTypeInfo(typeInfo);
-
    lvh.set(rml);
    sl.stay_locked();
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 

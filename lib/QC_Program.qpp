@@ -467,6 +467,16 @@ const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
     @since %Qore 0.8.13
 */
 const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
+
+//! Prohibits user hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_USER_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+
+//! Prohibits system hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1014,7 +1024,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 
     @param cls the name of the class to import into the Program object
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code{.py}
@@ -1502,6 +1512,22 @@ Program::importSystemClasses() {
    qore_program_private::runtimeImportSystemClasses(*p, xsink);
 }
 
+//! imports system hashdecls into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS
+/** @par Example:
+    @code{.py}
+pgm.importSystemHashDecls();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.13
+*/
+Program::importSystemHashDecls() {
+   qore_program_private::runtimeImportSystemHashDecls(*p, xsink);
+}
+
 //! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
 /** @par Example:
     @code{.py}
@@ -1534,7 +1560,7 @@ Program::importSystemFunctions() {
    qore_program_private::runtimeImportSystemFunctions(*p, xsink);
 }
 
-//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
+//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code{.py}
 pgm.importSystemApi();
@@ -1542,7 +1568,7 @@ pgm.importSystemApi();
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
-    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
 
     @since %Qore 0.8.12
 */

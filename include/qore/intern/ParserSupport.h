@@ -62,13 +62,14 @@ public:
    }
 
    DLLLOCAL void update(int lineno, int leng, const char* text) {
+      assert(leng >= 0);
       first_line = last_line;
       first_col = last_col;
       if (first_line == lineno)
          last_col += leng;
       else {
          unsigned int col = 1;
-         for (; (col <= leng) && (text[leng - col] != '\n'); ++col) {}
+         for (; (col <= (unsigned)leng) && (text[leng - col] != '\n'); ++col) {}
          last_col = col;
          last_line = lineno;
       }

@@ -63,29 +63,20 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
        && !strcmp(static_cast<VarRefNode*>(left)->getName(), static_cast<VarRefNode*>(right)->getName()))
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
-   if (QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && getProgram()->getParseExceptionSink()) {
-      if (!QoreTypeInfo::parseAccepts(ti, r)) {
-         QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-         QoreTypeInfo::getThisType(ti, *edesc);
-         edesc->concat(", but right-hand side is ");
-         QoreTypeInfo::getThisType(r, *edesc);
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-      }
-      /*
-      else {
-         // verify reference assignments at parse time: only catch the initial assignment
-         if ((ti == referenceTypeInfo || (ti == referenceOrNothingTypeInfo && !QoreTypeInfo::parseAcceptsReturns(r, NT_NOTHING)))
-             && get_node_type(left) == NT_VARREF
-             && get_node_type(right) != NT_PARSEREFERENCE && get_node_type(right) != NT_REFERENCE
-             && dynamic_cast<VarRefDeclNode*>(left)) {
-            QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) in the initial assignment expects ");
-            QoreTypeInfo::getThisType(ti, *edesc);
-            edesc->concat(", but right-hand side is ");
-            QoreTypeInfo::getThisType(r, *edesc);
-            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-         }
-      }
-      */
+   bool may_not_match = false;
+   bool may_need_filter = false;
+   qore_type_result_e res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
+
+   ident = QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) && !may_need_filter);
+
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
+
+   if (getProgram()->getParseExceptionSink() && !res) {
+      QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+      QoreTypeInfo::getThisType(ti, *edesc);
+      edesc->concat(", but right-hand side is ");
+      QoreTypeInfo::getThisType(r, *edesc);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
    }
 
    return this;
@@ -121,7 +112,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    assert(!*xsink);
 
    // assign new value
-   if (v.assign(new_value.takeReferencedValue()))
+   if (v.assign(new_value.takeReferencedValue(), "<lvalue>", !ident))
       return QoreValue();
 
    // reference return value if necessary

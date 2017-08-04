@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include "qore/intern/ql_time.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/qore_date_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -105,23 +106,24 @@ QoreHashNode* date_info(const DateTime& d) {
    qore_tm info;
    d.getInfo(info);
 
-   QoreHashNode *h = new QoreHashNode;
-   h->setKeyValue("relative", get_bool_node(d.isRelative()), 0);
-   h->setKeyValue("year", new QoreBigIntNode(info.year), 0);
-   h->setKeyValue("month", new QoreBigIntNode(info.month), 0);
-   h->setKeyValue("day", new QoreBigIntNode(info.day), 0);
-   h->setKeyValue("hour", new QoreBigIntNode(info.hour), 0);
-   h->setKeyValue("minute", new QoreBigIntNode(info.minute), 0);
-   h->setKeyValue("second", new QoreBigIntNode(info.second), 0);
-   h->setKeyValue("microsecond", new QoreBigIntNode(info.us), 0);
+   QoreHashNode* h = new QoreHashNode(hashdeclDateTimeInfo, nullptr);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("relative", get_bool_node(d.isRelative()));
+   ph->setKeyValueIntern("year", new QoreBigIntNode(info.year));
+   ph->setKeyValueIntern("month", new QoreBigIntNode(info.month));
+   ph->setKeyValueIntern("day", new QoreBigIntNode(info.day));
+   ph->setKeyValueIntern("hour", new QoreBigIntNode(info.hour));
+   ph->setKeyValueIntern("minute", new QoreBigIntNode(info.minute));
+   ph->setKeyValueIntern("second", new QoreBigIntNode(info.second));
+   ph->setKeyValueIntern("microsecond", new QoreBigIntNode(info.us));
 
    if (d.isAbsolute()) {
-      h->setKeyValue("dow", new QoreBigIntNode(d.getDayOfWeek()), 0);
-      h->setKeyValue("doy", new QoreBigIntNode(d.getDayNumber()), 0);
-      h->setKeyValue("utc_secs_east", new QoreBigIntNode(info.utc_secs_east), 0);
-      h->setKeyValue("dst", get_bool_node(info.dst), 0);
-      h->setKeyValue("zone_name", new QoreStringNode(info.zone_name), 0);
-      h->setKeyValue("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)), 0);
+      ph->setKeyValueIntern("dow", new QoreBigIntNode(d.getDayOfWeek()));
+      ph->setKeyValueIntern("doy", new QoreBigIntNode(d.getDayNumber()));
+      ph->setKeyValueIntern("utc_secs_east", new QoreBigIntNode(info.utc_secs_east));
+      ph->setKeyValueIntern("dst", get_bool_node(info.dst));
+      ph->setKeyValueIntern("zone_name", new QoreStringNode(info.zone_name));
+      ph->setKeyValueIntern("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)));
    }
 
    return h;
@@ -296,6 +298,52 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
    return *xsink ? 0 : rv.release();
 }
 
+//! date/time information hash as returned by @ref Qore::date_info() "date_info()" and <date>::info()
+/** @since %Qore 0.8.13
+*/
+hashdecl DateTimeInfo {
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") @ref True if the date is a relative date, @ref False if it is absolute
+    bool relative;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The year value of the date
+    int year;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The month value of the date
+    int month;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The day value of the date (day of the month for absolute dates)
+    int day;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The hour value of the date
+    int hour;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The minute value of the date
+    int minute;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The second value of the date
+    int second;
+    //! (@ref absolute_dates "absolute" and @ref relative_dates "relative") The microsecond value of the date
+    int microsecond;
+    //! (@ref absolute_dates "absolute" Only) The day of the week, where 0=Sunday, 1=Monday, ... 6=Saturday
+    int dow;
+    //! (@ref absolute_dates "absolute" Only) The ordinal day number in the year
+    int doy;
+    //! (@ref absolute_dates "absolute" Only) Offset from UTC in seconds east; if the time zone is west of UTC then the value will be negative
+    int utc_secs_east;
+    //! (@ref absolute_dates "absolute" Only) A flag if daylight savings time is in effect
+    bool dst;
+    //! (@ref absolute_dates "absolute" Only) The time zone for the time
+    Qore::TimeZone zone;
+    //! (@ref absolute_dates "absolute" Only) The name of the time zone for the given time (ex: "CEST" for Central European Summer Time for a time during summer time or "CET" for Central European Time for the same time zone while daylight savings time is not active)
+    string zone_name;
+}
+
+//! ISO week information as returned by @ref Qore::get_iso_week_hash() "get_iso_week_hash()" and <date>::isoWeekHash()
+/** @since %Qore 0.8.13
+*/
+hashdecl IsoWeekInfo {
+    //! the ISO year value (not always equal to the actual calendar year)
+    int year;
+    //! the ISO week number
+    int week;
+    //! the ISO day value from 1 (Monday) to 7 (Sunday)
+    int day;
+}
+
 /** @defgroup date_and_time_functions Date and Time Functions
     @section date_formatting Date Formatting Codes
     |!Format Code|!Description
@@ -335,23 +383,6 @@ DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreStri
 
     @bug the \c "u" and \c "uu" format codes work with milliseconds and not microseconds since they were implemented before
     qore supported microsecond time resolution; this cannot be changed without breaking backwards-compatibility
-
-    @section date_info_hash Date/Time Information Hash
-    |!Key|!Type|!Absolute/Relative|!Description
-    |\c relative|@ref bool_type|Both|@ref True if the date is a relative date, @ref False if it is absolute
-    |\c year|@ref int_type|Both|The year value of the date
-    |\c month|@ref int_type|Both|The month value of the date
-    |\c day|@ref int_type|Both|The day value of the date (day of the month for absolute dates)
-    |\c hour|@ref int_type|Both|The hour value of the date
-    |\c minute|@ref int_type|Both|The minute value of the date
-    |\c second|@ref int_type|Both|The second value of the date
-    |\c microsecond|@ref int_type|Both|The microsecond value of the date
-    |\c dow|@ref int_type|@ref absolute_dates "Absolute" Only|The day of the week, where 0=Sunday, 1=Monday, ... 6=Saturday
-    |\c doy|@ref int_type|@ref absolute_dates "Absolute" Only|The ordinal day number in the year
-    |\c utc_secs_east|@ref int_type|@ref absolute_dates "Absolute" Only|Offset from UTC in seconds east; if the time zone is west of UTC then the value will be negative
-    |\c dst|@ref bool_type|@ref absolute_dates "Absolute" Only|A flag if daylight savings time is in effect
-    |\c zone|@ref Qore::TimeZone "TimeZone"|@ref absolute_dates "Absolute" Only|The time zone for the time
-    |\c zone_name|@ref string_type|@ref absolute_dates "Absolute" Only|The name of the time zone for the given time (ex: "CEST" for Central European Summer Time for a time during summer time or "CET" for Central European Time for the same time zone while daylight savings time is not active)
 
     @section date_mask Date Mask Format
     The date mask (as used in @ref Qore::date(string, string) and @ref Qore::TimeZone::date(string, string)) is used to specify
@@ -1240,24 +1271,26 @@ int get_iso_day_of_week(date dt) [flags=CONSTANT] {
    return (!d ? 7 : d);
 }
 
-//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
+//! Returns an @ref IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
 /** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
 
     @param dt the date to get information for
 
-    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
+    @return an @ref IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
 
     @see get_iso_week_string()
 
     @deprecated use get_iso_week_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
+hash<IsoWeekInfo> getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
-   QoreHashNode *h = new QoreHashNode;
-   h->setKeyValue("year", new QoreBigIntNode(year), 0);
-   h->setKeyValue("week", new QoreBigIntNode(week), 0);
-   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("year", new QoreBigIntNode(year));
+   ph->setKeyValueIntern("week", new QoreBigIntNode(week));
+   ph->setKeyValueIntern("day", new QoreBigIntNode(day));
 
    return h;
 }
@@ -1268,16 +1301,16 @@ hash getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
 nothing getISOWeekHash() [flags=RUNTIME_NOOP,DEPRECATED] {
 }
 
-//! Returns a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
+//! Returns an @ref IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day")
 /** @note that the ISO-8601 year does not always correspond with the calendar year at the end and the beginning of every year (for example 2006-01-01 in ISO-8601 calendar week format is: year=2005, week=52, day=7)
 
     @param dt the date to get information for
 
-    @return a hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
+    @return an @ref IsoWeekInfo "IsoWeekInfo" hash representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (hash keys: \c "year", \c "week", \c "day"); if a @ref relative_dates "relative date" value is passed, then this function will return year=1970, week=1, day=1
 
     @par Example:
     @code{.py}
-hash h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
+hash<IsoWeekInfo> h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
     @endcode
 
     @note equivalent to <date>::isoWeekHash()
@@ -1286,13 +1319,15 @@ hash h = get_iso_week_hash(2007-05-15); # returns year=2007, week=20, day=2
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekHash()
 */
-hash get_iso_week_hash(date dt) [flags=CONSTANT] {
+hash<IsoWeekInfo> get_iso_week_hash(date dt) [flags=CONSTANT] {
    int year, week, day;
    dt->getISOWeek(year, week, day);
-   QoreHashNode *h = new QoreHashNode;
-   h->setKeyValue("year", new QoreBigIntNode(year), 0);
-   h->setKeyValue("week", new QoreBigIntNode(week), 0);
-   h->setKeyValue("day", new QoreBigIntNode(day), 0);
+
+   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("year", new QoreBigIntNode(year));
+   ph->setKeyValueIntern("week", new QoreBigIntNode(week));
+   ph->setKeyValueIntern("day", new QoreBigIntNode(day));
 
    return h;
 }
@@ -1583,33 +1618,33 @@ float get_duration_seconds_f(date dt) [flags=CONSTANT] {
    return dt->getRelativeSecondsDouble();
 }
 
-//! Returns a hash of @ref date_info_hash "broken-down date/time information" for the given date argument (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
+//! Returns a @ref DateTimeInfo hash for the given date argument (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /**
     @param dt the date to return information for
 
-    @return a hash of @ref date_info_hash "broken-down date/time information" for the given date argument
+    @return a @ref DateTimeInfo hash for the given date argument
 
     @par Example:
     @code{.py}
-hash h = date_info(date);
+hash<DateTimeInfo> h = date_info(date);
     @endcode
 
     @note equivalent to <date>::info()
 */
-hash date_info(date dt) [flags=CONSTANT] {
+hash<DateTimeInfo> date_info(date dt) [flags=CONSTANT] {
    return date_info(*dt);
 }
 
-//! Returns a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
+//! Returns a @ref DateTimeInfo hash for the current date and time
 /**
-    @return a hash of @ref date_info_hash "broken-down date/time information" for the current date and time
+    @return a @ref DateTimeInfo hash for the current date and time
 
     @par Example:
     @code{.py}
-hash h = date_info();
+hash<DateTimeInfo> h = date_info();
     @endcode
 */
-hash date_info() [flags=CONSTANT] {
+hash<DateTimeInfo> date_info() [flags=CONSTANT] {
    int us;
    int64 seconds = q_epoch_us(us);
    DateTime d;

@@ -36,6 +36,7 @@
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <string.h>
 #include <time.h>
@@ -1264,7 +1265,7 @@ string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VA
 
     @deprecated use get_module_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getModuleList() [flags=DEPRECATED] {
+list<hash> getModuleList() [flags=DEPRECATED] {
    return MM.getModuleList();
 }
 
@@ -1282,7 +1283,7 @@ list getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list list = get_module_list();
+list l = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1291,7 +1292,7 @@ list list = get_module_list();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleList()
 */
-list get_module_list() {
+list<hash> get_module_list() {
    return MM.getModuleList();
 }
 
@@ -1313,7 +1314,7 @@ list get_module_list() {
 
     @deprecated use get_module_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getModuleHash() [flags=DEPRECATED] {
+hash<string, hash> getModuleHash() [flags=DEPRECATED] {
    return MM.getModuleHash();
 }
 
@@ -1338,7 +1339,7 @@ hash mh = get_module_hash();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleHash()
 */
-hash get_module_hash() {
+hash<string, hash> get_module_hash() {
    return MM.getModuleHash();
 }
 
@@ -1411,11 +1412,16 @@ nothing hash_values() [flags=RUNTIME_NOOP] {
 bool b = has_key(hash, "key");
     @endcode
 
+    @note no exception is thrown when checking an invalid key in a @ref hashdecl "hashdecl"-derived hash
+
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
 bool has_key(hash h, string key) {
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return QoreValue();
    bool exists;
-   h->getKeyValueExistence(key, exists, xsink);
+   h->getValueKeyValueExistence(tmp->c_str(), exists);
    return exists;
 }
 
@@ -2587,15 +2593,17 @@ catch (hash ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash ex) [flags=CONSTANT] {
-   const AbstractQoreNode* n = ex->getKeyValue("file");
-   QoreStringNode* str = new QoreStringNode(get_node_type(n) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(n)->getBuffer() : "<unknown>");
-   bool found = false;
-   int ln = (int)ex->getKeyAsBigInt("line", found);
+   QoreValue n = ex->getValueKeyValue("file");
+   QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+   int ln = (int)ex->getValueKeyValue("line").getAsBigInt();
    str->sprintf(":%d", ln);
-   n = ex->getKeyValue("source");
-   if (get_node_type(n) == NT_STRING && !reinterpret_cast<const QoreStringNode*>(n)->empty()) {
-      int offset = (int)ex->getKeyAsBigInt("offset", found);
-      str->sprintf(" (source \"%s\":%d)", reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), ln + offset);
+   n = ex->getValueKeyValue("source");
+   if (n.getType() == NT_STRING) {
+      const QoreStringNode* sstr = n.get<const QoreStringNode>();
+      if (!sstr->empty()) {
+         int offset = (int)ex->getValueKeyValue("offset").getAsBigInt();
+         str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+      }
    }
 
    return str;

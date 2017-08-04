@@ -116,6 +116,14 @@ public:
    */
    DLLEXPORT void addSystemClass(QoreClass* oc);
 
+   //! adds a hashdecl to a namespace
+   /**
+      @param hd the hashdecl to add to the namespace
+
+      @since %Qore 0.8.13
+   */
+   DLLEXPORT void addSystemHashDecl(TypedHashDecl* hashdecl);
+
    //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
    /** @param po parse options to use when copying the namespace
        @return a deep copy of the namespace
