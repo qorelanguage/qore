@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module pgsql
 %define NoPgsql
 %endtry
@@ -40,6 +40,8 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
             );
@@ -126,9 +128,9 @@ class PgsqlTest inherits SqlTestBase {
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
             "timetz": 09:27:03-06,
-            "timestamp": 2016-01-11T09:27:59,
-            "timestamp with time zone": 2016-01-11T09:28:12.384629+03,
-            "timestamptz": 2016-01-11T09:28:12.384629+03,
+            "timestamp": 2016-02-11T09:26:14,
+            "timestamp with time zone": 2016-02-11T09:28:12.384629+03,
+            "timestamptz": 2016-02-11T09:28:12.384629+03,
 
             /*
             "money": (
@@ -170,6 +172,12 @@ class PgsqlTest inherits SqlTestBase {
 
         if (ds) {
             initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
 
             # create the test schema
             schema = new PgsqlTestSchema(ds);
@@ -215,6 +223,11 @@ class PgsqlTest inherits SqlTestBase {
         assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
         sh."where".id = 4;
         assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

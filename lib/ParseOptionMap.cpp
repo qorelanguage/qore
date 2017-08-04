@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -78,12 +78,25 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-user-api",              PO_NO_USER_API);
    DO_MAP("no-system-api",            PO_NO_SYSTEM_API);
    DO_MAP("no-api",                   PO_NO_API);
-   DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
    DO_MAP("no-system-constants",      PO_NO_INHERIT_SYSTEM_CONSTANTS);
    DO_MAP("broken-list-parsing",      PO_BROKEN_LIST_PARSING);
    DO_MAP("broken-logic-precedence",  PO_BROKEN_LOGIC_PRECEDENCE);
    DO_MAP("broken-int-assignments",   PO_BROKEN_INT_ASSIGNMENTS);
    DO_MAP("broken-operators",         PO_BROKEN_OPERATORS);
+   DO_MAP("broken-loop-statement",    PO_BROKEN_LOOP_STATEMENT);
+   DO_MAP("strong-encapsulation",     PO_STRONG_ENCAPSULATION);
+   DO_MAP("no-uncontrolled-apis",     PO_NO_UNCONTROLLED_APIS);
+   DO_MAP("allow-debugging",          PO_ALLOW_DEBUGGING);
+   DO_MAP("broken-references",        PO_BROKEN_REFERENCES);
+   DO_MAP("no-system-classes",        PO_NO_INHERIT_SYSTEM_CLASSES);
+   DO_MAP("no-system-functions",      PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS);
+   DO_MAP("no-system-hashdecls",      PO_NO_INHERIT_SYSTEM_HASHDECLS);
+
+   // the following are not useful from the command-line
+   //DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
+   //DO_MAP("no-user-classes",          PO_NO_INHERIT_USER_CLASSES);
+   //DO_MAP("no-user-functions",        PO_NO_INHERIT_USER_FUNC_VARIANTS);
+   //DO_MAP("no-user-hashdecls",        PO_NO_INHERIT_USER_HASHDECLS);
 }
 
 int ParseOptionMap::find_code(const char *name) {
@@ -104,8 +117,8 @@ const char *ParseOptionMap::find_name(int code) {
 }
 
 void ParseOptionMap::list_options() {
-   for (opt_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i)
-      printf("%s\n", i->first);
+   for (auto& i : map)
+      printf("%s\n", i.first);
 }
 
 #undef DO_MAP

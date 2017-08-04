@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file HttpServer.qm HTTP multi-threaded server module definition
 
-/*  HttpServer.qm Copyright (C) 2012 - 2016 David Nichols
+/*  HttpServer.qm Copyright (C) 2012 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -31,7 +31,7 @@
 %new-style
 
 module HttpServer {
-    version = "0.3.11.1";
+    version = "0.3.12";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -112,7 +112,11 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
-    @subsection http0311 HttpServer 0.3.11.1
+    @subsection http0312 HttpServer 0.3.12
+    - added a minimal substring of string bodies received to the log message when logging HTTP requests
+    - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+
+    @subsection http03111 HttpServer 0.3.11.1
     - fixed a bug where @ref HttpServer::HttpServer::addListener() would not accept port 0 meaning bind on any random open port (<a href="https://github.com/qorelanguage/qore/issues/1284">bug 1284</a>)
 
     @subsection http0311 HttpServer 0.3.11
@@ -564,6 +568,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     private {
         *code logfunc;
         *code errlogfunc;
+
+        # for masking HTTP request log msgs
+        *code maskfunc;
 
         # quit server flag
         bool exit = False;
@@ -1213,6 +1220,31 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
     }
 
+    #! masks log messages by removing sensitive data
+    /** @see setMaskCode()
+
+        @since %HttpServer 0.3.12
+    */
+    string maskData(string msg) {
+        return maskfunc ? maskfunc(msg) : http_mask_data(msg);
+    }
+
+    #! sets the @ref closure "closure" or @ref call_reference "call reference" that will be used to mask sensitive data in log messages
+    /** @par Example
+        @code{.py}
+        http_server.setMaskCode(string sub (string msg) { return do_mask(msg); });
+        @endcode
+
+        @param maskfunc a @ref closure "closure" or @ref call_reference "call reference" that takes a single string argument and returns the masked string
+
+        @see maskData()
+
+        @since %HttpServer 0.3.12
+    */
+    setMaskCode(code maskfunc) {
+        self.maskfunc = maskfunc;
+    }
+
     #! returns a complete URL from a bind address
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
@@ -1363,7 +1395,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private hash noHandlerError(hash cx, hash hdr, any body) {
+    final private hash<HttpResponseInfo> noHandlerError(hash cx, hash hdr, any body) {
         string str = "";
         if (hdr.path)
             str = sprintf("url=%y", hdr.path);
@@ -1376,10 +1408,10 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             str += ", <no content-type>";
 
         log("no handler for %s (from %s) hdr: %y", str, cx."peer-info".address_desc, hdr);
-        return (
+        return new hash<HttpResponseInfo>((
             "code" : 501,
             "body" : sprintf("no handler has been registered for %s", str),
-            );
+            ));
     }
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
@@ -1453,7 +1485,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
 
         try {
-            any rv;
+            hash<HttpResponseInfo> rv;
 
             #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
             #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", cx.handler_name, cx, hdr, body);
@@ -1550,17 +1582,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference cx, hash hdr, bool head) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
-
-        if (rv.typeCode() == NT_STRING)
-            rv = (
-                "code": 200,
-                "body": rv,
-            );
-        else if (rv.typeCode() != NT_HASH)
-            rv = (
-                "code": 500,
-                "body": sprintf("handler %y returned an invalid response: %y", rv),
-            );
 
         rv.close = cx.close;
 
@@ -1733,6 +1754,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
         const PollInterval = 1s;
         const ListenQueue = 100;
+        const BodyLogLimit = 40;
     }
 
     public {
@@ -2187,9 +2209,23 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log("cid %d: RECV BODY: %y", cx.id, body);
 
                 {
+                    # attempt to mask sensitive data in the URI path
+                    orig_path = serv.maskData(orig_path);
+                    #s/(pass(?:word)?|sensitive(?:_data)?|svalue)=.*/$1=<masked>/;
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
-                    if (body)
-                        lstr += sprintf(" body: %db", body.size());
+                    if (body) {
+                        if (body.typeCode() == NT_STRING) {
+                            string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                            # attempt to mask sensitive data in the message body
+                            bstr = serv.maskData(bstr);
+                            bstr = replace(bstr, "\n", "\\n");
+                            bstr = replace(bstr, "\r", "\\r");
+                            bstr = replace(bstr, "\t", "\\t");
+                            lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
+                        }
+                        else
+                            lstr += sprintf(" body: <bin> %db", body.size());
+                    }
                     else if (hdr."transfer-encoding" == "chunked")
                         lstr += " body: chunked";
                     if (hdr."_qore_orig_content_type")

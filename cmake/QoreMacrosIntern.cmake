@@ -27,7 +27,7 @@ macro(qore_check_headers_cxx)
         string(REPLACE "." "_" include_file_ ${include_file})
 	string(REPLACE "/" "_" _include_file_ ${include_file_})
 	string(TOUPPER ${_include_file_} upper_include_file_)
-	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}")
+	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}" ${QORE_CHECK_HEADERS_CXX_FLAGS})
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${have_var})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/header_defines.txt ${file_output})
@@ -100,7 +100,7 @@ int main(void) {
 const unsigned char *p;
 d2i_X509(0, &p, 0l);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_CONST)
 
 # check for const required with SSL_CTX_new
@@ -110,7 +110,7 @@ int main(void) {
 const SSL_METHOD *meth;
 SSL_CTX_new(meth);
 return 0;
-}" 
+}"
 NEED_SSL_CTX_NEW_CONST)
 
 # check for return value with HMAC_Update and friends
@@ -119,7 +119,7 @@ check_cxx_source_compiles("
 int main(void) {
 int rc = HMAC_Update(0, 0, 0);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_HMAC_RV)
 
 unset(CMAKE_REQUIRED_INCLUDES)
@@ -131,7 +131,7 @@ endmacro()
 
 macro(qore_mpfr_checks)
 
-set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIR})
+set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${MPFR_LIBRARIES})
 
 check_cxx_symbol_exists(mpfr_divby0_p mpfr.h HAVE_MPFR_DIVBY0)
@@ -155,6 +155,13 @@ return 0;
 }"
 HAVE_RNDN)
 
+check_cxx_source_compiles("
+#include <mpfr.h>
+int main(void){
+mpfr_rnd_t test = MPFR_RNDN;
+return 0;
+}"
+HAVE_MPFR_RNDN)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -277,12 +284,11 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
        execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		       OUTPUT_VARIABLE GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
-       string(CONCAT GIT_REV_FILE_OUTPUT "#define BUILD \"" ${GIT_REV} "\"")
        file(WRITE ${CMAKE_BINARY_DIR}/include/qore/intern/git-revision.h "#define BUILD \"${GIT_REV}\"")
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")
    endif()
-   
+
 endif()
 
 endmacro()
@@ -300,7 +306,7 @@ check_cxx_source_compiles("
 int main(void){
 unordered_map<int, int> t;
 const unordered_map<int, int> &tr = t;
-tr.find(1); 
+tr.find(1);
 return 0;
 }" UNORDERED_MAP_FOUND)
 
@@ -308,7 +314,6 @@ if(UNORDERED_MAP_FOUND)
 set(HAVE_UNORDERED_MAP true)
 set(HAVE_QORE_HASH_MAP true)
 set(HASH_MAP_INCLUDE "<unordered_map>")
-set(HASH_NAMESPACE "")
 set(HASH_TYPE "unordered_map")
 set(STL_HASH_MAP_FOUND true)
 endif()
@@ -340,7 +345,7 @@ check_cxx_source_compiles("
 #include <tr1/unordered_map>
 int main(void){
 std::tr1::unordered_map<int, int> t;
-const std::tr1::unordered_map<int, int> &tr = t; 
+const std::tr1::unordered_map<int, int> &tr = t;
 tr.find(1);
 return 0;
 }" TR1_UNORDERED_MAP_FOUND)
@@ -370,7 +375,6 @@ set(HAVE_HASH_SET true)
 set(HAVE_QORE_HASH_MAP true)
 set(HASH_MAP_INCLUDE "<hash_map>")
 set(HASH_SET_INCLUDE "<hash_set>")
-set(HASH_NAMESPACE "")
 set(HASH_TYPE "hash_map")
 set(STL_HASH_MAP_FOUND true)
 endif()
@@ -446,7 +450,7 @@ message(WARNING "Couldn't find an STL unordered_map")
 endif()
 
 #write the file.
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in
                ${CMAKE_BINARY_DIR}/${_hash_map_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
@@ -473,7 +477,6 @@ set(HAVE_SLIST true)
 set(HAVE_QORE_SLIST true)
 set(SLIST_INCLUDE "<slist>")
 set(LIST_SET_INCLUDE "list_set")
-set(LIST_NAMESPACE "")
 set(SLIST_TYPE "slist")
 set(STL_SLIST_FOUND true)
 endif()
@@ -545,7 +548,7 @@ else()
 message(WARNING "couldn't find an STL slist")
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in
                ${CMAKE_BINARY_DIR}/${_stl_slist_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
@@ -605,7 +608,7 @@ else()
       int main(void){
       iconv_t cd;
       cd = iconv_open(\"ISO8859-1//TRANSLIT\",\"ISO8859-1\");
-      if(cd == -1)
+      if(cd == (iconv_t)-1)
         return 1;
       iconv_close(cd);
       return 0; }
@@ -616,9 +619,13 @@ endmacro(qore_iconv_translit_check)
 
 macro(qore_os_checks)
 if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-   set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
+   #set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
    set(ZONEINFO_LOCATION "/usr/share/lib/zoneinfo")
    set(SOLARIS true)
+   if (CMAKE_COMPILER_IS_GNUCXX)
+      # netinet/tcp.h needs sys/types.h on illumos but it does not include it
+      set(QORE_CHECK_HEADERS_CXX_FLAGS "-include sys/types.h")
+   endif (CMAKE_COMPILER_IS_GNUCXX)
    #use libumem if available
    find_library(LIBUMEM NAMES umem libumem)
    if(LIBUMEM)
@@ -649,7 +656,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "HP-UX")
 endif()
 
 add_definitions(${QORE_CPPFLAGS})
-set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPP_FLAGS})
+set(CMAKE_REQUIRED_DEFINITIONS ${QORE_CPPFLAGS})
 endmacro()
 
 # make sure dlfcn.h header file can be parsed without 'extern "C" {}'
@@ -699,3 +706,67 @@ if(DEFINED LIBQORE_ASM_SRC)
 endif()
 endmacro()
 
+# Check for explicit link against libatomic
+# Helper for checking for atomics
+function(check_working_cxx_atomics varname additional_lib)
+  include(CheckCXXSourceCompiles)
+  include(CMakePushCheckState)
+  cmake_push_check_state()
+  #set(CMAKE_REQUIRED_FLAGS "-std=c++11")
+  set(CMAKE_REQUIRED_LIBRARIES "${additional_lib}")
+  set(CMAKE_REQUIRED_QUIET 1)
+  CHECK_CXX_SOURCE_COMPILES("
+#include <atomic>
+std::atomic<int> x;
+int main() {
+  bool b = std::atomic_int{}.is_lock_free();
+  return std::atomic_fetch_add_explicit(&x, 1, std::memory_order_seq_cst);
+}
+" ${varname})
+  cmake_pop_check_state()
+endfunction(check_working_cxx_atomics)
+
+# First check if atomics work without the library.
+# If not, check if the library exists, and atomics work with it.
+function(check_cxx_atomic)
+  check_working_cxx_atomics(HAVE_CXX_ATOMICS_WITHOUT_LIB "")
+  if(HAVE_CXX_ATOMICS_WITHOUT_LIB)
+    message(STATUS "C++ atomics provided at compile time")
+  else()
+    message(STATUS "C++ atomics require a library")
+    find_library(LIBATOMIC_LIBRARY NAMES atomic PATH_SUFFIXES lib)
+    if(LIBATOMIC_LIBRARY)
+      check_working_cxx_atomics(HAVE_CXX_ATOMICS_WITH_LIB "${LIBATOMIC_LIBRARY}")
+      if (HAVE_CXX_ATOMICS_WITH_LIB)
+        set(LIBQORE_LIBS "${LIBQORE_LIBS};${LIBATOMIC_LIBRARY}" PARENT_SCOPE)
+        message(STATUS "Atomics provided by libatomic")
+      else()
+        message(STATUS "no libatomic library found")
+        message(FATAL_ERROR "Compiler must support std::atomic!")
+      endif()
+    else()
+      # find_library() fails for libatomic on fedora, no clue why - so here we hardcode it anyway
+      #message(FATAL_ERROR "Compiler appears to require libatomic, but cannot find it.")
+      message(STATUS "no libatomic library found; trying to link with it anyway")
+      set(LIBQORE_LIBS "${LIBQORE_LIBS};atomic" PARENT_SCOPE)
+    endif()
+  endif()
+endfunction(check_cxx_atomic)
+
+function(get_module_api_versions)
+    file(READ ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h MM_CONTENTS)
+
+    string(REGEX MATCH "#define QORE_MODULE_API_MAJOR [0-9]+" QMAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MAJOR ([0-9]+)" "\\1" QMAMA_L "${QMAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_API_MINOR [0-9]+" QMAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MINOR ([0-9]+)" "\\1" QMAMI_L "${QMAMI_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MAJOR [0-9]+" QMCAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MAJOR ([0-9]+)" "\\1" QMCAMA_L "${QMCAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MINOR [0-9]+" QMCAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MINOR ([0-9]+)" "\\1" QMCAMI_L "${QMCAMI_L}")
+
+    set(MODULE_API_MAJOR ${QMAMA_L} PARENT_SCOPE)
+    set(MODULE_API_MINOR ${QMAMI_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MAJOR ${QMCAMA_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MINOR ${QMCAMI_L} PARENT_SCOPE)
+endfunction(get_module_api_versions)

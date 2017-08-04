@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologiesm s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,8 +50,8 @@ public:
    AbstractQoreNode *exp;
    AbstractQoreNode *where;
    AbstractQoreNode *find_exp;
-      
-   DLLLOCAL FindNode(AbstractQoreNode *expr, AbstractQoreNode *FindNode_expr, AbstractQoreNode *w);
+
+   DLLLOCAL FindNode(const QoreProgramLocation& loc, AbstractQoreNode *expr, AbstractQoreNode *FindNode_expr, AbstractQoreNode *w);
    DLLLOCAL ~FindNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

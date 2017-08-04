@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 #ifndef _QORE_IMPLICIT_ARGUMENT_NODE_H
 
-#define _QORE_IMPLICIT_ARGUMENT_NODE_H 
+#define _QORE_IMPLICIT_ARGUMENT_NODE_H
 
 class QoreImplicitArgumentNode : public ParseNode {
 private:
@@ -39,30 +39,25 @@ private:
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
-   DLLLOCAL const AbstractQoreNode *get() const;
+   DLLLOCAL const AbstractQoreNode* get() const;
 
    DLLLOCAL ~QoreImplicitArgumentNode();
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-      return this;
-   }
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      return 0;
-   }
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const;
 
 public:
    // offset = -1 means return the entire "$argv" list
-   DLLLOCAL QoreImplicitArgumentNode(int n_offset = -1);
+   DLLLOCAL QoreImplicitArgumentNode(const QoreProgramLocation& loc, int n_offset = -1);
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual const char* getTypeName() const;
 
-   DLLLOCAL static const char *getStaticTypeName() {
+   DLLLOCAL static const char* getStaticTypeName() {
       return "implicit argument reference";
    }
-      
 };
 
 #endif

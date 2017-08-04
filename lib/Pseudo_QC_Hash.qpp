@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,9 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreHashNodeIntern.h>
-#include <qore/intern/QoreHashIterator.h>
-#include <qore/intern/QoreHashListIterator.h>
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreHashIterator.h"
+#include "qore/intern/QoreHashListIterator.h"
 
 extern QoreClass* QC_HASHLISTITERATOR;
 extern QoreClass* QC_HASHITERATOR;
@@ -64,6 +64,24 @@ int <hash>::typeCode() [flags=CONSTANT] {
    return NT_HASH;
 }
 
+//! returns @ref True if the hash has a complex type (@ref hashdecl or @ref hash_complex_type), @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True if the hash has a complex type (@ref hashdecl or @ref hash_complex_type), @ref False if not
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <hash>::complexType() [flags=CONSTANT] {
+   const qore_hash_private* hp = qore_hash_private::get(*h);
+   return hp->hashdecl || hp->complexTypeInfo ? true : false;
+}
+
 //! Returns a list of key names of the hash
 /**
     @return a list of key names of the hash
@@ -77,7 +95,7 @@ list l = h.keys();
 
     @see <hash>::values()
  */
-list <hash>::keys() [flags=CONSTANT] {
+list<string> <hash>::keys() [flags=CONSTANT] {
    return h->getKeys();
 }
 
@@ -93,17 +111,12 @@ list l = h.values();
     @note
     - equivalent to hash_values()
     - this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
+    - a hash with a declared value type will have a plain untyped list returned; this will be fixed in a future version of %Qore
 
     @see <hash>::keys()
  */
 list <hash>::values() [flags=CONSTANT] {
-   QoreListNode *l = new QoreListNode;
-
-   ConstHashIterator hi(h);
-   while (hi.next())
-      l->push(hi.getReferencedValue());
-
-   return l;
+    return qore_hash_private::get(*h)->getValues(false);
 }
 
 //! Returns the first key name in the hash or @ref nothing if the hash has no keys

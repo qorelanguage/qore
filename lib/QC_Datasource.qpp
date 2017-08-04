@@ -29,11 +29,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Datasource.h>
+#include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
-static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
+static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
 static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
    ConstHashIterator hi(opts);
@@ -51,7 +52,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
 static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
+   const char* str = check_hash_key(opts, "type", DSC_ERR, xsink);
    if (*xsink) return;
 
    if (!str) {
@@ -59,7 +60,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
       return;
    }
 
-   DBIDriver *db_driver = DBI.find(str, xsink);
+   DBIDriver* db_driver = DBI.find(str, xsink);
    if (!db_driver) {
       if (!*xsink)
          xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
@@ -88,27 +89,24 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
-   bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
+   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
          return;
       }
-
       ds->setPendingPort(port);
    }
 
    {
-      const AbstractQoreNode* p = opts->getKeyValue("options");
-
-      if (!is_nothing(p)) {
-         if (get_node_type(p) != NT_HASH) {
-            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", get_type_name(p));
+      QoreValue p = opts->getValueKeyValue("options", xsink);
+      if (!p.isNothing()) {
+         if (p.getType() != NT_HASH) {
+            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
             return;
          }
-         const QoreHashNode *oh = reinterpret_cast<const QoreHashNode*>(p);
-         if (ds_set_options(*ds, oh, xsink))
+         const QoreHashNode* opt_hash = p.get<const QoreHashNode>();
+         if (ds_set_options(*ds, opt_hash, xsink))
             return;
       }
    }
@@ -206,6 +204,11 @@ const DBI_CAP_HAS_DESCRIBE = DBI_CAP_HAS_DESCRIBE;
 
 //! Indicates that the DBI driver supports binding arrays by value for bulk DML operations
 const DBI_CAP_HAS_ARRAY_BIND = DBI_CAP_HAS_ARRAY_BIND;
+
+//! Indicates that the DBI driver supports @ref resultset_output_binding "result set" output binding with a @ref Qore::SQL::SQLStatement "SQLStatement" output variable
+/** @since %Qore 0.8.13
+*/
+const DBI_CAP_HAS_RESULTSET_OUTPUT = DBI_CAP_HAS_RESULTSET_OUTPUT;
 //@}
 
 //! This class provides the %Qore interface to databases
@@ -236,6 +239,30 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @endcode \n
     When using dynamic SQL, to insert a numeric value or a literal \c "null" in a query, use \c %%d in the command string, and include the value as an argument after the string. If the value is @ref nothing or @ref null, a literal \c "null" will be written to the string; otherwise the argument is converted to an arbitrary-precision number or integer value if necessary and written to the string. This is useful for working with \c DECIMAL (\c NUMERIC, \c NUMBER) types in a database-independent way; for example PostgreSQL servers do not do type conversions to \c DECIMAL types when a string, integer, or float is bound by value, therefore to ensure that integral decimal values can be used in a database-independent way (with \c "null" substitution when no value is bound), a valid approach is to use the \c %%d code in the command string instead of \c %%v.  However please note that \c %%v is normally preferred to keep the server-side statement cache a manageable size, in the previous example using the int(), float(), or number() functions to convert string values before binding with \c %%v may be better.\n\n
     For binding placeholders for output variables, write a unique name in the string and prefix it with a colon (ex: \c ":code"). In this case the method will return a hash of the output variables using the placeholder names as keys, but without the colon prefix. By default, a string type will be bound to the position. To bind other variable types to placeholder positions, include the type constant (see @ref sql_constants) as an argument after the command string. For BLOBs, use Binary, for CLOBs, use the string "clob" (constants will be provided in a future release). Not all DBI drivers require placeholder buffer specifications; see the documentation for the DBI driver in question for more information and examples regarding placeholder buffer specifications.
+
+    @anchor resultset_output_binding
+    @par Result Set Output Binding
+    A result set can be returned in two ways depending on the placeholder buffer specification:
+    - @ref Qore::Type::Hash "Hash": (default for drivers that do not require placeholder buffer specifications): returns the entire result set as data
+    - @ref Qore::SQL::RESULTSET "RESULTSET": (for drivers that support @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT):
+      returns an @ref Qore::SQL::SQLStatement "SQLStatement" representing the result set.  This option allows a large result set to be
+      returned in smaller pieces using the @ref Qore::SQL::SQLStatement "SQLStatement" API if desired.
+
+    When using @ref Qore::SQL::RESULTSET "RESULTSET", the @ref Qore::SQL::SQLStatement "SQLStatement" object created
+    acquires the @ref transaction_lock "transaction lock" even when used with a method that normally doesn't indicate
+    that a transaction will be started such as select() or selectRows(), therefore the transaction lock must be
+    released manually in such cases (just as with the normal usage of @ref Qore::SQL::SQLStatement "SQLStatement" objects);
+    see the following example for details.
+
+    @par Result Set Output Binding Example
+    @code{.py}
+    # example of a result set output variable with Oracle
+    SQLStatement stmt = ds.select("begin open :rs for select * from my_table; end;", RESULTSET);
+    # we have to release the transaction when done
+    on_exit ds.rollback();
+    # iterate through the rows of the result set
+    map process_row($1), stmt;
+    @endcode
 
     @anchor transaction_lock
     @par Datasource Transaction Locks

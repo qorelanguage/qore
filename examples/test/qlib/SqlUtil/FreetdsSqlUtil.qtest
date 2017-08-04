@@ -14,7 +14,6 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
 
 %exec-class FreetdsTest
 
@@ -38,6 +37,8 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
                 "id": c_number(14, True),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
             );
@@ -116,6 +117,12 @@ class FreetdsTest inherits SqlTestBase {
             "datetime": 2015-01-01T12:45:00.450,
             "smalldatetime": 2015-01-01T12:45,
 
+            # fake timestamp column for cop_trunc_date
+            "timestamp": (
+                "type": "datetime",
+                "value": 2016-02-11T09:26:14.500, # note: The SQL Server datetime type only has a 1/300 ms (~3.33̅ ms) resolution
+            ),
+
             #"money": ,
             #"smallmoney": ,
 
@@ -140,6 +147,12 @@ class FreetdsTest inherits SqlTestBase {
         if (ds) {
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                FreetdsTable t = new FreetdsTable(ds, "sqlutil_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new FreetdsTestSchema(ds);
 
@@ -150,6 +163,11 @@ class FreetdsTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

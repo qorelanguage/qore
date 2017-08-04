@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SingleValueIterator.h>
+#include "qore/intern/SingleValueIterator.h"
 
 extern QoreClass* QC_SINGLEVALUEITERATOR;
 
@@ -80,6 +80,58 @@ string <value>::type() [flags=CONSTANT] {
    return new QoreStringNode(v.getTypeName());
 }
 
+//! returns @ref True if the value has a complex type, @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True if the value has a complex type, @ref False if not; if this pseudo-method returns @ref True, then the return value of <value>::fullType() will differ from that of <value>::type()
+
+    Complex types are:
+    - @ref hash_hashdecl_type
+    - @ref hash_complex_type
+    - @ref list_complex_type
+    - @ref object_type "objects"
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <value>::complexType() [flags=CONSTANT] {
+   return false;
+}
+
+//! returns the full type name which differs from the simple type name in case of complex types and objects
+/** @par Example:
+    @code{.py}
+hash <string, int> h();
+# returns "hash<string, int>"
+string str = n.fullType();
+Mutex m();
+# returns "object<Mutex>"
+str = m.fullType();
+    @endcode
+
+    @return the full type name which differs from the simple type name in case of complex types and objects; for simple types the return value is the same as for <value>::type()
+
+    Complex types are:
+    - @ref hash_hashdecl_type "hashdecl hashes": the complex type description is returned (ex: \c "hash<MyHash>")
+    - @ref hash_complex_type "complex hashes": the complex type description is returned (ex: \c "hash<string, int>")
+    - @ref list_complex_type "complex lists": the complex type description is returned (ex: \c "list<int>")
+    - @ref object_type "objects": the complex type description is returned (ex: \c "object<MyClass>"; see @ref object_complex_type)
+
+    @see
+    - <value>::complexType()
+    - <value>::type()
+
+    @since %Qore 0.8.13
+*/
+string <value>::fullType() [flags=CONSTANT] {
+    return new QoreStringNode(v.getFullTypeName());
+}
+
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False
 /** This pseudo-method will return @ref False in all non-container types; use <value>::val() to check if a generic
     expression that might not be a container type has a value instead.
@@ -120,26 +172,49 @@ int <value>::size() [flags=CONSTANT] {
    return 0;
 }
 
-//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value that would be converted to @ref True according to the rules described in @ref perl-bool-eval "%perl-bool-eval"
-/** This pseudo-method can be used to mimic perl's boolean evaluation when @ref strict-bool-eval "%strict-bool-eval" is enabled;
-    the return value of this method is the same as that of any value when evaluated in a boolean context when
-    @ref perl-bool-eval "%perl-bool-eval" is enabled (the default).
-
-    Prior to version 0.8.6, Qore implemented strict mathematical boolean evaluation by default (where any value must evaluate to a non-zero
-    integer or floating-point value to be @ref True), so this pseudo-method was implemented to provide the same
-    functionality in qore.  Note that as of qore 0.8.6, @ref perl-bool-eval "%perl-bool-eval" is the default.
-
-    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a value;
-    the return value of this method is the same as that of any value when evaluated in a boolean context when
-    @ref perl-bool-eval "%perl-bool-eval" is enabled (the default)
+//! Returns @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a non-empty value
+/**
+    @return @ref False; this method is reimplemented in other types and will return @ref True if the given expression has a non-empty value
 
     @par Example:
     @code{.py}
 if (n.val())
-    printf("%y: has a value\n", n);
+    printf("%y: has a non-empty value\n", n);
     @endcode
 
-    @note use @ref exists to tell if an expression has a value or not
+    @par Rules:
+    |!%Type|!Rule
+    |@ref int_type "int", @ref float_type "float", @ref number_type "number"|@ref Qore::False "False" if zero, @ref Qore::True "True" if non-zero
+    |@ref string_type "string"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
+    |@ref list_type "list"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
+    |@ref hash_type "hash"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
+    |@ref object_type "object"|always @ref Qore::True "True" with a valid object
+    |@ref code_type "code"|always @ref Qore::True "True"
+    |@ref nothing|always @ref Qore::False "False"
+    |@ref null|always @ref Qore::False "False"
+
+    @par Example Values:
+    |!Example|!Result
+    |@code{.py}0.val()@endcode|@ref Qore::False "False"
+    |@code{.py}1.val()@endcode|@ref Qore::True "True"
+    |@code{.py}"".val()@endcode|@ref Qore::False "False" (empty string)
+    |@code{.py}"0".val()@endcode|@ref Qore::True "True"
+    |@code{.py}"string".val()@endcode|@ref Qore::True "True"
+    |@code{.py}().val()@endcode|@ref Qore::False "False" (empty list)
+    |@code{.py}(0,).val()@endcode|@ref Qore::True "True"
+    |@code{.py}{}.val()@endcode|@ref Qore::False "False" (empty hash)
+    |@code{.py}("a":0).val()@endcode|@ref Qore::True "True"
+    |@code{.py}NOTHING.val()@endcode|@ref Qore::False "False"
+    |@code{.py}NULL.val()@endcode|@ref Qore::False "False"
+
+    @note
+    - Use @ref exists to tell if an expression has a value or not
+    - This pseudo-method can be used to mimic perl's boolean evaluation when
+      @ref strict-bool-eval "%strict-bool-eval" is enabled; the return value of this method
+      is the same as that of any value except \c \"0\" when evaluated in a boolean context when
+      @ref perl-bool-eval "%perl-bool-eval" is enabled (the default); note that
+      <tt>"0".val()</tt> returns @ref Qore::True "True" while <tt>boolean("0")</tt>
+      returns @ref Qore::False "False" in all cases.
 
     @see
     - @ref perl-bool-eval "%perl-bool-eval"

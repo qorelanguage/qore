@@ -87,7 +87,9 @@ class SQLStatementTest inherits QUnit::Test {
             testSkip("no DB connection");
 
         {
-            SQLStatement stmt(dsp);
+            # check parse and runtime type resolution with AbstractDatasource
+            AbstractDatasource ds = dsp;
+            SQLStatement stmt(ds);
             on_error dsp.rollback();
 
             stmt.prepare("insert into test (string) values (%v)");
@@ -98,20 +100,24 @@ class SQLStatementTest inherits QUnit::Test {
             assertEq(1, rc);
             dsp.commit();
 
-            # test that no exception is thrown when we try to execute a stmt prepared on another connection
+            # no exception is thrown because the stmt is re-prepared & executed automatically on the new connection
             stmt.exec("hi2");
+            assertEq(1, stmt.affectedRows());
+            stmt.commit();
         }
 
         {
             SQLStatement stmt(dsp);
             on_error dsp.rollback();
 
-            stmt.prepare("select * from test");
+            stmt.prepare("insert into test (string) values (%v)");
             stmt.exec();
             dsp.commit();
 
-            # test that no exception is thrown when we try to execute a stmt prepared on another connection
+            # no exception is thrown because the stmt is re-prepared & executed automatically on the new connection
             stmt.exec("hi2");
+            assertEq(1, stmt.affectedRows());
+            stmt.rollback();
         }
         {
             SQLStatement stmt(ds);

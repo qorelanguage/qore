@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,6 @@ DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber, * piN
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
    FalseString, EmptyHashString, EmptyListString;
 
-class QoreTypeInfo;
 DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *bigIntTypeInfo,
    *floatTypeInfo,
@@ -67,19 +66,19 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *runTimeClosureTypeInfo,
    *callReferenceTypeInfo,
    *referenceTypeInfo,
-   *userReferenceTypeInfo,
-   *codeTypeInfo,              // either closure or callref
-   *softBigIntTypeInfo,        // converts to int from float, string, and bool
-   *softFloatTypeInfo,         // converts to float from int, string, and bool
-   *softNumberTypeInfo,        // xxx
-   *softBoolTypeInfo,          // converts to bool from int, float, and string
-   *softStringTypeInfo,        // converts to string from int, float, and bool
-   *softDateTypeInfo,          // converts to date from int, float, bool, and string
-   *softListTypeInfo,          // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
-   *somethingTypeInfo,         // i.e. not "NOTHING"
-   *dataTypeInfo,              // either string or binary
-   *timeoutTypeInfo,           // accepts int or date and returns int giving timeout in milliseconds
-   *bigIntOrFloatTypeInfo,     // accepts int or float and returns the same
+   *codeTypeInfo,                 // either closure or callref
+   *softBigIntTypeInfo,           // converts to int from float, string, bool, number, and null
+   *softFloatTypeInfo,            // converts to float from int, string, bool, number, and null
+   *softNumberTypeInfo,           // converts to number from int, string, bool, float, and null
+   *softBoolTypeInfo,             // converts to bool from int, float, string, number, and null
+   *softStringTypeInfo,           // converts to string from int, float, bool, number, and null
+   *softDateTypeInfo,             // converts to date from int, float, bool, string, number, and null
+   *softListTypeInfo,             // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
+   *dataTypeInfo,                 // either string or binary
+   *timeoutTypeInfo,              // accepts int or date and returns int giving timeout in milliseconds
+   *bigIntOrFloatTypeInfo,        // accepts int or float and returns the same
+   *bigIntFloatOrNumberTypeInfo,  // accepts int or float and returns the same
+   *floatOrNumberTypeInfo,        // accepts float or number and returns the same
 
    *bigIntOrNothingTypeInfo,
    *floatOrNothingTypeInfo,
@@ -172,69 +171,9 @@ enum qore_type_result_e {
    QTI_IDENT       =  2   //!< types match perfectly
 };
 
-//! this class is private; not exported
-class ExternalTypeInfo;
-struct QoreValue;
+DLLEXPORT int testObjectClassAccess(const QoreObject* obj, const QoreClass* classtoaccess);
 
-//! helper type to allocate and manage QoreTypeInfo objects (not exported by the library)
-/** should be used to allocate and deallocate QoreTypeInfo objects for new types created in modules
- */
-class QoreTypeInfoHelper {
-   friend class ExternalTypeInfo;
-
-protected:
-   ExternalTypeInfo* typeInfo;
-
-   DLLLOCAL QoreTypeInfoHelper(ExternalTypeInfo* n_typeInfo) : typeInfo(n_typeInfo) {
-   }
-
-   //! this function must be reimplemented if setInputFilter() is called
-   DLLEXPORT virtual bool acceptInputImpl(QoreValue& n, ExceptionSink* xsink) const;
-
-public:
-   //! allocates a QoreTypeInfo object with no type information
-   DLLEXPORT QoreTypeInfoHelper(const char* n_tname);
-   //! allocates a QoreTypeInfo object of the requested type
-   DLLEXPORT QoreTypeInfoHelper(qore_type_t id, const char* n_tname);
-   //! deallocates the managed QoreTypeInfo object
-   DLLEXPORT virtual ~QoreTypeInfoHelper();
-   //! returns a pointer to the object
-   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
-   //! assigns the typeid to the object
-   DLLEXPORT void assign(qore_type_t id);
-   //! add another type that the type accepts
-   DLLEXPORT void addAcceptsType(const QoreTypeInfo* n_typeInfo);
-   //! set a flag that means the type is equivalent to an integer
-   DLLEXPORT void setInt();
-   //! set a flag that means that if the return type is matched on input, it matches with QTI_AMBIGUOUS instead of QTI_IDENT
-   DLLEXPORT void setInexactReturn();
-   //! set a flag that means that acceptInputImpl() has been reimplemented and should be used
-   DLLEXPORT void setInputFilter();
-   //! set a flag so that any NT_INT in an accept list will match any type with is_int set with QTI_AMBIGUOUS
-   DLLEXPORT void setIntMatch();
-
-   DLLEXPORT int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink* xsink) const;
-};
-
-//! note that the QoreClass object created by this class must be deleted externally
-class AbstractQoreClassTypeInfoHelper : public QoreTypeInfoHelper {
-protected:
-   QoreClass* qc;
-
-public:
-   //! allocates a QoreTypeInfo object and creates the QoreClass
-   DLLEXPORT AbstractQoreClassTypeInfoHelper(const char* name, int n_domain = QDOM_DEFAULT);
-   //! delets the QoreClass object managed if it has not been retrieved
-   DLLEXPORT ~AbstractQoreClassTypeInfoHelper();
-   //! returns the QoreClass object created and zeros out the class ptr; can only be called once
-   DLLEXPORT QoreClass *getClass();
-   //! returns true if this object is holding a class pointer, false if not
-   DLLEXPORT bool hasClass() const;
-};
-
-DLLEXPORT int testObjectClassAccess(const QoreObject *obj, const QoreClass *classtoaccess);
-
-DLLEXPORT const QoreClass *typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo);
+DLLEXPORT const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo);
 DLLEXPORT bool typeInfoHasType(const QoreTypeInfo* typeInfo);
 DLLEXPORT const char* typeInfoGetName(const QoreTypeInfo* typeInfo);
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);

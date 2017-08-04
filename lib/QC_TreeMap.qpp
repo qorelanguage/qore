@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TreeMap.h>
+#include "qore/intern/QC_TreeMap.h"
 
 //! A container for efficient path prefix lookup.
 /** The primary use of this class is in HttpServer for matching request URIs to handlers.
@@ -88,17 +88,40 @@ nothing TreeMap::put(string path, any value) {
    tm->put(path, value, xsink);
 }
 
-//! Retrieves a value from the TreeMap.
-/** Looks for an entry whose key is the longest prefix of \c path.
+//! Retrieves a value from the TreeMap and optionally returns the unmatched path suffix
+/** @par Example:
+    @code{.py}
+TreeMap tm();
+tm.put("abc", "1");
+tm.put("def/g/hi", "5");
+
+any v;
+*string unmatched;
+# returns "1"
+v = tm.get("abc");
+# returns "1" and unmatched is ""
+v = tm.get("abc", \unmatched);
+# returns "1" and unmatched is "cde/"
+v = tm.get("abc/cde/", \unmatched);
+*hash h;
+v = tm.get("def/g/hi/five", \h.unmatched);  # returns "5" and h.unmatched is "five"
+    @endcode
+
+    Looks for an entry whose key is the longest prefix of \c path.
+
     @param path the path to lookup
-    @return the value pointed to by the longest prefix of \c path or NOTHING if no such mapping exists
+    @param unmatched path suffix, reference to a @ref string_or_nothing_type "*string" compatible type is needed, if \c path is not found, then @ref nothing is returned
+
+    @return the value pointed to by the longest prefix of \c path or @ref nothing if no such mapping exists
+
+    @since %Qore 0.8.13
  */
-any TreeMap::get(string path) [flags=RET_VALUE_ONLY] {
-   return tm->get(path, xsink);
+any TreeMap::get(string path, *reference unmatched) [flags=RET_VALUE_ONLY] {
+   return tm->get(path, unmatched, xsink);
 }
 
 //! Removes a value from the TreeMap and returns the value removed
-/** The \c path must be an exact match
+/** \c path must be an exact match
 
     @param path the path to remove
 
@@ -111,7 +134,7 @@ any TreeMap::take(string path) {
 }
 
 //! Retrieves the entire TreeMap as a hash; returns @ref nothing if the TreeMap is empty
-/** @return the entire TreeMap as a hash or returns @ref nothing if the TreeMap is empty
+/** @return the entire TreeMap as a hash; returns @ref nothing if the TreeMap is empty
  */
 *hash TreeMap::getAll() [flags=CONSTANT] {
    return tm->getAll();

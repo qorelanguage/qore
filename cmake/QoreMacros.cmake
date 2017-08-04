@@ -26,10 +26,11 @@ MACRO (QORE_WRAP_QPP _cpp_files)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS --output=${_cppfile} --dox-output=${_doxfile} ${_infile}
+                           ARGS --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
                            MAIN_DEPENDENCY ${_infile}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                            VERBATIM
@@ -50,6 +51,45 @@ ENDMACRO (QORE_WRAP_QPP)
 #
 MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
     set(options)
+    set(oneValueArgs DOXLIST)
+    set(multiValueArgs OPTIONS)
+
+    cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
+        GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
+        GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
+        SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
+        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
+
+        ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
+                           COMMAND ${QORE_QPP_EXECUTABLE}
+                           ARGS -V --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
+                           MAIN_DEPENDENCY ${_infile}
+                           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                           VERBATIM
+                        )
+        SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
+        IF(_WRAP_QPP_DOXLIST)
+           SET(${_WRAP_QPP_DOXLIST} ${${_WRAP_QPP_DOXLIST}} ${_doxfile})
+        ENDIF(_WRAP_QPP_DOXLIST)
+        #MESSAGE(STATUS "DEBUG D: " _WRAP_QPP_DOXLIST " ${D}:" ${_WRAP_QPP_DOXLIST} " ${${D}}:" ${${_WRAP_QPP_DOXLIST}})
+    ENDFOREACH (it)
+
+ENDMACRO (QORE_WRAP_QPP_VALUE)
+
+#
+# Create dox code from dox.tmpl files
+#
+#  _dox_files : output dox filenames created in CMAKE_CURRENT_BINARY_DIR
+#
+# usage:
+# set(MY_DOX_TMPL foo.dox.tmpl bar.dox.tmpl)
+# qore_wrap_dox(MY_DOX ${MY_DOX_TMPL})
+#
+MACRO (QORE_WRAP_DOX _dox_files)
+    set(options)
     set(oneValueArgs)
     set(multiValueArgs OPTIONS)
 
@@ -59,20 +99,19 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
 
         GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
-        SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
-        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox)
 
-        ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
+        ADD_CUSTOM_COMMAND(OUTPUT ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS -V --output=${_cppfile} --dox-output=${_doxfile} ${_infile}
+                           ARGS --table=${_infile} --output=${_doxfile}
                            MAIN_DEPENDENCY ${_infile}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                            VERBATIM
                         )
-        SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
+        SET(${_dox_files} ${${_dox_files}} ${_doxfile})
     ENDFOREACH (it)
 
-ENDMACRO (QORE_WRAP_QPP_VALUE)
+ENDMACRO (QORE_WRAP_DOX)
 
 # Create qore binary module.
 # Arguments:
@@ -147,17 +186,17 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
         message(STATUS "")
-        message(STATUS "uninstall target: make uninstall")
+        message(STATUS "Module ${_module_name} uninstall target: make uninstall")
         message(STATUS "")
     else()
-        message(WARNING "Uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
+        message(WARNING "Module ${_module_name} uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
     endif()
 
     # docs
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
-        if (EXISTS "${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
-            configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+        if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 
             add_custom_target(docs
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
@@ -168,16 +207,105 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
             add_dependencies(docs ${_module_name})
 
             message(STATUS "")
-            message(STATUS "documentation target: make docs")
+            message(STATUS "Module ${_module_name} documentation target: make docs")
             message(STATUS "")
         else()
-            message(WARNING "file does not exits: ${CMAKE_SOURCE_DIR}/docs/Doxyfile.in")
+            message(WARNING "User module doxygen template file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
 
     else (DOXYGEN_FOUND)
-        message(WARNING "Doxygen not found. Documentation won't be built")
+        message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
 ENDMACRO (QORE_BINARY_MODULE)
+
+# Install qore native/user module (.qm file) into proper location.
+#
+# Param #1: path to the module; e.g. "qlib/RestHandler.qm"
+# Param #2: list of module dependencies separated by semicolon; e.g. "HttpServerUtil;Mime;Util"
+#
+# Example:
+#     qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
+#
+# The module will be installed automatically in 'make install' target.
+MACRO (QORE_USER_MODULE _module_file _mod_deps)
+    if (DOXYGEN_FOUND)
+        # get module name
+        get_filename_component(f ${_module_file} NAME_WE)
+        message(STATUS "Preparing generation of documentation for module: ${f}")
+
+        # prepare directories for the documentation
+        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
+
+        # prepare needed vars
+        set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
+        unset(MOD_DEPS)
+        foreach(i ${_mod_deps})
+            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=${CMAKE_BINARY_DIR}/docs/modules/${i}/html)
+        endforeach(i)
+
+        # prepare QDX arguments
+        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+
+        # add CMake target for the documentation
+        if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+            add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib $${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+            add_custom_target(docs-fast-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+        else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+            add_custom_target(docs-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+            add_custom_target(docs-fast-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+        endif (WIN32 AND (NOT MINGW) AND (NOT MSYS))
+
+        # make 'docs' target dependent on this module documentation
+        add_dependencies(docs docs-${f})
+
+        # make this dependent on Qore lang and lib documentation targets
+        add_dependencies(docs-${f} docs-lang)
+        add_dependencies(docs-${f} docs-lib)
+
+        # make this dependent on the other module targets
+        foreach(i ${_mod_deps})
+            add_dependencies(docs-${f} docs-${i})
+        endforeach(i)
+    endif (DOXYGEN_FOUND)
+
+    # install qm file
+    install(FILES ${_module_file} DESTINATION ${QORE_USER_MODULES_DIR})
+ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.
 # Example:
@@ -192,7 +320,7 @@ MACRO (QORE_USER_MODULES _inputs)
             get_filename_component(f ${i} NAME_WE)
             message(STATUS "Doxyfile for ${f}")
             set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
-            configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/)
             add_custom_target(docs-${f}
                 ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}
@@ -202,7 +330,7 @@ MACRO (QORE_USER_MODULES _inputs)
                 COMMENT "Generating API documentation with Doxygen for: ${f}" VERBATIM
             )
             add_dependencies(docs docs-${f})
-        endforeach()
+        endforeach(i)
     else (xDOXYGEN_FOUND)
         message(WARNING "Doxygen support for user modules is still TODO")
     endif (xDOXYGEN_FOUND)
@@ -225,12 +353,12 @@ MACRO (QORE_DIST _version)
     add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
     message(STATUS "")
-    message(STATUS "tarbal creation target: make dist")
+    message(STATUS "Tarball creation target: make dist")
     message(STATUS "")
 
 ENDMACRO (QORE_DIST)
 
-# prints a sumamry of configuration
+# prints a summary of configuration
 MACRO (QORE_CONFIG_INFO)
     MESSAGE(STATUS "")
     MESSAGE(STATUS "-----------------------------")
@@ -241,10 +369,11 @@ MACRO (QORE_CONFIG_INFO)
         MESSAGE(STATUS "Archs: ${CMAKE_OSX_ARCHITECTURES}")
     ENDIF (APPLE)
     MESSAGE(STATUS "Compiler: ${CMAKE_CXX_COMPILER} - ${CMAKE_CXX_COMPILER_ID}")
-    MESSAGE(STATUS "FLags deb: ${CMAKE_CXX_FLAGS_DEBUG}")
-    MESSAGE(STATUS "FLags rel: ${CMAKE_CXX_FLAGS}")
-    MESSAGE(STATUS "FLags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    MESSAGE(STATUS "CXX Flags debug: ${CMAKE_CXX_FLAGS_DEBUG}")
+    MESSAGE(STATUS "CXX Flags release: ${CMAKE_CXX_FLAGS}")
+    MESSAGE(STATUS "CXX Flags reldeb: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
     MESSAGE(STATUS "-----------------------------")
+    MESSAGE(STATUS "")
 ENDMACRO (QORE_CONFIG_INFO)
 
 #
