@@ -29,6 +29,10 @@ public hashdecl Test::Container3 {
     int i = 3;
 }
 
+public hashdecl R1 {
+    hash<R1> r();
+}
+
 class HashDeclTest inherits QUnit::Test {
     constructor() : QUnit::Test("HashDecl test", "1.0") {
         addTestCase("Test HashDecl", \testHashDecl());
@@ -205,6 +209,12 @@ class HashDeclTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c(); c.i = 'str';}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { hash<R1> r(); }", "");
+            assertThrows("STACK-LIMIT-EXCEEDED", \p.callFunction(), "t");
         }
     }
 }
