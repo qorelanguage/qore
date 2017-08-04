@@ -2777,8 +2777,8 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
     #! Truncates a date column or value regarding the given mask. The resulting value remains Qore::date (no conversion to eg. string)
     /** @par Example:
-        @code
-my *list $rows = $table.selectRows(("columns": cop_trunc_date(mydate, DF_MINUTE));
+        @code{.py}
+*list rows = table.selectRows(("columns": cop_trunc_date("mydate", DF_MINUTE));
 # input: 2017-02-01 14:22:37
 # output 2017-02-01 14:22:00
         @endcode
