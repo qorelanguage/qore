@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ReturnStatement.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ReturnStatement.h"
+#include "qore/intern/qore_program_private.h"
 
 int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    if (exp) {
@@ -67,26 +67,26 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
    // check return type and throw a parse exception or warning
    if (!QoreTypeInfo::parseAccepts(returnTypeInfo, argTypeInfo)) {
       // check if a warning should be generated, if require-types is not set and it is a class-special method
-      const QoreClass *qc = getParseClass();
+      const QoreClass *qc = parse_get_class();
       const char* fname = get_parse_code();
       if (!parse_check_parse_option(PO_REQUIRE_TYPES) && qc &&
-	  (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
-	 QoreStringNode* desc = new QoreStringNode;
-	 desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);
-	 QoreTypeInfo::getThisType(argTypeInfo, *desc);
-	 desc->sprintf(", but %s methods may not return any value; this is only a warning when 'require-types' is not set on the Program object; to suppress this warning, remove the expression from the return statement or use '%%disable-warning invalid-operation' in your code", fname);
-	 qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+         (!strcmp(fname, "constructor") || !strcmp(fname, "copy") || !strcmp(fname, "destructor"))) {
+         QoreStringNode* desc = new QoreStringNode;
+         desc->sprintf("the return statement for %s::%s() returns ", qc->getName(), fname);
+         QoreTypeInfo::getThisType(argTypeInfo, *desc);
+         desc->sprintf(", but %s methods may not return any value; this is only a warning when 'require-types' is not set on the Program object; to suppress this warning, remove the expression from the return statement or use '%%disable-warning invalid-operation' in your code", fname);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
       else {
-	 QoreStringNode* desc = new QoreStringNode("return value for this block expects ");
-	 QoreTypeInfo::getThisType(returnTypeInfo, *desc);
-	 desc->concat(", but value given to the return statement is ");
-	 QoreTypeInfo::getThisType(argTypeInfo, *desc);
-	 qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         QoreStringNode* desc = new QoreStringNode("return value for this block expects ");
+         QoreTypeInfo::getThisType(returnTypeInfo, *desc);
+         desc->concat(", but value given to the return statement is ");
+         QoreTypeInfo::getThisType(argTypeInfo, *desc);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
       }
    }
    else if (QoreTypeInfo::isType(returnTypeInfo, NT_NOTHING) && exp && (!QoreTypeInfo::hasType(argTypeInfo) || !QoreTypeInfo::isType(argTypeInfo, NT_NOTHING))) {
-      const QoreClass* qc = getParseClass();
+      const QoreClass* qc = parse_get_class();
       const char* fname = get_parse_code();
       QoreStringNode* desc = new QoreStringNode;
       desc->sprintf("the return statement for %s%s%s() has an expression whose type cannot be resolved at parse time, however the block does not allow any value to be returned; if this expression resolves to a value a run-time error will result; to suppress this warning, move the expression in front of the return statement or use '%%disable-warning invalid-operation' in your code", qc ? qc->getName() : "", qc ? "::" : "", fname);

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,9 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreClassIntern.h"
 
-QoreClosureParseNode::QoreClosureParseNode(UserClosureFunction* n_uf, bool n_lambda) : ParseNode(NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {
@@ -38,7 +39,10 @@ QoreClosureNode* QoreClosureParseNode::evalClosure() const {
 }
 
 QoreObjectClosureNode* QoreClosureParseNode::evalObjectClosure() const {
-   return new QoreObjectClosureNode(runtime_get_stack_object(), this);
+   QoreObject* o;
+   const qore_class_private* c_ctx;
+   runtime_get_object_and_class(o, c_ctx);
+   return new QoreObjectClosureNode(o, c_ctx, this);
 }
 
 QoreValue QoreClosureParseNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -72,13 +76,19 @@ const char* QoreClosureParseNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const {
-   return uf->evalClosure(closure_base, pgm, args, self, xsink);
+QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+   return uf->evalClosure(closure_base, pgm, args, self, class_ctx, xsink);
 }
 
 QoreClosureBase* QoreClosureParseNode::evalBackground(ExceptionSink* xsink) const {
    cvv_vec_t* cvv = thread_get_all_closure_vars();
-   return in_method
-      ? (QoreClosureBase*)new QoreObjectClosureNode(runtime_get_stack_object(), this, cvv)
-      : (QoreClosureBase*)new QoreClosureNode(this, cvv);
+
+   if (in_method) {
+      QoreObject* o;
+      const qore_class_private* c_ctx;
+      runtime_get_object_and_class(o, c_ctx);
+      return new QoreObjectClosureNode(o, c_ctx, this, cvv);
+   }
+
+   return new QoreClosureNode(this, cvv);
 }

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/TryStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/TryStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 class CatchExceptionHelper {
 private:
@@ -45,22 +45,15 @@ public:
    }
 };
 
-TryStatement::TryStatement(int start_line, int end_line, class StatementBlock *t, class StatementBlock *c, char *p, const QoreTypeInfo *typeInfo) : AbstractStatement(start_line, end_line), typeInfo(typeInfo) {
-   try_block = t;
-   catch_block = c;
-   param = p;
-   //finally = f;
+TryStatement::TryStatement(int start_line, int end_line, StatementBlock* t, StatementBlock* c, char* p, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation& vloc) : AbstractStatement(start_line, end_line), try_block(t), catch_block(c), param(p), typeInfo(typeInfo), parseTypeInfo(parseTypeInfo), loc(vloc) {
 }
 
 TryStatement::~TryStatement() {
    if (param)
       free(param);
-   if (try_block)
-      delete try_block;
-   if (catch_block)
-      delete catch_block;
-   //if (finally)
-   //delete finally;
+   delete try_block;
+   delete catch_block;
+   delete parseTypeInfo;
 }
 
 int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
@@ -76,20 +69,20 @@ int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
       printd(5, "TryStatement::execImpl() entering catch handler, e=%p\n", except);
 
       if (catch_block) {
-	 CatchExceptionHelper ceh(except);
+         CatchExceptionHelper ceh(except);
 
-	 // instantiate exception information parameter
-	 if (param)
-	    id->instantiate(except->makeExceptionObject());
+         // instantiate exception information parameter
+         if (param)
+            id->instantiate(except->makeExceptionObject());
 
-	 rc = catch_block->execImpl(*trv, xsink);
+         rc = catch_block->execImpl(*trv, xsink);
 
-	 // uninstantiate extra args
-	 if (param)
-	    id->uninstantiate(xsink);
+         // uninstantiate extra args
+         if (param)
+            id->uninstantiate(xsink);
       }
       else
-	 rc = 0;
+         rc = 0;
 
       // delete exception chain
       except->del(xsink);
@@ -97,7 +90,7 @@ int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
    if (!trv->isNothing()) {
       if (return_value.isNothing())
-	 return_value = trv.release();
+         return_value = trv.release();
    }
 
    return rc;
@@ -112,13 +105,26 @@ int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    // prepare catch block and params
    if (param) {
+      // initialize/check catch exception variable type (if any)
+      if (parseTypeInfo) {
+         typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+         parseTypeInfo = nullptr;
+      }
+
+      if (!QoreTypeInfo::parseAccepts(typeInfo, hashdeclExceptionInfo->getTypeInfo())) {
+         parse_error(loc, "catch block exception variable is not compatible with exception hashdecl type '%s'", QoreTypeInfo::getName(typeInfo));
+      }
+
       // push as if the variable is already referenced so no warning will be emitted
       // in case the variable is not actually referenced in the catch block
       id = push_local_var(param, loc, typeInfo, true, 1);
       printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%p)\n", param, id);
    }
-   else
-      id = 0;
+   else {
+      id = nullptr;
+      assert(!parseTypeInfo);
+      assert(!typeInfo);
+   }
 
    // initialize code block
    if (catch_block)

@@ -30,12 +30,13 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QC_Program.h>
-#include <qore/intern/ModuleInfo.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/ModuleInfo.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <string.h>
 #include <time.h>
@@ -960,7 +961,7 @@ hash hash = parse_url(url_string);
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
@@ -989,7 +990,7 @@ hash parse_url(string url, bool keep_brackets = False) {
 *hash hash = parseURL(url_string);
     @endcode
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt>scheme://socket=&lt;url_encoded_path&gt;/path</tt>, where <tt>url_encoded_path</tt> is a path with URL-encoding as performed by @ref encode_url(); for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
@@ -1264,7 +1265,7 @@ string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VA
 
     @deprecated use get_module_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getModuleList() [flags=DEPRECATED] {
+list<hash> getModuleList() [flags=DEPRECATED] {
    return MM.getModuleList();
 }
 
@@ -1282,7 +1283,7 @@ list getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list list = get_module_list();
+list l = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1291,7 +1292,7 @@ list list = get_module_list();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleList()
 */
-list get_module_list() {
+list<hash> get_module_list() {
    return MM.getModuleList();
 }
 
@@ -1313,7 +1314,7 @@ list get_module_list() {
 
     @deprecated use get_module_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash getModuleHash() [flags=DEPRECATED] {
+hash<string, hash> getModuleHash() [flags=DEPRECATED] {
    return MM.getModuleHash();
 }
 
@@ -1338,7 +1339,7 @@ hash mh = get_module_hash();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleHash()
 */
-hash get_module_hash() {
+hash<string, hash> get_module_hash() {
    return MM.getModuleHash();
 }
 
@@ -1411,11 +1412,16 @@ nothing hash_values() [flags=RUNTIME_NOOP] {
 bool b = has_key(hash, "key");
     @endcode
 
+    @note no exception is thrown when checking an invalid key in a @ref hashdecl "hashdecl"-derived hash
+
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
 bool has_key(hash h, string key) {
+   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+   if (*xsink)
+      return QoreValue();
    bool exists;
-   h->getKeyValueExistence(key, exists, xsink);
+   h->getValueKeyValueExistence(tmp->c_str(), exists);
    return exists;
 }
 
@@ -2587,17 +2593,98 @@ catch (hash ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash ex) [flags=CONSTANT] {
-   const AbstractQoreNode* n = ex->getKeyValue("file");
-   QoreStringNode* str = new QoreStringNode(get_node_type(n) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(n)->getBuffer() : "<unknown>");
-   bool found = false;
-   int ln = (int)ex->getKeyAsBigInt("line", found);
+   QoreValue n = ex->getValueKeyValue("file");
+   QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+   int ln = (int)ex->getValueKeyValue("line").getAsBigInt();
    str->sprintf(":%d", ln);
-   n = ex->getKeyValue("source");
-   if (get_node_type(n) == NT_STRING && !reinterpret_cast<const QoreStringNode*>(n)->empty()) {
-      int offset = (int)ex->getKeyAsBigInt("offset", found);
-      str->sprintf(" (source \"%s\":%d)", reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), ln + offset);
+   n = ex->getValueKeyValue("source");
+   if (n.getType() == NT_STRING) {
+      const QoreStringNode* sstr = n.get<const QoreStringNode>();
+      if (!sstr->empty()) {
+         int offset = (int)ex->getValueKeyValue("offset").getAsBigInt();
+         str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+      }
    }
 
    return str;
+}
+
+//! retrieves a hash of local variables for the given stack frame
+/** @par Example:
+    @code
+hash h = get_local_vars(0);
+    @endcode
+
+    @param frame the stack frame where 0 is the current stack frame
+
+    @return a hash of local variables for the given stack frame; if the stack frame is invalid, an empty hash is returned; hash keys are variable names; hash values are hashes with the following keys:
+    - \c "type": can be either "local" or "closure" for closure-bound local variables
+    - \c "value": the value of the variable
+
+    @throw CIRCULAR-REFERENCE-ERROR circular reference found when retrieving local variable values
+
+    @since %Qore 0.8.13
+ */
+hash get_local_vars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
+    return thread_get_local_vars(frame, xsink);
+}
+
+//! sets the value of the given local variable; if the variable cannot be found an exception is raised
+/** @par Example:
+    @code
+set_local_var_value("var", 1);
+    @endcode
+
+    @param var the name of the local variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the given local variable is not present in the current stack frame
+
+    @note
+    - other exceptions could be raised when making the assignment such as incompatible type exceptions
+    - pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+
+    @since %Qore 0.8.13
+*/
+nothing set_local_var_value(string var, any value) [dom=DEBUG_INSECURE] {
+   if (thread_set_local_var_value(var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(var->c_str(), value, xsink) == 1)
+      xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", var->c_str());
+}
+
+//! returns a hash of global variables
+/** @par Example:
+    @code{.py}
+hash h = get_global_vars();
+    @endcode
+
+    @return a hash of global variables and their values
+
+    @see @ref Qore::Program::getGlobalVars()
+
+    @since %Qore 0.8.13
+ */
+hash get_global_vars() [flags=CONSTANT] {
+   return getProgram()->getGlobalVars();
+}
+
+//! set the value of a global variable
+/** @par Example:
+    @code
+set_global_var_value("a", 1);
+    @endcode
+
+    @param name the name of the variable
+    @param value the value to assign
+
+    @throw UNKNOWN-VARIABLE the variable is not a global variable
+
+    @note other exceptions could be thrown if the value cannot be assigned to the given variable
+
+    @see @ref Qore::Program::setGlobalVarValue()
+
+    @since %Qore 0.8.13
+ */
+nothing set_global_var_value(string name, any value) {
+   getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
 //@}

@@ -1,0 +1,984 @@
+%{
+/*
+  ast_scanner.lpp
+
+  Qore Programming Language
+
+  Copyright (C) 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
+  so a thread-safe scanner can be generated
+
+  see: http://flex.sourceforge.net/
+*/
+
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
+
+#include "AstParseErrorLog.h"
+#include "ast/AST.h"
+
+#include "ast_parser.hpp"
+
+#define YYLTYPE ASTParseLocation
+
+#define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
+
+#define isoctaldigit(x) (x >= '0' && x <= '7')
+
+static int ascii_to_octal(char c) {
+    return c - '0';
+}
+
+static char* make_scoped_vref(const char* str) {
+    size_t len = strlen(str);
+    char* rv = (char*)malloc(sizeof(char) * len);
+    size_t i = 0;
+    while (*str) {
+        if (*str != '$')
+            rv[i++] = *str;
+        ++str;
+    }
+    rv[i] = '\0';
+    return rv;
+}
+
+// the return value of this function must be freed if non-0
+static char* trim(const char* str) {
+    while ((*str) == ' ' || (*str) == '\t')
+        str++;
+    // duplicate string
+    char* n = strdup(str);
+    // find end of string
+    unsigned l = (unsigned)strlen(n);
+    if (l) {
+        char* e = n + l - 1;
+        while ((*e) == ' ' || (*e) == '\t')
+            *(e--) = '\0';
+    }
+    if (!n[0]) {
+        free(n);
+        n = 0;
+    }
+    return n;
+}
+
+// edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing whitespace removed
+static char* trim_inplace(const char* str) {
+    while ((*str) == ' ' || (*str) == '\t')
+        str++;
+    // find end of string
+    unsigned l = (unsigned)strlen(str);
+    if (l) {
+        const char* e = str + l - 1;
+        while ((*e) == ' ' || (*e) == '\t')
+            *((char*)(e--)) = '\0';
+    }
+    return str[0] ? (char*)str : 0;
+}
+
+static char* remove_quotes(char* str) {
+    str[strlen(str) - 1] = '\0';
+    return str + 1;
+}
+
+double q_strtod(const char* str) {
+    std::istringstream istr(str);
+    istr.imbue(std::locale::classic());
+    double rv;
+    istr >> rv;
+    return rv;
+}
+
+static int64_t parse_get_integer(const char* str, bool& err) {
+    errno = 0;
+    int64_t rv = strtoll(str, 0, 10);
+    if (errno == ERANGE)
+        err = true;
+    return rv;
+}
+
+static bool isRegexModifier(ASTRegexExpression* re, int c) {
+    if (c == 'i')
+        re->caseSensitive = false;
+    else if (c == 's')
+        re->dotAll = true;
+    else if (c == 'x')
+        re->extended = true;
+    else if (c == 'm')
+        re->multiline = true;
+    else
+        return false;
+    return true;
+}
+
+static bool isRegexExtractModifier(ASTRegexExpression* re, int c) {
+    if (isRegexModifier(re, c))
+        return true;
+    if (c == 'g')
+        re->global = true;
+    else
+        return false;
+    return true;
+}
+
+static bool isRegexSubstModifier(ASTRegexSubstExpression* rs, int c) {
+    if (c == 'g')
+        rs->global = true;
+    else if (c == 'i')
+        rs->caseSensitive = false;
+    else if (c == 's')
+        rs->dotAll = true;
+    else if (c == 'x')
+        rs->extended = true;
+    else if (c == 'm')
+        rs->multiline = true;
+    else
+        return false;
+    return true;
+}
+
+static char* make_cast(const char* s) {
+    size_t size = strlen(s+5);
+
+    // copy and cut off the trailing '>'
+    char* str = (char*) malloc(size--);
+    memcpy(str, s+5, size);
+    str[size] = '\0';
+
+    // trim
+    while (size > 0 && str[--size] == ' ') str[size] = '\0';
+    return str;
+}
+
+#define AST_DOT_KW_IDENTIFIER(kw) { yylval->String = new std::string(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
+
+#define AST_FLEX_DO_EOF { yyterminate(); }
+
+// Global parse options.
+bool PO_BROKEN_LOGIC_PRECEDENCE = false;
+bool PO_BROKEN_OPERATORS = false;
+%}
+
+%option noyywrap nomain noyy_top_state warn
+%option reentrant bison-bridge bison-locations
+%option stack
+%option yylineno
+%option noyy_push_state
+%option noyy_pop_state
+
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module
+
+HEX_DIGIT       [0-9A-Fa-f]
+HEX_CONST       0x{HEX_DIGIT}+
+OCTAL_CONST     \\[0-7]{1,3}
+DIGIT           [0-9]
+WORD            [a-zA-Z_][a-zA-Z0-9_]*
+WS              [ \t\r]
+WSNL            [ \t\r\n]
+YEAR            [0-9]{4}
+MONTH           (0[1-9])|(1[012])
+DAY             ((0[1-9])|([12][0-9])|(3[01]))
+HOUR            ([01][0-9])|(2[0-3])
+MSEC            [0-5][0-9]
+US              [0-9]{1,6}
+D2              [0-9]{2}
+BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
+TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
+RDATE           P(-?[0-9]+[YMDHSu])+
+RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
+RTIME           PT(-?[0-9]+[HMSu])+
+
+%%
+^%no-global-vars{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_GLOBAL_VARS); return PARSE_OPTION; }
+^%no-subroutine-defs{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_SUBROUTINE_DEFS); return PARSE_OPTION; }
+^%no-threads{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_THREADS); return PARSE_OPTION; }
+^%no-thread-classes{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CLASSES); return PARSE_OPTION; }
+^%no-thread-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CONTROL); return PARSE_OPTION; }
+^%no-thread-info{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_INFO); return PARSE_OPTION; }
+^%no-top-level{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_NO_TOP_LEVEL_STATEMENTS); return PARSE_OPTION; }
+^%no-class-defs{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_CLASS_DEFS); return PARSE_OPTION; }
+^%no-namespace-defs{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_NAMESPACE_DEFS); return PARSE_OPTION; }
+^%no-external-process{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_PROCESS); return PARSE_OPTION; }
+^%no-external-info{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_INFO); return PARSE_OPTION; }
+^%no-external-access{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_ACCESS); return PARSE_OPTION; }
+^%no-filesystem{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_FILESYSTEM); return PARSE_OPTION; }
+^%no-io{WS}*$                           { yylval->parseopt = new ASTParseOption(APOK_NO_IO); return PARSE_OPTION; }
+^%lockdown{WS}*$                        { yylval->parseopt = new ASTParseOption(APOK_LOCKDOWN); return PARSE_OPTION; }
+^%lock-options{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_LOCK_OPTIONS); return PARSE_OPTION; }
+^%lock-warnings{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_LOCK_WARNINGS); return PARSE_OPTION; }
+^%no-locale-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_LOCALE_CONTROL); return PARSE_OPTION; }
+^%no-process-control{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_PROCESS_CONTROL); return PARSE_OPTION; }
+^%no-constant-defs{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_CONSTANT_DEFS); return PARSE_OPTION; }
+^%no-new{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_NEW); return PARSE_OPTION; }
+^%no-network{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_NETWORK); return PARSE_OPTION; }
+^%no-child-restrictions{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_NO_CHILD_PO_RESTRICTIONS); return PARSE_OPTION; }
+^%allow-injection{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_INJECTION); return PARSE_OPTION; }
+^%no-database{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_NO_DATABASE); return PARSE_OPTION; }
+^%no-gui{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_GUI); return PARSE_OPTION; }
+^%no-terminal-io{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_TERMINAL_IO); return PARSE_OPTION; }
+^%no-modules{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_MODULES); return PARSE_OPTION; }
+^%require-our{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_OUR); return PARSE_OPTION; }
+^%require-types{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_TYPES); return PARSE_OPTION; }
+^%require-prototypes{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_PROTOTYPES); return PARSE_OPTION; }
+^%strict-args{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_STRICT_ARGS); return PARSE_OPTION; }
+^%allow-bare-refs{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_BARE_REFS); return PARSE_OPTION; }
+^%require-dollar{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_DOLLAR); return PARSE_OPTION; }
+^%assume-local{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_ASSUME_LOCAL); return PARSE_OPTION; }
+^%assume-global{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_ASSUME_GLOBAL); return PARSE_OPTION; }
+^%new-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_NEW_STYLE); return PARSE_OPTION; }
+^%old-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_OLD_STYLE); return PARSE_OPTION; }
+^%perl-bool-eval{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_PERL_BOOLEAN_EVAL); return PARSE_OPTION; }
+^%strict-bool-eval{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_STRICT_BOOLEAN_EVAL); return PARSE_OPTION; }
+^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION; }
+^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION; }
+^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION; }
+^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION; }
+^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION; }
+^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION; }
+^%broken-int-assignments{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_BROKEN_INT_ASSIGNMENTS); return PARSE_OPTION; }
+^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_OPERATORS); return PARSE_OPTION; }
+^%correct-list-parsing{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LIST_PARSING); return PARSE_OPTION; }
+^%correct-logic-precedence{WS}*$        { PO_BROKEN_LOGIC_PRECEDENCE = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOGIC_PRECEDENCE); return PARSE_OPTION; }
+^%correct-loop-statement{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOOP_STATEMENT); return PARSE_OPTION; }
+^%correct-int-assignments{WS}*$         { yylval->parseopt = new ASTParseOption(APOK_CORRECT_INT_ASSIGNMENTS); return PARSE_OPTION; }
+^%correct-operators{WS}*$               { PO_BROKEN_OPERATORS = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_OPERATORS); return PARSE_OPTION; }
+^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION; }
+^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION; }
+^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION; }
+^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION; }
+^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION; }
+^%append-include-path{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); BEGIN(append_path_state); return PARSE_OPTION; }
+<append_path_state>[^\n\r]+             {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%append-module-path{WS}*$              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); return PARSE_OPTION; }
+^%append-module-path{WS}+               { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); BEGIN(append_module_state); return PARSE_OPTION; }
+<append_module_state>[^\n\r]+           {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%set-time-zone{WS}*$                   { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); return PARSE_OPTION; }
+^%set-time-zone{WS}+                    { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); BEGIN(set_zone); return PARSE_OPTION; }
+<set_zone>[^\n\r]+                      {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%enable-all-warnings{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_ENABLE_ALL_WARNINGS); return PARSE_OPTION; }
+^%disable-all-warnings{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_DISABLE_ALL_WARNINGS); return PARSE_OPTION; }
+^%disable-warning{WS}*$                 { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); return PARSE_OPTION; }
+^%disable-warning{WS}+                  { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); BEGIN(disable_warning); return PARSE_OPTION; }
+<disable_warning>[^\n\r]+               {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%enable-warning{WS}*$                  { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); return PARSE_OPTION; }
+^%enable-warning{WS}+                   { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); BEGIN(enable_warning); return PARSE_OPTION; }
+<enable_warning>[^\n\r]+                {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%exec-class{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); return PARSE_OPTION; }
+^%exec-class{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); BEGIN(exec_class_state); return PARSE_OPTION; }
+<exec_class_state>{
+   [^\n\r]+                             {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+}
+^%try-reexport-module{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_TRY_REEXPORT_MODULE); return PARSE_OPTION; }
+^%try-reexport-module{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_TRY_REEXPORT_MODULE); BEGIN(try_module); return PARSE_OPTION; }
+^%try-module{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_TRY_MODULE); return PARSE_OPTION; }
+^%try-module{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_TRY_MODULE); BEGIN(try_module); return PARSE_OPTION; }
+<try_module>[^\n\r]+                    {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%endtry{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_ENDTRY); return PARSE_OPTION; }
+^%requires{WS}*$                        { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); return PARSE_OPTION; }
+^%requires                              { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); BEGIN(requires); return PARSE_OPTION; }
+<requires>[^\n\r]+                      {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            const char* trimmed = trim_inplace(yytext);
+                                            if (trimmed)
+                                                po->str = trimmed;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%module-cmd{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); return PARSE_OPTION; }
+^%module-cmd                            { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); BEGIN(module_cmd); return PARSE_OPTION; }
+<module_cmd>{WS}*                       /* ignore white space */
+<module_cmd>[^\n\r]+                    {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%define{WS}*$                          { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); return PARSE_OPTION; }
+^%define{WS}+                           { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); BEGIN(p_def); return PARSE_OPTION; }
+<p_def>{WS}*                            /* ignore white space */
+<p_def>[^\n\r]+                         {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+^%ifdef{WS}*$                           { /*parse_error("missing argument to %%ifdef");*/ }
+^%ifdef{WS}+                            BEGIN(p_ifdef);
+<p_ifdef>{
+   [^\n\r]+$                            {
+                                            /*parse_cond_push(true);
+                                            if (parse_is_defined(yytext)) {
+                                                //printd(5, "ifdef: '%s' is defined\n", yytext);
+                                                BEGIN(INITIAL);
+                                            }
+                                            else {
+                                                //printd(5, "ifdef: '%s' is not defined\n", yytext);
+                                                // skip to the next %else or %endif
+                                                BEGIN(p_skip_to_endif_or_else);
+                                            }*/
+                                            BEGIN(INITIAL);
+                                        }
+}
+^%ifndef{WS}*$                          { /*parse_error("missing argument to %%ifndef");*/ }
+^%ifndef{WS}+                           BEGIN(p_ifndef);
+<p_ifndef>{
+   [^\n\r]+$                            {
+                                            /*parse_cond_push(true);
+                                            if (!parse_is_defined(yytext)) {
+                                                //printd(5, "ifndef: '%s' is not defined\n", yytext);
+                                                BEGIN(INITIAL);
+                                            }
+                                            else {
+                                                //printd(5, "ifndef: '%s' is defined\n", yytext);
+                                                // skip to the next %else or %endif
+                                                BEGIN(p_skip_to_endif_or_else);
+                                            }*/
+                                            BEGIN(INITIAL);
+                                        }
+}
+^%else{WS}*$                            {
+                                            /*if (!parse_cond_else()) {
+                                                parse_error("%%else found without %%if");
+                                            }
+                                            else {
+                                                BEGIN(p_skip_to_endif);
+                                            }*/
+                                            BEGIN(INITIAL);
+                                        }
+<p_skip_to_endif>{
+   ^%endif{WS}*$                        {
+                                            /*if (parse_cond_pop()) {
+                                                printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
+                                                BEGIN(INITIAL);
+                                            }*/
+                                            BEGIN(INITIAL);
+#ifdef DEBUG
+                                            /*//else
+                                            //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);*/
+#endif
+                                        }
+   ^.*                                  {
+                                            /*if (!strncmp("%ifdef", yytext, 6)) {
+                                                //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
+                                                parse_cond_push();
+                                            }*/
+                                            BEGIN(INITIAL);
+#ifdef DEBUG
+                                            /*// ignore other text
+                                            //printd(5, "p_skip_to_endif: %s\n", yytext);*/
+#endif
+                                        }
+   \n                                   /* ignore */
+}
+<p_skip_to_endif_or_else>{
+   ^%else{WS}*$                         {
+                                            //printd(5, "p_skip_to_endif_or_else: found %else\n");
+                                            /*if (parse_cond_test()) {
+                                                BEGIN(INITIAL);
+                                            }*/
+                                            BEGIN(INITIAL);
+                                        }
+   ^%endif{WS}*$                        {
+                                            /*if (parse_cond_pop()) {
+                                                //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
+                                                BEGIN(INITIAL);
+                                            }*/
+                                            BEGIN(INITIAL);
+#ifdef DEBUG
+                                            //else
+                                            //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
+#endif
+                                        }
+   ^.*                                  {
+                                            /*if (!strncmp("%ifdef", yytext, 6)) {
+                                                //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", yytext);
+                                                parse_cond_push();
+                                            }*/
+                                            BEGIN(INITIAL);
+#ifdef DEBUG
+                                            /*// ignore other text
+                                            //printd(5, "p_skip_to_endif_or_else: %s\n", yytext);*/
+#endif
+                                        }
+   \n                                   /* ignore */
+}
+^%endif{WS}*$                           {} /* parse_cond_pop(); */
+^%include{WS}*$                         { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); return PARSE_OPTION; }
+^%include{WS}+                          { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); BEGIN(incl); return PARSE_OPTION; }
+<incl>{WS}*                             /* ignore white space */
+<incl>[^\n\r]+                          {
+                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
+                                            po->str = yytext;
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPT_STR;
+                                        }
+<<EOF>>                                 {
+                                            AST_FLEX_DO_EOF
+                                        }
+\"                                      { yylval->String = new std::string; yylloc->saveFirst(); BEGIN(str_state); }
+<str_state>{
+      \"                                yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
+      \n                                yylval->String->push_back('\n');
+      {OCTAL_CONST}                     {
+                                            int token_length = strlen(yytext);
+                                            int val;
+                                            if (token_length == 4) {
+                                                val = ascii_to_octal(*(yytext + 3))
+                                                    + (8 * ascii_to_octal(*(yytext + 2)))
+                                                    + (64 * ascii_to_octal(*(yytext + 1)));
+                                            }
+                                            else if (token_length == 3) {
+                                                val = ascii_to_octal(*(yytext + 2))
+                                                    + (8 * ascii_to_octal(*(yytext + 1)));
+                                            }
+                                            else { // here token_lenght == 2
+                                                val = ascii_to_octal(*(yytext + 1));
+                                            }
+                                            yylval->String->push_back((char)val);
+                                        }
+      \\n                               yylval->String->push_back('\n');
+      \\t                               yylval->String->push_back('\t');
+      \\r                               yylval->String->push_back('\r');
+      \\b                               yylval->String->push_back('\b');
+      \\f                               yylval->String->push_back('\f');
+      \\v                               yylval->String->push_back('\v');
+      \\.                               yylval->String->push_back(yytext[1]);
+      \\\n                              yylval->String->push_back('\n');
+      [^\\\n\"]+                        {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->String->push_back(*(yptr++));
+                                        }
+}
+<regex_subst2>{
+      \/                                {
+                                            /* get regex modifiers */
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexSubstModifier(yylval->regexsubst, c));
+                                            unput(c);
+                                            yylloc->restoreFirst();
+                                            yylval->regexsubst->loc = *yylloc;
+                                            BEGIN(INITIAL);
+                                            return REGEX_SUBST;
+                                        }
+      \n                                yylval->regexsubst->target += '\n';
+      \\\/                              yylval->regexsubst->target += '/';
+      \\\.                              yylval->regexsubst->target += '.';
+      \\.                               { yylval->regexsubst->target += '\\'; yylval->regexsubst->target += yytext[1]; }
+      [^\n\\/]+                         {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regexsubst->target += (*(yptr++));
+                                        }
+}
+<regex_subst1>{
+      \/                                BEGIN(regex_subst2);
+      \n                                yylval->regexsubst->source += '\n';
+      \\\/                              yylval->regexsubst->source += '/';
+      \\.                               { yylval->regexsubst->source += '\\'; yylval->regexsubst->source += yytext[1]; }
+      [^\n\\/]+                         {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regexsubst->source += (*(yptr++));
+                                        }
+}
+<regex_trans2>{
+      -                                 yylval->regextrans->target += '-';
+      \/                                { yylloc->restoreFirst(); yylval->regextrans->loc = *yylloc; BEGIN(INITIAL); return REGEX_TRANS; }
+      \n                                yylval->regextrans->target += '\n';
+      \\n                               yylval->regextrans->target += '\n';
+      \\t                               yylval->regextrans->target += '\t';
+      \\r                               yylval->regextrans->target += '\r';
+      \\b                               yylval->regextrans->target += '\b';
+      \\f                               yylval->regextrans->target += '\f';
+      \\\n                              yylval->regextrans->target += '\n';
+      \\\/                              yylval->regextrans->target += '/';
+      \\.                               yylval->regextrans->target += yytext[1];
+      [^\n\\/\-]+                       {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regextrans->target += (*(yptr++));
+                                        }
+}
+<regex_trans1>{
+      -                                 yylval->regextrans->source += '-';
+      \/                                BEGIN(regex_trans2);
+      \n                                yylval->regextrans->source += '\n';
+      \\n                               yylval->regextrans->source += '\n';
+      \\t                               yylval->regextrans->source += '\t';
+      \\r                               yylval->regextrans->source += '\r';
+      \\b                               yylval->regextrans->source += '\b';
+      \\f                               yylval->regextrans->source += '\f';
+      \\\n                              yylval->regextrans->source += '\n';
+      \\\/                              yylval->regextrans->source += '/';
+      \\.                               yylval->regextrans->source += yytext[1];
+      [^\n\\/\-]+                       {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regextrans->source += (*(yptr++));
+                                        }
+}
+<regex_state>{
+      \/                                {
+                                            /* get regex modifiers */
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexModifier(yylval->regex, c));
+                                            unput(c);
+                                            yylloc->restoreFirst();
+                                            yylval->regex->loc = *yylloc;
+                                            BEGIN(INITIAL);
+                                            return REGEX;
+                                        }
+      \n                                yylval->regex->str += '\n';
+      \\\/                              yylval->regex->str += '/';
+      \\.                               { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
+      [^\n\\/]+                         {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regex->str += (*(yptr++));
+                                        }
+}
+<regex_extract_state>{
+      \/                                {
+                                            /* get regex modifiers */
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexExtractModifier(yylval->regex, c));
+                                            unput(c);
+                                            yylloc->restoreFirst();
+                                            yylval->regex->loc = *yylloc;
+                                            BEGIN(INITIAL);
+                                            return REGEX_EXTRACT;
+                                        }
+      \n                                yylval->regex->str += '\n';
+      \\\/                              yylval->regex->str += '/';
+      \\.                               { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
+      [^\n\\/]+                         {
+                                            char* yptr = yytext;
+                                            while (*yptr)
+                                                yylval->regex->str += (*(yptr++));
+                                        }
+}
+\#                                      {
+                                            int c;
+                                            while ((c = yyinput(yyscanner))) {
+                                                if (c == '\n')
+                                                    break;
+                                                else if (c == EOF) {
+                                                    AST_FLEX_DO_EOF
+                                                    break;
+                                                }
+                                            }
+                                        }
+where                                   return TOK_WHERE;
+private                                 return TOK_PRIVATE;
+private:internal                        return TOK_PRIVATEINTERNAL;
+private:hierarchy                       return TOK_PRIVATEHIERARCHY;
+public                                  return TOK_PUBLIC;
+abstract                                return TOK_ABSTRACT;
+unreference                             return TOK_UNREFERENCE;
+new                                     return TOK_NEW;
+shift                                   return TOK_SHIFT;
+unshift                                 return TOK_UNSHIFT;
+do                                      return TOK_DO;
+while                                   return TOK_WHILE;
+if                                      return TOK_IF;
+else                                    return TOK_ELSE;
+for                                     return TOK_FOR;
+foreach                                 return TOK_FOREACH;
+in                                      return TOK_IN;
+elements                                return TOK_ELEMENTS;
+keys                                    return TOK_KEYS;
+sub                                     return TOK_SUB;
+const                                   return TOK_CONST;
+return                                  return TOK_RETURN;
+returns                                 return TOK_RETURNS;
+my                                      return TOK_MY;
+our                                     return TOK_OUR;
+break                                   return TOK_BREAK;
+continue                                return TOK_CONTINUE;
+try                                     return TOK_TRY;
+throw                                   return TOK_THROW;
+rethrow                                 return TOK_RETHROW;
+catch                                   return TOK_CATCH;
+final                                   return TOK_FINAL;
+find                                    return TOK_FIND;
+delete                                  return TOK_DELETE;
+remove                                  return TOK_REMOVE;
+background                              return TOK_BACKGROUND;
+synchronized                            return TOK_SYNCHRONIZED;
+deprecated                              return TOK_DEPRECATED;
+thread_exit                             return TOK_THREAD_EXIT;
+exists                                  return TOK_EXISTS;
+context                                 return TOK_CONTEXT;
+summarize                               return TOK_SUMMARIZE;
+subcontext                              return TOK_SUB_CONTEXT;
+sortBy                                  return TOK_SORT_BY;
+sortDescendingBy                        return TOK_SORT_DESCENDING_BY;
+by                                      return TOK_BY;
+switch                                  return TOK_SWITCH;
+case                                    BEGIN(case_state); return TOK_CASE;
+<case_state>{
+   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+   {WS}+                                /* ignore */
+   [^\/]                                { yyless(0); BEGIN(INITIAL); }
+}
+default                                 return TOK_DEFAULT;
+inherits                                return TOK_INHERITS;
+push                                    return TOK_PUSH;
+pop                                     return TOK_POP;
+splice                                  return TOK_SPLICE;
+extract                                 return TOK_EXTRACT;
+instanceof                              return TOK_INSTANCEOF;
+chomp                                   return TOK_CHOMP;
+trim                                    return TOK_TRIM;
+on_exit                                 return TOK_ON_EXIT;
+on_success                              return TOK_ON_SUCCESS;
+on_error                                return TOK_ON_ERROR;
+map                                     return TOK_MAP;
+foldr                                   return TOK_FOLDR;
+foldl                                   return TOK_FOLDL;
+select                                  return TOK_SELECT;
+static                                  return TOK_STATIC;
+class\(                                 { yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN; }
+private\(                               { yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN; }
+new\(                                   { yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN; }
+delete\(                                { yylval->string = strdup("delete"); return KW_IDENTIFIER_OPENPAREN; }
+case\(                                  { yylval->string = strdup("case"); return KW_IDENTIFIER_OPENPAREN; }
+chomp\(                                 { yylval->string = strdup("chomp"); return KW_IDENTIFIER_OPENPAREN; }
+final\(                                 { yylval->string = strdup("final"); return KW_IDENTIFIER_OPENPAREN; }
+find\(                                  { yylval->string = strdup("find"); return KW_IDENTIFIER_OPENPAREN; }
+trim\(                                  { yylval->string = strdup("trim"); return KW_IDENTIFIER_OPENPAREN; }
+push\(                                  { yylval->string = strdup("push"); return KW_IDENTIFIER_OPENPAREN; }
+pop\(                                   { yylval->string = strdup("pop"); return KW_IDENTIFIER_OPENPAREN; }
+splice\(                                { yylval->string = strdup("splice"); return KW_IDENTIFIER_OPENPAREN; }
+shift\(                                 { yylval->string = strdup("shift"); return KW_IDENTIFIER_OPENPAREN; }
+unshift\(                               { yylval->string = strdup("unshift"); return KW_IDENTIFIER_OPENPAREN; }
+background\(                            { yylval->string = strdup("background"); return KW_IDENTIFIER_OPENPAREN; }
+exists\(                                { yylval->string = strdup("exists"); return KW_IDENTIFIER_OPENPAREN; }
+map\(                                   { yylval->string = strdup("map"); return KW_IDENTIFIER_OPENPAREN; }
+foldr\(                                 { yylval->string = strdup("foldr"); return KW_IDENTIFIER_OPENPAREN; }
+foldl\(                                 { yylval->string = strdup("foldl"); return KW_IDENTIFIER_OPENPAREN; }
+select\(                                { yylval->string = strdup("select"); return KW_IDENTIFIER_OPENPAREN; }
+inherits\(                              { yylval->string = strdup("inherits"); return KW_IDENTIFIER_OPENPAREN; }
+default{WS}*\(                          { yylval->string = strdup("default"); return KW_IDENTIFIER_OPENPAREN; }
+static{WS}*\(                           { yylval->string = strdup("static"); return KW_IDENTIFIER_OPENPAREN; }
+returns{WS}*\(                          { yylval->string = strdup("returns"); return KW_IDENTIFIER_OPENPAREN; }
+public{WS}*\(                           { yylval->string = strdup("public"); return KW_IDENTIFIER_OPENPAREN; }
+deprecated{WS}*\(                       { yylval->string = strdup("deprecated"); return KW_IDENTIFIER_OPENPAREN; }
+module{WS}*\(                           { yylval->string = strdup("module"); return KW_IDENTIFIER_OPENPAREN; }
+\.returns[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("returns")
+\.new[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("new")
+\.private[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("private")
+\.public[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("public")
+\.class[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("class")
+\.elements[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("elements")
+\.delete[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("delete")
+\.case[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("case")
+\.default[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("default")
+\.map[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("map")
+\.select[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("select")
+\.keys[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("keys")
+\.chomp[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("chomp")
+\.trim[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("trim")
+\.push[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("push")
+\.pop[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("pop")
+\.splice[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("splice")
+\.shift[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("shift")
+\.unshift[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("unshift")
+\.background[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("background")
+\.find[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("find")
+\.exists[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("exists")
+\.foldr[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("foldr")
+\.foldl[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("foldl")
+\.static[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("static")
+\.abstract[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("abstract")
+\.deprecated[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("deprecated")
+\.summarize[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("summarize")
+\.sub[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("sub")
+\.subcontext[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("subcontext")
+\.sortBy[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("sortBy")
+\.sortDescendingBy[^A-Za-z_0-9]         AST_DOT_KW_IDENTIFIER("sortDescendingBy")
+\.by[^A-Za-z_0-9]                       AST_DOT_KW_IDENTIFIER("by")
+\.switch[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("switch")
+\.return[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("return")
+\.rethrow[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("rethrow")
+\.break[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("break")
+\.catch[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("catch")
+\.const[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("const")
+\.context[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("context")
+\.continue[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("continue")
+\.do[^A-Za-z_0-9]                       AST_DOT_KW_IDENTIFIER("do")
+\.else[^A-Za-z_0-9]                     AST_DOT_KW_IDENTIFIER("else")
+\.final[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("final")
+\.for[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("for")
+\.foreach[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("foreach")
+\.if[^A-Za-z_0-9]                       AST_DOT_KW_IDENTIFIER("if")
+\.in[^A-Za-z_0-9]                       AST_DOT_KW_IDENTIFIER("in")
+\.inherits[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("inherits")
+\.instanceof[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("instanceof")
+\.namespace[^A-Za-z_0-9]                AST_DOT_KW_IDENTIFIER("namespace")
+\.my[^A-Za-z_0-9]                       AST_DOT_KW_IDENTIFIER("my")
+\.on_error[^A-Za-z_0-9]                 AST_DOT_KW_IDENTIFIER("on_error")
+\.on_exit[^A-Za-z_0-9]                  AST_DOT_KW_IDENTIFIER("on_exit")
+\.on_success[^A-Za-z_0-9]               AST_DOT_KW_IDENTIFIER("on_success")
+\.our[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("our")
+\.synchronized[^A-Za-z_0-9]             AST_DOT_KW_IDENTIFIER("synchronized")
+\.thread_exit[^A-Za-z_0-9]              AST_DOT_KW_IDENTIFIER("thread_exit")
+\.throw[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("throw")
+\.try[^A-Za-z_0-9]                      AST_DOT_KW_IDENTIFIER("try")
+\.where[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("where")
+\.while[^A-Za-z_0-9]                    AST_DOT_KW_IDENTIFIER("while")
+\.module[^A-Za-z_0-9]                   AST_DOT_KW_IDENTIFIER("module")
+
+{YEAR}-{MONTH}-{DAY}T{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?   { yylval->string = strdup(yytext); return DATETIME; }
+{YEAR}-{MONTH}-{DAY}-{HOUR}:{MSEC}:{MSEC}(\.{US})?{TZ}?      { yylval->string = strdup(yytext); return DATETIME; }
+{YEAR}-{MONTH}-{DAY}?{TZ}?                                   { yylval->string = strdup(yytext); return DATETIME; }
+{HOUR}:{MSEC}(:{MSEC}(\.{US})?)?{TZ}?                        { yylval->string = strdup(yytext); return DATETIME; }
+P{YEAR}-{D2}-{D2}(T{D2}:{D2}(:{D2}(\.{US})?)?)?              { yylval->string = strdup(yytext); return DATETIME; }
+PT{D2}:{D2}(:{D2}(\.{US})?)?            { yylval->string = strdup(yytext); return DATETIME;}
+P{D2}:{D2}(:{D2}(\.{US})?)?             { yylval->string = strdup(yytext); return DATETIME;}
+{RDATETIME}                             { yylval->string = strdup(yytext); return DATETIME;}
+{RDATE}                                 { yylval->string = strdup(yytext); return DATETIME;}
+{RTIME}                                 { yylval->string = strdup(yytext); return DATETIME;}
+({WORD}::)+{WORD}                       { yylval->string = strdup(yytext); return SCOPED_REF;}
+(::{WORD})+                             { yylval->string = strdup(yytext); return SCOPED_REF;}
+({WORD}::)+\${WORD}                     { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
+(::{WORD})?::\${WORD}                   { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
+cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     { yylval->string = make_cast(yytext); return QORE_CAST;}
+cast\<{WS}*{WORD}{WS}*\>                { yylval->string = make_cast(yytext); return QORE_CAST;}
+({WORD}::)+\$\.{WORD}                   { yylval->string = strdup(yytext); return BASE_CLASS_CALL;}
+@[Nn][Aa][Nn]@                          {
+#ifdef NAN
+                                            yylval->decimal = NAN;
+#else
+                                            yylval->decimal = q_strtod("NAN");
+#endif
+                                            return QFLOAT;
+                                        }
+@[Ii][Nn][Ff]@                          {
+#ifdef INFINITY
+                                            yylval->decimal = INFINITY;
+#else
+                                            yylval->decimal = q_strtod("INFINITY");
+#endif
+                                            return QFLOAT;
+                                        }
+{DIGIT}+"."{DIGIT}+                     { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+{DIGIT}+[eE][+-]?{DIGIT}+               { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+    { yylval->decimal = q_strtod(yytext); return QFLOAT; }
+@[Nn][Aa][Nn]@n                         { yylval->string = strdup("@nan@"); return NUMBER; }
+@[Ii][Nn][Ff]@n                         { yylval->string = strdup("@inf@"); return NUMBER; }
+{DIGIT}+n                               { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+"."{DIGIT}+n                    { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+[eE][+-]?{DIGIT}+n              { yylval->string = strdup(yytext); return NUMBER; }
+{DIGIT}+"."{DIGIT}+[eE][+-]?{DIGIT}+n   { yylval->string = strdup(yytext); return NUMBER; }
+0[0-7]+                                 { yylval->integer = strtoll(yytext+1, 0, 8); return INTEGER; }
+{DIGIT}+                                {
+                                            bool err = false;
+                                            yylval->integer = parse_get_integer(yytext, err);
+                                            if (err)
+                                                return INTEGER_OVERFLOW_ERROR;
+                                            return INTEGER;
+                                        }
+{DIGIT}+Y                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+M                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+D                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+h                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+ms                              { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+us                              { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+m                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+s                               { yylval->string = strdup(yytext); return DATETIME; }
+{HEX_CONST}                             { yylval->integer = strtoll(yytext, 0, 16); return INTEGER; }
+{BINARY}                                { yylval->string = strdup(yytext); return BINARY; }
+\$\.{WORD}                              { yylval->string = strdup(yytext + 2); return SELF_REF; }
+\${WORD}                                { yylval->string = strdup(yytext + 1); return VAR_REF; }
+class{WS}+({WORD}::)+{WORD}             { yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF; }
+class{WS}+(::{WORD})+                   { yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF; }
+class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); return CLASS_STRING; }
+namespace{WS}+{WORD}                    { yylval->string = trim(yytext + 10); return NAMESPACE; }
+module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); /* TODO */ return TOK_MODULE; }
+{WORD}                                  { yylval->string = strdup(yytext); return IDENTIFIER; }
+\%{WORD}                                { yylval->string = strdup(yytext + 1); return CONTEXT_REF; }
+\%{WORD}\:{WORD}                        { yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF; }
+\%\%                                    return TOK_CONTEXT_ROW;
+\`[^`]*\`                               { yylval->string = strdup(remove_quotes(yytext)); return BACKQUOTE; }
+\'[^\']*\'                              { yylval->String = new std::string(remove_quotes(yytext)); return QUOTED_WORD; }
+\$\$                                    { yylval->i4 = -1; return IMPLICIT_ARG_REF; }
+\$[0-9][0-9]*                           { yylval->i4 = strtol(yytext + 1, 0, 0); return IMPLICIT_ARG_REF; }
+\$#                                     return IMPLICIT_ELEMENT;
+\?\?                                    return NULL_COALESCING;
+\?\*                                    return VALUE_COALESCING;
+\<=                                     return LOGICAL_LE;
+\>=                                     return LOGICAL_GE;
+\!=                                     return LOGICAL_NE;
+\<\>                                    return LOGICAL_NE;
+===                                     return ABSOLUTE_EQ;
+\!==                                    return ABSOLUTE_NE;
+==                                      return LOGICAL_EQ;
+\<=\>                                   return LOGICAL_CMP;
+&&                                      return LOGICAL_AND;
+\|\|                                    return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+\|                                      return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_BINARY_OR : '|';
+\^                                      return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_BINARY_XOR : '^';
+\>\>                                    return SHIFT_RIGHT;
+\<\<                                    return SHIFT_LEFT;
+\+\+                                    return P_INCREMENT;
+--                                      return P_DECREMENT;
+\+=                                     return PLUS_EQUALS;
+-=                                      return MINUS_EQUALS;
+&=                                      return AND_EQUALS;
+\|=                                     return OR_EQUALS;
+\%=                                     return MODULO_EQUALS;
+\*=                                     return MULTIPLY_EQUALS;
+\/=                                     return DIVIDE_EQUALS;
+\^=                                     return XOR_EQUALS;
+\>\>=                                   return SHIFT_RIGHT_EQUALS;
+\<\<=                                   return SHIFT_LEFT_EQUALS;
+
+\<{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_LE : WS_LOGICAL_LE;
+\>{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_GE : WS_LOGICAL_GE;
+\!{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_NE : WS_LOGICAL_NE;
+\<{WS}+\>                               return PO_BROKEN_OPERATORS ? LOGICAL_NE : WS_LOGICAL_NE;
+={WS}+=                                 return PO_BROKEN_OPERATORS ? LOGICAL_EQ : WS_LOGICAL_EQ;
+
+={WS}+={WS}*=                           return PO_BROKEN_OPERATORS ? ABSOLUTE_EQ : WS_ABSOLUTE_EQ;
+={WS}*={WS}+=                           return PO_BROKEN_OPERATORS ? ABSOLUTE_EQ : WS_ABSOLUTE_EQ;
+\!{WS}+={WS}*=                          return PO_BROKEN_OPERATORS ? ABSOLUTE_NE : WS_ABSOLUTE_NE;
+\!{WS}*={WS}+=                          return PO_BROKEN_OPERATORS ? ABSOLUTE_NE : WS_ABSOLUTE_NE;
+\<{WS}+={WS}*\>                         return PO_BROKEN_OPERATORS ? LOGICAL_CMP : WS_LOGICAL_CMP;
+\<{WS}*={WS}+\>                         return PO_BROKEN_OPERATORS ? LOGICAL_CMP : WS_LOGICAL_CMP;
+
+&{WS}+&                                 return PO_BROKEN_OPERATORS ? LOGICAL_AND : WS_LOGICAL_AND;
+\|{WS}+\|                               {
+                                            if (PO_BROKEN_OPERATORS)
+                                                return PO_BROKEN_LOGIC_PRECEDENCE ? BROKEN_LOGICAL_OR : LOGICAL_OR;
+                                            else
+                                                return PO_BROKEN_LOGIC_PRECEDENCE ? WS_BROKEN_LOGICAL_OR : WS_LOGICAL_OR;
+                                        }
+\>{WS}+\>                               return PO_BROKEN_OPERATORS ? SHIFT_RIGHT : WS_SHIFT_RIGHT;
+\<{WS}+\<                               return PO_BROKEN_OPERATORS ? SHIFT_LEFT : WS_SHIFT_LEFT;
+\+{WS}+=                                return PO_BROKEN_OPERATORS ? PLUS_EQUALS : WS_PLUS_EQUALS;
+-{WS}+=                                 return PO_BROKEN_OPERATORS ? MINUS_EQUALS : WS_MINUS_EQUALS;
+&{WS}+=                                 return PO_BROKEN_OPERATORS ? AND_EQUALS : WS_AND_EQUALS;
+\|{WS}+=                                return PO_BROKEN_OPERATORS ? OR_EQUALS : WS_OR_EQUALS;
+\%{WS}+=                                return PO_BROKEN_OPERATORS ? MODULO_EQUALS : WS_MODULO_EQUALS;
+\*{WS}+=                                return PO_BROKEN_OPERATORS ? MULTIPLY_EQUALS : WS_MULTIPLY_EQUALS;
+\/{WS}+=                                return PO_BROKEN_OPERATORS ? DIVIDE_EQUALS : WS_DIVIDE_EQUALS;
+\^{WS}+=                                return PO_BROKEN_OPERATORS ? XOR_EQUALS : WS_XOR_EQUALS;
+\>{WS}+\>{WS}*=                         return PO_BROKEN_OPERATORS ? SHIFT_RIGHT_EQUALS : WS_SHIFT_RIGHT_EQUALS;
+\>{WS}*\>{WS}+=                         return PO_BROKEN_OPERATORS ? SHIFT_RIGHT_EQUALS : WS_SHIFT_RIGHT_EQUALS;
+\<{WS}+\<{WS}*=                         return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
+\<{WS}*\<{WS}+=                         return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
+
+\/\*                                    {
+                                            int c;
+                                            while ((c = yyinput(yyscanner))) {
+                                                if (c == '*') {
+                                                    do {
+                                                        c = yyinput(yyscanner);
+                                                    }
+                                                    while (c == '*');
+                                                    if (c == '/')
+                                                        break;
+                                                }
+                                                if (c == EOF)
+                                                    return OPEN_BLK_COMMENT_AT_EOF_ERROR;
+                                            }
+                                        }
+<regex_googleplex>{
+   s\/                                  { yylval->regexsubst = new ASTRegexSubstExpression; yylloc->saveFirst(); BEGIN(regex_subst1); }
+   x\/                                  { yylval->regex = new ASTRegexExpression(true); yylloc->saveFirst(); BEGIN(regex_extract_state); }
+   tr\/                                 { yylval->regextrans = new ASTRegexTransExpression; yylloc->saveFirst(); BEGIN(regex_trans1); }
+   m\/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+   {WSNL}+                              /* ignore whitespace */
+   [^sxmt\/]                            { BEGIN(INITIAL); return NO_REGEX_AFTER_MATCH_ERROR; }
+}
+<regex_negative_universe>{
+   m\/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+   {WSNL}+                              /* ignore whitespace */
+   [^m\/]                               { BEGIN(INITIAL); return NO_REGEX_AFTER_NOTMATCH_ERROR; }
+}
+=\~                                     { BEGIN(regex_googleplex); return REGEX_MATCH; }
+\!\~                                    { BEGIN(regex_negative_universe); return REGEX_NMATCH; }
+{WSNL}+                                 /* ignore whitespace */
+.                                       return yytext[0];
+%%

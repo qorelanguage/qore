@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_string.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/ql_string.h"
+#include "qore/intern/qore_number_private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -147,7 +147,7 @@ static void split_add_element(QoreListNode* l, const char* str, unsigned len, co
 }
 
 QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
-   QoreListNode* l = new QoreListNode();
+   QoreListNode* l = new QoreListNode(stringTypeInfo);
    const char* ostr = str;
    while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
       split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
@@ -176,7 +176,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
       return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
 
-   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+   ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
    const char* ostr = str->getBuffer();
    qore_size_t sl = str->strlen();
    const char* tpattern = pat->getBuffer();
@@ -201,7 +201,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
             if (!p) {
                xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
-               return 0;
+               return nullptr;
             }
             if (p == tstr)
                break;
@@ -210,7 +210,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             tstr = p + 1;
          }
          // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, sep->getEncoding()));
+         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()));
 
          ststr = p + tquote->strlen();
          // see if we are at the end of the string
@@ -222,7 +222,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          // or a separator string comes next
          if (len < pl || memcmp(tpattern, ststr, pl)) {
             xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
-            return 0;
+            return nullptr;
          }
          ststr += pl;
          len -= pl;
@@ -231,16 +231,16 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
       const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
       if (!p) {
-         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), sep->getEncoding());
-         if (trim_unquoted)
-            se->trim();
+         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
+         if (trim_unquoted && se->trim(xsink))
+            return nullptr;
          l->push(se);
          break;
       }
 
-      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, sep->getEncoding());
-      if (trim_unquoted)
-         se->trim();
+      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
+      if (trim_unquoted && se->trim(xsink))
+         return nullptr;
       l->push(se);
       len -= (p - ststr);
       ststr = p + pl;
@@ -258,7 +258,7 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, in
       if (!p.isNothing()) {
 	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
 	 if (*xsink)
-	    return 0;
+	    return nullptr;
 
 	 str->concat(*t);
       }
@@ -291,9 +291,16 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
    if (fmt.empty())
-      return new QoreStringNodeMaker("%.9g", num);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num));
+      return q_fix_decimal(new QoreStringNodeMaker("%.9g", num));
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
    if (qore_number_private::formatNumberString(**str, fmt, xsink))
+      return 0;
+   return str.release();
+}
+
+QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink) {
+   SimpleRefHolder<QoreStringNode> str(q_fix_decimal(new QoreStringNodeMaker("%.*f", OP_DBL_Digs + 6, num)));
+   if (qore_number_private::formatNumberString(**str, prec, dsep, tsep, xsink))
       return 0;
    return str.release();
 }
@@ -810,12 +817,12 @@ int brindex() [flags=RUNTIME_NOOP] {
    return -1;
 }
 
-//! Gives the numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
+//! Gives the positive numeric value of the given byte in the string passed; if no string is passed or the offset is after the end of the string, -1 is returned
 /**
     @param str the string containing the byte to be retrieved
     @param offset the byte offset of the byte to be retrieved
 
-    @return the numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
+    @return the positive numeric value of the given byte in the string passed; if the offset is after the end of the string or negative, -1 is returned
 
     @par Example:
     @code{.py}
@@ -828,7 +835,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (qore_size_t)offset >= str->strlen())
       return -1;
 
-   return str->getBuffer()[offset];
+   return (unsigned char)str->getBuffer()[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -881,14 +888,14 @@ nothing chr() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-list list = split(":", "some:text:here"); # returns ("some", "text", "here")
+list<string> l = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @note equivalent to <string>::split(string, bool)
  */
-list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+list<string> split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
@@ -909,7 +916,7 @@ list split(string sep, string str, bool with_separator = False) [flags=RET_VALUE
 
     @par Example:
     @code{.py}
-list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
+list<string> l = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -919,7 +926,7 @@ list list = split(",", "some,'text with spaces',here", "'"); # returns ("some", 
 
     @since %Qore 0.8.6 the \c trim_unquoted parameter was added
  */
-list split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+list<string> split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
    return split_with_quote(sep, str, quote, trim_unquoted, xsink);
 }
 
@@ -932,20 +939,20 @@ list split(string sep, string str, string quote, bool trim_unquoted = False) [fl
 
     @par Example:
     @code{.py}
-list l = split(sep, bin);
+list<string> l = split(sep, bin);
     @endcode
 
     @note equivalent to <binary>::split(binary)
  */
-list split(binary sep, binary data) [flags=CONSTANT] {
+list<string> split(binary sep, binary data) [flags=CONSTANT] {
    return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)data->getPtr(), data->size(), 0);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-list split() [flags=RUNTIME_NOOP] {
-   return new QoreListNode;
+list<string> split() [flags=RUNTIME_NOOP] {
+   return new QoreListNode(stringTypeInfo);
 }
 
 //! Returns a string describing the character encoding of the string argument passed
@@ -1041,7 +1048,7 @@ bool b = regex("hello", "^hel"); # returns True
     @see @ref qore_regex for more information about regular expression support in Qore
  */
 bool regex(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1100,7 +1107,7 @@ string regex_subst(string str, string regex, string subst, int options = 0) [fla
    else
       global = false;
 
-   RegexSubstNode qrs(regex, (int)options, xsink);
+   QoreRegexSubst qrs(regex, (int)options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1139,8 +1146,8 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
 
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
-*list regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
-   QoreRegexNode qr(*regex, options, xsink);
+*list<string> regex_extract(string str, string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+   QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -1346,14 +1353,10 @@ nothing chomp() [flags=RUNTIME_NOOP] {
     @code{.py}
 string tstr = trim(str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string trim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trim(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the start and end of a reference to an lvalue containing a string and returns string after processing (also see the @ref trim "trim operator")
@@ -1370,21 +1373,17 @@ string trim(string str, *string chars) [flags=CONSTANT] {
     @code{.py}
 trim(\str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 *string trim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim(tchars);
-   return rv->refSelf();
+   return rv->trim(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1406,14 +1405,10 @@ nothing trim() [flags=RUNTIME_NOOP] {
 string tstr = ltrim(" ABC ");
 # returns string "ABC "
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string ltrim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim_leading(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trimLeading(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the start of a reference to an lvalue containing a string and returns string after processing
@@ -1430,21 +1425,17 @@ string ltrim(string str, *string chars) [flags=CONSTANT] {
     @code{.py}
 ltrim(\str);
     @endcode
-
-    @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 *string ltrim(reference str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim_leading(tchars);
-   return rv->refSelf();
+   return rv->trimLeading(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! Removes byte characters from the end of a string and returns the new string
@@ -1464,10 +1455,8 @@ string tstr = rtrim(str);
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
 string rtrim(string str, *string chars) [flags=CONSTANT] {
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   QoreStringNode* rv = str->copy();
-   rv->trim_trailing(tchars);
-   return rv;
+   SimpleRefHolder<QoreStringNode> rv(str->copy());
+   return rv->trimTrailing(xsink, chars) ? QoreValue() : rv.release();
 }
 
 //! Removes byte characters from the end of a reference to an lvalue containing a string and returns string after processing
@@ -1492,13 +1481,11 @@ rtrim(\str);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
 
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode* >(ref.getUnique(xsink));
+   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(ref.getUnique(xsink));
    if (*xsink)
       return QoreValue();
 
-   const char* tchars = chars && chars->strlen() ? chars->getBuffer() : 0;
-   rv->trim_trailing(tchars);
-   return rv->refSelf();
+   return rv->trimTrailing(xsink, chars) ? QoreValue() : rv->refSelf();
 }
 
 //! Returns a truncated string with no more than the given number of bytes and optionally converted to a specific @ref character_encoding "character encoding"
@@ -1562,12 +1549,12 @@ string ret = strmul("%s,", 3, 1); # returns "%s,%s,%s"
  */
 string strmul(softstring str, softint smul, *softint offset) [flags=RET_VALUE_ONLY] {
    if (offset < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: "QLLD, offset);
+      return xsink->raiseException("STRMUL-ERROR", "Offset argument has to be >= 0; value: " QLLD, offset);
 
    if (smul < 0)
-      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: "QLLD, smul);
+      return xsink->raiseException("STRMUL-ERROR", "Multiple argument has to be >= 0; value: " QLLD, smul);
 
-   QoreStringNodeHolder ret(new QoreStringNode());
+   QoreStringNodeHolder ret(new QoreStringNode);
    while (smul > 0) {
       ret->concat(str);
       --smul;
@@ -1930,6 +1917,10 @@ number n = parse_number("1.150.200,55", ".,");
 
     @return the number value represented by the string
 
+    @see
+    - @ref parse_int()
+    - @ref parse_float()
+
     @since %Qore 0.8.11.1
 */
 number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
@@ -1944,16 +1935,20 @@ number parse_number(string str, string fmt) [flags=RET_VALUE_ONLY] {
    return new QoreNumberNode(tmp.getBuffer());
 }
 
-//! returns a number corresponding to the string and the argument, giving the format
+//! returns a floating-point value corresponding to a string representing the number and an argument giving the format
 /** @par Example:
     @code{.py}
-number n = parse_number("1.150.200,55", ".,");
+float f = parse_float("1.150.200,55", ".,");
     @endcode
 
     @param str the string to parse
     @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
 
-    @return the number value represented by the string
+    @return the floating-point value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_int()
 
     @since %Qore 0.8.11.1
 */
@@ -1966,6 +1961,35 @@ float parse_float(string str, string fmt) [flags=RET_VALUE_ONLY] {
    if (fix_num(tmp, **tfmt, xsink))
       return QoreValue();
 
-   return strtod(tmp.getBuffer(), 0);
+   return q_strtod(tmp.getBuffer());
+}
+
+//! returns an integer corresponding to a string representing the number and an argument giving the format
+/** @par Example:
+    @code{.py}
+int i = parse_int("1.150.200,55", ".,");
+    @endcode
+
+    @param str the string to parse
+    @param fmt the format of the number in the string, consisting of two characters, the first for the thousands separator, the second for the decimal point (ex: \c ".," for many European locales)
+
+    @return the number value represented by the string
+
+    @see
+    - @ref parse_number()
+    - @ref parse_float()
+
+    @since %Qore 0.8.13
+*/
+int parse_int(string str, string fmt) [flags=RET_VALUE_ONLY] {
+   TempEncodingHelper tfmt(fmt, str->getEncoding(), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   QoreString tmp(*str);
+   if (fix_num(tmp, **tfmt, xsink))
+      return QoreValue();
+
+   return strtoll(tmp.getBuffer(), 0, 10);
 }
 //@}

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 
 class HashMember;
 class LocalVar;
+class QoreString;
 
 //! This is the hash or associative list container type in Qore, dynamically allocated only, reference counted
 /**
@@ -107,9 +108,18 @@ protected:
    DLLEXPORT virtual ~QoreHashNode();
 
 public:
-
    //! creates an empty hash
    DLLEXPORT QoreHashNode();
+
+   //! creates a hash of the specific type; the hash is initialized according to the hashdecl declaration
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink);
+
+   //! creates an empty hash with the specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreHashNode(const QoreTypeInfo* valueTypeInfo);
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -174,10 +184,69 @@ public:
     */
    DLLEXPORT const char* getLastKey() const;
 
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+       @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const char* key, bool& exists) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValue(const char* key, ExceptionSink* xsink) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValue(const char* key) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+       @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const QoreString& key, bool& exists, ExceptionSink* xsink) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param exists true if the key existed (in case no value is returned), false if not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValueExistence(const QoreString& key, bool& exists) const;
+
+   //! returns the value of the given key
+   /** @param key the key to return
+       @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValue getValueKeyValue(const QoreString& key, ExceptionSink* xsink) const;
+
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists and sets "exists" accordingly
    /** @param key the key to return the value for
        @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @return the value of the key
+
+       @deprecated use getValueKeyValueExistence() instead
    */
    DLLEXPORT AbstractQoreNode* getKeyValueExistence(const char* key, bool &exists);
 
@@ -185,6 +254,8 @@ public:
    /** @param key the key to return the value for
        @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @return the value of the key
+
+       @deprecated use getValueKeyValueExistence() instead
    */
    DLLEXPORT const AbstractQoreNode* getKeyValueExistence(const char* key, bool &exists) const;
 
@@ -195,6 +266,8 @@ public:
        @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
+
+       @deprecated use getValueKeyValueExistence() instead
    */
    DLLEXPORT AbstractQoreNode* getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink);
 
@@ -205,6 +278,8 @@ public:
        @param exists output parameter: if true the key exists, if false the key does not exist (in this case the return value will always be 0)
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
+
+       @deprecated use getValueKeyValueExistence() instead
    */
    DLLEXPORT const AbstractQoreNode* getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink) const;
 
@@ -214,6 +289,8 @@ public:
        @param key the key to return the value for
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT AbstractQoreNode* getKeyValue(const QoreString* key, ExceptionSink* xsink);
 
@@ -223,6 +300,8 @@ public:
        @param key the key to return the value for
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT AbstractQoreNode* getKeyValue(const QoreString& key, ExceptionSink* xsink);
 
@@ -232,18 +311,24 @@ public:
        @param key the key to return the value for
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value of the key
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT const AbstractQoreNode* getKeyValue(const QoreString* key, ExceptionSink* xsink) const;
 
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists
    /** @param key the key to return the value for
        @return the value of the key
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT AbstractQoreNode* getKeyValue(const char* key);
 
    //! returns the value of the key (assumed to be in QCS_DEFAULT) if it exists
    /** @param key the key to return the value for
        @return the value of the key
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT const AbstractQoreNode* getKeyValue(const char* key) const;
 
@@ -251,6 +336,8 @@ public:
    /** @param key the key to return the value for
        @param found returns as true if the key exists, false if not
        @return the value of the key as an int64
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT int64 getKeyAsBigInt(const char* key, bool &found) const;
 
@@ -258,6 +345,8 @@ public:
    /** @param key the key to return the value for
        @param found returns as true if the key exists, false if not
        @return the value of the key as a bool
+
+       @deprecated use getValueKeyValue() instead
    */
    DLLEXPORT bool getKeyAsBool(const char* key, bool &found) const;
 
@@ -311,11 +400,42 @@ public:
    DLLEXPORT void merge(const QoreHashNode* h, ExceptionSink* xsink);
 
    //! sets the value of "key" to "value"
+   /** A Qore-language exception could be thrown if the hash is derived from a hashdecl and the key is unknown, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
+       @param key the key to set the value for
+       @param value the value to assign to the key, must be already referenced for the assignment
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @return 0 for OK, -1 if a Qore-language exception was thrown
+
+       @note the assignment is made even if an exception occurs when dereferencing the old value
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT int setValueKeyValue(const char* key, QoreValue value, ExceptionSink* xsink);
+
+   //! sets the value of "key" to "value"
+   /** A Qore-language exception could be thrown if the hash is derived from a hashdecl and the key is unknown, or converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
+       @param key the key to set the value for
+       @param value the value to assign to the key, must be already referenced for the assignment
+       @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @return 0 for OK, -1 if a Qore-language exception was thrown
+
+       @note the assignment is made even if an exception occurs when dereferencing the old value
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT int setValueKeyValue(const QoreString& key, QoreValue value, ExceptionSink* xsink);
+
+   //! sets the value of "key" to "value"
    /** A Qore-language exception could be thrown converting the key string's encoding to QCS_DEFAULT, or if the given key has a current value and it's a QoreObject that goes out of scope when dereferenced (the object's destructor could throw an exception); if an exception is thrown due to encoding conversion issues (and therefore the assignment is not made) then the value to be assigned is dereferenced automatically
        @param key the key to set the value for
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here
+
        @note the assignment is made even if an exception occurs when dereferencing the old value
+
+       @deprecated use setValueKeyValue() instead
    */
    DLLEXPORT void setKeyValue(const QoreString* key, AbstractQoreNode* value, ExceptionSink* xsink);
 
@@ -325,6 +445,8 @@ public:
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @note the assignment is made even if an exception occurs when dereferencing the old value
+
+       @deprecated use setValueKeyValue() instead
    */
    DLLEXPORT void setKeyValue(const QoreString& key, AbstractQoreNode* value, ExceptionSink* xsink);
 
@@ -334,6 +456,8 @@ public:
        @param value the value to assign to the key, must be already referenced for the assignment
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @note the assignment is made even if an exception occurs when dereferencing the old value
+
+       @deprecated use setValueKeyValue() instead
    */
    DLLEXPORT void setKeyValue(const char* key, AbstractQoreNode* value, ExceptionSink* xsink);
 
@@ -391,11 +515,19 @@ public:
    */
    DLLEXPORT AbstractQoreNode* takeKeyValue(const char* key);
 
-   //! returns a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+   //! returns a QoreListNode of QoreStringNode pointers representing all keys in the hash, caller owns the reference count returned
    /** to iterate through a hash, use HashIterator, ReverseHashIterator, ConstHashIterator, or ReverseConstHashIterator
-       @return a QoreListNode of QoreStringNodes representing all keys in the hash, caller owns the reference count returned
+       @return a QoreListNode of QoreStringNode pointers representing all keys in the hash, caller owns the reference count returned
    */
    DLLEXPORT QoreListNode* getKeys() const;
+
+   //! returns a QoreListNode of AbstractQoreNode pointers representing all values in the hash; caller owns the reference count returned
+   /** to iterate through a hash, use HashIterator, ReverseHashIterator, ConstHashIterator, or ReverseConstHashIterator
+       @return a QoreListNode of AbstractQoreNode pointers representing all values in the hash; caller owns the reference count returned
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreListNode* getValues() const;
 
    //! does a deep "soft" compare of all hash elements (types may be converted for the comparison) and returns true if the hashes are equal
    /** @note that if the hashes have a different number or names of keys then the comparison fails immediately
@@ -446,6 +578,21 @@ public:
    */
    DLLEXPORT void removeKey(const char* key, ExceptionSink* xsink);
 
+   //! returns the hash's type declaration, if any
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const TypedHashDecl* getHashDecl() const;
+
+   //! returns the value type declaration (only possible if there is no hashdecl set)
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getValueTypeInfo() const;
+
+   //! returns the type info structure for the current value; also works for hashes derived from a TypedHashDecl or with a specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
    //! returns the type name (useful in templates)
    /** @return the type name
     */
@@ -476,12 +623,6 @@ public:
 
    // returns a new hash consisting of just the members of value_list
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const;
-
-   // "key" is always passed in the default character encoding
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValue(const char* key) const;
-
-   // "key" is always passed in the default character encoding
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValue(const char* key, bool& exists) const;
 };
 
 #include <qore/ReferenceHolder.h>
@@ -506,6 +647,7 @@ class qhi_priv;
 */
 class HashIterator {
    friend class HashAssignmentHelper;
+   friend class qhi_priv;
 
 protected:
    QoreHashNode* h;
@@ -569,6 +711,9 @@ public:
 
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+
+   //! returns the hash
+   DLLEXPORT QoreHashNode* getHash() const;
 
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
@@ -678,6 +823,9 @@ public:
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
+   //! returns the hash
+   DLLEXPORT const QoreHashNode* getHash() const;
+
    //! returns true if on the first key of the hash
    DLLEXPORT bool first() const;
 
@@ -736,20 +884,7 @@ public:
 
 //! use this class to make assignments to hash keys from a pointer to the key value
 class HashAssignmentHelper {
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL HashAssignmentHelper(const HashAssignmentHelper&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL HashAssignmentHelper& operator=(const HashAssignmentHelper&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void* operator new(size_t);
-
-protected:
-   //! private implementation
-   class hash_assignment_priv *priv;
-
+friend class hash_assignment_priv;
 public:
    //! constructor taking a const char*
    /** @param n_h the hash to use
@@ -831,6 +966,15 @@ public:
    /** @return the current value of the hash key
     */
    DLLEXPORT AbstractQoreNode* operator*() const;
+
+protected:
+   //! private implementation
+   class hash_assignment_priv *priv;
+
+private:
+   DLLLOCAL HashAssignmentHelper(const HashAssignmentHelper&) = delete;
+   DLLLOCAL HashAssignmentHelper& operator=(const HashAssignmentHelper&) = delete;
+   DLLLOCAL void* operator new(size_t) = delete;
 };
 
 #endif // _QORE_HASH_H

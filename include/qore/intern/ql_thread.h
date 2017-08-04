@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,5 +36,6 @@
 #define _QORE_LIB_THREAD_H
 
 DLLLOCAL void init_thread_functions(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_CallStackInfo(QoreNamespace& ns);
 
 #endif

@@ -8,6 +8,8 @@
 
 %requires ../../../../qlib/QUnit.qm
 
+%exec-class ClassesTest
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -79,15 +81,94 @@ class Test3 {
     }
 }
 
-%exec-class ClassesTest
+int sub throw_exception() {
+    throw "TEST", "test";
+}
+
+class Base {
+    constructor(int i) {
+    }
+}
+
+class BaseClassExceptionTest inherits Base {
+    constructor() : Base(throw_exception()) {
+    }
+}
+
+class Base1 {
+    public {
+        int i;
+    }
+
+    constructor(int i) {
+        self.i = i;
+    }
+}
+
+class Child1 inherits Base1 {
+    constructor(Base2 b) : Base1(b.doInt(1)) {
+    }
+}
+
+class Base2 {
+    int doInt(int i) {
+        return i;
+    }
+
+    int doInt(float f) {
+        return f.toInt();
+    }
+
+    int doOther(string str) {
+        return 1;
+    }
+
+    int doOther() {
+        return 2;
+    }
+
+    int m(*string str) {
+        return 1;
+    }
+
+    int m1() {
+        delete argv;
+        return 1;
+    }
+
+    int m2(int i) {
+        delete argv;
+        return i + 1;
+    }
+}
+
+class Child2 inherits Base2 {
+    int doInt(int i) {
+        return i + 1;
+    }
+
+    int doOther() {
+        return 3;
+    }
+
+    int m2(int i) {
+        return i;
+    }
+}
+
+class Issue1576 {
+    public {}
+}
 
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
-        addTestCase("misc test", \miscTest());
         addTestCase("recursive test", \recursiveTest());
+        addTestCase("Built-in class w/o methods", \builtinNoMethods());
+        addTestCase("Base class tests", \baseClassTests());
+        addTestCase("misc tests", \miscTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -155,7 +236,171 @@ public class ClassesTest inherits QUnit::Test {
         assertThrows("OBJECT-ALREADY-DELETED", \t.doit());
     }
 
-    miscTest() {
+    builtinNoMethods() {
+        AbstractQuantifiedBidirectionalIterator a = new HashIterator({'a': 1});
+        assertTrue(a.next());
+        assertEq(1, a.getValue());
+    }
+
+    baseClassTests() {
+        hash ex;
+        try {
+            BaseClassExceptionTest b();
+        }
+        catch (hash nex) {
+            ex = nex;
+        }
+        assertEq(88, ex.callstack[0].line);
+
+        Child2 c2();
+        Child1 c1(c2);
+        assertEq(2, c1.i);
+        assertEq(1, c2.doOther("str"));
+        assertEq(1, c2.m());
+        assertEq(1, c2.m1(1));
+        assertEq(1, c2.m2(1));
+        assertEq(2, c2.m2(1, 2));
+        assertEq(1, call_object_method(c2, "m1", 1));
+        assertEq(1, call_object_method(c2, "m2", 1));
+        assertEq(2, call_object_method(c2, "m2", 1, 2));
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class C { m() {} } sub t() { C c(); c.m(1); }", ""));
+        }
+
+        {
+            # ensure proper parse-time resolution of scoped method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper parse-time resolution of scoped static method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper runtime resolution of scoped method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}int t(any i){return C::m(i);}}int sub t(any i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper runtime resolution of scoped static method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}int t(any i){return C::m(i);}}int sub t(any i){C c();return c.t(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper runtime resolution of scoped method call references
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{int m(int i){return i+1;}}class C inherits B{m(string str){}int m(any i){return i;}code t(){return \\C::m();}}int sub t(int i){C c();code cd = c.t(); return cd(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure proper runtime resolution of scoped method call references
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static m(string str){}static int m(any i){return i;}code t(){return \\m();}}int sub t(int i){C c();code cd = c.t(); return cd(i);}", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            # test for resolution in the current class only with scoped method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{int m(int i){return i+1;}}class C inherits B{int m(string str){return str.toInt();}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(2, p.callFunction("t", 1));
+        }
+
+        {
+            # test for resolution in the current class only with scoped static method calls
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{static int m(int i){return i+1;}}class C inherits B{static int m(string str){return str.toInt();}int t(int i){return C::m(i);}}int sub t(int i){C c();return c.t(i);}", "");
+            assertEq(2, p.callFunction("t", 1));
+        }
+
+        {
+            # ensure that methods can be directly accessed
+            Program p(PO_NEW_STYLE);
+            p.parse("class B{m(){}}class C inherits B{code t(){return\\m();}}code sub t(){C c();return c.t();}", "");
+            assertEq(Type::CallReference, p.callFunction("t").type());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{private:internal m(){}}class C inherits B{code t(){return\\m();}}", ""));
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+            # ensure that private methods cannot be directly accessed
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{private:internal m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+            # ensure that special methods cannot be directly accessed
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return\\constructor();}}", ""));
+
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\C::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\B::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::constructor();}}", ""));
+            # ensure that call references cannot be taken of constructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\C::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\B::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::destructor();}}", ""));
+            # ensure that call references cannot be taken of destructors
+            assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
+
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\C::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\B::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::copy();}}", ""));
+            # ensure that call references cannot be taken of copy methods
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+        }
+    }
+
+    miscTests() {
+        Issue1576 i();
+        assertEq(True, i instanceof Issue1576);
+
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
     }

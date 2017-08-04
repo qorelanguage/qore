@@ -4,7 +4,7 @@
 
   QORE programming language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,13 @@
 #define PO_BROKEN_LOGIC_PRECEDENCE          (1LL << 40)  //!< allow for old pre-%Qore 0.8.12 precedence of logical and bitwise operators
 #define PO_BROKEN_INT_ASSIGNMENTS           (1LL << 41)  //!< allow for old pre-%Qore 0.8.12 "int" restrictions to be ignored at runtime
 #define PO_BROKEN_OPERATORS                 (1LL << 42)  //!< allow for old pre-%Qore 0.8.12 parsing of multi-character operators with spaces
+#define PO_BROKEN_LOOP_STATEMENT            (1LL << 43)  //!< allow for old pre-%Qore 0.8.13 handling of break and continue
+#define PO_STRONG_ENCAPSULATION             (1LL << 44)  //!< disallow out-of-line class and namespace declarations
+#define PO_NO_UNCONTROLLED_APIS             (1LL << 45)  //!< disallow access to "uncontrolled APIs" like external language bindings or direct generic system call APIs that could bypass sandboxing controls
+#define PO_ALLOW_DEBUGGING                  (1LL << 46)  //!< allows debugging actions that could be insecure such as reading the thread local variable stack
+#define PO_BROKEN_REFERENCES                (1LL << 47)  //!< allow for old pre-%Qore 0.8.13 "reference" and "*reference" type restriction behavior where they accepted any type
+#define PO_NO_INHERIT_USER_HASHDECLS        (1LL << 48)  //!< do not inherit user hashdecls from the parent into the new program's space
+#define PO_NO_INHERIT_SYSTEM_HASHDECLS      (1LL << 49)  //!< do not inherit system hashdecls from the parent into the new program's space
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -99,10 +106,10 @@
 #define PO_NO_THREADS                 (PO_NO_THREAD_CONTROL|PO_NO_THREAD_CLASSES|PO_NO_THREAD_INFO)
 
 //! prohibits any external access
-#define PO_NO_EXTERNAL_ACCESS         (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES)
+#define PO_NO_EXTERNAL_ACCESS         (PO_NO_PROCESS_CONTROL|PO_NO_NETWORK|PO_NO_FILESYSTEM|PO_NO_DATABASE|PO_NO_EXTERNAL_INFO|PO_NO_EXTERNAL_PROCESS|PO_NO_MODULES|PO_NO_UNCONTROLLED_APIS)
 
 //! prohibits all terminal and file I/O and GUI operations
-#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE)
+#define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE|PO_NO_UNCONTROLLED_APIS)
 
 //! most restrictive access - can just execute logic, no I/O, no threading, no external access
 #define PO_LOCKDOWN                   (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
@@ -111,16 +118,16 @@
 #define PO_NEW_STYLE                  (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of all options allowing for more freedom (instead of less)
-#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION)
+#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_DEBUGGING)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_OPERATORS|PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
-#define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS)
+#define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS|PO_NO_INHERIT_USER_HASHDECLS)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
-#define PO_SYSTEM_INHERITANCE_OPTIONS (PO_NO_INHERIT_SYSTEM_CLASSES|PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS|PO_NO_INHERIT_SYSTEM_CONSTANTS)
+#define PO_SYSTEM_INHERITANCE_OPTIONS (PO_NO_INHERIT_SYSTEM_CLASSES|PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS|PO_NO_INHERIT_SYSTEM_CONSTANTS|PO_NO_INHERIT_SYSTEM_HASHDECLS)
 
 //! mask of options that affect the way a child Program inherits code from the parent
 #define PO_INHERITANCE_OPTIONS        (PO_USER_INHERITANCE_OPTIONS|PO_SYSTEM_INHERITANCE_OPTIONS)
@@ -132,7 +139,7 @@
 #define PO_NO_SYSTEM_API PO_SYSTEM_INHERITANCE_OPTIONS
 
 //! an alias of PO_INHERITANCE_OPTIONS
-#define PO_NO_API                     PO_INHERITANCE_OPTIONS
+#define PO_NO_API               PO_INHERITANCE_OPTIONS
 
 #define QDOM_DEFAULT            0                         //!< the default domain (no domain)
 #define QDOM_PROCESS            PO_NO_PROCESS_CONTROL     //!< provides process control functionality (can affect or stop the current process)
@@ -151,5 +158,7 @@
 #define QDOM_IN_MODULE          PO_IN_MODULE              //!< tagged with code that is restricted in user modules
 #define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality
 #define QDOM_INJECTION          PO_ALLOW_INJECTION        //!< provides functionality related to code / dependency injection
+#define QDOM_UNCONTROLLED_API   PO_NO_UNCONTROLLED_APIS   //!< provides unchecked access to system functionality that could bypass Qore's sandboxing controls
+#define QDOM_DEBUG_INSECURE     PO_ALLOW_DEBUGGING        //!< debugging actions that could be insecure such as reading the thread local variable stack
 
 #endif //_QORE_DOMAIN_H

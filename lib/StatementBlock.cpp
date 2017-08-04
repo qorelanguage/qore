@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,12 +29,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/StatementBlock.h>
-#include <qore/intern/OnBlockExitStatement.h>
-#include <qore/intern/ParserSupport.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/StatementBlock.h"
+#include "qore/intern/OnBlockExitStatement.h"
+#include "qore/intern/ParserSupport.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
 #include <stdio.h>
@@ -74,18 +74,18 @@ public:
       //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
       if (lvar && !refs)
-	 qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
 
       if (top_level) {
-	 save_global_vnode(0);
-	 //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+         save_global_vnode(0);
+         //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
       }
    }
 
    DLLLOCAL void appendLocation(QoreString& str) {
       if (loc) {
-	 str.concat(" at ");
-	 loc->toString(str);
+         str.concat(" at ");
+         loc->toString(str);
       }
    }
 
@@ -124,7 +124,7 @@ public:
       //printd(5, "VNode::nextSearch() next->lvar: %p top_level: %d\n", next ? next->lvar : 0, top_level);
 
       if ((next && next->lvar) || top_level)
-	 return !next || next->lvar ? next : 0;
+         return !next || next->lvar ? next : 0;
 
       // skip to global thread-local variables
       VNode* rv = get_global_vnode();
@@ -147,7 +147,7 @@ public:
    DLLLOCAL ~BlockStartHelper() {
       //printd(5, "BlockStartHelper::~BlockStartHelper() bs=%d\n", bs);
       if (!bs)
-	 getVStack()->setBlockStart(false);
+         getVStack()->setBlockStart(false);
    }
 };
 
@@ -157,7 +157,7 @@ VariableBlockHelper::VariableBlockHelper() {
 }
 
 VariableBlockHelper::~VariableBlockHelper() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    updateVStack(vnode->next);
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
@@ -176,7 +176,7 @@ void StatementBlock::addStatement(AbstractStatement* s) {
       statement_list.push_back(s);
       OnBlockExitStatement* obe = dynamic_cast<OnBlockExitStatement* >(s);
       if (obe)
-	 on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
+         on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
       loc.end_line = s->loc.end_line;
    }
@@ -219,7 +219,7 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
    // execute block
    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
       if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
-	 break;
+         break;
 
    // execute "on block exit" code if applicable
    if (obe) {
@@ -227,22 +227,22 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
       int nrc = 0;
       bool error = *xsink;
       for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
-	 enum obe_type_e type = (*i).first;
-	 if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
-	    if ((*i).second) {
-	       nrc = (*i).second->execImpl(return_value, &obe_xsink);
-	       // bug 380: make sure and merge every exception after every conditional execution to ensure
-	       // that all on_(exit|error) statements are executed even if exceptions are thrown
-	       if (obe_xsink) {
-		  xsink->assimilate(obe_xsink);
-		  if (!error)
-		     error = true;
-	       }
-	    }
-	 }
+         enum obe_type_e type = (*i).first;
+         if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
+            if ((*i).second) {
+               nrc = (*i).second->execImpl(return_value, &obe_xsink);
+               // bug 380: make sure and merge every exception after every conditional execution to ensure
+               // that all on_(exit|error) statements are executed even if exceptions are thrown
+               if (obe_xsink) {
+                  xsink->assimilate(obe_xsink);
+                  if (!error)
+                     error = true;
+               }
+            }
+         }
       }
       if (nrc)
-	 rc = nrc;
+         rc = nrc;
    }
 
    return rc;
@@ -263,10 +263,13 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg, int n_refs, bool top_level) {
+LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, int pflag) {
    QoreProgram* pgm = getProgram();
 
-   LocalVar* lv = pgm->createLocalVar(name, typeInfo);
+   if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS))
+      parseException(loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "cannot declare local variable '%s' in the top-level block; local variables in the top-level block of a Program object can only be declared in the very first parse transaction to the Program object", name);
+
+   LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
    QoreString ls;
    loc.toString(ls);
@@ -275,8 +278,10 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
    bool found_block = false;
    // check stack for duplicate entries
    bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
-   if (is_arg) {
+   if (is_auto) {
       lv->parseAssigned();
+   }
+   else {
       if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
          VNode* vnode = getVStack();
          while (vnode) {
@@ -295,7 +300,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
                         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
                      }
                   }
-                  else if (top_level || !vnode->isTopLevel()) {
+                  else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
                      QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
                      vnode->appendLocation(*desc);
                      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
@@ -309,12 +314,12 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
    }
 
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, &loc, n_refs, top_level);
+   new VNode(lv, &loc, n_refs, pflag & PF_TOP_LEVEL);
    return lv;
 }
 
 int pop_local_var_get_id() {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    int refs = vnode->refCount();
    printd(5, "pop_local_var_get_id(): popping var %s (refs=%d)\n", vnode->lvar->getName(), refs);
@@ -323,7 +328,7 @@ int pop_local_var_get_id() {
 }
 
 LocalVar* pop_local_var(bool set_unassigned) {
-   std::auto_ptr<VNode> vnode(getVStack());
+   std::unique_ptr<VNode> vnode(getVStack());
    assert(vnode.get());
    LocalVar* rc = vnode->lvar;
    if (set_unassigned)
@@ -346,16 +351,16 @@ LocalVar* find_local_var(const char* name, bool& in_closure) {
    while (vnode) {
       assert(vnode->lvar);
       if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
-	 in_closure = true;
+         in_closure = true;
 
       //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(), vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
 
       if (!strcmp(vnode->getName(), name)) {
          //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);
          if (in_closure)
-	    cenv->add(vnode->lvar);
-	 vnode->setRef();
-	 return vnode->lvar;
+            cenv->add(vnode->lvar);
+         vnode->setRef();
+         return vnode->lvar;
       }
       vnode = vnode->nextSearch();
    }
@@ -379,9 +384,9 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
    for (statement_list_t::iterator i = start, l = statement_list.last(), e = statement_list.end(); i != e; ++i) {
       lvids += (*i)->parseInit(oflag, pflag);
       if (!ret && i != l && (*i)->endsBlock()) {
-	 // unreachable code found
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
-	 ret = *i;
+         // unreachable code found
+         qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
+         ret = *i;
       }
    }
 
@@ -423,10 +428,10 @@ void StatementBlock::parseCheckReturn() {
    if (QoreTypeInfo::hasType(returnTypeInfo) && !QoreTypeInfo::parseAccepts(returnTypeInfo, nothingTypeInfo)) {
       // make sure the last statement is a return statement if the block has a return type
       if (statement_list.empty() || !(*statement_list.last())->hasFinalReturn()) {
-	 QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
-	 QoreTypeInfo::getThisType(returnTypeInfo, *desc);
-	 desc->concat(" but does not have a return statement as the last statement in the block");
-	 qore_program_private::makeParseException(getProgram(), loc, "MISSING-RETURN", desc);
+         QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
+         QoreTypeInfo::getThisType(returnTypeInfo, *desc);
+         desc->concat(" but does not have a return statement as the last statement in the block");
+         qore_program_private::makeParseException(getProgram(), loc, "MISSING-RETURN", desc);
       }
    }
 }
@@ -459,9 +464,9 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
       // ensure that parse flags are set before initializing
       ParseWarnHelper pwh(pwo);
 
-      for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
-	 assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-	 (*i)->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
+      for (auto& i : *bcal) {
+         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+         i->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
       }
    }
 
@@ -496,15 +501,17 @@ void TopLevelStatementBlock::parseInit(int64 po) {
          push_top_level_local_var(lvars->lv[i], loc);
    }
 
-   int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
+   int pflag = PF_TOP_LEVEL;
+   if (!first)
+      pflag |= PF_NO_TOP_LEVEL_LVARS;
+   int lvids = parseInitIntern(0, pflag, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
    if (!first && lvids) {
-      parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
-	 pop_local_var();
+         pop_local_var();
    }
 
    // now initialize root namespace and functions before local variables are popped off the stack
@@ -514,7 +521,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
       // if parsing a module, then initialize the init function
       QoreModuleDefContext* qmd = get_module_def_context();
       if (qmd)
-	 qmd->parseInit();
+         qmd->parseInit();
 
       // this call will pop all local vars off the stack
       setupLVList(lvids);
@@ -522,7 +529,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    }
    else if (lvars) {
       for (unsigned i = 0; i < lvars->size(); ++i)
-	 pop_local_var();
+         pop_local_var();
    }
 
    assert(!getVStack());

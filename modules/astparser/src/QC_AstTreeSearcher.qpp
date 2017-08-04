@@ -1,0 +1,333 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AstTreeSearcher.qpp AstTreeSearcher class definition */
+/*
+  Qore AST Parser
+
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+*/
+
+#include <memory>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "qore/Qore.h"
+
+#include "AstPrinter.h"
+#include "AstTreeHolder.h"
+#include "AstTreeSearcher.h"
+#include "ast/ASTDeclaration.h"
+#include "ast/ASTSymbolInfo.h"
+#include "ast/ASTTree.h"
+
+#include "QC_AstTree.h"
+
+int64_t getSymbolKind(ASTDeclaration* decl) {
+    switch (decl->getKind()) {
+        case ASTDeclaration::Kind::ADK_Class:
+            return static_cast<int64_t>(ASYK_Class);
+        case ASTDeclaration::Kind::ADK_Closure:
+            break;
+        case ASTDeclaration::Kind::ADK_Constant:
+            return static_cast<int64_t>(ASYK_Constant);
+        case ASTDeclaration::Kind::ADK_Function:
+            return static_cast<int64_t>(ASYK_Function);
+        case ASTDeclaration::Kind::ADK_MemberGroup:
+            break;
+        case ASTDeclaration::Kind::ADK_Namespace:
+            return static_cast<int64_t>(ASYK_Namespace);
+        case ASTDeclaration::Kind::ADK_Superclass:
+            return static_cast<int64_t>(ASYK_Class);
+        case ASTDeclaration::Kind::ADK_Variable:
+            return static_cast<int64_t>(ASYK_Variable);
+        case ASTDeclaration::Kind::ADK_VarList:
+        default:
+            break;
+    }
+    return static_cast<int64_t>(ASYK_None);
+}
+
+//! AstParser class
+/** Lorem ipsum dolor sit amet.
+
+    @since %Qore 0.8.13
+ */
+qclass AstTreeSearcher [arg=AbstractPrivateData* apd; ns=astparser; flags=final];
+
+//! Creates the AstTreeSearcher.
+/**
+ */
+AstTreeSearcher::constructor() {
+    self->setPrivate(CID_ASTTREESEARCHER, new AbstractPrivateData);
+}
+
+//! Hover info.
+/**
+    @param kind symbol kind
+    @param line on what line lies the symbol we want to get info about
+    @param col on what column lies the symbol we want to get info about
+    @return hash with hover info
+ */
+*hash AstTreeSearcher::hoverInfo(astparser::AstTree[AstTreeHolder] tree, int kind, int line, int col) {
+    std::unique_ptr<std::vector<ASTNode*> > nodes(AstTreeSearcher::findNodeAndParents(tree->get(), line+1, col+1));
+    if (!nodes)
+        return nullptr;
+
+    if (kind == static_cast<int64_t>(ASYK_Method))
+        kind = static_cast<int64_t>(ASYK_Function);
+    if (kind == static_cast<int64_t>(ASYK_Constructor))
+        kind = static_cast<int64_t>(ASYK_Function);
+
+    ASTDeclaration* decl = nullptr;
+    for (size_t i = 0, count = nodes->size(); i < count; i++) {
+        if (nodes->at(i)->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* d = static_cast<ASTDeclaration*>(nodes->at(i));
+            if (d && getSymbolKind(d) == kind) {
+                decl = d;
+                break;
+            }
+        }
+    }
+
+    if (!decl)
+        return nullptr;
+
+    ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    if (!result)
+        return nullptr;
+
+    std::ostringstream hoverInfo;
+    if (kind == ASYK_Class)
+        AstPrinter::printClassSignature(hoverInfo, reinterpret_cast<ASTClassDeclaration*>(decl));
+    else if (kind == ASYK_Constant)
+        AstPrinter::printConstantSignature(hoverInfo, reinterpret_cast<ASTConstantDeclaration*>(decl));
+    else if (kind == ASYK_Function)
+        AstPrinter::printFunctionSignature(hoverInfo, reinterpret_cast<ASTFunctionDeclaration*>(decl));
+    else if (kind == ASYK_Variable)
+        AstPrinter::printVariableSignature(hoverInfo, reinterpret_cast<ASTVariableDeclaration*>(decl));
+
+    result->setKeyValue("description", new QoreStringNode(hoverInfo.str()), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    return result.release();
+}
+
+//! Find symbol info.
+/**
+    @param line on what line lies the symbol we want to get info about
+    @param col on what column lies the symbol we want to get info about
+    @return hash with hover info
+ */
+*hash AstTreeSearcher::findSymbolInfo(astparser::AstTree[AstTreeHolder] tree, int line, int col) {
+    ASTSymbolInfo si = std::move(AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1));
+    if ((si.kind == 0 && si.usage == 0) ||
+        (si.loc.firstLine == 0 &&
+         si.loc.firstCol == 0 &&
+         si.loc.lastLine == 0 &&
+         si.loc.lastCol == 0))
+        return nullptr;
+
+    ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> hoverInfo(new QoreHashNode, xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    if (!start || !end || !range || !hoverInfo)
+        return nullptr;
+
+    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+    range->setKeyValue("start", start.release(), xsink);
+    range->setKeyValue("end", end.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+    hoverInfo->setKeyValue("usage", new QoreBigIntNode(static_cast<int64_t>(si.usage)), xsink);
+    hoverInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
+    hoverInfo->setKeyValue("range", range.release(), xsink);
+    if (xsink && *xsink)
+        return nullptr;
+
+    return hoverInfo.release();
+}
+
+//! Find symbol references
+/**
+    @param uri document's uri
+    @param line line on which the symbol lies
+    @param col column at which the symbol lies
+    @param includeDecl whether to include a reference at the passed position
+    @return list of reference locations
+ */
+*list AstTreeSearcher::findReferences(astparser::AstTree[AstTreeHolder] tree, string uri, int line, int col, bool includeDecl) {
+    std::unique_ptr<std::vector<ASTNode*> > vec(AstTreeSearcher::findReferences(tree->get(), line+1, col+1, includeDecl));
+    if (!vec)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0, count = vec->size(); i < count; i++) {
+        ASTNode* node = vec->at(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !location)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        location->setKeyValue("uri", uri->stringRefSelf(), xsink);
+        location->setKeyValue("range", range.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(location.release());
+    }
+
+    return lst.release();
+}
+
+//! Find all symbols in a document.
+/**
+    @param uri document's uri
+    @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+    @return list of symbols
+ */
+*list AstTreeSearcher::findSymbols(astparser::AstTree[AstTreeHolder] tree, string uri, bool bareNames = False) {
+    const std::vector<ASTSymbolInfo>* vec = AstTreeSearcher::findSymbols(tree->get(), bareNames);
+    if (!vec)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0, count = vec->size(); i < count; i++) {
+        const ASTSymbolInfo& si = vec->at(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> symbolInfo(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !location || !symbolInfo)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        location->setKeyValue("uri", uri->stringRefSelf(), xsink);
+        location->setKeyValue("range", range.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
+        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("location", location.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(symbolInfo.release());
+    }
+
+    return lst.release();
+}
+
+//! Find matching symbols in a document.
+/**
+    @param uri document's uri
+    @param query search query
+    @param exactMatch whether to only find exact matches
+    @return list of symbols
+ */
+*list AstTreeSearcher::findMatchingSymbols(astparser::AstTree[AstTreeHolder] tree, string uri, string query, bool exactMatch = False) {
+    std::string queryStr(query->c_str());
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(AstTreeSearcher::findMatchingSymbols(tree->get(), queryStr, exactMatch));
+    if (!vec)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0, count = vec->size(); i < count; i++) {
+        ASTSymbolInfo& si = vec->at(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> symbolInfo(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !location || !symbolInfo)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        location->setKeyValue("uri", uri->stringRefSelf(), xsink);
+        location->setKeyValue("range", range.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
+        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("location", location.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(symbolInfo.release());
+    }
+
+    return lst.release();
+}

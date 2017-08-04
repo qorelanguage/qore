@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,8 @@
 #include "Pseudo_QC_Callref.cpp"
 #include "Pseudo_QC_Closure.cpp"
 
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreLibIntern.h>
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreLibIntern.h"
 
 // list of pseudo-classes for basic types + 2 entries for closures and call references
 static QoreClass* po_list[NODE_ARRAY_LEN + 2];
@@ -125,32 +125,24 @@ const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, Q
    return m;
 }
 
-const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass* &qc, bool &possible_match) {
+const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo* typeInfo, const char* mname, QoreClass*& qc, bool& possible_match) {
    assert(typeInfo && QoreTypeInfo::hasType(typeInfo));
 
    const QoreMethod* m;
-   if (QoreTypeInfo::returnsSingle(typeInfo)) {
-      m = pseudo_classes_find_method(QoreTypeInfo::getSingleType(typeInfo), mname, qc);
+   if (typeInfo->return_vec.size() == 1) {
+      m = pseudo_classes_find_method(typeInfo->return_vec[0].spec.getType(), mname, qc);
       possible_match = m ? true : false;
       return m;
    }
 
-   possible_match = false;
-   const type_vec_t &tv = typeInfo->getReturnTypeList();
    QoreClass* nqc;
-   for (type_vec_t::const_iterator i = tv.begin(), e = tv.end(); i != e; ++i) {
-      if (!QoreTypeInfo::returnsSingle(*i)) {
-	 pseudo_classes_find_method(*i, mname, nqc, possible_match);
-	 if (possible_match)
-	    return 0;
-      }
-      else {
-	 if (pseudo_classes_find_method(QoreTypeInfo::getSingleType(*i), mname, nqc)) {
-	    possible_match = true;
-	    return 0;
-	 }
+   for (auto& i : typeInfo->return_vec) {
+      if (pseudo_classes_find_method(i.spec.getType(), mname, nqc)) {
+         possible_match = true;
+         return nullptr;
       }
    }
 
-   return 0;
+   possible_match = false;
+   return nullptr;
 }

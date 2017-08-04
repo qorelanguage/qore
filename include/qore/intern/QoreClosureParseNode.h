@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_QORECLOSUREPARSENODE_H
 
-#include <qore/intern/ParseNode.h>
+#include "qore/intern/ParseNode.h"
 
 #include <vector>
 
@@ -86,7 +86,7 @@ private:
    DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
 
 public:
-   DLLLOCAL QoreClosureParseNode(UserClosureFunction* n_uf, bool n_lambda = false);
+   DLLLOCAL QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda = false);
 
    DLLLOCAL ~QoreClosureParseNode() {
       delete uf;
@@ -101,7 +101,7 @@ public:
 
    DLLLOCAL bool isLambda() const { return lambda; }
 
-   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, ExceptionSink* xsink) const;
+   DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
    DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 
@@ -124,6 +124,7 @@ public:
    }
 };
 
+/*
 class QoreClosureParseNodeBackground : public ParseNode {
 protected:
    QoreClosureParseNode* closure;
@@ -141,12 +142,14 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreClosureParseNodeBackground(QoreClosureParseNode* c) : ParseNode(NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
+   DLLLOCAL QoreClosureParseNodeBackground(const QoreProgramLocation& loc, QoreClosureParseNode* c) : ParseNode(loc, NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
    }
+
    DLLLOCAL ~QoreClosureParseNodeBackground() {
       assert(!cvec);
       assert(!closure);
    }
+
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
          if (cvec) {
@@ -171,5 +174,6 @@ public:
       return closure->getTypeName();
    }
 };
+*/
 
 #endif

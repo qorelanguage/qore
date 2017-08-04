@@ -113,7 +113,7 @@ public:
          case QV_Int: v.i = old.v.i; break;
          case QV_Float: v.f = old.v.f; break;
          case QV_Node:
-            v.n = old.v.n ? old.v.n->refSelf() : 0;
+            v.n = old.v.n ? old.v.n->refSelf() : nullptr;
             if (!is_closure)
                check_lvalue_object_in_out(v.n, 0);
             break;
@@ -401,7 +401,7 @@ public:
          case QV_Bool: return QoreValue(v.b);
          case QV_Int: return QoreValue(v.i);
          case QV_Float: return QoreValue(v.f);
-         case QV_Node: return QoreValue(v.n ? v.n->refSelf() : 0);
+         case QV_Node: return v.n ? v.n->refSelf() : nullptr;
          default: assert(false);
             // no break
       }
@@ -417,7 +417,7 @@ public:
          case QV_Bool: return get_bool_node(v.b);
          case QV_Int: return new QoreBigIntNode(v.i);
          case QV_Float: return new QoreFloatNode(v.f);
-         case QV_Node: return v.n ? v.n->refSelf() : 0;
+         case QV_Node: return v.n ? v.n->refSelf() : nullptr;
          default: assert(false);
             // no break
       }
@@ -951,7 +951,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getInternalNode() const {
-      return assigned && type == QV_Node ? v.n : 0;
+      return assigned && type == QV_Node ? v.n : nullptr;
    }
 
    /*
@@ -961,7 +961,7 @@ public:
             case QV_Bool: return get_bool_node(v.b);
             case QV_Int: return new QoreBigIntNode(v.i);
             case QV_Float: return new QoreFloatNode(v.f);
-            case QV_Node: return v.n ? v.n->refSelf() : 0;
+            case QV_Node: return v.n ? v.n->refSelf() : nullptr;
             default: assert(false);
                // no break
          }
@@ -1002,7 +1002,7 @@ public:
             case QV_Bool: return NT_BOOLEAN;
             case QV_Int: return NT_INT;
             case QV_Float: return NT_FLOAT;
-            case QV_Node: return v.n ? v.n->getType() : 0;
+            case QV_Node: return v.n ? v.n->getType() : NT_NOTHING;
             default: assert(false);
                // no break
          }
