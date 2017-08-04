@@ -66,7 +66,7 @@ int HashDeclList::add(TypedHashDecl* hd) {
     //printd(5, "hdL::add() this: %p '%s' (%p)\n", this, hd->getName(), hd);
 
     if (find(hd->getName()))
-        return 1;
+        return -1;
 
     hm[hd->getName()] = hd;
     return 0;
