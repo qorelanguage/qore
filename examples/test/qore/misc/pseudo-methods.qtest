@@ -1,0 +1,44 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class PseudoMethods
+
+hashdecl MyHash {
+    int x = 1;
+}
+
+class PseudoMethods inherits QUnit::Test {
+    constructor() : QUnit::Test("PseudoMethods test", "1.0") {
+        addTestCase("PseudoMethodsTest", \pseudoMethodsTest());
+        set_return_value(main());
+    }
+
+    pseudoMethodsTest() {
+        hash h1 = {};
+        assertEq(False, h1.complexType());
+        assertEq(Type::Hash, h1.fullType());
+        assertEq(Type::Hash, h1.type());
+
+        hash<string, int> h2();
+        assertEq(True, h2.complexType());
+        assertEq("hash<string, int>", h2.fullType());
+        assertEq(Type::Hash, h2.type());
+
+        hash<MyHash> h3();
+        assertEq(True, h3.complexType());
+        assertEq("hash<MyHash>", h3.fullType());
+        assertEq(Type::Hash, h3.type());
+
+        Mutex m();
+        assertEq(True, m.complexType());
+        assertEq("object<Mutex>", m.fullType());
+        assertEq(Type::Object, m.type());
+    }
+}

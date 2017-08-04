@@ -33,6 +33,7 @@
 #include "qore/intern/ql_type.h"
 #include "qore/intern/qore_date_private.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <memory>
 
@@ -286,15 +287,17 @@ binary binary(binary bin) [flags=CONSTANT] {
    return bin->refSelf();
 }
 
-//! Returns a list of the arguments passed at the top level
+//! Returns an untyped list of the arguments passed at the top level
 /** @param ... the arguments that will be returned as a list
 
-    @return a list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
+    @return an untyped list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
 
     @par Example:
     @code{.py}
 list l = list(1, 2, 3, 4);
     @endcode
+
+    @note if the only argument to this function is a typed list, the type information will be removed in the return value
 */
 list list(...) [flags=CONSTANT] {
    QoreListNode *l;
@@ -304,7 +307,7 @@ list list(...) [flags=CONSTANT] {
       l = new QoreListNode;
       QoreValue p0 = get_param_value(args, 0);
       if (!p0.isNothing())
-	 l->push(p0.getReferencedValue());
+         l->push(p0.getReferencedValue());
    }
    return l;
 }
@@ -342,9 +345,9 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
    ConstListIterator li(l);
    while (li.next()) {
       QoreStringValueHelper str(li.getValue());
-      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : 0, xsink);
+      h->setKeyValue(str->getBuffer(), li.next() ? li.getReferencedValue() : nullptr, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
    return h.release();
 }
@@ -371,30 +374,35 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
    bool valid = true;
    while (ki.next()) {
       if (valid)
-	 valid = vi.next();
+         valid = vi.next();
 
       QoreStringValueHelper str(ki.getValue());
       h->setKeyValue(str->getBuffer(), valid ? vi.getReferencedValue() : 0, xsink);
       if (*xsink)
-	 return QoreValue();
+         return QoreValue();
    }
 
    return h.release();
 }
 
-//! Returns itself
-/** This function is used as an initializer and type converter, so this identity-variant is provided for consistency's sake
-    @param h the has to return
+//! Returns a hash without any key type information
+/** This function is used as an initializer and type converter
 
-    @return the hash passed
+    @param h the hash to return
+
+    @return an untyped hash identical to the argument but with any key type information removed
 
     @par Example:
     @code{.py}
-hash h = hash(h);
+hash<string, int> h1(("string": 1));
+# get an untyped hash value from h1
+hash h2 = hash(h1);
     @endcode
+
+    @since %Qore 0.8.13 this function was modified to remove type information at runtime from typed hashes
 */
 hash hash(hash h) [flags=CONSTANT] {
-   return h->refSelf();
+   return qore_hash_private::getPlainHash(h->hashRefSelf());
 }
 
 //! Always returns the same hash passed
@@ -457,7 +465,7 @@ string str = binary_to_string(b, "iso-8859-1");
     @endcode
 */
 string binary_to_string(binary b, *string encoding) [flags=CONSTANT] {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    if (!b->size())
       return new QoreStringNode(qe);
    return new QoreStringNode((const char*)b->getPtr(), b->size(), qe);

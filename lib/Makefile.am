@@ -122,6 +122,7 @@ libqore_la_SOURCES = \
 	ContextRowNode.cpp \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
+	NewComplexTypeNode.cpp \
 	ReferenceNode.cpp \
 	lvalue_ref.cpp \
 	ScopedRefNode.cpp \
@@ -165,6 +166,7 @@ libqore_la_SOURCES = \
 	ExceptionSink.cpp \
 	QoreStandardException.cpp \
 	QoreClass.cpp \
+	TypedHashDecl.cpp \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \
@@ -200,6 +202,7 @@ libqore_la_SOURCES = \
 	ReferenceHelper.cpp \
 	ConstantList.cpp \
 	QoreClassList.cpp \
+	HashDeclList.cpp \
 	ThreadResourceList.cpp \
 	AbstractThreadResource.cpp \
 	thread.cpp \
@@ -227,6 +230,8 @@ libqore_la_SOURCES = \
 	SmartMutex.cpp \
 	QoreCounter.cpp \
 	CallReferenceNode.cpp \
+	QoreParseHashNode.cpp \
+	QoreParseListNode.cpp \
 	QoreClosureParseNode.cpp \
 	QoreClosureNode.cpp \
 	QoreImplicitArgumentNode.cpp \

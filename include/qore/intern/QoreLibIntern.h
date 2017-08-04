@@ -366,6 +366,8 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
+class QoreParseListNode;
+
 #include "qore/intern/NamedScope.h"
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/ParseNode.h"
@@ -380,6 +382,7 @@ DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #include "qore/intern/Variable.h"
 #include "qore/intern/LocalVar.h"
 #include "qore/intern/ScopedObjectCallNode.h"
+#include "qore/intern/NewComplexTypeNode.h"
 #include "qore/intern/ScopedRefNode.h"
 #include "qore/intern/ClassRefNode.h"
 #include "qore/intern/Context.h"
@@ -445,7 +448,7 @@ DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, i
 DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreListNode* make_args(AbstractQoreNode* arg);
+DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue n, ExceptionSink* xsink);
@@ -454,7 +457,7 @@ DLLLOCAL void init_qore_types();
 DLLLOCAL void delete_qore_types();
 
 DLLLOCAL QoreListNode* stat_to_list(const struct stat& sbuf);
-DLLLOCAL QoreHashNode* stat_to_hash(const struct stat& sbuf);
+DLLLOCAL QoreHashNode* stat_to_hash(const struct stat& sbuf, const TypedHashDecl* hd = hashdeclStatInfo);
 DLLLOCAL QoreHashNode* statvfs_to_hash(const struct statvfs& statvfs);
 
 // only called in stage 1 parsing: true means node requires run-time evaluation
@@ -487,20 +490,60 @@ public:
    DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
       //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
-      typeInfo = 0;
+      typeInfo = nullptr;
       AbstractQoreNode** n = getValuePtr();
       if (n && *n) {
-	 (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
+         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
 
-	 //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
-
-	 if (!getList()->needs_eval() && (*n) && (*n)->needs_eval())
-	    getList()->setNeedsEval();
+         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
 
          return *n;
       }
 
-      return 0;
+      return nullptr;
+   }
+};
+
+class QoreParseListNodeParseInitHelper {
+private:
+   QoreParseListNode* l;
+   int pos = -1;
+   LocalVar* oflag;
+   int pflag;
+   int& lvids;
+
+public:
+   DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
+      l(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
+   }
+
+   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
+      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
+
+      typeInfo = nullptr;
+      AbstractQoreNode** n = l->getPtr(pos);
+      if (n && *n) {
+         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
+
+         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
+
+         return *n;
+      }
+
+      return nullptr;
+   }
+
+   DLLLOCAL bool next() {
+      ++pos;
+      if (pos == (int)l->size()) {
+         pos = -1;
+         return false;
+      }
+      return true;
+   }
+
+   DLLLOCAL int index() {
+      return pos;
    }
 };
 
@@ -543,7 +586,7 @@ public:
       ++pos;
 
       if (finished)
-	 return false;
+         return false;
 
       if (pos == l->size()) {
          finished = true;
@@ -554,7 +597,7 @@ public:
 
    DLLLOCAL AbstractQoreNode** getValuePtr() {
       if (finished)
-	 return 0;
+         return 0;
 
       return l->get_entry_ptr(pos);
    }
@@ -583,12 +626,12 @@ public:
          typeInfo = nothingTypeInfo;
       }
       else {
-	 (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
+         (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
 
-	 //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
+         //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
 
-	 if (l && !l->needs_eval() && (*p) && (*p)->needs_eval())
-	    l->setNeedsEval();
+         if (l && !l->needs_eval() && (*p) && (*p)->needs_eval())
+            l->setNeedsEval();
       }
    }
 };
@@ -610,12 +653,12 @@ class hash_assignment_priv {
 public:
    qore_hash_private& h;
    HashMember* om;
-   qore_object_private* o = 0;
+   qore_object_private* o = nullptr;
 
    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = 0);
+   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = nullptr);
 
    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
@@ -639,6 +682,10 @@ public:
 
    DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
       return swapImpl(v);
+   }
+
+   DLLLOCAL static hash_assignment_priv* get(HashAssignmentHelper& h) {
+      return h.priv;
    }
 };
 
@@ -736,12 +783,12 @@ public:
    DLLLOCAL ~ThreadLocalData() {
 #ifdef DEBUG
       //if (curr->pos)
-	 //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+         //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
 #endif
       assert(!curr->prev);
       assert(!curr->pos);
       if (curr->next)
-	 delete curr->next;
+         delete curr->next;
       delete curr;
    }
 #ifdef DEBUG
@@ -881,5 +928,7 @@ DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len)
  */
 DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
 DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
+
+DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 
 #endif

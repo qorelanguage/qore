@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,23 @@ switch (o.typeCode()) {
  */
 int <object>::typeCode() [flags=CONSTANT] {
    return NT_OBJECT;
+}
+
+//! returns @ref True in all cases for objects
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True in all cases for objects
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <object>::complexType() [flags=CONSTANT] {
+   return true;
 }
 
 //! Returns a list of member names of the object; if called from outside the object, only public members are returned

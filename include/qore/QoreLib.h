@@ -328,6 +328,11 @@ static inline const char* get_type_name(const AbstractQoreNode* n) {
    return n ? n->getTypeName() : "nothing";
 }
 
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
+/** @since %Qore 0.8.13
+*/
+DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
+
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;
 }

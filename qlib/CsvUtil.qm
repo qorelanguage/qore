@@ -147,7 +147,7 @@ while (i.next())
     When used with multi-type definitions, the @ref CsvUtil::AbstractCsvIterator::getValue() method returns
     records in an extended form.  In this case, the return value of @ref CsvUtil::AbstractCsvIterator::getValue()
     is a hash with the following keys:
-    - \c "type": the resolve record type name
+    - \c "type": the resolved record type name
     - \c "record": a hash of record values
 
     As this is not backwards compatible, this mode is enabled using the \c "extended_record" option.
@@ -542,7 +542,6 @@ public namespace CsvUtil {
     public const CSV_TYPE_UNKNOWN = "<unknown>";
     #! Record type when multi-type is disabled
     public const CSV_TYPE_SINGLE = "<single>";
-
 
     #! the AbstractCsvIterator class is an abstract base class that allows abstract CSV data to be iterated
     /**
@@ -1388,8 +1387,8 @@ while (i.next()) {
             return m_file_path;
         }
 
-        #! Returns a @ref stat_hash "stat hash" of the underlying file
-        hash hstat() {
+        #! Returns a @ref Qore::StatInfo "StatInfo" hash of the underlying file
+        hash<Qore::StatInfo> hstat() {
             return Qore::hstat(m_file_path);
         }
 

@@ -1395,7 +1395,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private hash noHandlerError(hash cx, hash hdr, any body) {
+    final private hash<HttpResponseInfo> noHandlerError(hash cx, hash hdr, any body) {
         string str = "";
         if (hdr.path)
             str = sprintf("url=%y", hdr.path);
@@ -1408,10 +1408,10 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             str += ", <no content-type>";
 
         log("no handler for %s (from %s) hdr: %y", str, cx."peer-info".address_desc, hdr);
-        return (
+        return new hash<HttpResponseInfo>((
             "code" : 501,
             "body" : sprintf("no handler has been registered for %s", str),
-            );
+            ));
     }
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
@@ -1485,7 +1485,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
 
         try {
-            any rv;
+            hash<HttpResponseInfo> rv;
 
             #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
             #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", cx.handler_name, cx, hdr, body);
@@ -1582,17 +1582,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference cx, hash hdr, bool head) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
-
-        if (rv.typeCode() == NT_STRING)
-            rv = (
-                "code": 200,
-                "body": rv,
-            );
-        else if (rv.typeCode() != NT_HASH)
-            rv = (
-                "code": 500,
-                "body": sprintf("handler %y returned an invalid response: %y", rv),
-            );
 
         rv.close = cx.close;
 

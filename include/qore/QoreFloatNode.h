@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreFloatNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,6 @@
 #define _QORE_QOREFLOATNODE_H
 
 class LocalVar;
-class QoreTypeInfo;
 
 //! Qore's floating-point value type, dynamically-allocated only, reference counted
 class QoreFloatNode : public SimpleValueQoreNode {
@@ -86,7 +85,7 @@ public:
    DLLEXPORT virtual void getStringRepresentation(QoreString &str) const;
 
    //! returns the DateTime representation of this value and sets del to true
-   /** The DateTime representation is calculated by converting the floating-point value 
+   /** The DateTime representation is calculated by converting the floating-point value
        to an integer interpreted as the number of seconds offset from January 1, 1970.
        @note Use the DateTimeValueHelper class instead of using this function directly
        @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
@@ -95,7 +94,7 @@ public:
    DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool &del) const;
 
    //! assigns the date representation of the value to the DateTime reference passed
-   /** The DateTime representation is calculated by converting the floating-point value 
+   /** The DateTime representation is calculated by converting the floating-point value
        to an integer interpreted as the number of seconds offset from January 1, 1970.
        @param dt the DateTime reference to be assigned
    */

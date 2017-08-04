@@ -1002,7 +1002,7 @@ class QoreMemberInfoBase {
 protected:
    const QoreTypeInfo* typeInfo;
 
-   DLLLOCAL QoreMemberInfoBase(const QoreMemberInfoBase& old, ClassAccess n_access) : typeInfo(old.typeInfo), exp(old.exp ? old.exp->refSelf() : 0), loc(old.loc), parseTypeInfo(old.parseTypeInfo ? new QoreParseTypeInfo(*old.parseTypeInfo) : 0), access(old.access >= n_access ? old.access : n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreMemberInfoBase& old) : typeInfo(old.typeInfo), exp(old.exp ? old.exp->refSelf() : nullptr), loc(old.loc), parseTypeInfo(old.parseTypeInfo ? new QoreParseTypeInfo(*old.parseTypeInfo) : nullptr) {
    }
 
 public:
@@ -1012,23 +1012,9 @@ public:
    // store parse location in case of errors
    QoreProgramLocation loc;
    QoreParseTypeInfo* parseTypeInfo;
-   ClassAccess access;
 
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
-      typeInfo(n_typeinfo), exp(e), loc(loc), parseTypeInfo(n_parseTypeInfo), access(n_access) {
-   }
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(n_typeinfo), exp(e),
-         loc(loc), parseTypeInfo(0), access(n_access) {
-   }
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(loc),
-         parseTypeInfo(new QoreParseTypeInfo(n)), access(n_access) {
-   }
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreClass* qc, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(qc->getTypeInfo()), exp(e),
-         loc(loc), parseTypeInfo(0), access(n_access) {
-   }
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : typeInfo(0), exp(e), loc(loc), parseTypeInfo(0), access(n_access) {
-   }
-   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, ClassAccess n_access = Public) : typeInfo(0), exp(0), loc(loc), parseTypeInfo(0), access(n_access) {
+   DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) :
+      typeInfo(n_typeinfo), exp(e), loc(loc), parseTypeInfo(n_parseTypeInfo) {
    }
 
    DLLLOCAL ~QoreMemberInfoBase() {
@@ -1037,12 +1023,12 @@ public:
 
    DLLLOCAL void del() {
       if (exp) {
-         exp->deref(0);
-         exp = 0;
+         exp->deref(nullptr);
+         exp = nullptr;
       }
       if (parseTypeInfo) {
          delete parseTypeInfo;
-         parseTypeInfo = 0;
+         parseTypeInfo = nullptr;
       }
    }
 
@@ -1059,36 +1045,34 @@ public:
    DLLLOCAL bool parseHasTypeInfo() const {
       return (typeInfo || parseTypeInfo);
    }
+};
+
+class QoreMemberInfoBaseAccess : public QoreMemberInfoBase {
+protected:
+   DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access) : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
+   }
+
+public:
+   ClassAccess access;
+
+   DLLLOCAL QoreMemberInfoBaseAccess(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr, ClassAccess n_access = Public) :
+      QoreMemberInfoBase(loc, n_typeinfo, n_parseTypeInfo, e), access(n_access) {
+   }
 
    DLLLOCAL ClassAccess getAccess() const {
       return access;
    }
 };
 
-class QoreMemberInfo : public QoreMemberInfoBase {
-   DLLLOCAL QoreMemberInfo(const QoreMemberInfo& old, const qore_class_private* n_qc, ClassAccess n_access = Public) : QoreMemberInfoBase(old, n_access), qc(old.qc ? old.qc : n_qc) {
+class QoreMemberInfo : public QoreMemberInfoBaseAccess {
+   DLLLOCAL QoreMemberInfo(const QoreMemberInfo& old, const qore_class_private* n_qc, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(old, n_access), qc(old.qc ? old.qc : n_qc) {
    }
 
 public:
    // class pointer in case member was imported from a base class
-   const qore_class_private* qc;
+   const qore_class_private* qc = nullptr;
 
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e, n_access), qc(0) {
-   }
-
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_typeInfo, e, n_access), qc(0) {
-   }
-
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, char* n, AbstractQoreNode* e = 0, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n, e, n_access), qc(0) {
-   }
-
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreClass* tqc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, tqc, e, n_access), qc(0) {
-   }
-
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, e, n_access), qc(0) {
-   }
-
-   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_access), qc(0) {
+   DLLLOCAL QoreMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(loc, n_typeInfo, n_parseTypeInfo, e, n_access) {
    }
 
    DLLLOCAL bool local() const {
@@ -1106,9 +1090,9 @@ public:
    DLLLOCAL void parseInit(const char* name, bool priv);
 };
 
-class QoreVarInfo : public QoreMemberInfoBase {
+class QoreVarInfo : public QoreMemberInfoBaseAccess {
 protected:
-   DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public) : QoreMemberInfoBase(old, n_access), val(old.val), finalized(old.finalized) {
+   DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
    }
 
    DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
@@ -1124,19 +1108,20 @@ public:
    QoreLValueGeneric val;
    bool finalized;
 
-   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo, QoreParseTypeInfo* n_parseTypeInfo, AbstractQoreNode* e = 0, ClassAccess n_access = Public) :
-      QoreMemberInfoBase(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
-   }
-
-   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, n_access), finalized(false) {
-   }
-
-   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, AbstractQoreNode* e, ClassAccess n_access = Public) : QoreMemberInfoBase(loc, e, n_access), finalized(false) {
+   DLLLOCAL QoreVarInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr, ClassAccess n_access = Public) :
+      QoreMemberInfoBaseAccess(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
    }
 
    DLLLOCAL ~QoreVarInfo() {
       assert(!val.hasValue());
    }
+
+#ifdef DEBUG
+   DLLLOCAL void del() {
+      assert(!val.hasValue());
+      QoreMemberInfoBaseAccess::del();
+   }
+#endif
 
    DLLLOCAL void clear(ExceptionSink* xsink) {
       ReferenceHolder<> tmp(xsink);
@@ -1162,11 +1147,10 @@ public:
    }
 
    DLLLOCAL void getLValue(LValueHelper& lvh) {
-      lvh.setTypeInfo(getTypeInfo());
       lvh.setAndLock(rwl);
       if (checkFinalized(lvh.vl.xsink))
          return;
-      lvh.setValue(val);
+      lvh.setValue(val, getTypeInfo());
    }
 
    DLLLOCAL void init() {
@@ -1203,14 +1187,9 @@ public:
    }
 
    DLLLOCAL void parseInit(const char* name, bool priv);
-
-#ifdef DEBUG
-   DLLLOCAL bool empty() const {
-      return !val.hasValue();
-   }
-#endif
 };
 
+/*
 #ifdef HAVE_QORE_HASH_MAP
 typedef HASH_MAP<char*, QoreMemberInfo*, qore_hash_str, eqstr> member_map_t;
 typedef HASH_MAP<char*, QoreVarInfo*, qore_hash_str, eqstr> var_map_t;
@@ -1218,20 +1197,24 @@ typedef HASH_MAP<char*, QoreVarInfo*, qore_hash_str, eqstr> var_map_t;
 typedef std::map<char*, QoreMemberInfo*, ltstr> member_map_t;
 typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
 #endif
+*/
 
-class QoreMemberMap {
+template <typename T>
+class QoreMemberMapBase {
 public:
-   typedef std::pair<char *, QoreMemberInfo*> list_element_t;
+   typedef std::pair<char*, T*> list_element_t;
    typedef std::vector<list_element_t> member_list_t;
-   typedef member_list_t::const_iterator DeclOrderIterator;
-   typedef member_map_t::const_iterator SigOrderIterator;
+   typedef typename member_list_t::const_iterator DeclOrderIterator;
+#ifdef HAVE_QORE_HASH_MAP
+   typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
+#else
+   typedef std::map<char*, T*, ltstr> member_map_t;
+#endif
+   typedef typename member_map_t::const_iterator SigOrderIterator;
 
 public:
-   DLLLOCAL QoreMemberMap() : inheritedCount(0) {
-   }
-
-   DLLLOCAL ~QoreMemberMap() {
-      for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+   DLLLOCAL ~QoreMemberMapBase() {
+      for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing pending private member %p '%s'\n", this, i->second, i->first);
          delete i->second;
          free(i->first);
@@ -1244,16 +1227,16 @@ public:
       return map.find(const_cast<char*>(name)) != map.end();
    }
 
-   DLLLOCAL QoreMemberInfo *findByName(const char *name) const {
-      member_map_t::const_iterator it = map.find(const_cast<char*>(name));
-      return it == map.end() ? NULL : it->second;
+   DLLLOCAL T* find(const char* name) const {
+      typename member_map_t::const_iterator it = map.find(const_cast<char*>(name));
+      return it == map.end() ? nullptr : it->second;
    }
 
    DLLLOCAL bool empty() const {
       return map.empty();
    }
 
-   DLLLOCAL void addNoCheck(char *name, QoreMemberInfo *info) {
+   DLLLOCAL void addNoCheck(char* name, T* info) {
       assert(name);
       assert(info);
       assert(!inList(name));
@@ -1261,26 +1244,16 @@ public:
       list.push_back(std::make_pair(name, info));
    }
 
-   DLLLOCAL void addNoCheck(std::pair<char *, QoreMemberInfo *> pair) {
+   DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
       addNoCheck(pair.first, pair.second);
    }
 
-   DLLLOCAL void addInheritedNoCheck(char *name, QoreMemberInfo *info) {
-      assert(name);
-      assert(info);
-      assert(!inList(name));
-      map[name] = info;
-      list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
-   }
-
-   DLLLOCAL void moveAllTo(QoreMemberMap &dest) {
+   DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
       dest.map.insert(map.begin(), map.end());
       dest.list.insert(dest.list.end(), list.begin(), list.end());
       map.clear();
       list.clear();
    }
-
-   DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
 
    DLLLOCAL DeclOrderIterator beginDeclOrder() const {
       return list.begin();
@@ -1298,37 +1271,42 @@ public:
       return map.end();
    }
 
-private:
-   member_list_t list;
-   member_map_t map;
-   member_list_t::size_type inheritedCount;
-};
-
-class QoreVarMap {
-public:
-   typedef std::pair<char *, QoreVarInfo*> list_element_t;
-   typedef std::vector<list_element_t> var_list_t;
-   typedef var_list_t::const_iterator DeclOrderIterator;
-   typedef var_map_t::const_iterator SigOrderIterator;
-
-public:
-   DLLLOCAL ~QoreVarMap() {
-      for (var_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
-         //printd(5, "QoreVarMap::~QoreVarMap() deleting static var %s\n", i->first);
-         assert(i->second->empty());
-         i->second->del();
-         free(i->first);
-      }
+   DLLLOCAL size_t size() const {
+      return list.size();
    }
 
+protected:
+   member_list_t list;
+   member_map_t map;
+};
+
+class QoreMemberMap : public QoreMemberMapBase<QoreMemberInfo> {
+public:
+   using QoreMemberMapBase<QoreMemberInfo>::moveAllTo;
+   DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
+
+   DLLLOCAL void addInheritedNoCheck(char* name, QoreMemberInfo* info) {
+      assert(name);
+      assert(info);
+      assert(!inList(name));
+      map[name] = info;
+      list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
+   }
+
+private:
+   member_list_t::size_type inheritedCount = 0;
+};
+
+class QoreVarMap : public QoreMemberMapBase<QoreVarInfo> {
+public:
    DLLLOCAL void clear(ExceptionSink* xsink) {
-      for (var_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+      for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
          i->second->clear(xsink);
       }
    }
 
    DLLLOCAL void del(ExceptionSink* xsink) {
-      for (var_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+      for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
          i->second->delVar(xsink);
          free(i->first);
          delete i->second;
@@ -1338,7 +1316,7 @@ public:
    }
 
    DLLLOCAL void del() {
-      for (var_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+      for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
          assert(!i->second->val.hasValue());
          free(i->first);
          delete i->second;
@@ -1347,57 +1325,12 @@ public:
       list.clear();
    }
 
-   DLLLOCAL bool inList(const char* name) const {
-      return map.find(const_cast<char*>(name)) != map.end();
-   }
-
-   DLLLOCAL QoreVarInfo* find(const char* name) const {
-      var_map_t::const_iterator i = map.find(const_cast<char*>(name));
-      return i == map.end() ? 0 : i->second;
-   }
-
-   DLLLOCAL void addNoCheck(char* name, QoreVarInfo* info) {
-      assert(name);
-      assert(info);
-      assert(!inList(name));
-      map[name] = info;
-      list.push_back(std::make_pair(name, info));
-   }
-
-   DLLLOCAL void addNoCheck(std::pair<char*, QoreVarInfo*> pair) {
-      addNoCheck(pair.first, pair.second);
-   }
-
-   DLLLOCAL bool empty() const {
-      return map.empty();
-   }
-
    DLLLOCAL void clearNoFree() {
       map.clear();
       list.clear();
    }
 
    DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
-
-   DLLLOCAL DeclOrderIterator beginDeclOrder() const {
-      return list.begin();
-   }
-
-   DLLLOCAL DeclOrderIterator endDeclOrder() const {
-      return list.end();
-   }
-
-   DLLLOCAL SigOrderIterator beginSigOrder() const {
-      return map.begin();
-   }
-
-   DLLLOCAL SigOrderIterator endSigOrder() const {
-      return map.end();
-   }
-
-private:
-   var_list_t list;
-   var_map_t map;
 };
 
 /*
@@ -1414,12 +1347,12 @@ public:
    char* name;
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
+   DLLLOCAL BCANode(NamedScope* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
       assert(start_line > 0);
    }
 
    // this function takes ownership of n and arg
-   DLLLOCAL BCANode(char* n, QoreListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
+   DLLLOCAL BCANode(char* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
       assert(start_line > 0);
    }
 
@@ -1496,27 +1429,27 @@ typedef std::set<qore_class_private*> qcp_set_t;
 class BCNode {
 public:
    // populated automatically on creation
-   QoreProgramLocation loc;
+   const QoreProgramLocation loc;
    NamedScope* cname;
    char* cstr;
    QoreClass* sclass;
    ClassAccess access;
    bool is_virtual : 1;
 
-   DLLLOCAL BCNode(NamedScope* c, ClassAccess a) : loc(ParseLocation), cname(c), cstr(0), sclass(0), access(a), is_virtual(false) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, NamedScope* c, ClassAccess a) : loc(loc), cname(c), cstr(nullptr), sclass(nullptr), access(a), is_virtual(false) {
    }
 
    // this method takes ownership of *str
-   DLLLOCAL BCNode(char* str, ClassAccess a) : loc(ParseLocation), cname(0), cstr(str), sclass(0), access(a), is_virtual(false) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, char* str, ClassAccess a) : loc(loc), cname(0), cstr(str), sclass(nullptr), access(a), is_virtual(false) {
    }
 
    // for builtin base classes
-   DLLLOCAL BCNode(QoreClass* qc, bool n_virtual = false)
-      : loc(ParseLocation), cname(0), cstr(0), sclass(qc), access(Public), is_virtual(n_virtual) {
+   DLLLOCAL BCNode(const QoreProgramLocation& loc, QoreClass* qc, bool n_virtual = false)
+      : loc(loc), cname(nullptr), cstr(nullptr), sclass(qc), access(Public), is_virtual(n_virtual) {
    }
 
    // called at runtime with committed classes
-   DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(0), cstr(0), sclass(old.sclass), access(old.access), is_virtual(old.is_virtual) {
+   DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(nullptr), cstr(nullptr), sclass(old.sclass), access(old.access), is_virtual(old.is_virtual) {
       assert(!old.cname);
       assert(!old.cstr);
       assert(old.sclass);
@@ -1684,13 +1617,17 @@ public:
 // base constructor evaluated argument node; created locally at run time
 class BCEANode {
 public:
-   QoreListNode* args;
-   const AbstractQoreFunctionVariant* variant;
-   bool execed;
-   bool member_init_done;
+   QoreProgramLocation loc;
+   QoreListNode* args = nullptr;
+   const AbstractQoreFunctionVariant* variant = nullptr;
+   bool execed = false;
+   bool member_init_done = false;
 
-   DLLLOCAL BCEANode(QoreListNode* args, const AbstractQoreFunctionVariant* variant) : args(args), variant(reinterpret_cast<const MethodVariant*>(variant)), execed(false), member_init_done(false) {}
-   DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : args(0), variant(0), execed(n_execed), member_init_done(mid) {}
+   DLLLOCAL BCEANode(const QoreProgramLocation& loc, QoreListNode* args, const AbstractQoreFunctionVariant* variant) : loc(loc), args(args), variant(reinterpret_cast<const MethodVariant*>(variant)) {
+   }
+
+   DLLLOCAL BCEANode(bool n_execed = true, bool mid = true) : execed(n_execed), member_init_done(mid) {
+   }
 };
 
 /*
@@ -1717,7 +1654,7 @@ public:
    DLLLOCAL void deref(ExceptionSink* xsink);
    // evaluates arguments, returns -1 if an exception was thrown
    DLLLOCAL int add(qore_classid_t classid, const QoreListNode* arg, const AbstractQoreFunctionVariant* variant, QoreProgramLocation& loc, ExceptionSink* xsink);
-   DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant);
+   DLLLOCAL QoreListNode* findArgs(qore_classid_t classid, bool* aexeced, const AbstractQoreFunctionVariant*& variant, const QoreProgramLocation*& loc);
    /*
    DLLLOCAL bool initMembers(qore_classid_t classid) {
       bceamap_t::iterator i = lower_bound(classid);
@@ -1833,8 +1770,8 @@ public:
    QoreProgramLocation loc;      // location of declaration
    std::string name;             // the name of the class
    QoreClass* cls;               // parent class
-   qore_ns_private* ns;          // parent namespace
-   BCList* scl;                  // base class list
+   qore_ns_private* ns = nullptr; // parent namespace
+   BCList* scl = nullptr;         // base class list
 
    mutable VRMutex gate;                 // for synchronized static methods
 
@@ -1852,9 +1789,14 @@ public:
    // static var lists (maps)
    QoreVarMap vars, pending_vars;
 
-   const QoreMethod* system_constructor, *constructor, *destructor,
-      *copyMethod, *methodGate, *memberGate, *deleteBlocker,
-      *memberNotification;
+   const QoreMethod* system_constructor = nullptr,
+    * constructor = nullptr,
+    * destructor = nullptr,
+    * copyMethod = nullptr,
+    * methodGate = nullptr,
+    * memberGate = nullptr,
+    * deleteBlocker = nullptr,
+    * memberNotification = nullptr;
 
    qore_classid_t classID,          // class ID
       methodID;                     // for subclasses of builtin classes that will not have their own private data,
@@ -1888,6 +1830,8 @@ public:
    QoreTypeInfo* typeInfo,
       *orNothingTypeInfo;
 
+   const qore_class_private* injectedClass = nullptr;
+
    // common "self" local variable for all constructors
    mutable LocalVar selfid;
 
@@ -1901,15 +1845,15 @@ public:
    AbstractQoreClassUserData* mud;
 
    // pointer to new class when copying
-   mutable QoreClass* new_copy;
+   mutable QoreClass* new_copy = nullptr;
 
    // pointer to owning program for imported classes
    QoreProgram* spgm;
 
-   DLLLOCAL qore_class_private(QoreClass* n_cls, const char* nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = 0);
+   DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
    // only called while the parse lock for the QoreProgram owning "old" is held
-   DLLLOCAL qore_class_private(const qore_class_private &old, QoreClass* n_cls);
+   DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
 
    DLLLOCAL ~qore_class_private();
 
@@ -2137,14 +2081,14 @@ public:
    }
 
    DLLLOCAL bool runtimeIsMemberInternal(const char* mem) const {
-      QoreMemberInfo* info = members.findByName(mem);
+      QoreMemberInfo* info = members.find(mem);
       return info && info->getAccess() == Internal ? true : false;
    }
 
    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
       if (class_ctx) {
-         QoreMemberInfo *info = class_ctx->members.findByName(mem);
+         QoreMemberInfo *info = class_ctx->members.find(mem);
          if (info && info->getAccess() == Internal) {
             internal_member = true;
             access = Internal;
@@ -2159,7 +2103,7 @@ public:
 
    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfoIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
-      QoreMemberInfo *info = members.findByName(mem);
+      QoreMemberInfo *info = members.find(mem);
       if (info) {
          ClassAccess ma = info->getAccess();
          if (ma != Internal) {
@@ -2169,7 +2113,7 @@ public:
          }
       }
 
-      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
+      return scl ? scl->runtimeGetMemberInfo(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : 0;
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& access) const {
@@ -2179,9 +2123,9 @@ public:
    }
 
    DLLLOCAL const QoreMemberInfo* parseFindLocalPublicPrivateMemberNoInit(const char* mem) const {
-      QoreMemberInfo *info = members.findByName(mem);
+      QoreMemberInfo *info = members.find(mem);
       if (!info)
-         info = pending_members.findByName(mem);
+         info = pending_members.find(mem);
 
       return info;
    }
@@ -2219,7 +2163,7 @@ public:
 
    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);
 
-   DLLLOCAL int checkExistingVarMember(const char* dname, const QoreMemberInfoBase* mi, const QoreMemberInfoBase* omi, const qore_class_private* qc, ClassAccess oaccess, bool var = false) const;
+   DLLLOCAL int checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var = false) const;
 
    DLLLOCAL int parseCheckVar(const char* dname, const QoreVarInfo* vi) const {
       const qore_class_private* qc = 0;
@@ -2511,7 +2455,7 @@ public:
    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
       if (class_ctx) {
-         QoreMemberInfo *info = class_ctx->members.findByName(mem);
+         QoreMemberInfo *info = class_ctx->members.find(mem);
          if (info && info->getAccess() == Internal) {
             internal_member = true;
             access = Internal;
@@ -2526,7 +2470,7 @@ public:
    }
 
    DLLLOCAL const qore_class_private* runtimeGetMemberClassIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
-      QoreMemberInfo *info = members.findByName(mem);
+      QoreMemberInfo *info = members.find(mem);
       if (info) {
          ClassAccess ma = info->getAccess();
          if (ma != Internal) {
@@ -2536,7 +2480,7 @@ public:
          }
       }
 
-      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && is_equal(*class_ctx)) : 0;
+      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : 0;
    }
 
    DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
@@ -2551,7 +2495,9 @@ public:
          if (*xsink)
             return -1;
 
-         val = QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, val.release(), xsink);
+         QoreValue qv(val.release());
+         QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, qv, xsink);
+         val = qv.takeNode();
          if (*xsink)
             return -1;
 
@@ -2691,7 +2637,7 @@ public:
    DLLLOCAL const QoreMethod* doRuntimeMethodAccess(const QoreMethod* m, ClassAccess& access, ClassAccess ma, const qore_class_private* class_ctx) const {
       assert(m);
 
-      if (ma == Internal && (!class_ctx || !is_equal(*class_ctx)))
+      if (ma == Internal && (!class_ctx || !equal(*class_ctx)))
          m = 0;
       else if (access < ma)
          access = ma;
@@ -2802,9 +2748,15 @@ public:
    DLLLOCAL bool runtimeCheckPrivateClassAccess(const qore_class_private* qc = runtime_get_class()) const;
 
    // this = class to find in "oc"
-   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const {
+      bool may_not_match = false;
+      return parseCheckCompatibleClass(oc, may_not_match);
+   }
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const;
+   DLLLOCAL qore_type_result_e parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const;
    // this = class to find in "oc"
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
+   DLLLOCAL qore_type_result_e runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const;
 
    DLLLOCAL const QoreClass* getClassIntern(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
       if (cid == classID)
@@ -2817,14 +2769,8 @@ public:
       return getClassIntern(qc, n_access, true);
    }
 
-   DLLLOCAL bool is_equal(const qore_class_private& qc) const {
-      // check hashes if names are the same
-      // FIXME: check fully-qualified namespace name
-      return (qc.classID == classID || (qc.name == name && hash == qc.hash));
-   }
-
    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-      if (is_equal(qc))
+      if (equal(qc))
          return cls;
 
 #ifdef DEBUG_1
@@ -2842,7 +2788,7 @@ public:
    DLLLOCAL const QoreClass* parseGetClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
       // check hashes if names are the same
       // FIXME: check fully-qualified namespace name
-      if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
+      if (parseEqual(qc))
          return cls;
 
 #ifdef DEBUG_SKIP
@@ -2880,7 +2826,30 @@ public:
    DLLLOCAL bool equal(const qore_class_private& qc) const {
       if (&qc == this)
          return true;
+
       if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+         return true;
+
+      if (injectedClass && injectedClass->equal(qc))
+         return true;
+
+      if (qc.injectedClass && equal(*qc.injectedClass))
+         return true;
+
+      return false;
+   }
+
+   DLLLOCAL bool parseEqual(const qore_class_private& qc) const {
+      if (&qc == this)
+         return true;
+
+      if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
+         return true;
+
+      if (injectedClass && injectedClass->parseEqual(qc))
+         return true;
+
+      if (qc.injectedClass && parseEqual(*qc.injectedClass))
          return true;
 
       return false;
@@ -2913,7 +2882,7 @@ public:
    }
 
    DLLLOCAL bool parseCheckHierarchyIntern(const QoreClass* n_cls, ClassAccess& access, bool toplevel) const {
-      if (cls == n_cls || (name == n_cls->priv->name && parseCheckEqualHash(*n_cls->priv)))
+      if (parseEqual(*n_cls->priv))
          return true;
 
       return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
@@ -2967,11 +2936,13 @@ public:
       return qc.priv->inject;
    }
 
-   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject) {
+   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
       QoreClass* rv = new QoreClass(qc);
       if (nme)
          rv->priv->name = nme;
       rv->priv->inject = inject;
+      if (injectedClass)
+         rv->priv->injectedClass = injectedClass;
       if (qc.priv->pub)
          rv->priv->pub = true;
       // reference source program and save in copied class

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,6 @@
 
 class QoreAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
-protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   // to support "broken-int-assignments"
-   bool broken_int;
-
 public:
    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right), broken_int(false) {
    }
@@ -48,6 +41,16 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
       return copyBackgroundExplicit<QoreAssignmentOperatorNode>(xsink);
    }
+
+protected:
+   // flag for identical match with assignment types (lvalue & rvalue)
+   bool ident = false;
+
+   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   // to support "broken-int-assignments"
+   bool broken_int;
 };
 
 #endif

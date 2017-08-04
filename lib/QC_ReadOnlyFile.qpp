@@ -875,7 +875,7 @@ list ReadOnlyFile::stat() {
    return f->stat(xsink);
 }
 
-//! Returns a @ref stat_hash about the file's status or throws an exception if any errors occur
+//! Returns a @ref StatInfo hash about the file's status or throws an exception if any errors occur
 /** If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
 
     @par Example:
@@ -883,7 +883,7 @@ list ReadOnlyFile::stat() {
 hash h = file.hstat();
     @endcode
 
-    @return a @ref stat_hash about the file's status
+    @return a @ref StatInfo hash about the file's status
 
     @throw FILE-HSTAT-ERROR stat() call failed or file not open
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
@@ -892,14 +892,14 @@ hash h = file.hstat();
     - @ref File::stat()
     - @ref file_stat_constants
  */
-hash ReadOnlyFile::hstat() {
+hash<StatInfo> ReadOnlyFile::hstat() {
    if (check_terminal_io(self, "ReadOnlyFile::hstat", xsink))
       return QoreValue();
 
    return f->hstat(xsink);
 }
 
-//! Returns a @ref filesystem_status_hash about the file's filesystem status or throws an exception if any errors occur
+//! Returns a @ref FilesystemInfo hash about the file's filesystem status or throws an exception if any errors occur
 /** If any errors occur, a \c FILE-STATVFS-ERROR exception is thrown
 
     @par Platform Availability:
@@ -910,13 +910,13 @@ hash ReadOnlyFile::hstat() {
 hash h = file.statvfs();
     @endcode
 
-    @return a @ref filesystem_status_hash about the filesystem where the file resides
+    @return a @ref FilesystemInfo hash about the filesystem where the file resides
 
     @throw FILE-STATVFS-ERROR statvfs() call failed or file is not open
     @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
-hash ReadOnlyFile::statvfs() {
+hash<FilesystemInfo> ReadOnlyFile::statvfs() {
 #ifdef Q_HAVE_STATVFS
    if (check_terminal_io(self, "ReadOnlyFile::statvfs", xsink))
       return QoreValue();
@@ -1024,4 +1024,154 @@ static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
    if (!b && !*xsink)
       b = new BinaryNode;
    return b;
+}
+
+//! Returns a @ref stat_list about the file's status (follows symbolic links) or throws an exception if any errors occur
+/** This method will follow symbolic links and return information about the target.
+    If any errors occur, a \c FILE-STAT-ERROR exception is thrown
+
+    @par Example:
+    @code{.py}
+int mode = ReadOnlyFile::stat(path)[2];
+    @endcode
+
+    @param path the file to stat()
+
+    @return a @ref stat_list "list of file status values" for the given file
+
+    @throw FILE-STAT-ERROR stat() call failed
+
+    @see @ref file_stat_constants
+
+    @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
+ */
+static list ReadOnlyFile::stat(string path) [dom=FILESYSTEM] {
+   struct stat sbuf;
+   if (stat(path->getBuffer(), &sbuf))
+      return xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
+
+   return stat_to_list(sbuf);
+}
+
+//! Returns a @ref stat_list about the given path's status (does not follow symbolic links) or throws an exception if any errors occur
+/** Does not follow symbolic links, but rather returns filesystem information for symbolic links.
+    If any errors occur, a \c FILE-LSTAT-ERROR exception is thrown
+
+    @par Example:
+    @code{.py}
+int mode = ReadOnlyFile::lstat(path)[2];
+    @endcode
+
+    @param path the file to stat()
+
+    @return a @ref stat_list "list of file status values" for the given file
+
+    @throw FILE-LSTAT-ERROR stat() call failed
+
+    @see lstat() for a similar function that does not throw exceptions when errors occur, but rather returns @ref nothing
+    @see @ref file_stat_constants
+
+    @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
+ */
+static list ReadOnlyFile::lstat(string path) [dom=FILESYSTEM] {
+   struct stat sbuf;
+#ifdef HAVE_LSTAT
+   if (lstat(path->getBuffer(), &sbuf))
+#else
+   if (stat(path->getBuffer(), &sbuf))
+#endif
+      return xsink->raiseErrnoException("FILE-LSTAT-ERROR", errno, "lstat() command failed");
+
+   return stat_to_list(sbuf);
+}
+
+//! Returns a @ref Qore::StatInfo "StatInfo" hash about the file's status (follows symbolic links) or throws an exception if any errors occur
+/** This method will follow symbolic links and return information about the target.
+    If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+
+    @par Example:
+    @code{.py}
+hash h = ReadOnlyFile::hstat(path);
+    @endcode
+
+    @param path the file to stat()
+    @return a @ref Qore::StatInfo "StatInfo" hash about the file's status
+
+    @throw FILE-HSTAT-ERROR stat() call failed
+
+    @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
+    @see @ref file_stat_constants
+
+    @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
+ */
+static hash<StatInfo> ReadOnlyFile::hstat(string path) [dom=FILESYSTEM] {
+   struct stat sbuf;
+   if (stat(path->getBuffer(), &sbuf))
+      return xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "stat() command failed");
+
+   return stat_to_hash(sbuf);
+}
+
+//! Returns a @ref Qore::StatInfo "StatInfo" hash about the file's status (does not follow symbolic links) or throws an exception if any errors occur
+/** Does not follow symbolic links, but rather returns filesystem information for symbolic links.
+    If any errors occur, a \c FILE-HSTAT-ERROR exception is thrown
+
+    @par Example:
+    @code{.py}
+hash h = ReadOnlyFile::hstat(path);
+    @endcode
+
+    @param path the file to stat()
+
+    @return a @ref Qore::StatInfo "StatInfo" hash about the file's status
+
+    @throw FILE-HSTAT-ERROR stat() call failed
+
+    @see hstat() for a normal function returns @ref nothing instead of throwing an exception when errors occur
+    @see @ref file_stat_constants
+
+    @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
+ */
+static hash<StatInfo> ReadOnlyFile::hlstat(string path) [dom=FILESYSTEM] {
+   struct stat sbuf;
+#ifdef HAVE_LSTAT
+   if (lstat(path->getBuffer(), &sbuf))
+#else
+   if (stat(path->getBuffer(), &sbuf))
+#endif
+      return xsink->raiseErrnoException("FILE-HLSTAT-ERROR", errno, "lstat() command failed");
+
+   return stat_to_hash(sbuf);
+}
+
+//! Returns a @ref FilesystemInfo hash about filesystem status of the given path; throws an exception if any errors occur
+/** If any errors occur, a \c FILE-STATVFS-ERROR exception is thrown
+
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_STATVFS
+
+    @par Example:
+    @code{.py}
+hash h = ReadOnlyFile::statvfs(path);
+    @endcode
+
+    @param path the path to the filesystem to check
+    @return a @ref FilesystemInfo hash about the filesystem where the file resides
+
+    @throw FILE-STATVFS-ERROR statvfs() call failed
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_STATVFS before calling this method to avoid this exception
+
+    @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
+ */
+static hash<FilesystemInfo> ReadOnlyFile::statvfs(string path) [dom=FILESYSTEM] {
+#ifdef Q_HAVE_STATVFS
+   struct statvfs vfs;
+   if (statvfs(path->getBuffer(), &vfs))
+      return xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "statvfs() call failed");
+
+   return statvfs_to_hash(vfs);
+#else
+   file_lock_error("statvfs", xsink);
+   return QoreValue();
+#endif
 }
