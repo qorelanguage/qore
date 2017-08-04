@@ -75,6 +75,12 @@ class Test2 {
     }
 }
 
+class Test3 {
+    public {
+        Test3 t();
+    }
+}
+
 int sub throw_exception() {
     throw "TEST", "test";
 }
@@ -159,6 +165,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
+        addTestCase("recursive test", \recursiveTest());
         addTestCase("Built-in class w/o methods", \builtinNoMethods());
         addTestCase("Base class tests", \baseClassTests());
         addTestCase("misc tests", \miscTests());
@@ -243,7 +250,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(88, ex.callstack[0].line);
+        assertEq(94, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
@@ -396,5 +403,12 @@ public class ClassesTest inherits QUnit::Test {
 
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
+    }
+
+    recursiveTest() {
+        if (!Option::HAVE_STACK_GUARD)
+            testSkip("Qore library was not built with stack protection support");
+
+        assertThrows("STACK-LIMIT-EXCEEDED", sub () { Test3 t(); });
     }
 }
