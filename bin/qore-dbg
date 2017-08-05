@@ -13,36 +13,56 @@
 
 class DebugCommandLineLocal inherits DebugCommandLine {
 	public {
-		DebugProgramControl dpc;
+		DebugProgramControlLocal dpc;
+		Counter counter();
+		any threadData;
 	}
-	constructor (DebugProgramControl n_dpc): DebugCommandLine() {
+	constructor (DebugProgramControlLocal n_dpc): DebugCommandLine() {
 	    dpc = n_dpc;
 		dpc.dcl = self;
 	}
-	public nothing doCommandImpl(hash data) {
-		dpc.processCommand(dpc.cx, data);
+	public *hash doCommandImpl(hash data) {
+		if (exists data.tid) {
+			while (counter.getCount() > 0) {
+				counter.dec();
+			}
+			counter.inc();
+			threadData = NOTHING;
+		}
+		*hash ret = dpc.processCommand(DebugProgramControlLocal::CX, data);
+		if (ret.type == 'thread') {
+			while (counter.getCount() > 0) {
+				counter.dec();
+			}
+			counter.waitForZero(200);
+			return threadData;
+		} else {
+			return ret;
+		}
 	}
 }
 
 class DebugProgramControlLocal inherits DebugProgramControl {
 	public {
-		DebugCommandLine dcl;
+		DebugCommandLineLocal dcl;
 	}
-	const cx = ('id': 1);
+	const CX = ('id': 1);
 	constructor () {
-		registerConnection(cx);
+		registerConnection(CX);
 	}
 	destructor() {
-		unregisterConnection(cx);
+		unregisterConnection(CX);
 	}
     public nothing sendDataImpl(hash cx, any data) {    # TODO: nothing needed. why? I cannot reproduce in simple case to report issue
-		dcl.printData(data);
+		if (dcl.counter.getCount() > 0) {
+			dcl.threadData = data;
+			dcl.counter.dec();
+		} else {
+			dcl.printData(data);
+		}
 	}
     public nothing broadcastDataImpl(any data) {
 		dcl.printData(data);
-	}
-	public log(int verbosity, string fmt) {
-		dcl.log(verbosity, fmt);
 	}
 }
 
@@ -55,6 +75,7 @@ class DebugWrapper {
             'listen': 'l,listen=s@',
         );
 		DebugCommandLineLocal dcl;
+		DebugLogger logger;
 	}
 
 	constructor() {
@@ -82,16 +103,20 @@ class DebugWrapper {
 		if (opt.help) {
 			help();
 		}
-		dcl = new DebugCommandLineLocal(new DebugProgramControlLocal());
+		logger = new DebugLogger();
         if (opt.verbose) {
-            dcl.verbose = opt.verbose;
+            logger.verbose = opt.verbose;
         }
+		dcl = new DebugCommandLineLocal(new DebugProgramControlLocal());
+		dcl.logger = logger;
+		dcl.dpc.logger = logger;
 printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 #exit(1);
         try {
 			if (exists fileName) {
 				Program pgm = dcl.dpc.createProgram(fileName, ARGV);
-				dcl.log(DUV_INFO, "run program");
+				logger.log(DUV_INFO, "run program");
+				dcl.setContextValue('programId', pgm.getProgramId());
 				background pgm.run();
 				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
 			}

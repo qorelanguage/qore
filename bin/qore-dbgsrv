@@ -20,9 +20,6 @@ class WebSocketDebugProgramControlHost inherits WebSocketDebugProgramControl {
     constructor(*HttpServer::AbstractAuthenticator auth, DebugWrapper n_dw) : WebSocketDebugProgramControl(auth) {
 		dw = n_dw;
 	}
-	public log(int verbosity, string fmt) {
-		dw.log(verbosity, fmt);
-	}
 }
 
 class DebugWrapper {
@@ -33,7 +30,7 @@ class DebugWrapper {
 			'run': 'r,run',
             'listen': 'l,listen=s@',
         );
-		int verbose = DUV_INFO;
+		DebugLogger logger;
 		WebSocketDebugHandler wsHandler;
 		HttpServer mServer;
 		WebSocketDebugProgramControlHost dpc;
@@ -65,20 +62,21 @@ class DebugWrapper {
 			help();
 		}
 
-
+		logger= new DebugLogger();
         if (opt.verbose) {
-            verbose = opt.verbose;
+            logger.verbose = opt.verbose;
         }
 printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 #exit(1);
         try {
-			log(DUV_INFO, "create DebugProgram");
+			logger.log(DUV_INFO, "create DebugProgram");
 			dpc = new WebSocketDebugProgramControlHost(NOTHING, self);
-			log(DUV_INFO, "create WebSocketDebugHandler");
+			dpc.logger = logger;
+			logger.log(DUV_INFO, "create WebSocketDebugHandler");
 #			wsHandler = new WebSocketDebugHandler(NOTHING, dpc);
 
-			log(DUV_INFO, "create HttpServer");
-			mServer = new HttpServer(\httplog(), \httperr(), verbose>=DUV_DEBUG);
+			logger.log(DUV_INFO, "create HttpServer");
+			mServer = new HttpServer(\httplog(), \httperr(), logger.verbose>=DUV_DEBUG);
 #			mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
 #			mServer.setDefaultHandler("ws-handler", wsHandler);
 			if (opt.listen) {
@@ -91,7 +89,7 @@ printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 
 			if (exists fileName) {
 				Program pgm = dpc.createProgram(fileName, ARGV);
-				log(DUV_INFO, "run program");
+				logger.log(DUV_INFO, "run program");
 				background pgm.run();
 				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
 			}
@@ -104,13 +102,9 @@ printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 
 	}
 
-	public log(int verbosity, string fmt) {
-        if (verbose >= verbosity)
-    	    stdout.print(fmt+"\n");
-    }
 
 	public httplog(fmt) {
-		log(DUV_INFO, vprintf(fmt, argv));
+		logger.log(DUV_INFO, vprintf(fmt, argv));
     }
 
 	public httperr(fmt) {
