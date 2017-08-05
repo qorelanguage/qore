@@ -1994,7 +1994,7 @@ my any $v = $c.name;
                 COP_TRUNC_DATE: (
                     "code": string sub(string arg1, any arg) {
                         if (!OracleTruncDate.hasKey(arg)) {
-                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, OracleTruncDate.keys());
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y", arg, OracleTruncDate.keys());
                         }
                         # seconds are not part of TRUNC() in oracle
                         if (exists OracleTruncDate{arg}) {
