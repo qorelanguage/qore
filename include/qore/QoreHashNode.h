@@ -36,9 +36,9 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/common.h>
 
-class HashMember;
 class LocalVar;
 class QoreString;
+class TypedHashDecl;
 
 //! This is the hash or associative list container type in Qore, dynamically allocated only, reference counted
 /**
