@@ -649,6 +649,7 @@ public:
 
 class qore_hash_private;
 class qore_object_private;
+class HashMember;
 
 class hash_assignment_priv {
 public:
