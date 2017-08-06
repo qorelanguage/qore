@@ -219,15 +219,15 @@ class OracleTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
-
-            addTestCase("sequence operators", \testSequenceOperators());
-            addTestCase("pseudo-columns", \testPseudoColumns());
-            addTestCase("character semantics", \testCharacterSemantics());
-            addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
-            addTestCase("default values", \testDefaultValues());
-            addTestCase("named types to align", \testNTYAlignment());
-            addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
         }
+
+        addTestCase("sequence operators", \testSequenceOperators());
+        addTestCase("pseudo-columns", \testPseudoColumns());
+        addTestCase("character semantics", \testCharacterSemantics());
+        addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
+        addTestCase("default values", \testDefaultValues());
+        addTestCase("named types to align", \testNTYAlignment());
+        addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
 
         set_return_value(main());
     }

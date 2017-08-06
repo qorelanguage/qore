@@ -992,6 +992,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
 }
 
 void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bceal, ExceptionSink* xsink) const {
+   //printd(5, "qore_class_private::execBaseClassConstructor() '%s' constructor: %p\n", name.c_str(), constructor);
    // if there is no constructor, execute the superclass constructors directly
    if (!constructor){
       if (scl) // execute base class constructors if any
@@ -1440,21 +1441,14 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
    if (!n && i->second->execed)
       return 0;
 
-   QoreProgramOptionalLocationHelper plh(arg ? &loc : nullptr);
-   assert(!arg || loc.start_line > 0);
-   // evaluate arguments
-   ReferenceHolder<QoreListNode> nargs(arg ? arg->evalList(xsink) : 0, xsink);
-   if (*xsink)
-      return -1;
-
-   // save arguments
+   // save arguments for evaluation in the constructor
    if (n)
-      insert(i, bceamap_t::value_type(classid, new BCEANode(loc, nargs.release(), variant)));
+      insert(i, bceamap_t::value_type(classid, new BCEANode(loc, arg ? arg->listRefSelf() : 0, variant)));
    else {
       assert(!i->second->args);
       assert(!i->second->variant);
       assert(!i->second->execed);
-      i->second->args = nargs.release();
+      i->second->args = arg ? arg->listRefSelf() : 0;
       i->second->variant = reinterpret_cast<const MethodVariant*>(variant);
    }
    return 0;
@@ -1800,7 +1794,7 @@ QoreVarInfo* BCNode::parseFindStaticVar(const char* vname, const QoreClass*& qc,
 }
 
 void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const {
-   printd(5, "BCNode::execConstructors() %s::constructor() o: %p (for subclass %s) virtual: %d\n", sclass->getName(), o, o->getClass()->getName(), is_virtual);
+   //printd(5, "BCNode::execConstructors() %s::constructor() o: %p (for subclass %s) virtual: %d\n", sclass->getName(), o, o->getClass()->getName(), is_virtual);
 
    // do not execute constructors for virtual base classes
    if (is_virtual)
@@ -4624,8 +4618,20 @@ void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObj
    assert(signature.selfid);
    signature.selfid->instantiateSelf(self);
 
-   if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
+   // instantiate argv and push id on stack for base class constructors
+   if (bcl) {
+      ReferenceHolder<QoreListNode>& argv = uveh.getArgv();
+      signature.argvid->instantiate(argv ? argv->refSelf() : 0);
+      ArgvContextHelper argv_helper(argv ? argv->listRefSelf() : 0, xsink);
+   }
+
+   if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink)) {
       evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+   }
+
+   // uninstantiate argv
+   if (bcl)
+      signature.argvid->uninstantiate(xsink);
 
    // if self then uninstantiate
    signature.selfid->uninstantiateSelf();
