@@ -28,8 +28,12 @@ public class ListTest inherits QUnit::Test {
     listTest() {
         hash<string, list<hash<T>>> h();
         {
-            list<string> l = h.keys();
-            assertEq(True, l.complexType());
+            list<string> l0 = h.keys();
+            assertEq(True, l0.complexType());
+            any l1 = h.keys();
+            assertEq(False, l1.complexType());
+            l1 += 1;
+            assertEq(1, l1[0]);
         }
         {
             # assigning a complex type to a list lvalue strips the type info
@@ -51,6 +55,11 @@ public class ListTest inherits QUnit::Test {
             assertEq("list<int>", l.fullType());
             assertEq((), l);
             assertEq(1, test(new list<int>(), new list<string>()));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("list sub t() {string line = 'a+b,c'; any x; x = (line =~ x/(.)\\+(.*)/); x[1] = split(',', x[1]); return x[1];}", "");
+            assertEq(("b", "c"), p.callFunction("t"));
         }
     }
 

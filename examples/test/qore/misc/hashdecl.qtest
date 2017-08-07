@@ -126,13 +126,6 @@ class HashDeclTest inherits QUnit::Test {
         }
 
         {
-            # however otherwise the hashdecl hash keeps its type
-            Program p(PO_NEW_STYLE);
-            p.parse("sub t() {any h = new hash<Container>(); h.b = 'str';}", "");
-            assertThrows("INVALID-MEMBER", \p.callFunction(), "t");
-        }
-
-        {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", "hashdecl", \p.parse(), ("sub t() {hash<Container> c1; hash<Container2> c2(); c1 = cast<hash<Container>>(c2);}", ""));
         }

@@ -443,12 +443,12 @@ class StringTest inherits QUnit::Test {
         assertEq("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
         assertEq(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
         {
-            *list<string> l = ("xmlns:wsdl" =~ x/(\w+):(\w+)/);
+            *list<*string> l = ("xmlns:wsdl" =~ x/(\w+):(\w+)/);
             assertEq(True, l.complexType());
-            assertEq("list<string>", l.fullType());
+            assertEq("list<*string>", l.fullType());
             l = regex_extract("xmlns:wsdl", "(\\w+):(\\w+)");
             assertEq(True, l.complexType());
-            assertEq("list<string>", l.fullType());
+            assertEq("list<*string>", l.fullType());
         }
 
         # regex operator tests

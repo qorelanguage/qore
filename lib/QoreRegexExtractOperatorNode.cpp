@@ -45,7 +45,7 @@ AbstractQoreNode* QoreRegexExtractOperatorNode::parseInitImpl(LocalVar* oflag, i
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   typeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
+   typeInfo = qore_get_complex_list_or_nothing_type(stringOrNothingTypeInfo);
 
    const QoreTypeInfo *lti = 0;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
@@ -61,6 +61,7 @@ AbstractQoreNode* QoreRegexExtractOperatorNode::parseInitImpl(LocalVar* oflag, i
       ParseExceptionSink xsink;
       ValueEvalRefHolder v(this, *xsink);
       assert(!**xsink);
+      typeInfo = v->getTypeInfo();
       return v.getReferencedValue();
    }
 
