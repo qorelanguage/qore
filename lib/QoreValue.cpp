@@ -390,7 +390,7 @@ const char* QoreValue::getTypeName() const {
       default: assert(false);
          // no break
    }
-   return 0;
+   return nullptr;
 }
 
 const char* QoreValue::getFullTypeName() const {
@@ -402,7 +402,7 @@ const char* QoreValue::getFullTypeName() const {
       default: assert(false);
          // no break
    }
-   return 0;
+   return nullptr;
 }
 
 AbstractQoreNode* QoreValue::takeNodeIntern() {
@@ -426,6 +426,17 @@ bool QoreValue::isNull() const {
 
 bool QoreValue::isNullOrNothing() const {
    return type == QV_Node && (is_nothing(v.n) || is_null(v.n));
+}
+
+const QoreTypeInfo* QoreValue::getTypeInfo() const {
+   switch (type) {
+      case QV_Bool: return boolTypeInfo;
+      case QV_Int: return bigIntTypeInfo;
+      case QV_Float: return floatTypeInfo;
+      case QV_Node: return getTypeInfoForValue(v.n);
+      default: assert(false);
+   }
+   return nullptr;
 }
 
 ValueHolder::~ValueHolder() {

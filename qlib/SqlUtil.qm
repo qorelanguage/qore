@@ -12703,7 +12703,7 @@ int ucnt = table.update(("id": id), ("name": name));
                 any value = i.getValue();
                 string exp = sprintf("%s = ", getColumnSqlName(key));
                 if (value.uop)
-                    exp += getUpdateExpression(key, value);
+                    exp += getUpdateExpression(key, cast<hash<UpdateOperatorInfo>>(value));
                 else {
                     exp += "%v";
                     args += value;

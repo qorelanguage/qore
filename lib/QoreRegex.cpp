@@ -181,7 +181,7 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
             int pos = x * 2;
             if (ovector[pos] == -1) {
                if (!l)
-                  l = new QoreListNode(stringTypeInfo);
+                  l = new QoreListNode(stringOrNothingTypeInfo);
                l->push(nothing());
                continue;
             }
@@ -189,7 +189,7 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
             //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
             tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
             if (!l)
-               l = new QoreListNode(stringTypeInfo);
+               l = new QoreListNode(stringOrNothingTypeInfo);
             l->push(tstr);
          }
 

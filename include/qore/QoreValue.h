@@ -288,6 +288,11 @@ public:
    //! returns a referenced AbstractQoreNode pointer only if the contained value is an AbstractQoreNode pointer, in which case "this" is left empty (the value is taken from "this"); returns 0 if the object does not contain an AbstractQoreNode pointer (type != QV_Node)
    DLLEXPORT AbstractQoreNode* takeIfNode();
 
+   //! returns the type of the value
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
    //! returns the type of value contained
    DLLEXPORT qore_type_t getType() const;
 

@@ -384,27 +384,35 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
-      if (ti)
+      if (hasType(ti))
          ti->acceptInputIntern(xsink, false, param_num, param_name, n);
+      else
+         stripTypeInfo(n, xsink);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
-      if (ti)
+      if (hasType(ti))
          ti->acceptInputIntern(xsink, true, -1, member_name, n);
+      else
+         stripTypeInfo(n, xsink);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
-      if (ti)
+      if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, member_name, n);
+      else
+         stripTypeInfo(n, xsink);
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
       assert(text && text[0] == '<');
-      if (ti)
+      if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, text, n);
+      else
+         stripTypeInfo(n, xsink);
    }
 
    // static version of method, checking for null pointer
@@ -812,6 +820,8 @@ protected:
       else
          str.concat("lvalue ");
    }
+
+   DLLLOCAL static void stripTypeInfo(QoreValue& n, ExceptionSink* xsink);
 };
 
 class QoreParseTypeInfo;
