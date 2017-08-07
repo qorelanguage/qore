@@ -10,10 +10,72 @@
 
 %exec-class TypeTest
 
+public hashdecl MyHash {
+    int x = 1;
+}
+
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("complex type compat", \testComplexTypesCompat());
         addTestCase("types", \testTypes());
         set_return_value(main());
+    }
+
+    testComplexTypesCompat() {
+        {
+            hash<MyHash> h();
+            assertEq(True, h.complexType());
+            assertEq(1, h.x);
+            # assigning to an untyped variable strips the type information for backwards-compatibility
+            any h0 = h;
+            assertEq(1, h0.x);
+            assertEq(False, h0.complexType());
+            h0.a = 2;
+            assertEq(2, h0.a);
+            assertThrows("INVALID-MEMBER", sub () { reference r = \h; r.a = "a"; });
+        }
+
+        {
+            hash<string, int> h();
+            assertEq(True, h.complexType());
+            # assigning to an untyped variable strips the type information for backwards-compatibility
+            any h0 = h;
+            assertEq(False, h0.complexType());
+            h0.a = "a";
+            assertEq("a", h0.a);
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \h; r.a = "a"; });
+        }
+
+        {
+            list<int> l();
+            assertEq(True, l.complexType());
+            # assigning to an untyped variable strips the type information for backwards-compatibility
+            any l0 = l;
+            assertEq(False, l0.complexType());
+            l0 += "a";
+            assertEq("a", l0[0]);
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \l; r += "a"; });
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "unknown member", \p.parse(), ("sub t() {hash<MyHash> h(); h.a = 2;}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "lvalue for assignment", \p.parse(), ("sub t() {hash<string, int> h(); h.a = 'a';}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "lvalue for assignment", \p.parse(), ("sub t() {list<int> l(); l[0] = 'a';}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "cannot append", \p.parse(), ("sub t() {list<int> l(); l += 'a';}", ""));
+        }
     }
 
     testTypes() {
@@ -1244,13 +1306,6 @@ class TypeTest inherits QUnit::Test {
             }
 
             {
-                # however otherwise the typed hash keeps its type
-                Program p(PO_NEW_STYLE);
-                p.parse("sub t() { any h = new hash<string, int>(('a': 1)); h.b = 'str'; }", "");
-                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
-            }
-
-            {
                 # cast to hash from a non-hash must fail at parse time
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any h = cast<hash>(1); }", ""));
@@ -1493,16 +1548,6 @@ class TypeTest inherits QUnit::Test {
                 # cast to list from a non-list must fail at parse time
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { any l = cast<list>(1); }", ""));
-            }
-
-            {
-                # however otherwise the typed list keeps its type
-                Program p(PO_NEW_STYLE);
-                p.parse("sub t() { any l = new list<int>(1); l[0] = 'str'; }", "");
-                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
-
-                p.parse("sub t1() { any l = new list<int>(1); l += 'str'; }", "");
-                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t1");
             }
         }
 

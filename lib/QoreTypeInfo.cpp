@@ -419,6 +419,8 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
          return static_cast<const QoreObject*>(n)->getClass()->getTypeInfo();
       case NT_HASH:
          return static_cast<const QoreHashNode*>(n)->getTypeInfo();
+      case NT_LIST:
+         return static_cast<const QoreListNode*>(n)->getTypeInfo();
       default:
          break;
    }
@@ -774,6 +776,20 @@ void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char
    getThisTypeImpl(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+}
+
+void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink) {
+   // strips complex typeinfo for an assignment to an untyped lvalue
+   switch (n.getType()) {
+      case NT_HASH: {
+         map_get_plain_hash(n, xsink);
+         break;
+      }
+      case NT_LIST: {
+         map_get_plain_list(n, xsink);
+         break;
+      }
+   }
 }
 
 template <typename T>

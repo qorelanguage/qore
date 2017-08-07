@@ -43,7 +43,16 @@ AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int
    const QoreTypeInfo* rightTypeInfo = nullptr;
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!QoreTypeInfo::isType(ti, NT_LIST)
+   if (QoreTypeInfo::isType(ti, NT_LIST)) {
+      if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
+         const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
+         if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
+            parseException(loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
+               QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+         }
+      }
+   }
+   else if (!QoreTypeInfo::isType(ti, NT_LIST)
        && !QoreTypeInfo::isType(ti, NT_HASH)
        && !QoreTypeInfo::isType(ti, NT_OBJECT)
        && !QoreTypeInfo::isType(ti, NT_STRING)
