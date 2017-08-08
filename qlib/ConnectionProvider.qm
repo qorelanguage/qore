@@ -132,13 +132,14 @@ public namespace ConnectionProvider {
 
     #! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
     public hashdecl PingInfo {
-        string name;  #!< the name of the connection
-        string desc;  #!< the description
-        *hash opts;   #!< the options set on the connection
-        string url;   #!< a safe version of the URL (without passwords)
-        bool ok;      #!< a boolean value giving the result of the ping
-        date time;    #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
-        string info;  #!< a string giving the result of the ping (\c "OK" or an error message)
+        string name;     #!< the name of the connection
+        string desc;     #!< the description
+        *hash opts;      #!< the options set on the connection
+        string url;      #!< a safe version of the URL (without passwords)
+        bool ok;         #!< a boolean value giving the result of the ping
+        date time;       #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
+        string info;     #!< a string giving the result of the ping (\c "OK" or an error message)
+        *hash ping_info; #!< an optional free-form hash giving additional info regarding ping operation or the remote system
     }
 
     #! returns a URL string for the given identifier if the identifier is known to a registered connection provider or returns the URL itself if the identifier is a valid URL
