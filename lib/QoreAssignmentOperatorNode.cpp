@@ -32,9 +32,10 @@
 
 #include "qore/intern/qore_program_private.h"
 
-QoreString QoreAssignmentOperatorNode::op_str("assignment operator expression");
+QoreString QoreAssignmentOperatorNode::op_str("assignment (=) operator expression");
+QoreString QoreWeakAssignmentOperatorNode::op_str("weak assignment (:=) operator expression");
 
-AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo, bool weak_assignment) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -72,17 +73,15 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
 
    if (getProgram()->getParseExceptionSink() && !res) {
-      QoreStringNode* edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
+      QoreStringNode* edesc = new QoreStringNodeMaker("lvalue for %sassignment operator '%s' expects ", weak_assignment ? "weak " : "", weak_assignment ? ":=" : "=");
       QoreTypeInfo::getThisType(ti, *edesc);
       edesc->concat(", but right-hand side is ");
       QoreTypeInfo::getThisType(r, *edesc);
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
    }
-
-   return this;
 }
 
-QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreAssignmentOperatorNode::evalValueIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const {
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -112,7 +111,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    assert(!*xsink);
 
    // assign new value
-   if (v.assign(new_value.takeReferencedValue(), "<lvalue>", !ident))
+   if (v.assign(new_value.takeReferencedValue(), "<lvalue>", !ident, weak_assignment))
       return QoreValue();
 
    // reference return value if necessary

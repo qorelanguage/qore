@@ -91,6 +91,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("no-system-classes",        PO_NO_INHERIT_SYSTEM_CLASSES);
    DO_MAP("no-system-functions",      PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS);
    DO_MAP("no-system-hashdecls",      PO_NO_INHERIT_SYSTEM_HASHDECLS);
+   DO_MAP("allow-weak-references",    PO_ALLOW_WEAK_REFERENCES);
 
    // the following are not useful from the command-line
    //DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);

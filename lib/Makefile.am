@@ -159,6 +159,7 @@ libqore_la_SOURCES = \
 	ThrowStatement.cpp \
 	SwitchStatement.cpp \
 	Variable.cpp \
+	WeakReferenceNode.cpp \
 	support.cpp \
 	QoreType.cpp \
 	ModuleManager.cpp \

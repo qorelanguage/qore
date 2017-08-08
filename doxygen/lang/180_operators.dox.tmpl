@@ -71,6 +71,7 @@
     |@ref foldr "foldr"|\c 22|@ref foldr "fold right to left operator"|@code{.py} foldr closure($1 - $2), list@endcode
     |@ref select "select"|\c 22|@ref select "select elements from list operator"|@code{.py} select list, $1 > 1@endcode
     |@ref assignment_operator "="|\c 23|@ref assignment_operator "assignment operator"|@code{.py} var = 1@endcode
+    |@ref weak_assignment_operator ":="|\c 23|@ref weak_assignment_operator "weak assignment operator"|@code{.py} var := obj@endcode
     |@ref plus_equals_operator "+="|\c 23|@ref plus_equals_operator "plus-equals (add-to) operator"|@code{.py} var += 5@endcode
     |@ref minus_equals_operator "-="|\c 23|@ref minus_equals_operator "minus-equals (subtract-from) operator"|@code{.py} var -= 5@endcode
     |@ref and_equals_operator "&="|\c 23|@ref and_equals_operator "and-equals operator"|@code{.py} var &= 0x2000@endcode
@@ -148,7 +149,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     Retrieves the value of hash key or object member by evaulating an expression.
 
     @par Syntax
-    \a container_expression <tt>{</tt> \a expression <tt>}</tt>
+    <em>@ref expressions "container_expression"</em> <tt>{</tt> <em>@ref expressions "expression"</em> <tt>}</tt>
 
     @par Return Type
     @ref any_type "any"
@@ -158,8 +159,8 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
 
     <b>Arguments Processed by {}</b>
     |!Argument|!Processing
-    |\a container_expression|This expression must evaluate to a @ref hash "hash" or an @ref object "object"; if not, the operator returns no value (@ref nothing)
-    |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
+    |<em>@ref expressions "container_expression"</em>|This expression must evaluate to a @ref hash "hash" or an @ref object "object"; if not, the operator returns no value (@ref nothing)
+    |<em>@ref expressions "expression"</em>|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
 
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
 
@@ -170,9 +171,9 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     Retrieves the value of a hash key or object member using a literal identifier or an expression.
 
     @par Syntax
-    \a hash_or_object_expression <tt>.</tt> <i>identifier</i> \n
-    \a object_expression <tt>.</tt> \a method_name<tt>(</tt><em>[args ...]</em><tt>)</tt>\n
-    \a hash_or_object_expression <tt>.</tt> <i>expression</i> \n
+    <em>@ref expressions "hash_or_object_expression"</em> <tt>.</tt> <i>identifier</i> \n
+    <em>@ref expressions "object_expression"</em> <tt>.</tt> \a method_name<tt>(</tt><em>[args ...]</em><tt>)</tt>\n
+    <em>@ref expressions "hash_or_object_expression"</em> <tt>.</tt> <i>expression</i> \n
 
     @par Return Type
     @ref any_type "any"
@@ -183,17 +184,17 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
 
     <b>Arguments Processed by . (hash key or object member literal dereference)</b>
     |!Argument|!Processing
-    |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
+    |<em>@ref expressions "hash_or_object_expression"</em>|This expression must evaluate to a hash or an object; if not, then the operator returns no value
     |\a identifier|An unquoted string taken as the literal name of the hash key or object member. If no such key exists, then no value is returned. In order to use hash keys that are not valid %Qore identifiers, please use the {} operator. If the member is a private member and access is made outside the class, a run-time exception will be thrown.  Also note that constants or static class member names will not be resolved, in this case the string given is used as the literal name of the hash key or object member
 
     <b>Arguments Processed by . (object method call)</b>
     |!Argument|!Processing
-    |\a object_expression|The \a object_expression must evaluate to an object or a run-time exception is thrown
+    |<em>@ref expressions "object_expression"</em>|The \a object_expression must evaluate to an object or a run-time exception is thrown
     |<em>method_name</em><tt>([</tt><em>args</em><tt>])</tt>|If the method does not exist in the class a run-time exception is thrown. Otherwise the method is called with any optional arguments given and the return value of the method is returned.
 
     <b>Arguments Processed by . (hash key or object member expression dereference)</b>
     |!Argument|!Processing
-    |\a hash_or_object_expression|This expression must evaluate to a hash or an object; if not, then the operator returns no value
+    |<em>@ref expressions "hash_or_object_expression"</em>|This expression must evaluate to a hash or an object; if not, then the operator returns no value
     |\a expression|- @ref list "list": if the expression evaluates to a list, then a slice of the hash or object is returned as a hash containing keys given in the list that are present in the hash or object. If the key as given in the list (converted to a string if necessary) is not present in the hash or object, then it is also not present in the hash returned; if none of the given keys exist in the hash, an empty hash is returned.\n- anything other than @ref list "list": the expression is converted to a string (if necessary); the value of the hash key corresponding to this string will be returned; if the key or member does not exist, then no value is returned
 
     @throw PRIVATE-MEMBER Attempt to access a private member outside the class
@@ -209,9 +210,9 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     Retrieves the value of a list element, the given character of a string, or the integer value of a byte for a binary object. If the index value is not valid for the argument, @ref nothing is returned. Note that this operator only works as a list dereferencing operator in lvalue expressions; you cannot assign a character or a byte value to strings or binaries using this operator.
 
     @par Syntax
-    <em>list_expression</em><tt>[</tt>\a offset_expression<tt>]</tt>
-    <em>string_expression</em><tt>[</tt>\a offset_expression<tt>]</tt>
-    <em>binary_expression</em><tt>[</tt>\a offset_expression<tt>]</tt>
+    <em>@ref expressions "list_expression"</em><tt>[</tt><em>@ref expressions "offset_expression"</em><tt>]</tt>
+    <em>@ref expressions "string_expression"</em><tt>[</tt><em>@ref expressions "offset_expression"</em><tt>]</tt>
+    <em>@ref expressions "binary_expression"</em><tt>[</tt><em>@ref expressions "offset_expression"</em><tt>]</tt>
 
     @par Return Type
     @ref any_type "any"
@@ -223,10 +224,10 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
 
     <b>Arguments Processed by []</b>
     |!Argument|!Processing
-    |\a list_expression|If the expression evaluates to a list, then the \a offset_expression will be used to return the given element from the list
-    |\a string_expression|If the expression evaluates to a string, then the \a offset_expression will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator
-    |\a binary_expression|If the expression evaluates to a binary, then the \a offset_expression will be used to return the integer value of the byte given from the binary object
-    |\a offset_expression|The expression is evaluated and converted to an integer if necessary. Then the value of the given element given is returned according to the type of the first expression (as listed above; elements start at position 0)
+    |<em>@ref expressions "list_expression"</em>|If the expression evaluates to a list, then the <em>@ref expressions "offset_expression"</em> will be used to return the given element from the list
+    |<em>@ref expressions "string_expression"</em>|If the expression evaluates to a string, then the <em>@ref expressions "offset_expression"</em> will be used to return the given character from the list; note that multi-byte characters with UTF-8 are properly respected with this operator
+    |<em>@ref expressions "binary_expression"</em>|If the expression evaluates to a binary, then the <em>@ref expressions "offset_expression"</em> will be used to return the integer value of the byte given from the binary object
+    |<em>@ref expressions "offset_expression"</em>|The expression is evaluated and converted to an integer if necessary. Then the value of the given element given is returned according to the type of the first expression (as listed above; elements start at position 0)
 
     This operator does not throw any exceptions; if the first expression does not evaluate to either a list, string, or binary, then no value (@ref nothing) is returned.
 
@@ -384,7 +385,7 @@ list<int> l1 = new list<int>(2);
     - it is not possible to pass local variables by reference anywhere in a background expression (a parse exception will be thrown)
 
     @par Syntax
-    <tt><b>background</b></tt> \a expression
+    <tt><b>background</b></tt> <em>@ref expressions "expression"</em>
 
     @par Return Type
     @ref int_type "int"
@@ -394,7 +395,7 @@ list<int> l1 = new list<int>(2);
 
     <b>Arguments Processed by background</b>
     |!Argument|!Processing
-    |\a expression|The \a expression given as an argument will be executed in a new thread. The TID of the new thread will be returned as the return value of the operator
+    |<em>@ref expressions "expression"</em>|The <em>@ref expressions "expression"</em> given as an argument will be executed in a new thread. The TID of the new thread will be returned as the return value of the operator
 
     @throw THREAD-CREATION-FAILURE If the thread table is full or if the operating system returns an error while starting the thread, this exception is thrown
 
@@ -409,7 +410,7 @@ list<int> l1 = new list<int>(2);
     For a similar operator that returns the value that is removed from the data structure, and does not delete objects, see the @ref remove "remove operator".
 
     @par Syntax
-    <tt><b>delete</b></tt> \a lvalue_expression
+    <tt><b>delete</b></tt> \a lvalue
 
     @par Return Type
     Does not return any value
@@ -435,7 +436,7 @@ delete h.("a", "b", "c");
     For a similar operator that deletes the value that is removed from the data structure, see the @ref delete "delete operator".
 
     @par Syntax
-    <tt><b>remove</b></tt> \a lvalue_expression
+    <tt><b>remove</b></tt> \a lvalue
 
     @par Return Type
     @ref any_type "any"
@@ -457,11 +458,11 @@ hash nh = remove h.("a", "b", "c");
     The cast<>() operator provides a way to tell the parser that the type value is not actually the declared type but rather another compatible type as given between the angle brackets.  Parse-time and runtime checks are performed for compatibility.  Casts to @ref hashdecl "hashdecl" types, to the @ref hash_type "hash", and to the @ref list_type "list" types can result in data conversions; see below for more information.
 
     @par Syntax
-    - <tt><b>cast</b>&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt><em>object_expression</em><tt>)</tt>
-    - <tt><b>cast</b>&lt;@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;&gt;(</tt><em>object_expression</em><tt>)</tt>
-    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
-    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>
-    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;(</tt><em>@ref expressions "object_expression"</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref object_type "object"&lt;</tt><em>@ref qore_classes "class_identifier"</em><tt>&gt;&gt;(</tt><em>@ref expressions "object_expression"</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>@ref expressions "hash_expression"</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;string, </tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>@ref expressions "hash_expression"</em><tt>)</tt>
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>@ref expressions "hash_expression"</em><tt>)</tt>
     - <tt><b>cast</b>&lt;@ref list_type "list"&lt;</tt><em>@ref data_type_declarations "data_type"</em><tt>&gt;&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
     - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>
 
@@ -477,8 +478,8 @@ hash nh = remove h.("a", "b", "c");
     - If @ref list_type "list" is given as the target type, the runtime type must be a valid list or a runtime exception will be raised, additionally, any type-safe information is removed and an untyped list is returned
 
     @par Data Conversions with <tt>cast<>(...)</tt>
-    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>hash_expression</em><tt>)</tt>: performs initialization of @ref hashdecl "hashdecl" keys with initializer expressions for keys not present in the output evaluated hash expression
-    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>hash_expression</em><tt>)</tt>: removes any type-safe information from the output evaluated hash expression
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&lt;</tt><em>@ref hashdecl "hashdecl_identifier"</em><tt>&gt;&gt;(</tt><em>@ref expressions "hash_expression"</em><tt>)</tt>: performs initialization of @ref hashdecl "hashdecl" keys with initializer expressions for keys not present in the output evaluated hash expression
+    - <tt><b>cast</b>&lt;@ref hash_type "hash"&gt;(</tt><em>@ref expressions "hash_expression"</em><tt>)</tt>: removes any type-safe information from the output evaluated hash expression
     - <tt><b>cast</b>&lt;@ref list_type "list"&gt;(</tt><em>list_elements, ...</em><tt>)</tt>: removes any type-safe information from the output evaluated list expression
 
     @par Examples
@@ -546,7 +547,7 @@ if (!exists error_code)
     The value of each bit in an integer is reversed (0 becomes 1, 1 becomes 0).
 
     @par Syntax
-    <tt>~</tt><em>expression</em>
+    <tt>~</tt><em>@ref expressions "expression"</em>
 
     @par Return Type
     @ref int_type "int"
@@ -556,7 +557,7 @@ if (!exists error_code)
 
     <b>Arguments Processed by ~</b>
     |!Argument|!Processing
-    |\a expression|The argument is converted to an integer (if necessary), and bitwise negation is performed on the argument (ex: <tt>666 & ~27</tt> results in \c 640)
+    |<em>@ref expressions "expression"</em>|The argument is converted to an integer (if necessary), and bitwise negation is performed on the argument (ex: <tt>666 & ~27</tt> results in \c 640)
 
     This operator does not throw any exceptions
 
@@ -592,7 +593,7 @@ if (!exists error_code)
     Does nothing with numeric values, converts others to 0.
 
     @par Syntax
-    +expression
+    +<em>@ref expressions "expression"</em>
 
     @par Return Type
     @ref int_type "int", @ref number_type "number", @ref float_type "float" or @ref date_type "date"
@@ -711,15 +712,15 @@ if (!exists error_code)
     @par Synopsis
     Executes (or maps) an expression on a list and returns the result. An optional select expression can be given to filter elements out from the result list.\n\n
     If the first argument is a single element hash expression using curly brackets, then the @ref hmap "hash variant of the map operator" is used instead.\n\n
-    If the second argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
-    If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
-    If possible, \a iterator_expression is evaluated using @ref op_functional "lazy functional evaluation".
+    If the second argument (<em>@ref expressions "iterator_expression"</em>) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the <em>@ref expressions "map_expression"</em> and any optional <em>@ref expressions "select_expression"</em> is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the second argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then <em>@ref expressions "map_expression"</em> is executed on the single value and the result is returned (assuming that any <em>@ref expressions "select_expression"</em> accepts the value).\n\n
+    If possible, <em>@ref expressions "iterator_expression"</em> is evaluated using @ref op_functional "lazy functional evaluation".
 
     @par Return Type
     @ref any_type "any"
 
     @par Syntax
-    <tt><b>map</b></tt> \a map_expression, <em>iterator_expression [, select_expression]</em>
+    <tt><b>map</b></tt> <em>@ref expressions "map_expression"</em><tt>,</tt> <em>@ref expressions "iterator_expression" [, @ref expressions "select_expression"]</em>
 
     @par Examples
     @code{.py}
@@ -733,9 +734,9 @@ map printf("%s\n", $1), hash.keyIterator();
 
     <b>Arguments Processed by map</b>
     |!Argument|!Processing
-    |\a map_expression|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed
-    |\a iterator_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"; if supported, this expression is evaluated using @ref op_functional "lazy functional evaluation"
-    |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
+    |<em>@ref expressions "map_expression"</em>|The expression to map on the list; the implicit argument <tt>$1</tt> represents the current element being processed
+    |<em>@ref expressions "iterator_expression"</em>|The data to process; if this is not a list then the <em>@ref expressions "map_expression"</em> is run on the single argument passed, unless the <em>@ref expressions "iterator_expression"</em> is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"; if supported, this expression is evaluated using @ref op_functional "lazy functional evaluation"
+    |<em>[@ref expressions "select_expression"]</em>|An optional expression than can be used to filter out elements of the list before the <em>@ref expressions "map_expression"</em> is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the <em>@ref expressions "map_expression"</em> will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
@@ -743,7 +744,7 @@ map printf("%s\n", $1), hash.keyIterator();
 
     @since %Qore 0.8.6.2 the map operator when used with an @ref Qore::AbstractIterator "AbstractIterator" object instantiates the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator itself
 
-    @note the non-hash version of the <b><tt>map</tt></b> operator supports @ref op_functional "lazy functional evaluation" of itself and also of the \a iterator_expression
+    @note the non-hash version of the <b><tt>map</tt></b> operator supports @ref op_functional "lazy functional evaluation" of itself and also of the <em>@ref expressions "iterator_expression"</em>
 
     <hr>
     @subsection hmap Hash Map Operator (map)
@@ -751,14 +752,14 @@ map printf("%s\n", $1), hash.keyIterator();
     @par Synopsis
     This variant of the map operator builds a hash from a list or iterator argument and can be differentiated from the standard list @ref map "map" operator by the use of curly brackets in the initial expression; in this case the hash version of the map operator is used.  This operator executes (or maps) an expression on a list and returns the result in form of a hash. An optional select expression can be given to filter elements out from the result hash.\n\n
     If the first argument is anything other than a single element hash expression using curly brackets, then the @ref map "list variant of the map operator" is used instead.\n\n
-    If the third argument (\a iterator_expression) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the \a map_expression and any optional \a select_expression is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
-    If the third argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then \a map_expression is executed on the single value and the result is returned (assuming that any \a select_expression accepts the value).\n\n
+    If the third argument (<em>@ref expressions "iterator_expression"</em>) is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class, the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()", and the implicit argument <tt>$1</tt> in the <em>@ref expressions "key_expression"</em> and <em>@ref expressions "value_expression"</em> and any optional <em>@ref expressions "select_expression"</em> is the value returned by @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()".\n\n
+    If the third argument is not a list or an object inheriting @ref Qore::AbstractIterator "AbstractIterator", then <em>@ref expressions "key_expression"</em> and <em>@ref expressions "value_expression"</em> are executed on the single value and the result is returned as a single element hash (assuming that any <em>@ref expressions "select_expression"</em> accepts the value).\n\n
 
     @par Return Type
-    @ref hash in case of valid third expression, otherwise @ref nothing
+    @ref hash in case of a <em>@ref expressions "iterator_expression"</em> with a value, otherwise @ref nothing
 
     @par Syntax
-    <tt><b>map</b></tt> {\a key_expression,  : \a value_expression},  <em>iterator_expression [, select_expression]</em>
+    <tt><b>map</b> {</tt><em>@ref expressions "key_expression"</em> <tt>:</tt> <em>@ref expressions "value_expression"</em><tt>},</tt> <em>@ref expressions "iterator_expression" [, @ref expressions "select_expression"]</em>
 
     @par Examples
     @code{.py}
@@ -772,10 +773,10 @@ hash h = map {$1 : $1 * 2}, (1, 2, 3), $1 > 1;
 
     <b>Arguments Processed by the hash version of map</b>
     |!Argument|!Processing
-    |\a key_expression|The expression to map on the list or iterator value which will result in the key for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed. The result of the expression is converted to a string to be used as the hash key for the current element
-    |\a value_expression|The expression to map on the list which will result in the value for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed
-    |\a iterator_expression|The data to process; if this is not a list then the \a map_expression is run on the single argument passed, unless the \a map_expression is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"
-    |<em>[select_expression]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the \a map_expression will not be applied on that element.
+    |<em>@ref expressions "key_expression"</em>|The expression to map on the list or iterator value which will result in the key for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed. The result of the expression is converted to a string to be used as the hash key for the current element
+    |<em>@ref expressions "value_expression"</em>|The expression to map on the list which will result in the value for the current hash element; the implicit argument <tt>$1</tt> represents the current element being processed
+    |<em>@ref expressions "iterator_expression"</em>|The data to process; if this is not a list then the <em>@ref expressions "key_expression"</em> and <em>@ref expressions "value_expression"</em> are run on the single argument passed, unless the <em>@ref expressions "iterator_expression"</em> is an object inheriting the @ref Qore::AbstractIterator "AbstractIterator" class; in this case the <b><tt>map</tt></b> operator iterates the object by calling @ref Qore::AbstractIterator::next() "AbstractIterator::next()"; if supported, this expression is evaluated using @ref op_functional "lazy functional evaluation"
+    |<em>[@ref expressions "select_expression"]</em>|An optional expression than can be used to filter out elements of the list before the map expression is applied; if this expression evaluates to @ref Qore::False "False" on an element, then the element will be skipped and the <em>@ref expressions "key_expression"</em> and <em>@ref expressions "value_expression"</em> will not be applied on that element.
 
     This operator does not throw any exceptions (however note that exceptions could be thrown by expressions executed by this operator).
 
@@ -1855,6 +1856,33 @@ if (x || y)
     <b>Arguments Processed by =</b>
     |!Argument|!Processing
     |All|Assigns the value of \a expression to \a lvalue
+
+    <hr>
+    @subsection weak_assignment_operator Weak Reference Assignment Operator (:=)
+
+    @par Synopsis
+    Identical to the @ref assignment_operator "assignment operator" except when the rvalue is an object;
+    in such cases a weak reference to the object is assigned instead of a strong reference.  Weak references
+    do not extend the life of an object and also do not participate in object graph cycles (i.e. recursive
+    references) and therefore can be used to break up large graphs of objects to improve garbage collector
+    performance with such graphs, however the programmer must ensure that the object has a valid
+    strong reference elsewhere or the object will go out of scope.\n\n
+    This operator should only be used in very special circumstances by
+    expert users and is only allowed when the @ref allow-weak-references "%allow-weak-references" sandbox
+    permission is set.
+
+    @par Syntax
+    \a lvalue <tt>:=</tt> <em>@ref expressions "rvalue_expression"</em>
+
+    @par Return Type
+    @ref any_type "any"
+
+    @par Example
+    @code{.py}object a := get_object_from_cache();@endcode
+
+    <b>Arguments Processed by :=</b>
+    |!Argument|!Processing
+    |All|Assigns the value of \a expression to \a lvalue and returns the value assigned; if <em>@ref expressions "rvalue_expression"</em> is an object, a weak reference is assigned instead of a strong reference
 
     <hr>
     @subsection plus_equals_operator Plus Equals Operator (+=)

@@ -52,6 +52,10 @@ QoreValue QoreInstanceOfOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (*xsink)
       return QoreValue();
 
+   // treat a weak reference as the target object
+   if (v->getType() == NT_WEAKREF)
+      return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
+
    return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
 }
 
