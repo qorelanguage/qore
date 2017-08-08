@@ -122,7 +122,8 @@ public:
    }
 
    DLLLOCAL bool isComplex() const {
-      return typespec == QTS_COMPLEXHASH
+      return typespec == QTS_HASHDECL
+             || typespec == QTS_COMPLEXHASH
              || typespec == QTS_COMPLEXLIST;
    }
 
@@ -294,8 +295,11 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
-      if (!hasType(first))
+      if (!hasType(first)) {
+         if (!may_need_filter && isComplex(second))
+            may_need_filter = true;
          return QTI_AMBIGUOUS;
+      }
       if (!hasType(second)) {
          if (!may_need_filter) {
             // check if we could need a runtime filter
@@ -427,7 +431,11 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
-      return ti ? ti->mayRequireFilter(n) : false;
+      if (!hasType(ti)) {
+         return isComplex(n.getTypeInfo());
+      }
+      assert(ti);
+      return ti->mayRequireFilter(n);
    }
 
    // static version of method, checking for null pointer
@@ -534,6 +542,17 @@ public:
          return true;
       }
       ctype = nullptr;
+      return false;
+   }
+
+   // returns true if ti could return a complex type
+   DLLLOCAL static bool isComplex(const QoreTypeInfo* ti) {
+      if (!ti)
+         return false;
+      for (auto& i : ti->return_vec) {
+         if (i.spec.isComplex())
+            return true;
+      }
       return false;
    }
 

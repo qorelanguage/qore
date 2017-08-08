@@ -215,7 +215,13 @@ hash<MyHash> sub foo(int x) {
     @endcode
 
     This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
-    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, call the @ref Qore::hash() "hash()"
+    function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
+    hash to an untyped hash.
+
+    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
+    breaking backwards compatibility.
 
     @see
     - @ref hashdecl
@@ -261,7 +267,13 @@ hash<string, int> h4 = cast<hash<string, int>>(get_hash());
     @endcode
 
     This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
-    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+    to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, call the @ref Qore::hash() "hash()"
+    function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
+    hash to an untyped hash.
+
+    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
+    breaking backwards compatibility.
 
     @see
     - @ref hashdecl
@@ -308,7 +320,13 @@ list<int> l4 = cast<list<int>>(get_list());
     @endcode
 
     This type is supported at parse-time and at runtime; to convert such values to an untyped list, assign it
-    to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, or call the @ref Qore::list() "list()" function on the value.  Each of these options can be used to convert a type-safe list to an untyped list.
+    to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, call the @ref Qore::list() "list()"
+    function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
+    list to an untyped list.
+
+    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
+    breaking backwards compatibility.
 
     @see
     - @ref new
