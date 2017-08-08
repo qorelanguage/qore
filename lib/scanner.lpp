@@ -1587,7 +1587,7 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); par
 namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
 {WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
-{WORD}<[a-zA-Z\*<:_0-9 \t,]+>             {
+{WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
                                            if (angle_balanced(yytext)) {
                                                yylval->string = strdup(yytext);
                                                return ANGLE_IDENTIFIER;
@@ -1611,7 +1611,6 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                         }
       [^>]                              yylval->String->concat(yytext);
 }
-#{WORD}<[a-zA-Z<>:_0-9 \t,]+>            yylval->string = strdup(yytext); return ANGLE_IDENTIFIER;
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;

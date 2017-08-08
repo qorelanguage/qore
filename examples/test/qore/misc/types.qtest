@@ -23,6 +23,11 @@ class TypeTest inherits QUnit::Test {
 
     testComplexTypesCompat() {
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() {\n#hash<string, int> h0();\n#hash<MyHash> h1();\n#list<int> l0();\n}\n", "");
+        }
+
+        {
             hash<MyHash> h();
             assertEq(True, h.complexType());
             assertEq(1, h.x);
