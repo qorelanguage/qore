@@ -303,7 +303,7 @@ Content-Length: 36
 
     %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so that they can be recognized and handled appropriately by clients.
 
-    %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref exception_hash "exception hash".
+    %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
 

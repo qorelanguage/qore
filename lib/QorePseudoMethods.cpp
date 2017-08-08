@@ -108,11 +108,16 @@ static QoreClass* pseudo_get_class(qore_type_t t) {
       return po_list[NODE_ARRAY_LEN];
    if (t == NT_RUNTIME_CLOSURE)
       return po_list[NODE_ARRAY_LEN + 1];
+   if (t == NT_WEAKREF)
+      return po_list[NT_OBJECT];
 
    return QC_PSEUDOVALUE;
 }
 
 QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   if (n.getType() == NT_WEAKREF)
+      return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT], QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+
    return qore_class_private::evalPseudoMethod(pseudo_get_class(n.getType()), n, name, args, xsink);
 }
 

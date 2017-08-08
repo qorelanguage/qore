@@ -2575,7 +2575,7 @@ set_return_value(any val) [dom=PROCESS] {
    qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
 }
 
-//! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref exception_hash "exception hash" argument
+//! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref Qore::ExceptionInfo "ExceptionInfo" hash argument
 /** @par Example:
     @code{.py}
 try {
@@ -2586,7 +2586,7 @@ catch (hash ex) {
 }
     @endcode
 
-    @param ex an @ref exception_hash "exception hash"
+    @param ex a hash which should be an @ref Qore::ExceptionInfo "ExceptionInfo" hash
 
     @return a string describing the exception location (ex: \c "sftp-poller.q:140")
 

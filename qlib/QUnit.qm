@@ -262,12 +262,12 @@ public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResul
 #! Class representing Exception of a particular type
 public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
     public {
-        #! corresponds to the \c "err" key of an @ref exception_hash "exception hash" (the first value of a @ref throw "throw statement")
+        #! corresponds to the \c "err" key of @ref Qore::ExceptionInfo "ExceptionInfo" (the first value of a @ref throw "throw statement")
         string m_exceptionType;
     }
 
     #! creates the object from the exception arguments
-    /** @param exceptionType corresponds to the \c "err" key of an @ref exception_hash "exception hash" (the first value of a @ref throw "throw statement")
+    /** @param exceptionType corresponds to the \c "err" key of @ref Qore::ExceptionInfo "ExceptionInfo" (the first value of a @ref throw "throw statement")
     */
     constructor(string exceptionType) : AbstractTestResult("Exception") {
         m_exceptionType = exceptionType;
@@ -303,8 +303,8 @@ public class QUnit::TestResultExceptionDetail inherits QUnit::TestResultExceptio
     }
 
     #! creates the object from the exception arguments
-    /** @param exceptionType corresponds to the \c "err" key of an @ref exception_hash "exception hash"
-        @param exceptionDetail corresponds to the \c "desc" key of an @ref exception_hash "exception hash"
+    /** @param exceptionType corresponds to the \c "err" key of @ref Qore::ExceptionInfo "ExceptionInfo"
+        @param exceptionDetail corresponds to the \c "desc" key of @ref Qore::ExceptionInfo "ExceptionInfo"
     */
     constructor(string exceptionType, string exceptionDetail) : TestResultExceptionType(exceptionType, "Detail")  {
         m_exceptionDetail = exceptionDetail;

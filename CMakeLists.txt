@@ -415,6 +415,7 @@ set(LIBQORE_CPP_SRC
     lib/unicode-charmaps.cpp
     lib/ThreadClosureVariableStack.cpp
     lib/ThreadLocalVariableData.cpp
+    lib/WeakReferenceNode.cpp
     lib/QoreProgram.cpp
     lib/QoreProgramHelper.cpp
     lib/QoreNamespace.cpp
