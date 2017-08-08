@@ -81,6 +81,7 @@
 #include "ThrowStatement.cpp"
 #include "SwitchStatement.cpp"
 #include "Variable.cpp"
+#include "WeakReferenceNode.cpp"
 #include "support.cpp"
 #ifdef HAVE_SIGNAL_HANDLING
 #include "QoreSignal.cpp"

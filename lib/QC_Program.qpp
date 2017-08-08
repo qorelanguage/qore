@@ -477,6 +477,14 @@ const PO_NO_INHERIT_USER_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
 /** @since %Qore 0.8.13
  */
 const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+
+//! Allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
+/** @see @ref weak_assignment_operator
+
+    @since %Qore 0.8.13
+ */
+const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
+
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -688,7 +696,7 @@ Program::destructor() {
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}
@@ -740,7 +748,7 @@ while (wh) {
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}

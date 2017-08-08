@@ -125,6 +125,7 @@
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
+      - @ref allow-weak-references "%allow-weak-references": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref broken-references "%broken-references": allows @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to accept any type contrary to the documented design and intention of these type restrictions
       - @ref correct-loop-statement "%correct-loop-statement": to revert the effect of @ref broken-loop-statement "%broken-loop-statement"
@@ -136,6 +137,7 @@
       - @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT": DBI capability for drivers that support returning an @ref Qore::SQL::SQLStatement "SQLStatement" object for a @ref resultset_output_binding "result set" when bound with the @ref Qore::SQL::RESULTSET "RESULTSET" placeholder specification
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
       - @ref Qore::PO_ALLOW_DEBUGGING "PO_ALLOW_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
+      - @ref Qore::PO_ALLOW_WEAK_REFERENCES "PO_ALLOW_WEAK_REFERENCES": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref Qore::PO_BROKEN_REFERENCES "PO_BROKEN_REFERENCES": reverts @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to pre-%Qore-0.8.13 behavior where they would have no effect
       - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS": disallow access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls; note that this parse option was also added to @ref Qore::PO_NO_IO "PO_NO_IO" and @ref Qore::PO_NO_EXTERNAL_ACCESS "PO_NO_EXTERNAL_ACCESS"
@@ -147,6 +149,7 @@
       - @ref Qore::SSL_VERIFY_CLIENT_ONCE "SSL_VERIFY_CLIENT_ONCE": @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()" option: only require the client to send a certificate once (server mode only)
       - see new cryptographic constants listed above
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
+    - implemented the @ref weak_assignment_operator "weak assignment operator (:=)" (only available with @ref allow-weak-references "%allow-weak-references")
     - new methods:
       - @ref Qore::Program::getGlobalVars()
       - @ref Qore::Program::importSystemHashDecls()

@@ -495,6 +495,7 @@ noinst_HEADERS = \
 	include/qore/intern/QoreObjectIterator.h \
 	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/QoreListHashIterator.h \
+	include/qore/intern/WeakReferenceNode.h \
 	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ThreadPool.h \

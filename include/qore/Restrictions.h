@@ -87,6 +87,7 @@
 #define PO_BROKEN_REFERENCES                (1LL << 47)  //!< allow for old pre-%Qore 0.8.13 "reference" and "*reference" type restriction behavior where they accepted any type
 #define PO_NO_INHERIT_USER_HASHDECLS        (1LL << 48)  //!< do not inherit user hashdecls from the parent into the new program's space
 #define PO_NO_INHERIT_SYSTEM_HASHDECLS      (1LL << 49)  //!< do not inherit system hashdecls from the parent into the new program's space
+#define PO_ALLOW_WEAK_REFERENCES            (1LL << 50)  //!< allow the use of the weak reference assignment operator ':='
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -118,7 +119,7 @@
 #define PO_NEW_STYLE                  (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
 
 //! mask of all options allowing for more freedom (instead of less)
-#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_DEBUGGING)
+#define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_DEBUGGING|PO_ALLOW_WEAK_REFERENCES)
 
 //! mask of options that have no effect on code access or code safety
 #define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_OPERATORS|PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES)

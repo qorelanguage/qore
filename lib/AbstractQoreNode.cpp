@@ -191,7 +191,7 @@ AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
-AbstractQoreNode* AbstractQoreNode::eval(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
    if (!needs_eval_flag) {
       needs_deref = false;
       return const_cast<AbstractQoreNode*>(this);
