@@ -17,7 +17,7 @@ public hashdecl MyHash {
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
         addTestCase("complex type compat", \testComplexTypesCompat());
-        #addTestCase("types", \testTypes());
+        addTestCase("types", \testTypes());
         set_return_value(main());
     }
 
