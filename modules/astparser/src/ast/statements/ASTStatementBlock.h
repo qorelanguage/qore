@@ -50,7 +50,7 @@ public:
     ASTStatementBlock() : ASTStatement() {}
 
     virtual ~ASTStatementBlock() {
-        for (unsigned int i = 0, count = statements.size(); i < count; i++)
+        for (size_t i = 0, count = statements.size(); i < count; i++)
             delete statements[i];
         statements.clear();
     }

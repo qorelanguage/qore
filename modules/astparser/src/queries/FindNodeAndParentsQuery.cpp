@@ -47,11 +47,11 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inDecl(ASTDeclaration* decl, ast
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) { result->push_back(decl); return result; }
-            for (unsigned int i = 0, count = d->inherits.size(); i < count; i++) {
+            for (size_t i = 0, count = d->inherits.size(); i < count; i++) {
                 result = inDecl(d->inherits[i], line, col);
                 if (result) { result->push_back(decl); return result; }
             }
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDecl(d->declarations[i], line, col);
                 if (result) { result->push_back(decl); return result; }
             }
@@ -93,7 +93,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inDecl(ASTDeclaration* decl, ast
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) { result->push_back(decl); return result; }
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDecl(d->declarations[i], line, col);
                 if (result) { result->push_back(decl); return result; }
             }
@@ -111,7 +111,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inDecl(ASTDeclaration* decl, ast
         }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->members.size(); i < count; i++) {
+            for (size_t i = 0, count = d->members.size(); i < count; i++) {
                 result = inExpr(d->members[i], line, col);
                 if (result) { result->push_back(decl); return result; }
             }
@@ -119,7 +119,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inDecl(ASTDeclaration* decl, ast
         }
         case ASTDeclaration::Kind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDecl(d->declarations[i], line, col);
                 if (result) { result->push_back(decl); return result; }
             }
@@ -219,7 +219,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpr(ASTExpression* expr, ast_
         }
         case ASTExpression::Kind::AEK_ConstrInit: {
             ASTConstrInitExpression* e = static_cast<ASTConstrInitExpression*>(expr);
-            for (unsigned int i = 0, count = e->inits.size(); i < count; i++) {
+            for (size_t i = 0, count = e->inits.size(); i < count; i++) {
                 result = inExpr(e->inits[i], line, col);
                 if (result) { result->push_back(expr); return result; }
             }
@@ -251,7 +251,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpr(ASTExpression* expr, ast_
         }
         case ASTExpression::Kind::AEK_Hash: {
             ASTHashExpression* e = static_cast<ASTHashExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++) {
+            for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpr(e->elements[i], line, col);
                 if (result) { result->push_back(expr); return result; }
             }
@@ -278,7 +278,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpr(ASTExpression* expr, ast_
         }
         case ASTExpression::Kind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++) {
+            for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpr(e->elements[i], line, col);
                 if (result) { result->push_back(expr); return result; }
             }
@@ -304,7 +304,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpr(ASTExpression* expr, ast_
         }
         case ASTExpression::Kind::AEK_SwitchBody: {
             ASTSwitchBodyExpression* e = static_cast<ASTSwitchBodyExpression*>(expr);
-            for (unsigned int i = 0, count = e->cases.size(); i < count; i++) {
+            for (size_t i = 0, count = e->cases.size(); i < count; i++) {
                 result = inExpr(e->cases[i], line, col);
                 if (result) { result->push_back(expr); return result; }
             }
@@ -372,7 +372,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inStmt(ASTStatement* stmt, ast_l
     switch (stmt->getKind()) {
         case ASTStatement::Kind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
-            for (unsigned int i = 0, count = s->statements.size(); i < count; i++) {
+            for (size_t i = 0, count = s->statements.size(); i < count; i++) {
                 result = inStmt(s->statements[i], line, col);
                 if (result) { result->push_back(stmt); return result; }
             }
@@ -392,7 +392,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inStmt(ASTStatement* stmt, ast_l
             if (result) { result->push_back(stmt); return result; }
             result = inExpr(s->data.get(), line, col);
             if (result) { result->push_back(stmt); return result; }
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++) {
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++) {
                 result = inExpr(s->contextMods[i], line, col);
                 if (result) { result->push_back(stmt); return result; }
             }
@@ -470,7 +470,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inStmt(ASTStatement* stmt, ast_l
             if (result) { result->push_back(stmt); return result; }
             result = inExpr(s->by.get(), line, col);
             if (result) { result->push_back(stmt); return result; }
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++) {
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++) {
                 result = inExpr(s->contextMods[i], line, col);
                 if (result) { result->push_back(stmt); return result; }
             }
@@ -525,7 +525,7 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::find(ASTTree* tree, ast_loc_t li
         return nullptr;
 
     std::vector<ASTNode*>* result = nullptr;
-    for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
+    for (size_t i = 0, count = tree->nodes.size(); i < count; i++) {
         ASTNode* node = tree->nodes[i];
         switch (node->getNodeType()) {
             case ANT_Declaration: {

@@ -39,9 +39,9 @@ void FindReferencesQuery::inDeclaration(std::vector<ASTNode*>* vec, ASTDeclarati
         case ASTDeclaration::Kind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             inName(vec, d->name, name);
-            for (unsigned int i = 0, count = d->inherits.size(); i < count; i++)
+            for (size_t i = 0, count = d->inherits.size(); i < count; i++)
                 inDeclaration(vec, d->inherits[i], name);
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i], name);
             break;
         }
@@ -70,7 +70,7 @@ void FindReferencesQuery::inDeclaration(std::vector<ASTNode*>* vec, ASTDeclarati
         case ASTDeclaration::Kind::ADK_Hash: {
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
             inName(vec, d->name, name);
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i], name);
             break;
         }
@@ -83,13 +83,13 @@ void FindReferencesQuery::inDeclaration(std::vector<ASTNode*>* vec, ASTDeclarati
         }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->members.size(); i < count; i++)
+            for (size_t i = 0, count = d->members.size(); i < count; i++)
                 inExpression(vec, d->members[i], name);
             break;
         }
         case ASTDeclaration::Kind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i], name);
             break;
         }
@@ -164,7 +164,7 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
         }
         case ASTExpression::Kind::AEK_ConstrInit: {
             ASTConstrInitExpression* e = static_cast<ASTConstrInitExpression*>(expr);
-            for (unsigned int i = 0, count = e->inits.size(); i < count; i++)
+            for (size_t i = 0, count = e->inits.size(); i < count; i++)
                 inExpression(vec, e->inits[i], name);
             break;
         }
@@ -189,7 +189,7 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
         }
         case ASTExpression::Kind::AEK_Hash: {
             ASTHashExpression* e = static_cast<ASTHashExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++)
+            for (size_t i = 0, count = e->elements.size(); i < count; i++)
                 inExpression(vec, e->elements[i], name);
             break;
         }
@@ -210,7 +210,7 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
         }
         case ASTExpression::Kind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++)
+            for (size_t i = 0, count = e->elements.size(); i < count; i++)
                 inExpression(vec, e->elements[i], name);
             break;
         }
@@ -232,7 +232,7 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
         }
         case ASTExpression::Kind::AEK_SwitchBody: {
             ASTSwitchBodyExpression* e = static_cast<ASTSwitchBodyExpression*>(expr);
-            for (unsigned int i = 0, count = e->cases.size(); i < count; i++)
+            for (size_t i = 0, count = e->cases.size(); i < count; i++)
                 inExpression(vec, e->cases[i], name);
             break;
         }
@@ -272,7 +272,7 @@ void FindReferencesQuery::inStatement(std::vector<ASTNode*>* vec, ASTStatement* 
     switch (stmt->getKind()) {
         case ASTStatement::Kind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
-            for (unsigned int i = 0, count = s->statements.size(); i < count; i++)
+            for (size_t i = 0, count = s->statements.size(); i < count; i++)
                 inStatement(vec, s->statements[i], name);
             break;
         }
@@ -287,7 +287,7 @@ void FindReferencesQuery::inStatement(std::vector<ASTNode*>* vec, ASTStatement* 
             ASTContextStatement* s = static_cast<ASTContextStatement*>(stmt);
             inExpression(vec, s->name.get(), name);
             inExpression(vec, s->data.get(), name);
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
                 inExpression(vec, s->contextMods[i], name);
             inStatement(vec, s->statements.get(), name);
             break;
@@ -344,7 +344,7 @@ void FindReferencesQuery::inStatement(std::vector<ASTNode*>* vec, ASTStatement* 
             inExpression(vec, s->name.get(), name);
             inExpression(vec, s->data.get(), name);
             inExpression(vec, s->by.get(), name);
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
                 inExpression(vec, s->contextMods[i], name);
             inStatement(vec, s->statements.get(), name);
             break;

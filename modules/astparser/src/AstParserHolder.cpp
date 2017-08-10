@@ -56,6 +56,6 @@ size_t AstParserHolder::getErrorCount() const {
     return parser->getErrorCount();
 }
 
-ASTParseError* AstParserHolder::getError(unsigned int index) {
+ASTParseError* AstParserHolder::getError(size_t index) {
     return parser->getError(index);
 }
