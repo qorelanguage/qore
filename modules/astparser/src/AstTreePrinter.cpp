@@ -39,16 +39,6 @@ static void printString(std::ostream& os, const char* str, int indent) {
     os << str;
 }
 
-static void printString(std::ostream& os, const std::string& str, int indent) {
-    printIndent(os, indent);
-    os << str;
-}
-
-static void printString(std::ostream& os, const std::string* str, int indent) {
-    printIndent(os, indent);
-    os << *str;
-}
-
 void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent) {
     if (!decl) {
         printString(os, "<null declaration>\n", indent);
@@ -64,12 +54,12 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printName(os, d->name, indent+1);
             if (d->inherits.size() > 0) {
                 printString(os, "inherits:\n", indent+1);
-                for (unsigned int i = 0, count = d->inherits.size(); i < count; i++)
+                for (size_t i = 0, count = d->inherits.size(); i < count; i++)
                     printDeclaration(os, d->inherits[i], indent+2);
             }
             if (d->declarations.size() > 0) {
                 printString(os, "declarations:\n", indent+1);
-                for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+                for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                     printDeclaration(os, d->declarations[i], indent+2);
             }
             break;
@@ -124,13 +114,40 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            printString(os, "HashDecl ", indent);
+            printLocation(os, d->loc, 0);
+            printModifiers(os, d->modifiers, indent+1);
+            printName(os, d->name, indent+1);
+            if (d->declarations.size() > 0) {
+                printString(os, "declarations:\n", indent+1);
+                for (size_t i = 0, count = d->declarations.size(); i < count; i++)
+                    printDeclaration(os, d->declarations[i], indent+2);
+            }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            printString(os, "HashMemberDecl ", indent);
+            printLocation(os, d->loc, 0);
+            printName(os, d->typeName, indent+1, true, true, "typeName: ");
+            printName(os, d->name, indent+1);
+            if (d->init.get()) {
+                printString(os, "init:\n", indent+1);
+                printExpression(os, d->init.get(), indent+2);
+                printString(os, "constr: ", indent+1);
+                os << d->constr << "\n";
+            }
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             printString(os, "MemberGroupDecl ", indent);
             printLocation(os, d->loc, 0);
             printModifiers(os, d->modifiers, indent+1);
             if (d->members.size() > 0) {
-                for (unsigned int i = 0, count = d->members.size(); i < count; i++)
+                for (size_t i = 0, count = d->members.size(); i < count; i++)
                     printExpression(os, d->members[i], indent+1);
             }
             else {
@@ -145,7 +162,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printModifiers(os, d->modifiers, indent+1);
             printName(os, d->name, indent+1);
             if (d->declarations.size() > 0) {
-                for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+                for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                     printDeclaration(os, d->declarations[i], indent+1);
             }
             else {
@@ -213,6 +230,8 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->left.get(), indent+2);
             printString(os, "right:\n", indent+1);
             printExpression(os, e->right.get(), indent+2);
+            printString(os, "weak: ", indent+1);
+            os << e->weak << "\n";
             break;
         }
         case ASTExpression::Kind::AEK_Backquote: {
@@ -283,7 +302,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printString(os, "ConstrInitExpr ", indent);
             printLocation(os, e->loc, 0);
             if (e->inits.size() > 0) {
-                for (unsigned int i = 0, count = e->inits.size(); i < count; i++)
+                for (size_t i = 0, count = e->inits.size(); i < count; i++)
                     printExpression(os, e->inits[i], indent+1);
             }
             break;
@@ -330,7 +349,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printString(os, "HashExpr ", indent);
             printLocation(os, e->loc, 0);
             if (e->elements.size() > 0) {
-                for (unsigned int i = 0, count = e->elements.size(); i < count; i++)
+                for (size_t i = 0, count = e->elements.size(); i < count; i++)
                     printExpression(os, e->elements[i], indent+1);
             }
             else {
@@ -379,7 +398,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printString(os, "ListExpr ", indent);
             printLocation(os, e->loc, 0);
             if (e->elements.size() > 0) {
-                for (unsigned int i = 0, count = e->elements.size(); i < count; i++)
+                for (size_t i = 0, count = e->elements.size(); i < count; i++)
                     printExpression(os, e->elements[i], indent+1);
             }
             else {
@@ -483,7 +502,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printString(os, "SwitchBodyExpr ", indent);
             printLocation(os, e->loc, 0);
             if (e->cases.size() > 0) {
-                for (unsigned int i = 0, count = e->cases.size(); i < count; i++)
+                for (size_t i = 0, count = e->cases.size(); i < count; i++)
                     printExpression(os, e->cases[i], indent+1);
             }
             else {
@@ -782,7 +801,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printString(os, "StmtBlock ", indent);
             printLocation(os, s->loc, 0);
             if (s->statements.size() > 0) {
-                for (unsigned int i = 0, count = s->statements.size(); i < count; i++)
+                for (size_t i = 0, count = s->statements.size(); i < count; i++)
                     printStatement(os, s->statements[i], indent+1);
             }
             else {
@@ -813,7 +832,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printExpression(os, s->data.get(), indent+2);
             if (s->contextMods.size() > 0) {
                 printString(os, "contextMods:\n", indent+1);
-                for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+                for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
                     printExpression(os, s->contextMods[i], indent+2);
             }
             printStatement(os, s->statements.get(), indent+1);
@@ -914,7 +933,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printExpression(os, s->by.get(), indent+2);
             if (s->contextMods.size() > 0) {
                 printString(os, "contextMods:\n", indent+1);
-                for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++)
+                for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
                     printExpression(os, s->contextMods[i], indent+2);
             }
             printStatement(os, s->statements.get(), indent+1);
@@ -1011,7 +1030,7 @@ void AstTreePrinter::printTree(std::ostream& os, ASTTree* tree) {
         return;
     }
 
-    for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++)
+    for (size_t i = 0, count = tree->nodes.size(); i < count; i++)
         printNode(os, tree->nodes[i], 0);
     os.flush();
 }

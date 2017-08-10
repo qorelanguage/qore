@@ -49,7 +49,7 @@ public:
     }
 
     virtual ~ASTHashExpression() {
-        for (unsigned int i = 0, count = elements.size(); i < count; i++)
+        for (size_t i = 0, count = elements.size(); i < count; i++)
             delete elements[i];
         elements.clear();
     }

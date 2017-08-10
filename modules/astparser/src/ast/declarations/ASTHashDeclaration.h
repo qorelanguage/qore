@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTClassDeclaration.h
+  ASTHashDeclaration.h
 
   Qore AST Parser
 
@@ -29,58 +29,48 @@
   information.
 */
 
-#ifndef _QLS_AST_DECLARATIONS_ASTCLASSDECLARATION_H
-#define _QLS_AST_DECLARATIONS_ASTCLASSDECLARATION_H
+#ifndef _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H
+#define _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H
 
 #include <vector>
 
 #include "ast/ASTDeclaration.h"
 #include "ast/ASTModifiers.h"
 #include "ast/ASTName.h"
-#include "ast/declarations/ASTSuperclassDeclaration.h"
+#include "ast/declarations/ASTHashMemberDeclaration.h"
 
-class ASTClassDeclaration : public ASTDeclaration {
+class ASTHashDeclaration : public ASTDeclaration {
 public:
-    //! Class modifiers.
+    //! Hashdecl modifiers.
     ASTModifiers modifiers;
 
-    //! Name of the class.
+    //! Name of the hashdecl.
     ASTName name;
 
-    //! List of parent classes.
-    std::vector<ASTSuperclassDeclaration*> inherits;
-
-    //! Member and method declarations.
-    std::vector<ASTDeclaration*> declarations;
+    //! Member declarations.
+    std::vector<ASTHashMemberDeclaration*> declarations;
 
 public:
-    ASTClassDeclaration(ASTModifiers mods,
+    ASTHashDeclaration(ASTModifiers mods,
                         const ASTName& n,
-                        std::vector<ASTSuperclassDeclaration*>* sclist = nullptr,
-                        std::vector<ASTDeclaration*>* decllist = nullptr) :
+                        std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
         name(n)
     {
-        if (sclist)
-            inherits.swap(*sclist);
         if (decllist)
             declarations.swap(*decllist);
     }
 
-    virtual ~ASTClassDeclaration() {
-        for (size_t i = 0, count = inherits.size(); i < count; i++)
-            delete inherits[i];
-        inherits.clear();
-
+    virtual ~ASTHashDeclaration() {
         for (size_t i = 0, count = declarations.size(); i < count; i++)
             delete declarations[i];
         declarations.clear();
     }
 
     virtual Kind getKind() const override {
-        return Kind::ADK_Class;
+        return Kind::ADK_Hash;
     }
 };
 
-#endif // _QLS_AST_DECLARATIONS_ASTCLASSDECLARATION_H
+#endif // _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H

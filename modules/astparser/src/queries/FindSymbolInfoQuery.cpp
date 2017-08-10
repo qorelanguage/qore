@@ -146,6 +146,20 @@ ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, a
             }
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            if (d->name.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Interface, ASUK_HashDeclName, d->name.loc, d->name.name);
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            if (d->typeName.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Class, ASUK_VarDeclTypeName, d->typeName.loc, d->typeName.name);
+            if (d->name.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Field, ASUK_HashMemberName, d->name.loc, d->name.name);
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup:
             break;
         case ASTDeclaration::Kind::ADK_Namespace: {

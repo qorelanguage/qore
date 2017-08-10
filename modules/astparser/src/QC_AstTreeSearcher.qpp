@@ -51,6 +51,10 @@ int64_t getSymbolKind(ASTDeclaration* decl) {
             return static_cast<int64_t>(ASYK_Constant);
         case ASTDeclaration::Kind::ADK_Function:
             return static_cast<int64_t>(ASYK_Function);
+        case ASTDeclaration::Kind::ADK_Hash:
+            return static_cast<int64_t>(ASYK_Interface);
+        case ASTDeclaration::Kind::ADK_HashMember:
+            return static_cast<int64_t>(ASYK_Field);
         case ASTDeclaration::Kind::ADK_MemberGroup:
             break;
         case ASTDeclaration::Kind::ADK_Namespace:
@@ -122,8 +126,12 @@ AstTreeSearcher::constructor() {
         AstPrinter::printClassSignature(hoverInfo, reinterpret_cast<ASTClassDeclaration*>(decl));
     else if (kind == ASYK_Constant)
         AstPrinter::printConstantSignature(hoverInfo, reinterpret_cast<ASTConstantDeclaration*>(decl));
+    else if (kind == ASYK_Field)
+        AstPrinter::printHashMemberSignature(hoverInfo, reinterpret_cast<ASTHashMemberDeclaration*>(decl));
     else if (kind == ASYK_Function)
         AstPrinter::printFunctionSignature(hoverInfo, reinterpret_cast<ASTFunctionDeclaration*>(decl));
+    else if (kind == ASYK_Interface)
+        AstPrinter::printHashDeclSignature(hoverInfo, reinterpret_cast<ASTHashDeclaration*>(decl));
     else if (kind == ASYK_Variable)
         AstPrinter::printVariableSignature(hoverInfo, reinterpret_cast<ASTVariableDeclaration*>(decl));
 

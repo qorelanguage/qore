@@ -41,11 +41,11 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
-            for (unsigned int i = 0, count = d->inherits.size(); i < count; i++) {
+            for (size_t i = 0, count = d->inherits.size(); i < count; i++) {
                 result = inDeclaration(d->inherits[i], line, col);
                 if (result) return result;
             }
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDeclaration(d->declarations[i], line, col);
                 if (result) return result;
             }
@@ -83,9 +83,29 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            result = inName(d->name, line, col);
+            if (result) return result;
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
+                result = inDeclaration(d->declarations[i], line, col);
+                if (result) return result;
+            }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            result = inName(d->typeName, line, col);
+            if (result) return result;
+            result = inName(d->name, line, col);
+            if (result) return result;
+            result = inExpression(d->init.get(), line, col);
+            if (result) return result;
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->members.size(); i < count; i++) {
+            for (size_t i = 0, count = d->members.size(); i < count; i++) {
                 result = inExpression(d->members[i], line, col);
                 if (result) return result;
             }
@@ -93,7 +113,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
         }
         case ASTDeclaration::Kind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
-            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDeclaration(d->declarations[i], line, col);
                 if (result) return result;
             }
@@ -191,7 +211,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
         }
         case ASTExpression::Kind::AEK_ConstrInit: {
             ASTConstrInitExpression* e = static_cast<ASTConstrInitExpression*>(expr);
-            for (unsigned int i = 0, count = e->inits.size(); i < count; i++) {
+            for (size_t i = 0, count = e->inits.size(); i < count; i++) {
                 result = inExpression(e->inits[i], line, col);
                 if (result) return result;
             }
@@ -223,7 +243,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
         }
         case ASTExpression::Kind::AEK_Hash: {
             ASTHashExpression* e = static_cast<ASTHashExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++) {
+            for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpression(e->elements[i], line, col);
                 if (result) return result;
             }
@@ -250,7 +270,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
         }
         case ASTExpression::Kind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
-            for (unsigned int i = 0, count = e->elements.size(); i < count; i++) {
+            for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpression(e->elements[i], line, col);
                 if (result) return result;
             }
@@ -274,7 +294,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
         }
         case ASTExpression::Kind::AEK_SwitchBody: {
             ASTSwitchBodyExpression* e = static_cast<ASTSwitchBodyExpression*>(expr);
-            for (unsigned int i = 0, count = e->cases.size(); i < count; i++) {
+            for (size_t i = 0, count = e->cases.size(); i < count; i++) {
                 result = inExpression(e->cases[i], line, col);
                 if (result) return result;
             }
@@ -334,7 +354,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
     switch (stmt->getKind()) {
         case ASTStatement::Kind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
-            for (unsigned int i = 0, count = s->statements.size(); i < count; i++) {
+            for (size_t i = 0, count = s->statements.size(); i < count; i++) {
                 result = inStatement(s->statements[i], line, col);
                 if (result) return result;
             }
@@ -354,7 +374,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             result = inExpression(s->data.get(), line, col);
             if (result) return result;
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++) {
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++) {
                 result = inExpression(s->contextMods[i], line, col);
                 if (result) return result;
             }
@@ -432,7 +452,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             result = inExpression(s->by.get(), line, col);
             if (result) return result;
-            for (unsigned int i = 0, count = s->contextMods.size(); i < count; i++) {
+            for (size_t i = 0, count = s->contextMods.size(); i < count; i++) {
                 result = inExpression(s->contextMods[i], line, col);
                 if (result) return result;
             }
@@ -484,7 +504,7 @@ ASTNode* FindNodeQuery::find(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
     if (!tree)
         return nullptr;
 
-    for (unsigned int i = 0, count = tree->nodes.size(); i < count; i++) {
+    for (size_t i = 0, count = tree->nodes.size(); i < count; i++) {
         ASTNode* result = nullptr;
         ASTNode* node = tree->nodes[i];
         switch (node->getNodeType()) {

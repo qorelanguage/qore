@@ -79,7 +79,7 @@ public:
     }
 
     virtual ~ASTSummarizeStatement() {
-        for (unsigned int i = 0, count = contextMods.size(); i < count; i++)
+        for (size_t i = 0, count = contextMods.size(); i < count; i++)
             delete contextMods[i];
         contextMods.clear();
     }

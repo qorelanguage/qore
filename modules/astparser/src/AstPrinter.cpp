@@ -61,7 +61,10 @@ void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpres
     if (ae->left->getKind() == ASTExpression::Kind::AEK_Decl) {
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
-    os << " = ";
+    if (ae->weak)
+        os << " := ";
+    else
+        os << " = ";
     if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
         printLiteralExpression(os, le);
@@ -186,6 +189,21 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
             printListExpression(os, static_cast<ASTListExpression*>(d->params.get()));
     }
     os << ")";
+}
+
+void AstPrinter::printHashDeclSignature(std::ostream& os, ASTHashDeclaration* d) {
+    if (!d)
+        return;
+    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    os << "hashdecl " << d->name.name;
+}
+
+void AstPrinter::printHashMemberSignature(std::ostream& os, ASTHashMemberDeclaration* d) {
+    if (!d)
+        return;
+    if (!d->typeName.name.empty())
+        os << d->typeName.name << " ";
+    os << d->name.name;
 }
 
 void AstPrinter::printVariableSignature(std::ostream& os, ASTVariableDeclaration* d) {

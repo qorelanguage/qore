@@ -91,6 +91,28 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTDeclaration* decl, ExceptionS
             nodeInfo->setKeyValue("body", getStatement(d->body.get(), xsink), xsink);
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            nodeInfo->setKeyValue("kind", new QoreStringNode("Hashdecl"), xsink);
+            nodeInfo->setKeyValue("modifiers", getModifiers(d->modifiers), xsink);
+            nodeInfo->setKeyValue("name", getName(d->name, xsink), xsink);
+            ReferenceHolder<QoreListNode> declarations(new QoreListNode, xsink);
+            if (*xsink)
+                return nullptr;
+            for (size_t i = 0, count = d->declarations.size(); i < count; i++)
+                declarations->push(getDeclaration(d->declarations[i], xsink));
+            nodeInfo->setKeyValue("declarations", declarations.release(), xsink);
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            nodeInfo->setKeyValue("kind", new QoreStringNode("HashMember"), xsink);
+            nodeInfo->setKeyValue("name", getName(d->name, xsink), xsink);
+            nodeInfo->setKeyValue("typeName", getName(d->typeName, xsink), xsink);
+            nodeInfo->setKeyValue("init", getExpression(d->init.get(), xsink), xsink);
+            nodeInfo->setKeyValue("constr", get_bool_node(d->constr), xsink);
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             nodeInfo->setKeyValue("kind", new QoreStringNode("MemberGroup"), xsink);

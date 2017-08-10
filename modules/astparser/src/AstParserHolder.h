@@ -55,7 +55,7 @@ public:
     size_t getErrorCount() const;
 
     //! Get a reported error.
-    ASTParseError* getError(unsigned int index);
+    ASTParseError* getError(size_t index);
 };
 
 #endif // _QLS_ASTPARSERHOLDER_H

@@ -44,7 +44,7 @@ public:
     ASTTree() {}
 
     virtual ~ASTTree() {
-        for (unsigned int i = 0, count = nodes.size(); i < count; i++)
+        for (size_t i = 0, count = nodes.size(); i < count; i++)
             delete nodes[i];
         nodes.clear();
     }

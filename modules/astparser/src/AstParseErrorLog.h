@@ -45,7 +45,7 @@ public:
 
     //! Clear all the reported errors.
     void clear() {
-        for (unsigned int i = 0, count = errors.size(); i < count; i++)
+        for (size_t i = 0, count = errors.size(); i < count; i++)
             delete errors[i];
         errors.clear();
     }
@@ -59,8 +59,8 @@ public:
     }
 
     //! Get a reported error.
-    ASTParseError* getError(unsigned int index) {
-        return (index < 0 || index >= errors.size()) ? nullptr : errors[index];
+    ASTParseError* getError(size_t index) {
+        return (index >= errors.size()) ? nullptr : errors[index];
     }
 };
 

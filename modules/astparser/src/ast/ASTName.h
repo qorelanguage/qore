@@ -37,6 +37,7 @@
 #include "ASTNode.h"
 
 enum class ASTNameKind {
+    ANK_AngleIdentifier,
     ANK_BaseClassCall,
     ANK_CastType,
     ANK_ClassString,
