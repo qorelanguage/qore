@@ -191,6 +191,21 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
     os << ")";
 }
 
+void AstPrinter::printHashDeclSignature(std::ostream& os, ASTHashDeclaration* d) {
+    if (!d)
+        return;
+    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    os << "hashdecl " << d->name.name;
+}
+
+void AstPrinter::printHashMemberSignature(std::ostream& os, ASTHashMemberDeclaration* d) {
+    if (!d)
+        return;
+    if (!d->typeName.name.empty())
+        os << d->typeName.name << " ";
+    os << d->name.name;
+}
+
 void AstPrinter::printVariableSignature(std::ostream& os, ASTVariableDeclaration* d) {
     if (!d)
         return;

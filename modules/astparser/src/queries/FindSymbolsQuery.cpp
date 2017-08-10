@@ -68,6 +68,18 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
             inStatement(vec, d->body.get());
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Interface, &d->name)));
+            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+                inDeclaration(vec, d->declarations[i]);
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            vec->push_back(std::move(ASTSymbolInfo(ASYK_Field, &d->name)));
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             for (unsigned int i = 0, count = d->members.size(); i < count; i++)
@@ -437,6 +449,68 @@ void FindSymbolsQuery::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>*
     }
 }
 
+void FindSymbolsQuery::fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+    if (bareNames)
+        return;
+
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_Hash) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+        }
+    }
+}
+
+void FindSymbolsQuery::fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+    if (bareNames)
+        return;
+
+    size_t nextNode = 0;
+    size_t nodeCount = nodes->size();
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() != ANT_Declaration)
+            continue;
+        ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+        if (decl->getKind() == ASTDeclaration::Kind::ADK_HashMember) {
+            nextNode++;
+            break;
+        }
+    }
+
+    for (; nextNode < nodeCount; nextNode++) {
+        ASTNode* node = nodes->at(nextNode);
+        if (node->getNodeType() == ANT_Declaration) {
+            ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
+            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+                break;
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+                si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Hash)
+                si.name.insert(0, static_cast<ASTHashDeclaration*>(decl)->name.name + "::");
+            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+                si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
+        }
+    }
+}
+
 void FindSymbolsQuery::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
     if (bareNames)
         return;
@@ -490,8 +564,12 @@ void FindSymbolsQuery::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>*
                 fixClassInfo(si, nodes.get(), bareNames); break;
             case ASYK_Constant:
                 fixConstantInfo(si, nodes.get(), bareNames); break;
+            case ASYK_Field:
+                fixHashMemberInfo(si, nodes.get(), bareNames); break;
             case ASYK_Function:
                 fixFunctionInfo(si, nodes.get(), bareNames); break;
+            case ASYK_Interface:
+                fixHashDeclInfo(si, nodes.get(), bareNames); break;
             case ASYK_Variable:
                 fixVariableInfo(si, nodes.get(), bareNames); break;
             default:

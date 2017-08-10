@@ -83,6 +83,26 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            result = inName(d->name, line, col);
+            if (result) return result;
+            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+                result = inDeclaration(d->declarations[i], line, col);
+                if (result) return result;
+            }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            result = inName(d->typeName, line, col);
+            if (result) return result;
+            result = inName(d->name, line, col);
+            if (result) return result;
+            result = inExpression(d->init.get(), line, col);
+            if (result) return result;
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             for (unsigned int i = 0, count = d->members.size(); i < count; i++) {

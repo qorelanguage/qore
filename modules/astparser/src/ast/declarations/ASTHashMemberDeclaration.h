@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTName.h
+  ASTHashMemberDeclaration.h
 
   Qore AST Parser
 
@@ -29,57 +29,45 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNAME_H
-#define _QLS_AST_ASTNAME_H
+#ifndef _QLS_AST_DECLARATIONS_ASTHASHMEMBERDECLARATION_H
+#define _QLS_AST_DECLARATIONS_ASTHASHMEMBERDECLARATION_H
 
-#include <string>
+#include <memory>
 
-#include "ASTNode.h"
+#include "ast/ASTDeclaration.h"
+#include "ast/ASTName.h"
 
-enum class ASTNameKind {
-    ANK_AngleIdentifier,
-    ANK_BaseClassCall,
-    ANK_CastType,
-    ANK_ClassString,
-    ANK_ClassScopedRef,
-    ANK_ComplexContextRef,
-    ANK_ContextRef,
-    ANK_IdentOpenParen,
-    ANK_Identifier,
-    ANK_KWIdentifier,
-    ANK_Namespace,
-    ANK_QTypedef,
-    ANK_ScopedRef,
-    ANK_ScopedVref,
-    ANK_SelfAndScopedRef,
-    ANK_SelfRef,
-    ANK_UncQTypedef,
-    ANK_VarRef,
-};
-
-//! Represents a name.
-class ASTName : public ASTNode {
+class ASTHashMemberDeclaration : public ASTDeclaration {
 public:
-    std::string name;
-    ASTNameKind kind;
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTHashMemberDeclaration>;
 
 public:
-    ASTName() : ASTNode() {}
-    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
-    ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
-    ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
-    ASTName(const std::string* str, ASTNameKind k) : ASTNode(), kind(k) {
-        if (str)
-            name = *str;
-    }
-    ASTName(const char* str, ASTNameKind k) : ASTNode(), name(str), kind(k) {
-        if (str)
-            name = str;
+    //! Type of the variable.
+    ASTName typeName;
+
+    //! Name of the variable.
+    ASTName name;
+
+    //! Initializer expression.
+    ASTExpression::Ptr init;
+
+    //! Whether the initializer expression is constructor call argument expression.
+    bool constr;
+
+public:
+    ASTHashMemberDeclaration(const ASTName& tn, const ASTName& n, ASTExpression* ie = nullptr, bool c = false) :
+        ASTDeclaration(),
+        typeName(tn),
+        name(n),
+        init(ie),
+        constr(c)
+    {
     }
 
-    virtual ASTNodeType getNodeType() {
-        return ANT_Name;
+    virtual Kind getKind() const override {
+        return Kind::ADK_HashMember;
     }
 };
 
-#endif // _QLS_AST_ASTNAME_H
+#endif // _QLS_AST_DECLARATIONS_ASTHASHMEMBERDECLARATION_H

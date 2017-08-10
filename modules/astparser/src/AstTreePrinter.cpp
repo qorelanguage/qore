@@ -114,6 +114,33 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            printString(os, "HashDecl ", indent);
+            printLocation(os, d->loc, 0);
+            printModifiers(os, d->modifiers, indent+1);
+            printName(os, d->name, indent+1);
+            if (d->declarations.size() > 0) {
+                printString(os, "declarations:\n", indent+1);
+                for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+                    printDeclaration(os, d->declarations[i], indent+2);
+            }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            printString(os, "HashMemberDecl ", indent);
+            printLocation(os, d->loc, 0);
+            printName(os, d->typeName, indent+1, true, true, "typeName: ");
+            printName(os, d->name, indent+1);
+            if (d->init.get()) {
+                printString(os, "init:\n", indent+1);
+                printExpression(os, d->init.get(), indent+2);
+                printString(os, "constr: ", indent+1);
+                os << d->constr << "\n";
+            }
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             printString(os, "MemberGroupDecl ", indent);

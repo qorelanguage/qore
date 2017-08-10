@@ -89,6 +89,26 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inDecl(ASTDeclaration* decl, ast
             if (result) { result->push_back(decl); return result; }
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            result = inName(d->name, line, col);
+            if (result) { result->push_back(decl); return result; }
+            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++) {
+                result = inDecl(d->declarations[i], line, col);
+                if (result) { result->push_back(decl); return result; }
+            }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            result = inName(d->typeName, line, col);
+            if (result) { result->push_back(decl); return result; }
+            result = inName(d->name, line, col);
+            if (result) { result->push_back(decl); return result; }
+            result = inExpr(d->init.get(), line, col);
+            if (result) { result->push_back(decl); return result; }
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             for (unsigned int i = 0, count = d->members.size(); i < count; i++) {

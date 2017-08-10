@@ -180,6 +180,19 @@ static char* make_cast(const char* s) {
     return str;
 }
 
+static bool angle_balanced(const char* p) {
+    int ob = 0;
+    int cb = 0;
+    while (*p) {
+        switch (*p) {
+            case '<': ++ob; break;
+            case '>': ++cb; break;
+        }
+        ++p;
+    }
+    return ob == cb;
+}
+
 #define AST_DOT_KW_IDENTIFIER(kw) { yylval->String = new std::string(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define AST_FLEX_DO_EOF { yyterminate(); }
@@ -196,7 +209,7 @@ bool PO_BROKEN_OPERATORS = false;
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -717,6 +730,7 @@ foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
 static                                  return TOK_STATIC;
+hashdecl                                return TOK_HASHDECL;
 class\(                                 { yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN; }
 private\(                               { yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN; }
 new\(                                   { yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN; }
@@ -822,8 +836,7 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             { yylval->string = strdup(yytext); retur
 (::{WORD})+                             { yylval->string = strdup(yytext); return SCOPED_REF;}
 ({WORD}::)+\${WORD}                     { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
 (::{WORD})?::\${WORD}                   { yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;}
-cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     { yylval->string = make_cast(yytext); return QORE_CAST;}
-cast\<{WS}*{WORD}{WS}*\>                { yylval->string = make_cast(yytext); return QORE_CAST;}
+cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  { yylval->string = make_cast(yytext); return QORE_CAST; }
 ({WORD}::)+\$\.{WORD}                   { yylval->string = strdup(yytext); return BASE_CLASS_CALL;}
 @[Nn][Aa][Nn]@                          {
 #ifdef NAN
@@ -876,6 +889,29 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); ret
 namespace{WS}+{WORD}                    { yylval->string = trim(yytext + 10); return NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); /* TODO */ return TOK_MODULE; }
 {WORD}                                  { yylval->string = strdup(yytext); return IDENTIFIER; }
+{WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
+                                            if (angle_balanced(yytext)) {
+                                                yylval->string = strdup(yytext);
+                                                return ANGLE_IDENTIFIER;
+                                            }
+                                            yylval->String = new std::string(yytext);
+                                            yylloc->saveFirst();
+                                            BEGIN(angle_state);
+}
+<angle_state>{
+        >                               {
+                                            yylval->String->push_back('>');
+                                            if (angle_balanced(yylval->String->c_str())) {
+                                                char* str = strdup(yylval->String->c_str());
+                                                delete yylval->String;
+                                                yylval->string = str;
+                                                yylloc->restoreFirst();
+                                                BEGIN(INITIAL);
+                                                return ANGLE_IDENTIFIER;
+                                            }
+                                        }
+        [^>]                            yylval->String->append(yytext);
+}
 \%{WORD}                                { yylval->string = strdup(yytext + 1); return CONTEXT_REF; }
 \%{WORD}\:{WORD}                        { yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF; }
 \%\%                                    return TOK_CONTEXT_ROW;

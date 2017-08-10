@@ -67,6 +67,20 @@ void FindReferencesQuery::inDeclaration(std::vector<ASTNode*>* vec, ASTDeclarati
             inStatement(vec, d->body.get(), name);
             break;
         }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            inName(vec, d->name, name);
+            for (unsigned int i = 0, count = d->declarations.size(); i < count; i++)
+                inDeclaration(vec, d->declarations[i], name);
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            inName(vec, d->typeName, name);
+            inName(vec, d->name, name);
+            inExpression(vec, d->init.get(), name);
+            break;
+        }
         case ASTDeclaration::Kind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             for (unsigned int i = 0, count = d->members.size(); i < count; i++)

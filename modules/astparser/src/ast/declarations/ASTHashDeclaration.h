@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTName.h
+  ASTHashDeclaration.h
 
   Qore AST Parser
 
@@ -29,57 +29,48 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNAME_H
-#define _QLS_AST_ASTNAME_H
+#ifndef _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H
+#define _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H
 
-#include <string>
+#include <vector>
 
-#include "ASTNode.h"
+#include "ast/ASTDeclaration.h"
+#include "ast/ASTModifiers.h"
+#include "ast/ASTName.h"
+#include "ast/declarations/ASTHashMemberDeclaration.h"
 
-enum class ASTNameKind {
-    ANK_AngleIdentifier,
-    ANK_BaseClassCall,
-    ANK_CastType,
-    ANK_ClassString,
-    ANK_ClassScopedRef,
-    ANK_ComplexContextRef,
-    ANK_ContextRef,
-    ANK_IdentOpenParen,
-    ANK_Identifier,
-    ANK_KWIdentifier,
-    ANK_Namespace,
-    ANK_QTypedef,
-    ANK_ScopedRef,
-    ANK_ScopedVref,
-    ANK_SelfAndScopedRef,
-    ANK_SelfRef,
-    ANK_UncQTypedef,
-    ANK_VarRef,
-};
-
-//! Represents a name.
-class ASTName : public ASTNode {
+class ASTHashDeclaration : public ASTDeclaration {
 public:
-    std::string name;
-    ASTNameKind kind;
+    //! Hashdecl modifiers.
+    ASTModifiers modifiers;
+
+    //! Name of the hashdecl.
+    ASTName name;
+
+    //! Member declarations.
+    std::vector<ASTHashMemberDeclaration*> declarations;
 
 public:
-    ASTName() : ASTNode() {}
-    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
-    ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
-    ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
-    ASTName(const std::string* str, ASTNameKind k) : ASTNode(), kind(k) {
-        if (str)
-            name = *str;
-    }
-    ASTName(const char* str, ASTNameKind k) : ASTNode(), name(str), kind(k) {
-        if (str)
-            name = str;
+    ASTHashDeclaration(ASTModifiers mods,
+                        const ASTName& n,
+                        std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(n)
+    {
+        if (decllist)
+            declarations.swap(*decllist);
     }
 
-    virtual ASTNodeType getNodeType() {
-        return ANT_Name;
+    virtual ~ASTHashDeclaration() {
+        for (size_t i = 0, count = declarations.size(); i < count; i++)
+            delete declarations[i];
+        declarations.clear();
+    }
+
+    virtual Kind getKind() const override {
+        return Kind::ADK_Hash;
     }
 };
 
-#endif // _QLS_AST_ASTNAME_H
+#endif // _QLS_AST_DECLARATIONS_ASTHASHDECLARATION_H
