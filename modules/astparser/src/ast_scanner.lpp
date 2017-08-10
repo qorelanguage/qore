@@ -262,6 +262,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION; }
 ^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION; }
 ^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION; }
+^%allow-weak-references{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_ALLOW_WEAK_REFERENCES); return PARSE_OPTION; }
 ^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION; }
 ^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION; }
 ^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION; }
@@ -891,6 +892,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \<\>                                    return LOGICAL_NE;
 ===                                     return ABSOLUTE_EQ;
 \!==                                    return ABSOLUTE_NE;
+:=                                      return WEAK_ASSIGNMENT;
 ==                                      return LOGICAL_EQ;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;

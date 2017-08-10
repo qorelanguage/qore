@@ -39,16 +39,6 @@ static void printString(std::ostream& os, const char* str, int indent) {
     os << str;
 }
 
-static void printString(std::ostream& os, const std::string& str, int indent) {
-    printIndent(os, indent);
-    os << str;
-}
-
-static void printString(std::ostream& os, const std::string* str, int indent) {
-    printIndent(os, indent);
-    os << *str;
-}
-
 void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, int indent) {
     if (!decl) {
         printString(os, "<null declaration>\n", indent);
@@ -213,6 +203,8 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->left.get(), indent+2);
             printString(os, "right:\n", indent+1);
             printExpression(os, e->right.get(), indent+2);
+            printString(os, "weak: ", indent+1);
+            os << e->weak << "\n";
             break;
         }
         case ASTExpression::Kind::AEK_Backquote: {

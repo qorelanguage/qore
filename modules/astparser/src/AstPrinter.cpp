@@ -61,7 +61,10 @@ void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpres
     if (ae->left->getKind() == ASTExpression::Kind::AEK_Decl) {
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
-    os << " = ";
+    if (ae->weak)
+        os << " := ";
+    else
+        os << " = ";
     if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
         printLiteralExpression(os, le);
