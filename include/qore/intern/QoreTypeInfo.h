@@ -52,6 +52,7 @@ enum q_typespec_t : unsigned char {
    QTS_HASHDECL = 2,
    QTS_COMPLEXHASH = 3,
    QTS_COMPLEXLIST = 4,
+   QTS_COMPLEXREF = 5,
 };
 
 class QoreTypeInfo;
@@ -70,6 +71,8 @@ DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valu
 DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
 DLLLOCAL const QoreTypeInfo* qore_get_complex_list_type(const QoreTypeInfo* valueTypeInfo);
 DLLLOCAL const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+DLLLOCAL const QoreTypeInfo* qore_get_complex_reference_type(const QoreTypeInfo* valueTypeInfo);
+DLLLOCAL const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
 
 class QoreTypeSpec {
 public:
@@ -100,6 +103,8 @@ public:
             return NT_HASH;
          case QTS_COMPLEXLIST:
             return NT_LIST;
+         case QTS_COMPLEXREF:
+            return NT_REFERENCE;
       }
       assert(false);
       return NT_NOTHING;
@@ -121,10 +126,15 @@ public:
       return typespec == QTS_COMPLEXLIST ? u.ti : nullptr;
    }
 
+   DLLLOCAL const QoreTypeInfo* getComplexReference() const {
+      return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
+   }
+
    DLLLOCAL bool isComplex() const {
       return typespec == QTS_HASHDECL
              || typespec == QTS_COMPLEXHASH
-             || typespec == QTS_COMPLEXLIST;
+             || typespec == QTS_COMPLEXLIST
+             || typespec == QTS_COMPLEXREF;
    }
 
    DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
@@ -136,6 +146,8 @@ public:
             return listTypeInfo;
          case QTS_CLASS:
             return objectTypeInfo;
+         case QTS_COMPLEXREF:
+            return referenceTypeInfo;
          case QTS_TYPE:
             return getTypeInfoForType(u.t);
       }
@@ -150,6 +162,8 @@ public:
          return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
       else if (typespec == QTS_COMPLEXLIST)
          return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
+      else if (typespec == QTS_COMPLEXREF)
+         return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
       if (u.t == NT_ALL)
          return QTI_AMBIGUOUS;
       return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
@@ -212,6 +226,12 @@ public:
    }
 };
 
+class QoreComplexReferenceTypeSpec : public QoreTypeSpec {
+public:
+   DLLLOCAL QoreComplexReferenceTypeSpec(const QoreTypeInfo* ti) : QoreTypeSpec(ti, QTS_COMPLEXREF) {
+   }
+};
+
 struct QoreReturnSpec {
    const QoreTypeSpec spec;
    bool exact = false;
@@ -267,6 +287,31 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
       return ti && hasType(ti) ? ti->parseReturns(t) : QTI_AMBIGUOUS;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool isReference(const QoreTypeInfo* ti) {
+      return ti && ti->return_vec[0].spec.getType() == NT_REFERENCE;
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* getReferenceTarget(const QoreTypeInfo* ti) {
+      if (isReference(ti)) {
+         const QoreTypeInfo* rv = ti->return_vec[0].spec.getComplexReference();
+         // see if we need to have an "or nothing" type
+         if (hasType(rv)) {
+            if (ti->return_vec.size() > 1) {
+               assert(ti->return_vec.size() == 2 && ti->return_vec[1].spec.getType() == NT_NOTHING);
+               if (rv->return_vec.size() == 1) {
+                  rv = get_or_nothing_type(rv);
+                  return rv ? rv : anyTypeInfo;
+               }
+            }
+            return rv;
+         }
+         return anyTypeInfo;
+      }
+      return nullptr;
    }
 
    // static version of method, checking for null pointer
@@ -361,6 +406,13 @@ public:
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
       return ti->return_vec[0].spec.getComplexList();
+   }
+
+   // static version of method, checking for null pointer
+   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexReference(const QoreTypeInfo* ti) {
+      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+         return nullptr;
+      return ti->return_vec[0].spec.getComplexReference();
    }
 
    // static version of method, checking for null pointer
@@ -471,6 +523,18 @@ public:
       if (hasType(first) && hasType(second))
          return first->isOutputCompatible(second);
       return true;
+   }
+
+   // if first's return type is a subset of second's
+   // static version of method, checking for null pointer
+   DLLLOCAL static bool isOutputSubset(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+      if (hasType(first)) {
+         if (hasType(second))
+            return first->isOutputSubset(second);
+         else
+            return true;
+      }
+      return hasType(second) ? false : true;
    }
 
    // static version of method, checking for null pointer
@@ -719,6 +783,22 @@ protected:
          }
       }
       return false;
+   }
+
+   // if this's return type is a subset of the argument's
+   DLLLOCAL bool isOutputSubset(const QoreTypeInfo* typeInfo) const {
+      for (auto& trt : return_vec) {
+         bool match = false;
+         for (auto& ort : typeInfo->return_vec) {
+            if (trt.spec.match(ort.spec)) {
+               match = true;
+               break;
+            }
+         }
+         if (!match)
+            return false;
+      }
+      return true;
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
@@ -1208,6 +1288,49 @@ public:
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
        str.sprintf("list<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexList()));
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+       return false;
+   }
+};
+
+class QoreComplexReferenceTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreComplexReferenceTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexReferenceTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexReferenceTypeSpec(vti), true}}) {
+       assert(vti);
+       tname.sprintf("reference<%s>", QoreTypeInfo::getName(vti));
+   }
+
+protected:
+   DLLLOCAL QoreComplexReferenceTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+   }
+
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+       str.concat(&tname);
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+       return false;
+   }
+};
+
+class QoreComplexReferenceOrNothingTypeInfo : public QoreComplexReferenceTypeInfo {
+public:
+   DLLLOCAL QoreComplexReferenceOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexReferenceTypeInfo(q_accept_vec_t {
+         {QoreComplexReferenceTypeSpec(vti), nullptr, true},
+         {NT_NOTHING, nullptr},
+         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+         }, q_return_vec_t {{QoreComplexReferenceTypeSpec(vti)}, {NT_NOTHING}}) {
+       assert(vti);
+       tname.sprintf("*reference<%s>", QoreTypeInfo::getName(vti));
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+       str.sprintf("reference<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexList()));
    }
 
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise

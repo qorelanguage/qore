@@ -827,6 +827,30 @@ const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const Qore
    return ti;
 }
 
+const QoreTypeInfo* qore_program_private::getComplexReferenceType(const QoreTypeInfo* vti) {
+   AutoLocker al(crl);
+
+   tmap_t::iterator i = cr_map.lower_bound(vti);
+   if (i != cr_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexReferenceTypeInfo* ti = new QoreComplexReferenceTypeInfo(vti);
+   cr_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const QoreTypeInfo* vti) {
+   AutoLocker al(cronl);
+
+   tmap_t::iterator i = cron_map.lower_bound(vti);
+   if (i != cron_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexReferenceOrNothingTypeInfo* ti = new QoreComplexReferenceOrNothingTypeInfo(vti);
+   cron_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
 QoreProgram::~QoreProgram() {
    printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
    delete priv;

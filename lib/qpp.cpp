@@ -712,6 +712,25 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                 qc = "qore_get_complex_list_type(" + subtype_qt + ")";
             log(LL_DEBUG, "registering complex list return type '%s': '%s'\n", qt.c_str(), qc.c_str());
         }
+        else if (!qt.compare(on ? 1 : 0, 10, "reference<")) {
+            // extract subtype name
+            std::string subtype = qt.substr((on ? 11 : 10), qt.size() - (on ? 12 : 11));
+
+            if (subtype.find(',') != std::string::npos) {
+                log(LL_CRITICAL, "unsupported complex reference type found: '%s'\n", qt.c_str());
+                assert(false);
+            }
+
+            std::string subtype_qt;
+            get_qore_type(subtype, subtype_qt);
+
+            // generate type name
+            if (on)
+                qc = "qore_get_complex_reference_or_nothing_type(" + subtype_qt + ")";
+            else
+                qc = "qore_get_complex_reference_type(" + subtype_qt + ")";
+            log(LL_DEBUG, "registering complex reference return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+        }
         else {
             // assume a Qore object of the given class
             get_type_name(qc, qt);
@@ -1529,14 +1548,24 @@ protected:
                 continue;
             }
 
-            if (p.type == "int" || p.type == "softint" || p.type == "timeout") {
+            // do not precess complex types in arg handling
+            std::string ptype;
+            {
+                size_t i = p.type.find('<');
+                if (i == std::string::npos)
+                    ptype = p.type;
+                else
+                    ptype = p.type.substr(0, i);
+            }
+
+            if (ptype == "int" || ptype == "softint" || ptype == "timeout") {
                 if (use_value)
                     fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    int64 %s = HARD_QORE_INT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*int" || p.type == "*softint" || p.type == "*timeout") {
+            if (ptype == "*int" || ptype == "*softint" || ptype == "*timeout") {
                 if (use_value)
                     fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
                 else {
@@ -1549,14 +1578,14 @@ protected:
                 }
                 continue;
             }
-            if (p.type == "float" || p.type == "softfloat") {
+            if (ptype == "float" || ptype == "softfloat") {
                 if (use_value)
                     fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*float" || p.type == "*softfloat") {
+            if (ptype == "*float" || ptype == "*softfloat") {
                 if (use_value)
                     fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
                 else {
@@ -1569,21 +1598,21 @@ protected:
                 }
                 continue;
             }
-            if (p.type == "number" || p.type == "softnumber") {
+            if (ptype == "number" || ptype == "softnumber") {
                 if (use_value)
                     fprintf(fp, "    const QoreNumberNode* %s = HARD_QORE_VALUE_NUMBER(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const QoreNumberNode* %s = HARD_QORE_NUMBER(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "bool" || p.type == "softbool") {
+            if (ptype == "bool" || ptype == "softbool") {
                 if (use_value)
                     fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    bool %s = HARD_QORE_BOOL(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*bool" || p.type == "*softbool") {
+            if (ptype == "*bool" || ptype == "*softbool") {
                 if (use_value)
                     fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
                 else {
@@ -1596,14 +1625,14 @@ protected:
                 }
                 continue;
             }
-            if (p.type == "string" || p.type == "softstring") {
+            if (ptype == "string" || ptype == "softstring") {
                 if (use_value)
                     fprintf(fp, "    const QoreStringNode* %s = HARD_QORE_VALUE_STRING(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const QoreStringNode* %s = HARD_QORE_STRING(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*string" || p.type == "*softstring") {
+            if (ptype == "*string" || ptype == "*softstring") {
                 if (use_value)
                     fprintf(fp,
                             "    const QoreStringNode* %s = get_param_value(args, %d).get<const QoreStringNode>();\n",
@@ -1614,14 +1643,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "date" || p.type == "softdate") {
+            if (ptype == "date" || ptype == "softdate") {
                 if (use_value)
                     fprintf(fp, "    const DateTimeNode* %s = HARD_QORE_VALUE_DATE(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const DateTimeNode* %s = HARD_QORE_DATE(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*date" || p.type == "*softdate") {
+            if (ptype == "*date" || ptype == "*softdate") {
                 if (use_value)
                     fprintf(fp,
                             "    const DateTimeNode* %s = get_param_value(args, %d).get<const DateTimeNode>();\n",
@@ -1632,14 +1661,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "binary") {
+            if (ptype == "binary") {
                 if (use_value)
                     fprintf(fp, "    const BinaryNode* %s = HARD_QORE_VALUE_BINARY(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const BinaryNode* %s = HARD_QORE_BINARY(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*binary") {
+            if (ptype == "*binary") {
                 if (use_value)
                     fprintf(fp,
                             "    const BinaryNode* %s = get_param_value(args, %d).get<const BinaryNode>();\n",
@@ -1650,14 +1679,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "list" || p.type == "softlist") {
+            if (ptype == "list" || ptype == "softlist") {
                 if (use_value)
                     fprintf(fp, "    const QoreListNode* %s = HARD_QORE_VALUE_LIST(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*list" || p.type == "*softlist") {
+            if (ptype == "*list" || ptype == "*softlist") {
                 if (use_value)
                     fprintf(fp,
                             "    const QoreListNode* %s = get_param_value(args, %d).get<const QoreListNode>();\n",
@@ -1668,14 +1697,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "hash") {
+            if (ptype == "hash") {
                 if (use_value)
                     fprintf(fp, "    const QoreHashNode* %s = HARD_QORE_VALUE_HASH(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*hash") {
+            if (ptype == "*hash") {
                 if (use_value)
                     fprintf(fp,
                             "    const QoreHashNode* %s = get_param_value(args, %d).get<const QoreHashNode>();\n",
@@ -1686,14 +1715,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "reference") {
+            if (ptype == "reference") {
                 if (use_value)
                     fprintf(fp, "    const ReferenceNode* %s = HARD_QORE_VALUE_REF(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const ReferenceNode* %s = HARD_QORE_REF(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*reference") {
+            if (ptype == "*reference") {
                 if (use_value)
                     fprintf(fp,
                             "    const ReferenceNode* %s = get_param_value(args, %d).get<const ReferenceNode>();\n",
@@ -1704,14 +1733,14 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "object") {
+            if (ptype == "object") {
                 if (use_value)
                     fprintf(fp, "    QoreObject* %s = HARD_QORE_VALUE_OBJECT(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    QoreObject* %s = HARD_QORE_OBJECT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*object") {
+            if (ptype == "*object") {
                 if (use_value)
                     fprintf(fp,
                             "    QoreObject* %s = get_param_value(args, %d).get<QoreObject>();\n", p.name.c_str(), i);
@@ -1721,7 +1750,7 @@ protected:
                             p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "code" || p.type == "*code") {
+            if (ptype == "code" || ptype == "*code") {
                 if (use_value)
                     fprintf(fp,
                             "    const ResolvedCallReferenceNode* %s = get_param_value(args, %d).get<const ResolvedCallReferenceNode>();\n",
@@ -1733,14 +1762,14 @@ protected:
                 continue;
             }
 
-            if (p.type == "any" || p.type == "data") {
+            if (ptype == "any" || ptype == "data") {
                 if (use_value)
                     fprintf(fp, "    QoreValue %s = get_param_value(args, %d);\n", p.name.c_str(), i);
                 else
                     fprintf(fp, "    const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (p.type == "*data") {
+            if (ptype == "*data") {
                 if (use_value)
                     fprintf(fp, "    const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
                 else
@@ -1748,7 +1777,7 @@ protected:
                 continue;
             }
             // skip "..." arg which is just for documentation
-            if (p.type == "...")
+            if (ptype == "...")
                 continue;
 
             log(LL_CRITICAL, "don't know how to handle argument type '%s' (for arg %s)\n", p.type.c_str(), p.name.c_str());
@@ -1881,12 +1910,19 @@ protected:
 
             strmap_t::iterator ti = mtmap.find((*i).type);
             if (ti == mtmap.end()) {
-                size_t p = (*i).type.find_last_of("::");
+                std::string ptype = (*i).type;
+                while (true) {
+                    size_t j = ptype.find_first_of("<>");
+                    if (j == std::string::npos)
+                       break;
+                    ptype.replace(j, 1, "_");
+                }
+                size_t p = ptype.rfind("::");
                 std::string cn;
                 if (p != std::string::npos)
-                    cn.append((*i).type, p + 1, -1);
+                    cn.append(ptype, p, -1);
                 else
-                    cn = (*i).type;
+                    cn = ptype;
 
                 char buf[20];
                 sprintf(buf, "%ld", (long)cn.size());

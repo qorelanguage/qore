@@ -1322,7 +1322,7 @@ string chomp(string str) [flags=CONSTANT] {
 chomp(\str);
     @endcode
  */
-*string chomp(reference str) {
+*string chomp(reference<string> str) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();

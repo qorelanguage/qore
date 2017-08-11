@@ -1038,7 +1038,7 @@ public:
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
       // we cannot tell of the member has been initialized, so we return anyTypeInfo here for potential references
-      return (typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo) ? anyTypeInfo : typeInfo;
+      return QoreTypeInfo::isReference(typeInfo) ? anyTypeInfo : typeInfo;
       //return typeInfo;
    }
 

@@ -40,11 +40,13 @@ class ParseReferenceNode : public ParseNode {
 protected:
    //! lvalue expression for reference
    AbstractQoreNode* lvexp;
+   //! lvalue type info
+   const QoreTypeInfo* typeInfo;
 
    //! frees all memory and destroys the object
    DLLLOCAL ~ParseReferenceNode() {
       if (lvexp)
-         lvexp->deref(0);
+         lvexp->deref(nullptr);
    }
 
    // returns a runtime reference (ReferenceNode)
@@ -61,7 +63,7 @@ public:
    //! creates the ReferenceNode object with the given lvalue expression
    /** @param exp must be a parse expression for an lvalue
     */
-   DLLLOCAL ParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp) {
+   DLLLOCAL ParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo = referenceTypeInfo) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp), typeInfo(typeInfo) {
    }
 
    //! concatenate the verbose string representation of the value to an existing QoreString
@@ -96,7 +98,7 @@ public:
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return referenceTypeInfo;
+      return typeInfo;
    }
 
    // returns an intermediate reference for use with the background operator
@@ -115,16 +117,16 @@ protected:
    DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink) {
       if (lvexp)
          lvexp->deref(xsink);
-      lvexp = 0;
+      lvexp = nullptr;
       return true;
    }
 
 public:
-   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
+   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
 
    // returns a runtime reference
    DLLLOCAL virtual ReferenceNode* evalToRef(ExceptionSink* xsink) const {
-      return new ReferenceNode(lvexp->refSelf(), self, lvalue_id, cls);
+      return new ReferenceNode(lvexp->refSelf(), typeInfo, self, lvalue_id, cls);
    }
 };
 

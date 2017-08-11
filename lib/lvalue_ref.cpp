@@ -33,14 +33,15 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/lvalue_ref.h"
+#include "qore/intern/qore_program_private.h"
 
-lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls) : vexp(n_lvexp), self(n_self), pgm(getProgram()), lvalue_id(lvid), cls(n_cls) {
+lvalue_ref::lvalue_ref(AbstractQoreNode* n_lvexp, const QoreTypeInfo* typeInfo, QoreObject* n_self, const void* lvid, const qore_class_private* n_cls) : vexp(n_lvexp), typeInfo(QoreTypeInfo::hasType(typeInfo) ? qore_program_private::get(*getProgram())->getComplexReferenceType(typeInfo) : nullptr), self(n_self), pgm(getProgram()), lvalue_id(lvid), cls(n_cls) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();
 }
 
-lvalue_ref::lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id), cls(old.cls) {
+lvalue_ref::lvalue_ref(const lvalue_ref& old) : vexp(old.vexp->refSelf()), typeInfo(old.typeInfo), self(old.self), pgm(old.pgm), lvalue_id(old.lvalue_id), cls(old.cls) {
    //printd(5, "lvalue_ref::lvalue_ref() this: %p vexp: %p self: %p pgm: %p\n", this, vexp, self, pgm);
    if (self)
       self->tRef();

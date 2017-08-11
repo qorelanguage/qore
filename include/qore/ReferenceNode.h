@@ -74,7 +74,7 @@ protected:
 
 public:
    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
-   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
+   DLLLOCAL ReferenceNode(AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
 
    //! creates a copy of the object
    /** @since %Qore 0.8.12.9
@@ -83,6 +83,16 @@ public:
 
    //! returns a reference to itself
    DLLEXPORT ReferenceNode* refRefSelf() const;
+
+   //! returns the type information for this object
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
+      //! returns the type information for the lvalue referenced
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getLValueTypeInfo() const;
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting

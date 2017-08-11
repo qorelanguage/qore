@@ -13,11 +13,51 @@
 
 class ReferenceTest inherits QUnit::Test {
     constructor() : Test("Reference Test", "1.0") {
+        addTestCase("Complex reference test", \testComplexReferences());
         addTestCase("Reference test", \testReference());
         addTestCase("Assignment test", \testReferenceAssignments());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    testComplexReferences() {
+        {
+            int i = 0;
+            reference<int> r1 = \i;
+            assertEq(0, r1);
+            reference<softint> r2 = \r1;
+            assertEq(0, r2);
+            r2 = 1;
+            assertEq(1, r1);
+            assertEq(1, r2);
+            assertEq(1, i);
+            reference r3 = \r1;
+            assertEq(1, r3);
+            r3 = 2;
+            assertEq(2, r1);
+            assertEq(2, r2);
+            assertEq(2, r3);
+            assertEq(2, i);
+        }
+
+        {
+            *int i = 0;
+            reference<int> r1 = \i;
+            assertEq(0, r1);
+            reference<softint> r2 = \r1;
+            assertEq(0, r2);
+            r2 = 1;
+            assertEq(1, r1);
+            assertEq(1, r2);
+            assertEq(1, i);
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "reference<string>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<string> r0 = \\i;}", ""));
+            assertThrows("PARSE-TYPE-ERROR", "reference<\\*softint>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<*softint> r0 = \\i;}", ""));
+        }
     }
 
     testReference() {
