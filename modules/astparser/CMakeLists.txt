@@ -19,6 +19,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake)
 ### end of hacks
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # source files
 set(ASTPARSER_QPP_SRC
@@ -62,6 +63,12 @@ add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_ast_scanner_OUTP
 
 # prepare astparser module target
 set(astparser_module_name "astparser")
-add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
+
+if (SINGLE_COMPILATION_UNIT)
+    add_library(${astparser_module_name} SHARED src/astparser_scu.cpp)
+else (SINGLE_COMPILATION_UNIT)
+    add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
+endif (SINGLE_COMPILATION_UNIT)
+
 add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
 qore_binary_module(${astparser_module_name} "${VERSION}")
