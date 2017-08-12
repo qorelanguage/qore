@@ -196,7 +196,7 @@ nothing FtpClient::disconnect() {
 
 //! Returns a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
 /**
-    @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
+    @param path The path or filename (or filename filter) to list (ex: \c "/tmp/file*.txt")
 
     @return a list of files from the FTP server in the server's long format for the given path or @ref nothing if the path cannot be found
 
@@ -205,7 +205,7 @@ nothing FtpClient::disconnect() {
 
     @par Example:
     @code{.py}
-*string str = ftp.list("/tmp/*.txt");
+*string str = ftp.list("/tmp/file*.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
@@ -242,7 +242,7 @@ nothing FtpClient::disconnect() {
 }
 
 //! Returns a list of file names from the FTP server for the given path or @ref nothing if the path cannot be found
-/** @param path The path or filename (or filename filter) to list (ex: \c "/tmp/*.txt")
+/** @param path The path or filename (or filename filter) to list (ex: \c "/tmp/file*.txt")
 
     @return a list of file names from the FTP server for the given path or @ref nothing if the path cannot be found
 
@@ -251,7 +251,7 @@ nothing FtpClient::disconnect() {
 
     @par Example:
     @code{.py}
-*string str = ftp.nlst("/tmp/*.txt");
+*string str = ftp.nlst("/tmp/file*.txt");
     @endcode
 
     @throw FTP-RECEIVE-ERROR Incomplete message received on control port
