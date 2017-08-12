@@ -958,8 +958,6 @@ public:
 
    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
       setName();
-      assert(strcmp(n_cscope, "any"));
-
       //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
    }
 
