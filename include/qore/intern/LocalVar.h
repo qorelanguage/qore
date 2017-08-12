@@ -302,6 +302,8 @@ public:
       return val.getReferencedValue();
    }
 
+   DLLLOCAL AbstractQoreNode* getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id);
+
    // deletes the object itself
    DLLLOCAL virtual void deleteObject() {
       delete this;

@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.2";
+    version = "1.3";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -81,6 +81,9 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_3 Util 1.3
+    - updated for complex types
 
     @subsection util_1_2 Util 1.2
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
@@ -483,7 +486,7 @@ bool abs = absolute_path_windows(path);
             if (rv.typeCode() != NT_FLOAT && rv.val())
                 return ("valid": True, "value": rv);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (err)
                 throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", ex.err, ex.desc, arg);
         }
@@ -592,7 +595,7 @@ hash: (1 member)
         bool do_break;
 
         # process values after an "=" sign
-        code do_eq = sub (reference i, string key) {
+        code do_eq = sub (reference<int> i, string key) {
             # get the value
             any val;
             switch (l[i+2].type) {

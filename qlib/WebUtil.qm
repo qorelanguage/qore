@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  WebUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.3";
+    version = "1.4";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -66,6 +66,9 @@ module WebUtil {
     - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_4 WebUtil v1.4
+    - updated for complex types
 
     @subsection webutil_v1_3 WebUtil v1.3
     - updated @ref WebUtil::FileHandler::handleRequest() "FileHandler::handleRequest()" to allow for chunked sends
@@ -176,7 +179,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         */
         static string add(Qore::Program p, string fn, string name, string src) {
             # break down source into components
-            list l = ();
+            list<hash> l();
 
             int i = 0;
             while (src) {
@@ -242,7 +245,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         }
 
         #! a helper method used in parsing
-        private static bool doBlock(string end, reference src, string type, reference i, reference l) {
+        private static bool doBlock(string end, reference<string> src, string type, reference<int> i, reference<list<hash>> l) {
             int j = src.find(end, i + 1);
             if (j == -1)
                 return True;
@@ -785,7 +788,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                     return h;
 
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 return serverError(cx, ex);
             }
 
@@ -881,7 +884,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 f = new ReadOnlyFile(path);
                 sh = f.hstat();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "READONLYFILE-OPEN-ERROR")
                     return;
                 rethrow;
@@ -960,7 +963,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
             - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
         */
-        private *hash handleRequestImpl(reference cx, hash hdr, *data body) {
+        private *hash handleRequestImpl(reference<hash> cx, hash hdr, *data body) {
         }
     }
 }

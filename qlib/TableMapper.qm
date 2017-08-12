@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
+# this module requires Qore 0.8.13 or better
 %requires qore >= 0.8.13
 
 # require type definitions everywhere
@@ -204,6 +204,7 @@ on_error table1.rollback();
     - added @ref TableMapper::InboundTableMapper::queueData(list, __7_ hash)
     - fixed a bug with the @ref TableMapper::SqlStatementOutboundMapper::iterator() method; corrected the iterator object return value which was causing \c AbstractMapperIterator::mapBulk() to fail (<a href="https://github.com/qorelanguage/qore/issues/979">issue 979</a>)
     - fixed a bug with @ref TableMapper::SqlStatementOutboundMapper; it would throw an error if the required \c "table" or \c "sh" options were used and only worked with subclasses that declared these options (<a href="https://github.com/qorelanguage/qore/issues/981">issue 981</a>)
+    - updated for complex types
 
     @subsection tablemapperv1_1_4 TableMapper v1.1.4
     - fixed a bug in flush messages in the @ref TableMapper::InboundTableMapper "InboundTableMapper" class (<a href="https://github.com/qorelanguage/qore/issues/1849">issue 1849</a>)
@@ -480,13 +481,13 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash m, reference v, hash rec) {
+        private mapFieldType(string key, hash m, reference<int> v, hash rec) {
             if (m.sequence) {
                 if (!has_returning) {
                     try {
                         v = db.getNextSequenceValue(m.sequence);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         # rethrow exception adding the sequence name to the description
                         throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence), ex.arg;
                     }
@@ -499,7 +500,7 @@ InboundTableMapper mapper(table, DbMapper);
                     try {
                         v = db.getCurrentSequenceValue(m.sequence_currval);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         # rethrow exception adding the sequence name to the description
                         throw ex.err, sprintf("%s (sequence: %y)", ex.desc, m.sequence_currval), ex.arg;
                     }
@@ -514,7 +515,7 @@ InboundTableMapper mapper(table, DbMapper);
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string k, reference fh) {
+        private checkMapField(string k, reference<hash> fh) {
             if (fh.sequence) {
                 if (fh.sequence.typeCode() != NT_STRING)
                     error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence.type(), fh.sequence);
@@ -990,7 +991,7 @@ on_error table_mapper.rollback();
          * @param hb reference to a batch that will be enriched
          * @param batch the batch to be added to 'hb'
          */
-        static nothing addBatchToBatch(reference hb, hash batch) {
+        static nothing addBatchToBatch(reference<hash> hb, hash batch) {
             if (!hb) {
                 hb = batch;
             }
@@ -1004,9 +1005,9 @@ on_error table_mapper.rollback();
         }
 
         #! adds a batch (hash of lists) to another batch (in-place)
-        /** @deprecated use addBatchToBatch(reference, hash) instead
+        /** @deprecated use addBatchToBatch(reference<hash>, hash) instead
          */
-        static deprecated nothing addBatchToBatch(reference hb, reference x1, hash batch, *reference x2) {
+        static deprecated nothing addBatchToBatch(reference<hash> hb, reference x1, hash batch, *reference x2) {
             InboundTableMapper::addBatchToBatch(\hb, batch);
         }
 
@@ -1132,7 +1133,7 @@ on_error table_mapper.rollback();
                     }
                 }
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err =~ /BIND-/ && info_log)
                     info_log("%s: %s: column lengths: %y", ex.err, ex.desc, (map {$1.key: $1.value.lsize()}, hbuf.pairIterator()));
                 # reset row count if an exception is thrown
@@ -1794,7 +1795,7 @@ InboundTableMapperIterator i(input, mapper);
         abstract Qore::SQL::AbstractDatasource getDatasource();
 
         #! re-implement to initialize options
-        abstract private initOptions(reference opts);
+        abstract private initOptions(reference<hash> opts);
 
         #! re-implement to initialize Qore::SQL::SQLStatement on demand
         abstract private initStatement();
@@ -1931,7 +1932,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
-        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference sql) {
+        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql) {
             # both AbstractTable::getRowIterator() and SQLStatement::describe() implicitly start a transaction,
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = table.getDatasource().currentThreadInTransaction();
@@ -1947,7 +1948,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! initializes options
-        private initOptions(reference opts) {
+        private initOptions(reference<hash> opts) {
             m_table = opts.table;
             m_sh = opts.sh;
 
@@ -2032,7 +2033,7 @@ printf("%N\n", m.getDataRows());
         }
 
         #! initializes options
-        private initOptions(reference opts) {
+        private initOptions(reference<hash> opts) {
             m_ds = opts.datasource;
             m_sql = opts."select";
             m_sqlargs = opts.bind;

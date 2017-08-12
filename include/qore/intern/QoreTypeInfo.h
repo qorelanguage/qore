@@ -656,9 +656,7 @@ public:
 
       QoreStringNode* desc = new QoreStringNode;
       QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->concat("expects ");
-      getThisTypeImpl(*desc);
-      desc->concat(", but got ");
+      desc->sprintf("expects type '%s', but got ", tname.c_str());
       QoreTypeInfo::getNodeType(*desc, n);
       desc->concat(" instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
@@ -681,9 +679,7 @@ protected:
    DLLLOCAL int doObjectPrivateClassException(const char* param_name, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '%s' expects ", param_name);
-      getThisTypeImpl(*desc);
-      desc->concat(", but got an object where this class is privately inherited instead");
+      desc->sprintf("member '%s' expects type '%s', but got an object where this class is privately inherited instead", param_name, tname.c_str());
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
@@ -696,9 +692,7 @@ protected:
 
       QoreStringNode* desc = new QoreStringNode;
       QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->concat("expects ");
-      getThisTypeImpl(*desc);
-      desc->concat(", but got an object where this class is privately inherited instead");
+      desc->sprintf("expects type '%s', but got an object where this class is privately inherited instead", tname.c_str());
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
       return -1;
    }
@@ -706,9 +700,7 @@ protected:
    DLLLOCAL int doObjectHashDeclTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
       assert(xsink);
       QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '%s' expects ", param_name);
-      getThisTypeImpl(*desc);
-      desc->concat(", but got ");
+      desc->sprintf("member '%s' expects type '%s', but got ", param_name, tname.c_str());
       QoreTypeInfo::getNodeType(*desc, n);
       desc->concat(" instead");
       xsink->raiseException("RUNTIME-TYPE-ERROR", desc);

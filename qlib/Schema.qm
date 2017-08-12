@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.2
@@ -75,6 +75,7 @@ module Schema {
     - added the following public functions: (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
       - Schema::c_blob()
       - Schema::c_clob()
+    - updated for complex types
 
     @subsection schema_v1_1_1 Schema Module v1.1.1
     - applied the \a force option (i.e. cascade) when aligning schemas (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -414,7 +415,7 @@ public namespace Schema {
             try {
                 schema.getDatabase().tryExecRaw(str);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 schema.log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 ++error_count;
             }
@@ -986,7 +987,7 @@ public namespace Schema {
         }
 
         #! this method returns @ref Qore::True "True" if the schema can be updated
-        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
+        private bool checkUpdateSchema(bool force, reference<hash> initial_schema_info) {
             logpf("verifying/aligning schema version %s", version);
             return True;
         }
@@ -1005,7 +1006,7 @@ public namespace Schema {
         }
 
         #! this method is called to perform schema reference data managment on the given table with the given data
-        private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference sh) {
+        private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference<hash> sh) {
             # if we are reporting the status, then change to "UpsertSelectFirst" so that we can only report updated rows
             if (verbose) {
                 if (upsert_strategy != AbstractTable::UpsertInsertOnly)
@@ -1156,7 +1157,7 @@ public namespace Schema {
         }
 
         #! this method returns @ref Qore::True "True" if the schema can be updated
-        private bool checkUpdateSchema(bool force, reference initial_schema_info) {
+        private bool checkUpdateSchema(bool force, reference<hash> initial_schema_info) {
             *string current_version = getSchemaVersion();
             if (!current_version) {
                 logpf("schema is corrupt; aligning to schema template");

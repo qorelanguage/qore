@@ -791,7 +791,7 @@ public namespace CsvUtil {
                         try {
                             headerLines = i.value;
                         }
-                        catch (hash ex) {
+                        catch (hash<ExceptionInfo> ex) {
                             throw errname, sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         }
                         break;

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 - 2016 Qore Technologies s.r.o.
+/*  TelnetClient.qm Copyright 2012 - 2017 Qore Technologies s.r.o.
 
     Original Author: Pavol Potancok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -70,6 +70,7 @@ module TelnetClient {
     - added the @ref TelnetClient::TelnetConnection "TelnetConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - added the @ref TelnetClient::TelnetClient::getTarget() "TelnetClient::getTarget()" method
     - added support for URLs in the constructor()
+    - updated for complex types
 
     @subsection telnetclient_v1_2 TelnetClient v1.2
     - converted to @ref new-style "%new-style"
@@ -673,7 +674,7 @@ telnet.clearStats();
                 try {
                     char = conn.recvu1(0);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "SOCKET-CLOSED") {
                         disconnectIntern();
                         return;
@@ -704,7 +705,7 @@ telnet.clearStats();
         }
 
         # don't override this method, fix/enhance it with a patch to the module
-        private final processCmd(reference rv) {
+        private final processCmd(reference<string> rv) {
             # read all data with no timeout; we assume that commands are pushed in their entirety
             int cmd = conn.recvu1(0);
             if (cmd == IAC) {

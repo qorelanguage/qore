@@ -161,7 +161,7 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                 if (key) {
                     const HashDeclMemberInfo* m = members.find(key->c_str());
                     if (!m) {
-                        parse_error(loc, "hashdecl '%s' hash initializer value from %s contains unknown key '%s'", name.c_str(), context, key);
+                        parse_error(loc, "hashdecl '%s' hash initializer value from %s contains unknown key '%s'", name.c_str(), context, key->c_str());
                         continue;
                     }
                     // check value type

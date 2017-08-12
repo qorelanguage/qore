@@ -482,7 +482,7 @@ public class HttpServer::AbstractAuthenticator {
 
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
       */
-    authenticateByIP(string ip, reference user) {
+    authenticateByIP(string ip, reference<string> user) {
     }
 
     private hash getAuthHeader() {
@@ -517,7 +517,7 @@ public class HttpServer::AbstractAuthenticator {
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference<hash> cx) {
         #printf("HTTP DEBUG %s::authenticateRequest() called\n", self.className());
         if (!requiresAuthentication())
             return;
@@ -540,7 +540,7 @@ public class HttpServer::AbstractAuthenticator {
 
             try
                 authenticate(user, pass);
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "AUTHENTICATION-ERROR")
                     return do401();
                 else
@@ -558,7 +558,7 @@ public class HttpServer::AbstractAuthenticator {
             cx.user = user;
             return;
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             # log the error
             string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
             listener.logError(str);
@@ -585,7 +585,7 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
 
         @return returns @ref nothing indicating that the request is authenticated
     */
-    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash hdr, reference<hash> cx) {
         return;
     }
 }
@@ -871,7 +871,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             try {
                 c();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "OBJECT-ALREADY-DELETED")
                     rethrow;
             }
@@ -1005,7 +1005,7 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         @return a string if the message should be logged, otherwise @ref nothing
     */
-    static *string getLogMessage(hash cx, hash api, reference params, *reference args) {
+    static *string getLogMessage(hash cx, hash api, reference params, *reference<string> args) {
         on_exit {
             if (params.typeCode() == NT_LIST)
                 unshift params, cx;

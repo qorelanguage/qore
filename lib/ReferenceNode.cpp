@@ -51,19 +51,15 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (v->getType() == VT_CLOSURE) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
-         lvalue_id = cvv->getLValueId();
          assert(cvv->typeInfo == v->ref.id->getTypeInfo());
-         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
-         return new VarRefImmediateNode(loc, strdup(name), cvv, cvv->typeInfo);
+         return cvv->getReference(loc, name, lvalue_id);
       }
 
       if (v->getType() == VT_LOCAL_TS) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_find_closure_var(name);
-         lvalue_id = cvv->getLValueId();
          assert(cvv->typeInfo == v->ref.id->getTypeInfo());
-         //printd(5, "ParseReferenceNode::doPartialEval() this: %p '%s' closure(ts) lvalue_id: %p\n", this, name, lvalue_id);
-         return new VarRefImmediateNode(loc, strdup(name), cvv, cvv->typeInfo);
+         return cvv->getReference(loc, name, lvalue_id);
       }
    }
 

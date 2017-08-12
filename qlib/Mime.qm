@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Mime.qm Mime module definition
 
-/*  Mime.qm Copyright (C) 2012 - 2016 Qore Technologies, s.r.o.
+/*  Mime.qm Copyright (C) 2012 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 %requires Util
 
@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.3.4.1";
+    version = "1.4";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -57,7 +57,7 @@ module Mime {
     - @ref MimeDecodingFunctions "MimeDecodingFunctions": functions for decoding MIME data
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
-      - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": use this static function to parse multipart message bodies (including parts that themselves have parts if the \a decode argument is @ref Qore::True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
+      - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": this static function can be used to parse a multipart message body (including parts with subparts if the \a decode argument is @ref Qore::True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
 
     based on:
@@ -86,6 +86,9 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @endverbatim
 
     @section mimereleasenotes Release Notes
+
+    @subsection mime_1_4 v1.4
+    - added complex type support
 
     @subsection mime_1_3_4_1 v1.3.4.1
     - added support for generating and parsing MIME multipart form encoded data
@@ -126,6 +129,26 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
 
 #! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
+    #! message and part info hash
+    /**
+    */
+    public hashdecl MessageInfo {
+        #! message or part headers
+        hash hdr;
+        #! the data for the message or part
+        data body;
+        #! parts of the message or subparts of the part
+        list<hash<MessageInfo>> part();
+    }
+
+    #! message part hash
+    public hashdecl MessagePartInfo {
+        #! part body data
+        data data;
+        #! part header hash
+        hash hdr;
+    }
+
     /** @defgroup MimeTypeDefinitions MIME Type Definitions
         These are constants for common MIME types
      */
@@ -861,7 +884,7 @@ public namespace Mime {
             string ct;
 
             #! list of the parts of the message
-            list l = ();
+            list<hash<MessagePartInfo>> l();
 
             #! a hash of the headers of the message
             hash hdr;
@@ -952,7 +975,7 @@ hash: (2 members)
 
             @note multipart message parsing only works if the line termination characters are \c "\r\n"; make sure and convert the end of line characters before passing to this method if necessary
          */
-        static hash parseBody(string boundary, string body, bool decode = True) {
+        static hash<MessageInfo> parseBody(string boundary, string body, bool decode = True) {
             # find beginning
             int i = body.find("--" + boundary + "\r\n");
             if (i == -1)
@@ -982,6 +1005,9 @@ hash: (2 members)
 
             # remove final boundary and any excess text from the multipart string
             splice mstr, j;
+
+            # part list
+            list<hash<MessageInfo>> plist();
 
             # process parts
             list l = mstr.split("\r\n--" + boundary + "\r\n");
@@ -1013,7 +1039,7 @@ hash: (2 members)
                 # remove header from content
                 splice pstr, 0, i + 4;
 
-                list part = ();
+                list<hash<MessageInfo>> part();
 
                 # decode the part if necessary
                 if (decode) {
@@ -1041,30 +1067,32 @@ hash: (2 members)
                         if (!exists part_boundary)
                             throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, pct);
 
-                        hash ph = MultiPartMessage::parseBody(part_boundary, pstr, True);
+                        hash<MessageInfo> ph = MultiPartMessage::parseBody(part_boundary, pstr, True);
                         pstr = ph.body;
                         part = ph.part;
                     }
                 }
 
-                l[$#] = (
+                hash<MessageInfo> pi((
                     "hdr": h,
                     "body": pstr,
-                    );
+                ));
 
                 if (part)
-                    l[$#].part = part;
+                    pi.part = part;
+
+                plist += pi;
             }
 
-            return (
+            return new hash<MessageInfo>((
                 "body": body,
-                "part": l,
-                );
+                "part": plist,
+            ));
         }
 
         #! serializes the message and returns a binary object ready to send over a socket
         binary serialize() {
-            hash h = getMsgAndHeaders();
+            hash<MessageInfo> h = getMsgAndHeaders();
             binary rv = MultiPartMessage::serializeHeaders(h.hdr);
             rv += h.body;
             return rv;
@@ -1077,8 +1105,8 @@ hash: (2 members)
          */
         static binary serializeHeaders(hash hdr) {
             binary b;
-            foreach string k in (hdr.keyIterator())
-                b += sprintf("%s: %s\r\n", k, hdr{k});
+            foreach hash hh in (hdr.pairIterator())
+                b += sprintf("%s: %s\r\n", hh.key, hh.value);
             b += "\r\n";
             return b;
         }
@@ -1086,14 +1114,14 @@ hash: (2 members)
         #! returns a hash of the message
         /** @return a hash of the message with the following keys:
             - \c hdr: a hash of header information
-            - \c msg: a binary object of serialized message parts
+            - \c body: a binary object of serialized message parts
          */
-        abstract hash getMsgAndHeaders();
+        abstract hash<MessageInfo> getMsgAndHeaders();
 
         #! @cond nodoc
 
         # don't reimplement this method; fix/enhance it in the module
-        final private hash getMsgAndHeadersIntern(*string content_type, bool conlen = True) {
+        final private hash<MessageInfo> getMsgAndHeadersIntern(*string content_type, bool conlen = True) {
             if (!exists content_type)
                 content_type = ct;
 
@@ -1101,7 +1129,7 @@ hash: (2 members)
                 throw "HTTP-MULTIPART-ERROR", "the message has no parts";
 
             binary msg = binary(MP_DEFAULT_MSG);
-            foreach hash m in (l) {
+            foreach hash<MessagePartInfo> m in (l) {
                 binary bd = binary(m.data);
                 msg += "\r\n" + boundary + "\r\n";
                 msg += MultiPartMessage::serializeHeaders(m.hdr + (conlen ? ("Content-Length": bd.size()) : NOTHING));
@@ -1109,10 +1137,10 @@ hash: (2 members)
             }
             msg += "\r\n" + boundary + "--";
 
-            return (
+            return new hash<MessageInfo>((
                 "hdr": hdr + ("Content-Type": content_type),
                 "body": msg,
-                );
+                ));
         }
 
         # don't reimplement this method; fix/enhance it in the module
@@ -1125,7 +1153,7 @@ hash: (2 members)
             l += MultiPartMessage::getPart(data, hdr);
         }
 
-        private static hash getPart(data data, hash hdr) {
+        private static hash<MessagePartInfo> getPart(data data, hash hdr) {
             if (exists hdr."Content-Length")
                 throw "HTTP-MULTIPART-ERROR", "illegal part header 'Content-Length': the Content-Length header will be generated automatically according to the size of each part";
 
@@ -1149,10 +1177,10 @@ hash: (2 members)
                         hdr."Content-Transfer-Encoding" = "binary";
                 }
             }
-            return (
+            return new hash<MessagePartInfo>((
                 "data": data,
                 "hdr": hdr,
-                );
+            ));
         }
         #! @endcond
     }
@@ -1209,9 +1237,9 @@ hash: (2 members)
         #! returns a hash of the message
         /** @return a hash of the message with the following keys:
             - \c hdr: a hash of header information
-            - \c msg: a binary object of serialized message parts
+            - \c body: a binary object of serialized message parts
          */
-        hash getMsgAndHeaders() {
+        hash<MessageInfo> getMsgAndHeaders() {
             return getMsgAndHeadersIntern(ct + ";start=" + startid);
         }
     }
@@ -1318,9 +1346,9 @@ hash: (2 members)
         #! returns a hash of the message
         /** @return a hash of the message with the following keys:
             - \c hdr: a hash of header information
-            - \c msg: a binary object of serialized message parts
+            - \c body: a binary object of serialized message parts
          */
-        hash getMsgAndHeaders() {
+        hash<MessageInfo> getMsgAndHeaders() {
             return getMsgAndHeadersIntern(NOTHING, False);
         }
     }

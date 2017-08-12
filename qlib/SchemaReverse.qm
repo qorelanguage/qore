@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SchemaReverse.qm Qore user module for reverse engineering of database SQL schemas
 
-/*  SchemaReverse.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  SchemaReverse.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.2
@@ -42,7 +42,7 @@
 %strict-args
 
 module SchemaReverse {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for reverse engineering of database SQL schemas";
     author = "Petr Vanek <petr@yarpen.cz>";
     url = "http://qore.org";
@@ -381,9 +381,9 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
 
         hash toQore() {
             if (database().supportsTypes()) {
-                return ( name() : database().getType(name()).src );
+                return (name(): database().getType(name()).src);
             }
-            return hash();
+            return {};
         }
     } # class TypeReverse
 
@@ -399,11 +399,11 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
 
         hash toQore() {
             if (!database().supportsTypes()) {
-                return hash();
+                return {};
             }
 
             ListIterator it = database().typeIterator();
-            hash ret = hash();
+            hash ret = {};
             while (it.next()) {
                 string s = it.getValue();
                 if (s.regex(name())) {
@@ -426,7 +426,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
 
         hash toQore() {
             Table t(datasource(), name());
-            hash ret;
+            hash ret = {};
 
             # columns
             HashIterator cit = t.describe().iterator();
@@ -467,7 +467,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
         }
 
         any columnToQore(AbstractColumn c) {
-            hash ret = hash();
+            hash ret = {};
             #printf("%N\n", c);
             switch (c.native_type) {
                 case "varchar":
@@ -500,10 +500,10 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                 #    # TODO/FIXME ret =  ("qore_type": SQL::RAW, "comment": c.comment, "notnull" : !c.nullable);
                 #    break;
                 default:
-                    ret = ( #"unknown_column_type" : sprintf("%n", c),
-                            "driver" : ( self.datasource().getDriverName() : ( "native_type" : c.native_type, "notnull" : !c.nullable )
-                                       )
-                          );
+                    ret = (
+                        #"unknown_column_type": sprintf("%n", c),
+                        "driver": (self.datasource().getDriverName(): ("native_type": c.native_type, "notnull": !c.nullable)),
+                    );
             }
 
             if (exists c.def_val) {
@@ -536,7 +536,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
 
         hash toQore() {
             ListIterator it = database().tableIterator();
-            hash ret = hash();
+            hash ret = {};
             while (it.next()) {
                 string s = it.getValue();
                 if (s.regex(name())) {
@@ -556,7 +556,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
         private {
             string m_object_type;
             string m_function_name;
-            list m_ignored_keys;
+            hash<string, bool> m_ignored_keys;
         }
 
         /*! @param object_type a string with DB type name see TYPE_TO_CLASS map
@@ -575,7 +575,8 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
         {
             m_object_type = object_type;
             m_function_name = function_name;
-            m_ignored_keys = ignored_keys;
+            # make a hash of keys to ignore for fast lookups (to similate a set)
+            m_ignored_keys = map {$1: True}, ignored_keys;
         }
 
         hash toQore() {
@@ -587,7 +588,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
             ObjectIterator it = o.iterator();
             hash ret = hash();
             while (it.next()) {
-                if (inlist(it.getKey(), m_ignored_keys)) {
+                if (m_ignored_keys{it.getKey()}) {
                     continue;
                 }
                 if (exists it.getValue()) {
@@ -765,7 +766,7 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
                 return hash();
             }
             object o = database().getPackage(name());
-            return ( "src" : o.src, "body" : o.body_src );
+            return ("src": o.src, "body": o.body_src);
         }
     } # class ProcedureReverse
 

@@ -311,10 +311,6 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    ocvec.push_back(ObjCountRec(l));
 
    return qore_list_private::get(*l)->getLValue((size_t)ind, *this, for_remove, vl.xsink);
-   /*
-   resetPtr(l->get_entry_ptr(ind));
-   return 0;
-   */
 }
 
 int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
@@ -1358,4 +1354,25 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
    //printd(5, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
    return scanCheck(rsh, val.getInternalNode());
+}
+
+AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id) {
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s'\n", this, name, val.getTypeName());
+   {
+      QoreSafeVarRWWriteLocker sl(rml);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         lvalue_id = lvalue_ref::get(ref)->lvalue_id;
+      }
+      else {
+         // creating a reference to an unassigned reference assigns the reference
+         if (!val.assigned && refTypeInfo) {
+            typeInfo = refTypeInfo;
+         }
+         lvalue_id = this;
+      }
+   }
+
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
+   return new VarRefImmediateNode(loc, strdup(name), this, typeInfo);
 }

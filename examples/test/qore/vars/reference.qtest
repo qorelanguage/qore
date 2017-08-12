@@ -76,6 +76,17 @@ class ReferenceTest inherits QUnit::Test {
         }
 
         {
+            code c0 = sub (*reference<*list> t) {
+                t = ();
+            };
+            code c1 = sub (*reference<*list> t) {
+                c0(\t);
+            };
+
+            c1();
+        }
+
+        {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-TYPE-ERROR", "reference<string>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<string> r0 = \\i;}", ""));
             assertThrows("PARSE-TYPE-ERROR", "reference<\\*softint>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<*softint> r0 = \\i;}", ""));
