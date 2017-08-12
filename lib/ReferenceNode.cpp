@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/qore_program_private.h"
 
 IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(loc, exp, typeInfo), self(o), lvalue_id(lvid), cls(n_cls) {
 }
