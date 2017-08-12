@@ -642,10 +642,7 @@ static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgr
    desc->sprintf("%d to '", pi);
    if (class_name)
       desc->sprintf("%s::", class_name);
-   desc->sprintf("%s(%s)' expects ", name, sig);
-   QoreTypeInfo::getThisType(proto, *desc);
-   desc->concat(", but call supplies ");
-   QoreTypeInfo::getThisType(arg, *desc);
+   desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getName(proto), QoreTypeInfo::getName(arg));
    qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
    return 0;
 }

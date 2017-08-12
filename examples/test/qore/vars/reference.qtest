@@ -23,6 +23,12 @@ class ReferenceTest inherits QUnit::Test {
 
     testComplexReferences() {
         {
+            *int i = 1;
+            testRef(i, \i);
+            assertEq(0, i);
+        }
+
+        {
             int i = 0;
             reference<int> r1 = \i;
             assertEq(0, r1);
@@ -51,6 +57,22 @@ class ReferenceTest inherits QUnit::Test {
             assertEq(1, r1);
             assertEq(1, r2);
             assertEq(1, i);
+            *reference<int> r3 = \r1;
+            r3 = 2;
+            assertEq(2, r1);
+            assertEq(2, r2);
+            assertEq(2, r3);
+            assertEq(2, i);
+        }
+
+        {
+            any x;
+            reference<list> r1 = \x;
+            r1 = ();
+            assertEq((), x);
+            *reference<int> r2 = \x;
+            r2 = 3;
+            assertEq(3, x);
         }
 
         {
@@ -222,5 +244,9 @@ class ReferenceTest inherits QUnit::Test {
             p.callFunction("t");
             assertEq(3, p.callFunction("get"));
         }
+    }
+
+    static testRef(int i, *reference<*int> r) {
+        r = 0;
     }
 }

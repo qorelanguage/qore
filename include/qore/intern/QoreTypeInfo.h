@@ -191,7 +191,7 @@ public:
    // ex: this = NT_OBJECT, t = class, result = IDENT
    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, const QoreTypeInfo* typeInfo, bool exact) const;
+   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
 
    // returns true if there is a match or if an error has been raised
    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
@@ -298,6 +298,8 @@ public:
    DLLLOCAL static const QoreTypeInfo* getReferenceTarget(const QoreTypeInfo* ti) {
       if (isReference(ti)) {
          const QoreTypeInfo* rv = ti->return_vec[0].spec.getComplexReference();
+         return rv ? rv : anyTypeInfo;
+         /*
          // see if we need to have an "or nothing" type
          if (hasType(rv)) {
             if (ti->return_vec.size() > 1) {
@@ -310,6 +312,7 @@ public:
             return rv;
          }
          return anyTypeInfo;
+         */
       }
       return nullptr;
    }
@@ -525,17 +528,26 @@ public:
       return true;
    }
 
-   // if first's return type is a subset of second's
+   // if first is a superset of second with a strict interpretation that the order of accept and return declarations must also be the same
    // static version of method, checking for null pointer
-   DLLLOCAL static bool isOutputSubset(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+   DLLLOCAL static bool superSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
       if (hasType(first)) {
          if (hasType(second))
-            return first->isOutputSubset(second);
-         else
-            return true;
+            return first->superSetOf(second);
+         return false;
       }
-      return hasType(second) ? false : true;
+      return hasType(second);
    }
+
+   // returns true if first's output is a superset of second's output with a strict interpretation that the order of return declarations must also be the same
+   DLLLOCAL static bool outputSuperSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+      if (hasType(first)) {
+            if (hasType(second))
+               return first->outputSuperSetOf(second);
+            return false;
+         }
+         return hasType(second);
+      }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool canConvertToScalar(const QoreTypeInfo* ti) {
@@ -705,13 +717,26 @@ protected:
 
    // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
    DLLLOCAL bool superSetOf(const QoreTypeInfo* t) const {
-      if (accept_vec.size() <= t->accept_vec.size() || return_vec.size() <= t->return_vec.size())
+      if (accept_vec.size() < t->accept_vec.size() || return_vec.size() < t->return_vec.size())
          return false;
 
       for (unsigned i = 0; i < t->accept_vec.size(); ++i) {
          if (t->accept_vec[i].spec != accept_vec[i].spec)
             return false;
       }
+
+      for (unsigned i = 0; i < t->return_vec.size(); ++i) {
+         if (t->return_vec[i].spec != return_vec[i].spec)
+            return false;
+      }
+
+      return true;
+   }
+
+   // returns true if "this"'s output is a superset of the argument's output with a strict interpretation that the order of return declarations must also be the same
+   DLLLOCAL bool outputSuperSetOf(const QoreTypeInfo* t) const {
+      if (return_vec.size() < t->return_vec.size())
+         return false;
 
       for (unsigned i = 0; i < t->return_vec.size(); ++i) {
          if (t->return_vec[i].spec != return_vec[i].spec)
@@ -783,22 +808,6 @@ protected:
          }
       }
       return false;
-   }
-
-   // if this's return type is a subset of the argument's
-   DLLLOCAL bool isOutputSubset(const QoreTypeInfo* typeInfo) const {
-      for (auto& trt : return_vec) {
-         bool match = false;
-         for (auto& ort : typeInfo->return_vec) {
-            if (trt.spec.match(ort.spec)) {
-               match = true;
-               break;
-            }
-         }
-         if (!match)
-            return false;
-      }
-      return true;
    }
 
    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {

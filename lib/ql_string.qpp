@@ -1374,7 +1374,7 @@ string trim(string str, *string chars) [flags=CONSTANT] {
 trim(\str);
     @endcode
  */
-*string trim(reference str, *string chars) {
+*string trim(reference<string> str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
@@ -1426,7 +1426,7 @@ string ltrim(string str, *string chars) [flags=CONSTANT] {
 ltrim(\str);
     @endcode
  */
-*string ltrim(reference str, *string chars) {
+*string ltrim(reference<string> str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();
@@ -1476,7 +1476,7 @@ rtrim(\str);
 
     @bug it is not possible to trim multi-byte characters from strings using this function; each byte is treated as a character.  No encoding conversions are done even if the \a chars argument has a different @ref character_encoding "character encoding" than the \a str argument.
  */
-*string rtrim(reference str, *string chars) {
+*string rtrim(reference<string> str, *string chars) {
    QoreTypeSafeReferenceHelper ref(str, xsink);
    if (!ref || ref.getType() != NT_STRING)
       return QoreValue();

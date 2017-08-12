@@ -138,7 +138,7 @@ public class TreeMapTest inherits QUnit::Test {
         val = tm.get("abc/s/u/", NOTHING);
         testAssertion("unmatched-6", \equals(), (("1"), (val)));
         int i;
-        assertThrows("RUNTIME-TYPE-ERROR", \tm.get(), ("abc/s/u/", \i), "throw exception");
+        assertThrows("RUNTIME-OVERLOAD-ERROR", \tm.get(), ("abc/s/u/", \i), "throw exception");
     }
 }
 

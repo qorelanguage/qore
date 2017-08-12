@@ -2711,7 +2711,7 @@ Qore::TransformOutputStream ts(of, get_encryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
 
     @since %Qore 0.8.13
  */
-Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *reference mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
+Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
    const char* keystr;
    size_t key_len;
    q_get_data(key, keystr, key_len);
@@ -2809,7 +2809,7 @@ binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
 
     @since %Qore 0.8.13
  */
-binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *reference mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
+binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
    const char* datastr;
    size_t data_len;
    q_get_data(data, datastr, data_len);

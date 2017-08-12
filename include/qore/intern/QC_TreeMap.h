@@ -107,7 +107,8 @@ public:
                   QoreTypeSafeReferenceHelper ref(unmatched, xsink);
                   if (!ref)
                      return QoreValue();
-                  if (ref.assign(key->substr(l, xsink)))
+                  SimpleRefHolder<QoreStringNode> path(key->substr(l, xsink));
+                  if (*xsink || ref.assign(path.release()))
                      return QoreValue();
                }
                return it->second.refSelf();

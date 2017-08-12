@@ -1026,7 +1026,7 @@ string files = backquote("ls", \rc);
 
     @since %Qore 0.8.8 the \a rc argument was added
 */
-string backquote(string cmd, *reference rc) [dom=EXTERNAL_PROCESS] {
+string backquote(string cmd, *reference<int> rc) [dom=EXTERNAL_PROCESS] {
    int prc;
    SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->getBuffer(), prc, xsink));
    if (!*xsink && rc) {

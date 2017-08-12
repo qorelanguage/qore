@@ -110,13 +110,13 @@ v = tm.get("def/g/hi/five", \h.unmatched);  # returns "5" and h.unmatched is "fi
     Looks for an entry whose key is the longest prefix of \c path.
 
     @param path the path to lookup
-    @param unmatched path suffix, reference to a @ref string_or_nothing_type "*string" compatible type is needed, if \c path is not found, then @ref nothing is returned
+    @param unmatched an optional reference to the path suffix; if \c path is not found, then @ref nothing is assigned to the reference
 
     @return the value pointed to by the longest prefix of \c path or @ref nothing if no such mapping exists
 
     @since %Qore 0.8.13
  */
-any TreeMap::get(string path, *reference unmatched) [flags=RET_VALUE_ONLY] {
+any TreeMap::get(string path, *reference<*string> unmatched) [flags=RET_VALUE_ONLY] {
    return tm->get(path, unmatched, xsink);
 }
 

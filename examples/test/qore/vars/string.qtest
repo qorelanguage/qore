@@ -557,6 +557,11 @@ class StringTest inherits QUnit::Test {
         h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
         trim h;
         assertEq(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");
+
+        softstring tstr = 1;
+        tstr += "\n";
+        chomp(\tstr);
+        assertEq("1", tstr);
     }
 
     testFloat() {

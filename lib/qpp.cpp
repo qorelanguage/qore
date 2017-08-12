@@ -1910,19 +1910,23 @@ protected:
 
             strmap_t::iterator ti = mtmap.find((*i).type);
             if (ti == mtmap.end()) {
-                std::string ptype = (*i).type;
-                while (true) {
-                    size_t j = ptype.find_first_of("<>");
-                    if (j == std::string::npos)
-                       break;
-                    ptype.replace(j, 1, "_");
-                }
-                size_t p = ptype.rfind("::");
+                size_t p = (*i).type.rfind("::");
                 std::string cn;
                 if (p != std::string::npos)
-                    cn.append(ptype, p, -1);
-                else
-                    cn = ptype;
+                    cn.append((*i).type, p + 2, -1);
+                else {
+                    size_t j = (*i).type.find_first_of("<>*");
+                    if (j != std::string::npos) {
+                        std::string ptype = (*i).type;
+                        while (j != std::string::npos) {
+                            ptype.replace(j, 1, "_");
+                            j = ptype.find_first_of("<>*");
+                        }
+                        cn = ptype;
+                    }
+                    else
+                        cn = (*i).type;
+                }
 
                 char buf[20];
                 sprintf(buf, "%ld", (long)cn.size());

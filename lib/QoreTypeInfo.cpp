@@ -440,7 +440,7 @@ const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInf
 static const QoreTypeInfo* getExternalTypeInfoForType(qore_type_t t) {
    QoreAutoRWReadLocker al(extern_type_info_map_lock);
    type_typeinfo_map_t::iterator i = extern_type_info_map.find(t);
-   return (i == extern_type_info_map.end() ? 0 : i->second);
+   return (i == extern_type_info_map.end() ? nullptr : i->second);
 }
 
 const QoreTypeInfo* getTypeInfoForType(qore_type_t t) {
@@ -558,18 +558,6 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_COMPLEXHASH:
                return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
-               /*
-               //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-               qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
-               if (may_not_match)
-                  return QTI_NOT_EQUAL;
-               // even if types are 100% compatible, if they are not equal, then we perform type folding
-               if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(u.ti, t.u.ti)) {
-                  may_need_filter = true;
-                  res = QTI_AMBIGUOUS;
-               }
-               return res;
-               */
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -581,18 +569,6 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_COMPLEXLIST:
                return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
-               /*
-               //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-               qore_type_result_e res = QoreTypeInfo::parseAccepts(u.ti, t.u.ti, may_not_match, may_need_filter);
-               if (may_not_match)
-                  return QTI_NOT_EQUAL;
-               // even if types are 100% compatible, if they are not equal, then we perform type folding
-               if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(u.ti, t.u.ti)) {
-                  may_need_filter = true;
-                  res = QTI_AMBIGUOUS;
-               }
-               return res;
-               */
             default: {
                return QTI_NOT_EQUAL;
             }
@@ -603,13 +579,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
          switch (t.typespec) {
             case QTS_COMPLEXREF: {
-               qore_type_result_e rv = QoreTypeInfo::parseAccepts(t.u.ti, u.ti, may_not_match, may_need_filter);
-               //printd(5, "pcr: '%s' '%s' rv: %d mnf: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), rv, may_need_filter);
-               if (may_not_match)
-                  return QTI_NOT_EQUAL;
-               return rv;
-               //return QoreTypeInfo::equal(u.ti, t.u.ti) ? QTI_IDENT : QTI_NOT_EQUAL;
+               //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
+               if (QoreTypeInfo::equal(u.ti, t.u.ti))
+                  return QTI_IDENT;
+               return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
             }
+            case QTS_TYPE:
+               return t.getType() == NT_REFERENCE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
             default:
                return QTI_NOT_EQUAL;
          }
@@ -745,10 +721,8 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
             ReferenceNode* r = n.get<ReferenceNode>();
             const QoreTypeInfo* ti = r->getLValueTypeInfo();
             //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
-            if (QoreTypeInfo::isOutputSubset(u.ti, ti)) {
+            if (QoreTypeInfo::outputSuperSetOf(ti, u.ti))
                ok = true;
-               break;
-            }
          }
          break;
       }
@@ -794,7 +768,7 @@ bool QoreTypeSpec::operator!=(const QoreTypeSpec& other) const {
    return !(*this == other);
 }
 
-qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, const QoreTypeInfo* typeInfo, bool exact) const {
+qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool exact) const {
    qore_type_t ot = n.getType();
    if (ot == NT_OBJECT && typespec == QTS_CLASS) {
       qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc, *n.get<const QoreObject>()->getClass());
@@ -808,18 +782,21 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, const Q
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
    }
    else if (ot == NT_HASH && typespec == QTS_COMPLEXHASH) {
-      const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getTypeInfo();
-      if (ti && QoreTypeInfo::equal(typeInfo, ti))
+      const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
+      if (ti && QoreTypeInfo::equal(u.ti, ti))
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
    }
    else if (ot == NT_LIST && typespec == QTS_COMPLEXLIST) {
-      const QoreTypeInfo* ti = n.get<const QoreListNode>()->getTypeInfo();
-      if (ti && QoreTypeInfo::equal(typeInfo, ti))
+      const QoreTypeInfo* ti = n.get<const QoreListNode>()->getValueTypeInfo();
+      if (ti && QoreTypeInfo::equal(u.ti, ti))
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
    }
    else if (ot == NT_REFERENCE && typespec == QTS_COMPLEXREF) {
-      const QoreTypeInfo* ti = n.get<const ReferenceNode>()->getTypeInfo();
-      if (ti && QoreTypeInfo::equal(typeInfo, ti))
+      const QoreTypeInfo* ti = n.get<const ReferenceNode>()->getLValueTypeInfo();
+      //printd(5, "QoreTypeSpec::runtimeAcceptsValue() cr ti: '%s' typeInfo: '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, ti), QoreTypeInfo::outputSuperSetOf(ti, u.ti));
+      if (QoreTypeInfo::equal(u.ti, ti))
+         return QTI_IDENT;
+      if (QoreTypeInfo::outputSuperSetOf(ti, u.ti))
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
    }
    else {
@@ -839,7 +816,7 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, const Q
 
 qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
    for (auto& t : accept_vec) {
-      qore_type_result_e rv = t.spec.runtimeAcceptsValue(n, this, t.exact);
+      qore_type_result_e rv = t.spec.runtimeAcceptsValue(n, t.exact);
       if (rv != QTI_NOT_EQUAL)
          return rv;
    }
