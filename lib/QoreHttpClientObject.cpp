@@ -174,7 +174,7 @@ struct qore_httpclient_priv {
    DLLLOCAL void setPersistent(ExceptionSink* xsink) {
       AutoLocker al(msock->m);
 
-      if (msock->socket->isOpen()) {
+      if (!msock->socket->isOpen()) {
          xsink->raiseException("PERSISTENCE-ERROR", "HTTPClient::setPersistent() can only be called once an initial connection has been established; currently there is no connection to the server");
          return;
       }
