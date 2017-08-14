@@ -128,7 +128,7 @@ public namespace WebSocketClient {
     #! the main websocket client class
     /** To use this class, create a @ref WebSocketClient::WebSocketClient "WebSocketClient" object and the call @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
 
-        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method call.
+        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()".
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
      */

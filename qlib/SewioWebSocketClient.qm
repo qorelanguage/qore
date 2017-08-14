@@ -111,9 +111,15 @@ public namespace SewioWebSocketClient {
     #! the main Sewio websocket client class
     /** To use this class, create a @ref SewioWebSocketClient::SewioWebSocketClient "SewioWebSocketClient" object and the call @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
 
-        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method call.
+        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref SewioWebSocketClient::SewioWebSocketClient::constructor() "SewioWebSocketClient::constructor()" method call.
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+
+        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::send() method; this method will serialize the data
+        to JSON and send the JSON string to the server.
+
+        When websocket messages are received from the server, they are deserialized and the resulting data is used as the argument to the
+        callback closure mentioned above.
      */
     public class SewioWebSocketClient inherits WebSocketClient::WebSocketClient {
         public {
@@ -131,8 +137,6 @@ public namespace SewioWebSocketClient {
         }
 
         private:internal {
-            # the URL
-            string url;
             # Sewio API key
             string apikey;
         }
@@ -149,7 +153,7 @@ sub event(*data msg) {
 SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
-            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
+            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
             @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
             - \c apikey: (required) a string giving the Sewio RTLS Studio API key
             - \c log: (optional) @ref closure "closure" or @ref call_reference "call reference" for informational logging
@@ -158,7 +162,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
 
             @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash
         */
-        constructor(code cb, hash opts) : WebSocketClient(cb, opts) {
+        constructor(code cb, hash opts) : WebSocketClient(SewioWebSocketClient::getCallback(cb), opts) {
             # check required options
             foreach string key in (RequiredOptions) {
                 any v = opts{key};
@@ -170,7 +174,14 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
                 self{key} = v;
             }
 %ifdef NoJson
-            throw "WEBSOCKET-ERROR", "the json module cannot be loaded; ensure the json module is installed and try again";
+            throw "SEWIOWEBSOCKETCLIENT-ERROR", "the json module cannot be loaded; ensure the json module is installed and try again";
+%endif
+        }
+
+        #! sends data to the server
+        send(string method, string resource, *hash h) {
+%ifndef NoJson
+            send(make_json(("headers": ("X-ApiKey": apikey), "method": method, "resource": resource) + h));
 %endif
         }
 
@@ -188,6 +199,15 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             );
 
             return WebSocketClient::connectUnlocked(hdr, \info);
+        }
+
+        #! our callback wrapper to parse the JSON and call the user's callback with the deserialized data
+        private static code getCallback(code cb) {
+            return sub (*string json) {
+%ifndef NoJson
+                cb(json.val() ? parse_json(json) : NOTHING);
+%endif
+            };
         }
     }
 
