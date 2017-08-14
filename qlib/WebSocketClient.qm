@@ -204,6 +204,11 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             callback = cb;
         }
 
+        #! disconnects the connection and stops the event thread if connected
+        destructor() {
+            disconnect();
+        }
+
         #! returns a hash of URL scheme information for URL schemes supported by this object
         hash getSchemes() {
             return WsSchemes;
@@ -374,7 +379,6 @@ ws.clearStats();
                         continue;
 
                     hash h = ws_read_message(hc, timeout_ms);
-
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
                             logDebug("server sent OpClose without code; closing immediately");
