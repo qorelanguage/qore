@@ -169,6 +169,9 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
 
                 self{key} = v;
             }
+%ifdef NoJson
+            throw "WEBSOCKET-ERROR", "the json module cannot be loaded; ensure the json module is installed and try again";
+%endif
         }
 
         #! returns a hash of URL scheme information for URL schemes supported by this object
