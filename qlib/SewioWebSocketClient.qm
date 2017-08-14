@@ -179,7 +179,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         }
 
         #! sends data to the server
-        send(string method, string resource, *hash h) {
+        sendData(string method, string resource, *hash h) {
 %ifndef NoJson
             send(make_json(("headers": ("X-ApiKey": apikey), "method": method, "resource": resource) + h));
 %endif
