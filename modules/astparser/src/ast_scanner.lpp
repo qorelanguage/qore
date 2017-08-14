@@ -195,8 +195,6 @@ static bool angle_balanced(const char* p) {
 
 #define AST_DOT_KW_IDENTIFIER(kw) { yylval->String = new std::string(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
-#define AST_FLEX_DO_EOF { yyterminate(); }
-
 // Global parse options.
 bool PO_BROKEN_LOGIC_PRECEDENCE = false;
 bool PO_BROKEN_OPERATORS = false;
@@ -497,9 +495,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
-<<EOF>>                                 {
-                                            AST_FLEX_DO_EOF
-                                        }
+<<EOF>>                                 { yyterminate(); }
 \"                                      { yylval->String = new std::string; yylloc->saveFirst(); BEGIN(str_state); }
 <str_state>{
       \"                                yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
@@ -655,7 +651,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                 if (c == '\n')
                                                     break;
                                                 else if (c == EOF) {
-                                                    AST_FLEX_DO_EOF
+                                                    yyterminate();
                                                     break;
                                                 }
                                             }
@@ -997,6 +993,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                                         break;
                                                 }
                                                 if (c == EOF)
+                                                    yyterminate();
                                                     return OPEN_BLK_COMMENT_AT_EOF_ERROR;
                                             }
                                         }
