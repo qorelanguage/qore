@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Pop3Client.qm POP3 client module definition
 
-/*  Pop3Client.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
+/*  Pop3Client.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -96,6 +96,7 @@ if (!h)
 
     @subsection pop3client_v1_5 Pop3Client 1.5
     - added the @ref Pop3Client::Pop3Connection "Pop3Connection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - updated for complex types
 
     @subsection pop3client_v1_4 Pop3Client 1.4
     - converted to @ref new-style "%new-style"
@@ -270,7 +271,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             try {
                 disconnect();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 logDbg("Pop3Client disconnect: %s: %s", ex.err, ex.desc);
             }
         }
@@ -728,7 +729,7 @@ pop3.clearStats();
             if (isConnected()) {
                 # send QUIT command if "noquit" is not set and ignore error
                 if (!noquit)
-                    try { sendCommand("QUIT"); } catch (hash ex) { }
+                    try { sendCommand("QUIT"); } catch (hash<ExceptionInfo> ex) { }
                 sock.close();
                 sock.shutdown();
             }

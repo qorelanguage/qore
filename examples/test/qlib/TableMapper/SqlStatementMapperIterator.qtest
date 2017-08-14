@@ -119,16 +119,16 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     *string getSqlValueImpl(any v) {}
     AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {}
     hash getQoreTypeMapImpl(any a) {}
-    *hash doReturningImpl(hash opt, reference sql, list args) {}
+    *hash doReturningImpl(hash opt, reference<string> sql, list args) {}
     hash getTypeMapImpl(any a) {}
     bool constraintsLinkedToIndexesImpl(any a) {}
     bool emptyImpl(any a) {}
     *list getCreateMiscSqlImpl(*hash opt, bool cache) {}
     string getCreateSqlImpl(list l) {}
     bool hasArrayBind(any a) {}
-    nothing doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {}
+    nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {}
     nothing copyImpl(AbstractTable old) {}
-    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {}
+    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {}
 }
 
 class Main inherits QUnit::Test {

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MailMessage.qm MailMessage module definition
 
-/*  MailMessage.qm Copyright 2012 - 2016 Qore Technologies, s.r.o.
+/*  MailMessage.qm Copyright 2012 - 2017 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # need mime definitions
 %requires Mime >= 1.3
@@ -40,7 +40,7 @@
 %enable-all-warnings
 
 module MailMessage {
-    version = "1.2.1";
+    version = "1.3";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -73,6 +73,9 @@ msg.addTO("My Best Friend <you@friend.com>");
     @endcode
 
     @section mailmessage_relnotes MailMessage Release Notes
+
+    @subsection mailmessage_v1_3
+    - added support for complex types
 
     @subsection mailmessage_v1_2_1
     - fixed a bug using the default encoding in @ref MailMessage::Message::attach() "Message::attach()" (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
@@ -192,9 +195,9 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             bool readReceipt = False;
 
             # names
-            list to = (); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
-            list cc = (); # list of cc's
-            list bcc = (); # list of bcc's
+            list<string> to(); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
+            list<string> cc(); # list of cc's
+            list<string> bcc(); # list of bcc's
 
             # message data itself
             *data body;
@@ -206,10 +209,10 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             *string bodyContentType;
 
             # list of Attachments
-            list attachments = ();
+            list<Attachment> attachments();
 
             # list of Parts that are not Attachments (and not the main Message body - could be alternative representations of the body, for example)
-            list parts = ();
+            list<Part> parts();
 
             string sender;
         }
@@ -453,7 +456,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @throw MESSAGE-ADDTO-ERROR the recipient's email address is invalid
         */
-        list addTO(string recipient) {
+        list<string> addTO(string recipient) {
             if (!Message::checkEmailAddress(recipient))
                 throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %y", recipient);
 
@@ -466,7 +469,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @throw MESSAGE-ADDCC-ERROR the recipient's email address is invalid
         */
-        list addCC(string recipient) {
+        list<string> addCC(string recipient) {
             if (!Message::checkEmailAddress(recipient))
                 throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %y", recipient);
 
@@ -479,7 +482,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @throw MESSAGE-ADDBCC-ERROR the recipient's email address is invalid
          */
-        list addBCC(string recipient) {
+        list<string> addBCC(string recipient) {
             if (!Message::checkEmailAddress(recipient))
                 throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %y", recipient);
 
@@ -497,17 +500,17 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! returns the list of "To:" addresses
-        list getTO() {
+        list<string> getTO() {
             return to;
         }
 
         #! returns the list of "CC:" addresses
-        list getCC() {
+        list<string> getCC() {
             return cc;
         }
 
         #! returns the list of "BCC:" addresses
-        list getBCC() {
+        list<string> getBCC() {
             return bcc;
         }
 
@@ -517,8 +520,8 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! return all the email addresses the message will be sent to, a combination of the "To:", "CC:", and "BCC:" lists
-        softlist getRecipients() {
-            return map getEmailAddress($1), (to + cc + bcc);
+        list<string> getRecipients() {
+            return cast<list<string>>(select (map getEmailAddress($1), (to + cc + bcc)), exists $1);
         }
 
         #! returns @ref Qore::True "True" if the message can be sent, @ref Qore::False "False" if not
@@ -643,7 +646,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
          */
         setHeader(list hdrs) {
             headers = {};
-            map headers += parseHeader($1. False), hdrs;
+            map headers += parseHeader($1, False), hdrs;
         }
 
         #! sets/replaces the list of Message headers from a hash of header info
@@ -766,14 +769,14 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! returns a list of Attachment objects for the Message
-        list getAttachments() {
+        list<Attachment> getAttachments() {
             return attachments;
         }
 
         #! returns a list of non-attachment Part objects for the Message
         /** these could represent alternative representations of the message body, for example
          */
-        list getParts() {
+        list<Part> getParts() {
             return parts;
         }
 
@@ -852,12 +855,12 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         /** @param include_body if @ref Qore::True "True" the Message body will be included in the string output
          */
         string toString(bool include_body = False) {
-            list attarr = ();
+            list<string> attarr();
             foreach Attachment att in (attachments)
                 attarr += sprintf("%s (%s,%d)", att.getName(), att.getMime(), att.getData().size());
 
             # sending envelope: from, to, subject
-            list env = getEnvelopeList();
+            list<string> env = getEnvelopeList();
 
             # the main string
             string str = sprintf("Message (%s)\n", sendPossible() ? "ok": "unfinished");
@@ -904,7 +907,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
          */
         string toLine() {
             # sending envelope: from, to, subject
-            list env = getEnvelopeList();
+            list<string> env = getEnvelopeList();
 
             # the main string
             string str = sprintf("[Message (%s), %s, %simportant, %sdelivery, %sread",
@@ -958,7 +961,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @throw ENCODE-TRANSFER-DATA-ERROR unknown encoding passed
          */
-        static string encodeTransferData(data data, string enc, reference hdr) {
+        static string encodeTransferData(data data, string enc, reference<hash> hdr) {
             switch (enc) {
                 case EncBase64: {
                     hdr."Content-Transfer-Encoding" = enc;
@@ -1011,7 +1014,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @throw MESSAGE-PARSE-ERROR invalid message data
          */
-        static string getLine(reference msg, reference pos) {
+        static string getLine(reference<string> msg, reference<int> pos) {
             int i = msg.find("\r\n");
             if (i == -1)
                 throw "MESSAGE-PARSE-ERROR", sprintf("cannot find end of line in message at byte position %d", pos);
@@ -1026,8 +1029,8 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! @cond nodoc
-        private list getEnvelopeList() {
-            list env = (sprintf("Sender: '%s'", from), sprintf("Subject: '%s'", subject));
+        private list<string> getEnvelopeList() {
+            list<string> env = (sprintf("Sender: '%s'", from), sprintf("Subject: '%s'", subject));
             # add To addresses
             map env += sprintf("To: %s", $1), to;
             # add CC addresses

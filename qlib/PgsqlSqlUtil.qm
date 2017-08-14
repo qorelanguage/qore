@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.2
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.1.2";
+    version = "1.2";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,9 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv12 PgsqlSqlUtil v1.2
+    - updated for complex types
+
     @subsection pgsqlsqlutilv112 PgsqlSqlUtil v1.1.2
     - fixed a bug in setting a \c comment for a table column (<a href="https://github.com/qorelanguage/qore/issues/1886">issue 1886</a>)
     - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
@@ -187,7 +190,7 @@ public namespace PgsqlSqlUtil {
         return new PgsqlDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -536,7 +539,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         abstract AbstractIterator keyIterator();
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
@@ -963,7 +966,7 @@ my any $v = $c.name;
             return getFunctionImpl(name);
         }
 
-        static *string getFunctionArgs(string err, reference src) {
+        static *string getFunctionArgs(string err, reference<string> src) {
             # remove function name and "(" at beginning of hdr
             int i = src.find("(");
             if (i == -1)
@@ -1247,7 +1250,7 @@ my any $v = $c.name;
                 rv = ds.vexec(sql, args);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
@@ -1263,7 +1266,7 @@ my any $v = $c.name;
                 rv = ds.execRaw(sql);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
@@ -1424,7 +1427,7 @@ my any $v = $c.name;
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("nextval('%s')", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1436,7 +1439,7 @@ my any $v = $c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("currval('%s')", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1718,7 +1721,7 @@ my any $v = $c.name;
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name);
+                    reference<hash> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
@@ -1748,7 +1751,7 @@ my any $v = $c.name;
             qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name);
+                reference<PgsqlUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 ch.add(row.column_name, columns{row.column_name});
@@ -1916,7 +1919,7 @@ my any $v = $c.name;
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /duplicate key value/) {
                     ds.exec("rollback to savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
                     return False;
@@ -2000,13 +2003,13 @@ my any $v = $c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
            sql += " limit %v";
            args += qh.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
@@ -2035,7 +2038,7 @@ my any $v = $c.name;
                 triggerFunctions = triggerFunctions.copy();
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
             foreach any v in (opt.returning) {
                 hash rh;

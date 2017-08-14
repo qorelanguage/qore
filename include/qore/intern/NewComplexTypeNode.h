@@ -135,8 +135,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      assert(false);
-      return nullptr;
+      return this;
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -179,8 +178,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      assert(false);
-      return nullptr;
+      return this;
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

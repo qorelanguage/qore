@@ -189,7 +189,7 @@ string connstr = get_connection(str);
                 try {
                     return priv_try_get_connection(mod, conn);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }
             }
@@ -224,7 +224,7 @@ string connstr = get_connection(str);
                 try {
                     map h.($1.key) = $1.value, priv_try_get_connections(mod).pairIterator(), !exists h.($1.key);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     if (verbose)
                         printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }
@@ -368,7 +368,7 @@ string connstr = get_connection(str);
             try {
                 return pingIntern(rv);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 return rv += (
                     "ok": False,
                     "info": sprintf("%s: %s", ex.err, ex.desc),
@@ -451,7 +451,7 @@ string connstr = get_connection(str);
                 status = "OK";
                 return o;
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 status = sprintf("%s: %s", ex.err, ex.desc);
                 up = False;
                 rethrow;

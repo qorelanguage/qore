@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 %requires Util
 %require-types
 %enable-all-warnings
@@ -484,7 +484,7 @@ my hash $h = $i.getValue();
                     try {
                         return tz ? tz.date(value, fmt) : date(value, fmt);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         throw ex.err, ex.desc, ("value": value, "fmt": fmt);
                     }
                 }
@@ -493,7 +493,7 @@ my hash $h = $i.getValue();
                         value = date(value);
                     return tz ? tz.date(value) : date(value);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     throw ex.err, ex.desc, ("value": value);
                 }
             }

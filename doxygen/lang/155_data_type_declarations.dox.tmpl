@@ -38,6 +38,7 @@
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
     |@ref reference_type "reference"|@ref lvalue_references|the type the reference points to|Restricts values to references to lvalues
+    |@ref reference_complex_type "reference<...>"|@ref lvalue_references|the type given as an argument|Restricts values to references to lvalues compatible with the given type
     |@ref int_or_nothing_type "*int"|@ref integer, @ref null, or @ref nothing|@ref integer or @ref nothing|Restricts values to %Qore's @ref integer or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref float_or_nothing_type "*float"|@ref float, @ref null, or @ref nothing|@ref float or @ref nothing|Restricts values to %Qore's @ref float or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref number_or_nothing_type "*number"|@ref number, @ref null, or @ref nothing|@ref number or @ref number|Restricts values to %Qore's @ref number or @ref nothing types; if @ref null is passed then @ref nothing is returned
@@ -46,13 +47,18 @@
     |@ref date_or_nothing_type "*date"|@ref date, @ref null, or @ref nothing|@ref date or @ref nothing|Restricts values to %Qore's @ref date or @ref nothing type; values may be either absolute or relative date/time values; if @ref null is passed then @ref nothing is returned
     |@ref binary_or_nothing_type "*binary"|@ref binary, @ref null, or @ref nothing|@ref binary or @ref nothing|Restricts values to %Qore's @ref binary or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref hash_or_nothing_type "*hash"|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to %Qore's @ref hash or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref hash_hashdecl_or_nothing_type "*hash<...>"|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to values of the referenced @ref hashdecl "type-safe hash" or @ref nothing types; if @ref null is passed then @ref nothing is returned
+    |@ref hash_complex_or_nothing_type "*hash<string, ...>"|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts key values to the declared complex hash or @ref nothing types; if @ref null is passed then @ref nothing is returned
     |@ref list_or_nothing_type "*list"|@ref list, @ref null, or @ref nothing|@ref list or @ref nothing|Accepts either a @ref list or @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref list_complex_or_nothing_type "*list<...>"|@ref list, @ref null, or @ref nothing|@ref list or @ref nothing|Restricts list values to the declared complex list type or @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref object_or_nothing_type "*object"|@ref object, @ref null, or @ref nothing|@ref object or @ref nothing|Accepts either an @ref object or @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref classname_type_or_nothing "*<classname>"|@ref object of the given class, @ref null, or @ref nothing|@ref object of the given class or @ref nothing|Restricts values to objects of the specific class given or @ref nothing; either the class name can be given (ex: @ref Qore::Thread::Mutex "*Mutex" or a qualified path to the class: @ref Qore::Thread::Mutex "*Qore::Thread::Mutex"); if @ref null is passed then @ref nothing is returned
+    |@ref classname_type_or_nothing "*object<...>"|@ref object of the given class, @ref null, or @ref nothing|@ref object of the given class or @ref nothing|Restricts values to objects of the specific class given or @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref data_or_nothing_type "*data"|@ref string, @ref binary, @ref null, or @ref nothing|@ref string, @ref binary, or @ref nothing|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type; if @ref null is passed then @ref nothing is returned
     |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref null, or @ref nothing|@ref closure, @ref call_reference, or @ref nothing|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date, @ref null, or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value or @ref null is passed, then @ref nothing is returned
-    |@ref reference_or_nothing_type "*reference"|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to|Restricts values to references to lvalues and @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref reference_or_nothing_type "*reference"|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to and @ref nothing|Restricts values to references to lvalues and @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref reference_complex_or_nothing_type "*reference<...>"|@ref lvalue_references, @ref null, or @ref nothing|the type given as an argument and @ref nothing|Restricts values to references to lvalues compatible with the given type and @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref softint_or_nothing_type "*softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer. If no value or @ref null is passed, then @ref nothing is returned
     |@ref softfloat_or_nothing_type "*softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref float or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
     |@ref softnumber_or_nothing_type "*softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref number or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-number values to a number and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
@@ -230,7 +236,7 @@ hash<MyHash> sub foo(int x) {
 
     @subsection hash_complex_type Hash With Declared Value Type
 
-    <b>Comples hash Type Restriction</b>
+    <b>Complex hash Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
     |\c hash|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|@ref hash "hash"&lt;string, <em>@ref data_type_declarations "type"</em>&gt;|Restricts values to hashes with the given declared key type; use @ref cast "cast<>(...)" to convert values to this type at runtime.
 
@@ -298,7 +304,7 @@ list sub foo(list l = ("foo", "bar")) {
 
     <b>Complex list Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c list|@ref hash "list"&lt;<em>@ref data_type_declarations "type"</em>&gt;|@ref list "list"&lt;<em>@ref data_type_declarations "type"</em>&gt;|Restricts values to lists with the given declared value type; use @ref cast "cast<>(...)" to convert values to this type at runtime.
+    |\c list|@ref list "list"&lt;<em>@ref data_type_declarations "type"</em>&gt;|@ref list "list"&lt;<em>@ref data_type_declarations "type"</em>&gt;|Restricts values to lists with the given declared value type; use @ref cast "cast<>(...)" to convert values to this type at runtime.
 
     The list type supports one type argument in angle brackets to specify the value
     type.  This results in a list where the values must always be of the declared type.  See the
@@ -332,21 +338,6 @@ list<int> l4 = cast<list<int>>(get_list());
     - @ref new
     - @ref cast
 
-    @subsection object_complex_type Class-Specific Type Declaration
-
-    The object type declaration takes a single @ref qore_classes "class" name (or namespace-
-    prefixed path) in angle brackets after \c "object" which results in a type declaration
-    restricted to the declared @ref qore_classes "class" as in the following example.
-
-    @par Example
-    @code{.py}
-object<MyClass> sub foo(MyClass o = new MyClass()) {
-    return o;
-}
-    @endcode
-
-    @note this type declaration is equivalent to using the class name by itself
-
     <hr>
     @section object_type object
 
@@ -360,6 +351,25 @@ object sub foo(object o = new Mutex()) {
     return o;
 }
     @endcode
+
+    @subsection object_complex_type Class-Specific Type Declaration
+
+    <b>Complex object Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c object|@ref object "object"&lt;<em>@ref qore_classes "class"</em>&gt;|@ref object "object"&lt;<em>@ref qore_classes "class"</em>&gt;|Restricts values to objects of the given class
+
+    The object type declaration takes a single @ref qore_classes "class" name (or namespace-
+    prefixed path) in angle brackets after \c "object" which results in a type declaration
+    restricted to the declared @ref qore_classes "class" as in the following example.
+
+    @par Example
+    @code{.py}
+object<MyClass> sub foo(MyClass o = new MyClass()) {
+    return o;
+}
+    @endcode
+
+    @note this type declaration is equivalent to using the class name by itself
 
     <hr>
     @section classname_type \<classname\>
@@ -564,6 +574,21 @@ int i;
 foo(\i);
     @endcode
 
+    @subsection reference_complex_type Reference With Declared LValue Type
+
+    <b>Complex reference Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c reference|@ref lvalue_references "reference"&lt;<em>@ref data_type_declarations "type"</em>&gt;|type as given as the arg|Restricts values to references to lvalues with a type compatible to that given as the type argument
+
+    The reference type supports one type argument in angle brackets to specify a compatible lvalue
+    type.  See the following example for more information.
+
+    @par Example
+    @code{.py}
+int i = 0;
+reference<int> r = \i;
+    @endcode
+
     <hr>
     @section int_or_nothing_type *int
 
@@ -678,6 +703,32 @@ foo(\i);
 }
     @endcode
 
+    @subsection hash_hashdecl_or_nothing_type *hash<...>
+
+    <b>Complex Hashdecl or Nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<tt>*hash&lt;...&gt;</tt>|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts values to values of the referenced @ref hashdecl "type-safe hash" or @ref nothing types; if @ref null is passed then @ref nothing is returned
+
+    @par Example
+    @code{.py}
+*hash<MyHash> sub foo(*hash<MyHash> h) {
+    return h;
+}
+    @endcode
+
+    @subsection hash_complex_or_nothing_type *hash<string, ...>
+
+    <b>Complex Hash or Nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<tt>*hash&lt;string, ...&gt;</tt>|@ref hash, @ref null, or @ref nothing|@ref hash or @ref nothing|Restricts key values to the declared complex hash or @ref nothing types; if @ref null is passed then @ref nothing is returned
+
+    @par Example
+    @code{.py}
+*hash<string, int> sub foo(*hash<string, int> h) {
+    return h;
+}
+    @endcode
+
     <hr>
     @section list_or_nothing_type *list
 
@@ -688,6 +739,19 @@ foo(\i);
     @par Example
     @code{.py}
 *list sub foo(*list l) {
+    return l;
+}
+    @endcode
+
+    @subsection list_complex_or_nothing_type *list<...>
+
+    <b>Complex List or Nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<tt>*list&lt;...&gt;</tt>|@ref list, @ref null, or @ref nothing|@ref list or @ref nothing|Restricts list values to the declared complex list type or @ref nothing; if @ref null is passed then @ref nothing is returned
+
+    @par Example
+    @code{.py}
+*list<int> sub foo(*list<int> l) {
     return l;
 }
     @endcode
@@ -761,13 +825,29 @@ sub foo(*timeout c) {
     <hr>
     @section reference_or_nothing_type *reference
 
-    <b>reference Type Restriction</b>
+    <b>*reference Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
     |\c reference|@ref lvalue_references, @ref null, or @ref nothing|the type the reference points to|Requires a reference to an lvalue to be assigned or @ref nothing; if @ref null is passed then @ref nothing is returned
 
     @par Example
     @code{.py}
 sub foo(*reference f) {
+    f = 10;
+}
+
+int i;
+foo(\i);
+    @endcode
+
+    @subsection reference_complex_or_nothing_type *reference<...>
+
+    <b>complex Reference or Nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |<tt>*reference&lt;...&gt;</tt>|@ref lvalue_references, @ref null, or @ref nothing|the type given as an argument and @ref nothing|Restricts values to references to lvalues compatible with the given type and @ref nothing; if @ref null is passed then @ref nothing is returned
+
+    @par Example
+    @code{.py}
+sub foo(*reference<int> f) {
     f = 10;
 }
 

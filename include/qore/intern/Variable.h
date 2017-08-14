@@ -104,6 +104,7 @@ private:
    mutable QoreVarRWLock rwl;
    QoreParseTypeInfo* parseTypeInfo;
    const QoreTypeInfo* typeInfo;
+   const QoreTypeInfo* refTypeInfo = nullptr;
    bool pub,                          // is this global var public (valid and set for modules only)
       finalized;                      // has this var already been cleared during Program destruction?
 
@@ -205,6 +206,7 @@ public:
       }
 
       typeInfo = n_typeInfo;
+      refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
 
       assert(!val.removeNode(true));
    }
@@ -215,7 +217,8 @@ public:
 
       if (parseTypeInfo) {
          typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
-         parseTypeInfo = 0;
+         refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
+         parseTypeInfo = nullptr;
 
          val.set(typeInfo);
       }
@@ -245,8 +248,7 @@ public:
          return val.v.getPtr()->getTypeInfo();
 
       parseInit();
-      // we cannot enforce the first reference assignment of global variables, so we return type any
-      return typeInfo == referenceTypeInfo || typeInfo == referenceOrNothingTypeInfo ? anyTypeInfo : typeInfo;
+      return refTypeInfo ? refTypeInfo : typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
@@ -436,7 +438,6 @@ public:
    }
 
    DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
-      //typeInfo = ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo ? 0 : ti;
       typeInfo = ti;
    }
 
@@ -458,10 +459,6 @@ public:
 
       before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
 
-      /*
-      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
-         ti = nullptr;
-      */
       typeInfo = ti;
    }
 
@@ -477,10 +474,6 @@ public:
 
       before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
 
-      /*
-      if (nv.assigned && nv.type == QV_Node && !is_nothing(nv.v.n) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
-         ti = nullptr;
-      */
       typeInfo = ti;
    }
 
@@ -491,10 +484,6 @@ public:
 
       before = needs_scan(ptr);
 
-      /*
-      if (!is_nothing(ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
-         ti = nullptr;
-      */
       typeInfo = ti;
    }
 
@@ -511,10 +500,6 @@ public:
 
       before = needs_scan(*ptr);
 
-      /*
-      if (!is_nothing(*ptr) && (ti == referenceTypeInfo || ti == referenceOrNothingTypeInfo))
-         ti = nullptr;
-      */
       typeInfo = ti;
    }
 

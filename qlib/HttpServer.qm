@@ -329,6 +329,7 @@ class HttpServer::HttpHandlerList {
         TreeMap treeMap();
     }
 
+    /*
     private static checkSpecialHeaders(reference sh) {
         foreach any h in (\sh) {
             if (h.typeCode() != NT_STRING)
@@ -337,6 +338,7 @@ class HttpServer::HttpHandlerList {
             h = tolower(h);
         }
     }
+    */
 
     #! sets a request handler according to the arguments given
     setHandler(string name, string path, bool isregex = True, *softlist content, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers) {
@@ -354,7 +356,7 @@ class HttpServer::HttpHandlerList {
     }
 
     # matches a handler to the request
-    *HandlerInfo findHandler(hash hdr, reference score, bool finalv = False, *reference root_path) {
+    *HandlerInfo findHandler(hash hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
         if (!handlers)
             return;
 
@@ -480,7 +482,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         c.waitForZero();
     }
 
-    *DynamicHandlerInfo findHandler(hash hdr, reference score, reference dhh, *reference root_path) {
+    *DynamicHandlerInfo findHandler(hash hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
         dhl.readLock();
         on_exit dhl.readUnlock();
 
@@ -1212,7 +1214,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
             listener.logResponse(cx, code, str, v_hdr);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
                 string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 logError(estr);
@@ -1303,7 +1305,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! helper method to set HTTP response headers
-    static nothing setReplyHeaders(Socket s, hash cx, reference rv) {
+    static nothing setReplyHeaders(Socket s, hash cx, reference<hash> rv) {
         return HttpServer::http_set_reply_headers(s, cx, \rv);
     }
 
@@ -1416,7 +1418,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi) {
         foreach string enc in (hh."accept-encoding") {
             *string e = ContentEncodings{enc};
             if (!e)
@@ -1520,7 +1522,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                             return;
                         }
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         # log the error
                         string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
                         listener.logError(str);
@@ -1554,7 +1556,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             string desc = !debug
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);
@@ -1579,7 +1581,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference cx, hash hdr, bool head) {
+    final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash hdr, bool head) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -1659,7 +1661,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     try {
                         cast<HttpServer::AbstractHttpSocketHandler>(handler).start(listener.getID(), cx, hdr, s);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         if (ex.err == "SOCKET-NOT-OPEN") {
                             listener.logError("cid %d: dedicated socket handler %y: socket closed by remote", cx.id, cx.handler_name);
                         }
@@ -1953,7 +1955,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 call_function(stopc, name);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc, get_ex_pos(ex), ex.err, ex.desc);
             }
         }
@@ -1992,7 +1994,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 call_function_args(logger, args);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
@@ -2011,7 +2013,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 call_function_args(errorlogger, args);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
@@ -2055,7 +2057,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # use the thread pool to start the connection
                 serv.startConnection(sub () { connectionThread(r); });
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 cThreads.dec();
                 string err = sprintf("failed to start connection thread: %s: %s", ex.err, ex.desc);
                 serv.sendHttpError(self, ("id": -1, "close": True), r, 500, err);
@@ -2076,7 +2078,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 s.upgradeServerToSSL(HttpServer::ReadTimeout);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 log("error upgrading secure connection to SSL: %s: %s", ex.err, ex.desc);
                 return;
             }
@@ -2125,7 +2127,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 try {
                     hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \hi);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
                     # protocol compatibility SHOULD only close the connection after
                     # sending a "connection: close" header, but in
@@ -2195,7 +2197,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                             body = s.recv(hdr."content-length", HttpServer::ReadTimeout);
                         #printf("HTTP DEBUG: %s\n", body);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         string etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", hdr.method, hdr."content-length", ex.err, ex.desc);
                         string str = sprintf("%s: received from %s via %s (header=%n)", etxt, info.address_desc, socket_info.address_desc, hdr);
                         logError(str);
@@ -2254,7 +2256,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     break;
             }
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             string etxt = serv.getDebug()
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);

@@ -1174,7 +1174,7 @@ my any $v = $c.name;
             return new OracleSequence(name, start, increment, end);
         }
 
-        private getSchemaName(reference name, reference schema) {
+        private getSchemaName(reference<string> name, reference<string> schema) {
             # see if there is a schema in the name
             *string sstr = (name =~ x/^(\w+)\.\w+/)[0];
             if (sstr) {
@@ -1368,7 +1368,7 @@ my any $v = $c.name;
             return src;
         }
 
-        private checkSource(string type, string name, reference src) {
+        private checkSource(string type, string name, reference<string> src) {
             # remove whitespace from the beginning and end of the string
             trim src;
 
@@ -1826,7 +1826,7 @@ my any $v = $c.name;
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
@@ -1890,7 +1890,7 @@ my any $v = $c.name;
                     },
                 ),
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1970,7 +1970,7 @@ my any $v = $c.name;
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.nextval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1982,7 +1982,7 @@ my any $v = $c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.currval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -2115,7 +2115,7 @@ my any $v = $c.name;
             try {
                 setTableInfoIntern();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "TABLE-ERROR")
                     return False;
                 rethrow;
@@ -2280,7 +2280,7 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private getSelectWhereSqlUnlocked(reference<string> sql, reference<list> args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch, psch);
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12)
@@ -2301,7 +2301,7 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12) {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
@@ -2331,7 +2331,7 @@ my any $v = $c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
             if (!qh.limit)
                 return;
 
@@ -2526,7 +2526,7 @@ my any $v = $c.name;
                         row.target_column = row.target_column.lwr();
                         row.target_table = row.target_table.lwr();
                     }
-                    reference c = \rv.(row.constraint_name);
+                    reference<hash> c = \rv.(row.constraint_name);
                     #if (!columns.hasKey(row.source_column))# && c.target.columns.(row.target_column)) {
                     #    printf("ERROR: %y.%y ->  %y.%y (%y): %y\n", name, row.source_column, row.target_table, row.target_column, row.constraint_name, columns.keys());
                     c.columns.(row.source_column) = columns{row.source_column};
@@ -2566,7 +2566,7 @@ my any $v = $c.name;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
-                reference ch = \rv.(row.constraint_name);
+                reference<OracleUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch) {
                     ch = new OracleUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                     if (row.index_name)
@@ -2674,7 +2674,7 @@ my any $v = $c.name;
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /ORA-00001/)
                     return False;
                 rethrow;
@@ -2891,7 +2891,7 @@ my any $v = $c.name;
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
             foreach any v in (opt.returning) {
                 hash rh;

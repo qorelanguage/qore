@@ -185,13 +185,17 @@ public:
    QoreThreadLock chl,      // complex hash lock
       chonl,                // complex hash or nothing lock
       cll,                  // complex list lock
-      clonl;                // complex list or nothing lock
+      clonl,                // complex list or nothing lock
+      crl,                  // complex reference lock
+      cronl;                // complex reference or nothing lock
 
    typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
    tmap_t ch_map,          // complex hash map
       chon_map,            // complex hash or nothing map
       cl_map,              // complex list map
-      clon_map;            // complex list or nothing map
+      clon_map,            // complex list or nothing map
+      cr_map,              // complex reference map
+      cron_map;            // complex reference or nothing map
 
    // set of signals being handled by code in this Program (to be deleted on exit)
    int_set_t sigset;
@@ -1458,6 +1462,8 @@ public:
    DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexListType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexListOrNothingType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexReferenceType(const QoreTypeInfo* vti);
+   DLLLOCAL const QoreTypeInfo* getComplexReferenceOrNothingType(const QoreTypeInfo* vti);
 
    DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

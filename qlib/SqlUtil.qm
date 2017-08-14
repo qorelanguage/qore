@@ -2178,7 +2178,7 @@ public namespace SqlUtil {
         COP_AS: (
             "arg": Type::String,
             "withalias": True,
-            "code": string sub (string cve, string arg, reference psch) {
+            "code": string sub (string cve, string arg, reference<hash> psch) {
                 psch{arg} = cve;
                 return sprintf("%s as %s", cve, arg);
             },
@@ -3761,37 +3761,37 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
         ),
         OP_LT: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
@@ -3799,7 +3799,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_EQ: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
                 args += arg;
@@ -3807,62 +3807,62 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_BETWEEN: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg[0];
                 args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
             "recursive": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s < %s", cn, arg);
             },
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s <= %s", cn, arg);
             },
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s > %s", cn, arg);
             },
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s >= %s", cn, arg);
             },
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s != %s", cn, arg);
             },
         ),
         OP_CEQ: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, string arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, string arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s = %s", cn, arg);
             },
         ),
         OP_SUBSTR: (
-            "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg[0]; # start
                 if (!exists arg[1]) {
                     args += arg[2]; # text
@@ -3874,7 +3874,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_OR: (
-            "code": string sub (object t, string cn, list arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, list arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return t.getOrClause(arg, \args, jch, join, ch, psch);
             },
         ),
@@ -4523,7 +4523,7 @@ list l = h.keys();
 
             @return a list of key names of the contained hash
         */
-        list keys() {
+        list<string> keys() {
             return h.keys();
         }
 
@@ -5101,7 +5101,7 @@ map $1.drop(), tables.getDropIterator();
             return getDropList().iterator();
         }
 
-        private getDependencies(reference tdh, reference sdh, *reference th) {
+        private getDependencies(reference<hash> tdh, reference<hash> sdh, *reference<hash> th) {
             # list of tables not in DB
             list nt = ();
             foreach AbstractTable t in (h.iterator()) {
@@ -6327,7 +6327,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
             return dsdesc;
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+        private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
             # make sure driver-specific options take precedence over generic options
             string dn = getDriverName();
             AbstractDatabase::checkDriverOptions(\opt, dn);
@@ -7051,7 +7051,7 @@ list l = db.getDropSchemaSql(schema_hash);
             string drv = getDriverName();
 
             # drop objects
-            reference fmap = \schema_hash{type + "s"};
+            reference<hash> fmap = \schema_hash{type + "s"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             foreach string name in (fmap.keyIterator()) {
                 AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
@@ -7078,7 +7078,7 @@ list l = db.getDropSchemaSql(schema_hash);
             hash code_cache;
 
             # rename objects
-            reference fmap = \schema_hash{type + "_map"};
+            reference<*hash> fmap = \schema_hash{type + "_map"};
             AbstractDatabase::checkDriverOptions(\fmap, drv);
             HashIterator i(fmap);
             while (i.next()) {
@@ -7100,7 +7100,7 @@ list l = db.getDropSchemaSql(schema_hash);
             }
 
             # create any missing functions; replace updated functions
-            reference fh = \schema_hash{type + "s"};
+            reference<hash> fh = \schema_hash{type + "s"};
             AbstractDatabase::checkDriverOptions(\fh, drv);
             foreach string name in (fh.keyIterator()) {
                 AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fh{name}, name, type + "s");
@@ -7719,11 +7719,11 @@ string sql = t.getSqlFromList(list);
             return reclaimSpaceImpl(options);
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt) {
+        private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+        private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
         }
 
@@ -7740,7 +7740,7 @@ string sql = t.getSqlFromList(list);
             try {
                 load_module(mn);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
@@ -7748,7 +7748,7 @@ string sql = t.getSqlFromList(list);
             try {
                 return call_function(mn + "::" + "get_database", nds, opts);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractDatabase object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
         }
@@ -7763,7 +7763,7 @@ string sql = t.getSqlFromList(list);
             return AbstractDatabase::getDatabase(nds, opts);
         }
 
-        static checkDriverOptions(reference h, string drv) {
+        static checkDriverOptions(reference<hash> h, string drv) {
             if (h.driver) {
                 if (h.driver{drv})
                     h += h.driver{drv};
@@ -8675,7 +8675,7 @@ table.rename("new_name");
 
             @see getRenameSql()
         */
-        rename(string new_name, *reference sql, *Tables table_cache) {
+        rename(string new_name, *reference<string> sql, *Tables table_cache) {
             l.lock();
             on_exit l.unlock();
 
@@ -8871,7 +8871,7 @@ bool b = table.empty();
                 try {
                     addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     throw ex.err, sprintf("error setting up %s: %s", getDesc(), ex.desc), ex.arg;
                 }
             }
@@ -9112,7 +9112,7 @@ AbstractColumn col = table.renameColumn("name", "family_name");
 
             @note if any primary key or foreign table constraints refer to the column, the internal representations are also renamed, however check constraints are not updated and will be invalid if they refer to the renamed column
         */
-        AbstractColumn renameColumn(string old_name, string new_name, reference sql) {
+        AbstractColumn renameColumn(string old_name, string new_name, reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             getColumnsUnlocked();
@@ -9201,11 +9201,11 @@ string sql = table.getRenameColumnSql("name", "family_name");
             return c;
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt) {
+        private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, name);
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference opt, string tag) {
+        private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
         }
 
@@ -9241,7 +9241,7 @@ printf("%s;\n", sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash opt, *reference sql) {
+        AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash opt, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
 
@@ -9289,14 +9289,14 @@ printf("%s;\n", sql);
             primaryKey = pk;
         }
 
-        private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference sql) {
+        private AbstractPrimaryKey addPrimaryKeyUnlocked(string pkname, softlist cols, *hash opt, *reference<string> sql) {
             AbstractPrimaryKey pk = addPrimaryKeyUnlockedIntern(pkname, cols, opt, \sql);
             execSql(sql);
             setPrimaryKeyUnlocked(pk);
             return pk;
         }
 
-        private AbstractPrimaryKey addPrimaryKeyUnlockedIntern(string pkname, softlist cols, *hash opt, *reference sql) {
+        private AbstractPrimaryKey addPrimaryKeyUnlockedIntern(string pkname, softlist cols, *hash opt, *reference<string> sql) {
             getColumnsUnlocked();
             if (!manual)
                 getIndexesUnlocked();
@@ -9502,7 +9502,7 @@ printf("%s;\n", sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractUniqueConstraint addUniqueConstraint(string cname, softlist cols, *hash opt, *reference sql) {
+        AbstractUniqueConstraint addUniqueConstraint(string cname, softlist cols, *hash opt, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             return addUniqueConstraintUnlocked(cname, cols, opt, \sql);
@@ -9547,7 +9547,7 @@ printf("%s;\n", sql);
             return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "unique constraint", cname, getSqlName());
         }
 
-        private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference sql) {
+        private AbstractUniqueConstraint addUniqueConstraintUnlocked(string cname, softlist cols, *hash opt, *reference<string> sql) {
             AbstractUniqueConstraint uk = addUniqueConstraintUnlockedIntern(cname, cols, opt, \sql);
             # add foreign constraint to table in the DB if the table already exists in the DB
             execSql(sql);
@@ -9558,7 +9558,7 @@ printf("%s;\n", sql);
             return uk;
         }
 
-        private AbstractUniqueConstraint addUniqueConstraintUnlockedIntern(string cname, softlist cols, *hash opt, *reference sql) {
+        private AbstractUniqueConstraint addUniqueConstraintUnlockedIntern(string cname, softlist cols, *hash opt, *reference<string> sql) {
             getColumnsUnlocked();
             if (!manual)
                 getIndexesUnlocked();
@@ -9614,7 +9614,7 @@ printf("%s;\n", sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+        AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash opt, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
 
@@ -9659,7 +9659,7 @@ printf("%s;\n", sql);
             return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "index", iname, getSqlName());
         }
 
-        private AbstractIndex addIndexUnlocked(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+        private AbstractIndex addIndexUnlocked(string iname, bool unique, softlist cols, *hash opt, *reference<string> sql) {
             AbstractIndex ix = addIndexUnlockedIntern(iname, unique, cols, opt, \sql);
             execSql(sql);
             # set as index for the table
@@ -9679,7 +9679,7 @@ printf("%s;\n", sql);
             return ix;
         }
 
-        private AbstractIndex addIndexUnlockedIntern(string iname, bool unique, softlist cols, *hash opt, *reference sql) {
+        private AbstractIndex addIndexUnlockedIntern(string iname, bool unique, softlist cols, *hash opt, *reference<string> sql) {
             getColumnsUnlocked();
             if (inDb)
                 getIndexesUnlocked();
@@ -9736,7 +9736,7 @@ AbstractIndex ix = table.renameIndex("uk_table_name", "unique_table_name");
 
             @throw INDEX-ERROR if the old index does not exist in the table or if the new index name already exists
         */
-        AbstractIndex renameIndex(string old_name, string new_name, reference sql) {
+        AbstractIndex renameIndex(string old_name, string new_name, reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             getIndexesUnlocked();
@@ -9782,7 +9782,7 @@ table.dropIndex("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractIndex dropIndex(string iname, *reference sql) {
+        AbstractIndex dropIndex(string iname, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             getIndexesUnlocked();
@@ -9855,7 +9855,7 @@ printf("%s;\n", sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+        AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
 
@@ -9922,7 +9922,7 @@ printf("%s;\n", sql);
             return t.describe();
         }
 
-        private AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+        private AbstractForeignConstraint addForeignConstraintUnlocked(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference<string> sql) {
             AbstractForeignConstraint fk = addForeignConstraintUnlockedIntern(cname, cols, table, tcols, opt, \sql);
             execSql(sql);
 
@@ -9937,7 +9937,7 @@ printf("%s;\n", sql);
             return fk;
         }
 
-        private AbstractForeignConstraint addForeignConstraintUnlockedIntern(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference sql) {
+        private AbstractForeignConstraint addForeignConstraintUnlockedIntern(string cname, softlist cols, string table, *softlist tcols, *hash opt, *reference<string> sql) {
             getColumnsUnlocked();
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("FOREIGN-CONSTRAINT-ERROR", cname, getForeignConstraintOptions(), \opt);
@@ -9998,7 +9998,7 @@ table.dropForeignConstraint("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractForeignConstraint dropForeignConstraint(string cname, *reference sql) {
+        AbstractForeignConstraint dropForeignConstraint(string cname, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             getForeignConstraintsUnlocked();
@@ -10060,7 +10060,7 @@ printf("%s;\n", sql);
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash opt, *reference sql) {
+        AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash opt, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             return addCheckConstraintUnlocked(cname, src, opt, \sql);
@@ -10107,7 +10107,7 @@ printf("%s;\n", sql);
             return AbstractDatabase::doCallback(opt, sql, AbstractDatabase::AC_Add, "check constraint", cname, getSqlName());
         }
 
-        private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference sql) {
+        private AbstractCheckConstraint addCheckConstraintUnlocked(string cname, string src, *hash opt, *reference<string> sql) {
             AbstractCheckConstraint cc = addCheckConstraintUnlockedIntern(cname, src, opt, \sql);
             execSql(sql);
 
@@ -10120,7 +10120,7 @@ printf("%s;\n", sql);
             return cc;
         }
 
-        private AbstractCheckConstraint addCheckConstraintUnlockedIntern(string cname, string src, *hash opt, *reference sql) {
+        private AbstractCheckConstraint addCheckConstraintUnlockedIntern(string cname, string src, *hash opt, *reference<string> sql) {
             # load constraints if needed, verify unique constraint name, validate/process options
             checkUniqueConstraintNameValidateOptions("CHECK-CONSTRAINT-ERROR", cname, getConstraintOptions(), \opt);
 
@@ -10256,7 +10256,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        *string getDropConstraintIfExistsSql(string cname, *hash opt, *reference cref) {
+        *string getDropConstraintIfExistsSql(string cname, *hash opt, *reference<AbstractConstraint> cref) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
@@ -10268,7 +10268,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
                 c = findDropConstraintUnlocked(cname, \rmv);
                 cref = c;
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "CONSTRAINT-ERROR")
                     return;
                 rethrow;
@@ -10280,7 +10280,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
             return AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
         }
 
-        private AbstractConstraint findDropConstraintUnlocked(string cname, reference rmv) {
+        private AbstractConstraint findDropConstraintUnlocked(string cname, reference<code> rmv) {
             getAllConstraintsUnlocked();
 
             AbstractConstraint c;
@@ -10343,7 +10343,7 @@ table.dropConstraint("uk_mytable_name");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractConstraint dropConstraint(string cname, *reference sql) {
+        AbstractConstraint dropConstraint(string cname, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
 
@@ -10482,7 +10482,7 @@ table.dropTrigger("trig_mytable");
 
             @see inDb() for a method that tells if the table is already in the database or not
          */
-        AbstractTrigger dropTrigger(string tname, *reference sql) {
+        AbstractTrigger dropTrigger(string tname, *reference<string> sql) {
             l.lock();
             on_exit l.unlock();
             getTriggersUnlocked();
@@ -10555,14 +10555,14 @@ string sql = table.getDropTriggerSql("trig_mytable");
                 throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.keys());
         }
 
-        private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference opt) {
+        private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference<hash> opt) {
             checkUniqueConstraintName(err, cname);
             # validate options
             validateOptionsIntern(err, ropt, \opt);
         }
 
         #! validates column options
-        private validateColumnOptions(string cname, reference opt, bool nullable) {
+        private validateColumnOptions(string cname, reference<hash> opt, bool nullable) {
             hash copt = getColumnDescOptions();
 
             # check valid options and option value types
@@ -10730,7 +10730,7 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
-        *hash insertCommit(hash row, reference sql) {
+        *hash insertCommit(hash row, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -10746,7 +10746,7 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
-        *hash insertCommit(hash row, reference sql, hash opt) {
+        *hash insertCommit(hash row, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -10773,7 +10773,7 @@ table.insert(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
-        *hash insert(hash row, reference sql) {
+        *hash insert(hash row, reference<string> sql) {
             return insertIntern(row, \sql);
         }
 
@@ -10783,12 +10783,12 @@ table.insert(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
-        *hash insert(hash row, reference sql, hash opt) {
+        *hash insert(hash row, reference<string> sql, hash opt) {
             return insertIntern(row, \sql, opt);
         }
 
         #! A legacy wrapper for @ref SqlUtil::AbstractTable::insert()
-        deprecated *hash insertNoCommit(hash row, *reference sql, *hash opt) {
+        deprecated *hash insertNoCommit(hash row, *reference<string> sql, *hash opt) {
             return insertIntern(row, \sql, opt);
         }
 
@@ -10797,7 +10797,7 @@ table.insert(row);
             return insertIntern(row, NOTHING, opt);
         }
 
-        private *hash insertIntern(hash row, *reference sql, *hash opt) {
+        private *hash insertIntern(hash row, *reference<string> sql, *hash opt) {
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -10941,7 +10941,7 @@ int rows = table.insertFromSelectCommit(("id", "name", "created"), source_table,
 
             @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelectCommit(list cols, AbstractTable source, hash sh, reference sql, hash opt) {
+        int insertFromSelectCommit(list cols, AbstractTable source, hash sh, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -10965,7 +10965,7 @@ int rows = table.insertFromSelectCommit(("id", "name", "created"), source_table,
         }
 
         #! @ref SqlUtil::AbstractTable::insertFromSelectCommit() variant
-        int insertFromSelectCommit(list cols, AbstractTable source, hash sh, reference sql) {
+        int insertFromSelectCommit(list cols, AbstractTable source, hash sh, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -11000,7 +11000,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
 
             @note this method does not take insert options because it is executed entirely in the database server; use insertFromIterator() or insertFromIteratorCommit() to insert arbitrary data with insert options
         */
-        int insertFromSelect(list cols, AbstractTable source, hash sh, reference sql, hash opt) {
+        int insertFromSelect(list cols, AbstractTable source, hash sh, reference<string> sql, hash opt) {
             return insertFromSelectIntern(cols, source, sh, \sql, opt);
         }
 
@@ -11015,7 +11015,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         }
 
         #! @ref SqlUtil::AbstractTable::insertFromSelectCommit() variant
-        int insertFromSelect(list cols, AbstractTable source, hash sh, reference sql) {
+        int insertFromSelect(list cols, AbstractTable source, hash sh, reference<string> sql) {
             return insertFromSelectIntern(cols, source, sh, \sql);
         }
 
@@ -11025,11 +11025,11 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::insertFromSelect() wrapper
-        deprecated int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+        deprecated int insertFromSelectNoCommit(list cols, AbstractTable source, *hash sh, *reference<string> sql, *hash opt) {
             return insertFromSelectIntern(cols, source, sh, \sql, opt);
         }
 
-        private int insertFromSelectIntern(list cols, AbstractTable source, *hash sh, *reference sql, *hash opt) {
+        private int insertFromSelectIntern(list cols, AbstractTable source, *hash sh, *reference<string> sql, *hash opt) {
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
@@ -11612,11 +11612,11 @@ SQLStatement i = table.getRowIterator(sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
          */
-        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference sql, *hash opt) {
+        Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference<string> sql, *hash opt) {
             return getRowIteratorIntern(sh, \sql, opt);
         }
 
-        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference sql, *hash opt) {
+        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference<string> sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -11671,7 +11671,7 @@ SQLStatement i = table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash selectRow(*hash sh, *reference sql, *hash opt) {
+        *hash selectRow(*hash sh, *reference<string> sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -11707,7 +11707,7 @@ SQLStatement i = table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *list selectRows(*hash sh, *reference sql, *hash opt) {
+        *list selectRows(*hash sh, *reference<string> sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -11744,7 +11744,7 @@ SQLStatement i = table.getRowIterator();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
          */
-        *hash select(*hash sh, *reference sql, *hash opt) {
+        *hash select(*hash sh, *reference<string> sql, *hash opt) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -11905,7 +11905,7 @@ string sql = table.getSelectSql(sh, \args);
             - the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
          */
-        string getSelectSql(*hash sh, *reference args) {
+        string getSelectSql(*hash sh, *reference<list> args) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             args = ();
@@ -11928,14 +11928,14 @@ string sql = table.getSelectSql(sh, \args);
             }
         }
 
-        string getSelectSqlIntern(*hash qh, reference args, *hash opt) {
+        string getSelectSqlIntern(*hash qh, reference<list> args, *hash opt) {
             l.lock();
             l.unlock();
 
             return getSelectSqlUnlocked(qh, \args, opt);
         }
 
-        string getSelectSqlUnlocked(*hash qh, reference args, *hash opt) {
+        string getSelectSqlUnlocked(*hash qh, reference<list> args, *hash opt) {
             # we first get column & table info in case we are referencing a table through a synonym
             # so the getSelectSqlName() will refer to the proper schema owner
             getColumnsUnlocked();
@@ -11943,7 +11943,7 @@ string sql = table.getSelectSql(sh, \args);
         }
 
         # column & table information must be retrieved before calling this function
-        string getSelectSqlUnlockedIntern(*hash qh, string from, reference args, *hash ch, *hash opt) {
+        string getSelectSqlUnlockedIntern(*hash qh, string from, reference<list> args, *hash ch, *hash opt) {
             # get pseudo-column hash
             *hash psch = getPseudoColumnHash();
 
@@ -12005,7 +12005,7 @@ string sql = table.getSelectSql(sh, \args);
                                 string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
                                 ce += val;
                             }
-                            catch (hash ex) {
+                            catch (hash<ExceptionInfo> ex) {
                                 # rethrow exception with additional contextual information
                                 throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
                             }
@@ -12256,7 +12256,7 @@ string sql = table.getSelectSql(sh, \args);
             return ce;
         }
 
-        private doForUpdate(reference sql) {
+        private doForUpdate(reference<string> sql) {
             sql += " for update";
         }
 
@@ -12371,24 +12371,24 @@ string sql = table.getSelectSql(sh, \args);
             return False;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private getSelectWhereSqlUnlocked(reference<string> sql, reference<list> args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (qh."where")
                 sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch, psch);
         }
 
-        private *string getWhereClause(*hash cond, reference args, *string cprefix, *hash jch, bool join = False) {
+        private *string getWhereClause(*hash cond, reference<list> args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
             return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
-        private *string getWhereClause(list cond, reference args, *string cprefix, *hash jch, bool join = False) {
+        private *string getWhereClause(list cond, reference<list> args, *string cprefix, *hash jch, bool join = False) {
             l.lock();
             on_exit l.unlock();
             return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
         }
 
-        private *string getWhereClauseUnlocked(list cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
+        private *string getWhereClauseUnlocked(list cond, reference<list> args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             list al = ();
             if (!exists args)
@@ -12402,7 +12402,7 @@ string sql = table.getSelectSql(sh, \args);
                 return " where " + (foldl $1 + " or " + $2, al);
         }
 
-        private *string getWhereClauseUnlocked(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
+        private *string getWhereClauseUnlocked(*hash cond, reference<list> args, *string cprefix, *hash jch, bool join = False, *hash pch, *hash psch) {
             getColumnsUnlocked();
             if (!exists args)
                 args = ();
@@ -12411,14 +12411,14 @@ string sql = table.getSelectSql(sh, \args);
                 return " where " + (foldl $1 + " and " + $2, wl);
         }
 
-        private *list getWhereClauseIntern(*hash cond, reference args, *string cprefix, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private *list getWhereClauseIntern(*hash cond, reference<list> args, *string cprefix, *hash jch, bool join = False, *hash ch, *hash psch) {
             if (!cond)
                 return;
 
             return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch), cond.pairIterator();
         }
 
-        private string doWhereExpressionIntern(string cn, any we, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private string doWhereExpressionIntern(string cn, any we, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
                 if (we.hasKey("cop")) {
@@ -12456,7 +12456,7 @@ string sql = table.getSelectSql(sh, \args);
             return sprintf("%s = %v", cn);
         }
 
-        string getOrClause(list arglist, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+        string getOrClause(list arglist, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
             list l = ();
             foreach hash h in (arglist) {
                 string str = getOrClause(h, \args, jch, join, ch, psch);
@@ -12466,12 +12466,12 @@ string sql = table.getSelectSql(sh, \args);
             return l ? ("(" + (foldl $1 + " or " + $2, l) + ")") : "";
         }
 
-        string getOrClause(hash arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+        string getOrClause(hash arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
             *list wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
             return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
         }
 
-        private doSelectOrderBySqlUnlocked(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderBySqlUnlocked(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
             sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
@@ -12493,7 +12493,7 @@ int dcnt = table.delCommit(("name": name));
 
             @see delete(*hash)
          */
-        int delCommit(hash cond, reference sql, hash opt) {
+        int delCommit(hash cond, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
             return delIntern(cond, \sql, opt);
@@ -12507,7 +12507,7 @@ int dcnt = table.delCommit(("name": name));
         }
 
         #! @ref SqlUtil::AbstractTable::delCommit() variant
-        int delCommit(hash cond, reference sql) {
+        int delCommit(hash cond, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
             return delIntern(cond, \sql);
@@ -12544,7 +12544,7 @@ int dcnt = table.del(("name": name));
 
             @see delCommit(*hash)
          */
-        int del(hash cond, reference sql, hash opt) {
+        int del(hash cond, reference<string> sql, hash opt) {
             return delIntern(cond, \sql, opt);
         }
 
@@ -12554,7 +12554,7 @@ int dcnt = table.del(("name": name));
         }
 
         #! @ref SqlUtil::AbstractTable::del() variant
-        int del(hash cond, reference sql) {
+        int del(hash cond, reference<string> sql) {
             return delIntern(cond, \sql);
         }
 
@@ -12569,11 +12569,11 @@ int dcnt = table.del(("name": name));
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::del() wrapper
-        deprecated int delNoCommit(*hash cond, *reference sql) {
+        deprecated int delNoCommit(*hash cond, *reference<string> sql) {
             return del(cond, \sql);
         }
 
-        private int delIntern(*hash cond, *reference sql, *hash opt) {
+        private int delIntern(*hash cond, *reference<string> sql, *hash opt) {
             # make query
             sql = sprintf("delete from %s", getSqlName());
             list args;
@@ -12601,14 +12601,14 @@ int ucnt = table.updateCommit(("id": id), ("name": name));
 
             @see update()
          */
-        int updateCommit(hash set, hash cond, reference sql, hash opt) {
+        int updateCommit(hash set, hash cond, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
             return updateIntern(set, cond, \sql, opt);
         }
 
         #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-        int updateCommit(hash set, hash cond, reference sql) {
+        int updateCommit(hash set, hash cond, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
             return updateIntern(set, cond, \sql);
@@ -12653,12 +12653,12 @@ int ucnt = table.update(("id": id), ("name": name));
 
             @see updateCommit()
          */
-        int update(hash set, hash cond, reference sql, hash opt) {
+        int update(hash set, hash cond, reference<string> sql, hash opt) {
             return updateIntern(set, cond, \sql, opt);
         }
 
         #! A @ref SqlUtil::AbstractTable::update() variant
-        int update(hash set, hash cond, reference sql) {
+        int update(hash set, hash cond, reference<string> sql) {
             return updateIntern(set, cond, \sql);
         }
 
@@ -12678,7 +12678,7 @@ int ucnt = table.update(("id": id), ("name": name));
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
-        deprecated int updateNoCommit(hash set, *hash cond, *reference sql) {
+        deprecated int updateNoCommit(hash set, *hash cond, *reference<string> sql) {
             return updateIntern(set, cond, \sql);
         }
 
@@ -12687,7 +12687,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return updateIntern(set, cond, NOTHING, opt);
         }
 
-        private int updateIntern(hash set, *hash cond, *reference sql, *hash opt) {
+        private int updateIntern(hash set, *hash cond, *reference<string> sql, *hash opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -12769,7 +12769,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return boolean(ds.vselectRow(sql, args));
         }
 
-        private Columns checkUpsertRow(hash row, reference upsert_strategy) {
+        private Columns checkUpsertRow(hash row, reference<int> upsert_strategy) {
             # unique column source
             string csrc;
 
@@ -12826,7 +12826,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
         private code getUpsertSelectFirst(Columns cols, hash example_row, *hash opt) {
             #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys());
-            list updc = ();
+            list<string> updc();
             string select_sql = getUpsertSelectSql(example_row, cols, \updc);
             string insert_sql = getUpsertInsertSql(example_row);
             string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
@@ -12907,7 +12907,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return cols;
         }
 
-        private string getUpsertSelectSql(hash row, Columns cols, reference updc) {
+        private string getUpsertSelectSql(hash row, Columns cols, reference<list<string>> updc) {
             if (cols.size() != row.size()) {
                 # make list of columns not in unique key
                 map updc += $1, row.keyIterator(), !cols.hasKey($1);
@@ -14341,7 +14341,7 @@ string sql = table.getAlignSqlString(table2);
             try {
                 load_module(mn);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
@@ -14349,7 +14349,7 @@ string sql = table.getAlignSqlString(table2);
             try {
                 return call_function(mn + "::" + "get_table", nds, nname, opts);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 throw "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
         }
@@ -14523,7 +14523,7 @@ string sql = table.getAlignSqlString(table2);
         private preSetupTableImpl(reference desc, *hash opt) {
         }
 
-        private abstract *hash doReturningImpl(hash opt, reference sql, list args);
+        private abstract *hash doReturningImpl(hash opt, reference<string> sql, list args);
 
         private abstract bool emptyImpl();
 
@@ -14579,10 +14579,10 @@ string sql = table.getAlignSqlString(table2);
         private abstract hash getTypeMapImpl();
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll);
+        private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll);
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private abstract doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh);
+        private abstract doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh);
 
         #! db-specific copy actions
         private abstract copyImpl(AbstractTable old);

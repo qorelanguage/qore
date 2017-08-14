@@ -1234,7 +1234,7 @@ bool existsv;
 any val = pgm.getGlobalVariable("error_count", \existsv);
     @endcode
  */
-any Program::getGlobalVariable(string varname, *reference rexists) {
+any Program::getGlobalVariable(string varname, *reference<bool> rexists) {
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
    if (!t)
       return QoreValue();

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2016 Qore Technologies, s.r.o.
+/*  RestClient.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -122,6 +122,7 @@ printf("%N\n", ans.body);
     @subsection restclientv1_4 RestClient v1.4
     - added support for the \c text/plain Content-Type
     - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - updated for complex types
 
     @subsection restclientv1_3_1 RestClient v1.3.1
     - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
@@ -215,12 +216,12 @@ public namespace RestClient {
             const DeserializeXml = (
                 "code": "xml",
                 "arg": True,
-                "in": hash sub (string xml, reference type) {
+                "in": hash sub (string xml, reference<string> type) {
                     try {
                         on_success type = "xml";
                         return parse_xmlrpc_value(xml);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         try {
                             on_success type = "rawxml";
                             return parse_xml(xml);
@@ -589,7 +590,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash get(string path, any body, *reference info, *hash hdr) {
+        hash get(string path, any body, *reference<hash> info, *hash hdr) {
             return doRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -628,7 +629,7 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash put(string path, any body, *reference info, *hash hdr) {
+        hash put(string path, any body, *reference<hash> info, *hash hdr) {
             return doRequest("PUT", path, body, \info, NOTHING, hdr);
         }
 
@@ -667,7 +668,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash post(string path, any body, *reference info, *hash hdr) {
+        hash post(string path, any body, *reference<hash> info, *hash hdr) {
             return doRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
@@ -706,12 +707,12 @@ hash ans = rest.del("/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash del(string path, any body, *reference info, *hash hdr) {
+        hash del(string path, any body, *reference<hash> info, *hash hdr) {
             return doRequest("DELETE", path, body, \info, NOTHING, hdr);
         }
 
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(reference body, reference hdr, string ct = "Content-Type") {
+        private nothing prepareMsg(reference<data> body, reference hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
             # serialize body if necessary
@@ -730,7 +731,7 @@ hash ans = rest.del("/orders/1");
         }
 
         #! sets up the path for the HTTP request URI
-        private nothing preparePath(reference path) {
+        private nothing preparePath(reference<string> path) {
             # prepare path
             *string p = getConnectionPath();
 
@@ -786,7 +787,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash doRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+        hash doRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             prepareMsg(\body, \hdr);
 
             on_exit if (exists body) {
@@ -803,13 +804,13 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! sends the outgoing HTTP message and recodes the response to data
-        hash sendAndDecodeResponse(*data body, string m, string path, hash hdr, *reference info, *softbool decode_errors) {
+        hash sendAndDecodeResponse(*data body, string m, string path, hash hdr, *reference<hash> info, *softbool decode_errors) {
             hash h;
             try {
                 h = send(body, m, path, hdr, False, \info);
                 info."response-code" = h.status_code;
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.arg) {
                     info."response-code" = ex.arg.status_code;
                     if (decode_errors && ex.arg.body)
@@ -827,7 +828,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! decode any REST errors returned if possible
-        private decodeError(hash h, *reference info) {
+        private decodeError(hash h, *reference<hash> info) {
             try {
                 decodeResponse(\h, \info);
                 info."response-body" = h.body;
@@ -847,7 +848,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! decodes the response
-        decodeResponse(reference h, *reference info) {
+        decodeResponse(reference<hash> h, *reference<hash> info) {
             info."response-body" = h.body;
 
             *hash dh = DataDeserializationSupport.(h."content-type");

@@ -168,7 +168,7 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
         try {
             rename(h.path, cx.body.newPath);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             return RestHandler::make400("rename (%y): %s: %s", h.path, ex.err, ex.desc);
         }
         return RestHandler::makeResponse(200, "OK");
@@ -394,7 +394,7 @@ public namespace RestHandler {
             try {
                 h = cast<hash<HttpHandlerResponseInfo>>(getResponseHeaderMessageImpl());
             }
-            catch (hash n_ex) {
+            catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -419,7 +419,7 @@ public namespace RestHandler {
             try {
                 recvImpl(v);
             }
-            catch (hash n_ex) {
+            catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -433,7 +433,7 @@ public namespace RestHandler {
             try {
                 return sendImpl();
             }
-            catch (hash n_ex) {
+            catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -633,7 +633,7 @@ public namespace RestHandler {
                 cx.socketobject = s;
                 rsh = call_object_method_args(self, sn, (cx, ah));
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     if (cx.hdr."transfer-encoding" == "chunked")
                         cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
@@ -650,7 +650,7 @@ public namespace RestHandler {
                 RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
                 return req.handleRequest();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 # make sure the error is registered with the stream handler
                 if (rsh)
                     rsh.streamError(ex);
@@ -681,7 +681,7 @@ public namespace RestHandler {
             try {
                 return cast<hash<HttpHandlerResponseInfo>>(call_object_method_args(self, mn, (cx, ah)));
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     # try to mask passwords in args
                     string astr = rh.maskData(sprintf("%y", ah));
@@ -790,7 +790,7 @@ public namespace RestHandler {
                         try {
                             return parse_xmlrpc_value(xml);
                         }
-                        catch (hash ex) {
+                        catch (hash<ExceptionInfo> ex) {
                             try {
                                 return parse_xml(xml);
                             }
@@ -1098,7 +1098,7 @@ public namespace RestHandler {
 
                 rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
@@ -1152,7 +1152,7 @@ public namespace RestHandler {
         }
 
         #! default implementation is empty
-        removeRootPath(reference path) {
+        removeRootPath(reference<string> path) {
         }
 
         #! default implementation is empty

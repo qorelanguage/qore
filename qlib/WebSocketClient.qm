@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -89,6 +89,7 @@ c.waitForZero();
 
     @subsection wsc_v1_6 v1.6
     - added the @ref WebSocketClient::WebSocketConnectionObject "WebSocketConnectionObject" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - updated for complex types
 
     @subsection wsc_v1_5 v1.5
     - added timeout values to @ref Qore::Socket "Socket" and @ref Qore::HTTPClient "HTTPClient" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
@@ -234,7 +235,7 @@ ws.connect();
 
             @throw WEBSOCKET-ERROR the option hash is missing either the 'url' or 'callback' keys or type error in the option hash
          */
-         hash connect(*hash opts, *reference info) {
+         hash connect(*hash opts, *reference<hash> info) {
             if (opts.hdr && opts.hdr.typeCode() != NT_HASH)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type received: %y", opts.hdr.type());
 
@@ -404,7 +405,7 @@ ws.clearStats();
                     sendClose(WSCC_UnsupportedData);
                     break;
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                     logError(err);
                     sendClose(WSCC_InternalServerError, err);
@@ -453,7 +454,7 @@ ws.clearStats();
             try {
                 hc.send2(ws_encode_message(msg, WSOP_Close, True), timeout_ms);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 # ignore SOCKET-NOT-OPEN errors when closing (server already closed the connection)
                 if (ex.err == "SOCKET-NOT-OPEN")
                     return;
@@ -461,7 +462,7 @@ ws.clearStats();
             }
         }
 
-        private hash connectUnlocked(*hash hdr, *reference info) {
+        private hash connectUnlocked(*hash hdr, *reference<hash> info) {
             if (!hdr."User-Agent")
                 hdr."User-Agent" = DefaultUserAgent;
 

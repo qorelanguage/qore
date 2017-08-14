@@ -68,6 +68,7 @@ module BulkSqlUtil {
 
     @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
     - updated the module to support drivers without bulk DML
+    - updated for complex types
 
     @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
     - fixed a bug in the @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation" class where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
@@ -645,7 +646,7 @@ inserter.setRowCode(rowcode);
             AbstractBulkOperation::setupInitialRow(row);
         }
 
-        private setupStaticRowValues(reference row) {
+        private setupStaticRowValues(reference<hash> row) {
             foreach hash h in (row.pairIterator()) {
                 if (h.value.typeCode() == NT_HASH) {
                     ret_args += h.key;

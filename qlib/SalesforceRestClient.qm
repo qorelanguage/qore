@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
 
-/*  SalesforceRestClient.qm Copyright (C) 2016 Qore Technologies, s.r.o.
+/*  SalesforceRestClient.qm Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -152,6 +152,7 @@ rc.bulkJobClose(h.id);
 
     @subsection salesforcerestclientv1_0 SalesforceRestClient v1.1
     - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - updated for complex types
 
     @subsection salesforcerestclientv1_0 SalesforceRestClient v1.0
     - the initial version of the %SalesforceRestClient module
@@ -209,10 +210,10 @@ public namespace SalesforceRestClient {
     #! Salesforce.com bulk job "ZIP_CSV" content type
     public const BulkJobZipCsv = "ZIP_CSV";
 
-    #! Salesforce.com bulk job "ZIP_CSV" content type
+    #! Salesforce.com bulk job "ZIP_JSON" content type
     public const BulkJobZipJson = "ZIP_JSON";
 
-    #! Salesforce.com bulk job "ZIP_CSV" content type
+    #! Salesforce.com bulk job "ZIP_XML" content type
     public const BulkJobZipXml = "ZIP_XML";
     #@}
 
@@ -443,7 +444,7 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
         */
-        hash patch(string path, any body, *reference info, *hash hdr) {
+        hash patch(string path, any body, *reference<hash> info, *hash hdr) {
             return doRequest("PATCH", path, body, \info, NOTHING, hdr);
         }
 
@@ -485,7 +486,7 @@ hash ans = rest.doRequest("GET", "sobjects");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+        hash doRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -536,7 +537,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doBulkRequest(string m, string path, any body, *reference info, softbool decode_errors = True, *hash hdr) {
+        hash doBulkRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -610,7 +611,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkGet(string path, any body, *reference info, *hash hdr) {
+        hash bulkGet(string path, any body, *reference<hash> info, *hash hdr) {
             return doBulkRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -651,7 +652,7 @@ hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkPost(string path, any body, *reference info, *hash hdr) {
+        hash bulkPost(string path, any body, *reference<hash> info, *hash hdr) {
             return doBulkRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
@@ -685,7 +686,7 @@ printf("job ID created: %y\n", h.jobInfo.id);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobCreate(string operation, string object, string job_content_type, *reference info, *hash hdr) {
+        hash bulkJobCreate(string operation, string object, string job_content_type, *reference<hash> info, *hash hdr) {
             if (!BulkJobOperations{operation})
                 throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job operation %y; known operations: %y", operation, BulkJobOperations.keys());
             if (!BulkJobContentTypes{job_content_type})
@@ -734,7 +735,7 @@ printf("batch ID: %y batch state: %y\n", h.id, h.state);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobAddBatch(string jobid, data batch_data, string job_content_type, *reference info, *hash hdr) {
+        hash bulkJobAddBatch(string jobid, data batch_data, string job_content_type, *reference<hash> info, *hash hdr) {
             *string ct = BulkJobContentTypes{job_content_type};
             if (!ct)
                 throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job content type %y; known content types: %y", job_content_type, BulkJobContentTypes.keys());
@@ -805,7 +806,7 @@ sfrest.bulkJobClose(jh.id);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobClose(string jobid, *reference info, *hash hdr) {
+        hash bulkJobClose(string jobid, *reference<hash> info, *hash hdr) {
             hash h = (
                 "jobInfo": (
                     JobInfoAttributes + (
@@ -832,7 +833,7 @@ sfrest.bulkJobClose(jh.id);
 
             @note this call is made implicitly before each REST call and should not need to be called manually
          */
-        login(*reference info) {
+        login(*reference<hash> info) {
             AutoLock al(m);
 
             loginIntern(\info);
@@ -858,7 +859,7 @@ sfrest.logout();
             - \c request-body: the raw message body in the request (before any content encoding)
             - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values (for this method, always \c "url")
          */
-        logout(*reference info) {
+        logout(*reference<hash> info) {
             AutoLock al(m);
 
             # if we are not logged in, then do nothing
@@ -918,7 +919,7 @@ sfrest.logout();
         #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
         /** called with the Mutex held
         */
-        private loginIntern(*reference info) {
+        private loginIntern(*reference<hash> info) {
             # ensure that if json serialization is set, that we do not claim to understand XML responses (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
             if (ds == "json")
                 addDefaultHeaders(("Accept": MimeTypeJson));

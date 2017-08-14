@@ -26,6 +26,7 @@
         - @ref Qore::StatInfo "StatInfo"
       - @ref hash_complex_type "hash with type-safe values"; ex: @code{.py} hash<string, int> h = ("str": 1); @endcode
       - @ref list_complex_type "list with type-safe values"; ex: @code{.py} list<int> l = (1); @endcode
+      - @ref reference_complex_type "reference with type-safe lvalues"; ex: @code{.py} int i = 1; reference<int> r = \i; @endcode
       - improved @ref new "new", @ref cast "cast<>", and @ref instanceof "instanceof" operators
       - the @ref instanceof "instanceof" operator now works with any type; ex: @code{.py} bool b = v instanceof hash<string, int>; @endcode
       - note that complex type information is lost when assigning to an lvalue with a compatible but more generic type or by assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without breaking backwards compatibility.
@@ -208,7 +209,7 @@
       - @ref Qore::round() "round()": now allows the precision to be specified
       - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
-      - implemented @ref SqlUtil::cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+      - implemented the \c cop_trunc_date() function (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
       - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:

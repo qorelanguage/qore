@@ -35,7 +35,7 @@
 %new-style
 
 module Mapper {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -218,6 +218,9 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_4 Mapper v1.4
+    - added support for complex types
 
     @subsection mapperv1_3_1 Mapper v1.3.1
     - fixed bugs handling mapper fields with no input records in list mode as passed from the \c TableMapper module (<a href="https://github.com/qorelanguage/qore/issues/1736">issue 1736</a>)
@@ -534,7 +537,7 @@ Mapper mapv(DataMap);
         }
 
         #! convert a field definition to a hash if possible
-        private convertToHash(int t, string k, reference fh) {
+        private convertToHash(int t, string k, reference<any> fh) {
             switch (t) {
                 # convert to a hash if the value of the column is a string (giving the source key name)
                 case NT_STRING: fh = ("name": fh); break;
@@ -561,9 +564,9 @@ Mapper mapv(DataMap);
 
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
-            @param fh a reference to the field's value in the map
+            @param fh a reference to the field's value in the map; will be converted to a hash
         */
-        private checkMapField(string k, reference fh) {
+        private checkMapField(string k, reference<any> fh) {
             *hash outf;
             # check output name
             if (output) {
@@ -600,7 +603,7 @@ Mapper mapv(DataMap);
                 error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
             }
             if (exists fh.constant || exists fh.index) {
-                *list cl = map $1, fh.keys(){ConstantConflictList};
+                *list cl = keys fh{ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl)
                     error("output field %y has key %y which conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
@@ -707,7 +710,7 @@ Mapper mapv(DataMap);
                 try {
                     mapFieldType(k, fh, \rec{k}, rec);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
                 }
             }
@@ -891,7 +894,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(list recs) {
+        list<hash> mapAll(list recs) {
             return map mapData($1), recs;
         }
 
@@ -905,7 +908,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(hash recs) {
+        list<hash> mapAll(hash recs) {
             return map mapData($1), recs.contextIterator();
         }
 
@@ -995,7 +998,7 @@ Mapper mapv(DataMap);
           *       and non-list values - the non-list values are used as constants
           *       in the mapping - as if expanded to lists with all values identical.
           */
-        private nothing mapFieldIntern(reference h, string key, hash rec, bool do_list, int list_size) {
+        private nothing mapFieldIntern(reference<hash> h, string key, hash rec, bool do_list, int list_size) {
             # FIXME: assert(!do_list || list_size > 0);
             # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
             hash m = mapc{key};
@@ -1069,7 +1072,7 @@ Mapper mapv(DataMap);
                         v = m.code(v, rec);
                     }
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     ex.desc = sprintf("field %y closure: %s", key, ex.desc);
                     throw ex.err, ex.desc, ex.arg;
                 }
@@ -1144,7 +1147,7 @@ Mapper mapv(DataMap);
                     h = ah(h, v);
                     return;
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "INVALID-OUTPUT")
                         error2(ex.err, ex.desc);
                     else
@@ -1190,7 +1193,7 @@ Mapper mapv(DataMap);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash m, reference v, hash rec) {
+        private mapFieldType(string key, hash m, reference<any> v, hash rec) {
             if (v === NULL) {
                 delete v;
                 return;
@@ -1323,8 +1326,8 @@ Mapper mapv(DataMap);
 
             @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
          */
-        list mapBulk(int size) {
-            list rv = ();
+        list<hash> mapBulk(int size) {
+            list<hash> rv();
             while (next()) {
                 rv += getValue();
                 if (rv.size() == size)

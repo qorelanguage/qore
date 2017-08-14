@@ -335,7 +335,7 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
 
     @see @ref httpclient_get_with_body
  */
-hash HTTPClient::send(string body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
+hash HTTPClient::send(string body, string method, *string path, *hash headers, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    // issue 1813: convert string to socket's character encoding as documented
    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
@@ -391,7 +391,7 @@ hash msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x
 
     @see @ref httpclient_get_with_body
  */
-hash HTTPClient::send(*binary body, string method, *string path, *hash headers, softbool getbody = False, *reference info) {
+hash HTTPClient::send(*binary body, string method, *string path, *hash headers, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -448,7 +448,7 @@ hash msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-
 
     @since Qore 0.8.10
  */
-hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+hash HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -509,7 +509,7 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
 
     @since Qore 0.8.10
  */
-nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    // issue 1813: convert string to socket's character encoding as documented
    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
@@ -571,7 +571,7 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
 
     @since Qore 0.8.10
  */
-nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
@@ -621,7 +621,7 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
 
     @since %Qore 0.8.13
  */
-nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb) {
+nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info, *code rcb) {
    SimpleRefHolder<OutputStream> osHolder(os);
    OptHashRefHelper ohrh(info, xsink);
    const char* pstr = path && !path->empty() ? path->c_str() : nullptr;
@@ -689,7 +689,7 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
 
     @since %Qore 0.8.13
  */
-nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info, *code rcb, *code tcb) {
+nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info, *code rcb, *code tcb) {
    SimpleRefHolder<OutputStream> osHolder(os);
    SimpleRefHolder<InputStream> isHolder(is);
    if (max_chunk_size < 1) {
@@ -758,7 +758,7 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
 
     @since Qore 0.8.10
  */
-nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference info) {
+nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    client->sendWithCallbacks(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
@@ -810,7 +810,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 
     @see @ref httpclient_get_with_body
  */
-*string HTTPClient::get(string path, *hash headers, *reference info) {
+*string HTTPClient::get(string path, *hash headers, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<AbstractQoreNode> rv(client->get(path->getBuffer(), headers, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -857,7 +857,7 @@ hash msg = httpclient.head("/path");
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
-hash HTTPClient::head(string path, *hash headers, *reference info) {
+hash HTTPClient::head(string path, *hash headers, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<QoreHashNode> rv(client->head(path->getBuffer(), headers, *ohrh, xsink), xsink);
    return *xsink ? 0 : rv.release();
@@ -908,7 +908,7 @@ httpclient.post("/path", body);
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
-*string HTTPClient::post(string path, string body, *hash headers, *reference info) {
+*string HTTPClient::post(string path, string body, *hash headers, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    // issue 1813: convert string to socket's character encoding as documented
    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
@@ -965,7 +965,7 @@ httpclient.post("/path", body);
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
  */
-*string HTTPClient::post(string path, *binary body, *hash headers, *reference info) {
+*string HTTPClient::post(string path, *binary body, *hash headers, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, *ohrh, xsink), xsink);
 #ifdef DEBUG

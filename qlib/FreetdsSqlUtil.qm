@@ -136,7 +136,7 @@ public namespace FreetdsSqlUtil {
         return new FreetdsDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -379,7 +379,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
         }
 
@@ -816,7 +816,7 @@ my any $v = $c.name;
             try {
                 rv = ds.vexec(sql, args);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
                 rethrow;
             }
@@ -831,7 +831,7 @@ my any $v = $c.name;
             try {
                 rv = ds.execRaw(sql);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
                 rethrow;
             }
@@ -956,7 +956,7 @@ my any $v = $c.name;
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1050,7 +1050,7 @@ my any $v = $c.name;
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("next value for %s", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1560,7 +1560,7 @@ order by
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name.lwr());
+                    reference<hash> c = \ch.(row.constraint_name.lwr());
                     row.source_column = row.source_column.lwr();
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table.lwr();
@@ -1608,7 +1608,7 @@ order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name.lwr());
+                reference<FreetdsUniqueConstraint> ch = \rv.(row.constraint_name.lwr());
                 if (!ch)
                     ch = new FreetdsUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 row.column_name = row.column_name.lwr();
@@ -1689,7 +1689,7 @@ order by
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
                 rethrow;
@@ -1752,7 +1752,7 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
             if (!qh.limit)
                 return;
 
@@ -1764,7 +1764,7 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             throw "UNIMPLEMENTED", "offset not yet implemented";
         }
 
@@ -1782,7 +1782,7 @@ order by
         private copyImpl(AbstractTable old) {
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
             foreach any v in (opt.returning) {
                 hash rh;

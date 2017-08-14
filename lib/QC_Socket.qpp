@@ -1814,7 +1814,7 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, *string body, *reference<hash> info, timeout timeout_ms = -1) {
    TempEncodingHelper tmp_data;
    if (body && !tmp_data.set(body, s->getEncoding(), xsink))
       return QoreValue();
@@ -1850,7 +1850,7 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash headers, binary body, *reference<hash> info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
    s->sendHTTPMessage(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, body->getPtr(), body->size(), QORE_SOURCE_SOCKET, timeout_ms);
 }
@@ -1884,7 +1884,7 @@ sock.sendHTTPMessageWithCallback(send_callback, "POST", "/RPC2", "1.1", ("Conten
 
     @since %Qore 0.8.10
  */
-nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash headers, *reference info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash headers, *reference<hash> info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
    s->sendHTTPMessageWithCallback(xsink, *ohrh, method->getBuffer(), path->getBuffer(), http_version->getBuffer(), headers, *scb, QORE_SOURCE_SOCKET, timeout_ms);
 }
@@ -2090,7 +2090,7 @@ hash ans = sock.readHTTPHeader(10s);
     - %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
     - %Qore 0.8.8 added the \c close, \c charset, \c body-content-type, and \c accept-charset info keys as well as the encoding handling based on the detected charset
  */
-hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference info) {
+hash Socket::readHTTPHeader(timeout timeout_ms = -1, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
    return s->readHTTPHeader(xsink, *ohrh, timeout_ms);
 }
