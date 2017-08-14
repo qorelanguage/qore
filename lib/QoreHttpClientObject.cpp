@@ -62,8 +62,7 @@ struct qore_httpclient_priv {
 
    con_info connection, proxy_connection;
 
-   bool connected,
-      nodelay,
+   bool nodelay,
       proxy_connected, // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
       persistent;      // turns off implicit connections for the current connection only
    int default_port, max_redirects;
@@ -77,7 +76,7 @@ struct qore_httpclient_priv {
 
    DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
       msock(ms), http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
-      connected(false), nodelay(false), proxy_connected(false),
+      nodelay(false), proxy_connected(false),
       persistent(false),
       default_port(HTTPCLIENT_DEFAULT_PORT),
       max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
@@ -124,6 +123,7 @@ struct qore_httpclient_priv {
 
    // returns -1 if an exception was thrown, 0 for OK
    DLLLOCAL int connect_unlocked(ExceptionSink* xsink) {
+      assert(!msock->socket->isOpen());
       bool connect_ssl = proxy_connection.has_url() ? proxy_connection.ssl : connection.ssl;
 
       int rc;
@@ -133,7 +133,6 @@ struct qore_httpclient_priv {
          rc = msock->socket->connect(socketpath.c_str(), connect_timeout_ms, xsink);
 
       if (!rc) {
-         connected = true;
          if (nodelay) {
             if (msock->socket->setNoDelay(1))
                nodelay = false;
@@ -143,9 +142,8 @@ struct qore_httpclient_priv {
    }
 
    DLLLOCAL void disconnect_unlocked() {
-      if (connected) {
+      if (msock->socket->isOpen()) {
          msock->socket->close();
-         connected = false;
          proxy_connected = false;
          persistent = false;
       }
@@ -154,7 +152,7 @@ struct qore_httpclient_priv {
    DLLLOCAL int setNoDelay(bool nd) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (!msock->socket->isOpen()) {
          nodelay = true;
          return 0;
       }
@@ -176,7 +174,7 @@ struct qore_httpclient_priv {
    DLLLOCAL void setPersistent(ExceptionSink* xsink) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (msock->socket->isOpen()) {
          xsink->raiseException("PERSISTENCE-ERROR", "HTTPClient::setPersistent() can only be called once an initial connection has been established; currently there is no connection to the server");
          return;
       }
@@ -731,7 +729,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
    QoreString pathstr(msock->socket->getEncoding());
    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
-   if (!connected) {
+   if (!msock->socket->isOpen()) {
       if (persistent) {
          xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as persistent, but has been disconnected");
          return 0;
@@ -789,6 +787,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
       assert(aborted);
       xsink->clear();
    }
+
    return ah;
 }
 
@@ -1042,6 +1041,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
          ans = sendMessageAndGetResponse(mname, meth, proxy_path, *(*proxy_headers), nullptr, 0, nullptr, nullptr, 0, nullptr, info, true, timeout_ms, code, send_aborted, xsink);
       else
          ans = sendMessageAndGetResponse(mname, meth, mpath, *(*nh), data, size, send_callback, is, max_chunk_size, trailer_callback, info, false, timeout_ms, code, send_aborted, xsink);
+
       if (!ans)
          return 0;
 
@@ -1495,7 +1495,7 @@ bool QoreHttpClientObject::getNoDelay() const {
 }
 
 bool QoreHttpClientObject::isConnected() const {
-   return http_priv->connected;
+   return http_priv->msock->socket->isOpen();
 }
 
 void QoreHttpClientObject::setUserPassword(const char* user, const char* pass) {

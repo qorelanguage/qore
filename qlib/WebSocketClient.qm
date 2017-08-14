@@ -181,18 +181,14 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key giving the connection target");
 
             hash uh = parse_url(opts.url);
-            bool ssl;
             if (uh.protocol) {
-                *hash ph = WsSchemes.(uh.protocol);
+                hash sh = getSchemes();
+                *hash ph = sh{uh.protocol};
                 if (!ph)
-                    throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol, opts.url, WsSchemes.keys());
-                ssl = ph.ssl;
+                    throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol, opts.url, sh.keys());
+                # replace websocket scheme with an http scheme
+                splice opts.url, 0, uh.protocol.size(), "http" + (ph.ssl ? "s" : "");
             }
-
-            if (ssl)
-                opts.url =~ s/^wss:/https:/i;
-            else
-                opts.url =~ s/^ws:/http:/i;
 
             # ensure that the timeout value is set correctly and consistently
             if (opts.timeout)
@@ -206,6 +202,11 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             debuglog = opts.debuglog;
 
             callback = cb;
+        }
+
+        #! returns a hash of URL scheme information for URL schemes supported by this object
+        hash getSchemes() {
+            return WsSchemes;
         }
 
         #! connects to the websocket server
@@ -469,7 +470,8 @@ ws.clearStats();
             hdr += (
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
-                "Sec-WebSocket-Key": get_random_string().toBase64(),
+                # https://tools.ietf.org/html/rfc6455#section-4.1 specifies a 16-byte length for this random nonce
+                "Sec-WebSocket-Key": get_random_string(16).toBase64(),
                 );
 
             hash rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
@@ -504,7 +506,7 @@ ws.clearStats();
         - \c "log": a closure accepting a single string for logging
     */
     public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
-        #! creates the UserWebSocketConnectionObject object
+        #! creates the WebSocketConnectionObject object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
@@ -567,11 +569,11 @@ ws.clearStats();
             return HttpConnection::DefaultOptions;
         }
 
-        private hash pingIntern(hash rv) {
+        private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
             date start = now_us();
             object o = get();
             on_exit o.disconnect();
-            return rv + (
+            return rv += (
                 "ok": True,
                 "time": now_us() - start,
                 "info": "OK",

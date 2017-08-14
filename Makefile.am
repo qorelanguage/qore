@@ -22,7 +22,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/SqlUtil.qm \
 	qlib/Mapper.qm \
 	qlib/ConnectionProvider.qm \
-	qlib/RestClient.qm
+	qlib/RestClient.qm \
+	qlib/WebSocketClient.qm
 
 DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
@@ -40,12 +41,13 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
 	qlib/SalesforceRestClient.qm \
+	qlib/SewioRestClient.qm \
+	qlib/SewioWebSocketClient.qm \
 	qlib/Schema.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
-	qlib/WebSocketClient.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebUtil.qm
 
@@ -757,6 +759,9 @@ doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html $< $@
+
+doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
