@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Context.h>
+#include "qore/intern/Context.h"
 
 static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
    return xsink->raiseException("CONTEXT-ERROR", "function %s() called without a current data iteration context", func);

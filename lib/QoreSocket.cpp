@@ -36,7 +36,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreSocket.h>
 
-#include <qore/intern/qore_socket_private.h>
+#include "qore/intern/qore_socket_private.h"
 
 void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
    assert(xsink);
@@ -288,7 +288,7 @@ SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock) : s(sock
 void SSLSocketHelperHelper::error() {
    ssl->deref();
    if (s->ssl)
-      s->ssl = 0;
+      s->ssl = nullptr;
 }
 
 int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
@@ -331,6 +331,11 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
    SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
 
    SSL_set_fd(ssl, sd);
+
+   // set verification mode
+   if (qs.ssl_verify_mode != SSL_VERIFY_NONE)
+      setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs);
+
    return 0;
 }
 
@@ -463,6 +468,22 @@ long SSLSocketHelper::verifyPeerCertificate() const {
    long rc = SSL_get_verify_result(ssl);
    X509_free(cert);
    return rc;
+}
+
+static int q_ssl_verify_accept_all(int preverify_ok, X509_STORE_CTX* x509_ctx) {
+   //printd(5, " q_ssl_verify_accept_all() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+   // accept all certificates
+   return 1;
+}
+
+static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ctx) {
+   //printd(5, " q_ssl_verify_accept_default() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+   return preverify_ok;
+}
+
+void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs) {
+   printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d\n", mode, (int)accept_all_certs);
+   SSL_set_verify(ssl, mode, accept_all_certs ? q_ssl_verify_accept_all : q_ssl_verify_accept_default);
 }
 
 SocketSource::SocketSource() : priv(new qore_socketsource_private) {
@@ -871,7 +892,7 @@ PrivateQoreSocketThroughputHelper::~PrivateQoreSocketThroughputHelper() {
 }
 
 void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
-   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" (min: "QLLD") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: " QLLD " us: " QLLD " (min: " QLLD ") bs: %.6f threshold: %.6f\n", bytes, (q_clock_getmicros() - start), sock->tp_us_min, ((double)bytes / ((double)(q_clock_getmicros() - start) / (double)1000000.0)), sock->tp_warning_bs);
 
    if (bytes < DEFAULT_SOCKET_MIN_THRESHOLD_BYTES)
       return;
@@ -892,7 +913,7 @@ void PrivateQoreSocketThroughputHelper::finalize(int64 bytes) {
 
    double bs = (double)bytes / ((double)dt / (double)1000000.0);
 
-   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: "QLLD" us: "QLLD" bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
+   //printd(5, "PrivateQoreSocketThroughputHelper::finalize() bytes: " QLLD " us: " QLLD " bs: %.6f threshold: %.6f\n", bytes, dt, bs, sock->tp_warning_bs);
 
    if (bs <= (double)sock->tp_warning_bs)
       sock->doThroughputWarning(send, bytes, dt, bs);
@@ -1582,41 +1603,41 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(0, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, 0, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpResponse(0, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source);
+   return priv->sendHttpResponse(0, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, nullptr, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, nullptr, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, 0, source, timeout_ms);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponse", code, desc, http_version, headers, data, size, nullptr, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char *desc, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms);
+   return priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, nullptr, 0, &send_callback, source, timeout_ms);
 }
 
 AbstractQoreNode* QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {
@@ -1706,32 +1727,40 @@ int QoreSocket::asyncIoWait(int timeout_ms, bool read, bool write) const {
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeClientToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeClientToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeServerToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET)
+   if (priv->sock == QORE_INVALID_SOCKET) {
+      se_not_open("Socket", "upgradeServerToSSL", xsink);
       return -1;
+   }
    if (priv->ssl)
       return 0;
    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, timeout_ms, xsink);
@@ -1887,12 +1916,14 @@ QoreSocket* QoreSocket::accept(SocketSource* source, ExceptionSink* xsink) {
 QoreSocket* QoreSocket::acceptSSL(SocketSource* source, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    QoreSocket* s = accept(source, xsink);
    if (!s)
-      return 0;
+      return nullptr;
 
+   s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+   s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
    if (s->priv->upgradeServerToSSLIntern("acceptSSL", cert, pkey, -1, xsink)) {
       assert(*xsink);
       delete s;
-      return 0;
+      return nullptr;
    }
 
    return s;
@@ -1917,7 +1948,7 @@ int QoreSocket::acceptAndReplace(SocketSource* source) {
 QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
    int rc = priv->accept_internal(xsink, 0, timeout_ms);
    if (rc < 0)
-      return 0;
+      return nullptr;
    QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
    if (!priv->socketname.empty())
       s->priv->socketname = priv->socketname;
@@ -1926,13 +1957,15 @@ QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
 }
 
 QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   std::auto_ptr<QoreSocket> s(accept(timeout_ms, xsink));
+   std::unique_ptr<QoreSocket> s(accept(timeout_ms, xsink));
    if (!s.get())
-      return 0;
+      return nullptr;
 
+   s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+   s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
    if (s->priv->upgradeServerToSSLIntern("acceptSSL", cert, pkey, timeout_ms, xsink)) {
       assert(*xsink);
-      return 0;
+      return nullptr;
    }
 
    return s.release();
@@ -2086,6 +2119,22 @@ void QoreSocket::clearStats() {
 
 bool QoreSocket::pendingHttpChunkedBody() const {
    return priv->pendingHttpChunkedBody();
+}
+
+void QoreSocket::setSslVerifyMode(int mode) {
+   priv->setSslVerifyMode(mode);
+}
+
+int QoreSocket::getSslVerifyMode() const {
+   return priv->ssl_verify_mode;
+}
+
+void QoreSocket::acceptAllCertificates(bool accept_all) {
+   priv->acceptAllCertificates(accept_all);
+}
+
+bool QoreSocket::getAcceptAllCertificates() const {
+   return priv->ssl_accept_all_certs;
 }
 
 QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {

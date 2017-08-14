@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SingleValueIterator.h>
+#include "qore/intern/SingleValueIterator.h"
 
 //! This class defines a simple iterator to be used to iterate single values (or complex objects where no iterator has been implemented yet)
 /** @since %Qore 0.8.6

@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/RangeIterator.h>
+#include "qore/intern/RangeIterator.h"
 
 //! This class defines a range-like iterator to be used to iterate numerical sequences
 /** The main purpose is to provide resource friendly iterator to generate

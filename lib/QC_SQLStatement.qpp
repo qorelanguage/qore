@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,14 +30,14 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SQLStatement.h>
-#include <qore/intern/QC_Datasource.h>
-#include <qore/intern/QC_DatasourcePool.h>
+#include "qore/intern/QC_SQLStatement.h"
+#include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QC_DatasourcePool.h"
 
 //! The SQLStatement class provides the most flexibilty for executing SQL on a database server
 /** This class allows statements to be executed and result sets to be iteratively returned in all formats supported by %Qore (single row at a time as a hash or blocks of rows as either hashes of lists or lists of hashes). The same flexibility of choosing the output format for result sets also applies to output values from stored procedure or function execution, for example.
 
-    This class does not differentiate between executing select statement or stored procedures or functions or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
+    This class does not differentiate between executing select statements, stored procedures, functions, or other SQL code; the transaction lock for Datasource objects and a dedicated connection for DatasourcePool objects is allocated to the object when the connection is necessary, and it is not automatically released by this class. The transaction lock or connection must be manually released by calling SQLStatement::commit() or SQLStatement::rollback() (or the methods with the same name in the parent Datasource or DatasourcePool object).
 
     Here is an example executing a select statement:
     @code{.py}
@@ -57,7 +57,7 @@
     - Most commands are executed implicitly; for example, in the example above there is no call to SQLStatement::exec() as it is executed implicitly in the initial call to SQLStatement::next().
     - Current column values in query results iterated with SQLStatement::next() as above can also be dereferenced directly from the SQLStatement object by using the column name in lower case as a member name (using SQLStatement::memberGate(), see that method for an example)
     - Query results can also be returned in blocks using SQLStatement::fetchRows() and SQLStatement::fetchColumns() ("rows" and "columns" in this case refer to the output data format; also using these methods there is no need to call SQLStatement::next())
-    - When using an SQLStatement object with a DatasourcePool, the statement must be prepared and executed on the same connection.  Attempts to execute a prepared statement on another connection will cause an \c SQLSTATEMENT-ERROR exception to be raised.
+    - When using an SQLStatement object with a DatasourcePool, the statement will be automatically closed when the connection is returned to the pool (for example, by committing or rolling back the transaction).
 
     The following methods are useful when executing all statements:
     - SQLStatement::prepare()
@@ -113,10 +113,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(ds->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(ds));
 }
 
 //! Creates the SQLStatement object based on the given DatasourcePool object that provides the connection to the database
@@ -141,10 +138,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(dsp->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(dsp));
 }
 
 //! Closes the statement if it is open and destroys the object

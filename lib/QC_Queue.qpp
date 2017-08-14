@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/QoreQueueIntern.h>
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QoreQueueIntern.h"
 
 //! %Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
 /** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to Queue::constructor() when the object is created.

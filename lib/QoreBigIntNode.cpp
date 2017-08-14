@@ -1,6 +1,6 @@
 /*
   QoreBigIntNode.cpp
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/qore_date_private.h"
 
 QoreBigIntNode::QoreBigIntNode() : SimpleValueQoreNode(NT_INT), val(0) {
 }
@@ -59,12 +60,12 @@ void QoreBigIntNode::getStringRepresentation(QoreString &str) const {
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *QoreBigIntNode::getDateTimeRepresentation(bool &del) const {
    del = true;
-   return new DateTime(val);
+   return DateTime::makeRelativeFromSeconds(val);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void QoreBigIntNode::getDateTimeRepresentation(DateTime &dt) const {
-   dt.setDate(val);
+   dt.setRelativeDateSeconds(val);
 }
 
 bool QoreBigIntNode::getAsBoolImpl() const {

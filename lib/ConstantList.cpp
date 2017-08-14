@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,10 +29,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ConstantList.h>
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/qore_program_private.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -73,15 +73,18 @@ static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n) {
 }
 #endif
 
-ConstantEntry::ConstantEntry(const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin)
-   : saved_node(0), loc(ParseLocation), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub), init(n_init), builtin(n_builtin)  {
+ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
+   : saved_node(0), access(n_access), loc(loc), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub),
+     init(n_init), builtin(n_builtin) {
    QoreProgram* pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
 ConstantEntry::ConstantEntry(const ConstantEntry& old) :
-   saved_node(old.saved_node ? old.saved_node->refSelf() : 0), loc(old.loc), pwo(old.pwo), name(old.name),
+   saved_node(old.saved_node ? old.saved_node->refSelf() : 0),
+   access(old.access),
+   loc(old.loc), pwo(old.pwo), name(old.name),
    typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
    in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
    assert(!old.in_init);
@@ -91,19 +94,19 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old) :
 int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
    switch (get_node_type(n)) {
       case NT_LIST: {
-	 ConstListIterator i(reinterpret_cast<const QoreListNode*>(n));
-	 while (i.next())
-	    if (scanValue(i.getValue()))
-	       return -1;
-	 return 0;
+         ConstListIterator i(reinterpret_cast<const QoreListNode*>(n));
+         while (i.next())
+            if (scanValue(i.getValue()))
+               return -1;
+         return 0;
       }
 
       case NT_HASH: {
-	 ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(n));
-	 while (i.next())
-	    if (scanValue(i.getValue()))
-		return -1;
-	 return 0;
+         ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(n));
+         while (i.next())
+            if (scanValue(i.getValue()))
+                return -1;
+         return 0;
       }
 
       // do not allow any closure or structure containing a closure to be copied directly into the parse tree
@@ -113,7 +116,7 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
       case NT_OBJECT:
       case NT_FUNCREF:
          //printd(5, "ConstantEntry::scanValue() this: %p n: %p nt: %d\n", this, n, get_node_type(n));
-	 return -1;
+         return -1;
    }
 
    return 0;
@@ -167,7 +170,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       return 0;
 
    if (in_init) {
-      parse_error("recursive constant reference found to constant '%s'", name.c_str());
+      parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
       return 0;
    }
 
@@ -221,21 +224,21 @@ int ConstantEntry::parseInit(ClassNs ptr) {
       //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
 
       if (!xsink) {
-	 node->deref(&xsink);
-	 node = v.release();
-	 if (!node) {
-	    node = nothing();
-	    typeInfo = nothingTypeInfo;
-	 }
-	 else {
-	    typeInfo = getTypeInfoForValue(node);
-	    //check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
-	 }
+         node->deref(&xsink);
+         node = v.release();
+         if (!node) {
+            node = nothing();
+            typeInfo = nothingTypeInfo;
+         }
+         else {
+            typeInfo = getTypeInfoForValue(node);
+            //check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
+         }
       }
       else {
-	 node->deref(&xsink);
-	 node = 0;
-	 typeInfo = nothingTypeInfo;
+         node->deref(&xsink);
+         node = 0;
+         typeInfo = nothingTypeInfo;
       }
    }
 
@@ -245,7 +248,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
    // scan for call references
    if (scanValue(node)) {
       saved_node = node;
-      node = new RuntimeConstantRefNode(refSelf());
+      node = new RuntimeConstantRefNode(loc, refSelf());
    }
 
    return 0;
@@ -261,13 +264,13 @@ ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p
       assert(i->second->init);
       // only check copying criteria when copying a constant list in a namespace
       if (p.isNs()) {
-	 // check the public flag
-	 if (!i->second->pub)
-	    continue;
-	 if (po & PO_NO_INHERIT_USER_CONSTANTS && i->second->isUser())
-	    continue;
-	 if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
-	    continue;
+         // check the public flag
+         if (!i->second->pub)
+            continue;
+         if (po & PO_NO_INHERIT_USER_CONSTANTS && i->second->isUser())
+            continue;
+         if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
+            continue;
       }
 
       ConstantEntry* ce = new ConstantEntry(*(i->second));
@@ -293,7 +296,7 @@ void ConstantList::reset() {
 void ConstantList::clearIntern(ExceptionSink* xsink) {
    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
       if (!i->second)
-	 continue;
+         continue;
       printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
       i->second->del(xsink);
    }
@@ -326,26 +329,26 @@ void ConstantList::parseDeleteAll() {
       qore_program_private::addParseException(getProgram(), xsink);
 }
 
-cnemap_t::iterator ConstantList::parseAdd(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo, bool pub) {
+cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
    // first check if the constant has already been defined
    if (cnemap.find(name) != cnemap.end()) {
-      parse_error("constant \"%s\" has already been defined", name);
+      parse_error(loc, "constant \"%s\" has already been defined", name);
       value->deref(0);
       return cnemap.end();
    }
 
-   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), pub);
+   ConstantEntry* ce = new ConstantEntry(loc, name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), pub, false, false, access);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
-cnemap_t::iterator ConstantList::add(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo) {
+cnemap_t::iterator ConstantList::add(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo, ClassAccess access) {
 #ifdef DEBUG
    if (cnemap.find(name) != cnemap.end()) {
       printd(0, "ConstantList::add() %s added twice!", name);
       assert(false);
    }
 #endif
-   ConstantEntry* ce = new ConstantEntry(name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true, true, true);
+   ConstantEntry* ce = new ConstantEntry(QoreProgramLocation(), name, value, typeInfo || value->needs_eval() ? typeInfo : getTypeInfoForValue(value), true, true, true, access);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
@@ -354,15 +357,28 @@ ConstantEntry *ConstantList::findEntry(const char* name) {
    return i == cnemap.end() ? 0 : i->second;
 }
 
-AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
+AbstractQoreNode* ConstantList::parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
    cnemap_t::iterator i = cnemap.find(name);
    if (i != cnemap.end()) {
       if (!i->second->parseInit(ptr)) {
-	 constantTypeInfo = i->second->typeInfo;
-	 return i->second->node;
+         constantTypeInfo = i->second->typeInfo;
+         access = i->second->getAccess();
+         return i->second->node;
       }
       constantTypeInfo = nothingTypeInfo;
       return &Nothing;
+   }
+
+   constantTypeInfo = 0;
+   return 0;
+}
+
+AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
+   cnemap_t::iterator i = cnemap.find(name);
+   if (i != cnemap.end()) {
+      constantTypeInfo = i->second->typeInfo;
+      access = i->second->getAccess();
+      return i->second->node;
    }
 
    constantTypeInfo = 0;
@@ -382,7 +398,7 @@ bool ConstantList::inList(const std::string& name) const {
 void ConstantList::mergeUserPublic(const ConstantList& src) {
    for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
       if (!i->second->isUserPublic())
-	 continue;
+         continue;
 
       assert(!inList(i->first));
 
@@ -394,11 +410,11 @@ void ConstantList::mergeUserPublic(const ConstantList& src) {
 int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* xsink) {
    for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
       if (!i->second->isSystem())
-	 continue;
+         continue;
 
       if (inList(i->first)) {
-	 xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
-	 return -1;
+         xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
+         return -1;
       }
 
       ConstantEntry* n = new ConstantEntry(*i->second);
@@ -420,17 +436,17 @@ void ConstantList::assimilate(ConstantList& n) {
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const char* name) {
+void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const char* type, const char* name) {
    // assimilate target list
    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
       if (inList(i->first)) {
-	 parse_error("constant \"%s\" is already pending in namespace \"%s\"", i->first, name);
-	 continue;
+         parse_error(i->second->loc, "constant \"%s\" is already pending in %s \"%s\"", i->first, type, name);
+         continue;
       }
 
       if (otherlist.inList(i->first)) {
-	 parse_error("constant \"%s\" has already been defined in namespace \"%s\"", i->first, name);
-	 continue;
+         parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+         continue;
       }
 
       cnemap[i->first] = i->second;
@@ -440,53 +456,21 @@ void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const ch
    n.parseDeleteAll();
 }
 
-int ConstantList::checkDup(const char* name, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
+void ConstantList::parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname) {
    if (inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\"", privpub(priv), name, cname);
-      return -1;
+      parse_error(loc, "constant \"%s\" is already pending in class \"%s\"", name.c_str(), cname);
+      discard(val, 0);
+      return;
    }
 
-   // see if constant already exists in committed list
    if (committed.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\"", privpub(priv), name, cname);
-      return -1;
+      parse_error(loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
+      discard(val, 0);
+      return;
    }
 
-   // see if constant is in the other pending list
-   if (otherPend.inList(name)) {
-      parse_error("%s constant \"%s\" is already pending in class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
-      return -1;
-   }
-
-   // see if constant is in the other committed list
-   if (other.inList(name)) {
-      parse_error("%s constant \"%s\" has already been added to class \"%s\" as a %s constant", privpub(priv), name, cname, privpub(!priv));
-      return -1;
-   }
-
-   return 0;
-}
-
-void ConstantList::parseAdd(const std::string& name, AbstractQoreNode* val, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
-   if (checkDup(name.c_str(), committed, other, otherPend, priv, cname)) {
-      if (val)
-	 val->deref(0);
-   }
-   else {
-      ConstantEntry* ce = new ConstantEntry(name.c_str(), val, getTypeInfoForValue(val));
-      cnemap[ce->getName()] = ce;
-   }
-}
-
-void ConstantList::assimilate(ConstantList& n, ConstantList& committed, ConstantList& other, ConstantList& otherPend, bool priv, const char* cname) {
-   for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
-      if (!checkDup(i->first, committed, other, otherPend, priv, cname)) {
-	 cnemap[i->first] = i->second;
-	 i->second = 0;
-      }
-   }
-
-   n.parseDeleteAll();
+   ConstantEntry* ce = new ConstantEntry(loc, name.c_str(), val, getTypeInfoForValue(val), false, false, false, access);
+   cnemap[ce->getName()] = ce;
 }
 
 void ConstantList::parseInit() {

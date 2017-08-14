@@ -1,0 +1,123 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AstParser.qpp AstParser class definition */
+/*
+  Qore AST Parser
+
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+*/
+
+#include "qore/Qore.h"
+
+#include "AstParserHolder.h"
+#include "AstTreeHolder.h"
+#include "ast/ASTParseError.h"
+
+#include "QC_AstTree.h"
+
+//! AstParser class
+/** AstParser is used for parsing an AST tree of a Qore source file.
+
+    @since %Qore 0.8.13
+ */
+qclass AstParser [arg=AstParserHolder* aph; ns=astparser; flags=final];
+
+//! Creates the AstParser.
+/**
+ */
+AstParser::constructor() {
+    self->setPrivate(CID_ASTPARSER, new AstParserHolder);
+}
+
+//! Parse file.
+/**
+    @param filename file's name including path
+    @return parsed AST tree
+ */
+*AstTree AstParser::parseFile(string filename) {
+    ASTTree* tree = aph->parseFile(filename->getBuffer());
+    if (!tree)
+        return nullptr;
+    return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
+}
+
+//! Parse string.
+/**
+    @param str string with code
+    @return parsed AST tree
+ */
+*AstTree AstParser::parseString(string str) {
+    ASTTree* tree = aph->parseString(str->getBuffer());
+    if (!tree)
+        return nullptr;
+    return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
+}
+
+//! Get parse error count.
+/**
+    @return error count
+ */
+int AstParser::getErrorCount() {
+    return aph->getErrorCount();
+}
+
+//! Get diagnostics.
+/**
+    @return list of diagnostic hashes
+ */
+*list AstParser::getDiagnostics() {
+    size_t errorCount = aph->getErrorCount();
+    if (errorCount == 0)
+        return nullptr;
+
+    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    for (size_t i = 0; i < errorCount; i++) {
+        ASTParseError* err = aph->getError(i);
+        ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> diag(new QoreHashNode, xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        if (!start || !end || !range || !diag)
+            return nullptr;
+
+        start->setKeyValue("line", new QoreBigIntNode(err->loc.firstLine-1), xsink);
+        start->setKeyValue("character", new QoreBigIntNode(err->loc.firstCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        end->setKeyValue("line", new QoreBigIntNode(err->loc.lastLine-1), xsink);
+        end->setKeyValue("character", new QoreBigIntNode(err->loc.lastCol-1), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        range->setKeyValue("start", start.release(), xsink);
+        range->setKeyValue("end", end.release(), xsink);
+        if (xsink && *xsink)
+            return nullptr;
+        diag->setKeyValue("range", range.release(), xsink);
+        diag->setKeyValue("message", new QoreStringNode(err->getError()), xsink);
+        diag->setKeyValue("severity", new QoreBigIntNode(1), xsink); // 1 == error, 2 == warning, 3 == info, 4 == hint
+        if (xsink && *xsink)
+            return nullptr;
+        lst->push(diag.release());
+    }
+
+    return lst.release();
+}
