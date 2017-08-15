@@ -67,7 +67,7 @@ module WebSocketClient {
     @code{.py}
 #!/usr/bin/env qore
 
-%require-our
+%new-style
 %enable-all-warnings
 
 %requires WebSocketClient

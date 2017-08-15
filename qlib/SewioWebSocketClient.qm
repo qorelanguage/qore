@@ -71,7 +71,7 @@ module SewioWebSocketClient {
     @code{.py}
 #!/usr/bin/env qore
 
-%require-our
+%new-style
 %enable-all-warnings
 
 %requires SewioWebSocketClient
@@ -160,7 +160,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             - \c errlog: (optional) @ref closure "closure" or @ref call_reference "call reference" for error logging
             - \c debuglog: (optional) @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection
 
-            @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash
+            @throw SEWIOWEBSOCKETCLIENT-ERROR unknown scheme, missing or invalid 'url' or 'apikey' key in option hash
         */
         constructor(code cb, hash opts) : WebSocketClient(SewioWebSocketClient::getCallback(cb), opts) {
             # check required options
