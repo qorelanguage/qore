@@ -37,8 +37,8 @@
 #include "queries/FindSymbolInfoQuery.h"
 #include "queries/FindSymbolsQuery.h"
 
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch) {
-    return FindMatchingSymbolsQuery::find(tree, query, exactMatch);
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(ASTTree* tree, const std::string& query, bool exactMatch, bool fixSymbols, bool bareNames) {
+    return FindMatchingSymbolsQuery::find(tree, query, exactMatch, fixSymbols, bareNames);
 }
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findMatchingSymbols(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch) {
@@ -80,6 +80,6 @@ ASTSymbolInfo AstTreeSearcher::findSymbolInfo(ASTTree* tree, ast_loc_t line, ast
     return std::move(FindSymbolInfoQuery::find(tree, line, col));
 }
 
-std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree, bool bareNames) {
-    return FindSymbolsQuery::find(tree, bareNames);
+std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree, bool fixSymbols, bool bareNames) {
+    return FindSymbolsQuery::find(tree, fixSymbols, bareNames);
 }

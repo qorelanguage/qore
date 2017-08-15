@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  FindMatchingSymbolsQuery.h
+  SymbolInfoFixes.h
 
   Qore AST Parser
 
@@ -25,45 +25,35 @@
   DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H
-#define _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H
+#ifndef _QLS_QUERIES_SYMBOLINFOFIXES_H
+#define _QLS_QUERIES_SYMBOLINFOFIXES_H
 
-#include <string>
 #include <vector>
 
 #include "ast/ASTSymbolInfo.h"
 
 class ASTTree;
 
-class FindMatchingSymbolsQuery {
+class SymbolInfoFixes {
 public:
-    FindMatchingSymbolsQuery() = delete;
-    FindMatchingSymbolsQuery(const FindMatchingSymbolsQuery& other) = delete;
+    SymbolInfoFixes() = delete;
+    SymbolInfoFixes(const SymbolInfoFixes& other) = delete;
 
-    //! Find matching symbols in the given tree.
+    //! Fix symbol infos for the passed symbol info vector.
     /**
-        @param tree tree to search
-        @param query search query
-        @param exactMatch whether to only find exact matches
-        @param fixSymbols whether to fix symbol infos
+        @param tree AST tree of the symbols
+        @param vec vector of symbol infos to fix
         @param bareNames whether to return bare symbol names (without namespace and class prefixes)
-
-        @return new list of matching symbols
      */
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query, bool exactMatch, bool fixSymbols = true, bool bareNames = false);
-
-    //! Find matching symbols in the given symbol list.
-    /**
-        @param symbols symbol list to search
-        @param query search query
-
-        @return new list of matching symbols
-     */
-    static std::vector<ASTSymbolInfo>* find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch);
+    static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>& vec, bool bareNames);
 
 private:
-    static bool matches(const std::string& name, const std::string& query, bool exactMatch);
-    static void filterByQuery(std::vector<ASTSymbolInfo>* vec, const std::string& query, bool exactMatch);
+    static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
 };
 
-#endif // _QLS_QUERIES_FINDMATCHINGSYMBOLSQUERY_H
+#endif // _QLS_QUERIES_SYMBOLINFOFIXES_H

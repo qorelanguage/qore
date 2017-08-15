@@ -46,10 +46,12 @@ public:
     //! Find all symbols in the given tree.
     /**
         @param tree tree to search
+        @param fixSymbols whether to fix symbol infos
         @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+
         @return new list of matching symbols
-    */
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, bool bareNames = false);
+     */
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, bool fixSymbols = true, bool bareNames = false);
 
 private:
     static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
