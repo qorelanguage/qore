@@ -90,6 +90,9 @@ c.waitForZero();
     @subsection wsc_v1_6 v1.6
     - added the @ref WebSocketClient::WebSocketConnectionObject "WebSocketConnectionObject" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
+    - fixed a bug where the event loop thread would immediately terminate after a reconnection (<a href="https://github.com/qorelanguage/qore/issues/2061">issue 2061</a>)
+    - improved client logging
+    - fixed a bug where the @ref WebSocketClient::WebSocketClient class did not validate the \c Sec-WebSocket-Accept response header according to RFC6455 (<a href="https://github.com/qorelanguage/qore/issues/2062">issue 2062</a>)
 
     @subsection wsc_v1_5 v1.5
     - added timeout values to @ref Qore::Socket "Socket" and @ref Qore::HTTPClient "HTTPClient" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
@@ -143,6 +146,10 @@ public namespace WebSocketClient {
             *code errlog;
             *code debuglog;
             timeout timeout_ms = DefaultTimeout;
+            #! unique websocket connection ID; -1 when not connected
+            int cid = -1;
+
+            static Sequence seq();
         }
 
         public {
@@ -207,6 +214,11 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         #! disconnects the connection and stops the event thread if connected
         destructor() {
             disconnect();
+        }
+
+        #! returns the unique connection ID
+        int getConnectionId() {
+            return cid;
         }
 
         #! returns a hash of URL scheme information for URL schemes supported by this object
@@ -364,6 +376,7 @@ ws.clearStats();
         private disconnectUnlocked(int cmd = WSCC_GoingAway) {
             stop = cmd;
             c.waitForZero();
+            cid = -1;
         }
 
         private eventLoop(code callback) {
@@ -371,6 +384,7 @@ ws.clearStats();
             while (True) {
                 if (stop) {
                     sendClose(stop);
+                    logDebug("event loop stopping on user request");
                     break;
                 }
 
@@ -389,7 +403,7 @@ ws.clearStats();
                         break;
                     }
 
-                    logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op), h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
+                    logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op) ?? sprintf("unknown opcode %y", h.op), h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
 
                     if (h.masked) {
                         logError("unmasked client frame received");
@@ -406,6 +420,7 @@ ws.clearStats();
                         callback(h.msg);
                         continue;
                     }
+
                     # unrecognized opcode - close the connection
                     sendClose(WSCC_UnsupportedData);
                     break;
@@ -424,21 +439,22 @@ ws.clearStats();
                 hc.shutdown();
                 hc.close();
             }
+            logDebug("disconnected websocket connection");
         }
 
         private logInfo(string fmt) {
             if (log)
-                call_function(log, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
         }
 
         private logError(string fmt) {
             if (errlog)
-                call_function(errlog, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
         }
 
         private logDebug(string fmt) {
             if (debuglog)
-                call_function(debuglog, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s DEBUG: ", cid) + vsprintf(fmt, argv));
         }
 
         private sendClose(int code, *string txtmsg) {
@@ -471,11 +487,12 @@ ws.clearStats();
             if (!hdr."User-Agent")
                 hdr."User-Agent" = DefaultUserAgent;
 
+            string key = get_random_string(16).toBase64();
             hdr += (
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
                 # https://tools.ietf.org/html/rfc6455#section-4.1 specifies a 16-byte length for this random nonce
-                "Sec-WebSocket-Key": get_random_string(16).toBase64(),
+                "Sec-WebSocket-Key": key,
                 );
 
             hash rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
@@ -483,10 +500,24 @@ ws.clearStats();
             if (rh.status_code != 101)
                 throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code %d: %s to our request", hc.getURL(), rh.status_code, rh.status_message);
 
+            if (!rh."sec-websocket-accept")
+                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y did not return the Sec-WebSocket-Accept response header (headers returned: %y)", hc.getURL(), rh);
+
+            {
+                string expected_key = ws_get_response_key(key);
+                if (rh."sec-websocket-accept" != expected_key)
+                    throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned an invalid value in the Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept", expected_key);
+            }
+
+            logDebug("connected websocket connection: %y", hc.isOpen());
+            stop = 0;
+            cid = seq.next();
+
             return rh;
         }
 
         send(string str) {
+            logDebug("sending: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
         }
 
