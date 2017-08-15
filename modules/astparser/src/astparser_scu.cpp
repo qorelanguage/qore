@@ -22,3 +22,4 @@
 #include "queries/FindSymbolInfoQuery.cpp"
 #include "queries/FindSymbolsQuery.cpp"
 #include "queries/GetNodesInfoQuery.cpp"
+#include "queries/SymbolInfoFixes.cpp"
