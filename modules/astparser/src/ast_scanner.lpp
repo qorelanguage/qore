@@ -883,7 +883,7 @@ class{WS}+({WORD}::)+{WORD}             { yylval->string = trim(yytext + 6); ret
 class{WS}+(::{WORD})+                   { yylval->string = trim(yytext + 6); return CLASS_SCOPED_REF; }
 class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); return CLASS_STRING; }
 namespace{WS}+{WORD}                    { yylval->string = trim(yytext + 10); return NAMESPACE; }
-module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); /* TODO */ return TOK_MODULE; }
+module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace(yytext + 7); */ return TOK_MODULE; }
 {WORD}                                  { yylval->string = strdup(yytext); return IDENTIFIER; }
 {WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
                                             if (angle_balanced(yytext)) {
@@ -992,9 +992,10 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                                     if (c == '/')
                                                         break;
                                                 }
-                                                if (c == EOF)
+                                                if (c == EOF) {
                                                     yyterminate();
                                                     return OPEN_BLK_COMMENT_AT_EOF_ERROR;
+                                                }
                                             }
                                         }
 <regex_googleplex>{
