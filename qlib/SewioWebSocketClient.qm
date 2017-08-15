@@ -234,8 +234,12 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @throws SEWIOWEBSOCKETCONNECTION-ERROR missing apikey option
         */
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : WebSocketConnectionObject(name, desc, url, monitor, opts, urlh) {
+            if (!opts.apikey.val())
+                throw "SEWIOWEBSOCKETCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
         }
 
         #! returns \c "sewiowebsocket"

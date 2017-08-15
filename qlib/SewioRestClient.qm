@@ -195,8 +195,12 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @throws SEWIORESTCONNECTION-ERROR missing apikey option
         */
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
+            if (!opts.apikey.val())
+                throw "SEWIORESTCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
             real_opts = ("url": real_url) + urlh.("username", "password") + opts;
         }
 

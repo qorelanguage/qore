@@ -61,6 +61,7 @@ public class Main inherits QUnit::Test {
         addTestCase("GET tests", \methodGetTest());
         addTestCase("PUT tests", \methodPutTest());
         addTestCase("neg tests", \negTest());
+        addTestCase("connection tests", \connectionTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -103,5 +104,13 @@ public class Main inherits QUnit::Test {
         assertThrows("SEWIORESTCLIENT-ERROR", sub () {new SewioRestClient(("url": "http://localhost:" + port));});
         RestClient rest(("url": "http://localhost:" + port, "apikey": ""));
         assertThrows("REST-RESPONSE-ERROR", \rest.get(), "/api_json");
+    }
+
+    connectionTest() {
+        string url = "sewiorest://localhost:8080";
+        SewioRestConnection swsc("test", "test", url, True, ("apikey": "x"), parse_url(url));
+        assertEq(True, swsc instanceof SewioRestConnection);
+
+        assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url, True, NOTHING, parse_url(url)); });
     }
 } # class Main
