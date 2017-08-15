@@ -223,13 +223,10 @@ public namespace WebSocketHandler {
                     "body": "cannot open WebSocket connection; no Sec-WebSocket-Key header found in request",
                 );
 
-            string key = hdr."sec-websocket-key";
-            string response_key = make_base64_string(SHA1_bin(key + WS_GUID));
-
             hash rhdr = (
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
-                "Sec-WebSocket-Accept": response_key,
+                "Sec-WebSocket-Accept": ws_get_response_key(hdr."sec-websocket-key"),
                 );
 
             return (

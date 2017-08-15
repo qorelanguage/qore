@@ -123,6 +123,7 @@ struct qore_httpclient_priv {
 
    // returns -1 if an exception was thrown, 0 for OK
    DLLLOCAL int connect_unlocked(ExceptionSink* xsink) {
+      assert(!msock->socket->isOpen());
       bool connect_ssl = proxy_connection.has_url() ? proxy_connection.ssl : connection.ssl;
 
       int rc;
@@ -786,6 +787,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
       assert(aborted);
       xsink->clear();
    }
+
    return ah;
 }
 
@@ -1039,6 +1041,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
          ans = sendMessageAndGetResponse(mname, meth, proxy_path, *(*proxy_headers), nullptr, 0, nullptr, nullptr, 0, nullptr, info, true, timeout_ms, code, send_aborted, xsink);
       else
          ans = sendMessageAndGetResponse(mname, meth, mpath, *(*nh), data, size, send_callback, is, max_chunk_size, trailer_callback, info, false, timeout_ms, code, send_aborted, xsink);
+
       if (!ans)
          return 0;
 
