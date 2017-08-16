@@ -121,11 +121,6 @@
       - <a href="../../modules/Qdx/html/index.html">Qdx</a>
       - <a href="../../modules/SewioRestClient/html/index.html">SewioRestClient</a>
       - <a href="../../modules/SewioWebSocketClient/html/index.html">SewioWebSocketClient</a>
-    - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
-      - added the \c c_blob() and \c c_clob() functions (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
-    - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
-      - added support for upserts in \c InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
-      - added \c InboundTableMapper::queueData(list)
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
@@ -210,42 +205,52 @@
       - @ref Qore::mkdir() "mkdir()": now allows parent directories to be created in the same call
       - @ref Qore::round() "round()": now allows the precision to be specified
       - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
-      - implemented the \c cop_trunc_date() function (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
-    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
-      - added a minimal substring of string bodies received to the log message when logging HTTP requests
-    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
-      - added support for streams
-    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
-      - added support for streams
-      - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
-      - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
-      - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
-    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module updates:
-      - added the \c Pop3Connection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-    - <a href="../../modules/Qorize/html/index.html">Qorize</a> module updates:
-      - \c qorize_named() added support for objects
-    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
-      - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-      - support for the \c text/plain \c Content-Type
-    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
-      - added an API to allow REST calls to be made internally (<a href="https://github.com/qorelanguage/qore/issues/1899">issue 1899</a>)
-    - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:
-      - added the \c SalesforcRestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
-      - added the \c SmtpConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-    - <a href="../../modules/TelnetClient/html/index.html">TelnetClient</a> module updates:
-      - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-      - added support for URLs in the constructor()
-      - added the \c TelnetClient::getTarget() method
-    - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
-      - added the \c WebSocketConnectionObject class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
-      - updated for complex types
-      - fixed a bug where the event loop thread would immediately terminate after a reconnection (<a href="https://github.com/qorelanguage/qore/issues/2061">issue 2061</a>)
-      - improved client logging
-      - fixed a bug where the \c WebSocketClient class did not validate the \c Sec-WebSocket-Accept response header according to RFC6455 (<a href="https://github.com/qorelanguage/qore/issues/2062">issue 2062</a>)
-    - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a> module updates:
-      - added the \c ws_get_response_key() function
+    - module updates:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+        - added a minimal substring of string bodies received to the log message when logging HTTP requests
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+        - added support for streams
+      - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
+        - added support for streams
+        - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
+        - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
+        - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
+      - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module updates:
+        - added the \c Pop3Connection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - <a href="../../modules/Qorize/html/index.html">Qorize</a> module updates:
+        - \c qorize_named() added support for objects
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
+        - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+        - support for the \c text/plain \c Content-Type
+      - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
+        - added an API to allow REST calls to be made internally (<a href="https://github.com/qorelanguage/qore/issues/1899">issue 1899</a>)
+      - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:
+        - added the \c SalesforcRestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
+        - added the \c c_blob() and \c c_clob() functions (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
+      - <a href="../../modules/SewioRestClient/html/index.html">SewioRestClient</a> module:
+        - added this new module providing APIs for communicating with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST API
+      - <a href="../../modules/SewioWebSocketClient/html/index.html">SewioWebSocketClient</a> module:
+        - added this new module providing APIs for communicating with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio WebSocket API
+      - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module updates:
+        - added the \c SmtpConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
+        - implemented the \c cop_trunc_date() function (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+      - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
+        - added support for upserts in \c InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
+        - added \c InboundTableMapper::queueData(list)
+      - <a href="../../modules/TelnetClient/html/index.html">TelnetClient</a> module updates:
+        - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+        - added support for URLs in the constructor()
+        - added the \c TelnetClient::getTarget() method
+      - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
+        - added the \c WebSocketConnectionObject class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+        - updated for complex types
+        - fixed a bug where the event loop thread would immediately terminate after a reconnection (<a href="https://github.com/qorelanguage/qore/issues/2061">issue 2061</a>)
+        - improved client logging
+        - fixed a bug where the \c WebSocketClient class did not validate the \c Sec-WebSocket-Accept response header according to RFC6455 (<a href="https://github.com/qorelanguage/qore/issues/2062">issue 2062</a>)
+      - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a> module updates:
+        - added the \c ws_get_response_key() function
     - the following classes can be used from binary modules:
       - @ref Qore::File "File"
       - @ref Qore::ReadOnlyFile "ReadOnlyFile"
@@ -806,10 +811,6 @@
         - c_number()
         - c_timestamp()
         - c_varchar()
-    - <a href="../../modules/SewioRestClient/html/index.html">SewioRestClient</a> module:
-      - added this new module providing APIs for communicating with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST API
-    - <a href="../../modules/SewioWebSocketClient/html/index.html">SewioWebSocketClient</a> module:
-      - added this new module providing APIs for communicating with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio WebSocket API
     - added option @ref Qore::Option::HAVE_DETERMINISTIC_GC "HAVE_DETERMINISTIC_GC" for %Qore builds where deterministic garbage collection is enabled
     - @ref Qore::Program "Program" class enhancements:
       - the @ref Qore::Program "Program" class now creates @ref conditional_parsing "parse defines" for parse options so that conditional code can be implemented depending on the sandboxing configuration of the program container
