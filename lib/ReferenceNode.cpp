@@ -37,7 +37,7 @@ IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgram
 AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const {
    qore_type_t ntype = n->getType();
 
-   //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d\n", this, get_type_name(n), ntype);
+   //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d '%s'\n", this, get_type_name(n), ntype, QoreTypeInfo::getName(typeInfo));
 
    if (ntype == NT_SELF_VARREF) {
       assert(!self);

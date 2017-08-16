@@ -712,7 +712,7 @@ hash ans = rest.del("/orders/1");
         }
 
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(reference<data> body, reference hdr, string ct = "Content-Type") {
+        private nothing prepareMsg(reference body, reference<hash> hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
             # serialize body if necessary

@@ -719,10 +719,25 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
       case QTS_COMPLEXREF: {
          if (n.getType() == NT_REFERENCE) {
             ReferenceNode* r = n.get<ReferenceNode>();
-            const QoreTypeInfo* ti = r->getLValueTypeInfo();
-            //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
-            if (QoreTypeInfo::outputSuperSetOf(ti, u.ti))
+
+            // do not process if there is not type restriction
+            LValueHelper lvh(r, xsink);
+            if (lvh) {
+               QoreValue val = lvh.getReferencedValue();
+               if (!val.isNothing()) {
+                  lvh.setTypeInfo(u.ti);
+                  //printd(5, "ref assign '%s' to '%s'\n", QoreTypeInfo::getName(val.getTypeInfo()), QoreTypeInfo::getName(u.ti));
+                  lvh.assign(val, "<reference>");
+               }
+               // we set ok unconditionally here, because the exception thrown above is enough if there is an error
                ok = true;
+            }
+            if (ok) {
+               const QoreTypeInfo* ti = r->getLValueTypeInfo();
+               //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
+               if (!QoreTypeInfo::outputSuperSetOf(ti, u.ti))
+                  ok = false;
+            }
          }
          break;
       }
