@@ -1357,7 +1357,7 @@ bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
 }
 
 AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id) {
-   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s'\n", this, name, val.getTypeName());
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s' ti: '%s' rti: '%s'\n", this, name, val.getTypeName(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
    {
       QoreSafeVarRWWriteLocker sl(rml);
       if (val.getType() == NT_REFERENCE) {

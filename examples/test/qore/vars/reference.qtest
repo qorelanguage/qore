@@ -87,6 +87,20 @@ class ReferenceTest inherits QUnit::Test {
         }
 
         {
+            assertThrows("RUNTIME-TYPE-ERROR", sub () {any x = "1"; backquote("", \x);});
+        }
+
+        {
+            code c = int sub (reference<softint> i) {
+                return i;
+            };
+
+            any str = "1";
+            assertEq(1, c(\str));
+            assertEq(1, str);
+        }
+
+        {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-TYPE-ERROR", "reference<string>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<string> r0 = \\i;}", ""));
             assertThrows("PARSE-TYPE-ERROR", "reference<\\*softint>.*reference<int>", \p.parse(), ("sub t() {int i = 0; reference<*softint> r0 = \\i;}", ""));
