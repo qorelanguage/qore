@@ -541,13 +541,13 @@ public:
 
    // returns true if first's output is a superset of second's output with a strict interpretation that the order of return declarations must also be the same
    DLLLOCAL static bool outputSuperSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      if (hasType(first)) {
-            if (hasType(second))
-               return first->outputSuperSetOf(second);
-            return false;
-         }
-         return hasType(second);
-      }
+      if (!hasType(first))
+         return true;
+
+      if (hasType(second))
+         return first == second ? true : first->outputSuperSetOf(second);
+      return false;
+   }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool canConvertToScalar(const QoreTypeInfo* ti) {
