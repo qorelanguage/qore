@@ -87,6 +87,44 @@ class ReferenceTest inherits QUnit::Test {
         }
 
         {
+            code c0 = string sub (reference<hash> h) {
+                h = ("a": "a");
+                return h.fullType();
+            };
+
+            code c1 = string sub (reference<list> l) {
+                l = ("a",);
+                return l.fullType();
+            };
+
+            code c2 = string sub (reference h) {
+                h.a = "a";
+                return h.fullType();
+            };
+
+            code c3 = string sub (reference l) {
+                l += ("a",);
+                return l.fullType();
+            };
+
+            any v = new hash<string, int>();
+            assertEq("hash", c0(\v));
+            assertEq("a", v.a);
+
+            v = new list<int>();
+            assertEq("list", c1(\v));
+            assertEq("a", v[0]);
+
+            v = new hash<string, int>();
+            assertEq("hash", c2(\v));
+            assertEq("a", v.a);
+
+            v = new list<int>();
+            assertEq("list", c3(\v));
+            assertEq("a", v[0]);
+        }
+
+        {
             assertThrows("RUNTIME-TYPE-ERROR", sub () {any x = "1"; backquote("", \x);});
         }
 
