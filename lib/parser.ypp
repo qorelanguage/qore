@@ -172,16 +172,23 @@ public:
 
    DLLLOCAL HashDeclDef(const QoreProgramLocation& loc, NamedScope *n, typed_hash_decl_private* hp) :
         loc(loc), name(n), hashdecl(hp->newTypedHashDecl(name->getIdentifier())) {
+      checkName();
    }
 
    DLLLOCAL HashDeclDef(const QoreProgramLocation& loc, char* n, typed_hash_decl_private* hp) :
         loc(loc), name(new NamedScope(n)), hashdecl(hp->newTypedHashDecl(name->getIdentifier())) {
+      checkName();
    }
 
    DLLLOCAL ~HashDeclDef() {
       delete name;
       if (hashdecl)
          typed_hash_decl_private::get(*hashdecl)->deref();
+   }
+
+   DLLLOCAL void checkName() {
+     if (!strcmp(name->getIdentifier(), "auto"))
+        parse_error(loc, "a hashdecl may not have the name 'auto'; this name has a special meaning in complex types; please choose another name for your hashdecl");
    }
 
    DLLLOCAL TypedHashDecl* takeHashDecl() {

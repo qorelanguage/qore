@@ -1336,7 +1336,7 @@ QoreListNode* QoreListNode::listRefSelf() const {
 }
 
 QoreListNode* QoreListNode::parseInitList(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = listTypeInfo;
+   typeInfo = priv->getTypeInfo();
 
    QoreListNodeParseInitHelper li(this, oflag, pflag, lvids);
    while (li.next()) {

@@ -712,6 +712,25 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                 qc = "qore_get_complex_list_type(" + subtype_qt + ")";
             log(LL_DEBUG, "registering complex list return type '%s': '%s'\n", qt.c_str(), qc.c_str());
         }
+        else if (!qt.compare(on ? 1 : 0, 5, "softlist<")) {
+            // extract subtype name
+            std::string subtype = qt.substr((on ? 10 : 9), qt.size() - (on ? 11 : 10));
+
+            if (subtype.find(',') != std::string::npos) {
+                log(LL_CRITICAL, "unsupported complex softlist type found: '%s'\n", qt.c_str());
+                assert(false);
+            }
+
+            std::string subtype_qt;
+            get_qore_type(subtype, subtype_qt);
+
+            // generate type name
+            if (on)
+                qc = "qore_get_complex_softlist_or_nothing_type(" + subtype_qt + ")";
+            else
+                qc = "qore_get_complex_softlist_type(" + subtype_qt + ")";
+            log(LL_DEBUG, "registering complex softlist return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+        }
         else if (!qt.compare(on ? 1 : 0, 10, "reference<")) {
             // extract subtype name
             std::string subtype = qt.substr((on ? 11 : 10), qt.size() - (on ? 12 : 11));

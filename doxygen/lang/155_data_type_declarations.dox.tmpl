@@ -35,6 +35,7 @@
     |@ref softstring_type "softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref string|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value
     |@ref softdate_type "softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null|@ref date|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value
     |@ref softlist_type "softlist"|all types|@ref list|Accepts all types; @ref nothing is returned as an empty list; a list is returned unchanged, and any other type is returned as the first element of a new list
+    |@ref softlist_complex_type "softlist<...>"|all types|@ref list|Accepts all data types; @ref nothing is returned as an empty list; a list is returned with its elements processed by the subtype declaration, and any other type is returned as the first element of a new list, also processed by the subtype declaration
     |@ref data_type "data"|@ref string or @ref binary|same as received|Restricts input to @ref string and @ref binary and returns the same type
     |@ref code_type "code"|@ref closure, @ref call_reference|same as received|Restricts values to @ref closure "closures" and @ref call_reference "call references"
     |@ref reference_type "reference"|@ref lvalue_references|the type the reference points to|Restricts values to references to lvalues
@@ -66,6 +67,7 @@
     |@ref softstring_or_nothing_type "*softstring"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null or @ref nothing|@ref string or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null and converts non-string values to a string and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
     |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
     |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; @ref null is returned as @ref nothing, any other type is returned as the first element of a new list
+    |@ref softlist_complex_or_nothing_type "*softlist<...>"|all types|@ref list or @ref nothing|Accepts all data types; @ref nothing and @ref null are returned as @ref nothing; a list is returned with its elements processed by the declared subtype, and any other type is returned as the first element of a new list with its element processed by the declared subtype
     |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value
 
     <hr>
@@ -225,9 +227,19 @@ hash<MyHash> sub foo(int x) {
     function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
     hash to an untyped hash.
 
-    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    Complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
     assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
     breaking backwards compatibility.
+
+    However, a special single argument, \c "auto", allows for the lvalue to maintain the complex hash type as in the following example:
+    @code{.py}
+hash h0 = ("a": 2, "b": 3);
+# prints "hash"
+printf("%y\n", h0.fullType());
+hash<auto> h1 = new hash<MyHash>();
+# prints "hash<MyHash>"
+printf("%y\n", h1.fullType());
+    @endcode
 
     @see
     - @ref hashdecl
@@ -277,9 +289,19 @@ hash<string, int> h4 = cast<hash<string, int>>(get_hash());
     function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
     hash to an untyped hash.
 
-    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    Complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
     assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
     breaking backwards compatibility.
+
+    However, a special single argument, \c "auto", allows for the lvalue to maintain the complex hash type as in the following example:
+    @code{.py}
+hash h0 = ("a": 2, "b": 3);
+# prints "hash"
+printf("%y\n", h0.fullType());
+hash<auto> h1 = ("a": 2, "b": 3);
+# prints "hash<string, int>"
+printf("%y\n", h1.fullType());
+    @endcode
 
     @see
     - @ref hashdecl
@@ -330,9 +352,19 @@ list<int> l4 = cast<list<int>>(get_list());
     function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
     list to an untyped list.
 
-    @note complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    Complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
     assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
     breaking backwards compatibility.
+
+    However, a special single argument, \c "auto", allows for the lvalue to maintain the complex list type as in the following example:
+    @code{.py}
+list l0 = (2, 3);
+# prints "list"
+printf("%y\n", l0.fullType());
+list<auto> l1 = (2, 3);
+# prints "list<int>"
+printf("%y\n", l1.fullType());
+    @endcode
 
     @see
     - @ref new
@@ -524,6 +556,54 @@ softlist sub foo(softlist l) {
     return l;
 }
     @endcode
+
+    @subsection softlist_complex_type Softlist With Declared Value Type
+
+    <b>Complex list Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softlist|all data types|@ref list|Accepts all data types; @ref nothing is returned as an empty list; a list is returned with its elements processed by the subtype declaration, and any other type is returned as the first element of a new list, also processed by the subtype declaration
+
+    The softlist type supports one type argument in angle brackets to specify the value
+    type.  This results in a list where the values must always be of the declared type.  See the
+    following example for more information.
+
+    @par Examples
+    @code{.py}
+# 1: declaration and initialization (identical to 2 and 3)
+softlist<int> l1(500, 300, 0);
+
+# 2: declaration and initialization with the assignment operator (identical to 1 and 3)
+softlist<int> l2 = (500, 300, 0);
+
+# 3: declaration and initialization with the new operator (identical to 1 and 2)
+softlist<int> l3 = new list<int>(500, 300, 0);
+
+# assignment from an untyped list with the cast<> operator (can result in runtime type errors)
+softlist<int> l4 = cast<list<int>>(get_list());
+    @endcode
+
+    This type is supported at parse-time and at runtime; to convert such values to an untyped list, assign it
+    to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, call the @ref Qore::list() "list()"
+    function on the value, or assign it to an untyped lvalue.  Each of these options can be used to convert a type-safe
+    list to an untyped list.
+
+    Complex type information is lost when assigning to an lvalue with a compatible but more generic type or by
+    assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without
+    breaking backwards compatibility.
+
+    However, a special single argument, \c "auto", allows for the lvalue to maintain the complex list type as in the following example:
+    @code{.py}
+softlist l0 = 1;
+# prints "list"
+printf("%y\n", l0.fullType());
+softlist<auto> l1 = (1, );
+# prints "list<int>"
+printf("%y\n", l1.fullType());
+    @endcode
+
+    @see
+    - @ref new
+    - @ref cast
 
     @since %Qore 0.8.3 introduced the softlist type
 
@@ -947,6 +1027,19 @@ sub foo(*softdate d) {
 *softlist d = v;
     @endcode
 
+    @subsection softlist_complex_or_nothing_type *softlist<...>
+
+    <b>Complex Softlist or Nothing Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c *softlist|all data types|@ref list or @ref nothing|Accepts all data types; @ref nothing and @ref null are returned as @ref nothing; a list is returned with its elements processed by the declared subtype, and any other type is returned as the first element of a new list with its element processed by the declared subtype
+
+    @par Example
+    @code{.py}
+*softlist<int> sub foo() {
+    return 1list_;
+}
+    @endcode
+
     @since %Qore 0.8.3 introduced the *softlist type
 
     <hr>
@@ -960,6 +1053,4 @@ sub foo(*softdate d) {
     @code{.py}
 any v = bar;
     @endcode
-
-    @note Complex types (hash of lists, reference to string, etc) are currently not possible to declare but support may be added in future versions of %Qore for this.
 */

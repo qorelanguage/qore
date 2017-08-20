@@ -16,9 +16,40 @@ public hashdecl MyHash {
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("complex auto", \testComplexAutoTypes());
         addTestCase("complex type compat", \testComplexTypesCompat());
-        addTestCase("types", \testTypes());
+        #addTestCase("types", \testTypes());
         set_return_value(main());
+    }
+
+    testComplexAutoTypes() {
+        list<auto> l0 = ("str0", "str1");
+        assertEq("list<string>", l0.fullType());
+        softlist<auto> l1 = ("str0", "str1");
+        assertEq("list<string>", l1.fullType());
+        *list<auto> l2 = ("str0", "str1");
+        assertEq("list<string>", l2.fullType());
+        *softlist<auto> l3 = ("str0", "str1");
+        assertEq("list<string>", l3.fullType());
+
+        hash<auto> h0 = ("a": 1, "b": 2);
+        assertEq("hash<string, int>", h0.fullType());
+        hash<string, auto> h1 = ("a": 1, "b": 2);
+        assertEq("hash<string, int>", h1.fullType());
+        hash<auto> h2 = new hash<MyHash>();
+        assertEq("hash<MyHash>", h2.fullType());
+
+        # reference<auto> == reference<any>
+        reference<auto> r = \h0;
+        assertEq("hash<string, int>", r.fullType());
+
+        {
+            hash h = {};
+            *hash h9 = ("a": ());
+            h += ("a": ("a": ("a": 1), "b": h9));
+            assertEq("hash", h.fullType());
+            assertEq("hash", h.a.b.fullType());
+        }
     }
 
     testComplexTypesCompat() {
@@ -69,6 +100,36 @@ class TypeTest inherits QUnit::Test {
             hash ih = testAnyArg(l);
             assertEq(False, ih.complex);
             assertEq("list", ih.type);
+        }
+
+        {
+            softlist<int> l();
+            assertEq(True, l.complexType());
+            # assigning to an untyped variable strips the type information for backwards-compatibility
+            any l0 = l;
+            assertEq(False, l0.complexType());
+            l0 += "a";
+            assertEq("a", l0[0]);
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \l; r += "a"; });
+            hash ih = testAnyArg(l);
+            assertEq(False, ih.complex);
+            assertEq("list", ih.type);
+        }
+
+        {
+            softlist<softint> l = "1";
+            assertEq(1, l[0]);
+            assertEq(True, l.complexType());
+            # assigning to an untyped variable strips the type information for backwards-compatibility
+            any l0 = l;
+            assertEq(False, l0.complexType());
+            l0 += "a";
+            assertEq("a", l0[1]);
+            hash ih = testAnyArg(l);
+            assertEq(False, ih.complex);
+            assertEq("list", ih.type);
+            l += "2";
+            assertEq(2, l[1]);
         }
 
         {
