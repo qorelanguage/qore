@@ -1184,29 +1184,38 @@ public class SwaggerTest inherits QUnit::Test {
         {
             Swagger::SwaggerObject so;
             so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml");
-            RequestValidator v(so);
+            MessageValidator v(so);
             list<hash<ParameterInfo>> params;
             {
                 params = (
                     new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
-                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"})
+                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
                 );
-                assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
-                assertThrows("INVALID-PARAMETER-NAME", \v.validate(), ("/pet", "post", params, {}));
+                assertTrue(v.validateRequestNoExcept("/user/login", "get", params, {}));
+                assertThrows("INVALID-PARAMETER-NAME", \v.validateRequest(), ("/pet", "post", params, {}));
+                params[1].val = 1;
+                assertThrows("INVALID-PARAMETER-TYPE", \v.validateRequest(), ("/user/login", "get", params, {}));
+                delete params[1].val;
+                assertThrows("INVALID-PARAMETER-VALUE", \v.validateRequest(), ("/user/login", "get", params, {}));
             }
         }
 
         {
             Swagger::SwaggerObject so;
             so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.json");
-            RequestValidator v(so);
+            MessageValidator v(so);
             list<hash<ParameterInfo>> params;
             {
                 params = (
                     new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
-                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"})
+                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
                 );
-                assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
+                assertTrue(v.validateRequestNoExcept("/user/login", "get", params, {}));
+                assertThrows("INVALID-PARAMETER-NAME", \v.validateRequest(), ("/pet", "post", params, {}));
+                params[1].val = 1;
+                assertThrows("INVALID-PARAMETER-TYPE", \v.validateRequest(), ("/user/login", "get", params, {}));
+                delete params[1].val;
+                assertThrows("INVALID-PARAMETER-VALUE", \v.validateRequest(), ("/user/login", "get", params, {}));
             }
         }
         # TODO

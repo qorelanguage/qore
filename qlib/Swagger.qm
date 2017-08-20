@@ -59,6 +59,9 @@ module Swagger {
 
     The %Swagger module provides a <a href="https://swagger.io/">Swagger/OAS 3.0 REST API validation API</a> to %Qore.
 
+    Primary classes provided by this module:
+    - @ref Swagger::RequestValidator "RequestValidator"
+
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_1_0 Swagger v1.0
@@ -194,7 +197,8 @@ class SchemaBase {
     }
 }
 
-public class RequestValidator {
+#! a class for validating requests
+public class MessageValidator {
     public {
         SwaggerObject swagger;
     }
@@ -205,7 +209,7 @@ public class RequestValidator {
 
     private:internal throwInvalidType(string actual, string expected) {
         throw "INVALID-PARAMETER-TYPE",
-            sprintf("Parameter has invalid type '%s' (should be '%s')", actual, expected);
+            sprintf("Parameter has invalid type %y (should be %y)", actual, expected);
     }
 
     # INDIVIDUAL PARAMETER TYPE CHECKS
@@ -213,18 +217,18 @@ public class RequestValidator {
     private checkArrayParam(string path, string method, string name, list value, SchemaBase sb) {
         if (exists sb.maxItems && value.size() > sb.maxItems)
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' has too many items (maxItems: %d, actual: %d)",
+                sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
                     name, path, method, sb.maxItems, value.size());
         if (exists sb.minItems && value.size() < sb.minItems)
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' has too few items (minItems: %d, actual: %d)",
+                sprintf("Parameter %y for path %y and method %y has too few items (minItems: %d, actual: %d)",
                     name, path, method, sb.minItems, value.size());
         if (sb.uniqueItems) {
             list uniqueItems = ();
             foreach any val in (value) {
                 if (uniqueItems.contains(val))
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Array parameter '%s' for path '%s' and method '%s' does not have unique items",
+                        sprintf("Array parameter %y for path %y and method %y does not have unique items",
                             name, path, method);
                 uniqueItems += val;
             }
@@ -237,13 +241,13 @@ public class RequestValidator {
             if (sb.exclusiveMax) {
                 if (value >= sb.maximum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %d)",
+                        sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %d)",
                             name, path, method, sb.maximum, value);
             }
             else {
                 if (value > sb.maximum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %d)",
+                        sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %d)",
                             name, path, method, sb.maximum, value);
             }
         }
@@ -252,20 +256,20 @@ public class RequestValidator {
             if (sb.exclusiveMin) {
                 if (value <= sb.minimum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %d)",
+                        sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %d)",
                             name, path, method, sb.maximum, value);
             }
             else {
                 if (value < sb.minimum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %d)",
+                        sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %d)",
                             name, path, method, sb.maximum, value);
             }
         }
 
         if (sb.enum.size() > 0 && !sb.enum.contains(value))
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: %d)",
+                sprintf("Parameter %y for path %y and method %y does not fit the enumerated values (enum: %y, actual: %d)",
                     name, path, method, sb.enum, value);
     }
 
@@ -274,13 +278,13 @@ public class RequestValidator {
             if (sb.exclusiveMax) {
                 if (value >= sb.maximum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %f)",
+                        sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %f)",
                             name, path, method, sb.maximum, value);
             }
             else {
                 if (value > sb.maximum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %f)",
+                        sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %f)",
                             name, path, method, sb.maximum, value);
             }
         }
@@ -289,39 +293,39 @@ public class RequestValidator {
             if (sb.exclusiveMin) {
                 if (value <= sb.minimum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %f)",
+                        sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %f)",
                             name, path, method, sb.maximum, value);
             }
             else {
                 if (value < sb.minimum)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %f)",
+                        sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %f)",
                             name, path, method, sb.maximum, value);
             }
         }
 
         if (sb.enum.size() > 0 && !sb.enum.contains(value))
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: %f)",
+                sprintf("Parameter %y for path %y and method %y does not fit the enumerated values (enum: %y, actual: %f)",
                     name, path, method, sb.enum, value);
     }
 
     private checkStringParam(string path, string method, string name, string value, SchemaBase sb) {
         if (exists sb.maxLength && value.size() > sb.maxLength)
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' is too long (maxLength: %d, actual: %d)",
+                sprintf("Parameter %y for path %y and method %y is too long (maxLength: %d, actual: %d)",
                     name, path, method, sb.maxLength, value.size());
         if (exists sb.minLength && value.size() < sb.minLength)
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' is too short (minLength: %d, actual: %d)",
+                sprintf("Parameter %y for path %y and method %y is too short (minLength: %d, actual: %d)",
                     name, path, method, sb.minLength, value.size());
         if (exists sb.pattern && !value.regex(sb.pattern))
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the parameter string pattern (pattern:'%s', value: '%s')",
+                sprintf("Parameter %y for path %y and method %y does not fit the parameter string pattern (pattern:%y, value: %y)",
                     name, path, method, sb.pattern, value);
         if (sb.enum.size() > 0 && !sb.enum.contains(value))
             throw "INVALID-PARAMETER-VALUE",
-                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: '%s')",
+                sprintf("Parameter %y for path %y and method %y does not fit the enumerated values (enum: %y, actual: %y)",
                     name, path, method, sb.enum, value);
     }
 
@@ -398,7 +402,7 @@ public class RequestValidator {
             case NT_NOTHING:
                 if (!op.allowEmptyValue)
                     throw "INVALID-PARAMETER-VALUE",
-                        sprintf("Parameter '%s' for path '%s' and method '%s' has empty value (allowEmptyValue=false)",
+                        sprintf("Parameter %y for path %y and method %y has empty value (allowEmptyValue=false)",
                             name, path, method);
             # file TODO
         }
@@ -426,20 +430,20 @@ public class RequestValidator {
 
             if (po == NOTHING)
                 throw "INVALID-PARAMETER-NAME",
-                    sprintf("No parameter named '%s' defined for path '%s' and method '%s'",
+                    sprintf("No parameter named %y defined for path %y and method %y",
                         param.name, path, method);
 
             # check parameter's location
             if (param.loc != po.inLoc)
                 throw "INVALID-PARAMETER-LOCATION",
-                    sprintf("Parameter '%s' for path '%s' and method '%s' has invalid location '%s' (should be '%s')",
+                    sprintf("Parameter %y for path %y and method %y has invalid location %y (should be %y)",
                         param.name, path, method, param.loc, po.inLoc);
 
             # check parameter's value
             if (param.loc == "body") {
                 if (bodyParam)
                     throw "INVALID-PARAMETER-LOCATION",
-                        sprintf("Multiple parameters in body for path '%s' and method '%s'",
+                        sprintf("Multiple parameters in body for path %y and method %y",
                             path, method);
                 bodyParam = True;
 
@@ -460,7 +464,7 @@ public class RequestValidator {
                 return it.value;
             }
         }
-        throw "INVALID-PATH", sprintf("Path '%s' is invalid", path);
+        throw "INVALID-PATH", sprintf("Path %y is invalid", path);
     }
 
     #! Validate a single request.
@@ -472,7 +476,7 @@ public class RequestValidator {
 
         @throws INVALID-METHOD invalid path operation method used
      */
-    public validate(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+    public validateRequest(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
         # find path item object
         PathItemObject pio = findPathObject(path, \params);
 
@@ -481,7 +485,7 @@ public class RequestValidator {
 
         # find operation object
         if (!pio.operations.hasKey(method))
-            throw "INVALID-METHOD", sprintf("Path '%s' does not have any operation defined for the '%s' method", path, method);
+            throw "INVALID-METHOD", sprintf("Path %y does not have any operation defined for the %y method; known methods: %y", path, method, keys pio.operations);
         OperationObject op = pio.operations{method};
 
         # check validitiy of parameters
@@ -497,9 +501,9 @@ public class RequestValidator {
         @param params parameters of the request
         @param headers headers of the request
      */
-    public bool validateNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+    public bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
         try {
-            validate(path, method, params, headers);
+            validateRequest(path, method, params, headers);
         }
         catch (hash<ExceptionInfo> ex) {
             return False;
@@ -522,14 +526,14 @@ public class SwaggerLoader {
         hash val;
         if (json) {
 %ifdef NoJson
-            throw "JSON-MODULE-MISSING", "Trying to parse a JSON Swagger specification with JSON module unavailable";
+            throw "JSON-MODULE-MISSING", "Trying to parse a JSON Swagger specification, but the json module is unavailable";
 %else
             val = parse_json(swaggerSpecification);
 %endif
         }
         else {
 %ifdef NoYaml
-            throw "YAML-MODULE-MISSING", "Trying to parse a YAML Swagger specification with YAML module unavailable";
+            throw "YAML-MODULE-MISSING", "Trying to parse a YAML Swagger specification, but the yaml module is unavailable";
 %else
             val = parse_yaml(swaggerSpecification);
 %endif
@@ -548,7 +552,7 @@ public class SwaggerLoader {
     public static SwaggerObject fromFile(string filepath) {
         string swaggerStr = ReadOnlyFile::readTextFile(filepath);
         if (!swaggerStr)
-            throw "EMPTY-SWAGGER-FILE", sprintf("%s: file is empty", filepath);
+            throw "EMPTY-SWAGGER-FILE", sprintf("%y: file is empty", filepath);
 
         bool json = True;
         string filename = basename(filepath);
@@ -704,7 +708,7 @@ public class SwaggerObject inherits ObjectBase {
             swaggerSpec = oh.swagger.toString();
         else
             throw "INVALID-FIELD-TYPE",
-                sprintf("%s Object: 'swagger' field has invalid type '%s' (should be string or float)", objType, oh.swagger.type());
+                sprintf("%s Object: 'swagger' field has invalid type %y (should be string or float)", objType, oh.swagger.type());
 
         hash infoObj;
         required_field(objType, oh, "info", NT_HASH, \infoObj);
@@ -924,7 +928,7 @@ public class PathsObject inherits ObjectBase {
         foreach hash item in (oh.pairIterator()) {
             string key = item.key;
             if (key !~ /^\//)
-                throw "INVALID-FIELD-FORMAT", "Paths Object: path does not begin with a slash: " + key;
+                throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: path %y does not begin with a slash", key);
             paths{key} = new PathItemObject(item.key, item.value);
         }
     }
@@ -993,7 +997,7 @@ public class PathItemObject inherits ObjectBase {
             are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
             There can be one \c body parameter at most.
          */
-        list parameters;
+        list<ObjectBase> parameters;
     }
 
     #! Constructor.
@@ -1042,7 +1046,7 @@ public class PathItemObject inherits ObjectBase {
             foreach any param in (params) {
                 if (param.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE",
-                        sprintf("Path Item Object: 'parameters' list value has invalid type '%s'",
+                        sprintf("Path Item Object: 'parameters' list value has invalid type %y",
                             param.type());
                 hash p = param;
                 if (p.hasKey("$ref"))
@@ -1249,11 +1253,11 @@ public class OperationObject inherits ObjectBase {
                 foreach hash it in (h.pairIterator()) {
                     if (it.value.typeCode() != NT_LIST)
                         error("INVALID-FIELD-TYPE",
-                                "Operation Object: invalid Security Requirement Object value type '%s' (should be a list of hashes)",
+                                "Operation Object: invalid Security Requirement Object value type %y (should be a list of hashes)",
                                 val.type());
                     if ((map True, it.value, $1.typeCode() != NT_STRING).size())
                         error("INVALID-FIELD-TYPE",
-                                "Operation Object: invalid Security Requirement Object value type '%s' (should be a list of hashes with list values)",
+                                "Operation Object: invalid Security Requirement Object value type %y (should be a list of hashes with list values)",
                                 val.type());
                 }
             }
@@ -1525,7 +1529,7 @@ public class OtherParameter inherits SchemaBase {
                 (defaultVal.typeCode() == NT_STRING && type != "string") ||
                 (defaultVal.typeCode() == NT_LIST && type != "array"))
                 throw "INVALID-FIELD-TYPE",
-                    sprintf("Parameter Object: 'default' value has invalid type '%s' (should be '%s')",
+                    sprintf("Parameter Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
             /*if (type == "array")
@@ -1623,7 +1627,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
                 (defaultVal.typeCode() == NT_STRING && type != "string") ||
                 (defaultVal.typeCode() == NT_LIST && type != "array"))
                 throw "INVALID-FIELD-TYPE",
-                    sprintf("Items Object: 'default' value has invalid type '%s' (should be '%s')",
+                    sprintf("Items Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
             /*if (type == "array")
@@ -1676,7 +1680,7 @@ public class ResponsesObject inherits ObjectBase {
         *hash r = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^[0-9]+$/;
         foreach hash resp in (r.pairIterator()) {
             if (resp.value.typeCode() != NT_HASH)
-                throw "INVALID-FIELD-TYPE", sprintf("%s %s: Responses Object: response has invalid type '%s'", method, path, resp.value.type());
+                throw "INVALID-FIELD-TYPE", sprintf("%s %s: Responses Object: response has invalid type %y", method, path, resp.value.type());
             if (resp.value.hasKey("$ref"))
                 responses{resp.key} = new ReferenceObject(resp.value);
             else
@@ -1826,7 +1830,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
                 (defaultVal.typeCode() == NT_STRING && type != "string") ||
                 (defaultVal.typeCode() == NT_LIST && type != "array"))
                 throw "INVALID-FIELD-TYPE",
-                    sprintf("Header Object: 'default' value has invalid type '%s' (should be '%s')",
+                    sprintf("Header Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
             /*if (type == "array")
@@ -2055,7 +2059,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 (defaultVal.typeCode() == NT_STRING && type != "string") ||
                 (defaultVal.typeCode() == NT_LIST && type != "array"))
                 throw "INVALID-FIELD-TYPE",
-                    sprintf("Schema Object: 'default' value has invalid type '%s' (should be '%s')",
+                    sprintf("Schema Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
             /*
@@ -2108,7 +2112,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 foreach any val in (req) {
                     if (val.typeCode() != NT_STRING)
                         throw "INVALID-FIELD-TYPE",
-                            sprintf("Schema Object: 'required' list value has invalid type '%s'",
+                            sprintf("Schema Object: 'required' list value has invalid type %y",
                                 val.type());
                 }
                 required = cast<list<string>>(req);
@@ -2325,7 +2329,7 @@ public class ScopesObject inherits ObjectBase {
             if (item.key !~ /^x-/) { # if not vendor extension
                 if (item.value.typeCode() != NT_STRING)
                     throw "INVALID-FIELD-TYPE",
-                        sprintf("Scopes Object: '%s' field has invalid type '%s', instead of 'string'",
+                        sprintf("Scopes Object: %y field has invalid type %y, instead of 'string'",
                             item.key, item.value.type());
                 fields{item.key} = item.value;
             }
@@ -2350,10 +2354,10 @@ namespace Priv {
     */
     sub required_field(string objType, hash oh, string name, int typeCode, reference<any> target) {
         if (!oh.hasKey(name))
-            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: '%s' field is missing", objType, name);
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing", objType, name);
         any val = oh{name};
         if (val.typeCode() != typeCode)
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
         target = val;
     }
 
@@ -2374,7 +2378,7 @@ namespace Priv {
             return False;
         any val = oh{name};
         if (val.typeCode() != typeCode)
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
         target = val;
         return True;
     }
@@ -2396,7 +2400,7 @@ namespace Priv {
             return False;
         any val = oh{name};
         if (!typeCodes.contains(val.typeCode()))
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
         target = val;
         return True;
     }
