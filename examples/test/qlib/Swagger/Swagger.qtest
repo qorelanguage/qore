@@ -6,7 +6,6 @@
 %require-types
 %strict-args
 
-%requires QUnit
 # try importing JSON and YAML modules
 %try-module json
 %define NoJson
@@ -14,6 +13,10 @@
 %try-module yaml
 %define NoYaml
 %endtry
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Swagger.qm
 
 %exec-class SwaggerTest
@@ -48,14 +51,10 @@ public class SwaggerTest inherits QUnit::Test {
 %endif
 
         code loadjson = bool sub (string str) {
-            *Swagger::SwaggerObject so = Swagger::SwaggerLoader::fromString(str, True);
-            delete so;
-            return True;
+            return Swagger::SwaggerLoader::fromString(str, True).val();
         };
         code loadyaml = bool sub (string str) {
-            *Swagger::SwaggerObject so = Swagger::SwaggerLoader::fromString(str, False);
-            delete so;
-            return True;
+            return Swagger::SwaggerLoader::fromString(str, False).val();
         };
     }
 
@@ -98,15 +97,15 @@ public class SwaggerTest inherits QUnit::Test {
     testFiles() {
         checkModules();
 
-        *Swagger::SwaggerObject so;
+        Swagger::SwaggerObject so;
         string basePath = getcwd() + DirSep + dirname(get_script_path()) + DirSep;
 
         # Should not throw.
         so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.json");
-        assertTrue(so != NOTHING);
+        assertTrue(exists so);
         delete so;
         so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.yaml");
-        assertTrue(so != NOTHING);
+        assertTrue(exists so);
 
         assertThrows("EMPTY-SWAGGER-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.yaml");});
         assertThrows("EMPTY-SWAGGER-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.json");});
@@ -1182,16 +1181,34 @@ public class SwaggerTest inherits QUnit::Test {
     testValidation() {
         checkModules();
 
-        *Swagger::SwaggerObject so;
-        so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml");
-        RequestValidator v(so);
-        list<hash<ParameterInfo>> params;
+        {
+            Swagger::SwaggerObject so;
+            so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml");
+            RequestValidator v(so);
+            list<hash<ParameterInfo>> params;
+            {
+                params = (
+                    new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
+                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"})
+                );
+                assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
+                assertThrowsInline("INVALID-PARAMETER-NAME", \v.validate(), "/pet", "post", params, {});
+            }
+        }
 
-        params = cast<list<hash<ParameterInfo>>>(
-            cast<hash<ParameterInfo>>({"name": "username", "loc": "query", "val": "user"}),
-            cast<hash<ParameterInfo>>({"name": "password", "loc": "query", "val": "pass"})
-        );
-        assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
+        {
+            Swagger::SwaggerObject so;
+            so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.json");
+            RequestValidator v(so);
+            list<hash<ParameterInfo>> params;
+            {
+                params = (
+                    new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
+                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"})
+                );
+                assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
+            }
+        }
         # TODO
     }
 }

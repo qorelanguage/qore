@@ -765,6 +765,7 @@ qore_user_module("qlib/SqlUtil.qm" "Util")
 # base 3 modules
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/Swagger.qm" "Mime;Util")
 qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")

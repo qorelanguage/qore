@@ -26,6 +26,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%allow-weak-references
 
 # make sure we have the required qore version
 %requires qore >= 0.8.13
@@ -50,20 +51,40 @@ module Swagger {
     license = "MIT";
 }
 
+/** @mainpage Swagger module
+
+    @tableofcontents
+
+    @section swaggerintro Swagger Module Introduction
+
+    The %Swagger module provides a <a href="https://swagger.io/">Swagger/OAS 3.0 REST API validation API</a> to %Qore.
+
+    @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_1_0 Swagger v1.0
+
+    - initial release of the Swagger module
+*/
+
 #! main namespace for all public Swagger declarations
 public namespace Swagger {
-# Valid type formats.
-const ValidIntFormats = ("int32", "int64");
-const ValidNumberFormats = ("double", "float");
-const ValidStringFormats = ("binary", "byte", "date", "date-time", "password");
+#! Valid integer type formats
+public const ValidIntFormats = ("int32", "int64");
+#! Valid number type formats
+public const ValidNumberFormats = ("double", "float");
+#! Valid string type formats
+public const ValidStringFormats = ("binary", "byte", "date", "date-time", "password");
 
-const ValidIntFormatsHash = map {$1: True}, ValidIntFormats;
-const ValidNumberFormatsHash = map {$1: True}, ValidNumberFormats;
-const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
+#! A hash of valid integer type formats
+public const ValidIntFormatsHash = map {$1: True}, ValidIntFormats;
+#! A hash of valid number type formats
+public const ValidNumberFormatsHash = map {$1: True}, ValidNumberFormats;
+#! A hash of valid string type formats
+public const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
 
 #! Valid transfer protocol schemes.
-const ValidSchemes = ("http", "https", "ws", "wss");
-const ValidSchemesHash = map {$1:1}, ValidSchemes;
+public const ValidSchemes = ("http", "https", "ws", "wss");
+public const ValidSchemesHash = map {$1:1}, ValidSchemes;
 
 # hashdecl
 public hashdecl ParameterInfo {
@@ -98,7 +119,7 @@ class ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Object hash
+        @param oh deserialized hash from the source schema description describing the object
      */
     public constructor(hash oh) {
         initialize(oh);
@@ -106,7 +127,7 @@ class ObjectBase {
 
     #! Initialize.
     /**
-        @param oh Object hash
+        @param oh deserialized hash from the source schema description
      */
     public initialize(hash oh) {
         vendorExtensions = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^x-/;
@@ -154,8 +175,8 @@ class SchemaBase {
     }
 
     #! Constructor.
-    /**
-        @param oh Object hash
+    /** @param objType the type of object
+        @param oh deserialized hash from the source schema description
      */
     public constructor(string objType, hash oh) {
         optional_field(objType, oh, "maximum", (NT_FLOAT, NT_INT), \maximum);
@@ -179,7 +200,7 @@ public class RequestValidator {
     }
 
     public constructor(SwaggerObject so) {
-        swagger = so;
+        swagger := so;
     }
 
     private:internal throwInvalidType(string actual, string expected) {
@@ -480,7 +501,7 @@ public class RequestValidator {
         try {
             validate(path, method, params, headers);
         }
-        catch (ex) {
+        catch (hash<ExceptionInfo> ex) {
             return False;
         }
         return True;
@@ -525,13 +546,9 @@ public class SwaggerLoader {
         @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
      */
     public static SwaggerObject fromFile(string filepath) {
-        *string swaggerStr;
-        {
-            ReadOnlyFile f(filepath);
-            swaggerStr = f.read(-1);
-        }
+        string swaggerStr = ReadOnlyFile::readTextFile(filepath);
         if (!swaggerStr)
-            throw "EMPTY-SWAGGER-FILE", "The opened swagger file is empty";
+            throw "EMPTY-SWAGGER-FILE", sprintf("%s: file is empty", filepath);
 
         bool json = True;
         string filename = basename(filepath);
@@ -671,7 +688,7 @@ public class SwaggerObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Swagger Object hash
+        @param oh deserialized hash from the source schema description describing the root document object
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -806,7 +823,7 @@ public class InfoObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Info Object hash
+        @param oh deserialized hash from the source schema description providing metadata about the API
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -843,7 +860,7 @@ public class ContactObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Contact Object hash
+        @param oh deserialized hash from the source schema description providing contact information about the API
 
         @throws INVALID-FIELD-TYPE field has invalid type
      */
@@ -867,7 +884,7 @@ public class LicenseObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh License Object hash
+        @param oh deserialized hash from the source schema description providing license information about the API
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -897,7 +914,7 @@ public class PathsObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Paths Object hash
+        @param oh deserialized hash from the source schema description describing paths to schema endpoints
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -982,7 +999,7 @@ public class PathItemObject inherits ObjectBase {
     #! Constructor.
     /**
         @param path the URI path for the object
-        @param oh Path Item Object hash
+        @param oh deserialized hash from the source schema description describing the operations available on a single path
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
@@ -1135,8 +1152,9 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! Constructor.
-    /**
-        @param oh Operation Object hash
+    /** @param path the path for the operation
+        @param method the HTTP method for the operation
+        @param oh deserialized hash from the source schema description describing the operation
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
@@ -1261,7 +1279,7 @@ public class ExternalDocumentationObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh External Documentation Object hash
+        @param oh deserialized hash from the source schema description providing a reference to external documentation
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -1350,7 +1368,7 @@ public class ParameterObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Parameter Object hash
+        @param oh deserialized hash from the source schema description decscribing a single parameter
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
@@ -1393,7 +1411,7 @@ public class BodyParameter {
 
     #! Constructor.
     /**
-        @param oh Parameter Object hash
+        @param oh deserialized hash from the source schema description describing a body parameter
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -1463,7 +1481,7 @@ public class OtherParameter inherits SchemaBase {
 
     #! Constructor.
     /**
-        @param oh Parameter Object hash
+        @param oh deserialized hash from the source schema description describing general parameters (other than \c "body" parameters)
         @param po parent @ref ParameterObject
 
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -1564,7 +1582,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
 
     #! Constructor.
     /**
-        @param oh Items Object hash
+        @param oh deserialized hash from the source schema description describing an item to be used by parameter definitions that are not located @ref ParameterObject::inLoc "in" \c "body"
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
@@ -1614,7 +1632,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     }
 }
 
-#!
+#! contains the possible responses for an operation
 public class ResponsesObject inherits ObjectBase {
     public {
         # The documentation of responses other than the ones declared for specific HTTP response codes.
@@ -1639,7 +1657,7 @@ public class ResponsesObject inherits ObjectBase {
     /**
         @param path the URI path for the operation
         @param method the HTTP method for the operation
-        @param oh Responses Object hash
+        @param oh deserialized hash from the source schema description describing the responses for an operation
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -1704,7 +1722,7 @@ public class ResponseObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Response Object hash
+        @param oh deserialized hash from the source schema description describing a single response for an API operation
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -1769,7 +1787,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
 
     #! Constructor.
     /**
-        @param oh Object hash
+        @param oh deserialized hash from the source schema description describing a single HTTP header
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
@@ -1834,7 +1852,7 @@ public class TagObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Tag Object hash
+        @param oh deserialized hash from the source schema description describing a metadata tag associated with an operation
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
@@ -1867,7 +1885,7 @@ public class ReferenceObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Reference Object hash
+        @param oh deserialized hash from the source schema description describing a reference to another definition in the schema
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-REFERENCE-FORMAT invalid reference format used
@@ -1999,7 +2017,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
     #! Constructor.
     /**
-        @param oh Schema Object hash
+        @param oh deserialized hash from the source schema description describing an object in the schema
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -2169,7 +2187,7 @@ public class XmlObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh XML Object hash
+        @param oh deserialized hash from the source schema description describing XML model definitions
 
         @throws INVALID-FIELD-TYPE field has invalid type
      */
@@ -2242,7 +2260,7 @@ public class SecuritySchemeObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Security Scheme Object hash
+        @param oh deserialized hash from the source schema description describing a security schema that can be used by REST API operations
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FLOW invalid OAuth2 flow value
@@ -2298,7 +2316,7 @@ public class ScopesObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh Scopes Object hash
+        @param oh deserialized hash from the source schema description describing the available scopes for an OAuth2 security scheme
 
         @throws INVALID-FIELD-TYPE field has invalid type
      */

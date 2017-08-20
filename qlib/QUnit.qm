@@ -1180,7 +1180,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         string exp = sprintf("Exception: %s", expectedErr) + (expectedDesc ? sprintf(": Detail '%s'", expectedDesc) : "");
         try {
             call_function_args(theCode, args);
-        } catch (e) {
+        } catch (hash<ExceptionInfo> e) {
             if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
                 tc.incAssertionsOk();
                 ++num_asserts_ok;
@@ -1205,6 +1205,20 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
      */
     public assertThrows(string expectedErr, code theCode, *softlist args, *string name) {
         assertThrows(expectedErr, NOTHING, theCode, args, name);
+    }
+
+    #! Tests that a piece of code throws an exception
+    /** @par Example:
+        @code{.py}
+assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
+        @endcode
+
+        @param expectedErr the expected exception type
+        @param theCode the code to execute
+        @param args optional arguments to the code
+     */
+    public assertThrowsInline(string expectedErr, code theCode) {
+        assertThrows(expectedErr, NOTHING, theCode, argv);
     }
 
     #! Skips assertion on purpose
