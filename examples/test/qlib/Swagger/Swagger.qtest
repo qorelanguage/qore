@@ -1192,7 +1192,7 @@ public class SwaggerTest inherits QUnit::Test {
                     new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"})
                 );
                 assertTrue(v.validateNoExcept("/user/login", "get", params, {}));
-                assertThrowsInline("INVALID-PARAMETER-NAME", \v.validate(), "/pet", "post", params, {});
+                assertThrows("INVALID-PARAMETER-NAME", \v.validate(), ("/pet", "post", params, {}));
             }
         }
 

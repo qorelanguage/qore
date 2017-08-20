@@ -393,7 +393,7 @@ public class QUnit::TestCase {
         code m_code;
 
         #! arguments to the above callable object
-        *list m_args;
+        *list<auto> m_args;
 
         #! number of assertions in current test case
         int num_asserts = 0;
@@ -406,7 +406,7 @@ public class QUnit::TestCase {
     }
 
     #! creates the TestCase object from the given arguments
-    constructor(string name, code code, *softlist args) {
+    constructor(string name, code code, *softlist<auto> args) {
         m_name = name;
         m_code = code;
         m_args = args;
@@ -667,7 +667,7 @@ public class QUnit::TestReporter {
         );
     }
 
-    private callPrinterFunction(string type, *softlist args) {
+    private callPrinterFunction(string type, *softlist<auto> args) {
         *code c = m_printMethods{m_output}{type};
         if (c) {
             call_function_args(c, args);
@@ -803,7 +803,7 @@ public class QUnit::TestReporter {
 public class QUnit::Test inherits QUnit::TestReporter {
     private {
         #! list of test cases
-        list testCases = ();
+        list<TestCase> testCases();
 
         static QUnit::TestResultSuccess RESULT_SUCCESS = new QUnit::TestResultSuccess();
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
@@ -841,7 +841,7 @@ addTestCase("MyTest", \myTest());
         @param call the code to call that executes the test case
         @param args any optional arguments to the test case call
     */
-    addTestCase(string name, code call, *softlist args) {
+    addTestCase(string name, code call, *softlist<auto> args) {
         testCases += new TestCase(name, call, args);
     }
 
@@ -917,8 +917,8 @@ addTestCase(obj);
             expected = escapeSpecialChars(expected);
             actual = escapeSpecialChars(actual);
         }
-        list expectedLines = expected.split("\n");
-        list actualLines = actual.split("\n");
+        list<string> expectedLines = expected.split("\n");
+        list<string> actualLines = actual.split("\n");
 
         # Distinguish between multiline
         bool multiline = ((expectedLines.size() + actualLines.size()) > 2);
@@ -995,7 +995,7 @@ addTestCase(obj);
         }
     }
 
-    private compareLists(list l1, list l2, reference<list> out, string path = "", *bool soft_comparisons) {
+    private compareLists(list<auto> l1, list<auto> l2, reference<list> out, string path = "", *bool soft_comparisons) {
         int len1 = elements l1;
         int len2 = elements l2;
 
@@ -1172,7 +1172,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist args, *string name) {
+    public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist<auto> args, *string name) {
         TestCase tc = getTestCase("assertEqThrows");
         tc.incAssertions();
         ++num_asserts;
@@ -1203,22 +1203,8 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @param theCode the code to execute
         @param args optional arguments to the code
      */
-    public assertThrows(string expectedErr, code theCode, *softlist args, *string name) {
+    public assertThrows(string expectedErr, code theCode, *softlist<auto> args, *string name) {
         assertThrows(expectedErr, NOTHING, theCode, args, name);
-    }
-
-    #! Tests that a piece of code throws an exception
-    /** @par Example:
-        @code{.py}
-assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
-        @endcode
-
-        @param expectedErr the expected exception type
-        @param theCode the code to execute
-        @param args optional arguments to the code
-     */
-    public assertThrowsInline(string expectedErr, code theCode) {
-        assertThrows(expectedErr, NOTHING, theCode, argv);
     }
 
     #! Skips assertion on purpose
@@ -1270,7 +1256,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public testNullAssertion(string name, code condition, *softlist args) {
+    public testNullAssertion(string name, code condition, *softlist<auto> args) {
         testAssertion(name, condition, args, new TestResultValue());
     }
 
@@ -1283,7 +1269,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, int expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, int expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1296,7 +1282,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, float expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, float expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1309,7 +1295,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, number expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, number expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1322,7 +1308,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, bool expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, bool expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1335,7 +1321,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, string expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, string expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1348,7 +1334,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, date expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, date expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1361,7 +1347,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, binary expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, binary expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1374,7 +1360,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, hash expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, hash expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1387,7 +1373,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, list expectedResultValue) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, list expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1400,7 +1386,7 @@ fail("Unexpected code executed");
      *
      * @return the result of the \a condition call, if the immediate value has any further use
      */
-    public any testAssertion(string name, code condition, *softlist args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
+    public any testAssertion(string name, code condition, *softlist<auto> args, QUnit::AbstractTestResult expectedResult = new QUnit::TestResultSuccess()) {
         TestCase tc = getTestCase("testAssertion");
         tc.incAssertions();
         ++num_asserts;
