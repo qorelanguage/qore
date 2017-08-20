@@ -65,6 +65,17 @@ element3 = list[2];
     @par Type Name:
     \c "list"
 
+    The list type supports a complex element type specification as well, however "list" lvalues without a
+    complex element type specification will strip the complex type when assigned as in the following example:
+    @code{.py}
+list l0 = (2, 3);
+# prints "list"
+printf("%y\n", l0.fullType());
+list<auto> l1 = (2, 3);
+# prints "list<int>"
+printf("%y\n", l1.fullType());
+    @endcode
+
     @see
     - @ref list_type, @ref softlist_type
     - @ref list_functions
@@ -72,10 +83,20 @@ element3 = list[2];
     @par Complex Type Support for Lists
     The \c "list" type also supports an optional type argument which allows the value type of list elements to be declared; the following example demonstrates a list declaration with a specific value type:\n
     @code{.py}
-list<int> h(2, 3);
+list<int> l(2, 3);
     @endcode \n
     This type is supported at parse-time and at runtime; to convert such values to an untyped list, assign it
     to a @ref list_type "list" lvalue, use @ref cast "cast<list>(...)" on the value, or call the @ref Qore::list() "list()" function on the value.  Each of these options can be used to convert a type-safe list to an untyped list.
+
+    A special type argument, \c "auto", allows for the lvalue to maintain the complex list type as in the following example:
+    @code{.py}
+list l0 = (2, 3);
+# prints "list"
+printf("%y\n", l0.fullType());
+list<auto> l1 = (2, 3);
+# prints "list<int>"
+printf("%y\n", l1.fullType());
+    @endcode
 
     @see @ref list_complex_type
 
@@ -200,6 +221,18 @@ hash<Container> h2(("i": 10, "str": "other"));
     @endcode \n
     This type is supported at parse-time and at runtime; to convert such values to an untyped hash, assign it
     to a @ref hash_type "hash" lvalue, use @ref cast "cast<hash>(...)" on the value, or call the @ref Qore::hash() "hash()" function on the value.  Each of these options can be used to convert a type-safe hash to an untyped hash.
+
+    A special single argument, \c "auto", allows for the lvalue to maintain the complex hash type as in the following example:
+    @code{.py}
+hash h0 = ("a": 2, "b": 3);
+# prints "hash"
+printf("%y\n", h0.fullType());
+hash<auto> h1 = ("a": 2, "b": 3);
+# prints "hash<string, int>"
+printf("%y\n", h1.fullType());
+    @endcode
+
+    @note a \c hashdecl may not have the name \c "auto", this name has a special meaning in complex types
 
     @see
     - @ref hashdecl

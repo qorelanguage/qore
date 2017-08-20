@@ -96,14 +96,21 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         return this;
 
     // evaluate immediately
-    ValueEvalRefHolder rv(this, nullptr);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(vtype), nullptr);
+    qore_hash_private* ph = qore_hash_private::get(**h);
+    for (size_t i = 0; i < keys.size(); ++i) {
+        QoreStringValueHelper key(keys[i]);
+        discard(ph->swapKeyValue(key->c_str(), values[i], nullptr), nullptr);
+        values[i] = nullptr;
+    }
+
     deref();
-    return rv.getReferencedValue();
+    return h.release();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(vtype), xsink);
 
     for (size_t i = 0; i < keys.size(); ++i) {
         QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
@@ -115,7 +122,7 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             return QoreValue();
 
         QoreStringValueHelper key(*k);
-        h->setKeyValue(key->getBuffer(), v.getReferencedValue(), xsink);
+        h->setKeyValue(key->c_str(), v.getReferencedValue(), xsink);
         if (xsink && *xsink)
             return QoreValue();
     }

@@ -113,6 +113,20 @@ struct qore_list_private {
           holder = v.takeNode();
           return *xsink ? -1 : 0;
        }
+       else {
+           switch (get_node_type(*holder)) {
+               case NT_LIST:
+               case NT_HASH: {
+                   {
+                       ReferenceHolder<> h2(holder.release(), xsink);
+                       holder = copy_strip_complex_types(*h2);
+                   }
+                   return *xsink ? -1 : 0;
+               }
+               default:
+                  break;
+           }
+       }
        return 0;
    }
 

@@ -187,7 +187,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
       // push parse class context
       qore_class_private* p = ptr.getClass();
-      QoreParseClassHelper qpch(p ? p->cls : 0);
+      QoreParseClassHelper qpch(p ? p->cls : nullptr);
 
       // ensure that there is no accessible local variable state
       VariableBlockHelper vbh;
@@ -197,12 +197,12 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
       //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
       if (typeInfo)
-         typeInfo = 0;
+         typeInfo = nullptr;
 
       node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
    }
 
-   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d\n", this, name.c_str(), node, get_type_name(node), node->is_value());
+   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d type: '%s'\n", this, name.c_str(), node, get_type_name(node), node->is_value(), QoreTypeInfo::getName(typeInfo));
 
    if (node->is_value())
       return 0;
@@ -210,8 +210,8 @@ int ConstantEntry::parseInit(ClassNs ptr) {
    // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram* pgm = getProgram();
    if (pgm->parseExceptionRaised()) {
-      discard(node, 0);
-      node = 0;
+      discard(node, nullptr);
+      node = nullptr;
       typeInfo = nothingTypeInfo;
       return -1;
    }
@@ -232,12 +232,11 @@ int ConstantEntry::parseInit(ClassNs ptr) {
          }
          else {
             typeInfo = getTypeInfoForValue(node);
-            //check_constant_cycle(pgm, node); // address circular refs: pgm->const->pgm
          }
       }
       else {
          node->deref(&xsink);
-         node = 0;
+         node = nullptr;
          typeInfo = nothingTypeInfo;
       }
    }
@@ -369,7 +368,7 @@ AbstractQoreNode* ConstantList::parseFind(const char* name, const QoreTypeInfo*&
       return &Nothing;
    }
 
-   constantTypeInfo = 0;
+   constantTypeInfo = nullptr;
    return 0;
 }
 
@@ -381,8 +380,8 @@ AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& cons
       return i->second->node;
    }
 
-   constantTypeInfo = 0;
-   return 0;
+   constantTypeInfo = nullptr;
+   return nullptr;
 }
 
 bool ConstantList::inList(const char* name) const {
