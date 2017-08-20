@@ -1,0 +1,2385 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file Swagger.qm Swagger: https://swagger.io/, OpenAPI: https://github.com/OAI/OpenAPI-Specification
+
+/*  Swagger.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+# make sure we have the required qore version
+%requires qore >= 0.8.13
+
+# try importing JSON and YAML modules
+%try-module json
+%define NoJson
+%endtry
+
+%try-module yaml
+%define NoYaml
+%endtry
+
+# need mime definitions
+%requires Mime >= 1.3.4.1
+
+module Swagger {
+    version = "0.1.0";
+    desc = "Swagger module providing functionality for OpenAPI (Swagger) definitions";
+    author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+#! main namespace for all public Swagger declarations
+public namespace Swagger {
+# Valid type formats.
+const ValidIntFormats = ("int32", "int64");
+const ValidNumberFormats = ("double", "float");
+const ValidStringFormats = ("binary", "byte", "date", "date-time", "password");
+
+const ValidIntFormatsHash = map {$1: True}, ValidIntFormats;
+const ValidNumberFormatsHash = map {$1: True}, ValidNumberFormats;
+const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
+
+#! Valid transfer protocol schemes.
+const ValidSchemes = ("http", "https", "ws", "wss");
+const ValidSchemesHash = map {$1:1}, ValidSchemes;
+
+# hashdecl
+public hashdecl ParameterInfo {
+    #! Parameter's name.
+    string name;
+
+    #! Parameter's location.
+    /**
+        Possible values are \c "query", \c "header", \c "path",
+        \c "formData" or \c "body".
+     */
+    string loc;
+
+    #! Actual parameter's value.
+    any val;
+}
+
+#! Base class for the Swagger specification objects, wrapping the vendor extensions.
+class ObjectBase {
+    public {
+        #! Allows extensions to the Swagger Schema.
+        /**
+            The field name MUST begin with \c x-, for example, \c x-internal-id.
+            The value can be \c null, a primitive, an array or an object.
+         */
+        hash vendorExtensions;
+    }
+
+    #! Constructor.
+    public constructor() {
+    }
+
+    #! Constructor.
+    /**
+        @param oh Object hash
+     */
+    public constructor(hash oh) {
+        initialize(oh);
+    }
+
+    #! Initialize.
+    /**
+        @param oh Object hash
+     */
+    public initialize(hash oh) {
+        vendorExtensions = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^x-/;
+    }
+}
+
+#! Base used by @ref OtherParameter, @ref ItemsObject, @ref HeaderObject and @ref SchemaObject.
+class SchemaBase {
+    public {
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.2.
+        *float maximum;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.3.
+        *float minimum;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.2.
+        *bool exclusiveMax;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.3.
+        *bool exclusiveMin;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.2.1.
+        *int maxLength;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.2.2.
+        *int minLength;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.2.3.
+        *string pattern;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.3.2.
+        *int maxItems;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.3.3.
+        *int minItems;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.3.4.
+        *bool uniqueItems;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.1.
+        list enum;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.1.
+        *float multipleOf;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Object hash
+     */
+    public constructor(string objType, hash oh) {
+        optional_field(objType, oh, "maximum", (NT_FLOAT, NT_INT), \maximum);
+        optional_field(objType, oh, "minimum", (NT_FLOAT, NT_INT), \minimum);
+        optional_field(objType, oh, "exclusiveMaximum", NT_BOOLEAN, \exclusiveMax);
+        optional_field(objType, oh, "exclusiveMinimum", NT_BOOLEAN, \exclusiveMin);
+        optional_field(objType, oh, "maxLength", NT_INT, \maxLength);
+        optional_field(objType, oh, "minLength", NT_INT, \minLength);
+        optional_field(objType, oh, "pattern", NT_STRING, \pattern);
+        optional_field(objType, oh, "maxItems", NT_INT, \maxItems);
+        optional_field(objType, oh, "minItems", NT_INT, \minItems);
+        optional_field(objType, oh, "uniqueItems", NT_BOOLEAN, \uniqueItems);
+        optional_field(objType, oh, "enum", NT_LIST, \enum);
+        optional_field(objType, oh, "multipleOf", (NT_FLOAT, NT_INT), \multipleOf);
+    }
+}
+
+public class RequestValidator {
+    public {
+        SwaggerObject swagger;
+    }
+
+    public constructor(SwaggerObject so) {
+        swagger = so;
+    }
+
+    private:internal throwInvalidType(string actual, string expected) {
+        throw "INVALID-PARAMETER-TYPE",
+            sprintf("Parameter has invalid type '%s' (should be '%s')", actual, expected);
+    }
+
+    # INDIVIDUAL PARAMETER TYPE CHECKS
+
+    private checkArrayParam(string path, string method, string name, list value, SchemaBase sb) {
+        if (exists sb.maxItems && value.size() > sb.maxItems)
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' has too many items (maxItems: %d, actual: %d)",
+                    name, path, method, sb.maxItems, value.size());
+        if (exists sb.minItems && value.size() < sb.minItems)
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' has too few items (minItems: %d, actual: %d)",
+                    name, path, method, sb.minItems, value.size());
+        if (sb.uniqueItems) {
+            list uniqueItems = ();
+            foreach any val in (value) {
+                if (uniqueItems.contains(val))
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Array parameter '%s' for path '%s' and method '%s' does not have unique items",
+                            name, path, method);
+                uniqueItems += val;
+            }
+        }
+        # TODO array of arrays
+    }
+
+    private checkIntegerParam(string path, string method, string name, int value, SchemaBase sb) {
+        if (exists sb.maximum) {
+            if (sb.exclusiveMax) {
+                if (value >= sb.maximum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %d)",
+                            name, path, method, sb.maximum, value);
+            }
+            else {
+                if (value > sb.maximum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %d)",
+                            name, path, method, sb.maximum, value);
+            }
+        }
+
+        if (exists sb.minimum) {
+            if (sb.exclusiveMin) {
+                if (value <= sb.minimum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %d)",
+                            name, path, method, sb.maximum, value);
+            }
+            else {
+                if (value < sb.minimum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %d)",
+                            name, path, method, sb.maximum, value);
+            }
+        }
+
+        if (sb.enum.size() > 0 && !sb.enum.contains(value))
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: %d)",
+                    name, path, method, sb.enum, value);
+    }
+
+    private checkNumberParam(string path, string method, string name, any value, SchemaBase sb) {
+        if (exists sb.maximum) {
+            if (sb.exclusiveMax) {
+                if (value >= sb.maximum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %f)",
+                            name, path, method, sb.maximum, value);
+            }
+            else {
+                if (value > sb.maximum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too big (maximum: %f, actual: %f)",
+                            name, path, method, sb.maximum, value);
+            }
+        }
+
+        if (exists sb.minimum) {
+            if (sb.exclusiveMin) {
+                if (value <= sb.minimum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %f)",
+                            name, path, method, sb.maximum, value);
+            }
+            else {
+                if (value < sb.minimum)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' is too small (minimum: %f, actual: %f)",
+                            name, path, method, sb.maximum, value);
+            }
+        }
+
+        if (sb.enum.size() > 0 && !sb.enum.contains(value))
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: %f)",
+                    name, path, method, sb.enum, value);
+    }
+
+    private checkStringParam(string path, string method, string name, string value, SchemaBase sb) {
+        if (exists sb.maxLength && value.size() > sb.maxLength)
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' is too long (maxLength: %d, actual: %d)",
+                    name, path, method, sb.maxLength, value.size());
+        if (exists sb.minLength && value.size() < sb.minLength)
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' is too short (minLength: %d, actual: %d)",
+                    name, path, method, sb.minLength, value.size());
+        if (exists sb.pattern && !value.regex(sb.pattern))
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the parameter string pattern (pattern:'%s', value: '%s')",
+                    name, path, method, sb.pattern, value);
+        if (sb.enum.size() > 0 && !sb.enum.contains(value))
+            throw "INVALID-PARAMETER-VALUE",
+                sprintf("Parameter '%s' for path '%s' and method '%s' does not fit the enumerated values (enum: %y, actual: '%s')",
+                    name, path, method, sb.enum, value);
+    }
+
+    # PARAMETER CHECKS
+
+    private checkSchema(string path, string method, string name, any value, SchemaObject schema) {
+        switch (value.typeCode()) {
+            case NT_STRING:
+                if (schema.type != "string")
+                    throwInvalidType("string", schema.type);
+                checkStringParam(path, method, name, value, schema);
+                break;
+            case NT_INT:
+                if (schema.type != "integer")
+                    throwInvalidType("integer", schema.type);
+                checkIntegerParam(path, method, name, value, schema);
+                break;
+            case NT_FLOAT:
+                if (schema.type != "number")
+                    throwInvalidType("number", schema.type);
+                checkNumberParam(path, method, name, value, schema);
+                break;
+            case NT_NUMBER:
+                if (schema.type != "number")
+                    throwInvalidType("number", schema.type);
+                checkNumberParam(path, method, name, value, schema);
+                break;
+            case NT_LIST:
+                if (schema.type != "array")
+                    throwInvalidType("array", schema.type);
+                checkArrayParam(path, method, name, value, schema);
+                # TODO array of arrays
+                break;
+            case NT_BOOLEAN:
+                if (schema.type != "boolean")
+                    throwInvalidType("boolean", schema.type);
+                break;
+            # file TODO
+        }
+    }
+
+    private checkOtherParam(string path, string method, string name, any value, OtherParameter op) {
+        switch (value.typeCode()) {
+            case NT_STRING:
+                if (op.type != "string")
+                    throwInvalidType("string", op.type);
+                checkStringParam(path, method, name, value, op);
+                break;
+            case NT_INT:
+                if (op.type != "integer")
+                    throwInvalidType("integer", op.type);
+                checkIntegerParam(path, method, name, value, op);
+                break;
+            case NT_FLOAT:
+                if (op.type != "number")
+                    throwInvalidType("number", op.type);
+                checkNumberParam(path, method, name, value, op);
+                break;
+            case NT_NUMBER:
+                if (op.type != "number")
+                    throwInvalidType("number", op.type);
+                checkNumberParam(path, method, name, value, op);
+                break;
+            case NT_LIST:
+                if (op.type != "array")
+                    throwInvalidType("array", op.type);
+                checkArrayParam(path, method, name, value, op);
+                # TODO array of arrays
+                break;
+            case NT_BOOLEAN:
+                if (op.type != "boolean")
+                    throwInvalidType("boolean", op.type);
+                break;
+            case NT_NOTHING:
+                if (!op.allowEmptyValue)
+                    throw "INVALID-PARAMETER-VALUE",
+                        sprintf("Parameter '%s' for path '%s' and method '%s' has empty value (allowEmptyValue=false)",
+                            name, path, method);
+            # file TODO
+        }
+    }
+
+    public checkParameters(string path, string method, PathItemObject pio, OperationObject op, list<hash<ParameterInfo>> params) {
+        bool bodyParam = False;
+        foreach hash<ParameterInfo> param in (params) {
+            # find parameter object
+            *ParameterObject po;
+            foreach ParameterObject p in (op.parameters) {
+                if (p.name == param.name) {
+                    po = p;
+                    break;
+                }
+            }
+            if (po == NOTHING) {
+                foreach ParameterObject p in (pio.parameters) {
+                    if (p.name == param.name) {
+                        po = p;
+                        break;
+                    }
+                }
+            }
+
+            if (po == NOTHING)
+                throw "INVALID-PARAMETER-NAME",
+                    sprintf("No parameter named '%s' defined for path '%s' and method '%s'",
+                        param.name, path, method);
+
+            # check parameter's location
+            if (param.loc != po.inLoc)
+                throw "INVALID-PARAMETER-LOCATION",
+                    sprintf("Parameter '%s' for path '%s' and method '%s' has invalid location '%s' (should be '%s')",
+                        param.name, path, method, param.loc, po.inLoc);
+
+            # check parameter's value
+            if (param.loc == "body") {
+                if (bodyParam)
+                    throw "INVALID-PARAMETER-LOCATION",
+                        sprintf("Multiple parameters in body for path '%s' and method '%s'",
+                            path, method);
+                bodyParam = True;
+
+                BodyParameter bp = po.bodyParam;
+                checkSchema(path, method, param.name, param.val, bp.schema);
+            }
+            else {
+                OtherParameter oparam = po.otherParam;
+                checkOtherParam(path, method, param.name, param.val, oparam);
+            }
+        }
+    }
+
+    public PathItemObject findPathObject(string path, reference params) {
+        foreach hash it in (swagger.paths.paths.pairIterator()) {
+            # TODO - extract parameters from path if the param location is "path"
+            if (it.key == path) { # path matches
+                return it.value;
+            }
+        }
+        throw "INVALID-PATH", sprintf("Path '%s' is invalid", path);
+    }
+
+    #! Validate a single request.
+    /**
+        @param path path of the request
+        @param method HTTP method of the request
+        @param params parameters of the request
+        @param headers headers of the request
+
+        @throws INVALID-METHOD invalid path operation method used
+     */
+    public validate(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+        # find path item object
+        PathItemObject pio = findPathObject(path, \params);
+
+        # extract params from header possibly
+        # TODO
+
+        # find operation object
+        if (!pio.operations.hasKey(method))
+            throw "INVALID-METHOD", sprintf("Path '%s' does not have any operation defined for the '%s' method", path, method);
+        OperationObject op = pio.operations{method};
+
+        # check validitiy of parameters
+        checkParameters(path, method, pio, op, params);
+
+        # TODO
+    }
+
+    #! Validate a single request. No-exception version of the method.
+    /**
+        @param path path of the request
+        @param method HTTP method of the request
+        @param params parameters of the request
+        @param headers headers of the request
+     */
+    public bool validateNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+        try {
+            validate(path, method, params, headers);
+        }
+        catch (ex) {
+            return False;
+        }
+        return True;
+    }
+}
+
+#! Used for loading the Swagger definitions.
+public class SwaggerLoader {
+    #! Load Swagger definition from a string.
+    /**
+        @param swaggerSpecification Swagger API specification
+        @param json whether the specification is in JSON or YAML format
+
+        @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
+        @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
+     */
+    public static SwaggerObject fromString(string swaggerSpecification, bool json = True) {
+        hash val;
+        if (json) {
+%ifdef NoJson
+            throw "JSON-MODULE-MISSING", "Trying to parse a JSON Swagger specification with JSON module unavailable";
+%else
+            val = parse_json(swaggerSpecification);
+%endif
+        }
+        else {
+%ifdef NoYaml
+            throw "YAML-MODULE-MISSING", "Trying to parse a YAML Swagger specification with YAML module unavailable";
+%else
+            val = parse_yaml(swaggerSpecification);
+%endif
+        }
+        return new SwaggerObject(val);
+    }
+
+    #! Load Swagger definition from a file.
+    /**
+        @param filepath path to the Swagger file
+
+        @throws EMPTY-SWAGGER-FILE swagger file is empty
+        @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
+        @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
+     */
+    public static SwaggerObject fromFile(string filepath) {
+        *string swaggerStr;
+        {
+            ReadOnlyFile f(filepath);
+            swaggerStr = f.read(-1);
+        }
+        if (!swaggerStr)
+            throw "EMPTY-SWAGGER-FILE", "The opened swagger file is empty";
+
+        bool json = True;
+        string filename = basename(filepath);
+        if (filename =~ /.*\.json$/i) {
+            json = True;
+        }
+        else if (filename =~ /.*\.yaml$/i) {
+            json = False;
+        }
+        else {
+            DataLineIterator it(swaggerStr);
+            while (it.next()) {
+                string line = trim(it.getValue());
+                if (line.size()) {
+                    if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/)
+                        json = False;
+                    else
+                        json = True;
+                    break;
+                }
+            }
+        }
+
+        return SwaggerLoader::fromString(swaggerStr, json);
+    }
+}
+
+#! This is the root document object for the API specification. It combines what previously was the Resource Listing and API Declaration (version 1.2 and earlier) together into one document.
+public class SwaggerObject inherits ObjectBase {
+    public {
+        #! Swagger Specification version being used.
+        /**
+            It can be used by the Swagger UI and other clients to interpret the
+            API listing. The value MUST be \c "2.0".
+         */
+        string swaggerSpec;
+
+        #! Required. Provides metadata about the API. The metadata can be used by the clients if needed.
+        InfoObject info;
+
+        #! Required. The available paths and operations for the API.
+        PathsObject paths;
+
+        #! The host (name or IP) serving the API.
+        /**
+            This MUST be the host only and does not include the scheme nor sub-paths.
+            It MAY include a port. If the \c host is not included, the host serving
+            the documentation is to be used (including the port).
+            The host does not support path templating.
+         */
+        *string host;
+
+        #! The base path on which the API is served, which is relative to the @ref SwaggerObject::host "host".
+        /**
+            If it is not included, the API is served directly under the \c host.
+            The value MUST start with a leading slash (/).
+            The \c basePath does not support path templating.
+         */
+        *string basePath;
+
+        #! The transfer protocol of the API.
+        /**
+            Values MUST be from the list: \c "http", \c "https", \c "ws", \c "wss".
+            If the schemes is not included, the default scheme to be used is
+            the one used to access the Swagger definition itself.
+         */
+        list schemes;
+
+        #! A list of MIME types (strings) the APIs can consume.
+        /**
+            This is global to all APIs but can be overridden on specific API calls.
+            Values MUST be as described under @ref mimetypes "Mime Types".
+         */
+        list consumes;
+
+        #! A list of MIME types (strings) the APIs can produce.
+        /**
+            This is global to all APIs but can be overridden on specific API calls.
+            Values MUST be as described under @ref mimetypes "Mime Types".
+         */
+        list produces;
+
+        #! An object to hold data types produced and consumed by operations.
+        /**
+            A hash of @ref SchemaObject objects. Keys are schema names.
+         */
+        hash definitions;
+
+        #! Parameter definitions that can be used across operations. This property does not define global parameters for all operations.
+        /**
+            A hash of @ref ParameterObject objects. Keys are parameter names.
+         */
+        hash parameters;
+
+        #! Response definitions that can be used across operations. This property does not define global responses for all operations.
+        /**
+            A hash of @ref ResponseObject objects. Keys are response names.
+         */
+        hash responses;
+
+        #! Security scheme definitions that can be used across the specification.
+        /**
+            A hash of @ref SecuritySchemeObject objects. Keys are scheme names.
+         */
+        hash securityDefinitions;
+
+        #! A declaration of which security schemes are applied for the API as a whole.
+        /**
+            The list of values describes alternative security schemes that can
+            be used (that is, there is a logical OR between the security
+            requirements). Individual operations can override this definition.
+
+            Individual values are hashes in the form of Security Requirement Objects.
+            See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#securityRequirementObject.
+            That is, the hash keys MUST correspond to security schemes declared
+            in the @ref SwaggerObject::securityDefinitions "Security Definitions",
+            while the values are lists of scope names (strings) required for the execution.
+
+         */
+        list security;
+
+        #! A list of @ref TagObject "tags" used by the specification with additional metadata.
+        /**
+            The order of the tags can be used to reflect on their order by the
+            parsing tools. Not all tags that are used by the @ref OperationObject
+            must be declared. The tags that are not declared may be organized
+            randomly or based on the tools' logic. Each tag name in the list
+            MUST be unique.
+
+            Individual values in this list are of type @ref TagObject "TagObject".
+         */
+        list<TagObject> tags;
+
+        #! Additional external documentation.
+        *ExternalDocumentationObject externalDocs;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Swagger Object hash
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Swagger";
+        if (!oh.hasKey("swagger"))
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: 'swagger' field is missing", objType);
+        if (oh.swagger.typeCode() == NT_STRING)
+            swaggerSpec = oh.swagger;
+        else if (oh.swagger.typeCode() == NT_FLOAT || oh.swagger.typeCode() == NT_INT)
+            swaggerSpec = oh.swagger.toString();
+        else
+            throw "INVALID-FIELD-TYPE",
+                sprintf("%s Object: 'swagger' field has invalid type '%s' (should be string or float)", objType, oh.swagger.type());
+
+        hash infoObj;
+        required_field(objType, oh, "info", NT_HASH, \infoObj);
+        info = new InfoObject(infoObj);
+
+        hash pathsObj;
+        required_field(objType, oh, "paths", NT_HASH, \pathsObj);
+        paths = new PathsObject(pathsObj);
+
+        optional_field(objType, oh, "host", NT_STRING, \host);
+        if (optional_field(objType, oh, "basePath", NT_STRING, \basePath)) {
+            if (basePath.size() && basePath[0] != "/")
+                throw "INVALID-FIELD-FORMAT", "Swagger Object: basePath does not begin with a slash: " + basePath;
+        }
+
+        optional_field(objType, oh, "schemes", NT_LIST, \schemes);
+        foreach any val in (schemes) {
+            if (val.typeCode() != NT_STRING)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid 'schemes' list value datatype: " + val.type();
+            if (!ValidSchemesHash{val})
+                throw "INVALID-FIELD-VALUE", "Swagger Object: invalid transfer protocol scheme: " + val;
+        }
+
+        optional_field(objType, oh, "consumes", NT_LIST, \consumes);
+        foreach any val in (consumes) {
+            if (val.typeCode() != NT_STRING)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid 'consumes' list value datatype: " + val.type();
+        }
+
+        optional_field(objType, oh, "produces", NT_LIST, \produces);
+        foreach any val in (produces) {
+            if (val.typeCode() != NT_STRING)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid 'produces' list value datatype: " + val.type();
+        }
+
+        hash obj;
+        optional_field(objType, oh, "definitions", NT_HASH, \obj);
+        foreach hash item in (obj.pairIterator()) {
+            if (item.value.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + item.value.type();
+            definitions{item.key} = new SchemaObject(item.value);
+        }
+
+        obj = {};
+        optional_field(objType, oh, "parameters", NT_HASH, \obj);
+        foreach hash item in (obj.pairIterator()) {
+            if (item.value.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
+            parameters{item.key} = new ParameterObject(item.value);
+        }
+
+        obj = {};
+        optional_field(objType, oh, "responses", NT_HASH, \obj);
+        foreach hash item in (obj.pairIterator()) {
+            if (item.value.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid response datatype: " + item.value.type();
+            responses{item.key} = new ResponseObject(item.value);
+        }
+
+        obj = {};
+        optional_field(objType, oh, "securityDefinitions", NT_HASH, \obj);
+        foreach hash item in (obj.pairIterator()) {
+            if (item.value.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid security definition datatype: " + item.value.type();
+            securityDefinitions{item.key} = new SecuritySchemeObject(item.value);
+        }
+
+        list lobj = ();
+        optional_field(objType, oh, "security", NT_LIST, \lobj);
+        foreach any val in (lobj) {
+            if (val.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid security requirement datatype: " + val.type();
+            hash vh = val;
+            foreach any sreq in (vh.iterator()) {
+                if (sreq.typeCode() != NT_STRING)
+                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid security requirement datatype: " + sreq.type();
+            }
+        }
+        security = lobj;
+
+        lobj = ();
+        optional_field(objType, oh, "tags", NT_LIST, \lobj);
+        foreach any val in (lobj) {
+            if (val.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", "Swagger Object: invalid tag datatype: " + val.type();
+            tags += new TagObject(val);
+        }
+
+        *hash extDocsObj;
+        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
+            externalDocs = new ExternalDocumentationObject(extDocsObj);
+    }
+}
+
+#! The object provides metadata about the API. The metadata can be used by the clients if needed, and can be presented in the Swagger-UI for convenience.
+public class InfoObject inherits ObjectBase {
+    public {
+        #! Required. The title of the application.
+        string title;
+
+        #! A short description of the application. GFM syntax can be used for rich text representation.
+        *string desc;
+
+        #! The Terms of Service for the API.
+        *string termsOfService;
+
+        #! Required. Provides the version of the application API (not to be confused with the specification version).
+        string version;
+
+        #! The contact information for the exposed API.
+        *ContactObject contact;
+
+        #! The license information for the exposed API.
+        *LicenseObject license;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Info Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Info";
+        required_field(objType, oh, "title", NT_STRING, \title);
+        required_field(objType, oh, "version", NT_STRING, \version);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+        optional_field(objType, oh, "termsOfService", NT_STRING, \termsOfService);
+
+        *hash contactObj;
+        if (optional_field(objType, oh, "contact", NT_HASH, \contactObj))
+            contact = new ContactObject(contactObj);
+
+        *hash licenseObj;
+        if (optional_field(objType, oh, "license", NT_HASH, \licenseObj))
+            license = new LicenseObject(licenseObj);
+    }
+}
+
+#! Contact information for the exposed API.
+public class ContactObject inherits ObjectBase {
+    public {
+        #! The identifying name of the contact person/organization.
+        *string name;
+
+        #! The URL pointing to the contact information. MUST be in the format of a URL.
+        *string url;
+
+        #! The email address of the contact person/organization. MUST be in the format of an email address.
+        *string email;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Contact Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Contact";
+        optional_field(objType, oh, "name", NT_STRING, \name);
+        optional_field(objType, oh, "url", NT_STRING, \url);
+        optional_field(objType, oh, "email", NT_STRING, \email);
+    }
+}
+
+#! License information for the exposed API.
+public class LicenseObject inherits ObjectBase {
+    public {
+        #! Required. The license name used for the API.
+        string name;
+
+        #! A URL to the license used for the API. MUST be in the format of a URL.
+        *string url;
+    }
+
+    #! Constructor.
+    /**
+        @param oh License Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "License";
+        required_field(objType, oh, "name", NT_STRING, \name);
+        optional_field(objType, oh, "url", NT_STRING, \url);
+    }
+}
+
+#! Holds the relative paths to the individual endpoints.
+/**
+    The path is appended to the @ref SwaggerObject::basePath "basePath" in order to construct the full URL.
+    The Paths may be empty, due to ACL constraints.
+ */
+public class PathsObject inherits ObjectBase {
+    public {
+        #! A hash of @ref PathItemObject objects. Keys are relative paths to individual endpoints.
+        /**
+            The path MUST begin with a slash. The path is appended to the
+            @ref SwaggerObject::basePath "basePath" in order to construct the
+            full URL. Path templating is allowed.
+         */
+        hash<string, PathItemObject> paths;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Paths Object hash
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        foreach hash item in (oh.pairIterator()) {
+            string key = item.key;
+            if (key !~ /^\//)
+                throw "INVALID-FIELD-FORMAT", "Paths Object: path does not begin with a slash: " + key;
+            paths{key} = new PathItemObject(item.key, item.value);
+        }
+    }
+}
+
+#! Describes the operations available on a single path.
+/**
+    A Path Item may be empty, due to ACL constraints. The path itself is still
+    exposed to the documentation viewer but they will not know which operations
+    and parameters are available.
+ */
+public class PathItemObject inherits ObjectBase {
+    public {
+        #! Allows for an external definition of this path item.
+        /**
+            The referenced structure MUST be in the format of a @ref PathItemObject.
+            If there are conflicts between the referenced definition and this
+            PathItem's definition, the behavior is undefined.
+         */
+        *string ref;
+
+        #! A hash of @ref OperationObject "OperationObjects" correspoding to different methods.
+        /**
+            Keys are lowercase method names, with possible values being:
+            - "get"
+            - "put"
+            - "post"
+            - "del"
+            - "options"
+            - "head"
+            - "patch"
+         */
+        hash<string, OperationObject> operations;
+
+        #! A definition of a GET operation on this path.
+        *OperationObject get;
+
+        #! A definition of a PUT operation on this path.
+        *OperationObject put;
+
+        #! A definition of a POST operation on this path.
+        *OperationObject post;
+
+        #! A definition of a DELETE operation on this path.
+        *OperationObject del;
+
+        #! A definition of a OPTIONS operation on this path.
+        *OperationObject options;
+
+        #! A definition of a HEAD operation on this path.
+        *OperationObject head;
+
+        #! A definition of a PATCH operation on this path.
+        *OperationObject patch;
+
+        #! A list of parameters that are applicable for all the operations described under this path.
+        /**
+            List values are @ref ParameterObject "ParameterObjects" or
+            @ref ReferenceObject "ReferenceObjects".
+
+            These parameters can be overridden at the operation level, but cannot
+            be removed there. The list MUST NOT include duplicated parameters.
+            A unique parameter is defined by a combination of a
+            @ref ParameterObject::name "name" and @ref ParameterObject::inLoc "location".
+            The list can use the @ref ReferenceObject to link to parameters that
+            are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
+            There can be one \c body parameter at most.
+         */
+        list parameters;
+    }
+
+    #! Constructor.
+    /**
+        @param path the URI path for the object
+        @param oh Path Item Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(string path, hash oh) : ObjectBase(oh) {
+        string objType = "Path Item";
+        optional_field(objType, oh, "$ref", NT_STRING, \ref);
+
+        *hash opObj;
+        if (optional_field(objType, oh, "get", NT_HASH, \opObj))
+            operations.get = new OperationObject(path, "get", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "put", NT_HASH, \opObj))
+            operations.put = new OperationObject(path, "put", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "post", NT_HASH, \opObj))
+            operations.post = new OperationObject(path, "post", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "delete", NT_HASH, \opObj))
+            operations.del = new OperationObject(path, "delete", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "options", NT_HASH, \opObj))
+            operations.options = new OperationObject(path, "options", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "head", NT_HASH, \opObj))
+            operations.head = new OperationObject(path, "head", opObj);
+
+        delete opObj;
+        if (optional_field(objType, oh, "patch", NT_HASH, \opObj))
+            operations.patch = new OperationObject(path, "patch", opObj);
+
+        *list params;
+        if (optional_field(objType, oh, "parameters", NT_LIST, \params)) {
+            foreach any param in (params) {
+                if (param.typeCode() != NT_HASH)
+                    throw "INVALID-FIELD-TYPE",
+                        sprintf("Path Item Object: 'parameters' list value has invalid type '%s'",
+                            param.type());
+                hash p = param;
+                if (p.hasKey("$ref"))
+                    parameters += new ReferenceObject(p);
+                else
+                    parameters += new ParameterObject(p);
+            }
+        }
+
+        # TODO check parameter duplicity; check that there's only one "body" parameter
+    }
+}
+
+#! Describes a single API operation on a path.
+public class OperationObject inherits ObjectBase {
+    public {
+        #! the URI path for the operation
+        string path;
+
+        #! the HTTP method for the operation
+        string method;
+
+        #! A list of tags (strings or @ref TagObject "TagObjects") for API documentation control.
+        /**
+            Tags can be used for logical grouping of operations by resources or any other qualifier.
+         */
+        list tags;
+
+        #! A short summary of what the operation does.
+        *string summary;
+
+        #! A verbose explanation of the operation behavior. GFM syntax can be used for rich text representation.
+        *string desc;
+
+        #! Declares this operation to be deprecated.
+        /**
+            Usage of the declared operation should be refrained.
+            Default value is \c false.
+         */
+        bool deprec = False;
+
+        #! Additional external documentation for this operation.
+        *ExternalDocumentationObject externalDocs;
+
+        #! Unique string used to identify the operation.
+        /**
+            The id MUST be unique among all operations described in the API.
+            Tools and libraries MAY use the operationId to uniquely identify
+            an operation, therefore, it is recommended to follow common
+            programming naming conventions.
+         */
+        *string operationId;
+
+        #! A list of MIME types (strings) the operation can consume.
+        /**
+            This overrides the @ref SwaggerObject::consumes "consumes" definition
+            at the Swagger Object. An empty value MAY be used to clear the global definition.
+            Values MUST be as described under @ref mimetypes "Mime Types".
+         */
+        list<string> consumes;
+
+        #! A list of MIME types (strings) the operation can produce.
+        /**
+            This overrides the @ref SwaggerObject::produces "produces" definition
+            at the Swagger Object. An empty value MAY be used to clear the global definition.
+            Values MUST be as described under @ref mimetypes "Mime Types".
+         */
+        list<string> produces;
+
+        #! A list of parameters that are applicable for this operation.
+        /**
+            If a parameter is already defined at the @ref PathItemObject "Path Item",
+            the new definition will override it, but can never remove it.
+            The list MUST NOT include duplicated parameters.
+            A unique parameter is defined by a combination of a @ref ParameterObject::name "name"
+            and @ref ParameterObject::inLoc "location".
+            The list can use the @ref ReferenceObject to link to parameters that
+            are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
+            There can be one "body" parameter at most.
+         */
+        list parameters;
+
+        #! Required. The list of possible responses as they are returned from executing this operation.
+        ResponsesObject responses;
+
+        #! The transfer protocol for the operation.
+        /**
+            Values MUST be from the list: \c "http", \c "https", \c "ws", \c "wss".
+            The value overrides the SwaggerObject @ref SwaggerObject::schemes "schemes" definition.
+         */
+        list<string> schemes;
+
+        #! A declaration of which security schemes are applied for this operation.
+        /**
+            The list of values describes alternative security schemes that can be
+            used (that is, there is a logical OR between the security requirements).
+            This definition overrides any declared top-level @ref SwaggerObject::security "security".
+            To remove a top-level security declaration, an empty array can be used.
+
+            Individual values are hashes in the form of Security Requirement Objects.
+            See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#securityRequirementObject.
+            That is, the hash keys MUST correspond to security schemes declared
+            in the @ref SwaggerObject::securityDefinitions "Security Definitions",
+            while the values are lists of scope names (strings) required for the execution.
+         */
+        list<hash<string, list<string>>> security;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Operation Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(string path, string method, hash oh) : ObjectBase(oh) {
+        self.path = path;
+        self.method = method.upr();
+        string objType = "Operation";
+        *list tagsObj;
+        if (optional_field(objType, oh, "tags", NT_LIST, \tagsObj)) {
+            foreach any tag in (tagsObj) {
+                if (tag.typeCode() == NT_STRING)
+                    tags += tag;
+                else if (tag.typeCode() == NT_HASH)
+                    tags += new TagObject(tag);
+                else
+                    error("INVALID-FIELD-TYPE", "Operation Object: 'tags' list value has invalid type: %s" + tag.type());
+            }
+        }
+
+        optional_field(objType, oh, "summary", NT_STRING, \summary);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+        optional_field(objType, oh, "deprecated", NT_BOOLEAN, \deprec);
+
+        *hash extDocsObj;
+        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
+            externalDocs = new ExternalDocumentationObject(extDocsObj);
+
+        optional_field(objType, oh, "operationId", NT_STRING, \operationId);
+        # TODO check operationId uniqueness as per docs
+
+        {
+            list consumesList;
+            optional_field(objType, oh, "consumes", NT_LIST, \consumesList);
+            foreach any val in (consumesList) {
+                if (val.typeCode() != NT_STRING)
+                    error("INVALID-FIELD-TYPE", "Operation Object: invalid 'consumes' list value datatype: " + val.type());
+            }
+            consumes = cast<list<string>>(consumesList);
+        }
+
+        {
+            list producesList;
+            optional_field(objType, oh, "produces", NT_LIST, \producesList);
+            foreach any val in (producesList) {
+                if (val.typeCode() != NT_STRING)
+                    error("INVALID-FIELD-TYPE", "Operation Object: invalid 'produces' list value datatype: " + val.type());
+            }
+            produces = cast<list<string>>(producesList);
+        }
+
+        {
+            list listObj;
+            optional_field(objType, oh, "parameters", NT_LIST, \listObj);
+            foreach any p in (listObj) {
+                if (p.typeCode() != NT_HASH)
+                    error("INVALID-FIELD-TYPE", "Operation Object: invalid 'parameters' list value datatype: " + p.type());
+                if (p.hasKey("$ref"))
+                    parameters += new ReferenceObject(p);
+                else
+                    parameters += new ParameterObject(p);
+            }
+        }
+
+        {
+            hash responsesObj;
+            required_field(objType, oh, "responses", NT_HASH, \responsesObj);
+            responses = new ResponsesObject(path, self.method, responsesObj);
+        }
+
+        # process schemes
+        {
+            list schemesList;
+            optional_field(objType, oh, "schemes", NT_LIST, \schemesList);
+            foreach any val in (schemesList) {
+                if (val.typeCode() != NT_STRING)
+                    error("INVALID-FIELD-TYPE", "Operation Object: invalid 'schemes' list value datatype: " + val.type());
+                if (!ValidSchemesHash{val})
+                    error("INVALID-FIELD-VALUE", "Operation Object: invalid operation transfer protocol scheme value: " + val);
+            }
+            schemes = cast<list<string>>(schemesList);
+        }
+
+        {
+            list securityList;
+            optional_field(objType, oh, "security", NT_LIST, \securityList);
+            foreach any val in (securityList) {
+                if (val.typeCode() != NT_HASH)
+                    error("INVALID-FIELD-TYPE", "Operation Object: invalid 'security' list value datatype: " + val.type());
+                hash h = val;
+                foreach hash it in (h.pairIterator()) {
+                    if (it.value.typeCode() != NT_LIST)
+                        error("INVALID-FIELD-TYPE",
+                                "Operation Object: invalid Security Requirement Object value type '%s' (should be a list of hashes)",
+                                val.type());
+                    if ((map True, it.value, $1.typeCode() != NT_STRING).size())
+                        error("INVALID-FIELD-TYPE",
+                                "Operation Object: invalid Security Requirement Object value type '%s' (should be a list of hashes with list values)",
+                                val.type());
+                }
+            }
+            security = cast<list<hash<string, list<string>>>>(securityList);
+        }
+    }
+
+    #! riases an exception with context information
+    error(string err, string fmt) {
+        throw err, sprintf("%s %s: %s", method, path, vsprintf(fmt, argv));
+    }
+}
+
+#! Allows referencing an external resource for extended documentation.
+public class ExternalDocumentationObject inherits ObjectBase {
+    public {
+        #! A short description of the target documentation. GFM syntax can be used for rich text representation.
+        *string desc;
+
+        #! Required. The URL for the target documentation. Value MUST be in the format of a URL.
+        string url;
+    }
+
+    #! Constructor.
+    /**
+        @param oh External Documentation Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "External Documentation";
+        required_field(objType, oh, "url", NT_STRING, \url);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+    }
+}
+
+#! Describes a single operation parameter.
+/**
+    A unique parameter is defined by a combination of a @ref ParameterObject::name "name"
+    and @ref ParameterObject::inLoc "location".
+
+    There are five possible parameter types:
+    - Path: Used together with Path Templating, where the parameter value is
+        actually part of the operation's URL. This does not include the host or
+        base path of the API. For example, in <tt>/items/{itemId}</tt>, the path
+        parameter is \c itemId.
+    - Query: Parameters that are appended to the URL. For example, in <tt>/items?id=###</tt>,
+        the query parameter is \c id.
+    - Header: Custom headers that are expected as part of the request.
+    - Body: The payload that's appended to the HTTP request. Since there can only
+        be one payload, there can only be one body parameter. The name of the
+        body parameter has no effect on the parameter itself and is used for
+        documentation purposes only. Since Form parameters are also in the payload,
+        body and form parameters cannot exist together for the same operation.
+    - Form: Used to describe the payload of an HTTP request when either
+        <tt>application/x-www-form-urlencoded</tt>, <tt>multipart/form-data</tt>
+        or both are used as the content type of the request (in Swagger's definition,
+        the \c consumes property of an operation). This is the only parameter
+        type that can be used to send files, thus supporting the file type.
+        Since form parameters are sent in the payload, they cannot be declared
+        together with a body parameter for the same operation. Form parameters
+        have a different format based on the content-type used (for further details,
+        consult http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4):
+            - <tt>application/x-www-form-urlencoded</tt> - Similar to the format
+                of Query parameters but as a payload. For example,
+                <tt>foo=1&bar=swagger</tt> - both foo and bar are form parameters.
+                This is normally used for simple parameters that are being transferred.
+            - <tt>multipart/form-data</tt> - each parameter takes a section in
+                the payload with an internal header. For example, for the header
+                <tt>Content-Disposition: form-data; name="submit-name"<tt> the name
+                of the parameter is \c submit-name. This type of form parameters
+                is more commonly used for file transfers.
+ */
+public class ParameterObject inherits ObjectBase {
+    public {
+        #! Required. The name of the parameter. Parameter names are case sensitive.
+        /**
+            - If @ref ParameterObject::inLoc "inLoc" is \c "path", the \c name
+                field MUST correspond to the associated path segment from the
+                @ref PathsObject::path "path" field in the @ref PathsObject.
+                See Path Templating for further information.
+            - For all other cases, the name corresponds to the parameter name
+                used based on the @ref ParameterObject::inLoc "inLoc" property.
+         */
+        string name;
+
+        #! Required. The location of the parameter.
+        /**
+            Possible values are \c "query", \c "header", \c "path",
+            \c "formData" or \c "body".
+         */
+        string inLoc;
+
+        #! A brief description of the parameter. This could contain examples of use. GFM syntax can be used for rich text representation.
+        *string desc;
+
+        #! Determines whether this parameter is mandatory.
+        /**
+            If the parameter is @ref ParameterObject::inLoc "in" "path",
+            this property is \b required and its value MUST be \c true.
+            Otherwise, the property MAY be included and its default value is \c false.
+         */
+        bool required = False;
+
+        #! Additional properties used when @ref ParameterObject::inLoc "inLoc" is \c "body".
+        *BodyParameter bodyParam;
+
+        #! Additional properties used when @ref ParameterObject::inLoc "inLoc" is not \c "body".
+        *OtherParameter otherParam;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Parameter Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Parameter";
+        required_field(objType, oh, "name", NT_STRING, \name);
+        required_field(objType, oh, "in", NT_STRING, \inLoc);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+        if (inLoc == "body") {
+            bodyParam = new BodyParameter(oh);
+            optional_field(objType, oh, "required", NT_BOOLEAN, \required);
+        }
+        else if (("query", "header", "path", "formData").contains(inLoc)) {
+            if (inLoc == "path") {
+                # TODO - check that the \c name
+                # field MUST correspond to the associated path segment from the
+                # @ref PathsObject::path "path" field in the @ref PathsObject.
+
+                required_field(objType, oh, "required", NT_BOOLEAN, \required);
+            }
+            else {
+                optional_field(objType, oh, "required", NT_BOOLEAN, \required);
+            }
+            otherParam = new OtherParameter(oh, self);
+        }
+        else {
+            throw "INVALID-FIELD-VALUE", "Parameter Object: invalid parameter 'in' (location) value: " + inLoc;
+        }
+    }
+}
+
+#! @ref ParameterObject "ParameterObject's" properties for the \c "body" parameter.
+public class BodyParameter {
+    public {
+        #! Required. The schema defining the type used for the body parameter.
+        SchemaObject schema;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Parameter Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) {
+        hash schemaObj;
+        required_field("Parameter", oh, "schema", NT_HASH, \schemaObj);
+        schema = new SchemaObject(schemaObj);
+    }
+}
+
+#! @ref ParameterObject "ParameterObject's" properties for parameters other than \c "body".
+public class OtherParameter inherits SchemaBase {
+    public {
+        #! Required. The type of the parameter.
+        /**
+            Since the parameter is not located at the request body, it is
+            limited to simple types (that is, not an object).
+            The value MUST be one of \c "string", \c "number", \c "integer",
+            \c "boolean", \c "array" or \c "file". If \c type is \c "file",
+            the @ref OperationObject::consumes "consumes" MUST be either
+            \c "multipart/form-data", \c " application/x-www-form-urlencoded" or
+            both and the parameter MUST be @ref ParameterObject::inLoc "in" \c "formData".
+         */
+        string type;
+
+        #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
+        *string format;
+
+        #! Sets the ability to pass empty-valued parameters.
+        /**
+            This is valid only for either \c query or \c formData parameters and
+            allows you to send a parameter with a name only or an empty value.
+            Default value is \c false.
+         */
+        bool allowEmptyValue = False;
+
+        #! Required if @ref OtherParameter::type "type" is \c "array". Describes the type of items in the array.
+        *ItemsObject items;
+
+        #! Determines the format of the array if type array is used.
+        /**
+            Possible values are:
+            - \c "csv": comma separated values; ex: foo,bar
+            - \c "ssv": space separated values; ex: foo bar
+            - \c "tsv": tab separated values; ex: foo\tbar
+            - \c "pipes": pipe separated values; ex: foo|bar
+            - \c "multi": corresponds to multiple parameter instances instead of
+                multiple values for a single instance <tt>foo=bar&foo=baz</tt>.
+                This is valid only for parameters @ref ParameterObject::inLoc "in"
+                \c "query" or \c "formData".
+
+            Default value is \c "csv".
+         */
+        *string collectionFormat;
+
+        #! Declares the value of the parameter that the server will use if none is provided.
+        /**
+            For example a "count" to control the number of results per page
+            might default to 100 if not supplied by the client in the request.
+            (Note: "default" has no meaning for required parameters.)
+            See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
+            Unlike JSON Schema this value MUST conform to the defined type for this parameter.
+         */
+        any defaultVal;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Parameter Object hash
+        @param po parent @ref ParameterObject
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh, ParameterObject po) : SchemaBase("Parameter", oh) {
+        string objType = "Parameter";
+        required_field(objType, oh, "type", NT_STRING, \type);
+        if (!("string", "number", "integer", "boolean", "array", "file").contains(type))
+            throw "INVALID-FIELD-VALUE", "Parameter Object: invalid parameter type value passed: " + type;
+        if (type == "array") {
+            hash itemsObj;
+            required_field(objType, oh, "items", NT_HASH, \itemsObj);
+            items = new ItemsObject(itemsObj);
+        }
+
+        if (optional_field(objType, oh, "format", NT_STRING, \format)) {
+            if (type == "integer" && !ValidIntFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid integer type format value passed: " + format;
+            else if (type == "number" && !ValidNumberFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid number type format value passed: " + format;
+            else if (type == "string" && !ValidStringFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid string type format value passed: " + format;
+        }
+
+        optional_field(objType, oh, "allowEmptyValue", NT_BOOLEAN, \allowEmptyValue);
+        if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+            if (!("csv", "ssv", "tsv", "pipes", "multi").contains(collectionFormat))
+                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid collectionFormat value passed: " + collectionFormat;
+            if (collectionFormat == "multi" && po.inLoc != "query" && po.inLoc != "formData")
+                throw "INVALID-FIELD-VALUE",
+                    "Parameter Object: invalid collectionFormat value 'multi' - is only valid when 'in' (location) is either 'query' or 'formData'";
+        }
+
+        if (oh.hasKey("default")) {
+            defaultVal = oh.default;
+            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
+                (defaultVal.typeCode() == NT_INT && type != "integer") ||
+                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
+                (defaultVal.typeCode() == NT_STRING && type != "string") ||
+                (defaultVal.typeCode() == NT_LIST && type != "array"))
+                throw "INVALID-FIELD-TYPE",
+                    sprintf("Parameter Object: 'default' value has invalid type '%s' (should be '%s')",
+                        defaultVal.type(), type);
+            # TODO array
+            /*if (type == "array")
+                defaultVal = new ItemsObject(defaultVal);*/
+
+            # TODO file type default value
+        }
+    }
+}
+
+#! A limited subset of JSON-Schema's items object.
+/**
+    It is used by parameter definitions that are not located @ref ParameterObject::inLoc "in" \c "body".
+ */
+public class ItemsObject inherits ObjectBase, SchemaBase {
+    public {
+        #! Reference to another object.
+        *string ref;
+
+        #! Required. The internal type of the array.
+        /**
+            The value MUST be one of \c "string", \c "number", \c "integer",
+            \c "boolean", or \c "array". Files and models are not allowed.
+         */
+        string type;
+
+        #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
+        *string format;
+
+        #! Required if type is \c "array". Describes the type of items in the array.
+        *ItemsObject items;
+
+        #! Determines the format of the array if type \c "array" is used.
+        /**
+            Possible values are:
+            - \c "csv" - comma separated values foo,bar.
+            - \c "ssv" - space separated values foo bar.
+            - \c "tsv" - tab separated values foo\tbar.
+            - \c "pipes" - pipe separated values foo|bar.
+
+            Default value is \c "csv".
+         */
+        *string collectionFormat;
+
+        #! Declares the value of the item that the server will use if none is provided.
+        /**
+            (Note: "default" has no meaning for required items.)
+            See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
+            Unlike JSON Schema this value MUST conform to the defined
+            @ref ItemsObject::type "type" for the data type.
+         */
+        any defaultVal;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Items Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh), SchemaBase("Items", oh) {
+        string objType = "Items";
+        if (optional_field(objType, oh, "$ref", NT_STRING, \ref))
+            return;
+
+        required_field(objType, oh, "type", NT_STRING, \type);
+        if (!("string", "number", "integer", "boolean", "array").contains(type))
+            throw "INVALID-FIELD-VALUE", "Items Object: invalid items type value passed: " + type;
+        if (type == "array") {
+            hash itemsObj;
+            required_field(objType, oh, "items", NT_HASH, \itemsObj);
+            items = new ItemsObject(itemsObj);
+        }
+
+        if (optional_field(objType, oh, "format", NT_STRING, \format)) {
+            if (type == "integer" && !ValidIntFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Items Object: invalid integer type format value passed: " + format;
+            else if (type == "number" && !ValidNumberFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Items Object: invalid number type format value passed: " + format;
+            else if (type == "string" && !ValidStringFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Items Object: invalid string type format value passed: " + format;
+        }
+
+        if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+            if (!("csv", "ssv", "tsv", "pipes").contains(collectionFormat))
+                throw "INVALID-FIELD-VALUE", "Items Object: invalid collectionFormat value passed: " + collectionFormat;
+        }
+        if (oh.hasKey("default")) {
+            defaultVal = oh.default;
+            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
+                (defaultVal.typeCode() == NT_INT && type != "integer") ||
+                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
+                (defaultVal.typeCode() == NT_STRING && type != "string") ||
+                (defaultVal.typeCode() == NT_LIST && type != "array"))
+                throw "INVALID-FIELD-TYPE",
+                    sprintf("Items Object: 'default' value has invalid type '%s' (should be '%s')",
+                        defaultVal.type(), type);
+            # TODO array
+            /*if (type == "array")
+                defaultVal = new ItemsObject(defaultVal);*/
+        }
+    }
+}
+
+#!
+public class ResponsesObject inherits ObjectBase {
+    public {
+        # The documentation of responses other than the ones declared for specific HTTP response codes.
+        /**
+            It can be used to cover undeclared responses.
+            @ref ReferenceObject can be used to link to a response that is defined
+            at the @ref SwaggerObject "SwaggerObject's" @ref SwaggerObject::responses "responses" section.
+         */
+        ObjectBase defaultResp;
+
+        # A hash mapping HTTP status codes to @ref ResponseObject "ResponseObjects".
+        /**
+            Any HTTP status code can be used as the property name (one property
+            per HTTP status code). Describes the expected response for that HTTP status code.
+            @ref ReferenceObject can be used to link to a response that is defined
+            at the @ref SwaggerObject "SwaggerObject's" @ref SwaggerObject::responses "responses" section.
+         */
+        hash<string, ObjectBase> responses;
+    }
+
+    #! Constructor.
+    /**
+        @param path the URI path for the operation
+        @param method the HTTP method for the operation
+        @param oh Responses Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+        @throws EMPTY-RESPONSES no responses given
+     */
+    public constructor(string path, string method, hash oh) : ObjectBase(oh) {
+        string objType = "Responses";
+        *hash defaultObj;
+        if (optional_field(objType, oh, "default", NT_HASH, \defaultObj)) {
+            if (defaultObj.hasKey("$ref"))
+                defaultResp = new ReferenceObject(defaultObj);
+            else
+                defaultResp = new ResponseObject(defaultObj);
+        }
+
+        *hash r = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^[0-9]+$/;
+        foreach hash resp in (r.pairIterator()) {
+            if (resp.value.typeCode() != NT_HASH)
+                throw "INVALID-FIELD-TYPE", sprintf("%s %s: Responses Object: response has invalid type '%s'", method, path, resp.value.type());
+            if (resp.value.hasKey("$ref"))
+                responses{resp.key} = new ReferenceObject(resp.value);
+            else
+                responses{resp.key} = new ResponseObject(resp.value);
+        }
+
+        if (responses.empty() && !defaultObj)
+            throw "EMPTY-RESPONSES", sprintf("%s %s: no valid responses provided for operation", method, path);
+    }
+}
+
+#! Describes a single response from an API Operation.
+public class ResponseObject inherits ObjectBase {
+    public {
+        #! Required. A short description of the response. GFM syntax can be used for rich text representation.
+        string desc;
+
+        #! A definition of the response structure.
+        /**
+            It can be a primitive, an array or an object. If this field does not exist,
+            it means no content is returned as part of the response. As an extension
+            to the @ref SchemaObject "SchemaObject", its root \c type value may also
+            be \c "file". This SHOULD be accompanied by a relevant \c produces mime-type.
+         */
+        *SchemaObject schema;
+
+        #! A hash of headers that are (can be) sent with the response.
+        /**
+            A hash of @ref HeaderObject objects. Keys are header names.
+         */
+        hash headers;
+
+        #! A hash of example response messages.
+        /**
+            A hash of example responses in the form of <tt>Example Object</tt>.
+            See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#exampleObject
+            Keys MUST be one of the Operation @ref OperationObject::produces "produces"
+            values (either implicit or inherited). The value SHOULD be an example
+            of what such a response would look like.
+         */
+        hash examples;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Response Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Response";
+        required_field(objType, oh, "description", NT_STRING, \desc);
+
+        *hash schemaObj;
+        if (optional_field(objType, oh, "schema", NT_HASH, \schemaObj))
+            schema = new SchemaObject(schemaObj);
+
+        *hash headersObj;
+        if (optional_field(objType, oh, "headers", NT_HASH, \headersObj))
+            headers = map {$1.key: new HeaderObject($1.value)}, headersObj.pairIterator();
+
+        optional_field(objType, oh, "examples", NT_HASH, \examples);
+        # TODO keys should be Operation 'produces' values
+    }
+}
+
+#! describes a single HTTP header
+public class HeaderObject inherits ObjectBase, SchemaBase {
+    public {
+        #! A short description of the header.
+        *string desc;
+
+        #! Required. The type of the object.
+        /**
+            The value MUST be one of \c "string", \c "number", \c "integer",
+            \c "boolean", or \c "array".
+         */
+        string type;
+
+        #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
+        *string format;
+
+        #! Required if @ref HeaderObject::type "type" is \c "array". Describes the type of items in the array.
+        *ItemsObject items;
+
+        #! Determines the format of the array if type array is used.
+        /**
+            Possible values are:
+            - \c "csv": comma separated values; ex: foo,bar
+            - \c "ssv": space separated values; ex: foo bar
+            - \c "tsv": tab separated values; ex: foo\tbar
+            - \c "pipes": pipe separated values; ex: foo|bar
+
+            Default value is \c "csv".
+         */
+        *string collectionFormat;
+
+        #! Declares the value of the header that the server will use if none is provided.
+        /**
+            (Note: "default" has no meaning for required headers.)
+            See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
+            Unlike JSON Schema this value MUST conform to the defined
+            @ref HeaderObject::type "type" for the header.
+         */
+        any defaultVal;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh), SchemaBase("Header", oh) {
+        string objType = "Header";
+        required_field(objType, oh, "type", NT_STRING, \type);
+        if (!("string", "number", "integer", "boolean", "array").contains(type))
+            throw "INVALID-FIELD-VALUE", "Header Object: invalid header type value passed: " + type;
+        if (type == "array") {
+            hash itemsObj;
+            required_field(objType, oh, "items", NT_HASH, \itemsObj);
+            items = new ItemsObject(itemsObj);
+        }
+
+        if (optional_field(objType, oh, "format", NT_STRING, \format)) {
+            if (type == "integer" && !ValidIntFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Header Object: invalid integer type format value passed: " + format;
+            else if (type == "number" && !ValidNumberFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Header Object: invalid number type format value passed: " + format;
+            else if (type == "string" && !ValidStringFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Header Object: invalid string type format value passed: " + format;
+        }
+
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+        if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+            if (!("csv", "ssv", "tsv", "pipes").contains(collectionFormat))
+                throw "INVALID-FIELD-VALUE", "Header Object: invalid collectionFormat value passed: " + collectionFormat;
+        }
+        if (oh.hasKey("default")) {
+            defaultVal = oh.default;
+            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
+                (defaultVal.typeCode() == NT_INT && type != "integer") ||
+                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
+                (defaultVal.typeCode() == NT_STRING && type != "string") ||
+                (defaultVal.typeCode() == NT_LIST && type != "array"))
+                throw "INVALID-FIELD-TYPE",
+                    sprintf("Header Object: 'default' value has invalid type '%s' (should be '%s')",
+                        defaultVal.type(), type);
+            # TODO array
+            /*if (type == "array")
+                defaultVal = new ItemsObject(defaultVal);*/
+        }
+
+        # TODO default value type
+    }
+}
+
+#! Allows adding metadata to a single tag that is used by the @ref OperationObject. It is not mandatory to have a TagObject per tag used there.
+public class TagObject inherits ObjectBase {
+    public {
+        #! Required. The name of the tag.
+        string name;
+
+        #! A short description for the tag. GFM syntax can be used for rich text representation.
+        *string desc;
+
+        #! Additional external documentation for this tag.
+        *ExternalDocumentationObject externalDocs;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Tag Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Tag";
+        required_field(objType, oh, "name", NT_STRING, \name);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+
+        *hash extDocsObj;
+        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
+            externalDocs = new ExternalDocumentationObject(extDocsObj);
+    }
+}
+
+#! A simple object to allow referencing other definitions in the specification.
+/**
+    It can be used to reference parameters and responses that are defined at the top level for reuse.
+
+    The \c ReferenceObject is a JSON Reference (http://tools.ietf.org/html/draft-pbryan-zyp-json-ref-02)
+    that uses a JSON Pointer (http://tools.ietf.org/html/rfc6901) as its value.
+    For this specification, only canonical dereferencing (https://tools.ietf.org/html/draft-zyp-json-schema-04#section-7.2.3)
+    is supported.
+ */
+public class ReferenceObject inherits ObjectBase {
+    public {
+        #! Required. The reference string.
+        string ref;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Reference Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-REFERENCE-FORMAT invalid reference format used
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        required_field("XML", oh, "$ref", NT_STRING, \ref);
+        validateReferenceFormat();
+    }
+
+    private:internal validateReferenceFormat() {
+        # TODO
+    }
+}
+
+#! defines an object in a schema
+public class SchemaObject inherits ObjectBase, SchemaBase {
+    public {
+        #! Reference to another object.
+        *string ref;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.2.
+        /**
+            MUST be either a string or an array (list). If it's an array,
+            it's elements MUST be strings and MUST be unique.
+         */
+        string type;
+
+        #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
+        *string format;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1.
+        *string title;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.1.
+        *string desc;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.3.1.
+        *ItemsObject items;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
+        any defaultVal;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.1.
+        *int maxProperties;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.2.
+        *int minProperties;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.4.
+        /**
+            MUST be an object. Each value of this object MUST be an object,
+            and each object MUST be a valid JSON Schema (@ref SchemaObject).
+         */
+        any properties;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.4.
+        /**
+            MUST be a bool or an object. If it is an object, it MUST also be
+            a valid JSON Schema (@ref SchemaObject).
+         */
+        any additionalProperties;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.3.
+        /**
+            List of strings. Must have at least one element.
+         */
+        *list<string> required;
+
+        #! Adds support for polymorphism.
+        /**
+            The discriminator is the schema property name that is used to
+            differentiate between other schema that inherit this schema.
+            The property name used MUST be defined at this schema and it MUST
+            be in the @ref SchemaObject::required "required" property list.
+            When used, the value MUST be the name of this schema or any schema
+            that inherits it.
+
+            While composition offers model extensibility, it does not imply
+            a hierarchy between the models. To support polymorphism, Swagger
+            adds the support of the \c discriminator field. When used,
+            the \c discriminator will be the name of the property used to decide
+            which schema definition is used to validate the structure of the model.
+            As such, the \c discriminator field MUST be a required field.
+            The value of the chosen property has to be the friendly name given to
+            the model under the \c definitions property. As such, inline schema
+            definitions, which do not have a given id, \e cannot be used in polymorphism.
+         */
+        *string discriminator;
+
+        #! Relevant only for Schema \c "properties" definitions. Declares the property as "read only".
+        /**
+            Declares the property as "read only". This means that it MAY be sent
+            as part of a response but MUST NOT be sent as part of the request.
+            Properties marked as \c readOnly being \c true SHOULD NOT be in the
+            @ref SchemaObject::required "required" list of the defined schema.
+            Default value is \c false.
+         */
+        bool readOnly = False;
+
+        #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.3.
+        /**
+            List of @ref SchemaObject "SchemaObjects" and @ref ReferenceObject "ReferenceObjects".
+            MUST have at least one element.
+
+            Swagger allows combining and extending model definitions using the
+            \c allOf property of JSON Schema, in effect offering model composition.
+            \c allOf takes in an array of object definitions that are validated
+            independently but together compose a single object.
+         */
+        list<ObjectBase> allOf();
+
+        #! This MAY be used only on properties schemas. It has no effect on root schemas.
+        /**
+            Adds Additional metadata to describe the XML representation format of this property.
+
+            The \c xml property allows extra definitions when translating the
+            JSON definition to XML. The @ref XMLObject contains additional
+            information about the available options.
+         */
+        *XmlObject xml;
+
+        #! Additional external documentation for this schema.
+        *ExternalDocumentationObject externalDocs;
+
+        #! A free-form property to include an example of an instance for this schema.
+        any example;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Schema Object hash
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
+        @throws INVALID-REF-EXTRA-FIELDS invalid extra fields when '$ref' field present
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh), SchemaBase("Schema", oh) {
+        string objType = "Schema";
+        if (optional_field(objType, oh, "$ref", NT_STRING, \ref)) {
+            /*
+            list fields = map $1, oh.keyIterator(), $1 !~ /^x-/;
+            if (fields.size() > 0)
+                throw "INVALID-REF-EXTRA-FIELDS", "Invalid extra fields with '$ref' field present";
+            */
+            return;
+        }
+
+        required_field(objType, oh, "type", NT_STRING, \type);
+        if (!("string", "number", "integer", "boolean", "array", "object").contains(type))
+            throw "INVALID-FIELD-VALUE", "Schema Object: invalid schema type value passed: " + type;
+        if (type == "array") {
+            hash itemsObj;
+            required_field(objType, oh, "items", NT_HASH, \itemsObj);
+            if (itemsObj)
+                items = new ItemsObject(itemsObj);
+        }
+
+        if (oh.hasKey("default")) {
+            defaultVal = oh.default;
+            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
+                (defaultVal.typeCode() == NT_INT && type != "integer") ||
+                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
+                (defaultVal.typeCode() == NT_STRING && type != "string") ||
+                (defaultVal.typeCode() == NT_LIST && type != "array"))
+                throw "INVALID-FIELD-TYPE",
+                    sprintf("Schema Object: 'default' value has invalid type '%s' (should be '%s')",
+                        defaultVal.type(), type);
+            # TODO array
+            /*
+            if (type == "array")
+                defaultVal = new ItemsObject(defaultVal);
+            */
+            # TODO file
+            # TODO other possibilities?
+        }
+
+        if (optional_field(objType, oh, "format", NT_STRING, \format)) {
+            if (type == "integer" && !ValidIntFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Schema Object: invalid integer type format value passed: " + format;
+            else if (type == "number" && !ValidNumberFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Schema Object: invalid number type format value passed: " + format;
+            else if (type == "string" && !ValidStringFormatsHash{format})
+                throw "INVALID-FIELD-VALUE", "Schema Object: invalid string type format value passed: " + format;
+        }
+
+        optional_field(objType, oh, "title", NT_STRING, \title);
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+
+        if (optional_field(objType, oh, "maxProperties", NT_INT, \maxProperties)) {
+            if (maxProperties < 0)
+                throw "INVALID-FIELD-FORMAT", "Schema Object: 'maxProperties' field less than 0";
+        }
+        if (optional_field(objType, oh, "minProperties", NT_INT, \minProperties)) {
+            if (minProperties < 0)
+                throw "INVALID-FIELD-FORMAT", "Schema Object: 'minProperties' field less than 0";
+        }
+        if (optional_field(objType, oh, "properties", NT_HASH, \properties)) {
+            foreach string k in (keys properties) {
+                any val = properties{k};
+                if (val.typeCode() != NT_HASH)
+                    throw "INVALID-FIELD-FORMAT", "Schema Object: 'properties' field is not a hash of Schema Objects";
+                properties{k} = new SchemaObject(val);
+            }
+        }
+        if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN, NT_HASH), \additionalProperties)) {
+            if (additionalProperties.typeCode() == NT_HASH)
+                additionalProperties = new SchemaObject(additionalProperties);
+        }
+
+        # process "required"
+        {
+            list req;
+            if (optional_field(objType, oh, "required", NT_LIST, \req)) {
+                if (req.size() < 1)
+                    throw "INVALID-FIELD-FORMAT", "Schema Object: field 'required' is an empty list";
+                foreach any val in (req) {
+                    if (val.typeCode() != NT_STRING)
+                        throw "INVALID-FIELD-TYPE",
+                            sprintf("Schema Object: 'required' list value has invalid type '%s'",
+                                val.type());
+                }
+                required = cast<list<string>>(req);
+            }
+        }
+
+        if (optional_field(objType, oh, "discriminator", NT_STRING, \discriminator)) {
+            if (!required.contains(discriminator))
+                throw "INVALID-FIELD-VALUE", "Schema Object: 'discriminator' field value not in the 'required' list";
+        }
+
+        optional_field(objType, oh, "readOnly", NT_BOOLEAN, \readOnly);
+
+        *list allOfList;
+        if (optional_field(objType, oh, "allOf", NT_LIST, \allOfList)) {
+            if (allOfList.size() < 1)
+                throw "INVALID-FIELD-FORMAT", "Schema Object: field 'allOf' is an empty list";
+            foreach any val in (allOfList) {
+                if (val.typeCode() != NT_HASH)
+                    throw "INVALID-FIELD-TYPE", "Schema Object: invalid 'allOf' list value datatype: " + val.type();
+                hash h = val;
+                if (h.hasKey("$ref"))
+                    allOf += new ReferenceObject(h);
+                else
+                    allOf += new SchemaObject(h);
+            }
+        }
+
+        *hash xmlObj;
+        if (optional_field(objType, oh, "xml", NT_HASH, \xmlObj))
+            xml = new XmlObject(xmlObj);
+
+        *hash extDocsObj;
+        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
+            externalDocs = new ExternalDocumentationObject(extDocsObj);
+
+        if (oh.hasKey("example"))
+            example = oh.example;
+    }
+}
+
+#! A metadata object that allows for more fine-tuned XML model definitions.
+/**
+    When using arrays, XML element names are not inferred (for singular/plural
+    forms) and the @ref XmlObject::name "name" property should be used to add that information.
+    See examples for expected behavior.
+ */
+public class XmlObject inherits ObjectBase {
+    public {
+        #! Replaces the name of the element/attribute used for the described schema property.
+        /**
+            When defined within the @ref ItemsObject (\c items), it will affect
+            the name of the individual XML elements within the list.
+            When defined alongside \c type being \c array (outside the \c items),
+            it will affect the wrapping element and only if \c wrapped is \c true.
+            If \c wrapped is \c false, it will be ignored.
+         */
+        *string name;
+
+        #! The URL of the namespace definition. Value SHOULD be in the form of a URL.
+        *string ns;
+
+        #! The prefix to be used for the @ref XmlObject::name "name".
+        *string prefix;
+
+        #! Declares whether the property definition translates to an attribute instead of an element. Default value is \c false.
+        bool attribute = False;
+
+        #! MAY be used only for an array definition. Signifies whether the array is wrapped (for example, \c <books><book/><book/></books>) or unwrapped (\c <book/><book/>).
+        /**
+            Default value is \c false. The definition takes effect only when
+            defined alongside \c type being \c array (outside the \c items).
+         */
+        bool wrapped = False;
+    }
+
+    #! Constructor.
+    /**
+        @param oh XML Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "XML";
+        optional_field(objType, oh, "name", NT_STRING, \name);
+        optional_field(objType, oh, "namespace", NT_STRING, \ns);
+        optional_field(objType, oh, "prefix", NT_STRING, \prefix);
+        optional_field(objType, oh, "attribute", NT_BOOLEAN, \attribute);
+        optional_field(objType, oh, "wrapped", NT_BOOLEAN, \wrapped);
+    }
+}
+
+#! Allows the definition of a security scheme that can be used by the operations.
+/**
+    Supported schemes are basic authentication, an API key (either as a header
+    or as a query parameter) and OAuth2's common flows (implicit, password,
+    application and access code).
+ */
+public class SecuritySchemeObject inherits ObjectBase {
+    public {
+        #! Required. The type of the security scheme. Valid values are \c "basic", \c "apiKey" or \c "oauth2".
+        string type;
+
+        #! A short description for security scheme.
+        *string desc;
+
+        #! The name of the header or query parameter to be used.
+        /**
+            Required when type is \c "apiKey".
+         */
+        *string name;
+
+        #! The location of the API key. Valid values are \c "query" or \c "header".
+        /**
+            Required when type is \c "apiKey".
+         */
+        *string inLoc;
+
+        #! The flow used by the OAuth2 security scheme.
+        /**
+            Required when type is \c "oauth2".
+
+            Valid values are \c "implicit", \c "password", \c "application" or \c "accessCode".
+         */
+        *string flow;
+
+        #! The authorization URL to be used for this flow. This SHOULD be in the form of a URL.
+        /**
+            Required when type is \c "oauth2" and flow is \c "implicit" or \c "accessCode".
+         */
+        *string authorizationUrl;
+
+        #! The token URL to be used for this flow. This SHOULD be in the form of a URL.
+        /**
+            Required when type is \c "oauth2" and flow is one of \c "password", \c "application" or \c "accessCode".
+         */
+        *string tokenUrl;
+
+        #! The available scopes for the OAuth2 security scheme.
+        /**
+            Required when type is \c "oauth2".
+
+            A hash in the form of </tt>Scopes Object</tt> mapping scope names to short descriptions of them.
+            See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#scopesObject
+            Keys are scope names. Values are short string descriptions.
+         */
+        *ScopesObject scopes;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Security Scheme Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FLOW invalid OAuth2 flow value
+        @throws INVALID-APIKEY-LOCATION invalid 'in' (location) value
+        @throws INVALID-SCHEME-TYPE invalid security scheme type; see @ref SecuritySchemeObject::type "type"
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        string objType = "Security Scheme";
+        required_field(objType, oh, "type", NT_STRING, \type);
+        if (type == "apiKey") {
+            required_field(objType, oh, "name", NT_STRING, \name);
+            required_field(objType, oh, "in", NT_STRING, \inLoc);
+            if (inLoc != "query" && inLoc != "header")
+                throw "INVALID-APIKEY-LOCATION", "Security Scheme Object: invalid 'in' (location) value passed: " + inLoc;
+        }
+        else if (type == "oauth2") {
+            required_field(objType, oh, "flow", NT_STRING, \flow);
+            if (flow == "accessCode") {
+                required_field(objType, oh, "authorizationUrl", NT_STRING, \authorizationUrl);
+                required_field(objType, oh, "tokenUrl", NT_STRING, \tokenUrl);
+            }
+            else if (flow == "application" || flow == "password") {
+                required_field(objType, oh, "tokenUrl", NT_STRING, \tokenUrl);
+            }
+            else if (flow == "implicit") {
+                required_field(objType, oh, "authorizationUrl", NT_STRING, \authorizationUrl);
+            }
+            else {
+                throw "INVALID-FLOW", "Security Scheme Object: invalid OAuth2 flow value passed: " + flow;
+            }
+
+            hash scopesObj;
+            required_field(objType, oh, "scopes", NT_HASH, \scopesObj);
+            scopes = new ScopesObject(scopesObj);
+        }
+        else if (type != "basic") {
+            throw "INVALID-SCHEME-TYPE", "Security Scheme Object: invalid security scheme type passed: " + type;
+        }
+        optional_field(objType, oh, "description", (NT_STRING, NT_NOTHING), \desc);
+    }
+}
+
+#! Lists the available scopes for an OAuth2 security scheme.
+public class ScopesObject inherits ObjectBase {
+    public {
+        #! Maps between a name of a scope to a short description of it (as the value of the property).
+        /**
+            Hash of string values.
+         */
+        hash<string, string> fields;
+    }
+
+    #! Constructor.
+    /**
+        @param oh Scopes Object hash
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+     */
+    public constructor(hash oh) : ObjectBase(oh) {
+        foreach hash item in (oh.pairIterator()) {
+            if (item.key !~ /^x-/) { # if not vendor extension
+                if (item.value.typeCode() != NT_STRING)
+                    throw "INVALID-FIELD-TYPE",
+                        sprintf("Scopes Object: '%s' field has invalid type '%s', instead of 'string'",
+                            item.key, item.value.type());
+                fields{item.key} = item.value;
+            }
+        }
+    }
+}
+
+} # end public namespace swagger
+
+# private namespace for internal definitions
+namespace Priv {
+    #! Check and assign a required field.
+    /**
+        @param objType type of object (e.g. "External Documentation")
+        @param oh Object hash
+        @param name field name
+        @param typeCode field typeCode
+        @param target where to assign the field's value
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+    */
+    sub required_field(string objType, hash oh, string name, int typeCode, reference<any> target) {
+        if (!oh.hasKey(name))
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: '%s' field is missing", objType, name);
+        any val = oh{name};
+        if (val.typeCode() != typeCode)
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+        target = val;
+    }
+
+    #! Check and assign a field.
+    /**
+        @param objType type of object (e.g. "External Documentation" or "Parameter")
+        @param oh Object hash
+        @param name field name
+        @param typeCode field typeCode
+        @param target where to assign the field's value
+
+        @return whether the field was assigned
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+    */
+    bool sub optional_field(string objType, hash oh, string name, int typeCode, reference<any> target) {
+        if (!oh.hasKey(name))
+            return False;
+        any val = oh{name};
+        if (val.typeCode() != typeCode)
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+        target = val;
+        return True;
+    }
+
+    #! Check and assign a field.
+    /**
+        @param objType type of object (e.g. "External Documentation" or "Parameter")
+        @param oh Object hash
+        @param name field name
+        @param typeCodes possible field typeCodes
+        @param target where to assign the field's value
+
+        @return whether the field was assigned
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+    */
+    bool sub optional_field(string objType, hash oh, string name, list<int> typeCodes, reference<any> target) {
+        if (!oh.hasKey(name))
+            return False;
+        any val = oh{name};
+        if (!typeCodes.contains(val.typeCode()))
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: '%s' field has invalid type '%s'", objType, name, val.type());
+        target = val;
+        return True;
+    }
+}
