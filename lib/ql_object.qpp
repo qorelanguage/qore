@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -197,7 +197,7 @@ any call_object_method(object obj, string method, ...) {
 
     @deprecated use call_object_method_args(); camel-case function names were deprecated in %Qore 0.8.12
  */
-any callObjectMethodArgs(object obj, string method, *softlist varg) [flags=DEPRECATED] {
+any callObjectMethodArgs(object obj, string method, *softlist<auto> varg) [flags=DEPRECATED] {
    return obj->evalMethod(method, varg, xsink);
 }
 
@@ -229,7 +229,7 @@ any result = call_object_method_args(obj, "method", arglist);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
 */
-any call_object_method_args(object obj, string method, *softlist varg) {
+any call_object_method_args(object obj, string method, *softlist<auto> varg) {
    return obj->evalMethod(method, varg, xsink);
 }
 
@@ -268,7 +268,7 @@ any call_pseudo(any val, string meth, ...) {
 
     @since %Qore 0.8.8
  */
-any call_pseudo_args(any val, string meth, *softlist argv) {
+any call_pseudo_args(any val, string meth, *softlist<auto> argv) {
    return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
 }
 
@@ -316,7 +316,7 @@ object obj = create_object_args(class_name, arg_list);
 
     @since %Qore 0.8.12
  */
-object create_object_args(string class_name, *softlist argv) {
+object create_object_args(string class_name, *softlist<auto> argv) {
    ReferenceHolder<QoreValueList> arg_list(xsink);
    if (argv)
       arg_list = new QoreValueList(argv);
