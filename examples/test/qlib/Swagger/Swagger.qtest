@@ -166,10 +166,12 @@ public class SwaggerTest inherits QUnit::Test {
 
         assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"security": 2}), "invalid security field type");
         assertTrue(loadyaml(make_yaml(base + {"security": list()})));
-        assertThrows("INVALID-FIELD-TYPE", "invalid security requirement datatype", loadyaml,
+        assertThrows("INVALID-FIELD-TYPE", "\"security\".*type \"integer\"", loadyaml,
             make_yaml(base + {"security": (2, 5)}), "invalid security field value type");
-        assertThrows("INVALID-FIELD-TYPE", "invalid security requirement datatype", loadyaml,
-            make_yaml(base + {"security": ({"a": "b"}, {"a": 2})}), "invalid security field value type");
+        assertThrows("INVALID-FIELD-TYPE", "\"security\".*\"integer\"", loadyaml,
+            make_yaml(base + {"security": ({"a": "b"}, {"b": 2})}), "invalid security field value type");
+        assertThrows("SECURITY-ERROR", "security schemes.*not defined", loadyaml,
+            make_yaml(base + {"security": ({"a": "b"}, {"b": "a"})}), "invalid security values");
 
         assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"tags": 2}), "invalid tags field type");
         assertTrue(loadyaml(make_yaml(base + {"tags": list()})));
@@ -186,8 +188,8 @@ public class SwaggerTest inherits QUnit::Test {
         hash info;
 
         assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"info": {}}));
-        assertThrows("REQUIRED-FIELD-MISSING", "'version'.*missing", loadyaml, make_yaml(base + {"info": {"title": "a"}}));
-        assertThrows("REQUIRED-FIELD-MISSING", "'title'.*missing", loadyaml, make_yaml(base + {"info": {"version": "a"}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"version\".*missing", loadyaml, make_yaml(base + {"info": {"title": "a"}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"title\".*missing", loadyaml, make_yaml(base + {"info": {"version": "a"}}));
         assertThrows("INVALID-FIELD-TYPE", "title", loadyaml, make_yaml(base + {"info": {"title": 5, "version": "a"}}));
         assertThrows("INVALID-FIELD-TYPE", "version", loadyaml, make_yaml(base + {"info": {"title": "a", "version": 5}}));
 
@@ -232,7 +234,7 @@ public class SwaggerTest inherits QUnit::Test {
         info = ValidInfoObject + {"license": {"name": "name"}};
         assertTrue(loadyaml(make_yaml(base + {"info": info})));
         info = ValidInfoObject + {"license": {"url": "a"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'name'.*missing", loadyaml, make_yaml(base + {"info": info}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"info": info}));
         info = ValidInfoObject + {"license": {"name": 5}};
         assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"info": info}));
         info = ValidInfoObject + {"license": {"name": "name", "url": "a"}};
@@ -399,7 +401,7 @@ public class SwaggerTest inherits QUnit::Test {
         extDocs = {"externalDocs": {"url": "a"}};
         assertTrue(loadyaml(make_yaml(base + extDocs)));
         extDocs = {"externalDocs": {"description": "a"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'url'.*missing", loadyaml, make_yaml(base + extDocs));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"url\".*missing", loadyaml, make_yaml(base + extDocs));
         extDocs = {"externalDocs": {"url": 5}};
         assertThrows("INVALID-FIELD-TYPE", "url", loadyaml, make_yaml(base + extDocs));
         extDocs = {"externalDocs": {"url": "a", "description": "b"}};
@@ -418,9 +420,9 @@ public class SwaggerTest inherits QUnit::Test {
         p = {"a": {"name": "a", "in": "query", "type": "string"}};
         assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
         p = {"a": {"in": "query", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'name'.*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'in'.*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"in\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
 
         p = {"a": {"name": 5, "in": "query", "type": "string"}};
         assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"parameters": p}));
@@ -447,15 +449,15 @@ public class SwaggerTest inherits QUnit::Test {
         p = {"a": {"name": "a", "in": "path", "type": "string", "required": False}};
         assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
         p = {"a": {"name": "a", "in": "path", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'required'.*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"required\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "in": "path", "type": "string", "required": "a"}};
         assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, make_yaml(base + {"parameters": p}));
 
         # type checks
         p = {"a": {"name": "a", "in": "query"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'type'.*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "in": "query", "type": 5}};
-        assertThrows("INVALID-FIELD-TYPE", "'type'", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "in": "query", "type": "a"}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
 
@@ -570,9 +572,9 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type checks
         p = {"a": paramBase + {"items": {}}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'type'.*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": paramBase + {"items": {"type": 5}}};
-        assertThrows("INVALID-FIELD-TYPE", "'type'", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": paramBase + {"items": {"type": "a"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
 
@@ -687,7 +689,7 @@ public class SwaggerTest inherits QUnit::Test {
         hash r;
 
         r = {"a": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'description'.*missing", loadyaml, make_yaml(base + {"responses": r}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"description\".*missing", loadyaml, make_yaml(base + {"responses": r}));
         r = {"a": {"description": "a"}};
         assertTrue(loadyaml(make_yaml(base + {"responses": r})));
         r = {"a": {"description": 5}};
@@ -712,7 +714,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type checks
         r = {"a": {"description": "a", "headers": {"a": {}}}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'type'.*missing", loadyaml, make_yaml(base + {"responses": r}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"responses": r}));
         r = {"a": {"description": "a", "headers": {"a": {"type": "boolean"}}}};
         assertTrue(loadyaml(make_yaml(base + {"responses": r})));
         r = {"a": {"description": "a", "headers": {"a": {"type": "integer"}}}};
@@ -817,7 +819,7 @@ public class SwaggerTest inherits QUnit::Test {
         tag = {"name": "a"};
         assertTrue(loadyaml(make_yaml(base + {"tags": (tag,)})));
         tag = {};
-        assertThrows("REQUIRED-FIELD-MISSING", "'name'.*missing", loadyaml, make_yaml(base + {"tags": (tag,)}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"tags": (tag,)}));
         tag = {"name": 5};
         assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"tags": (tag,)}));
 
@@ -850,9 +852,9 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type checks
         s = {};
-        assertThrows("REQUIRED-FIELD-MISSING", "'type'.*missing", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": 5};
-        assertThrows("INVALID-FIELD-TYPE", "'type'", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "a"};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
@@ -1089,7 +1091,7 @@ public class SwaggerTest inherits QUnit::Test {
         sd = {"type": "a"};
         assertThrows("INVALID-SCHEME-TYPE", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": 5};
-        assertThrows("INVALID-FIELD-TYPE", "'type'", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
 
         # description checks
         sd = {"type": "basic", "description": "a"};
@@ -1101,9 +1103,9 @@ public class SwaggerTest inherits QUnit::Test {
         sd = {"type": "apiKey"};
         assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "apiKey", "name": "a"};
-        assertThrows("REQUIRED-FIELD-MISSING", "'in'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"in\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "apiKey", "in": "query"};
-        assertThrows("REQUIRED-FIELD-MISSING", "'name'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "apiKey", "name": "a", "in": "query"};
         assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
         sd = {"type": "apiKey", "name": "a", "in": "header"};
@@ -1117,24 +1119,24 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type=oauth2 checks
         sd = {"type": "oauth2"};
-        assertThrows("REQUIRED-FIELD-MISSING", "'flow'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"flow\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
 
         sd = {"type": "oauth2", "flow": 5, "scopes": {}};
         assertThrows("INVALID-FIELD-TYPE", "flow", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "abc", "scopes": {}};
         assertThrows("INVALID-FLOW", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "application", "scopes": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'tokenUrl'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "password", "scopes": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'tokenUrl'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "implicit", "scopes": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'authorizationUrl'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"authorizationUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "accessCode", "authorizationUrl": "a", "scopes": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'tokenUrl'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "accessCode", "tokenUrl": "a", "scopes": {}};
-        assertThrows("REQUIRED-FIELD-MISSING", "'authorizationUrl'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"authorizationUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
         sd = {"type": "oauth2", "flow": "password", "tokenUrl": "a"};
-        assertThrows("REQUIRED-FIELD-MISSING", "'scopes'.*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"scopes\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
 
         # application and password flow
         sd = {"type": "oauth2", "flow": "application", "tokenUrl": "a", "scopes": {}};
@@ -1197,6 +1199,13 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("INVALID-PARAMETER-TYPE", \v.validateRequest(), ("/user/login", "get", params, {}));
                 delete params[1].val;
                 assertThrows("INVALID-PARAMETER-VALUE", \v.validateRequest(), ("/user/login", "get", params, {}));
+
+                params = (
+                    new hash<ParameterInfo>({"name": "status", "loc": "query", "val": "available"}),
+                );
+                assertTrue(v.validateRequestNoExcept("/pet/findByStatus", "get", params, {}));
+                params[0].val = "happy";
+                assertThrows("INVALID-PARAMETER-VALUE", "\"status\".*\"happy\"", \v.validateRequest(), ("/pet/findByStatus", "get", params, {}));
             }
         }
 
