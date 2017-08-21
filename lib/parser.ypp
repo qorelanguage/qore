@@ -129,7 +129,7 @@ public:
    AbstractQoreNode* value;
    bool pub;
 
-  DLLLOCAL ConstNode(const QoreProgramLocation& loc, char* n, AbstractQoreNode* v, bool p = false) : loc(loc), name(n), value(v), pub(p) {
+   DLLLOCAL ConstNode(const QoreProgramLocation& loc, char* n, AbstractQoreNode* v, bool p = false) : loc(loc), name(n), value(v), pub(p) {
       // see if constant definitions are allowed
       if (parse_check_parse_option(PO_NO_CONSTANT_DEFS))
          parse_error(loc, "illegal constant definition \"%s\" (conflicts with parse option PO_NO_CONSTANT_DEFS)", n);
@@ -187,8 +187,8 @@ public:
    }
 
    DLLLOCAL void checkName() {
-     if (!strcmp(name->getIdentifier(), "auto"))
-        parse_error(loc, "a hashdecl may not have the name 'auto'; this name has a special meaning in complex types; please choose another name for your hashdecl");
+      if (!strcmp(name->getIdentifier(), "auto"))
+         parse_error(loc, "a hashdecl may not have the name 'auto'; this name has a special meaning in complex types; please choose another name for your hashdecl");
    }
 
    DLLLOCAL TypedHashDecl* takeHashDecl() {
