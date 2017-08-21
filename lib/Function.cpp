@@ -705,7 +705,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
-   // perfect match score
    unsigned nargs = args ? args->size() : 0;
 
    const QoreFunction* aqf = nullptr;
@@ -765,7 +764,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
          }
 
          // skip variants with signatures with fewer possible elements than the best match already
-         if ((int)(sig->getParamTypes() * 2) < match)
+         if ((int)(sig->getParamTypes() * QTI_IDENT) < match)
             continue;
 
          int count = 0;
@@ -970,7 +969,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
          }
 
          // skip variants with signatures with fewer possible elements than the best match already
-         if ((int)(sig->numParams() * 2) > match) {
+         if ((int)(sig->numParams() * QTI_IDENT) > match) {
             int variant_pmatch = 0;
             int count = 0;
             int variant_nperfect = 0;
@@ -1117,7 +1116,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
          }
 
          // skip variants with signatures with fewer possible elements than the best match already
-         if ((int)(sig->numParams() * 2) > match) {
+         if ((int)(sig->numParams() * QTI_IDENT) > match) {
             int variant_pmatch = 0;
             int count = 0;
             int variant_nperfect = 0;
