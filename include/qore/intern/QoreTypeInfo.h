@@ -106,7 +106,7 @@ public:
             return NT_HASH;
          case QTS_COMPLEXLIST:
          case QTS_COMPLEXSOFTLIST:
-         return NT_LIST;
+            return NT_LIST;
          case QTS_COMPLEXREF:
             return NT_REFERENCE;
       }
