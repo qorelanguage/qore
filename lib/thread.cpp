@@ -278,6 +278,9 @@ public:
    // current program context
    QoreProgram* current_pgm = nullptr;
 
+   // current program context helper
+   ProgramThreadCountContextHelper* current_pgm_ctx = nullptr;
+
    // current namespace context for parsing
    qore_ns_private* current_ns = nullptr;
 
@@ -901,12 +904,22 @@ void thread_pop_frame_boundary() {
 
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   ThreadData* td = thread_data.get();
    if (frame >= 0) {
-      td->tlpd->lvstack.getLocalVars(**rv, frame, xsink);
+      ThreadData* td = thread_data.get();
+      ThreadLocalProgramData* tlpd = td->tlpd;
+      ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+      //printd(5, "thread_get_local_vars() tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      while (frame > tlpd->lvstack.getFrameCount()) {
+         frame -= (tlpd->lvstack.getFrameCount() + 1);
+         if (ch->getNextContext(tlpd, ch))
+            return rv.release();
+         //printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      }
+
+      tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
-      td->tlpd->cvstack.getLocalVars(**rv, frame, xsink);
+      tlpd->cvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
    }
@@ -1517,8 +1530,7 @@ QoreProgramBlockParseOptionHelper::~QoreProgramBlockParseOptionHelper() {
    }
 }
 
-ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
-      old_pgm(0), old_tlpd(0), restore(false) {
+ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) {
    if (!pgm)
       return;
 
@@ -1538,8 +1550,10 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       restore = true;
       old_pgm = td->current_pgm;
       old_tlpd = td->tlpd;
+      old_ctx = td->current_pgm_ctx;
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime, xsink);
+      td->current_pgm_ctx = this;
    }
 }
 
@@ -1554,6 +1568,7 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
    td->tlpd = old_tlpd;
+   td->current_pgm_ctx = old_ctx;
 
    qore_program_private::decThreadCount(*pgm, td->tid);
 }
