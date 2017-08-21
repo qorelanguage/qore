@@ -51,7 +51,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
        && (getProgram()->getParseOptions64() & PO_BROKEN_INT_ASSIGNMENTS))
       broken_int = true;
 
-   const QoreTypeInfo* r = 0;
+   const QoreTypeInfo* r = nullptr;
    right = right->parseInit(oflag, pflag, lvids, r);
 
    // check for illegal assignment to $self
