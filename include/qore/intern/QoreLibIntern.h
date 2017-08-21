@@ -768,9 +768,6 @@ public:
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalData {
-private:
-   DLLLOCAL ThreadLocalData(const ThreadLocalData&);
-
 public:
    typedef ThreadBlock<T, S1> Block;
    typedef ThreadLocalDataIterator<T, S1> iterator;
@@ -798,6 +795,16 @@ public:
       return (!curr->pos && !curr->prev);
    }
 #endif
+
+   DLLLOCAL int getFrameCount() const {
+     return frame_count;
+   }
+
+protected:
+   int frame_count = -1;
+
+private:
+   DLLLOCAL ThreadLocalData(const ThreadLocalData&);
 };
 
 DLLLOCAL int q_get_af(int type);

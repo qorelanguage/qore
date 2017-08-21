@@ -626,14 +626,28 @@ public:
 };
 
 class ProgramThreadCountContextHelper {
-protected:
-   QoreProgram* old_pgm;
-   ThreadLocalProgramData* old_tlpd;
-   bool restore;
-
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
+
+   DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
+      if (!nextOk())
+         return -1;
+      tlpd = old_tlpd;
+      ch = old_ctx;
+      return 0;
+   }
+
+protected:
+   QoreProgram* old_pgm = nullptr;
+   ThreadLocalProgramData* old_tlpd = nullptr;
+   ProgramThreadCountContextHelper* old_ctx = nullptr;
+   bool restore = false;
+
+   // returns true if the next program allows debugging
+   DLLLOCAL bool nextOk() const {
+      return old_pgm && (old_pgm->getParseOptions64() & PO_ALLOW_DEBUGGING);
+   }
 };
 
 class ProgramRuntimeParseContextHelper {
