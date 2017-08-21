@@ -118,12 +118,15 @@ public:
    }
 
    DLLLOCAL void pushFrameBoundary() {
+      ++frame_count;
       //printd(5, "ThreadLocalVariableData::pushFrameBoundary()\n");
       LocalVarValue* v = instantiate();
       v->setFrameBoundary();
    }
 
    DLLLOCAL void popFrameBoundary() {
+      assert(frame_count >= 0);
+      --frame_count;
       //printd(5, "ThreadLocalVariableData::popFrameBoundary()\n");
       uninstantiateIntern();
       assert(curr->var[curr->pos].frame_boundary);
