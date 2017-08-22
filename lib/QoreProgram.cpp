@@ -896,8 +896,6 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
    return ti;
 }
 
-ThreadDebugEnum qore_program_private::onAttach(ExceptionSink* xsink) {
-
 void qore_program_private::onAttach(ThreadDebugEnum &sb, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
@@ -1754,10 +1752,6 @@ QoreStringNode* QoreProgram::getStatementId(const AbstractStatement* statement) 
 
 AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) const {
    return priv->resolveStatementId(statementId);
-}
-
-const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
-   return priv->runtimeFindCall(name, params, xsink);
 }
 
 QoreStringNode* QoreProgram::getProgramId() const {

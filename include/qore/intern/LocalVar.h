@@ -321,8 +321,8 @@ private:
    std::string name;
    bool closure_use = false,
       parse_assigned = false;
-   const QoreTypeInfo* typeInfo;
    const QoreTypeInfo* refTypeInfo;
+   const QoreTypeInfo* typeInfo;
 
    DLLLOCAL LocalVarValue* get_var() const {
       return thread_find_lvar(name.c_str());

@@ -71,14 +71,23 @@ public:
        @param name of argument
        @param val the value to assign to the local variable
        @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+       @since %Qore 0.8.13
    */
-   DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink *xsink);
+   DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
 
    //! creates a fake local variable assigned to "val" and creates a reference to the local variable
    /**
-       @param name of argument
-       @param val the value to assign to the local variable
-       @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+      @param val the value to assign to the local variable
+      @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+    */
+
+   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
+   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+   /**
+         @param val the value to assign to the local variable
+         @param typeInfo the type restriction for the lvalue
+         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+         @since %Qore 0.8.13
 
        Warning using this constructor may lead to memory leak when value is changed in Qore script. Problem is
        when AbstractQoreNode is created and assigned to helper then QoreValue is taken but original reference in node
@@ -95,7 +104,7 @@ public:
     @endcode
 
    */
-   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink);
+   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
 
    //! frees all memory still managed by the object
    DLLEXPORT ~ReferenceArgumentHelper();

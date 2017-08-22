@@ -1654,7 +1654,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
       const QoreMethod* method = nullptr;
 
       NamedScope scope(name);
-      qc = parseFindScopedClassWithMethod(scope, false);
+      qc = parseFindScopedClassWithMethod(loc, scope, false);
       if (qc) {
          qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
          method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);
@@ -1748,7 +1748,8 @@ QoreValueList* qore_root_ns_private::runtimeFindCallVariants(const char* name, E
       const QoreMethod* method = nullptr;
 
       NamedScope scope(name);
-      qc = parseFindScopedClassWithMethod(scope, false);
+      QoreProgramLocation loc;
+      qc = parseFindScopedClassWithMethod(loc, scope, false);
       if (qc) {
          qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
          method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);

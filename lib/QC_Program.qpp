@@ -487,11 +487,6 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
 
-//! attach @ref Qore::Program "Program" to currently running QoreProgram instance. 
-/**
-    @since %Qore 0.8.13
-*/
-const PO_ATTACH = PO_ATTACH;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -870,7 +865,7 @@ pgm.parseRollback();
     @endcode
 
     @see
-    - Qore::Program::parse()
+P    - Qore::Program::parse()
     - Qore::Program::parseCommit()
     - Qore::Program::parsePending()
     - Qore::parse()
