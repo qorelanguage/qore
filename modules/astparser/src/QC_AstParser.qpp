@@ -54,7 +54,7 @@ AstParser::constructor() {
 *AstTree AstParser::parseFile(string filename) {
     ASTTree* tree = aph->parseFile(filename->getBuffer());
     if (!tree)
-        return nullptr;
+        return (AbstractQoreNode*) nullptr;
     return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
 }
 
@@ -66,7 +66,7 @@ AstParser::constructor() {
 *AstTree AstParser::parseString(string str) {
     ASTTree* tree = aph->parseString(str->getBuffer());
     if (!tree)
-        return nullptr;
+        return (AbstractQoreNode*) nullptr;
     return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
 }
 
@@ -85,7 +85,7 @@ int AstParser::getErrorCount() {
 *list AstParser::getDiagnostics() {
     size_t errorCount = aph->getErrorCount();
     if (errorCount == 0)
-        return nullptr;
+        return (AbstractQoreNode*) nullptr;
 
     ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
     for (size_t i = 0; i < errorCount; i++) {
@@ -95,27 +95,27 @@ int AstParser::getErrorCount() {
         ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> diag(new QoreHashNode, xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
         if (!start || !end || !range || !diag)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
 
         start->setKeyValue("line", new QoreBigIntNode(err->loc.firstLine-1), xsink);
         start->setKeyValue("character", new QoreBigIntNode(err->loc.firstCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
         end->setKeyValue("line", new QoreBigIntNode(err->loc.lastLine-1), xsink);
         end->setKeyValue("character", new QoreBigIntNode(err->loc.lastCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
         range->setKeyValue("start", start.release(), xsink);
         range->setKeyValue("end", end.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
         diag->setKeyValue("range", range.release(), xsink);
         diag->setKeyValue("message", new QoreStringNode(err->getError()), xsink);
         diag->setKeyValue("severity", new QoreBigIntNode(1), xsink); // 1 == error, 2 == warning, 3 == info, 4 == hint
         if (xsink && *xsink)
-            return nullptr;
+            return (AbstractQoreNode*) nullptr;
         lst->push(diag.release());
     }
 
