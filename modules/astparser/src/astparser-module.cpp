@@ -31,6 +31,10 @@
 #include "QC_AstTree.h"
 #include "QC_AstTreeSearcher.h"
 
+#ifdef HAVE_CONFIG_H
+#include "../config.h"
+#endif
+
 QoreStringNode *astparser_module_init();
 void astparser_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 void astparser_module_delete();
