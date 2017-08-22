@@ -43,7 +43,7 @@ QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Nothing.cpp Pseudo_QC_Number.cpp
 
 QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
-        QC_Mutex.cpp QC_AutoLock.cpp \
+	QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_AbstractIterator.cpp QC_AbstractQuantifiedIterator.cpp \
