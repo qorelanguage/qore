@@ -845,10 +845,13 @@ public class SwaggerTest inherits QUnit::Test {
         hash s;
 
         # ref checks
-        s = {"$ref": "a"};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"$ref": "#/definitions/x"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
         s = {"$ref": 5};
         assertThrows("INVALID-FIELD-TYPE", "ref.*invalid type", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"$ref": "#/definitions/y"};
+        assertThrows("INVALID-REFERENCE", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
 
         # type checks
         s = {};

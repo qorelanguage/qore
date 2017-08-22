@@ -510,7 +510,7 @@ public class SwaggerObject inherits ObjectBase {
         /**
             A hash of @ref SchemaObject objects. Keys are schema names.
          */
-        hash<string, SchemaObject> definitions;
+        hash<string, SchemaObject> definitions();
 
         #! Parameter definitions that can be used across operations. This property does not define global parameters for all operations.
         /**
@@ -584,6 +584,16 @@ public class SwaggerObject inherits ObjectBase {
             throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
         {
+            hash obj;
+            optional_field(objType, oh, "definitions", NT_HASH, \obj);
+            foreach hash item in (obj.pairIterator()) {
+                if (item.value.typeCode() != NT_HASH)
+                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + item.value.type();
+                definitions{item.key} = new SchemaObject(item.key, item.value, definitions);
+            }
+        }
+
+        {
             hash infoObj;
             required_field(objType, oh, "info", NT_HASH, \infoObj);
             info = new InfoObject(infoObj);
@@ -592,7 +602,7 @@ public class SwaggerObject inherits ObjectBase {
         {
             hash pathsObj;
             required_field(objType, oh, "paths", NT_HASH, \pathsObj);
-            paths = new PathsObject(pathsObj);
+            paths = new PathsObject(pathsObj, definitions);
         }
 
         optional_field(objType, oh, "host", NT_STRING, \host);
@@ -614,19 +624,11 @@ public class SwaggerObject inherits ObjectBase {
 
         {
             hash obj;
-            optional_field(objType, oh, "definitions", NT_HASH, \obj);
-            foreach hash item in (obj.pairIterator()) {
-                if (item.value.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + item.value.type();
-                definitions{item.key} = new SchemaObject(item.value);
-            }
-
-            obj = {};
             optional_field(objType, oh, "parameters", NT_HASH, \obj);
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
-                parameters{item.key} = AbstractParameterObject::newParameter(item.value);
+                parameters{item.key} = AbstractParameterObject::newParameter(item.value, definitions);
             }
 
             obj = {};
@@ -634,7 +636,7 @@ public class SwaggerObject inherits ObjectBase {
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid response datatype: " + item.value.type();
-                responses{item.key} = new ResponseObject(item.value);
+                responses{item.key} = new ResponseObject(item.value, definitions);
             }
 
             obj = {};
@@ -847,7 +849,7 @@ public class PathComponent {
     }
 
     #! creates the object
-    constructor(hash oh, string pfx) {
+    constructor(hash oh, string pfx, hash<string, SchemaObject> definitions) {
         self.pfx = pfx;
         name = "/";
         foreach hash h in (oh.pairIterator()) {
@@ -855,7 +857,7 @@ public class PathComponent {
                 throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
             list l = h.key.split("/");
             shift l;
-            add(h.key, l, 0, h.value);
+            add(h.key, l, 0, h.value, definitions);
         }
     }
 
@@ -869,12 +871,12 @@ public class PathComponent {
     }
 
     #! adds a component or a Path Item Object to the tree
-    private add(string full_path, list l, int offset, hash oh) {
+    private add(string full_path, list l, int offset, hash oh, hash<string, SchemaObject> definitions) {
         #printf("PathComponent::add(): %y l: %y offset: %y\n", full_path, l, offset);
         if (offset == l.size()) {
             if (pio)
                 throw "INVALID-PATH-COMPONENT", sprintf("cannot terminate path %y twice", full_path);
-            pio = new PathItemObject(full_path, oh);
+            pio = new PathItemObject(full_path, oh, definitions);
             return;
         }
 
@@ -885,7 +887,7 @@ public class PathComponent {
         else
             next = paths{key} ?? (paths{key} = new PathComponent(full_path, l, offset + 1, oh));
 
-        next.add(full_path, l, offset + 1, oh);
+        next.add(full_path, l, offset + 1, oh, definitions);
     }
 
     #! returns either a PathItemObject for the path
@@ -919,8 +921,8 @@ public class PathsObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
      */
-    public constructor(hash oh) : ObjectBase(oh) {
-        paths = new PathComponent(oh, "");
+    public constructor(hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
+        paths = new PathComponent(oh, "", definitions);
     }
 
     #! matches a URI path with a PathItemObject
@@ -1008,37 +1010,37 @@ public class PathItemObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, hash oh) : ObjectBase(oh) {
+    public constructor(string path, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
         string objType = "Path Item";
         optional_field(objType, oh, "$ref", NT_STRING, \ref);
 
         *hash opObj;
         if (optional_field(objType, oh, "get", NT_HASH, \opObj))
-            operations.get = new OperationObject(path, "get", opObj);
+            operations.get = new OperationObject(path, "get", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "put", NT_HASH, \opObj))
-            operations.put = new OperationObject(path, "put", opObj);
+            operations.put = new OperationObject(path, "put", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "post", NT_HASH, \opObj))
-            operations.post = new OperationObject(path, "post", opObj);
+            operations.post = new OperationObject(path, "post", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "delete", NT_HASH, \opObj))
-            operations.del = new OperationObject(path, "delete", opObj);
+            operations.del = new OperationObject(path, "delete", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "options", NT_HASH, \opObj))
-            operations.options = new OperationObject(path, "options", opObj);
+            operations.options = new OperationObject(path, "options", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "head", NT_HASH, \opObj))
-            operations.head = new OperationObject(path, "head", opObj);
+            operations.head = new OperationObject(path, "head", opObj, definitions);
 
         delete opObj;
         if (optional_field(objType, oh, "patch", NT_HASH, \opObj))
-            operations.patch = new OperationObject(path, "patch", opObj);
+            operations.patch = new OperationObject(path, "patch", opObj, definitions);
 
         *list params;
         if (optional_field(objType, oh, "parameters", NT_LIST, \params)) {
@@ -1051,7 +1053,7 @@ public class PathItemObject inherits ObjectBase {
                 if (p.hasKey("$ref"))
                     parameters{p."$ref"} = new ReferenceObject(p);
                 else
-                    parameters{p.name} = AbstractParameterObject::newParameter(p);
+                    parameters{p.name} = AbstractParameterObject::newParameter(p, definitions);
             }
         }
 
@@ -1178,7 +1180,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, string method, hash oh) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
         self.path = path;
         self.method = method.upr();
         string objType = "Operation";
@@ -1218,14 +1220,14 @@ public class OperationObject inherits ObjectBase {
                 if (p.hasKey("$ref"))
                     parameters{p."$ref"} = new ReferenceObject(p);
                 else
-                    parameters{p.name} = AbstractParameterObject::newParameter(p);
+                    parameters{p.name} = AbstractParameterObject::newParameter(p, definitions);
             }
         }
 
         {
             hash responsesObj;
             required_field(objType, oh, "responses", NT_HASH, \responsesObj);
-            responses = new ResponsesObject(path, self.method, responsesObj);
+            responses = new ResponsesObject(path, self.method, responsesObj, definitions);
         }
 
         # process schemes
@@ -1348,17 +1350,7 @@ public class OperationObject inherits ObjectBase {
                         sprintf("Multiple parameters in body for path %y and method %y",
                             path, method);
                 bodyParam = True;
-                /*
-                BodyParameter bp = po.bodyParam;
-                bp.schema.check(path, method, param.name, param.val);
-                */
             }
-            /*
-            else {
-                OtherParameter oparam = po.otherParam;
-                oparam.check(path, method, param.name, param.val);
-            }
-            */
             po.check(path, method, param.name, param.val);
         }
     }
@@ -1499,11 +1491,11 @@ public class AbstractParameterObject inherits ObjectBase {
     }
 
     #! gets a concrete instance of an AbstractParameterObject
-    static AbstractParameterObject newParameter(hash oh) {
+    static AbstractParameterObject newParameter(hash oh, hash<string, SchemaObject> definitions) {
         if (!oh.hasKey("in"))
             throw "REQUIRED-FIELD-MISSING", sprintf("Parameter Object: missing location parameter \"in\"");
         if (oh."in" == "body")
-            return new BodyParameter(oh);
+            return new BodyParameter(oh, definitions);
         else if (OtherParameterMap{oh."in"})
             return new OtherParameter(oh);
         throw "INVALID-FIELD-VALUE", sprintf("Parameter Object: invalid location (\"in\") parameter value: %y", oh."in");
@@ -1524,10 +1516,10 @@ public class BodyParameter inherits AbstractParameterObject {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) : AbstractParameterObject(oh) {
+    public constructor(hash oh, hash<string, SchemaObject> definitions) : AbstractParameterObject(oh) {
         hash schemaObj;
         required_field("Parameter", oh, "schema", NT_HASH, \schemaObj);
-        schema = new SchemaObject(schemaObj);
+        schema = new SchemaObject("schema for body parameter", schemaObj, definitions);
     }
 
     #! verifies the parameter in an actual REST API call
@@ -1797,14 +1789,14 @@ public class ResponsesObject inherits ObjectBase {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws EMPTY-RESPONSES no responses given
      */
-    public constructor(string path, string method, hash oh) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
         string objType = "Responses";
         *hash defaultObj;
         if (optional_field(objType, oh, "default", NT_HASH, \defaultObj)) {
             if (defaultObj.hasKey("$ref"))
                 defaultResp = new ReferenceObject(defaultObj);
             else
-                defaultResp = new ResponseObject(defaultObj);
+                defaultResp = new ResponseObject(defaultObj, definitions);
         }
 
         *hash r = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^[0-9]+$/;
@@ -1814,7 +1806,7 @@ public class ResponsesObject inherits ObjectBase {
             if (resp.value.hasKey("$ref"))
                 responses{resp.key} = new ReferenceObject(resp.value);
             else
-                responses{resp.key} = new ResponseObject(resp.value);
+                responses{resp.key} = new ResponseObject(resp.value, definitions);
         }
 
         if (responses.empty() && !defaultObj)
@@ -1861,13 +1853,13 @@ public class ResponseObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) : ObjectBase(oh) {
+    public constructor(hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
         string objType = "Response";
         required_field(objType, oh, "description", NT_STRING, \desc);
 
         *hash schemaObj;
         if (optional_field(objType, oh, "schema", NT_HASH, \schemaObj))
-            schema = new SchemaObject(schemaObj);
+            schema = new SchemaObject("response schema", schemaObj, definitions);
 
         *hash headersObj;
         if (optional_field(objType, oh, "headers", NT_HASH, \headersObj))
@@ -2039,7 +2031,7 @@ public class ReferenceObject inherits ObjectBase {
 public class SchemaObject inherits ObjectBase, SchemaBase {
     public {
         #! Reference to another object.
-        *string ref;
+        *SchemaObject ref;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.2.
         /**
@@ -2160,20 +2152,29 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REF-EXTRA-FIELDS invalid extra fields when '$ref' field present
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    public constructor(string name, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh), SchemaBase("Schema", oh) {
         string objType = "Schema";
-        if (optional_field(objType, oh, "$ref", NT_STRING, \ref)) {
-            /*
-            list fields = map $1, oh.keyIterator(), $1 !~ /^x-/;
-            if (fields.size() > 0)
-                throw "INVALID-REF-EXTRA-FIELDS", "Invalid extra fields with '$ref' field present";
-            */
-            return;
+        {
+            string refstr;
+            if (optional_field(objType, oh, "$ref", NT_STRING, \refstr)) {
+                if (refstr !~ /^#\/definitions\//)
+                    throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+                string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
+                ref = definitions{rstr};
+                if (!ref)
+                    throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+                /*
+                list fields = map $1, oh.keyIterator(), $1 !~ /^x-/;
+                if (fields.size() > 0)
+                    throw "INVALID-REF-EXTRA-FIELDS", "Invalid extra fields with '$ref' field present";
+                */
+                return;
+            }
         }
 
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!("string", "number", "integer", "boolean", "array", "object").contains(type))
-            throw "INVALID-FIELD-VALUE", "Schema Object: invalid schema type value passed: " + type;
+            throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y", name, type);
         if (type == "array") {
             hash itemsObj;
             required_field(objType, oh, "items", NT_HASH, \itemsObj);
@@ -2189,7 +2190,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 (defaultVal.typeCode() == NT_STRING && type != "string") ||
                 (defaultVal.typeCode() == NT_LIST && type != "array"))
                 throw "INVALID-FIELD-TYPE",
-                    sprintf("Schema Object: 'default' value has invalid type %y (should be %y)",
+                    sprintf("Schema Object %y: 'default' value has invalid type %y (should be %y)", name,
                         defaultVal.type(), type);
             # TODO array
             /*
@@ -2202,11 +2203,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Schema Object: invalid integer type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid integer type format value passed: %y", name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Schema Object: invalid number type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid number type format value passed: %y", name, format);
             else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Schema Object: invalid string type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid string type format value passed: %y", name, format);
         }
 
         optional_field(objType, oh, "title", NT_STRING, \title);
@@ -2214,23 +2215,23 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "maxProperties", NT_INT, \maxProperties)) {
             if (maxProperties < 0)
-                throw "INVALID-FIELD-FORMAT", "Schema Object: 'maxProperties' field less than 0";
+                throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'maxProperties' field less than 0", name);
         }
         if (optional_field(objType, oh, "minProperties", NT_INT, \minProperties)) {
             if (minProperties < 0)
-                throw "INVALID-FIELD-FORMAT", "Schema Object: 'minProperties' field less than 0";
+                throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'minProperties' field less than 0", name);
         }
         if (optional_field(objType, oh, "properties", NT_HASH, \properties)) {
             foreach string k in (keys properties) {
                 any val = properties{k};
                 if (val.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-FORMAT", "Schema Object: 'properties' field is not a hash of Schema Objects";
-                properties{k} = new SchemaObject(val);
+                    throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
+                properties{k} = new SchemaObject(k, val, definitions);
             }
         }
         if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True), \additionalProperties)) {
             if (additionalProperties.typeCode() == NT_HASH)
-                additionalProperties = new SchemaObject(additionalProperties);
+                additionalProperties = new SchemaObject("additionalProperties", additionalProperties, definitions);
         }
 
         # process "required"
@@ -2238,12 +2239,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             list req;
             if (optional_field(objType, oh, "required", NT_LIST, \req)) {
                 if (req.size() < 1)
-                    throw "INVALID-FIELD-FORMAT", "Schema Object: field 'required' is an empty list";
+                    throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
                 foreach any val in (req) {
                     if (val.typeCode() != NT_STRING)
                         throw "INVALID-FIELD-TYPE",
-                            sprintf("Schema Object: 'required' list value has invalid type %y",
-                                val.type());
+                            sprintf("Schema Object %y: 'required' list value has invalid type %y", name, val.type());
                 }
                 required = cast<list<string>>(req);
             }
@@ -2251,7 +2251,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "discriminator", NT_STRING, \discriminator)) {
             if (!required.contains(discriminator))
-                throw "INVALID-FIELD-VALUE", "Schema Object: 'discriminator' field value not in the 'required' list";
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: 'discriminator' field value not in the 'required' list", name);
         }
 
         optional_field(objType, oh, "readOnly", NT_BOOLEAN, \readOnly);
@@ -2259,15 +2259,15 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         *list allOfList;
         if (optional_field(objType, oh, "allOf", NT_LIST, \allOfList)) {
             if (allOfList.size() < 1)
-                throw "INVALID-FIELD-FORMAT", "Schema Object: field 'allOf' is an empty list";
+                throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'allOf' is an empty list", name);
             foreach any val in (allOfList) {
                 if (val.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", "Schema Object: invalid 'allOf' list value datatype: " + val.type();
+                    throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
                 hash h = val;
                 if (h.hasKey("$ref"))
                     allOf += new ReferenceObject(h);
                 else
-                    allOf += new SchemaObject(h);
+                    allOf += new SchemaObject("allOf schema", h, definitions);
             }
         }
 
