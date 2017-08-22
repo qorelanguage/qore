@@ -656,8 +656,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          }
          if (u.t == ot) {
             // check special cases
-            if (u.t == NT_HASH && t.typespec != QTS_TYPE)
-               return QTI_AMBIGUOUS;
+            if ((u.t == NT_LIST || u.t == NT_HASH) && t.typespec != QTS_TYPE)
+               return QTI_NEAR;
             return QTI_IDENT;
          }
          return QTI_NOT_EQUAL;
@@ -881,9 +881,15 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
       if (u.t == NT_HASH && ot == NT_HASH) {
          const qore_hash_private* h = qore_hash_private::get(*n.get<const QoreHashNode>());
          if (h->hashdecl || h->complexTypeInfo)
-            return QTI_AMBIGUOUS;
+            return QTI_NEAR;
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
       }
+      if (u.t == NT_LIST && ot == NT_LIST) {
+            const qore_list_private* l = qore_list_private::get(*n.get<const QoreListNode>());
+            if (l->complexTypeInfo)
+               return QTI_NEAR;
+            return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+         }
 
       if (u.t == NT_ALL || u.t == ot)
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;

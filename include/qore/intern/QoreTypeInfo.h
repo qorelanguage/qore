@@ -768,7 +768,7 @@ protected:
       if (!ok)
          return false;
       for (auto& i : return_vec) {
-         if (i.spec.matchType(t) != t)
+         if (i.spec.matchType(t) != QTI_NOT_EQUAL)
             return true;
       }
       return false;
@@ -825,10 +825,10 @@ protected:
             qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
             if (res == QTI_IDENT)
                return res;
-            else if (res == QTI_AMBIGUOUS) {
+            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR) {
                assert(ok);
                if (may_not_match)
-                  return QTI_AMBIGUOUS;
+                  return res;
                break;
             }
          }
@@ -878,6 +878,7 @@ protected:
                return QTI_IDENT;
             }
          // fall down to next case
+         case QTI_NEAR:
          case QTI_AMBIGUOUS:
             if (at.map && !may_need_filter)
                may_need_filter = true;
@@ -886,7 +887,7 @@ protected:
                if (!ok) {
                   ok = true;
                   if (may_not_match)
-                     return QTI_AMBIGUOUS;
+                     return res;
                }
             }
 
