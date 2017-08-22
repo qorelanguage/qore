@@ -46,7 +46,7 @@
 module Swagger {
     version = "0.1.0";
     desc = "Swagger module providing functionality for OpenAPI (Swagger) definitions";
-    author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>";
+    author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
 }
@@ -60,7 +60,7 @@ module Swagger {
     The %Swagger module provides a <a href="https://swagger.io/">Swagger/OAS 3.0 REST API validation API</a> to %Qore.
 
     Primary classes provided by this module:
-    - @ref Swagger::MessageValidator "MessageValidator"
+    - @ref Swagger::SwaggerObject "SwaggerObject"
 
     @section swagger_relnotes Swagger Module Release Notes
 
@@ -87,7 +87,7 @@ public const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
 
 #! Valid transfer protocol schemes.
 public const ValidSchemes = ("http", "https", "ws", "wss");
-public const ValidSchemesHash = map {$1:1}, ValidSchemes;
+public const ValidSchemesHash = map {$1: True}, ValidSchemes;
 
 # hashdecl
 public hashdecl ParameterInfo {
@@ -381,121 +381,6 @@ class SchemaBase {
     }
 }
 
-#! a class for validating requests
-public class MessageValidator {
-    public {
-        SwaggerObject swagger;
-    }
-
-    public constructor(SwaggerObject so) {
-        swagger := so;
-    }
-
-    # PARAMETER CHECKS
-    public checkParameters(string path, string method, PathItemObject pio, OperationObject op, list<hash<ParameterInfo>> params) {
-        bool bodyParam = False;
-        foreach hash<ParameterInfo> param in (params) {
-            # find parameter object
-            *ParameterObject po;
-            foreach ParameterObject p in (op.parameters) {
-                if (p.name == param.name) {
-                    po = p;
-                    break;
-                }
-            }
-            if (po == NOTHING) {
-                foreach ParameterObject p in (pio.parameters) {
-                    if (p.name == param.name) {
-                        po = p;
-                        break;
-                    }
-                }
-            }
-
-            if (po == NOTHING)
-                throw "INVALID-PARAMETER-NAME",
-                    sprintf("No parameter named %y defined for path %y and method %y",
-                        param.name, path, method);
-
-            # check parameter's location
-            if (param.loc != po.inLoc)
-                throw "INVALID-PARAMETER-LOCATION",
-                    sprintf("Parameter %y for path %y and method %y has invalid location %y (should be %y)",
-                        param.name, path, method, param.loc, po.inLoc);
-
-            # check parameter's value
-            if (param.loc == "body") {
-                if (bodyParam)
-                    throw "INVALID-PARAMETER-LOCATION",
-                        sprintf("Multiple parameters in body for path %y and method %y",
-                            path, method);
-                bodyParam = True;
-
-                BodyParameter bp = po.bodyParam;
-                bp.schema.check(path, method, param.name, param.val);
-            }
-            else {
-                OtherParameter oparam = po.otherParam;
-                oparam.check(path, method, param.name, param.val);
-            }
-        }
-    }
-
-    public PathItemObject findPathObject(string path, reference params) {
-        foreach hash it in (swagger.paths.paths.pairIterator()) {
-            # TODO - extract parameters from path if the param location is "path"
-            if (it.key == path) { # path matches
-                return it.value;
-            }
-        }
-        throw "INVALID-PATH", sprintf("Path %y is invalid", path);
-    }
-
-    #! Validate a single request.
-    /**
-        @param path path of the request
-        @param method HTTP method of the request
-        @param params parameters of the request
-        @param headers headers of the request
-
-        @throws INVALID-METHOD invalid path operation method used
-     */
-    public validateRequest(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
-        # find path item object
-        PathItemObject pio = findPathObject(path, \params);
-
-        # extract params from header possibly
-        # TODO
-
-        # find operation object
-        if (!pio.operations.hasKey(method))
-            throw "INVALID-METHOD", sprintf("Path %y does not have any operation defined for the %y method; known methods: %y", path, method, keys pio.operations);
-        OperationObject op = pio.operations{method};
-
-        # check validitiy of parameters
-        checkParameters(path, method, pio, op, params);
-
-        # TODO
-    }
-
-    #! Validate a single request. No-exception version of the method.
-    /**
-        @param path path of the request
-        @param method HTTP method of the request
-        @param params parameters of the request
-        @param headers headers of the request
-     */
-    public bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
-        try {
-            validateRequest(path, method, params, headers);
-        }
-        catch (hash<ExceptionInfo> ex) {
-            return False;
-        }
-        return True;
-    }
-}
-
 #! Used for loading the Swagger definitions.
 public class SwaggerLoader {
     #! Load Swagger definition from a string.
@@ -781,6 +666,59 @@ public class SwaggerObject inherits ObjectBase {
             if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
                 externalDocs = new ExternalDocumentationObject(extDocsObj);
         }
+    }
+
+    PathItemObject findPathObject(string path, reference params) {
+        foreach hash it in (paths.paths.pairIterator()) {
+            # TODO - extract parameters from path if the param location is "path"
+            if (it.key == path) { # path matches
+                return it.value;
+            }
+        }
+        throw "INVALID-PATH", sprintf("Path %y is invalid", path);
+    }
+
+    #! Validate a single request.
+    /**
+        @param path path of the request
+        @param method HTTP method of the request
+        @param params parameters of the request
+        @param headers headers of the request
+
+        @throws INVALID-METHOD invalid path operation method used
+     */
+    validateRequest(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+        # find path item object
+        PathItemObject pio = findPathObject(path, \params);
+
+        # extract params from header possibly
+        # TODO
+
+        # find operation object
+        if (!pio.operations.hasKey(method))
+            throw "INVALID-METHOD", sprintf("Path %y does not have any operation defined for the %y method; known methods: %y", path, method, keys pio.operations);
+        OperationObject op = pio.operations{method};
+
+        # check validitiy of parameters
+        op.checkParameters(path, method, pio, params);
+        # TODO
+    }
+
+    #! Validate a single request. No-exception version of the method.
+    /**
+        @param path path of the request
+        @param method HTTP method of the request
+        @param params parameters of the request
+        @param headers headers of the request
+     */
+    public bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+        try {
+            validateRequest(path, method, params, headers);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            return False;
+        }
+        return True;
     }
 }
 
@@ -1233,6 +1171,66 @@ public class OperationObject inherits ObjectBase {
     #! riases an exception with context information
     error(string err, string fmt) {
         throw err, sprintf("%s %s: %s", method, path, vsprintf(fmt, argv));
+    }
+
+    #! checks request parameters
+    /** @param path the URI path for the request
+        @param method the HTTP methos for the request
+        @param pio the @ref Swagger::PathItemObject "PathItemObject" for the path
+        @param params the actual parameters passed
+
+        @throws INVALID-PARAMETER-NAME one or more parameter names is invalid
+        @throws INVALID-PARAMETER-LOCATION the location for one or more parameters is invalid
+        @throws INVALID-PARAMETER-TYPE one or parameters has an invalid type
+        @throws INVALID-PARAMETER-VALUE one or parameters has an invalid value
+    */
+    checkParameters(string path, string method, PathItemObject pio, list<hash<ParameterInfo>> params) {
+        bool bodyParam = False;
+        foreach hash<ParameterInfo> param in (params) {
+            # find parameter object
+            *ParameterObject po;
+            foreach ParameterObject p in (parameters) {
+                if (p.name == param.name) {
+                    po = p;
+                    break;
+                }
+            }
+            if (!po) {
+                foreach ParameterObject p in (pio.parameters) {
+                    if (p.name == param.name) {
+                        po = p;
+                        break;
+                    }
+                }
+            }
+
+            if (!po)
+                throw "INVALID-PARAMETER-NAME",
+                    sprintf("No parameter named %y defined for path %y and method %y",
+                        param.name, path, method);
+
+            # check parameter's location
+            if (param.loc != po.inLoc)
+                throw "INVALID-PARAMETER-LOCATION",
+                    sprintf("Parameter %y for path %y and method %y has invalid location %y (should be %y)",
+                        param.name, path, method, param.loc, po.inLoc);
+
+            # check parameter's value
+            if (param.loc == "body") {
+                if (bodyParam)
+                    throw "INVALID-PARAMETER-LOCATION",
+                        sprintf("Multiple parameters in body for path %y and method %y",
+                            path, method);
+                bodyParam = True;
+
+                BodyParameter bp = po.bodyParam;
+                bp.schema.check(path, method, param.name, param.val);
+            }
+            else {
+                OtherParameter oparam = po.otherParam;
+                oparam.check(path, method, param.name, param.val);
+            }
+        }
     }
 }
 

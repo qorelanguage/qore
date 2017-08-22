@@ -1183,50 +1183,31 @@ public class SwaggerTest inherits QUnit::Test {
     testValidation() {
         checkModules();
 
-        {
-            Swagger::SwaggerObject so;
-            so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml");
-            MessageValidator v(so);
-            list<hash<ParameterInfo>> params;
-            {
-                params = (
-                    new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
-                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
-                );
-                assertTrue(v.validateRequestNoExcept("/user/login", "get", params, {}));
-                assertThrows("INVALID-PARAMETER-NAME", \v.validateRequest(), ("/pet", "post", params, {}));
-                params[1].val = 1;
-                assertThrows("INVALID-PARAMETER-TYPE", \v.validateRequest(), ("/user/login", "get", params, {}));
-                delete params[1].val;
-                assertThrows("INVALID-PARAMETER-VALUE", \v.validateRequest(), ("/user/login", "get", params, {}));
-
-                params = (
-                    new hash<ParameterInfo>({"name": "status", "loc": "query", "val": "available"}),
-                );
-                assertTrue(v.validateRequestNoExcept("/pet/findByStatus", "get", params, {}));
-                params[0].val = "happy";
-                assertThrows("INVALID-PARAMETER-VALUE", "\"status\".*\"happy\"", \v.validateRequest(), ("/pet/findByStatus", "get", params, {}));
-            }
-        }
-
-        {
-            Swagger::SwaggerObject so;
-            so = Swagger::SwaggerLoader::fromFile("PetStore.swagger.json");
-            MessageValidator v(so);
-            list<hash<ParameterInfo>> params;
-            {
-                params = (
-                    new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
-                    new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
-                );
-                assertTrue(v.validateRequestNoExcept("/user/login", "get", params, {}));
-                assertThrows("INVALID-PARAMETER-NAME", \v.validateRequest(), ("/pet", "post", params, {}));
-                params[1].val = 1;
-                assertThrows("INVALID-PARAMETER-TYPE", \v.validateRequest(), ("/user/login", "get", params, {}));
-                delete params[1].val;
-                assertThrows("INVALID-PARAMETER-VALUE", \v.validateRequest(), ("/user/login", "get", params, {}));
-            }
-        }
+        testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml"));
+        testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.json"));
         # TODO
+    }
+
+    private testValidation(SwaggerObject so) {
+        list<hash<ParameterInfo>> params;
+        {
+            params = (
+                new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
+                new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
+            );
+            assertTrue(so.validateRequestNoExcept("/user/login", "get", params, {}));
+            assertThrows("INVALID-PARAMETER-NAME", \so.validateRequest(), ("/pet", "post", params, {}));
+            params[1].val = 1;
+            assertThrows("INVALID-PARAMETER-TYPE", \so.validateRequest(), ("/user/login", "get", params, {}));
+            delete params[1].val;
+            assertThrows("INVALID-PARAMETER-VALUE", \so.validateRequest(), ("/user/login", "get", params, {}));
+
+            params = (
+                new hash<ParameterInfo>({"name": "status", "loc": "query", "val": "available"}),
+            );
+            assertTrue(so.validateRequestNoExcept("/pet/findByStatus", "get", params, {}));
+            params[0].val = "happy";
+            assertThrows("INVALID-PARAMETER-VALUE", "\"status\".*\"happy\"", \so.validateRequest(), ("/pet/findByStatus", "get", params, {}));
+        }
     }
 }
