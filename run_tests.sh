@@ -3,34 +3,56 @@
 print_usage ()
 {
   echo "Usage: run_tests.sh [OPTIONS]"
-  echo "Run all the qore tests."
+  echo "Run qore tests."
   echo
-  echo "  -j    Use --format=junit option for the tests, making them print JUnit output."
-  echo "  -v    Use --format=plain option for the tests, making them print one statement per each test case."
+  echo "  -j         Use --format=junit option for the tests, making them print JUnit output."
+  echo "  -v         Use --format=plain option for the tests, making them print one statement per each test case."
+  echo "  -d <dir>   Run only specified tests (as found in ./examples/test/)."
+}
+
+err_multiple_format_opts()
+{
+  echo "Multiple formatting options can't be used at the same time." >&2
+  print_usage
+  exit 1
 }
 
 TEST_OUTPUT_FORMAT=""
 PRINT_TEXT=1
 
-# Handle command-line arguments.
-if [ $# -eq 0 ]; then
-    TEST_OUTPUT_FORMAT=""
-elif [ $# -eq 1 ]; then
-    if [ "$1" = "-v" ]; then
-        TEST_OUTPUT_FORMAT="-v"
-    elif [ "$1" = "-j" ]; then
-        TEST_OUTPUT_FORMAT="--format=junit"
-        PRINT_TEXT=0
-    else
-        echo "Unknown option: $1"
-        print_usage
-        exit 1
-    fi
-else
-    echo "Too many options."
-    print_usage
-    exit 1
-fi
+while getopts ":vjd:" opt; do
+    case $opt in
+        v)
+            if [ -n "$TEST_OUTPUT_FORMAT" ]; then
+                err_multiple_format_opts
+            else
+                TEST_OUTPUT_FORMAT="-v"
+            fi
+            ;;
+        j)
+            if [ -n "$TEST_OUTPUT_FORMAT" ]; then
+                err_multiple_format_opts
+            else
+                TEST_OUTPUT_FORMAT="--format=junit"
+                PRINT_TEXT=0
+            fi
+            ;;
+        d)
+            RUN_ONLY="$OPTARG"
+            ;;
+        \?)
+            echo "Unknown option: -$OPTARG" >&2
+            print_usage
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
 
 QORE=""
 QR=""
@@ -103,7 +125,7 @@ echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 printf "TIME_CMD: %s\n" "$TIME_CMD";echo
 
 # Search for tests in the test directory.
-TESTS=`find ./examples/test/ -name "*.qtest"`
+TESTS=`find ./examples/test/"$RUN_ONLY" -name "*.qtest"`
 FAILED_TESTS=""
 
 TEST_COUNT=`echo $TESTS | wc -w`
