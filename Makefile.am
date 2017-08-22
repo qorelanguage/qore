@@ -32,7 +32,6 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/FilePoller.qm \
 	qlib/FixedLengthUtil.qm \
 	qlib/FreetdsSqlUtil.qm \
-	qlib/FsUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/Pop3Client.qm \
