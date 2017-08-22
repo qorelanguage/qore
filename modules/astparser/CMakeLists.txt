@@ -57,7 +57,7 @@ bison_target(ast_parser src/ast_parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/ast_parse
 flex_target(ast_scanner src/ast_scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp)
 add_flex_bison_dependency(ast_scanner ast_parser)
 
-qore_wrap_qpp(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
+qore_wrap_qpp_value(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
 add_custom_target(ASTPARSER_QPP_GENERATED_FILES DEPENDS qpp ${ASTPARSER_QPP_SOURCES})
 add_custom_target(ASTPARSER_BISON_GENERATED_FILES DEPENDS ${BISON_ast_parser_OUTPUTS})
 add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_ast_scanner_OUTPUTS})
