@@ -422,12 +422,12 @@ public class SwaggerTest inherits QUnit::Test {
         p = {"a": {"in": "query", "type": "string"}};
         assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "type": "string"}};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"in\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"parameters": p}));
 
         p = {"a": {"name": 5, "in": "query", "type": "string"}};
         assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "in": 5, "type": "string"}};
-        assertThrows("INVALID-FIELD-TYPE", "in", loadyaml, make_yaml(base + {"parameters": p}));
+        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, make_yaml(base + {"parameters": p}));
         p = {"a": {"name": "a", "in": "a", "type": "string"}};
         assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, make_yaml(base + {"parameters": p}));
 
@@ -1208,6 +1208,16 @@ public class SwaggerTest inherits QUnit::Test {
             assertTrue(so.validateRequestNoExcept("/pet/findByStatus", "get", params, {}));
             params[0].val = "happy";
             assertThrows("INVALID-PARAMETER-VALUE", "\"status\".*\"happy\"", \so.validateRequest(), ("/pet/findByStatus", "get", params, {}));
+
+            {
+                string uri_path = "/user/login?username=user;password=pass";
+                hash hdr = {};
+                so.processRequest("get", \uri_path, \hdr);
+
+                uri_path = "/user/login";
+                hdr = {};
+                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", \uri_path, \hdr));
+            }
         }
     }
 }

@@ -42,10 +42,12 @@
 
 # need mime definitions
 %requires Mime >= 1.3.4.1
+# requires the Util module
+%requires Util >= 1.3
 
 module Swagger {
     version = "0.1.0";
-    desc = "Swagger module providing functionality for OpenAPI (Swagger) definitions";
+    desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
@@ -57,7 +59,7 @@ module Swagger {
 
     @section swaggerintro Swagger Module Introduction
 
-    The %Swagger module provides a <a href="https://swagger.io/">Swagger/OAS 3.0 REST API validation API</a> to %Qore.
+    The %Swagger module provides a <a href="https://swagger.io/">Swagger 2.0 REST API validation API</a> to %Qore.
 
     Primary classes provided by this module:
     - @ref Swagger::SwaggerObject "SwaggerObject"
@@ -512,9 +514,9 @@ public class SwaggerObject inherits ObjectBase {
 
         #! Parameter definitions that can be used across operations. This property does not define global parameters for all operations.
         /**
-            A hash of @ref ParameterObject objects. Keys are parameter names.
+            A hash of @ref AbstractParameterObject objects. Keys are parameter names.
          */
-        hash<string, ParameterObject> parameters;
+        hash<string, AbstractParameterObject> parameters();
 
         #! Response definitions that can be used across operations. This property does not define global responses for all operations.
         /**
@@ -574,10 +576,12 @@ public class SwaggerObject inherits ObjectBase {
         if (oh.swagger.typeCode() == NT_STRING)
             swaggerSpec = oh.swagger;
         else if (oh.swagger.typeCode() == NT_FLOAT || oh.swagger.typeCode() == NT_INT)
-            swaggerSpec = oh.swagger.toString();
+            swaggerSpec = sprintf("%.1f", oh.swagger);
         else
             throw "INVALID-FIELD-TYPE",
                 sprintf("%s Object: 'swagger' field has invalid type %y (should be string or float)", objType, oh.swagger.type());
+        if (swaggerSpec != "2.0")
+            throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
         {
             hash infoObj;
@@ -622,7 +626,7 @@ public class SwaggerObject inherits ObjectBase {
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
-                parameters{item.key} = new ParameterObject(item.value);
+                parameters{item.key} = AbstractParameterObject::newParameter(item.value);
             }
 
             obj = {};
@@ -668,14 +672,14 @@ public class SwaggerObject inherits ObjectBase {
         }
     }
 
-    PathItemObject findPathObject(string path, reference params) {
-        foreach hash it in (paths.paths.pairIterator()) {
-            # TODO - extract parameters from path if the param location is "path"
-            if (it.key == path) { # path matches
-                return it.value;
-            }
-        }
-        throw "INVALID-PATH", sprintf("Path %y is invalid", path);
+    #! processes and validates a REST request
+    processRequest(string method, reference<string> path, reference<hash> headers, *reference<hash> body) {
+        hash<UriQueryInfo> h = parse_uri_query(path);
+
+        PathItemObject pio = paths.match(h.method);
+        OperationObject op = pio.getOperation(method, h.method);
+
+        op.processRequest(method, pio, \h, \headers, \body);
     }
 
     #! Validate a single request.
@@ -689,15 +693,13 @@ public class SwaggerObject inherits ObjectBase {
      */
     validateRequest(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
         # find path item object
-        PathItemObject pio = findPathObject(path, \params);
+        PathItemObject pio = paths.match(path);
 
         # extract params from header possibly
         # TODO
 
         # find operation object
-        if (!pio.operations.hasKey(method))
-            throw "INVALID-METHOD", sprintf("Path %y does not have any operation defined for the %y method; known methods: %y", path, method, keys pio.operations);
-        OperationObject op = pio.operations{method};
+        OperationObject op = pio.getOperation(method, path);
 
         # check validitiy of parameters
         op.checkParameters(path, method, pio, params);
@@ -823,16 +825,90 @@ public class LicenseObject inherits ObjectBase {
 /**
     The path is appended to the @ref SwaggerObject::basePath "basePath" in order to construct the full URL.
     The Paths may be empty, due to ACL constraints.
+
+    This class stores a tree or a component of a path for path matching, supports wildcard matching
  */
+public class PathComponent {
+    private {
+        #! path prefix
+        string pfx;
+
+        #! current component name
+        string name;
+
+        #! if there is a wildcard to a PathComponent
+        *PathComponent wildcard;
+
+        #! the PathItemObject associated with this path (if any)
+        *PathItemObject pio;
+
+        #! hash of non-wildcard paths to the next level
+        hash<string, PathComponent> paths;
+    }
+
+    #! creates the object
+    constructor(hash oh, string pfx) {
+        self.pfx = pfx;
+        name = "/";
+        foreach hash h in (oh.pairIterator()) {
+            if (!pfx.val() && h.key !~ /^\//)
+                throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
+            list l = h.key.split("/");
+            shift l;
+            add(h.key, l, 0, h.value);
+        }
+    }
+
+    #! private constructor
+    private constructor(string full_path, list l, int offset, hash oh) {
+        list l0 = l;
+        splice l0, offset + 1;
+        pfx = l0.join("/");
+        name = l[offset - 1];
+        #printf("pfx: %y name: %y\n", pfx, name);
+    }
+
+    #! adds a component or a Path Item Object to the tree
+    private add(string full_path, list l, int offset, hash oh) {
+        #printf("PathComponent::add(): %y l: %y offset: %y\n", full_path, l, offset);
+        if (offset == l.size()) {
+            if (pio)
+                throw "INVALID-PATH-COMPONENT", sprintf("cannot terminate path %y twice", full_path);
+            pio = new PathItemObject(full_path, oh);
+            return;
+        }
+
+        PathComponent next;
+        string key = l[offset];
+        if (key =~ /^{/)
+            next = wildcard ?? (wildcard = new PathComponent(full_path, l, offset + 1, oh));
+        else
+            next = paths{key} ?? (paths{key} = new PathComponent(full_path, l, offset + 1, oh));
+
+        next.add(full_path, l, offset + 1, oh);
+    }
+
+    #! returns either a PathItemObject for the path
+    /** @throw INVALID-PATH the path could not be matched or has no API definition
+    */
+    PathItemObject match(list path) {
+        PathComponent w = self;
+        for (int i = 1; i < path.size(); ++i) {
+            *PathComponent next = w.paths{path[i]} ?? w.wildcard;
+            if (!next)
+                throw "INVALID-PATH", sprintf("component %y cannot be matched in %y", path[i], path.join("/"));
+            w = next;
+        }
+        if (!w.pio)
+            throw "INVALID-PATH", sprintf("path %y is valid but has no API definition", path.join("/"));
+        return w.pio;
+    }
+}
+
 public class PathsObject inherits ObjectBase {
-    public {
-        #! A hash of @ref PathItemObject objects. Keys are relative paths to individual endpoints.
-        /**
-            The path MUST begin with a slash. The path is appended to the
-            @ref SwaggerObject::basePath "basePath" in order to construct the
-            full URL. Path templating is allowed.
-         */
-        hash<string, PathItemObject> paths;
+    private {
+        #! the tree of path components for path matching with wildcards
+        PathComponent paths;
     }
 
     #! Constructor.
@@ -844,12 +920,14 @@ public class PathsObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
      */
     public constructor(hash oh) : ObjectBase(oh) {
-        foreach hash item in (oh.pairIterator()) {
-            string key = item.key;
-            if (key !~ /^\//)
-                throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: path %y does not begin with a slash", key);
-            paths{key} = new PathItemObject(item.key, item.value);
-        }
+        paths = new PathComponent(oh, "");
+    }
+
+    #! matches a URI path with a PathItemObject
+    /** @throw INVALID-PATH the path could not be matched
+    */
+    PathItemObject match(string path) {
+        return paths.match(path.split("/"));
     }
 }
 
@@ -868,19 +946,6 @@ public class PathItemObject inherits ObjectBase {
             PathItem's definition, the behavior is undefined.
          */
         *string ref;
-
-        #! A hash of @ref OperationObject "OperationObjects" correspoding to different methods.
-        /**
-            Keys are lowercase method names, with possible values being:
-            - "get"
-            - "put"
-            - "post"
-            - "del"
-            - "options"
-            - "head"
-            - "patch"
-         */
-        hash<string, OperationObject> operations;
 
         #! A definition of a GET operation on this path.
         *OperationObject get;
@@ -905,18 +970,33 @@ public class PathItemObject inherits ObjectBase {
 
         #! A list of parameters that are applicable for all the operations described under this path.
         /**
-            List values are @ref ParameterObject "ParameterObjects" or
+            List values are @ref AbstractParameterObject "AbstractParameterObjects" or
             @ref ReferenceObject "ReferenceObjects".
 
             These parameters can be overridden at the operation level, but cannot
             be removed there. The list MUST NOT include duplicated parameters.
             A unique parameter is defined by a combination of a
-            @ref ParameterObject::name "name" and @ref ParameterObject::inLoc "location".
+            @ref AbstractParameterObject::name "name" and @ref AbstractParameterObject::inLoc "location".
             The list can use the @ref ReferenceObject to link to parameters that
             are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
             There can be one \c body parameter at most.
          */
-        list<ObjectBase> parameters;
+        hash<string, ObjectBase> parameters();
+    }
+
+    private {
+        #! A hash of @ref OperationObject "OperationObjects" correspoding to different methods.
+        /**
+            Keys are lowercase method names, with possible values being:
+            - "get"
+            - "put"
+            - "post"
+            - "del"
+            - "options"
+            - "head"
+            - "patch"
+         */
+        hash<string, OperationObject> operations;
     }
 
     #! Constructor.
@@ -969,13 +1049,28 @@ public class PathItemObject inherits ObjectBase {
                             param.type());
                 hash p = param;
                 if (p.hasKey("$ref"))
-                    parameters += new ReferenceObject(p);
+                    parameters{p."$ref"} = new ReferenceObject(p);
                 else
-                    parameters += new ParameterObject(p);
+                    parameters{p.name} = AbstractParameterObject::newParameter(p);
             }
         }
 
-        # TODO check parameter duplicity; check that there's only one "body" parameter
+        # TODO check parameter duplication; check that there's only one "body" parameter
+    }
+
+    #! returns the operation object for the given method
+    /** @param path the path to be used in any error message
+        @param method the HTTP method name
+
+        @return the OperationObject corresponding to the arguments
+
+        @throws INVALID-METHOD the given path does not have any operation defined for the given method
+    */
+    OperationObject getOperation(string method, string path) {
+        *OperationObject op = operations{method};
+        if (!op)
+            throw "INVALID-METHOD", sprintf("Path %y does not have any operation defined for the %y method; known methods: %y", path, method, keys operations);
+        return op;
     }
 }
 
@@ -1040,13 +1135,13 @@ public class OperationObject inherits ObjectBase {
             If a parameter is already defined at the @ref PathItemObject "Path Item",
             the new definition will override it, but can never remove it.
             The list MUST NOT include duplicated parameters.
-            A unique parameter is defined by a combination of a @ref ParameterObject::name "name"
-            and @ref ParameterObject::inLoc "location".
+            A unique parameter is defined by a combination of a @ref AbstractParameterObject::name "name"
+            and @ref AbstractParameterObject::inLoc "location".
             The list can use the @ref ReferenceObject to link to parameters that
             are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
             There can be one "body" parameter at most.
          */
-        list<ObjectBase> parameters;
+        hash<string, ObjectBase> parameters();
 
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
@@ -1121,9 +1216,9 @@ public class OperationObject inherits ObjectBase {
                 if (p.typeCode() != NT_HASH)
                     error("INVALID-FIELD-TYPE", "Operation Object: invalid 'parameters' list value datatype: " + p.type());
                 if (p.hasKey("$ref"))
-                    parameters += new ReferenceObject(p);
+                    parameters{p."$ref"} = new ReferenceObject(p);
                 else
-                    parameters += new ParameterObject(p);
+                    parameters{p.name} = AbstractParameterObject::newParameter(p);
             }
         }
 
@@ -1168,7 +1263,56 @@ public class OperationObject inherits ObjectBase {
         }
     }
 
-    #! riases an exception with context information
+    #! processes a REST API request to the operation
+    /**
+
+        @throws INVALID-PARAMETER-NAME invalid parameter name
+        @throws INVALID-PARAMETER-LOCATION invalid parameter location
+
+    */
+    processRequest(string method, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> headers, *reference<hash> body) {
+        foreach hash ph in (h.params.pairIterator()) {
+            # find URI parameter object
+            *AbstractParameterObject po = parameters{ph.key} ?? pio.parameters{ph.key};
+            if (!po)
+                throw "INVALID-PARAMETER-NAME",
+                    sprintf("No parameter named %y defined for path %y and method %y",
+                        ph.key, path, method);
+            if (po.inLoc != "query")
+                throw "INVALID-PARAMETER-LOCATION", sprintf("invalid parameter %y given in the URI query; expected location %y", ph.key, po.inLoc);
+
+            po.check(path, method, ph.key, ph.value);
+        }
+
+        # check for missing required parameters
+        checkMissingParams(method, \h, parameters);
+        checkMissingParams(method, \h, pio.parameters, parameters);
+
+        #printf("OperationObject::processRequest() %y h: %y\n", method, h);
+    }
+
+    #! checks for missing params
+    static checkMissingParams(string method, reference<hash<UriQueryInfo>> h, hash<string, ObjectBase> parameters, *hash<string, ObjectBase> child_params) {
+        foreach hash ph in (parameters.pairIterator()) {
+            # don't check if child params already checked
+            if (child_params{ph.key})
+                continue;
+            # FIXME: handle references
+            if (!(ph.value instanceof AbstractParameterObject))
+                continue;
+
+            AbstractParameterObject po = cast<AbstractParameterObject>(ph.value);
+            if (po.required && !exists h.params{ph.key}) {
+                if (!exists (h.params{ph.key} = po.getDefaultValue()))
+                    throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required parameter %y", method, h.method, ph.key);
+            }
+            #printf("%s: %N\n", ph.key, ph.value);
+            #if ()
+        }
+
+    }
+
+    #! raises an exception with context information
     error(string err, string fmt) {
         throw err, sprintf("%s %s: %s", method, path, vsprintf(fmt, argv));
     }
@@ -1188,22 +1332,7 @@ public class OperationObject inherits ObjectBase {
         bool bodyParam = False;
         foreach hash<ParameterInfo> param in (params) {
             # find parameter object
-            *ParameterObject po;
-            foreach ParameterObject p in (parameters) {
-                if (p.name == param.name) {
-                    po = p;
-                    break;
-                }
-            }
-            if (!po) {
-                foreach ParameterObject p in (pio.parameters) {
-                    if (p.name == param.name) {
-                        po = p;
-                        break;
-                    }
-                }
-            }
-
+            *AbstractParameterObject po = parameters{param.name} ?? pio.parameters{param.name};
             if (!po)
                 throw "INVALID-PARAMETER-NAME",
                     sprintf("No parameter named %y defined for path %y and method %y",
@@ -1222,14 +1351,18 @@ public class OperationObject inherits ObjectBase {
                         sprintf("Multiple parameters in body for path %y and method %y",
                             path, method);
                 bodyParam = True;
-
+                /*
                 BodyParameter bp = po.bodyParam;
                 bp.schema.check(path, method, param.name, param.val);
+                */
             }
+            /*
             else {
                 OtherParameter oparam = po.otherParam;
                 oparam.check(path, method, param.name, param.val);
             }
+            */
+            po.check(path, method, param.name, param.val);
         }
     }
 }
@@ -1260,8 +1393,8 @@ public class ExternalDocumentationObject inherits ObjectBase {
 
 #! Describes a single operation parameter.
 /**
-    A unique parameter is defined by a combination of a @ref ParameterObject::name "name"
-    and @ref ParameterObject::inLoc "location".
+    A unique parameter is defined by a combination of a @ref AbstractParameterObject::name "name"
+    and @ref AbstractParameterObject::inLoc "location".
 
     There are five possible parameter types:
     - Path: Used together with Path Templating, where the parameter value is
@@ -1295,16 +1428,16 @@ public class ExternalDocumentationObject inherits ObjectBase {
                 of the parameter is \c submit-name. This type of form parameters
                 is more commonly used for file transfers.
  */
-public class ParameterObject inherits ObjectBase {
+public class AbstractParameterObject inherits ObjectBase {
     public {
         #! Required. The name of the parameter. Parameter names are case sensitive.
         /**
-            - If @ref ParameterObject::inLoc "inLoc" is \c "path", the \c name
+            - If @ref AbstractParameterObject::inLoc "inLoc" is \c "path", the \c name
                 field MUST correspond to the associated path segment from the
                 @ref PathsObject::path "path" field in the @ref PathsObject.
                 See Path Templating for further information.
             - For all other cases, the name corresponds to the parameter name
-                used based on the @ref ParameterObject::inLoc "inLoc" property.
+                used based on the @ref AbstractParameterObject::inLoc "inLoc" property.
          */
         string name;
 
@@ -1320,17 +1453,26 @@ public class ParameterObject inherits ObjectBase {
 
         #! Determines whether this parameter is mandatory.
         /**
-            If the parameter is @ref ParameterObject::inLoc "in" "path",
+            If the parameter is @ref AbstractParameterObject::inLoc "in" "path",
             this property is \b required and its value MUST be \c true.
             Otherwise, the property MAY be included and its default value is \c false.
          */
         bool required = False;
 
-        #! Additional properties used when @ref ParameterObject::inLoc "inLoc" is \c "body".
+        #! Additional properties used when @ref AbstractParameterObject::inLoc "inLoc" is \c "body".
         *BodyParameter bodyParam;
 
-        #! Additional properties used when @ref ParameterObject::inLoc "inLoc" is not \c "body".
+        #! Additional properties used when @ref AbstractParameterObject::inLoc "inLoc" is not \c "body".
         *OtherParameter otherParam;
+    }
+
+    private {
+        const OtherParameterMap = (
+            "query": True,
+            "header": True,
+            "path": True,
+            "formData": True,
+        );
     }
 
     #! Constructor.
@@ -1346,31 +1488,33 @@ public class ParameterObject inherits ObjectBase {
         required_field(objType, oh, "name", NT_STRING, \name);
         required_field(objType, oh, "in", NT_STRING, \inLoc);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
-        if (inLoc == "body") {
-            bodyParam = new BodyParameter(oh);
+        if (inLoc == "path")
+            required_field(objType, oh, "required", NT_BOOLEAN, \required);
+        else
             optional_field(objType, oh, "required", NT_BOOLEAN, \required);
-        }
-        else if (("query", "header", "path", "formData").contains(inLoc)) {
-            if (inLoc == "path") {
-                # TODO - check that the \c name
-                # field MUST correspond to the associated path segment from the
-                # @ref PathsObject::path "path" field in the @ref PathsObject.
+    }
 
-                required_field(objType, oh, "required", NT_BOOLEAN, \required);
-            }
-            else {
-                optional_field(objType, oh, "required", NT_BOOLEAN, \required);
-            }
-            otherParam = new OtherParameter(oh, self);
-        }
-        else {
-            throw "INVALID-FIELD-VALUE", "Parameter Object: invalid parameter 'in' (location) value: " + inLoc;
-        }
+    #! verifies the parameter in an actual REST API call
+    abstract check(string path, string method, string name, any value);
+
+    #! returns the default value of the parameter (default: @ref nothing)
+    any getDefaultValue() {
+    }
+
+    #! gets a concrete instance of an AbstractParameterObject
+    static AbstractParameterObject newParameter(hash oh) {
+        if (!oh.hasKey("in"))
+            throw "REQUIRED-FIELD-MISSING", sprintf("Parameter Object: missing location parameter \"in\"");
+        if (oh."in" == "body")
+            return new BodyParameter(oh);
+        else if (OtherParameterMap{oh."in"})
+            return new OtherParameter(oh);
+        throw "INVALID-FIELD-VALUE", sprintf("Parameter Object: invalid location (\"in\") parameter value: %y", oh."in");
     }
 }
 
-#! @ref ParameterObject "ParameterObject's" properties for the \c "body" parameter.
-public class BodyParameter {
+#! @ref AbstractParameterObject specialization for \c "body" parameters.
+public class BodyParameter inherits AbstractParameterObject {
     public {
         #! Required. The schema defining the type used for the body parameter.
         SchemaObject schema;
@@ -1383,15 +1527,20 @@ public class BodyParameter {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) {
+    public constructor(hash oh) : AbstractParameterObject(oh) {
         hash schemaObj;
         required_field("Parameter", oh, "schema", NT_HASH, \schemaObj);
         schema = new SchemaObject(schemaObj);
     }
+
+    #! verifies the parameter in an actual REST API call
+    check(string path, string method, string name, any value) {
+        return schema.check(path, method, name, value);
+    }
 }
 
-#! @ref ParameterObject "ParameterObject's" properties for parameters other than \c "body".
-public class OtherParameter inherits SchemaBase {
+#! @ref AbstractParameterObject specialization for parameters other than \c "body".
+public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     public {
         #! Required. The type of the parameter.
         /**
@@ -1401,7 +1550,7 @@ public class OtherParameter inherits SchemaBase {
             \c "boolean", \c "array" or \c "file". If \c type is \c "file",
             the @ref OperationObject::consumes "consumes" MUST be either
             \c "multipart/form-data", \c " application/x-www-form-urlencoded" or
-            both and the parameter MUST be @ref ParameterObject::inLoc "in" \c "formData".
+            both and the parameter MUST be @ref AbstractParameterObject::inLoc "in" \c "formData".
          */
         string type;
 
@@ -1428,7 +1577,7 @@ public class OtherParameter inherits SchemaBase {
             - \c "pipes": pipe separated values; ex: foo|bar
             - \c "multi": corresponds to multiple parameter instances instead of
                 multiple values for a single instance <tt>foo=bar&foo=baz</tt>.
-                This is valid only for parameters @ref ParameterObject::inLoc "in"
+                This is valid only for parameters @ref AbstractParameterObject::inLoc "in"
                 \c "query" or \c "formData".
 
             Default value is \c "csv".
@@ -1449,13 +1598,12 @@ public class OtherParameter inherits SchemaBase {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing general parameters (other than \c "body" parameters)
-        @param po parent @ref ParameterObject
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, ParameterObject po) : SchemaBase("Parameter", oh) {
+    public constructor(hash oh) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!("string", "number", "integer", "boolean", "array", "file").contains(type))
@@ -1479,7 +1627,7 @@ public class OtherParameter inherits SchemaBase {
         if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
             if (!("csv", "ssv", "tsv", "pipes", "multi").contains(collectionFormat))
                 throw "INVALID-FIELD-VALUE", "Parameter Object: invalid collectionFormat value passed: " + collectionFormat;
-            if (collectionFormat == "multi" && po.inLoc != "query" && po.inLoc != "formData")
+            if (collectionFormat == "multi" && inLoc != "query" && inLoc != "formData")
                 throw "INVALID-FIELD-VALUE",
                     "Parameter Object: invalid collectionFormat value 'multi' - is only valid when 'in' (location) is either 'query' or 'formData'";
         }
@@ -1513,11 +1661,16 @@ public class OtherParameter inherits SchemaBase {
                             name, path, method);
         }
     }
+
+    #! returns the default value of the parameter (default: @ref nothing)
+    any getDefaultValue() {
+        return defaultVal;
+    }
 }
 
 #! A limited subset of JSON-Schema's items object.
 /**
-    It is used by parameter definitions that are not located @ref ParameterObject::inLoc "in" \c "body".
+    It is used by parameter definitions that are not located @ref AbstractParameterObject::inLoc "in" \c "body".
  */
 public class ItemsObject inherits ObjectBase, SchemaBase {
     public {
@@ -1561,7 +1714,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
 
     #! Constructor.
     /**
-        @param oh deserialized hash from the source schema description describing an item to be used by parameter definitions that are not located @ref ParameterObject::inLoc "in" \c "body"
+        @param oh deserialized hash from the source schema description describing an item to be used by parameter definitions that are not located @ref AbstractParameterObject::inLoc "in" \c "body"
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
