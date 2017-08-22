@@ -1306,10 +1306,7 @@ public class OperationObject inherits ObjectBase {
                 if (!exists (h.params{ph.key} = po.getDefaultValue()))
                     throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required parameter %y", method, h.method, ph.key);
             }
-            #printf("%s: %N\n", ph.key, ph.value);
-            #if ()
         }
-
     }
 
     #! raises an exception with context information
