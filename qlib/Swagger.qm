@@ -205,9 +205,10 @@ class SchemaBase {
 
     #! Copy constructor
     constructor(SchemaBase other) {
-        self += map {$1: other.$1}, ("maximum", "minimum", "exclusiveMax", "exclusiveMin",
-                                     "maxLength", "minLength", "pattern", "maxItems", "minItems",
-                                     "uniqueItems", "enum", "multipleOf"), exists other.$1;
+        self += map {$1: other.$1}, (
+            "maximum", "minimum", "exclusiveMax", "exclusiveMin",
+            "maxLength", "minLength", "pattern", "maxItems", "minItems",
+            "uniqueItems", "enum", "multipleOf"), exists other.$1;
     }
 
     #! validates the value against the schema definition
@@ -219,42 +220,37 @@ class SchemaBase {
             checkIntern(type, path, method, name, value);
     }
 
-    private checkIntern(string type, string path, string method, string name, any value) {
-        switch (value.typeCode()) {
-            case NT_STRING:
-                if (type != "string")
-                    throwInvalidType("string", type);
-                checkStringParam(path, method, name, value);
-                break;
-            case NT_INT:
-                if (type != "integer")
-                    throwInvalidType("integer", type);
-                checkIntegerParam(path, method, name, value);
-                break;
-            case NT_FLOAT:
-                if (type != "number")
-                    throwInvalidType("number", type);
-                checkNumberParam(path, method, name, value);
-                break;
-            case NT_NUMBER:
-                if (type != "number")
-                    throwInvalidType("number", type);
-                checkNumberParam(path, method, name, value);
-                break;
-            case NT_LIST:
-                # arrays checked at a higher level
-                throwInvalidType("array", type);
-                break;
-            case NT_BOOLEAN:
-                if (type != "boolean")
-                    throwInvalidType("boolean", type);
-                break;
-            # file TODO
-        }
+    private checkIntern(string type, string path, string method, string name, string value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+        checkStringParam(path, method, name, value);
+    }
+
+    private checkIntern(string type, string path, string method, string name, int value) {
+        if (type != "integer")
+            throwInvalidType(name, "integer", type);
+        checkIntegerParam(path, method, name, value);
+    }
+
+    # NOTE: "number" also accepts "float"
+    private checkIntern(string type, string path, string method, string name, number value) {
+        if (type != "number")
+            throwInvalidType(name, "number", type);
+        checkNumberParam(path, method, name, value);
+    }
+
+    private checkIntern(string type, string path, string method, string name, bool value) {
+        if (type != "boolean")
+            throwInvalidType(name, "boolean", type);
+    }
+
+    private checkIntern(string type, string path, string method, string name) {
+        if (type != "null")
+            throw "INVALID-PARAMETER-VALUE", sprintf("Parameter %y for path %y and method %y is null, but the expected type is %y", name, path, method, type);
     }
 
     #! validates the value against the schema definition
-    private:internal checkNumberParam(string path, string method, string name, any value) {
+    private checkNumberParam(string path, string method, string name, any value) {
         if (exists maximum) {
             if (exclusiveMax) {
                 if (value >= maximum)
@@ -292,7 +288,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private:internal checkIntegerParam(string path, string method, string name, int value) {
+    private checkIntegerParam(string path, string method, string name, int value) {
         if (exists maximum) {
             if (exclusiveMax) {
                 if (value >= maximum)
@@ -330,7 +326,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private:internal checkArrayParam(ItemsObject items, string path, string method, string name, softlist value) {
+    private checkArrayParam(ItemsObject items, string path, string method, string name, softlist value) {
         if (exists maxItems && value.size() > maxItems)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
@@ -369,7 +365,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private:internal checkStringParam(string path, string method, string name, string value) {
+    private checkStringParam(string path, string method, string name, string value) {
         if (exists maxLength && value.size() > maxLength)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y is too long (maxLength: %d, actual: %d)",
@@ -389,9 +385,9 @@ class SchemaBase {
     }
 
     #! throws an \c INVALID-PARAMETER-TYPE exception
-    static private throwInvalidType(string actual, string expected) {
+    static private throwInvalidType(string name, string actual, string expected) {
         throw "INVALID-PARAMETER-TYPE",
-            sprintf("Parameter has invalid type %y (should be %y)", actual, expected);
+            sprintf("Parameter %y has invalid type %y (should be %y)", name, actual, expected);
     }
 }
 
@@ -687,13 +683,13 @@ public class SwaggerObject inherits ObjectBase {
     }
 
     #! processes and validates a REST request
-    processRequest(string method, reference<string> path, reference<hash> headers, *reference<hash> body) {
+    processRequest(string method, string path, *hash headers, *hash body, *reference<hash<string, bool>> mime_types) {
         hash<UriQueryInfo> h = parse_uri_query(path);
 
         PathItemObject pio = paths.match(h.method);
         OperationObject op = pio.getOperation(method, h.method);
 
-        op.processRequest(method, pio, \h, \headers, \body);
+        op.processRequest(method, pio, h, headers, body, \mime_types);
     }
 
     #! Validate a single request.
@@ -1283,9 +1279,13 @@ public class OperationObject inherits ObjectBase {
         optional_field(objType, oh, "operationId", NT_STRING, \operationId);
         # TODO check operationId uniqueness as per docs
 
-        optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes);
+        # use the global "consumes" definition if none is defined on the operation
+        if (!optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes))
+            consumes = swagger.consumes;
 
-        optional_field(objType, oh, "produces", SwaggerListToSet, \produces);
+        # use the global "produces" definition if none is defined on the operation
+        if (!optional_field(objType, oh, "produces", SwaggerListToSet, \produces))
+            produces = swagger.produces;
 
         {
             list listObj;
@@ -1340,13 +1340,18 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! processes a REST API request to the operation
-    /**
+    /** @param method the HTTP methis for the operation
+        @param pio the PathItemObject corresponding to the URI path
+        @param h a reference to the URI query info hash
+        @param headers a reference to a hash of HTTP headers
+        @param body a reference to the HTTP message body data hash
+        @param mime_types a reference to a hash of valid mime types for the operation
 
         @throws INVALID-PARAMETER-NAME invalid parameter name
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
-    processRequest(string method, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> headers, *reference<hash> body) {
+    processRequest(string method, PathItemObject pio, hash<UriQueryInfo> h, *hash headers, *hash body, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach hash ph in (h.params.pairIterator()) {
             # find URI parameter object
@@ -1373,26 +1378,28 @@ public class OperationObject inherits ObjectBase {
         }
 
         # check body parameters
-        foreach hash ph in (headers.pairIterator()) {
+        foreach hash ph in (body.pairIterator()) {
             # find URI parameter object
             *AbstractParameterObject po = parameters{ph.key} ?? pio.parameters{ph.key};
             if (!po)
                 throw "INVALID-PARAMETER-NAME",
                     sprintf("No parameter named %y defined for path %y and method %y",
                         ph.key, path, method);
-            if (po.inLoc != "query")
+            if (po.inLoc != "body")
                 throw "INVALID-PARAMETER-LOCATION", sprintf("invalid parameter %y given in the message body; expected location %y", ph.key, po.inLoc);
 
             po.check(path, method, ph.key, ph.value);
         }
 
         # check for missing required parameters
-        checkMissingParams(method, \h, \headers, \body, parameters);
-        checkMissingParams(method, \h, \headers, \body, pio.parameters, parameters);
+        checkMissingParams(method, h, headers, body, parameters);
+        checkMissingParams(method, h, headers, body, pio.parameters, parameters);
+
+        mime_types = consumes;
     }
 
     #! checks for missing params
-    static checkMissingParams(string method, reference<hash<UriQueryInfo>> h, reference<hash> headers, *reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
+    static checkMissingParams(string method, hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
             if (child_params{ph.key})
@@ -1400,15 +1407,15 @@ public class OperationObject inherits ObjectBase {
             if (ph.value.required) {
                 switch (ph.value.inLoc) {
                     case "query":
-                        if (!exists h.params{ph.key} && (!exists (h.params{ph.key} = ph.value.getDefaultValue())))
+                        if (!exists h.params{ph.key})
                             throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required query parameter %y", method, h.method, ph.key);
                         break;
                     case "header":
-                        if (!exists headers{ph.key} && (!exists (headers{ph.key} = ph.value.getDefaultValue())))
+                        if (!exists headers{ph.key})
                             throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required header parameter %y", method, h.method, ph.key);
                         break;
                     case "body":
-                        if (!exists body{ph.key} && (!exists (body{ph.key} = ph.value.getDefaultValue())))
+                        if (!exists body{ph.key})
                             throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required body parameter %y", method, h.method, ph.key);
                         break;
                     # NOTE: formData checks not implemented
@@ -2170,7 +2177,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             MUST be an object. Each value of this object MUST be an object,
             and each object MUST be a valid JSON Schema (@ref SchemaObject).
          */
-        any properties;
+        hash<string, SchemaObject> properties;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.4.
         /**
@@ -2321,14 +2328,19 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (minProperties < 0)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'minProperties' field less than 0", name);
         }
-        if (optional_field(objType, oh, "properties", NT_HASH, \properties)) {
-            foreach string k in (keys properties) {
-                any val = properties{k};
-                if (val.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
-                properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
+
+        {
+            hash props;
+            if (optional_field(objType, oh, "properties", NT_HASH, \props)) {
+                foreach string k in (keys props) {
+                    any val = props{k};
+                    if (val.typeCode() != NT_HASH)
+                        throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
+                    properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
+                }
             }
         }
+
         if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True), \additionalProperties)) {
             if (additionalProperties.typeCode() == NT_HASH)
                 additionalProperties = SchemaObject::newSchemaObject("additionalProperties", additionalProperties, swagger);
@@ -2373,6 +2385,34 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     #! validates the value against the schema definition
     check(string path, string method, string name, any value) {
         SchemaBase::check(type, items, path, method, name, value);
+    }
+
+    private checkIntern(string type, string path, string method, string name, hash value) {
+        if (type != "object")
+            throwInvalidType(name, "object", type);
+        /*
+        If additionalProperties is set to true, any number of additionalProperties may be present of any data type.
+        If additionalProperties is a schema, additional properties (beyond what are defined in ‘properties’) are allowed and must match the schema
+        */
+        # check properties
+        if (additionalProperties !== True) {
+            foreach hash ph in (value.pairIterator()) {
+                *SchemaObject prop = properties{ph.key};
+                if (!prop) {
+                    prop = additionalProperties{ph.key};
+                    if (!prop)
+                        throw "INVALID-PROPERTY", sprintf("property %y is not valid for object %y", ph.key, name);
+                }
+                prop.check(path, method, name, ph.value);
+            }
+        }
+        # check for missing required properties
+        foreach string prop in (keys required) {
+            if (!value.hasKey(prop))
+                throw "MISSING-PROPERTY", sprintf("object %y: missing required property %y", name, prop);
+        }
+        #xxx
+        #printf("check %y type: %y val: %y self: %N\n", name, type, value, self);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references

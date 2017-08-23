@@ -188,6 +188,44 @@ public class SwaggerTest inherits QUnit::Test {
             make_yaml(base + {"tags": (5, {})}), "invalid tags field value type");
 
         assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"externalDocs": 2}), "invalid externalDocs field type");
+
+        {
+            hash soh = ValidSwaggerObject + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "parameters": ((
+                                "in": "header",
+                                "name": "Test-Header",
+                                "type": "string",
+                                "required": True,
+                                "default": "Test",
+                            ),),
+                        ),
+                    ),
+                ),
+            );
+            SwaggerObject so(soh);
+
+            {
+                string uri_path = "/test";
+                hash hdr = ("Test-Header": "Test");
+                assertEq(NOTHING, so.processRequest("get", uri_path, hdr));
+                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path));
+            }
+
+            {
+                string uri_path = "/test";
+                hash hdr = ("Test-Header": 1);
+                assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, hdr));
+            }
+        }
     }
 
     testInfoObject() {
@@ -1226,11 +1264,30 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 string uri_path = "/user/login?username=user;password=pass";
                 hash hdr = {};
-                so.processRequest("get", \uri_path, \hdr);
+                so.processRequest("get", uri_path, hdr);
 
                 uri_path = "/user/login";
                 hdr = {};
-                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", \uri_path, \hdr));
+                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path, hdr));
+            }
+
+            {
+                string uri_path = "/pet";
+                hash hdr = {};
+                hash body = (
+                    "body": (
+                        "name": "Scooby",
+                        "photoUrls": (),
+                    ),
+                );
+                hash<string, bool> mime_types;
+                so.processRequest("post", uri_path, hdr, body, \mime_types);
+                assertEq(True, mime_types{MimeTypeJson});
+                assertEq(True, mime_types{MimeTypeXmlApp});
+
+                #uri_path = "/user/login";
+                #hdr = {};
+                #assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path, hdr));
             }
         }
     }
