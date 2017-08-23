@@ -290,7 +290,7 @@ class DebugTest inherits QUnit::Test {
     debugBreakThread(int tid) {
         #printf("debugBreakThread running %d\n", tid);
         #printf("debugBreakThread addProgram\n");
-        debugProgr#am.addProgram(thisProgram);
+        debugProgram.addProgram(thisProgram);
         usleep(100ms);  # leave some time to reach loop block
         if (tid >= 0) {
             #printf("debugBreakThread breakProgramThread(%d)\n", tid);

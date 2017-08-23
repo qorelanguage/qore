@@ -866,27 +866,37 @@ Linenoise::history_add('history load filename');
         }
 
         public printData(any data) {
+            string outs;
             if (data.typeCode() == NT_HASH) {
                 switch (data.type) {
                 case 'response':
                     switch (data.result.typeCode()) {
                     case NT_HASH:
                     case NT_LIST:
-                        stdout.printf("%N\n", data.result);
+                        outs = sprintf("%N", data.result);
                         break;
                     default:
-                        stdout.printf("%y\n", data.result);
+                        outs = sprintf("%y", data.result);
                     }
-                    return;
+                    break;
                 case 'event':
                     if (data.cmd == 'interrupt' && !exists getContextValue('threadId')) {
                         setContextValue('threadId', data.tid);
                     }
                     break;
                 }
-                stdout.printf("%N\n", data);
+                if (!exists outs)
+                    outs = sprintf("%N", data);
             } else {
-                stdout.printf("%y\n", data);
+                outs = sprintf("%y", data);
+            }
+            if (exists outs) {
+                # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
+                list l = outs.split("\n");
+                foreach my string line in (l) {
+                    stdout.print(line+"\r\n");
+                }
+                # TODO: how refresh linenoise command line ?
             }
         }
 
@@ -918,7 +928,7 @@ Linenoise::history_add('history load filename');
             }
         }
 
-        static public list enumFilter(list items, *string path) {
+        static public list enumFilter(softlist items, *string path) {
             if (path.size() == 0) {
                 return items;
             }
@@ -1100,7 +1110,7 @@ Linenoise::history_add('history load filename');
                             break;
 
                         case 'list':
-                            list l  = keys pgm.getGlobalVars();
+                            softlist l  = keys pgm.getGlobalVars();
                             foreach my string s in (\l) {
                                 s =~ s/^Qore:://;
                             }
@@ -1404,7 +1414,7 @@ Linenoise::history_add('history load filename');
                                 set_local_var_value(varName, rd.value);
                                 break;
                             case 'list':
-                                list l  = keys get_local_vars(ctxCT.frameId + frameOffset);
+                                softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
 /*                                foreach my string s in (\l) {
                                     s =~ s/^Qore:://;
                                 } */
