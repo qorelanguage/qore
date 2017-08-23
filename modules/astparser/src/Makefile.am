@@ -1,6 +1,6 @@
 MNAME=astparser
 
-if COND_MINGW
+if COND_MINGWCC
 QPP=qpp_native
 else
 QPP=qpp
@@ -44,7 +44,7 @@ lib_LTLIBRARIES = astparser.la
 astparser_la_SOURCES = $(ASTPARSER_SOURCES)
 astparser_la_LDFLAGS = -module -avoid-version ${ASTPARSER_LIBS} ${MODULE_LDFLAGS}
 
-INCLUDES = -I$(top_srcdir)/include
+ASTPARSER_CPPFLAGS = -I$(top_srcdir)/modules/astparser/src
 
 AM_CPPFLAGS=$(QORE_CPPFLAGS) $(ASTPARSER_CPPFLAGS)
 
@@ -56,12 +56,12 @@ AM_CXXFLAGS=-g
 endif
 endif
 
-if COND_MINGW
+if COND_MINGWCC
 RM_OTHER=$(DESTDIR)$(libdir)/$(MNAME).dll.a
 endif
 
 install-exec-hook:
-	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(DESTDIR)$(libdir)/$(MNAME)-api-$(MODULE_API).qmod
+	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
 	$(RM) $(DESTDIR)$(libdir)/$(MNAME).la $(DESTDIR)$(libdir)/$(MNAME).a $(RM_OTHER)
 
 clean-local:
@@ -70,4 +70,4 @@ clean-local:
 	$(RM) *.qtest
 
 uninstall-local:
-	$(RM) $(DESTDIR)$(libdir)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
