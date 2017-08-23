@@ -589,7 +589,15 @@ public class SwaggerObject inherits ObjectBase {
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + item.value.type();
-                definitions{item.key} = new SchemaObject(item.key, item.value, definitions);
+                definitions{item.key} = SchemaObject::newSchemaObject(item.key, item.value, self);
+            }
+
+            delete obj;
+            optional_field(objType, oh, "parameters", NT_HASH, \obj);
+            foreach hash item in (obj.pairIterator()) {
+                if (item.value.typeCode() != NT_HASH)
+                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
+                parameters{item.key} = AbstractParameterObject::newParameter(item.key, item.value, self);
             }
         }
 
@@ -602,7 +610,7 @@ public class SwaggerObject inherits ObjectBase {
         {
             hash pathsObj;
             required_field(objType, oh, "paths", NT_HASH, \pathsObj);
-            paths = new PathsObject(pathsObj, definitions);
+            paths = new PathsObject(pathsObj, self);
         }
 
         optional_field(objType, oh, "host", NT_STRING, \host);
@@ -624,19 +632,11 @@ public class SwaggerObject inherits ObjectBase {
 
         {
             hash obj;
-            optional_field(objType, oh, "parameters", NT_HASH, \obj);
-            foreach hash item in (obj.pairIterator()) {
-                if (item.value.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
-                parameters{item.key} = AbstractParameterObject::newParameter(item.value, definitions);
-            }
-
-            obj = {};
             optional_field(objType, oh, "responses", NT_HASH, \obj);
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid response datatype: " + item.value.type();
-                responses{item.key} = new ResponseObject(item.value, definitions);
+                responses{item.key} = new ResponseObject(item.value, self);
             }
 
             obj = {};
@@ -715,7 +715,7 @@ public class SwaggerObject inherits ObjectBase {
         @param params parameters of the request
         @param headers headers of the request
      */
-    public bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
+    bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
         try {
             validateRequest(path, method, params, headers);
         }
@@ -723,6 +723,42 @@ public class SwaggerObject inherits ObjectBase {
             return False;
         }
         return True;
+    }
+
+    #! resolves a reference to a schema object
+    /** @throw INVALID-REFERENCE invalid reference
+    */
+    SchemaObject resolveSchemaObject(string name, string refstr, hash oh) {
+        if (refstr !~ /^#\//)
+            throw "INVALID-REFERENCE", sprintf("SchemaObject %y reference %y is not relative; cannot resolve external references", name, refstr);
+        if (refstr !~ /^#\/definitions\//)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+        string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
+        *SchemaObject ref = definitions{rstr};
+        if (!ref)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+        int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
+        if (size > 1)
+            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
+        return ref;
+    }
+
+    #! resolves a reference to a parameter
+    /** @throw INVALID-REFERENCE invalid reference
+    */
+    AbstractParameterObject resolveParameter(string name, string refstr, hash oh) {
+        if (refstr !~ /^#\//)
+            throw "INVALID-REFERENCE", sprintf("ParameterObject %y reference %y is not relative; cannot resolve external references", name, refstr);
+        if (refstr !~ /^#\/parameters\//)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; expecting \"#/parameters/...\"", name, refstr);
+        string rstr = (refstr =~ x/^#\/parameters\/(.*)$/)[0];
+        *AbstractParameterObject ref = parameters{rstr};
+        if (!ref)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; known parameter references: %y", name, refstr, keys parameters);
+        int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
+        if (size > 1)
+            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
+        return ref;
     }
 }
 
@@ -849,7 +885,7 @@ public class PathComponent {
     }
 
     #! creates the object
-    constructor(hash oh, string pfx, hash<string, SchemaObject> definitions) {
+    constructor(hash oh, string pfx, SwaggerObject swagger) {
         self.pfx = pfx;
         name = "/";
         foreach hash h in (oh.pairIterator()) {
@@ -857,7 +893,7 @@ public class PathComponent {
                 throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
             list l = h.key.split("/");
             shift l;
-            add(h.key, l, 0, h.value, definitions);
+            add(h.key, l, 0, h.value, swagger);
         }
     }
 
@@ -871,12 +907,12 @@ public class PathComponent {
     }
 
     #! adds a component or a Path Item Object to the tree
-    private add(string full_path, list l, int offset, hash oh, hash<string, SchemaObject> definitions) {
+    private add(string full_path, list l, int offset, hash oh, SwaggerObject swagger) {
         #printf("PathComponent::add(): %y l: %y offset: %y\n", full_path, l, offset);
         if (offset == l.size()) {
             if (pio)
                 throw "INVALID-PATH-COMPONENT", sprintf("cannot terminate path %y twice", full_path);
-            pio = new PathItemObject(full_path, oh, definitions);
+            pio = new PathItemObject(full_path, oh, swagger);
             return;
         }
 
@@ -887,7 +923,7 @@ public class PathComponent {
         else
             next = paths{key} ?? (paths{key} = new PathComponent(full_path, l, offset + 1, oh));
 
-        next.add(full_path, l, offset + 1, oh, definitions);
+        next.add(full_path, l, offset + 1, oh, swagger);
     }
 
     #! returns either a PathItemObject for the path
@@ -921,8 +957,8 @@ public class PathsObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
      */
-    public constructor(hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
-        paths = new PathComponent(oh, "", definitions);
+    public constructor(hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+        paths = new PathComponent(oh, "", swagger);
     }
 
     #! matches a URI path with a PathItemObject
@@ -983,7 +1019,7 @@ public class PathItemObject inherits ObjectBase {
             are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
             There can be one \c body parameter at most.
          */
-        hash<string, ObjectBase> parameters();
+        hash<string, AbstractParameterObject> parameters();
     }
 
     private {
@@ -1010,37 +1046,37 @@ public class PathItemObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
+    public constructor(string path, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
         string objType = "Path Item";
         optional_field(objType, oh, "$ref", NT_STRING, \ref);
 
         *hash opObj;
         if (optional_field(objType, oh, "get", NT_HASH, \opObj))
-            operations.get = new OperationObject(path, "get", opObj, definitions);
+            operations.get = new OperationObject(path, "get", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "put", NT_HASH, \opObj))
-            operations.put = new OperationObject(path, "put", opObj, definitions);
+            operations.put = new OperationObject(path, "put", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "post", NT_HASH, \opObj))
-            operations.post = new OperationObject(path, "post", opObj, definitions);
+            operations.post = new OperationObject(path, "post", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "delete", NT_HASH, \opObj))
-            operations.del = new OperationObject(path, "delete", opObj, definitions);
+            operations.del = new OperationObject(path, "delete", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "options", NT_HASH, \opObj))
-            operations.options = new OperationObject(path, "options", opObj, definitions);
+            operations.options = new OperationObject(path, "options", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "head", NT_HASH, \opObj))
-            operations.head = new OperationObject(path, "head", opObj, definitions);
+            operations.head = new OperationObject(path, "head", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "patch", NT_HASH, \opObj))
-            operations.patch = new OperationObject(path, "patch", opObj, definitions);
+            operations.patch = new OperationObject(path, "patch", opObj, swagger);
 
         *list params;
         if (optional_field(objType, oh, "parameters", NT_LIST, \params)) {
@@ -1049,11 +1085,8 @@ public class PathItemObject inherits ObjectBase {
                     throw "INVALID-FIELD-TYPE",
                         sprintf("Path Item Object: 'parameters' list value has invalid type %y",
                             param.type());
-                hash p = param;
-                if (p.hasKey("$ref"))
-                    parameters{p."$ref"} = new ReferenceObject(p);
-                else
-                    parameters{p.name} = AbstractParameterObject::newParameter(p, definitions);
+                AbstractParameterObject p = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, params.lsize()), param, swagger);
+                parameters{p.name} = p;
             }
         }
 
@@ -1143,7 +1176,7 @@ public class OperationObject inherits ObjectBase {
             are defined at the @ref SwaggerObject "SwaggerObject's" parameters.
             There can be one "body" parameter at most.
          */
-        hash<string, ObjectBase> parameters();
+        hash<string, AbstractParameterObject> parameters();
 
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
@@ -1180,7 +1213,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, string method, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
         self.path = path;
         self.method = method.upr();
         string objType = "Operation";
@@ -1217,17 +1250,15 @@ public class OperationObject inherits ObjectBase {
             foreach any p in (listObj) {
                 if (p.typeCode() != NT_HASH)
                     error("INVALID-FIELD-TYPE", "Operation Object: invalid 'parameters' list value datatype: " + p.type());
-                if (p.hasKey("$ref"))
-                    parameters{p."$ref"} = new ReferenceObject(p);
-                else
-                    parameters{p.name} = AbstractParameterObject::newParameter(p, definitions);
+                AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
+                parameters{param.name} = param;
             }
         }
 
         {
             hash responsesObj;
             required_field(objType, oh, "responses", NT_HASH, \responsesObj);
-            responses = new ResponsesObject(path, self.method, responsesObj, definitions);
+            responses = new ResponsesObject(path, self.method, responsesObj, swagger);
         }
 
         # process schemes
@@ -1294,18 +1325,13 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! checks for missing params
-    static checkMissingParams(string method, reference<hash<UriQueryInfo>> h, hash<string, ObjectBase> parameters, *hash<string, ObjectBase> child_params) {
+    static checkMissingParams(string method, reference<hash<UriQueryInfo>> h, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
             if (child_params{ph.key})
                 continue;
-            # FIXME: handle references
-            if (!(ph.value instanceof AbstractParameterObject))
-                continue;
-
-            AbstractParameterObject po = cast<AbstractParameterObject>(ph.value);
-            if (po.required && !exists h.params{ph.key}) {
-                if (!exists (h.params{ph.key} = po.getDefaultValue()))
+            if (ph.value.required && !exists h.params{ph.key}) {
+                if (!exists (h.params{ph.key} = ph.value.getDefaultValue()))
                     throw "MISSING-PARAMETER", sprintf("%s %s: request is missing required parameter %y", method, h.method, ph.key);
             }
         }
@@ -1491,14 +1517,17 @@ public class AbstractParameterObject inherits ObjectBase {
     }
 
     #! gets a concrete instance of an AbstractParameterObject
-    static AbstractParameterObject newParameter(hash oh, hash<string, SchemaObject> definitions) {
+    static AbstractParameterObject newParameter(string name, hash oh, SwaggerObject swagger) {
+        if (oh.hasKey("$ref"))
+            return swagger.resolveParameter(name, oh."$ref", oh);
+
         if (!oh.hasKey("in"))
-            throw "REQUIRED-FIELD-MISSING", sprintf("Parameter Object: missing location parameter \"in\"");
+            throw "REQUIRED-FIELD-MISSING", sprintf("Parameter Object %y: missing location parameter \"in\"", name);
         if (oh."in" == "body")
-            return new BodyParameter(oh, definitions);
+            return new BodyParameter(oh, swagger);
         else if (OtherParameterMap{oh."in"})
             return new OtherParameter(oh);
-        throw "INVALID-FIELD-VALUE", sprintf("Parameter Object: invalid location (\"in\") parameter value: %y", oh."in");
+        throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid location (\"in\") parameter value: %y", name, oh."in");
     }
 }
 
@@ -1516,10 +1545,10 @@ public class BodyParameter inherits AbstractParameterObject {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, hash<string, SchemaObject> definitions) : AbstractParameterObject(oh) {
+    public constructor(hash oh, SwaggerObject swagger) : AbstractParameterObject(oh) {
         hash schemaObj;
         required_field("Parameter", oh, "schema", NT_HASH, \schemaObj);
-        schema = new SchemaObject("schema for body parameter", schemaObj, definitions);
+        schema = SchemaObject::newSchemaObject("schema for body parameter", schemaObj, swagger);
     }
 
     #! verifies the parameter in an actual REST API call
@@ -1789,14 +1818,14 @@ public class ResponsesObject inherits ObjectBase {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws EMPTY-RESPONSES no responses given
      */
-    public constructor(string path, string method, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
         string objType = "Responses";
         *hash defaultObj;
         if (optional_field(objType, oh, "default", NT_HASH, \defaultObj)) {
             if (defaultObj.hasKey("$ref"))
                 defaultResp = new ReferenceObject(defaultObj);
             else
-                defaultResp = new ResponseObject(defaultObj, definitions);
+                defaultResp = new ResponseObject(defaultObj, swagger);
         }
 
         *hash r = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^[0-9]+$/;
@@ -1806,7 +1835,7 @@ public class ResponsesObject inherits ObjectBase {
             if (resp.value.hasKey("$ref"))
                 responses{resp.key} = new ReferenceObject(resp.value);
             else
-                responses{resp.key} = new ResponseObject(resp.value, definitions);
+                responses{resp.key} = new ResponseObject(resp.value, swagger);
         }
 
         if (responses.empty() && !defaultObj)
@@ -1853,13 +1882,13 @@ public class ResponseObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh) {
+    public constructor(hash oh, SwaggerObject swagger) : ObjectBase(oh) {
         string objType = "Response";
         required_field(objType, oh, "description", NT_STRING, \desc);
 
         *hash schemaObj;
         if (optional_field(objType, oh, "schema", NT_HASH, \schemaObj))
-            schema = new SchemaObject("response schema", schemaObj, definitions);
+            schema = SchemaObject::newSchemaObject("response schema", schemaObj, swagger);
 
         *hash headersObj;
         if (optional_field(objType, oh, "headers", NT_HASH, \headersObj))
@@ -2030,9 +2059,6 @@ public class ReferenceObject inherits ObjectBase {
 #! defines an object in a schema
 public class SchemaObject inherits ObjectBase, SchemaBase {
     public {
-        #! Reference to another object.
-        *SchemaObject ref;
-
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.2.
         /**
             MUST be either a string or an array (list). If it's an array,
@@ -2139,42 +2165,37 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         #! A free-form property to include an example of an instance for this schema.
         any example;
+
+        #! valid reference types
+        const ReferenceTypes = (
+            "string": True,
+            "number": True,
+            "integer": True,
+            "boolean": True,
+            "array": True,
+            "object": True,
+        );
     }
 
-    #! Constructor.
+    #! private constructor; use newSchemaObject() instead
     /**
+        @param name the name of the object
         @param oh deserialized hash from the source schema description describing an object in the schema
+        @param definitions definitions so references can be resolved
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
-        @throws INVALID-REF-EXTRA-FIELDS invalid extra fields when '$ref' field present
+        @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string name, hash oh, hash<string, SchemaObject> definitions) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    private constructor(string name, hash oh, SwaggerObject swagger) : ObjectBase(oh), SchemaBase("Schema", oh) {
         string objType = "Schema";
-        {
-            string refstr;
-            if (optional_field(objType, oh, "$ref", NT_STRING, \refstr)) {
-                if (refstr !~ /^#\/definitions\//)
-                    throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
-                string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
-                ref = definitions{rstr};
-                if (!ref)
-                    throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
-                /*
-                list fields = map $1, oh.keyIterator(), $1 !~ /^x-/;
-                if (fields.size() > 0)
-                    throw "INVALID-REF-EXTRA-FIELDS", "Invalid extra fields with '$ref' field present";
-                */
-                return;
-            }
-        }
 
         required_field(objType, oh, "type", NT_STRING, \type);
-        if (!("string", "number", "integer", "boolean", "array", "object").contains(type))
-            throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y", name, type);
+        if (!ReferenceTypes{type})
+            throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
         if (type == "array") {
             hash itemsObj;
             required_field(objType, oh, "items", NT_HASH, \itemsObj);
@@ -2226,12 +2247,12 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 any val = properties{k};
                 if (val.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
-                properties{k} = new SchemaObject(k, val, definitions);
+                properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
             }
         }
         if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True), \additionalProperties)) {
             if (additionalProperties.typeCode() == NT_HASH)
-                additionalProperties = new SchemaObject("additionalProperties", additionalProperties, definitions);
+                additionalProperties = SchemaObject::newSchemaObject("additionalProperties", additionalProperties, swagger);
         }
 
         # process "required"
@@ -2263,11 +2284,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             foreach any val in (allOfList) {
                 if (val.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
-                hash h = val;
-                if (h.hasKey("$ref"))
-                    allOf += new ReferenceObject(h);
-                else
-                    allOf += new SchemaObject("allOf schema", h, definitions);
+                allOf += SchemaObject::newSchemaObject("allOf schema", val, swagger);
             }
         }
 
@@ -2286,6 +2303,26 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     #! validates the value against the schema definition
     check(string path, string method, string name, any value) {
         SchemaBase::check(type, items, path, method, name, value);
+    }
+
+    #! returns a SchemaObject for the schema definition; resolves references
+    /**
+        @param name the name of the object
+        @param oh deserialized hash from the source schema description describing an object in the schema
+        @param definitions definitions so references can be resolved
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
+        @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
+        @throws REQUIRED-FIELD-MISSING required field is missing
+    */
+    static SchemaObject newSchemaObject(string name, hash oh, SwaggerObject swagger) {
+        string refstr;
+        if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
+            return swagger.resolveSchemaObject(name, refstr, oh);
+        return new SchemaObject(name, oh, swagger);
     }
 }
 

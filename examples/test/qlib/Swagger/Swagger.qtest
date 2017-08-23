@@ -29,24 +29,33 @@ public class SwaggerTest inherits QUnit::Test {
         };
         const ValidPathsObject = {
             "/api/smtg": {
-                "parameters": ( {"$ref": "dfgfg"}, )
+                "parameters": ( {"$ref": "#/parameters/a"}, )
             }
         };
         const ValidSwaggerObject = {
             "swagger": "2.0",
             "info": ValidInfoObject,
-            "paths": ValidPathsObject
+            "paths": ValidPathsObject,
+            "parameters": (
+                "a": (
+                    "name": "test",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                ),
+            ),
         };
 
 %ifndef NoJson
         const ValidInfoObjectJSON = make_json(ValidInfoObject);
-        const ValidPathsObjectJSON = make_json(ValidPathsObject);
+        #const ValidPathsObjectJSON = make_json(ValidPathsObject);
         const ValidSwaggerObjectJSON = make_json(ValidSwaggerObject);
 %endif
 
 %ifndef NoYaml
         const ValidInfoObjectYAML = make_yaml(ValidInfoObject);
-        const ValidPathsObjectYAML = make_yaml(ValidPathsObject);
+        #const ValidPathsObjectYAML = make_yaml(ValidPathsObject);
         const ValidSwaggerObjectYAML = make_yaml(ValidSwaggerObject);
 %endif
 
@@ -291,7 +300,7 @@ public class SwaggerTest inherits QUnit::Test {
         # parameters checks
         p = {"/a": {"parameters": list()}};
         assertTrue(loadyaml(make_yaml(base + {"paths": p})));
-        p = {"/a": {"parameters": ({"$ref": "a"}, {"name": "a", "in": "query", "type": "string"})}};
+        p = {"/a": {"parameters": ({"$ref": "#/parameters/a"}, {"name": "a", "in": "query", "type": "string"})}};
         assertTrue(loadyaml(make_yaml(base + {"paths": p})));
         p = {"/a": {"parameters": 5}};
         assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, make_yaml(base + {"paths": p}));
@@ -360,7 +369,7 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "produces", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
 
         # parameters checks
-        p = {"get": {"responses": r, "parameters": ({"$ref": "a"},)}};
+        p = {"get": {"responses": r, "parameters": ({"$ref": "#/parameters/a"},)}};
         assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
         p = {"get": {"responses": r, "parameters": 5}};
         assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
@@ -851,7 +860,9 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "ref.*invalid type", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         s = {"$ref": "#/definitions/y"};
-        assertThrows("INVALID-REFERENCE", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+        assertThrows("INVALID-REFERENCE", "cannot resolve", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+        s = {"$ref": "#/definitions/x", "a": 1};
+        assertThrows("INVALID-REFERENCE", "Invalid attribute", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
 
         # type checks
         s = {};
@@ -1016,8 +1027,8 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "readOnly", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         # allOf Checks
-        s = {"type": "string", "allOf": ({"$ref": "a"}, {"type": "string"})};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "allOf": ({"$ref": "#/definitions/x"}, {"type": "string"})};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
         s = {"type": "string", "allOf": list()};
         assertThrows("INVALID-FIELD-FORMAT", "allOf", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "allOf": (5, 3)};
