@@ -212,45 +212,45 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private check(string type, *ItemsObject items, string path, string method, string name, any value) {
+    private checkRequest(string type, *ItemsObject items, string path, string method, string name, any value) {
         # accept a single value for an array (= one-element list)
         if (type == "array")
-            checkArrayParam(items, path, method, name, value);
+            checkRequestArrayParam(items, path, method, name, value);
         else
-            checkIntern(type, path, method, name, value);
+            checkRequestIntern(type, path, method, name, value);
     }
 
-    private checkIntern(string type, string path, string method, string name, string value) {
+    private checkRequestIntern(string type, string path, string method, string name, string value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
-        checkStringParam(path, method, name, value);
+        checkRequestStringParam(path, method, name, value);
     }
 
-    private checkIntern(string type, string path, string method, string name, int value) {
+    private checkRequestIntern(string type, string path, string method, string name, int value) {
         if (type != "integer")
             throwInvalidType(name, "integer", type);
-        checkIntegerParam(path, method, name, value);
+        checkRequestIntegerParam(path, method, name, value);
     }
 
     # NOTE: "number" also accepts "float"
-    private checkIntern(string type, string path, string method, string name, number value) {
+    private checkRequestIntern(string type, string path, string method, string name, number value) {
         if (type != "number")
             throwInvalidType(name, "number", type);
-        checkNumberParam(path, method, name, value);
+        checkRequestNumberParam(path, method, name, value);
     }
 
-    private checkIntern(string type, string path, string method, string name, bool value) {
+    private checkRequestIntern(string type, string path, string method, string name, bool value) {
         if (type != "boolean")
             throwInvalidType(name, "boolean", type);
     }
 
-    private checkIntern(string type, string path, string method, string name) {
+    private checkRequestIntern(string type, string path, string method, string name) {
         if (type != "null")
             throw "INVALID-PARAMETER-VALUE", sprintf("Parameter %y for path %y and method %y is null, but the expected type is %y", name, path, method, type);
     }
 
     #! validates the value against the schema definition
-    private checkNumberParam(string path, string method, string name, any value) {
+    private checkRequestNumberParam(string path, string method, string name, any value) {
         if (exists maximum) {
             if (exclusiveMax) {
                 if (value >= maximum)
@@ -288,7 +288,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkIntegerParam(string path, string method, string name, int value) {
+    private checkRequestIntegerParam(string path, string method, string name, int value) {
         if (exists maximum) {
             if (exclusiveMax) {
                 if (value >= maximum)
@@ -326,7 +326,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkArrayParam(ItemsObject items, string path, string method, string name, softlist value) {
+    private checkRequestArrayParam(ItemsObject items, string path, string method, string name, softlist value) {
         if (exists maxItems && value.size() > maxItems)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
@@ -342,7 +342,7 @@ class SchemaBase {
             #printf("v: %y self: %N\n", value, self);
             hash h;
             foreach any v in (value) {
-                items.check(path, method, name, v);
+                items.checkRequest(path, method, name, v);
                 if (uniqueItems) {
                     if (h{v})
                         throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameter value %y is duplicated in the array", method, path, v);
@@ -354,7 +354,7 @@ class SchemaBase {
             # perform slow array uniqueness check
             list uniqueItems = ();
             foreach any val in (value) {
-                items.check(path, method, name, val);
+                items.checkRequest(path, method, name, val);
                 if (uniqueItems.contains(val))
                     throw "INVALID-PARAMETER-VALUE",
                         sprintf("%s %s: Array parameter %y does not have unique items",
@@ -365,7 +365,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkStringParam(string path, string method, string name, string value) {
+    private checkRequestStringParam(string path, string method, string name, string value) {
         if (exists maxLength && value.size() > maxLength)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y is too long (maxLength: %d, actual: %d)",
@@ -682,55 +682,14 @@ public class SwaggerObject inherits ObjectBase {
         }
     }
 
-    #! processes and validates a REST request
-    processRequest(string method, string path, *hash headers, *hash body, *reference<hash<string, bool>> mime_types) {
+    #! validates a client-side REST request
+    validateClientRequest(string method, string path, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
         hash<UriQueryInfo> h = parse_uri_query(path);
 
         PathItemObject pio = paths.match(h.method);
         OperationObject op = pio.getOperation(method, h.method);
 
-        op.processRequest(method, pio, h, headers, body, \mime_types);
-    }
-
-    #! Validate a single request.
-    /**
-        @param path path of the request
-        @param method HTTP method of the request
-        @param params parameters of the request
-        @param headers headers of the request
-
-        @throws INVALID-METHOD invalid path operation method used
-     */
-    validateRequest(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
-        # find path item object
-        PathItemObject pio = paths.match(path);
-
-        # extract params from header possibly
-        # TODO
-
-        # find operation object
-        OperationObject op = pio.getOperation(method, path);
-
-        # check validitiy of parameters
-        op.checkParameters(path, method, pio, params);
-        # TODO
-    }
-
-    #! Validate a single request. No-exception version of the method.
-    /**
-        @param path path of the request
-        @param method HTTP method of the request
-        @param params parameters of the request
-        @param headers headers of the request
-     */
-    bool validateRequestNoExcept(string path, string method, list<hash<ParameterInfo>> params, hash headers) {
-        try {
-            validateRequest(path, method, params, headers);
-        }
-        catch (hash<ExceptionInfo> ex) {
-            return False;
-        }
-        return True;
+        op.validateClientRequest(method, pio, h, body, headers, \mime_types);
     }
 
     #! resolves a reference to a schema object
@@ -1339,7 +1298,7 @@ public class OperationObject inherits ObjectBase {
         }
     }
 
-    #! processes a REST API request to the operation
+    #! processes a REST API client-side request to the operation
     /** @param method the HTTP methis for the operation
         @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
@@ -1351,7 +1310,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
-    processRequest(string method, PathItemObject pio, hash<UriQueryInfo> h, *hash headers, *hash body, *reference<hash<string, bool>> mime_types) {
+    validateClientRequest(string method, PathItemObject pio, hash<UriQueryInfo> h, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach hash ph in (h.params.pairIterator()) {
             # find URI parameter object
@@ -1363,7 +1322,7 @@ public class OperationObject inherits ObjectBase {
             if (po.inLoc != "query")
                 throw "INVALID-PARAMETER-LOCATION", sprintf("invalid parameter %y given in the URI query; expected location %y", ph.key, po.inLoc);
 
-            po.check(path, method, ph.key, ph.value);
+            po.checkRequest(path, method, ph.key, ph.value);
         }
 
         # check header parameters
@@ -1374,7 +1333,7 @@ public class OperationObject inherits ObjectBase {
             if (!po || po.inLoc != "header")
                 continue;
 
-            po.check(path, method, ph.key, ph.value);
+            po.checkRequest(path, method, ph.key, ph.value);
         }
 
         # check body parameters
@@ -1388,7 +1347,7 @@ public class OperationObject inherits ObjectBase {
             if (po.inLoc != "body")
                 throw "INVALID-PARAMETER-LOCATION", sprintf("invalid parameter %y given in the message body; expected location %y", ph.key, po.inLoc);
 
-            po.check(path, method, ph.key, ph.value);
+            po.checkRequest(path, method, ph.key, ph.value);
         }
 
         # check for missing required parameters
@@ -1428,45 +1387,6 @@ public class OperationObject inherits ObjectBase {
     #! raises an exception with context information
     error(string err, string fmt) {
         throw err, sprintf("%s %s: %s", method, path, vsprintf(fmt, argv));
-    }
-
-    #! checks request parameters
-    /** @param path the URI path for the request
-        @param method the HTTP methos for the request
-        @param pio the @ref Swagger::PathItemObject "PathItemObject" for the path
-        @param params the actual parameters passed
-
-        @throws INVALID-PARAMETER-NAME one or more parameter names is invalid
-        @throws INVALID-PARAMETER-LOCATION the location for one or more parameters is invalid
-        @throws INVALID-PARAMETER-TYPE one or parameters has an invalid type
-        @throws INVALID-PARAMETER-VALUE one or parameters has an invalid value
-    */
-    checkParameters(string path, string method, PathItemObject pio, list<hash<ParameterInfo>> params) {
-        bool bodyParam = False;
-        foreach hash<ParameterInfo> param in (params) {
-            # find parameter object
-            *AbstractParameterObject po = parameters{param.name} ?? pio.parameters{param.name};
-            if (!po)
-                throw "INVALID-PARAMETER-NAME",
-                    sprintf("No parameter named %y defined for path %y and method %y",
-                        param.name, path, method);
-
-            # check parameter's location
-            if (param.loc != po.inLoc)
-                throw "INVALID-PARAMETER-LOCATION",
-                    sprintf("Parameter %y for path %y and method %y has invalid location %y (should be %y)",
-                        param.name, path, method, param.loc, po.inLoc);
-
-            # check parameter's value
-            if (param.loc == "body") {
-                if (bodyParam)
-                    throw "INVALID-PARAMETER-LOCATION",
-                        sprintf("Multiple parameters in body for path %y and method %y",
-                            path, method);
-                bodyParam = True;
-            }
-            po.check(path, method, param.name, param.val);
-        }
     }
 }
 
@@ -1598,7 +1518,7 @@ public class AbstractParameterObject inherits ObjectBase {
     }
 
     #! verifies the parameter in an actual REST API call
-    abstract check(string path, string method, string name, any value);
+    abstract checkRequest(string path, string method, string name, any value);
 
     #! returns the default value of the parameter (default: @ref nothing)
     any getDefaultValue() {
@@ -1640,8 +1560,8 @@ public class BodyParameter inherits AbstractParameterObject {
     }
 
     #! verifies the parameter in an actual REST API call
-    check(string path, string method, string name, any value) {
-        return schema.check(path, method, name, value);
+    checkRequest(string path, string method, string name, any value) {
+        return schema.checkRequest(path, method, name, value);
     }
 }
 
@@ -1763,8 +1683,8 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    check(string path, string method, string name, any value) {
-        SchemaBase::check(type, items, path, method, name, value);
+    checkRequest(string path, string method, string name, any value) {
+        SchemaBase::checkRequest(type, items, path, method, name, value);
         switch (value.typeCode()) {
             case NT_NOTHING:
                 if (!allowEmptyValue)
@@ -1888,8 +1808,8 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    check(string path, string method, string name, any value) {
-        SchemaBase::check(type, items, path, method, name, value);
+    checkRequest(string path, string method, string name, any value) {
+        SchemaBase::checkRequest(type, items, path, method, name, value);
     }
 
     #! creates a new ItemsObject and resolves any references
@@ -2232,7 +2152,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             \c allOf takes in an array of object definitions that are validated
             independently but together compose a single object.
          */
-        list<ObjectBase> allOf();
+        list<SchemaObject> allOf();
 
         #! This MAY be used only on properties schemas. It has no effect on root schemas.
         /**
@@ -2359,14 +2279,16 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         optional_field(objType, oh, "readOnly", NT_BOOLEAN, \readOnly);
 
-        *list allOfList;
-        if (optional_field(objType, oh, "allOf", NT_LIST, \allOfList)) {
-            if (allOfList.size() < 1)
-                throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'allOf' is an empty list", name);
-            foreach any val in (allOfList) {
-                if (val.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
-                allOf += SchemaObject::newSchemaObject("allOf schema", val, swagger);
+        {
+            *list allOfList;
+            if (optional_field(objType, oh, "allOf", NT_LIST, \allOfList)) {
+                if (allOfList.size() < 1)
+                    throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'allOf' is an empty list", name);
+                foreach any val in (allOfList) {
+                    if (val.typeCode() != NT_HASH)
+                        throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
+                    allOf += SchemaObject::newSchemaObject("allOf schema", val, swagger);
+                }
             }
         }
 
@@ -2383,18 +2305,22 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    check(string path, string method, string name, any value) {
-        SchemaBase::check(type, items, path, method, name, value);
+    checkRequest(string path, string method, string name, any value) {
+        SchemaBase::checkRequest(type, items, path, method, name, value);
     }
 
-    private checkIntern(string type, string path, string method, string name, hash value) {
+    private checkRequestIntern(string type, string path, string method, string name, hash value) {
         if (type != "object")
             throwInvalidType(name, "object", type);
+
+        # check "allOf" schemas, if any
+        map $1.checkRequestIntern(type, path, method, name, value), allOf;
+
         /*
         If additionalProperties is set to true, any number of additionalProperties may be present of any data type.
         If additionalProperties is a schema, additional properties (beyond what are defined in ‘properties’) are allowed and must match the schema
         */
-        # check properties
+        # check properties in this schema definition
         if (additionalProperties !== True) {
             foreach hash ph in (value.pairIterator()) {
                 *SchemaObject prop = properties{ph.key};
@@ -2403,7 +2329,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                     if (!prop)
                         throw "INVALID-PROPERTY", sprintf("property %y is not valid for object %y", ph.key, name);
                 }
-                prop.check(path, method, name, ph.value);
+                prop.checkRequest(path, method, name, ph.value);
             }
         }
         # check for missing required properties

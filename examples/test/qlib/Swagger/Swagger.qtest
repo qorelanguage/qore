@@ -216,14 +216,14 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": "Test");
-                assertEq(NOTHING, so.processRequest("get", uri_path, hdr));
-                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path));
+                assertEq(NOTHING, so.validateClientRequest("get", uri_path, NOTHING, hdr));
+                assertThrows("MISSING-PARAMETER", \so.validateClientRequest(), ("get", uri_path));
             }
 
             {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": 1);
-                assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, hdr));
+                assertThrows("INVALID-PARAMETER-TYPE", \so.validateClientRequest(), ("get", uri_path, NOTHING, hdr));
             }
         }
     }
@@ -1241,54 +1241,28 @@ public class SwaggerTest inherits QUnit::Test {
     }
 
     private testValidation(SwaggerObject so) {
-        list<hash<ParameterInfo>> params;
+        so.validateClientRequest("get", "/user/login?username=user;password=pass");
+        assertThrows("MISSING-PARAMETER", \so.validateClientRequest(), ("get", "/user/login"));
+        assertThrows("INVALID-PARAMETER-NAME", \so.validateClientRequest(), ("post", "/pet?username=user"));
+        assertThrows("INVALID-PARAMETER-TYPE", \so.validateClientRequest(), ("get", "/user/login?username;password=pass"));
+        so.validateClientRequest("get", "/pet/findByStatus?status=available");
+        assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.validateClientRequest(), ("get", "/pet/findByStatus?status=happy"));
+
         {
-            params = (
-                new hash<ParameterInfo>({"name": "username", "loc": "query", "val": "user"}),
-                new hash<ParameterInfo>({"name": "password", "loc": "query", "val": "pass"}),
+            hash hdr = {};
+            hash body = (
+                "body": (
+                    "name": "Scooby",
+                    "photoUrls": (),
+                ),
             );
-            assertTrue(so.validateRequestNoExcept("/user/login", "get", params, {}));
-            assertThrows("INVALID-PARAMETER-NAME", \so.validateRequest(), ("/pet", "post", params, {}));
-            params[1].val = 1;
-            assertThrows("INVALID-PARAMETER-TYPE", \so.validateRequest(), ("/user/login", "get", params, {}));
-            delete params[1].val;
-            assertThrows("INVALID-PARAMETER-VALUE", \so.validateRequest(), ("/user/login", "get", params, {}));
+            hash<string, bool> mime_types;
+            so.validateClientRequest("post", "/pet", body, hdr, \mime_types);
+            assertEq(True, mime_types{MimeTypeJson});
+            assertEq(True, mime_types{MimeTypeXmlApp});
 
-            params = (
-                new hash<ParameterInfo>({"name": "status", "loc": "query", "val": "available"}),
-            );
-            assertTrue(so.validateRequestNoExcept("/pet/findByStatus", "get", params, {}));
-            params[0].val = "happy";
-            assertThrows("INVALID-PARAMETER-VALUE", "\"status\".*\"happy\"", \so.validateRequest(), ("/pet/findByStatus", "get", params, {}));
-
-            {
-                string uri_path = "/user/login?username=user;password=pass";
-                hash hdr = {};
-                so.processRequest("get", uri_path, hdr);
-
-                uri_path = "/user/login";
-                hdr = {};
-                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path, hdr));
-            }
-
-            {
-                string uri_path = "/pet";
-                hash hdr = {};
-                hash body = (
-                    "body": (
-                        "name": "Scooby",
-                        "photoUrls": (),
-                    ),
-                );
-                hash<string, bool> mime_types;
-                so.processRequest("post", uri_path, hdr, body, \mime_types);
-                assertEq(True, mime_types{MimeTypeJson});
-                assertEq(True, mime_types{MimeTypeXmlApp});
-
-                #uri_path = "/user/login";
-                #hdr = {};
-                #assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path, hdr));
-            }
+            delete body.body.photoUrls;
+            assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.validateClientRequest(), ("post", "/pet", body, hdr));
         }
     }
 }
