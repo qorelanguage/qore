@@ -1257,7 +1257,7 @@ public class SwaggerTest inherits QUnit::Test {
                 ),
             );
             hash<string, bool> mime_types;
-            so.validateClientRequest("post", "/pet", body, hdr, \mime_types);
+            so.validateClientRequest("POST", "/pet", body, hdr, \mime_types);
             assertEq(True, mime_types{MimeTypeJson});
             assertEq(True, mime_types{MimeTypeXmlApp});
 

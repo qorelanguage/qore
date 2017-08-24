@@ -91,22 +91,6 @@ public const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
 public const ValidSchemes = ("http", "https", "ws", "wss");
 public const ValidSchemesHash = map {$1: True}, ValidSchemes;
 
-# hashdecl
-public hashdecl ParameterInfo {
-    #! Parameter's name.
-    string name;
-
-    #! Parameter's location.
-    /**
-        Possible values are \c "query", \c "header", \c "path",
-        \c "formData" or \c "body".
-     */
-    string loc;
-
-    #! Actual parameter's value.
-    any val;
-}
-
 #! Base class for the Swagger specification objects, wrapping the vendor extensions.
 class ObjectBase {
     public {
@@ -683,8 +667,15 @@ public class SwaggerObject inherits ObjectBase {
     }
 
     #! validates a client-side REST request
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body hash
+        @param headers any headers to include in the request
+        @param mime_types an optional output variable giving the MIME types available for this message
+    */
     validateClientRequest(string method, string path, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
         hash<UriQueryInfo> h = parse_uri_query(path);
+        method = method.lwr();
 
         PathItemObject pio = paths.match(h.method);
         OperationObject op = pio.getOperation(method, h.method);
