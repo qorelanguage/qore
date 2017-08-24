@@ -16,13 +16,30 @@ public hashdecl MyHash {
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
-        addTestCase("complex auto", \testComplexAutoTypes());
+        addTestCase("auto", \testComplexAutoTypes());
         addTestCase("complex type compat", \testComplexTypesCompat());
         addTestCase("types", \testTypes());
         set_return_value(main());
     }
 
     testComplexAutoTypes() {
+        {
+            any a = (1, 2);
+            assertEq("list", a.fullType());
+            code c = any sub (any a) { return a; };
+            assertEq("list", c(a).fullType());
+            c = auto sub (any a) { return a; };
+            assertEq("list", c(a).fullType());
+            c = any sub (auto a) { return a; };
+            assertEq("list", c(a).fullType());
+        }
+        {
+            auto a = (1, 2);
+            assertEq("list<int>", a.fullType());
+            code c = auto sub (auto a) { return a; };
+            assertEq("list<int>", c(a).fullType());
+        }
+
         list<auto> l0 = ("str0", "str1");
         assertEq("list<string>", l0.fullType());
         softlist<auto> l1 = ("str0", "str1");

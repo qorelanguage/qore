@@ -68,7 +68,8 @@
     |@ref softdate_or_nothing_type "*softdate"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, @ref null or @ref nothing|@ref date or @ref nothing|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref date, and @ref null and converts non-date values to a date and returns the new value. If no value or @ref null is passed, then @ref nothing is returned
     |@ref softlist_or_nothing_type "*softlist"|all types|@ref list or @ref nothing|Accepts all types; @ref nothing and list values are returned as the same value; @ref null is returned as @ref nothing, any other type is returned as the first element of a new list
     |@ref softlist_complex_or_nothing_type "*softlist<...>"|all types|@ref list or @ref nothing|Accepts all data types; @ref nothing and @ref null are returned as @ref nothing; a list is returned with its elements processed by the declared subtype, and any other type is returned as the first element of a new list with its element processed by the declared subtype
-    |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value
+    |@ref any_type "any"|any|same as received|Provides no restrictions on the type of value it receives and returns the same value, however complex type information is stripped on assignment for backwards compatibility; note that the \c any type restriction is the same as using no type restriction; to assign any type without stripping complex types, use the @ref auto_type "auto" type restriction instead
+    |@ref auto_type "auto"|all data types|all data types|Provides no restrictions on the type of value it receives and returns the same value; does not strip complex types on assignment like @ref any_type "any"
 
     <hr>
     @section int_type int
@@ -1048,10 +1049,35 @@ sub foo(*softdate d) {
 
     <b>any Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c any|all data types|all data types|Accepts all data types and returns the same data type
+    |\c any|all data types|all data types|Provides no restrictions on the type of value it receives and returns the same value, however complex type information is stripped on assignment for backwards compatibility
 
     @par Example
     @code{.py}
 any v = bar;
+any l = (1, 2);
+# prints "list" as the complex type info is stripped on assignment for backwards compatibility
+printf("%s\n", l.fullType());
     @endcode
+
+    @note
+    - The \c any type restriction is the same as using no type restriction
+    - To assign any type without stripping complex types, use the @ref auto_type "auto" type restriction instead
+    - In general @ref auto_type "auto" is recommended over \c any
+
+    <hr>
+    @section auto_type auto
+
+    <b>auto Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c auto|all data types|all data types|Provides no restrictions on the type of value it receives and returns the same value; does not strip complex types on assignment like @ref any_type "any"
+
+    @par Example
+    @code{.py}
+auto v = bar;
+auto l = (1, 2);
+# prints "list<int>"
+printf("%s\n", l.fullType());
+    @endcode
+
+    - In general \c auto is recommended over @ref any_type "any"
 */

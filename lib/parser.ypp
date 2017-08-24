@@ -154,13 +154,20 @@ public:
    QoreClass* oc;
 
    DLLLOCAL ObjClassDef(const QoreProgramLocation& loc, NamedScope *n, QoreClass* o) : loc(loc), name(n), oc(o) {
+      checkName();
    }
 
    DLLLOCAL ObjClassDef(const QoreProgramLocation& loc, char* n, QoreClass* o) : loc(loc), name(new NamedScope(n)), oc(o) {
+      checkName();
    }
 
    DLLLOCAL ~ObjClassDef() {
       delete name;
+   }
+
+   DLLLOCAL void checkName() {
+      if (!strcmp(name->getIdentifier(), "auto"))
+         parse_error(loc, "a class may not have the name 'auto'; this name has a special meaning in complex types; please choose another name for your class");
    }
 };
 
