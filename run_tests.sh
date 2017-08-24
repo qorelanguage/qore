@@ -7,7 +7,7 @@ print_usage ()
   echo
   echo "  -j         Use --format=junit option for the tests, making them print JUnit output."
   echo "  -v         Use --format=plain option for the tests, making them print one statement per each test case."
-  echo "  -d <dir>   Run only specified tests (as found in ./examples/test/)."
+  echo "  -d <dir>   Run only specified tests (as found in $BASE_TEST_PATH)."
 }
 
 err_multiple_format_opts()
@@ -19,6 +19,8 @@ err_multiple_format_opts()
 
 TEST_OUTPUT_FORMAT=""
 PRINT_TEXT=1
+BASE_TEST_PATH="./examples/test"
+TEST_DIRS=""
 
 while getopts ":vjd:" opt; do
     case $opt in
@@ -38,7 +40,7 @@ while getopts ":vjd:" opt; do
             fi
             ;;
         d)
-            RUN_ONLY="$OPTARG"
+	    TEST_DIRS="$TEST_DIRS \"$BASE_TEST_PATH/$OPTARG\""
             ;;
         \?)
             echo "Unknown option: -$OPTARG" >&2
@@ -53,6 +55,10 @@ while getopts ":vjd:" opt; do
     esac
 done
 
+# If no test dirs were specified, run all the tests
+if [ -z "$TEST_DIRS" ]; then
+    TEST_DIRS=$BASE_TEST_PATH
+fi
 
 QORE=""
 QR=""
@@ -125,7 +131,7 @@ echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 printf "TIME_CMD: %s\n" "$TIME_CMD";echo
 
 # Search for tests in the test directory.
-TESTS=`find ./examples/test/"$RUN_ONLY" -name "*.qtest"`
+TESTS=`eval find "$TEST_DIRS" -name "*.qtest"`
 FAILED_TESTS=""
 
 TEST_COUNT=`echo $TESTS | wc -w`
