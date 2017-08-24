@@ -372,7 +372,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits Qore::Abstrac
         @note that empty lines are ignored if "ignore_empty" option is in effect
      */
     bool next() {
-        any status = lineIterator.next();
+        auto status = lineIterator.next();
         if (m_opts.ignore_empty) {
             while (status && lineIterator.getValue() == "") { # skip empty lines
                 status = lineIterator.next();
@@ -426,7 +426,7 @@ my hash $h = $i.getValue();
     }
 
     #! parses the input value based on global configuration and the current field definition
-    any transform(any value, hash type) {
+    auto transform(auto value, hash type) {
         switch (type.type) {
             case "int": {
                 return int(value);
@@ -941,7 +941,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             # field description
             hash fh = m_specs{type}{field};
 
-            any value = line.record{field} ?? fh.default;  # default value from specification
+            auto value = line.record{field} ?? fh.default;  # default value from specification
             # format output
             switch (fh.type) {
                 case "float":

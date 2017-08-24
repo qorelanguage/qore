@@ -429,7 +429,7 @@ public namespace RestHandler {
         /**
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
-        any send() {
+        auto send() {
             try {
                 return sendImpl();
             }
@@ -493,7 +493,7 @@ public namespace RestHandler {
         /**
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
             */
-        abstract any sendImpl();
+        abstract auto sendImpl();
     }
 
     #! the base class for handling HTTP chunked requests and responses within the RestHandler infrastructure
@@ -504,7 +504,7 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, auto body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
             stream = n_stream;
             if (!handler.isPersistent()) {
                 *code c = stream.getPersistentClosedNotification();
@@ -568,7 +568,7 @@ public namespace RestHandler {
         /**
             @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
-        private any sendImpl() {
+        private auto sendImpl() {
             return stream.send();
         }
     }
@@ -779,7 +779,7 @@ public namespace RestHandler {
                     "deserialize": \parse_xmlrpc_value(),
                 ),
                 MimeTypeXmlApp: (
-                    "serialize": string sub (any v) {
+                    "serialize": string sub (auto v) {
                         switch (v.typeCode()) {
                             case NT_LIST: return make_xml(("list": ("element": v)));
                             case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
@@ -806,7 +806,7 @@ public namespace RestHandler {
                     "deserialize": \mime_parse_form_urlencoded_string(),
                 ),
                 MimeTypeHtml: (
-                    "serialize": string sub (any body) { return sprintf("<pre>%N</pre>", body); },
+                    "serialize": string sub (auto body) { return sprintf("<pre>%N</pre>", body); },
                 ),
                 );
         }
@@ -852,7 +852,7 @@ public namespace RestHandler {
 
             @since %RestHandler 1.2
          */
-        any handleExternalRequest(string method, string path, *hash body, hash cx = {}) {
+        auto handleExternalRequest(string method, string path, *hash body, hash cx = {}) {
             if (!Methods{method})
                 throw "UNKNOWN-REST-METHOD", sprintf("unsupported HTTP method %y given in REST call %y; known methods: %y", method, path, Methods), 400;
 
@@ -885,7 +885,7 @@ public namespace RestHandler {
             string mn;
 
             {
-                any action;
+                auto action;
                 if (args.action)
                     action = remove args.action;
                 else if (body.action)
@@ -979,7 +979,7 @@ public namespace RestHandler {
                 logDebug("REST DBG: body: %s", bstr);
             }
 
-            any body = b;
+            auto body = b;
 
             # get rest class name
             *string path = cx.url.path;
@@ -1195,7 +1195,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash makeResponse(int code, any body, *hash hdr) {
+        static hash makeResponse(int code, auto body, *hash hdr) {
             return (
                 "code": code,
                 "body": body,
@@ -1212,7 +1212,7 @@ namespace Priv {
         addUserThreadContext(hash uctx) {
         }
 
-        any removeUserThreadContext(*string k) {
+        auto removeUserThreadContext(*string k) {
         }
 
         log(string fmt) {

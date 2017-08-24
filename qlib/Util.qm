@@ -162,8 +162,8 @@ int result = compare_version("2.11.1", "2.2");
                 splice ll, 0, i;
                 return (select ll, $1) ? 1 : 0;
             }
-            any l = ll[i];
-            any r = rl[i];
+            auto l = ll[i];
+            auto r = rl[i];
             if (l =~ /^[0-9]/)
                 l = int(l);
             if (r =~ /^[0-9]/)
@@ -476,12 +476,12 @@ bool abs = absolute_path_windows(path);
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
     hash sub eval_text(string arg, bool err = False) {
         # try to evaluate as a Qore expression
-        string str = sprintf("any sub get() { return %s; }", arg);
+        string str = sprintf("auto sub get() { return %s; }", arg);
         # use a sandboxed Program object
         Program prog(PO_LOCKDOWN);
         try {
             prog.parse(str, "main");
-            any rv = prog.callFunction("get");
+            auto rv = prog.callFunction("get");
             # if it's a float, then return a string to preseve formatting
             if (rv.typeCode() != NT_FLOAT && rv.val())
                 return ("valid": True, "value": rv);
@@ -497,7 +497,7 @@ bool abs = absolute_path_windows(path);
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
     /* returns the value parsed
     */
-    any sub parse_to_basic_value(*string arg) {
+    auto sub parse_to_basic_value(*string arg) {
         if (arg.empty())
             return;
 
@@ -577,7 +577,7 @@ hash: (1 member)
 
         @throw PARSE-ERROR cannot parse the string given
     */
-    public any sub parse_to_qore_value(string arg) {
+    public auto sub parse_to_qore_value(string arg) {
         # see if there is aprocessing cmd
         if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
             if (pc[0] == "STR")
@@ -586,7 +586,7 @@ hash: (1 member)
                 return eval_text(pc[1], True).value;
         }
 
-        any v;
+        auto v;
 
         list l = scan_exp(arg);
 
@@ -597,7 +597,7 @@ hash: (1 member)
         # process values after an "=" sign
         code do_eq = sub (reference<int> i, string key) {
             # get the value
-            any val;
+            auto val;
             switch (l[i+2].type) {
                 case ET_BracketString: val = parse_to_qore_value(l[i+2].val); break;
                 case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
@@ -630,7 +630,7 @@ hash: (1 member)
         };
 
         # process other values
-        code do_val = sub (any val) {
+        code do_val = sub (auto val) {
             switch (v.typeCode()) {
                 case NT_LIST: {
                     v += val;
@@ -879,7 +879,7 @@ string str = get_marketing_byte_size(n);
         if (l.size() < 2) {
             return True;
         }
-        any random_value = l[0];
+        auto random_value = l[0];
         for (int i = 1; i < l.size(); ++i) {
             if (l[i] != random_value) {
                 return False;

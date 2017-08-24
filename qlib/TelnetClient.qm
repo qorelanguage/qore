@@ -631,7 +631,7 @@ telnet.clearStats();
 
         # don't override this method, fix/enhance it with a patch to the module
         private final sendDataIntern(softlist arr, bool double_aic = False) {
-            foreach any val in (arr) {
+            foreach auto val in (arr) {
                 switch (val.typeCode()) {
                     case NT_BINARY: {
                         conn.sendBinary2(val);

@@ -733,7 +733,7 @@ Mapper mapv(DataMap);
 
         #! verifies a timezone constructor option
         private checkTimezoneOption(hash opts, string rn) {
-            any val = opts{rn};
+            auto val = opts{rn};
             if (!exists val)
                 return;
             if (val instanceof TimeZone) {
@@ -767,7 +767,7 @@ Mapper mapv(DataMap);
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        setRuntime(string key, any value) {
+        setRuntime(string key, auto value) {
             if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
                         "has changed %y -> %y while already %y input rows have been "
@@ -844,7 +844,7 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
          */
-        any getRuntime(string key) {
+        auto getRuntime(string key) {
             return m_runtime{key};
         }
 
@@ -1017,7 +1017,7 @@ Mapper mapv(DataMap);
             string name = m.name ?? key;
 
             # get source record value
-            any v;
+            auto v;
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
@@ -1133,11 +1133,11 @@ Mapper mapv(DataMap);
             # add value to row list
             if (m.ostruct) {
                 # recursive closure for generating structured data
-                code ah = any sub (*hash ch, any vc, int off = 0) {
+                code ah = auto sub (*hash ch, auto vc, int off = 0) {
                     if (off == m.ostruct.size())
                         return vc;
                     string k = m.ostruct[off];
-                    any oh = ch{k};
+                    auto oh = ch{k};
                     if (exists oh && oh.typeCode() != NT_HASH)
                         throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
                     ch{k} = ah(oh, vc, off + 1);
@@ -1284,7 +1284,7 @@ Mapper mapv(DataMap);
         }
 
         #! to be overridden as necessary in subclasses
-        private any mapSubclass(hash m, any v) {
+        private auto mapSubclass(hash m, auto v) {
             return v;
         }
     }
