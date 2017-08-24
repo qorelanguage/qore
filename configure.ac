@@ -4,8 +4,9 @@
 AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
+AC_CONFIG_HEADER(modules/astparser/config.h)
 
 # fix default include dir
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
@@ -1737,9 +1738,12 @@ fi
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API=$MODULE_API_MAJOR.$MODULE_API_MINOR
+
 mypkglibdir=qore-modules
 AC_SUBST([MODULE_API_MAJOR])
 AC_SUBST([MODULE_API_MINOR])
+AC_SUBST(MODULE_API)
 AC_SUBST([mypkglibdir])
 
 # save more version information in config.h
@@ -1879,6 +1883,22 @@ else
    QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS"
 fi
 
+# if compiling for mingw32, we have to add qore ldflags to the module's ldflags
+if test "$mingw" = yes; then
+    MODULE_LDFLAGS="$MODULE_LDFLAGS $QORE_LDFLAGS"
+    AC_SUBST(MODULE_LDFLAGS)
+fi
+
+# save more version information in config.h
+MODULE_VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
+MODULE_VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
+MODULE_VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
+QORE_MODULE_PACKAGE_VERSION="$PACKAGE_VERSION"
+
+# set user module directory
+mymodverdir=${qore_version}
+AC_SUBST([mymodverdir])
+
 # save compiler settings in config file
 AC_DEFINE_UNQUOTED([QORE_LIB_CXX], "$CXX", [c++ compiler used])
 AC_DEFINE_UNQUOTED([QORE_LIB_CPPFLAGS], "$QORE_LIB_CPPFLAGS", [preprocessor flags])
@@ -1887,7 +1907,17 @@ AC_DEFINE_UNQUOTED([QORE_LIB_CFLAGS],   "$QORE_LIB_CFLAGS", [c++ compiler flags]
 AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
+# set version information
+AC_DEFINE_UNQUOTED([MODULE_VERSION_MAJOR], $MODULE_VERSION_MAJOR, [major version number])
+AC_DEFINE_UNQUOTED([MODULE_VERSION_MINOR], $MODULE_VERSION_MINOR, [minor version number])
+AC_DEFINE_UNQUOTED([MODULE_VERSION_SUB], $MODULE_VERSION_SUB, [sub version number])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_ARCH], "$ARCH", [host type])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_OS], "$OS", [host type])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_BITS], $bits, [32 or 64 bit build])
+AC_DEFINE_UNQUOTED([QORE_MODULE_PACKAGE_VERSION], "$QORE_MODULE_PACKAGE_VERSION", [qore module package version])
+
 AC_CONFIG_FILES([Makefile lib/Makefile])
+AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

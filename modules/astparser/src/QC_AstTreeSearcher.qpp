@@ -95,7 +95,7 @@ AstTreeSearcher::constructor() {
 *hash AstTreeSearcher::hoverInfo(astparser::AstTree[AstTreeHolder] tree, int kind, int line, int col) {
     std::unique_ptr<std::vector<ASTNode*> > nodes(AstTreeSearcher::findNodeAndParents(tree->get(), line+1, col+1));
     if (!nodes)
-        return nullptr;
+        return QoreValue();
 
     if (kind == static_cast<int64_t>(ASYK_Method))
         kind = static_cast<int64_t>(ASYK_Function);
@@ -114,13 +114,13 @@ AstTreeSearcher::constructor() {
     }
 
     if (!decl)
-        return nullptr;
+        return QoreValue();
 
     ReferenceHolder<QoreHashNode> result(new QoreHashNode, xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
     if (!result)
-        return nullptr;
+        return QoreValue();
 
     std::ostringstream hoverInfo;
     if (kind == ASYK_Class)
@@ -138,7 +138,7 @@ AstTreeSearcher::constructor() {
 
     result->setKeyValue("description", new QoreStringNode(hoverInfo.str()), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
 
     return result.release();
 }
@@ -157,36 +157,36 @@ AstTreeSearcher::constructor() {
          si.loc.firstCol == 0 &&
          si.loc.lastLine == 0 &&
          si.loc.lastCol == 0))
-        return nullptr;
+        return QoreValue();
 
     ReferenceHolder<QoreHashNode> start(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> end(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
     ReferenceHolder<QoreHashNode> hoverInfo(new QoreHashNode, xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
     if (!start || !end || !range || !hoverInfo)
-        return nullptr;
+        return QoreValue();
 
     start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
     start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
     end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
     end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
     range->setKeyValue("start", start.release(), xsink);
     range->setKeyValue("end", end.release(), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
 
     hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
     hoverInfo->setKeyValue("usage", new QoreBigIntNode(static_cast<int64_t>(si.usage)), xsink);
     hoverInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
     hoverInfo->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
-        return nullptr;
+        return QoreValue();
 
     return hoverInfo.release();
 }
@@ -203,7 +203,7 @@ AstTreeSearcher::constructor() {
 *list AstTreeSearcher::findReferences(astparser::AstTree[AstTreeHolder] tree, string uri, int line, int col, bool includeDecl) {
     std::unique_ptr<std::vector<ASTNode*> > vec(AstTreeSearcher::findReferences(tree->get(), line+1, col+1, includeDecl));
     if (!vec)
-        return nullptr;
+        return QoreValue();
 
     ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
     for (size_t i = 0, count = vec->size(); i < count; i++) {
@@ -213,26 +213,26 @@ AstTreeSearcher::constructor() {
         ReferenceHolder<QoreHashNode> range(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         if (!start || !end || !range || !location)
-            return nullptr;
+            return QoreValue();
 
         start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
         start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
         end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
         range->setKeyValue("end", end.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         location->setKeyValue("uri", uri->stringRefSelf(), xsink);
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         lst->push(location.release());
     }
 
@@ -250,7 +250,7 @@ AstTreeSearcher::constructor() {
 *list AstTreeSearcher::findSymbols(astparser::AstTree[AstTreeHolder] tree, string uri, bool fixSymbols = True, bool bareNames = False) {
     const std::vector<ASTSymbolInfo>* vec = AstTreeSearcher::findSymbols(tree->get(), fixSymbols, bareNames);
     if (!vec)
-        return nullptr;
+        return QoreValue();
 
     ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
     for (size_t i = 0, count = vec->size(); i < count; i++) {
@@ -261,31 +261,31 @@ AstTreeSearcher::constructor() {
         ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> symbolInfo(new QoreHashNode, xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         if (!start || !end || !range || !location || !symbolInfo)
-            return nullptr;
+            return QoreValue();
 
         start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
         start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
         end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
         range->setKeyValue("end", end.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         location->setKeyValue("uri", uri->stringRefSelf(), xsink);
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
         symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         lst->push(symbolInfo.release());
     }
 
@@ -306,7 +306,7 @@ AstTreeSearcher::constructor() {
     std::string queryStr(query->c_str());
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(AstTreeSearcher::findMatchingSymbols(tree->get(), queryStr, exactMatch, fixSymbols, bareNames));
     if (!vec)
-        return nullptr;
+        return QoreValue();
 
     ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
     for (size_t i = 0, count = vec->size(); i < count; i++) {
@@ -317,31 +317,31 @@ AstTreeSearcher::constructor() {
         ReferenceHolder<QoreHashNode> location(new QoreHashNode, xsink);
         ReferenceHolder<QoreHashNode> symbolInfo(new QoreHashNode, xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         if (!start || !end || !range || !location || !symbolInfo)
-            return nullptr;
+            return QoreValue();
 
         start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
         start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
         end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
         range->setKeyValue("end", end.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         location->setKeyValue("uri", uri->stringRefSelf(), xsink);
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
         symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
-            return nullptr;
+            return QoreValue();
         lst->push(symbolInfo.release());
     }
 
