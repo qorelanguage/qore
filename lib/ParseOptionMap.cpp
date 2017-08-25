@@ -122,4 +122,24 @@ void ParseOptionMap::list_options() {
       printf("%s\n", i.first);
 }
 
+QoreHashNode* ParseOptionMap::getCodeToStringMap() {
+   QoreHashNode* h = new QoreHashNode;
+   QoreString key;
+   for (auto& i : rmap) {
+      key.clear();
+      key.sprintf(QLLD, i.first);
+      h->setKeyValue(key.c_str(), new QoreStringNode(i.second), 0);
+   }
+   return h;
+}
+
+QoreHashNode* ParseOptionMap::getStringToCodeMap() {
+   QoreHashNode* h = new QoreHashNode;
+   for (auto& i : map) {
+      h->setKeyValue(i.first, new QoreBigIntNode(i.second), 0);
+   }
+   return h;
+}
+
+
 #undef DO_MAP
