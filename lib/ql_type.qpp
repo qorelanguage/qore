@@ -429,7 +429,7 @@ string type = type(v);
 
     @see pseudo-method <value>::typeCode()
 */
-string type(any arg) [flags=CONSTANT] {
+string type(auto arg) [flags=CONSTANT] {
    return new QoreStringNode(arg.getTypeName());
 }
 
@@ -448,7 +448,7 @@ string type = typename(v);
     - This function is identical to type(any) and to calling pseudo-method <value>::type()
     - It is faster and more efficient to use <value>::typeCode() for comparing data types
 */
-string typename(any arg) [flags=CONSTANT] {
+string typename(auto arg) [flags=CONSTANT] {
    return new QoreStringNode(arg.getTypeName());
 }
 

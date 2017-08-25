@@ -420,7 +420,7 @@ public string sub qorize_named(hash val, string name = "var", bool newstyle = Tr
         int m3;
         string s1;
         list l;
-        any a;
+        auto a;
     }
 
         public constructor(int n_m1, int n_m2, int n_m3) {m1=n_m1; m2=n_m2; m3=n_m3;}
@@ -478,7 +478,7 @@ public deprecated string sub qorizeNamed(hash val, string name = "var", bool new
 }
 
 #! Process other types normal way using @ref qorize().
-public string sub qorize_named(any val, string name = "var", bool newstyle = True) {
+public string sub qorize_named(auto val, string name = "var", bool newstyle = True) {
     return qorize(val, name, newstyle);
 }
 
@@ -491,15 +491,15 @@ public string sub qorize_named(any val, string name = "var", bool newstyle = Tru
     @retval string a generated code
 
 @code{.py}
-    any s = qorize(NULL);
-    # "any var = NULL;"
+    auto s = qorize(NULL);
+    # "auto var = NULL;"
     string s = qorize(NULL, "foo", True);
-    # "any foo = NULL;"
+    # "auto foo = NULL;"
 @endcode
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize(any val, string name = "var", bool newstyle = True) {
+public string sub qorize(auto val, string name = "var", bool newstyle = True) {
     return sprintf("%s = %s;", QorizeHelper::checkVariableName(name, val, newstyle),
                                 QorizeHelper::escape(val));
 }
@@ -539,7 +539,7 @@ public string sub qorize_val(hash val, int indentation = 2, bool curlyHash = Tru
 
     @throw QORIZE-ERROR in case of error in code generator
 */
-public string sub qorize_val(any val) {
+public string sub qorize_val(auto val) {
     return sprintf("%s", QorizeHelper::escape(val));
 }
 #@}
@@ -549,7 +549,7 @@ public string sub qorize_val(any val) {
 class QorizeHelper {
 
     private {
-        any container;
+        auto container;
         string code;
         int level = 0;
         bool newstyle;
@@ -558,7 +558,7 @@ class QorizeHelper {
         hash objectSignatures;
     }
 
-    static string checkVariableName(string name, any val, bool newstyle) {
+    static string checkVariableName(string name, auto val, bool newstyle) {
         string ret;
         if (!newstyle)
             ret += "my ";
@@ -640,7 +640,7 @@ class QorizeHelper {
         return sprintf("new %s()", val.className());
     }
 
-    static string escape(any val) {
+    static string escape(auto val) {
         switch (val.typeCode()) {
             case NT_NULL:
                 return "NULL";
@@ -651,7 +651,7 @@ class QorizeHelper {
         }
     }
 
-    constructor(any n_container, bool n_newstyle = True, int n_indentation = 2, bool n_curlyHash = True) {
+    constructor(auto n_container, bool n_newstyle = True, int n_indentation = 2, bool n_curlyHash = True) {
         container = n_container;
         indentation = n_indentation;
         curlyHash = n_curlyHash;
@@ -704,7 +704,7 @@ class QorizeHelper {
         if (it2 instanceof HashIterator) {
             HashIterator it = cast<HashIterator>(it2);
             while (it.next()) {
-                any value = it.getValue();
+                auto value = it.getValue();
                 string key = it.getKey();
                 processNamed(it.getValue(), prefixName+".\""+it.getKey()+"\"");
             }
@@ -722,7 +722,7 @@ class QorizeHelper {
         } else {
             ListIterator it = val.iterator();
             while (it.next()) {
-                any value = it.getValue();
+                auto value = it.getValue();
                 if (exists value) {
                     processNamed(value, prefixName + sprintf("[%d]", it.index()));
                 }
@@ -730,7 +730,7 @@ class QorizeHelper {
         }
     }
 
-    private processNamed(any val, string prefixName) {
+    private processNamed(auto val, string prefixName) {
         code += prefixName + " = " + escape(val) + ";\n";
     }
 
@@ -756,7 +756,7 @@ class QorizeHelper {
             while (it.next()) {
                 if (!it.first())
                     code += ", ";
-                any v = it.getValue();
+                auto v = it.getValue();
                 if (inlist(v.typeCode(), (NT_HASH, NT_LIST))) {
                     #pending = True;
                 } else {
@@ -796,7 +796,7 @@ class QorizeHelper {
         }
     }
 
-    private process(any val) {
+    private process(auto val) {
         code += escape(val);
     }
 

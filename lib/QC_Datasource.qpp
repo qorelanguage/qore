@@ -310,7 +310,7 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (!port && driver->find('@') != -1) {
@@ -387,7 +387,7 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
 
     @since %Qore 0.8.6
  */
-Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
@@ -431,7 +431,7 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
@@ -561,7 +561,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::exec(string sql, ...) {
+auto Datasource::exec(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
@@ -585,7 +585,7 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::vexec(string sql, *softlist vargs) {
+auto Datasource::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
@@ -608,7 +608,7 @@ db.execRaw("create table my_tab (id number, some_text varchar2(30))");
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::execRaw(string sql) {
+auto Datasource::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
@@ -646,7 +646,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any Datasource::select(string sql, ...) {
+auto Datasource::select(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
@@ -705,7 +705,7 @@ any Datasource::select(string sql, ...) {
 
     @see Datasource::select()
  */
-any Datasource::selectRows(string sql, ...) {
+auto Datasource::selectRows(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
@@ -741,7 +741,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any Datasource::vselect(string sql, *softlist vargs) {
+auto Datasource::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
@@ -801,7 +801,7 @@ any Datasource::vselect(string sql, *softlist vargs) {
 
     @see Datasource::selectRows()
  */
-any Datasource::vselectRows(string sql, *softlist vargs) {
+auto Datasource::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
@@ -1156,14 +1156,14 @@ string Datasource::getDriverName() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any ver = db.getServerVersion();
+auto ver = db.getServerVersion();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::getServerVersion() {
+auto Datasource::getServerVersion() {
    return ds->getServerVersion(xsink);
 }
 
@@ -1172,12 +1172,12 @@ any Datasource::getServerVersion() {
 
     @par Example:
     @code{.py}
-any ver = db.getClientVersion();
+auto ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
  */
-any Datasource::getClientVersion() {
+auto Datasource::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
@@ -1255,7 +1255,7 @@ hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
 
     @since %Qore 0.8.6
  */
-Datasource::setOption(string opt, any val) {
+Datasource::setOption(string opt, auto val) {
    ds->setOption(opt->getBuffer(), val, xsink);
 }
 
@@ -1269,7 +1269,7 @@ Datasource::setOption(string opt, any val) {
 
     @since %Qore 0.8.6
  */
-any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
+auto Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);
 }
 
@@ -1310,7 +1310,7 @@ string Datasource::getConfigString() [flags=CONSTANT] {
 
     @since %Qore 0.8.9
  */
-nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
+nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (queue->getMax() != -1)

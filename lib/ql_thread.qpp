@@ -234,7 +234,7 @@ save_thread_data("key1", value);
 
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
-nothing save_thread_data(string key, any value) [dom=THREAD_CONTROL] {
+nothing save_thread_data(string key, auto value) [dom=THREAD_CONTROL] {
    QoreHashNode* data = getProgram()->getThreadData();
    data->setKeyValue(key, value.getReferencedValue(), xsink);
 }
@@ -333,12 +333,12 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
 
     @par Example:
     @code{.py}
-any data = get_thread_data("key1");
+auto data = get_thread_data("key1");
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-any get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
+auto get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
@@ -478,7 +478,7 @@ nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
 try {
     throw_thread_resource_exceptions();
 }
-catch (ex) {
+catch (hash<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -516,7 +516,7 @@ try {
     # exceptions will be thrown
     throw_thread_resource_exceptions_to_mark();
 }
-catch (ex) {
+catch (hash<<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -553,7 +553,7 @@ try {
 
     # ... some code or calls that may allocate thread resources
 }
-catch (ex) {
+catch (hash<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -730,7 +730,7 @@ set_thread_resource(\func(), code);
 
     @since %Qore 0.8.12
  */
-nothing set_thread_resource(code resource, any arg) [dom=THREAD_CONTROL] {
+nothing set_thread_resource(code resource, auto arg) [dom=THREAD_CONTROL] {
    set_thread_resource(resource, arg);
 }
 

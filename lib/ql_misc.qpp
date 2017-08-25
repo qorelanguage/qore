@@ -547,7 +547,7 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-any result = call_function("func_name", arg1, arg2);
+auto result = call_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -555,7 +555,7 @@ any result = call_function("func_name", arg1, arg2);
 
     @note The function called could also throw other exceptions
 */
-any call_function(string name, ...) {
+auto call_function(string name, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
@@ -571,12 +571,12 @@ any call_function(string name, ...) {
 
     @par Example:
     @code{.py}
-any result = call_function(call_ref, arg1, arg2);
+auto result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
-any call_function(code f, ...) {
+auto call_function(code f, ...) {
    ReferenceHolder<QoreListNode> vargs(xsink);
    // if there are arguments to pass, create argument list by copying current list
    if (num_args(args) > 1)
@@ -594,7 +594,7 @@ any call_function(code f, ...) {
 
     @par Example:
     @code{.py}
-any result = call_function_args("func_name", (arg1, arg2));
+auto result = call_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -602,7 +602,7 @@ any result = call_function_args("func_name", (arg1, arg2));
 
     @note The function called could also throw other exceptions
 */
-any call_function_args(string name, *softlist<auto> vargs) {
+auto call_function_args(string name, *softlist<auto> vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
 }
 
@@ -613,12 +613,12 @@ any call_function_args(string name, *softlist<auto> vargs) {
 
     @par Example:
     @code{.py}
-any result = call_function_args(call_ref, (arg1, arg2));
+auto result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
-any call_function_args(code f, *softlist<auto> vargs) {
+auto call_function_args(code f, *softlist<auto> vargs) {
    return f->execValue(vargs, xsink).takeNode();
 }
 
@@ -631,7 +631,7 @@ any call_function_args(code f, *softlist<auto> vargs) {
 
     @par Example:
     @code{.py}
-any result = call_builtin_function("func_name", arg1, arg2);
+auto result = call_builtin_function("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -641,7 +641,7 @@ any result = call_builtin_function("func_name", arg1, arg2);
 
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
-any call_builtin_function(string name, ...) {
+auto call_builtin_function(string name, ...) {
    const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
       return QoreValue();
@@ -663,7 +663,7 @@ any call_builtin_function(string name, ...) {
 
     @par Example:
     @code{.py}
-any result = call_builtin_function_args("func_name", (arg1, arg2));
+auto result = call_builtin_function_args("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS Parse options do not allow access to the function
@@ -673,7 +673,7 @@ any result = call_builtin_function_args("func_name", (arg1, arg2));
 
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
-any call_builtin_function_args(string name, *softlist<auto> vargs) {
+auto call_builtin_function_args(string name, *softlist<auto> vargs) {
    const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
       return QoreValue();
@@ -2571,7 +2571,7 @@ set_return_value(1);
 
     @since %Qore 0.8.12
  */
-set_return_value(any val) [dom=PROCESS] {
+set_return_value(auto val) [dom=PROCESS] {
    qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
 }
 
@@ -2646,7 +2646,7 @@ set_local_var_value("var", 1);
 
     @since %Qore 0.8.13
 */
-nothing set_local_var_value(string var, any value) [dom=DEBUG_INSECURE] {
+nothing set_local_var_value(string var, auto value) [dom=DEBUG_INSECURE] {
    if (thread_set_local_var_value(var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(var->c_str(), value, xsink) == 1)
       xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", var->c_str());
 }
@@ -2684,7 +2684,7 @@ set_global_var_value("a", 1);
 
     @since %Qore 0.8.13
  */
-nothing set_global_var_value(string name, any value) {
+nothing set_global_var_value(string name, auto value) {
    getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
 //@}

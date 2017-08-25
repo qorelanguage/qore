@@ -1794,7 +1794,7 @@ protected:
                 continue;
             }
 
-            if (ptype == "any" || ptype == "data") {
+            if (ptype == "any" || ptype == "data" || ptype == "auto") {
                 if (use_value)
                     fprintf(fp, "    QoreValue %s = get_param_value(args, %d);\n", p.name.c_str(), i);
                 else
@@ -4371,6 +4371,9 @@ void init() {
 
     tmap["any"] = "anyTypeInfo";
     mtmap["any"] = "Va";
+
+    tmap["auto"] = "autoTypeInfo";
+    mtmap["auto"] = "VA";
 
     tmap["nothing"] = "nothingTypeInfo";
     mtmap["nothing"] = "Vn";

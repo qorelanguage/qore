@@ -573,7 +573,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -635,7 +635,7 @@ my any $v = $c.name;
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -1232,20 +1232,20 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
             ds.exec("savepoint " + PGSQL_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.vexec(sql, args);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
@@ -1258,10 +1258,10 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecRaw(AbstractDatasource ds, string sql) {
+        static auto tryExecRaw(AbstractDatasource ds, string sql) {
             ds.exec("savepoint " + PGSQL_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.execRaw(sql);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
@@ -1405,22 +1405,22 @@ my any $v = $c.name;
                     },
                 ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
@@ -1449,7 +1449,7 @@ my any $v = $c.name;
                     }
                 ),
                 COP_TRUNC_DATE: (
-                    "code": string sub(string arg1, any arg) {
+                    "code": string sub(string arg1, auto arg) {
                         if (!PgsqlTruncDate.hasKey(arg)) {
                             throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, PgsqlTruncDate.keys());
                         }
@@ -1938,7 +1938,7 @@ my any $v = $c.name;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -2023,12 +2023,12 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
@@ -2040,7 +2040,7 @@ my any $v = $c.name;
 
         private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
-            foreach any v in (opt.returning) {
+            foreach auto v in (opt.returning) {
                 hash rh;
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;
@@ -2063,7 +2063,7 @@ my any $v = $c.name;
 
         private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)

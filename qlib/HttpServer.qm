@@ -287,7 +287,7 @@ class HttpServer::HandlerInfo {
         map ch.$1 = True, n_content;
         shdr = n_shdr;
 
-        foreach any h in (\shdr) {
+        foreach auto h in (\shdr) {
             if (h.typeCode() != NT_STRING)
                 throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, h.type());
             # make sure header is in lower case for matching
@@ -331,7 +331,7 @@ class HttpServer::HttpHandlerList {
 
     /*
     private static checkSpecialHeaders(reference sh) {
-        foreach any h in (\sh) {
+        foreach auto h in (\sh) {
             if (h.typeCode() != NT_STRING)
                 throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, h.type());
             # make sure header is in lower case for matching
@@ -1397,7 +1397,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private hash<HttpResponseInfo> noHandlerError(hash cx, hash hdr, any body) {
+    final private hash<HttpResponseInfo> noHandlerError(hash cx, hash hdr, auto body) {
         string str = "";
         if (hdr.path)
             str = sprintf("url=%y", hdr.path);
@@ -1718,7 +1718,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         *SSLCertificate cert;
         *SSLPrivateKey key;
         bool ssl = False;
-        any socket;
+        auto socket;
         hash socket_info;
 
         # connection counter
@@ -1886,7 +1886,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         return name;
     }
 
-    any getAddress() {
+    auto getAddress() {
         return socket;
     }
 
@@ -1908,13 +1908,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             );
     }
 
-    any removeUserThreadContext(*string k) {
+    auto removeUserThreadContext(*string k) {
         if (!exists k) {
             remove_thread_data("uctx");
             return;
         }
         *hash h = get_thread_data("uctx");
-        any rv = remove h{k};
+        auto rv = remove h{k};
         save_thread_data("uctx", h);
         return rv;
     }
@@ -2099,7 +2099,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             "listener-id": id,
             );
 
-        my (hash hdr, any body);
+        my (hash hdr, auto body);
 
         # set TCP_NODELAY on incoming socket
         #s.setNoDelay(True);

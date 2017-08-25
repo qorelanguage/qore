@@ -252,7 +252,7 @@ public namespace HttpServer {
         int code;
 
         #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
-        any body;
+        auto body;
 
         #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         softbool close = False;
@@ -334,7 +334,7 @@ public namespace HttpServer {
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
         # however we support both
         string sep = path.find(";") == -1 ? "&" : ";";
-        foreach any arg in (split(sep, path)) {
+        foreach auto arg in (split(sep, path)) {
             if (arg.val()) {
                 (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
                 if (key)
@@ -438,7 +438,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
     #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
     /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
     */
-    abstract any removeUserThreadContext(*string k);
+    abstract auto removeUserThreadContext(*string k);
 }
 
 #! abstract base class for external authentication
@@ -608,7 +608,7 @@ public class HttpServer::AbstractStreamRequest {
         #! a hash of request headers
         hash hdr;
         #! any message body given in a non-chunked request; could already be deserialized
-        any body;
+        auto body;
         #! send and receive timeout
         timeout timeout_ms = HttpServer::DefaultTimeout;
     }
@@ -624,7 +624,7 @@ public class HttpServer::AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param n_body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, any n_body) {
+    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, auto n_body) {
         listener = n_listener;
         handler = n_handler;
         s = n_s;
@@ -706,8 +706,8 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
-    private any send() {
-        any v = sendImpl();
+    private auto send() {
+        auto v = sendImpl();
         switch (v.typeCode()) {
             case NT_STRING:
             case NT_BINARY: {
@@ -768,7 +768,7 @@ private logChunk(bool send, int size) {
     /**
         @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
-    private any sendImpl() {
+    private auto sendImpl() {
     }
 }
 
@@ -917,7 +917,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
         if (!stream) {
-            any rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
+            auto rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
             switch (rv.typeCode()) {
                 case NT_HASH: return cast<hash<HttpResponseInfo>>(rv);
                 case NT_STRING:
@@ -1022,7 +1022,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             hash amh;
             if (api.maskargs)
                 map amh.$1 = True, api.maskargs;
-            foreach any arg in (params) {
+            foreach auto arg in (params) {
                 if (amh.(i++))
                     args += "<masked>, ";
                 else if (arg.typeCode() == NT_HASH && arg) {

@@ -342,7 +342,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -396,7 +396,7 @@ my any $v = $c.name;
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -1024,27 +1024,27 @@ end";
                     },
                 ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e %%k')", arg1);
                     }
                 ),
                 COP_TRUNC_DATE: (
-                    "code": string sub(string arg1, any arg) {
+                    "code": string sub(string arg1, auto arg) {
                         if (!MysqlTruncDate.hasKey(arg)) {
                             throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, MysqlTruncDate.keys());
                         }
@@ -1166,7 +1166,7 @@ end";
                 }
 
                 MysqlColumn c;
-                any defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                auto defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
                 if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
@@ -1470,12 +1470,12 @@ end";
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             return MysqlTable::getSqlValueIntern(v);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private static *string getSqlValueIntern(any v) {
+        private static *string getSqlValueIntern(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1506,7 +1506,7 @@ my string $str = $table.getSqlValue($date);
 
             @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
-        static *string getSqlValue(any v) {
+        static *string getSqlValue(auto v) {
            *string str = MysqlTable::getSqlValueIntern(v);
             if (!exists str)
                 throw "VALUE-ERROR", sprintf("class MysqlTable cannot convert type %y to an SQL string (value: %y)", v.type(), v);
@@ -1585,7 +1585,7 @@ my string $str = $table.getSqlValue($date);
 
         private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)
