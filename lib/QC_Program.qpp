@@ -59,18 +59,18 @@ const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
 const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
 
 //! Maps from parse option code values (as string keys) to parse option names. Names are in form used in script or on command line, e.g. new-style
-/** @see ParseOption2StringMap for the reverse mapping
+/** @see ParseOptionCmdStringMap for the reverse mapping
 
     @since %Qore 0.8.13
  */
-const ParseOption2CodeMap = qore(ParseOptionMap::getCodeToStringMap());
+const ParseOptionCmdCodeMap = qore(ParseOptionMap::getCodeToStringMap());
 
 //! Maps from parse option strings to parse option integer codes. Names are in form used in script or on command line, e.g. new-style.
-/** @see ParseOption2CodeMap for the reverse mapping
+/** @see ParseOptionCmdCodeMap for the reverse mapping
 
     @since %Qore 0.8.13
  */
-const ParseOption2StringMap = qore(ParseOptionMap::getStringToCodeMap());
+const ParseOptionCmdStringMap = qore(ParseOptionMap::getStringToCodeMap());
 
 //! Prohibits the use of the '$' character in variable names, method calls, and object member references
 /** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
