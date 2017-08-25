@@ -1409,8 +1409,6 @@ any Program::getDefine(string def) {
     @since %Qore 0.8.13
  */
 *hash Program::getAllDefines() {
-   // TODO: TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   //return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
