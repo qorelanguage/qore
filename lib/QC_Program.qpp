@@ -35,6 +35,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/ParseOptionMap.h"
 
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
@@ -56,6 +57,20 @@ const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
     @since %Qore 0.8.12
  */
 const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
+//! Maps from parse option code values (as string keys) to parse option names. Names are in form used in script or on command line, e.g. new-style
+/** @see ParseOption2StringMap for the reverse mapping
+
+    @since %Qore 0.8.13
+ */
+const ParseOption2CodeMap = qore(ParseOptionMap::getCodeToStringMap());
+
+//! Maps from parse option strings to parse option integer codes. Names are in form used in script or on command line, e.g. new-style.
+/** @see ParseOption2CodeMap for the reverse mapping
+
+    @since %Qore 0.8.13
+ */
+const ParseOption2StringMap = qore(ParseOptionMap::getStringToCodeMap());
 
 //! Prohibits the use of the '$' character in variable names, method calls, and object member references
 /** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
@@ -1379,6 +1394,24 @@ any val = pgm.getDefine("PRODUCTION");
 any Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
+
+//! Retrieves all @ref conditional_parsing "parse defines" in the current Program
+/** @return the hash of values of all @ref conditional_parsing "parse defines" in the current Program
+
+    @par Example:
+    @code{.py}
+*hash val = pgm.getAllDefines();
+    @endcode
+
+    @note A parse define may be defined with no value then values may have nothing values
+
+    @since %Qore 0.8.13
+ */
+*hash Program::getAllDefines() {
+   // TODO: TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   //return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+   return qore_program_private::runTimeGetAllDefines(p);
 }
 
 //! Loads a %Qore module into the Program object at run-time

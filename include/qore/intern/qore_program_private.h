@@ -1235,6 +1235,15 @@ public:
       return rv ? rv->refSelf() : 0;
    }
 
+   DLLLOCAL QoreHashNode* runTimeGetAllDefines() {
+      AutoLocker al(plock);
+      QoreHashNode* h = new QoreHashNode();
+      for (dmap_t::iterator i = dmap.begin(); i != dmap.end(); i++) {
+         h->setKeyValue(i->first, i->second ? i->second->refSelf() : 0, 0);
+      }
+      return h;
+   }
+
    // internal method - does not bother with the parse lock
    // returns true if the define existed
    DLLLOCAL bool unDefine(const char* name, ExceptionSink* xsink) {
@@ -1653,6 +1662,10 @@ public:
 
    DLLLOCAL static AbstractQoreNode* runTimeGetDefine(QoreProgram* pgm, const char* name, bool& is_defined) {
       return pgm->priv->runTimeGetDefine(name, is_defined);
+   }
+
+   DLLLOCAL static QoreHashNode* runTimeGetAllDefines(QoreProgram* pgm) {
+      return pgm->priv->runTimeGetAllDefines();
    }
 
    DLLLOCAL static bool parseUnDefine(QoreProgram* pgm, const char* name) {
