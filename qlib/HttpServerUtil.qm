@@ -311,39 +311,14 @@ public namespace HttpServer {
 
         @return a @ref UriQueryInfo hash
 
-        @since 0.3.11 the \a params key value is always returned as a hash
+        @since
+        - 0.3.11 the \a params key value is always returned as a hash
+        - 0.3.12 the actual implementation is in @ref Util::parse_uri_query()
+
+        @note provided by @ref Util::parse_uri_query()
     */
     public hash<Util::UriQueryInfo> sub parse_uri_query(string path) {
         return Util::parse_uri_query(path);
-
-        int i = path.find("?");
-        if (i == -1)
-            return new hash<UriQueryInfo>(("method": path));
-
-        # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
-        hash<UriQueryInfo> h((
-            "method": path.substr(0, i),
-            "params": {},
-            ));
-
-        # remove method and "?" char; leave only args in path
-        splice path, 0, i + 1;
-
-        # iterate through args
-        # w3c recommends ";" instead of "&" to separate arguments
-        # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
-        # however we support both
-        string sep = path.find(";") == -1 ? "&" : ";";
-        foreach auto arg in (split(sep, path)) {
-            if (arg.val()) {
-                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
-                if (key)
-                    h.params{key} = value;
-                else
-                    h.params{arg} = True;
-            }
-        }
-        return h;
     }
 
     #! helper function for setting HTTP response headers
