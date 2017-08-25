@@ -1001,40 +1001,74 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         # maxProperties checks
-        s = {"type": "string", "maxProperties": 0};
+        s = {"type": "object", "maxProperties": 0};
         assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "maxProperties": 5};
+        s = {"type": "object", "maxProperties": 5};
         assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "maxProperties": -2};
+        s = {"type": "object", "maxProperties": -2};
         assertThrows("INVALID-FIELD-FORMAT", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "maxProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "maxProperties": 0};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "maxProperties": 5};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "maxProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "maxProperties": "a"};
         assertThrows("INVALID-FIELD-TYPE", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         # minProperties checks
-        s = {"type": "string", "minProperties": 0};
+        s = {"type": "object", "minProperties": 0};
         assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "minProperties": 5};
+        s = {"type": "object", "minProperties": 5};
         assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
-        s = {"type": "string", "minProperties": -2};
+        s = {"type": "object", "minProperties": -2};
         assertThrows("INVALID-FIELD-FORMAT", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "minProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "minProperties": 0};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "minProperties": 5};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "minProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "minProperties": "a"};
         assertThrows("INVALID-FIELD-TYPE", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         # properties checks
+        s = {"type": "object", "properties": {}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "properties": {"a": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "properties": {"a": 5}};
+        assertThrows("INVALID-FIELD-FORMAT", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "properties": 5};
+        assertThrows("INVALID-FIELD-TYPE", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
         s = {"type": "string", "properties": {}};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "properties": {"a": {"type": "string"}}};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "properties": {"a": 5}};
         assertThrows("INVALID-FIELD-FORMAT", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "properties": 5};
         assertThrows("INVALID-FIELD-TYPE", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
         # additionalProperties checks
+        s = {"type": "object", "additionalProperties": True};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "additionalProperties": {"type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "additionalProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "additionalProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
         s = {"type": "string", "additionalProperties": True};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "additionalProperties": {"type": "string"}};
-        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "string", "additionalProperties": "a"};
         assertThrows("INVALID-FIELD-TYPE", "additionalProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
 
@@ -1237,6 +1271,51 @@ public class SwaggerTest inherits QUnit::Test {
 
         testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml"));
         testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.json"));
+
+        {
+            hash b = ValidSwaggerObject + {
+                "definitions": {
+                    "a": {
+                        "type": "object",
+                        "properties": {
+                            "a": {
+                                "type": "string",
+                                "readOnly": True,
+                            },
+                        },
+                    },
+                },
+            };
+            b.parameters.a += (
+                "in": "body",
+                "schema": (
+                    "$ref": "#/definitions/a",
+                ),
+            );
+            b.paths."/api/smtg" += (
+                "get": (
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                    ),
+                    "produces": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                    ),
+                ),
+            );
+            remove b.parameters.a.type;
+
+            SwaggerObject so(b);
+
+            assertThrows("READONLY-PROPERTY-ERROR", \so.processRequest(), ("get", "/api/smtg", ("test": ("a": "a"))));
+        }
+
         # TODO
     }
 

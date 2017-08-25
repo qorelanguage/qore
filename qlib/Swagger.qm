@@ -99,7 +99,7 @@ public const MimeDataTypes = {
     ),
 %endif
 %ifndef NoYaml
-    MimeTypeYaml: (
+    MimeTypeYamlRpc: (
         "serialize": \make_yaml(),
         "deserialize": \parse_yaml(),
         "module": "yaml",
@@ -108,7 +108,7 @@ public const MimeDataTypes = {
 };
 
 #! modules available for data serialization and/or deserialization
-public const SerializationModules = map $1.module, MimeDataTypes;
+public const SerializationModules = map $1.module, MimeDataTypes.iterator();
 
 #! MIME types for data serialization
 public const MimeContentTypes = keys MimeDataTypes;
@@ -1683,7 +1683,7 @@ public class BodyParameter inherits AbstractParameterObject {
      */
     public constructor(hash oh, SwaggerObject swagger) : AbstractParameterObject(oh) {
         hash schemaObj;
-        required_field("Parameter", oh, "schema", NT_HASH, \schemaObj);
+        required_field("Body Parameter", oh, "schema", NT_HASH, \schemaObj);
         schema = SchemaObject::newSchemaObject("schema for body parameter", schemaObj, swagger);
     }
 
@@ -2369,10 +2369,12 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
 
         if (optional_field(objType, oh, "maxProperties", NT_INT, \maxProperties)) {
+            checkObjectProperty(name, "maxProperties");
             if (maxProperties < 0)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'maxProperties' field less than 0", name);
         }
         if (optional_field(objType, oh, "minProperties", NT_INT, \minProperties)) {
+            checkObjectProperty(name, "minProperties");
             if (minProperties < 0)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'minProperties' field less than 0", name);
         }
@@ -2380,6 +2382,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         {
             hash props;
             if (optional_field(objType, oh, "properties", NT_HASH, \props)) {
+                checkObjectProperty(name, "properties");
                 foreach string k in (keys props) {
                     any val = props{k};
                     if (val.typeCode() != NT_HASH)
@@ -2390,6 +2393,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         }
 
         if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True), \additionalProperties)) {
+            checkObjectProperty(name, "additionalProperties");
             if (additionalProperties.typeCode() == NT_HASH)
                 additionalProperties = SchemaObject::newSchemaObject("additionalProperties", additionalProperties, swagger);
         }
@@ -2432,8 +2436,16 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             example = oh.example;
     }
 
+    private checkObjectProperty(string name, string prop) {
+        if (type != "object")
+            throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y", name, prop, type);
+    }
+
     #! validates the value against the schema definition
     checkRequest(string path, string method, string name, any value) {
+        if (readOnly)
+            throw "READONLY-PROPERTY-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
+
         SchemaBase::checkRequest(type, items, path, method, name, value);
     }
 
