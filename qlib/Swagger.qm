@@ -41,9 +41,9 @@
 %endtry
 
 # need mime definitions
-%requires Mime >= 1.3.4.1
+%requires(reexport) Mime >= 1.3.4.1
 # requires the Util module
-%requires Util >= 1.3
+%requires(reexport) Util >= 1.3
 
 module Swagger {
     version = "0.1.0";
@@ -63,6 +63,8 @@ module Swagger {
 
     Primary classes provided by this module:
     - @ref Swagger::SwaggerObject "SwaggerObject"
+
+    JSON and YAML serialization and deserialization are supported, XML is currently not supported.
 
     @section swagger_relnotes Swagger Module Release Notes
 
@@ -87,9 +89,43 @@ public const ValidNumberFormatsHash = map {$1: True}, ValidNumberFormats;
 #! A hash of valid string type formats
 public const ValidStringFormatsHash = map {$1: True}, ValidStringFormats;
 
+#! supported mime types for de/serializing data
+public const MimeDataTypes = {
+%ifndef NoJson
+    MimeTypeJson: (
+        "serialize": \make_json(),
+        "deserialize": \parse_json(),
+        "module": "json",
+    ),
+%endif
+%ifndef NoYaml
+    MimeTypeYaml: (
+        "serialize": \make_yaml(),
+        "deserialize": \parse_yaml(),
+        "module": "yaml",
+    ),
+%endif
+};
+
+#! modules available for data serialization and/or deserialization
+public const SerializationModules = map $1.module, MimeDataTypes;
+
+#! MIME types for data serialization
+public const MimeContentTypes = keys MimeDataTypes;
+
 #! Valid transfer protocol schemes.
 public const ValidSchemes = ("http", "https", "ws", "wss");
 public const ValidSchemesHash = map {$1: True}, ValidSchemes;
+
+#! a hash of information about a request
+public hashdecl RestRequestInfo {
+    #! the URI path without query arguments
+    string path;
+    #! any query arguments
+    *hash query;
+    #! the deserialized message body hash
+    *hash body;
+}
 
 #! Base class for the Swagger specification objects, wrapping the vendor extensions.
 class ObjectBase {
@@ -410,7 +446,7 @@ public class SwaggerLoader {
 
         @throws EMPTY-SWAGGER-FILE swagger file is empty
         @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
-        @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
+        @throws YAML-MODULE-MISSING trying to parsea YAML Swagger specification with YAML module unavailable
      */
     public static SwaggerObject fromFile(string filepath) {
         string swaggerStr = ReadOnlyFile::readTextFile(filepath);
@@ -666,21 +702,107 @@ public class SwaggerObject inherits ObjectBase {
         }
     }
 
-    #! validates a client-side REST request
+    #! validates a REST request
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body hash
         @param headers any headers to include in the request
         @param mime_types an optional output variable giving the MIME types available for this message
     */
-    validateClientRequest(string method, string path, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
+    validateRequest(string method, string path, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
         hash<UriQueryInfo> h = parse_uri_query(path);
         method = method.lwr();
 
         PathItemObject pio = paths.match(h.method);
         OperationObject op = pio.getOperation(method, h.method);
 
-        op.validateClientRequest(method, pio, h, body, headers, \mime_types);
+        op.validateRequest(method, pio, h, body, headers, \mime_types);
+    }
+
+    #! processes a REST request and returns a hash that can be used to make the HTTP request
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body hash
+        @param headers any headers to include in the request
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then yaml is preferred over json
+
+        @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
+        - \c body the serialized message body (if any)
+        - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+
+        @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+    */
+    hash processRequest(string method, string path, *hash body, *hash headers, softlist<string> content_types = MimeContentTypes) {
+        hash<string, bool> mime_types;
+        validateRequest(method, path, body, headers, \mime_types);
+        if (!body)
+            return {};
+
+        foreach string content in (content_types) {
+            if (!mime_types{content})
+                continue;
+            switch (content) {
+                case MimeTypeYaml:
+%ifdef NoYaml
+                    throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the yaml module is not available", method.upr(), path, content);
+%else
+                    return (
+                        "body": make_yaml(body),
+                        "content": MimeTypeYaml,
+                    );
+%endif
+                case MimeTypeJson:
+%ifdef NoJson
+                    throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the json module is not available", method.upr(), path, content);
+%else
+                    return (
+                        "body": make_json(body),
+                        "content": MimeTypeJson,
+                    );
+%endif
+            }
+        }
+        if (body)
+            if (content_types == MimeContentTypes)
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME types: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            else
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME types: %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+        return {};
+    }
+
+    #! processes and parses a client request and returns the deserialized message body (if any)
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body hash
+        @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+        @return a @ref RestRequestInfo hash of request information
+
+        @throw DESERIALIZATION-ERROR the request body could not be deserialized
+    */
+    hash<RestRequestInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
+        hash body;
+        # deserialize body according to Content-Type
+        if (http_body) {
+            *code ds = MimeDataTypes.(headers."content-type").deserialize;
+            if (!ds)
+                throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
+
+            body = ds(body);
+        }
+
+        hash<UriQueryInfo> h = parse_uri_query(path);
+        method = method.lwr();
+
+        PathItemObject pio = paths.match(h.method);
+        OperationObject op = pio.getOperation(method, h.method);
+
+        op.parseRequest(method, pio, \h, \body, \headers);
+        return new hash<RestRequestInfo>((
+            "path": h.method,
+            "query": h.params,
+            "body": body,
+        ));
     }
 
     #! resolves a reference to a schema object
@@ -1290,7 +1412,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! processes a REST API client-side request to the operation
-    /** @param method the HTTP methis for the operation
+    /** @param method the HTTP method for the operation
         @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
         @param headers a reference to a hash of HTTP headers
@@ -1301,7 +1423,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
-    validateClientRequest(string method, PathItemObject pio, hash<UriQueryInfo> h, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
+    validateRequest(string method, PathItemObject pio, hash<UriQueryInfo> h, *hash body, *hash headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach hash ph in (h.params.pairIterator()) {
             # find URI parameter object
@@ -1346,6 +1468,21 @@ public class OperationObject inherits ObjectBase {
         checkMissingParams(method, h, headers, body, pio.parameters, parameters);
 
         mime_types = consumes;
+    }
+
+    #! parses and processes a REST request
+    /** @param method the HTTP method in lower case
+        @param pio the PathItemObject corresponding to the URI path
+        @param h a reference to the URI query info hash
+        @param body a reference to the HTTP message body data hash
+        @param headers a reference to a hash of HTTP headers
+
+        @throws INVALID-PARAMETER-NAME invalid parameter name
+        @throws INVALID-PARAMETER-LOCATION invalid parameter location
+        @throws MISSING-PARAMETER missing parameter and parameter has no default value
+    */
+    parseRequest(string method, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> body, reference<hash> headers) {
+        throw "NOT-YET-IMPLEMENTED";
     }
 
     #! checks for missing params
