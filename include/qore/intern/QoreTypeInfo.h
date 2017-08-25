@@ -345,7 +345,10 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
-      if (!hasType(first) && first != autoTypeInfo) {
+      if (first == autoTypeInfo) {
+         return QTI_AMBIGUOUS;
+      }
+      if (!hasType(first)) {
          if (!may_need_filter && isComplex(second))
             may_need_filter = true;
          return QTI_AMBIGUOUS;

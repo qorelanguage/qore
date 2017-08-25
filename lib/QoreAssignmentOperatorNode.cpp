@@ -65,17 +65,18 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
    qore_type_result_e res;
-   if (QoreTypeInfo::hasType(ti)) {
+   if (ti == autoTypeInfo) {
+      ident = true;
+      res = QTI_IDENT;
+   }
+   else if (QoreTypeInfo::hasType(ti)) {
       bool may_not_match = false;
       bool may_need_filter = false;
       res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
       ident = QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) && !may_need_filter);
    }
-   else {
-      res = QTI_NOT_EQUAL;
-      if (ti == autoTypeInfo)
-         ident = true;
-   }
+   else
+      res = QTI_AMBIGUOUS;
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
 
