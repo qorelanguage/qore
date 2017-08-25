@@ -1269,8 +1269,8 @@ public class SwaggerTest inherits QUnit::Test {
     testValidation() {
         checkModules();
 
-        testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.yaml"));
-        testValidation(Swagger::SwaggerLoader::fromFile("PetStore.swagger.json"));
+        testValidation(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testValidation(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
 
         {
             hash b = ValidSwaggerObject + {
