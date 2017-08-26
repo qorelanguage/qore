@@ -8,7 +8,7 @@ qoredatadir = $(datarootdir)/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib
+SUBDIRS = lib modules/astparser
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 

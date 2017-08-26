@@ -772,6 +772,10 @@ void qore_program_private::del(ExceptionSink* xsink) {
       delete i.second;
    for (auto& i : cron_map)
       delete i.second;
+   for (auto& i : csl_map)
+      delete i.second;
+   for (auto& i : cslon_map)
+      delete i.second;
 
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
@@ -869,6 +873,30 @@ const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const Qore
 
    QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
    clon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexSoftListType(const QoreTypeInfo* vti) {
+   AutoLocker al(csll);
+
+   tmap_t::iterator i = csl_map.lower_bound(vti);
+   if (i != csl_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexSoftListTypeInfo* ti = new QoreComplexSoftListTypeInfo(vti);
+   csl_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_program_private::getComplexSoftListOrNothingType(const QoreTypeInfo* vti) {
+   AutoLocker al(cslonl);
+
+   tmap_t::iterator i = cslon_map.lower_bound(vti);
+   if (i != cslon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexSoftListOrNothingTypeInfo* ti = new QoreComplexSoftListOrNothingTypeInfo(vti);
+   cslon_map.insert(i, tmap_t::value_type(vti, ti));
    return ti;
 }
 

@@ -340,6 +340,33 @@ public namespace DebugUtil {
                                 ),
                                 'desc': 'get/set global variable',
                             ),
+                            'define': (
+
+                                '*': (
+                                    'desc': 'get defines',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return keys sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/get';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/define//list';
+                                    dcl.doCommand(data);
+                                },
+                                'desc': 'get defines',
+                            ),
+                            'options': (
+                                'desc': 'list parse options',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/options';
+                                    dcl.doCommand(data);
+                                },
+                            ),
                         ),
                         'desc': 'program related commands',
                     ),
@@ -951,7 +978,7 @@ Linenoise::history_add('history load filename');
             #! lock for @ref ctxConnection access
             Qore::Thread::RWLock rwlConnection();
 
-            const frameOffset = 0;   #  3;   TODO: to see whole stack
+            const frameOffset = 3;
         }
         public {
             const runStateStrings = ('detach': DebugDetach, 'run': DebugRun, 'step': DebugStep, 'stepover': DebugStepOver, 'untilreturn': DebugUntilReturn);
@@ -986,11 +1013,36 @@ Linenoise::history_add('history load filename');
         abstract public broadcastDataImpl(any data);
 
         #! Create new program
-        public Program createProgram(string fileName, list args, *string script) {
+        public Program createProgram(string fileName, *hash opts, list args, *string script) {
             logger.log(DUV_DEBUG, sprintf("create program: %y", fileName));
 			Program pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
 			# restore default options
 			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
+            if (exists opts.parse_option) {
+                hash poops = Qore::ParseOptionStringMap;   # TODO: ParseOptionCmdStringMap
+                int oo = 0;
+                foreach string o in (opts.parse_option) {
+                    if (!exists poops{o}) {
+                        throw "DEBUG-CREATE-PROGRAM", sprintf("Unknown parse option %y", o);
+                    }
+                    oo |= poops{o};
+                }
+                pgm.setParseOptions(oo);
+            }
+            if (opts.define) {
+                foreach string d in (opts.define) {
+                    int i = bindex(d, "=");
+                    if (i >= 0) {
+                        pgm.define(substr(d, 0, i), substr(d, i+1));
+                    } else {
+                        pgm.define(d);
+                    }
+                }
+            }
+            if (exists opts.time_zone) {
+                # TODO: parse exact shifts
+                pgm.setTimeZoneRegion(opts.time_zone);
+            }
 			# update arguments without debug options
 			pgm.setGlobalVarValue('ARGV', args);
 			pgm.define('Q_DEBUGGING', 1);
@@ -1081,7 +1133,7 @@ Linenoise::history_add('history load filename');
                         }
                         break;
                     case 'create':
-                        pgm = createProgram(receiveData.filename, receiveData.args);
+                        pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
                         break;
                     case 'add':
                         addProgram(pgm);
@@ -1116,6 +1168,41 @@ Linenoise::history_add('history load filename');
                             }
                             result = DebugCommandLine::enumFilter(l, varName);
                             break;
+                        }
+                        break;
+
+                    case 'define':
+                        string defName = shift cmd;
+                        switch (shift cmd) {
+
+                        case 'get':
+                            if (pgm.isDefined(defName)) {
+                                result = pgm.getDefine(defName);
+                            }
+                            bool existF;
+                            any v = pgm.getGlobalVariable(defName, \existF);
+                            if (existF) {
+                                result = v;
+                            }
+                            break;
+
+                        case 'list':
+                            *hash defs = ('QoreDebug': True, 'QorePlatformCPU': "x86", 'PO_NEW_STYLE': True);    # TODO: pgm.getAllDefines();
+                            list dd = DebugCommandLine::enumFilter(keys defs, defName);
+                            result = hash();
+                            map result{$1} = defs{$1}, dd;
+                            break;
+                        }
+                        break;
+
+                    case 'options':
+                        int opts = pgm.getParseOptions();
+                        result = ();
+                        foreach string o in (keys ParseOptionCodeMap) {
+                            softint oo = o;
+                            if (oo != 0 && (oo & opts) == oo) {
+                                push result, ParseOptionCodeMap{o};
+                            }
                         }
                         break;
 
@@ -1342,9 +1429,9 @@ Linenoise::history_add('history load filename');
               'func': func,
               'runstate': encodeValue('runState', runState, runStateStrings),
               'frame': 0,
-'localvars0': keys get_local_vars(0),
-'localvars1': keys get_local_vars(1),
-'localvars2': keys get_local_vars(2),
+'localvars0': get_local_vars(0),
+'localvars1': get_local_vars(1),
+'localvars2': get_local_vars(2),
 'localvars3': keys get_local_vars(3),
 'localvars4': keys get_local_vars(4),
 'localvars5': keys get_local_vars(5),

@@ -236,9 +236,9 @@ public:
    DLLLOCAL ConstantList(const ConstantList& old, int64 po, ClassNs p);
 
    // do not delete the object returned by this function
-   DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, ClassAccess access = Public);
+   DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
 
-   DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = 0, bool pub = false, ClassAccess access = Public);
+   DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
 
    DLLLOCAL ConstantEntry* findEntry(const char* name);
 

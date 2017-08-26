@@ -59,7 +59,9 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *dateTypeInfo,
    *objectTypeInfo,
    *hashTypeInfo,
+   *autoHashTypeInfo,
    *listTypeInfo,
+   *autoListTypeInfo,
    *nothingTypeInfo,
    *nullTypeInfo,
    *numberTypeInfo,
@@ -74,6 +76,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *softStringTypeInfo,           // converts to string from int, float, bool, number, and null
    *softDateTypeInfo,             // converts to date from int, float, bool, string, number, and null
    *softListTypeInfo,             // converts NOTHING -> empty list, list -> the same list, and everything else: list(arg)
+   *softAutoListTypeInfo,
    *dataTypeInfo,                 // either string or binary
    *timeoutTypeInfo,              // accepts int or date and returns int giving timeout in milliseconds
    *bigIntOrFloatTypeInfo,        // accepts int or float and returns the same
@@ -89,7 +92,9 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *objectOrNothingTypeInfo,
    *dateOrNothingTypeInfo,
    *hashOrNothingTypeInfo,
+   *autoHashOrNothingTypeInfo,
    *listOrNothingTypeInfo,
+   *autoListOrNothingTypeInfo,
    *nullOrNothingTypeInfo,
    *codeOrNothingTypeInfo,
    *dataOrNothingTypeInfo,
@@ -102,6 +107,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *softStringOrNothingTypeInfo,
    *softDateOrNothingTypeInfo,
    *softListOrNothingTypeInfo,
+   *softAutoListOrNothingTypeInfo,
    *timeoutOrNothingTypeInfo;
 
 DLLEXPORT qore_type_t get_next_type_id();
@@ -168,7 +174,8 @@ enum qore_type_result_e {
 
    QTI_NOT_EQUAL   =  0,  //!< types do not match
    QTI_AMBIGUOUS   =  1,  //!< types match, but are not identical
-   QTI_IDENT       =  2   //!< types match perfectly
+   QTI_NEAR        =  2,  //!< types nearly match, but are not identical
+   QTI_IDENT       =  3   //!< types match perfectly
 };
 
 DLLEXPORT int testObjectClassAccess(const QoreObject* obj, const QoreClass* classtoaccess);

@@ -916,6 +916,7 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
       ThreadData* td = thread_data.get();
       ThreadLocalProgramData* tlpd = td->tlpd;
       ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+      QoreProgram* pgm = td->current_pgm;
       printd(5, "thread_get_local_vars() tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
       while (frame > tlpd->lvstack.getFrameCount()) {
          frame -= (tlpd->lvstack.getFrameCount() + 1);
@@ -924,7 +925,11 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
          printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
          if (!ch)
             return nullptr;
+         pgm = ch->getProgram();
       }
+
+      if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
+         return rv.release();
 
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)

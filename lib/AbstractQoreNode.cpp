@@ -670,3 +670,67 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
       default: assert(false);
    }
 }
+
+bool has_complex_type(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_LIST: {
+         const QoreListNode* l = static_cast<const QoreListNode*>(n);
+         if (QoreTypeInfo::hasType(l->getValueTypeInfo()))
+            return true;
+         ConstListIterator i(l);
+         while (i.next()) {
+            if (has_complex_type(i.getValue()))
+               return true;
+         }
+         return false;
+      }
+      case NT_HASH: {
+         const QoreHashNode* h = static_cast<const QoreHashNode*>(n);
+         if (QoreTypeInfo::hasType(h->getValueTypeInfo()) || h->getHashDecl())
+            return true;
+         ConstHashIterator i(h);
+         while (i.next()) {
+            if (has_complex_type(i.getValue()))
+               return true;
+         }
+         return false;
+      }
+      default:
+         break;
+   }
+   return false;
+}
+
+static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
+   ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
+   ConstHashIterator i(h);
+   while (i.next()) {
+      nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
+   }
+   return nh.release();
+}
+
+static QoreListNode* do_copy_strip(const QoreListNode* l) {
+   ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
+   ConstListIterator i(l);
+   while (i.next()) {
+      nl->push(copy_strip_complex_types(i.getValue()));
+   }
+   return nl.release();
+}
+
+AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {
+   if (!n)
+      return nullptr;
+   if (!has_complex_type(n))
+      return n->refSelf();
+   switch (get_node_type(n)) {
+      case NT_LIST:
+         return do_copy_strip(static_cast<const QoreListNode*>(n));
+      case NT_HASH:
+         return do_copy_strip(static_cast<const QoreHashNode*>(n));
+      default:
+         break;
+   }
+   return n->refSelf();
+}

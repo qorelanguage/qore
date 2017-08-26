@@ -321,18 +321,18 @@ private:
    std::string name;
    bool closure_use = false,
       parse_assigned = false;
-   const QoreTypeInfo* refTypeInfo;
    const QoreTypeInfo* typeInfo;
+   const QoreTypeInfo* refTypeInfo;
 
    DLLLOCAL LocalVarValue* get_var() const {
       return thread_find_lvar(name.c_str());
    }
 
 public:
-   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)), typeInfo(ti) {
+   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), typeInfo(ti), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)) {
    }
 
-   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), refTypeInfo(old.refTypeInfo), typeInfo(old.typeInfo) {
+   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo), refTypeInfo(old.refTypeInfo) {
    }
 
    DLLLOCAL ~LocalVar() {

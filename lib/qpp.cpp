@@ -688,9 +688,13 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                 }
             }
             else {
-                // generate type name
-                qc = "hashdecl" + subtype + "->getTypeInfo(" + (on ? "true" : "false") + ")";
-                log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+                if (subtype == "auto")
+                    qc = on ? "autoHashOrNothingTypeInfo" : "autoHashTypeInfo";
+                else {
+                    // generate type name
+                    qc = "hashdecl" + subtype + "->getTypeInfo(" + (on ? "true" : "false") + ")";
+                    log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+                }
             }
         }
         else if (!qt.compare(on ? 1 : 0, 5, "list<")) {
@@ -706,11 +710,39 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
             get_qore_type(subtype, subtype_qt);
 
             // generate type name
-            if (on)
-                qc = "qore_get_complex_list_or_nothing_type(" + subtype_qt + ")";
-            else
-                qc = "qore_get_complex_list_type(" + subtype_qt + ")";
+            if (subtype == "auto")
+                qc = on ? "autoListOrNothingTypeInfo" : "autoListTypeInfo";
+            else {
+                if (on)
+                    qc = "qore_get_complex_list_or_nothing_type(" + subtype_qt + ")";
+                else
+                    qc = "qore_get_complex_list_type(" + subtype_qt + ")";
+            }
             log(LL_DEBUG, "registering complex list return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+        }
+        else if (!qt.compare(on ? 1 : 0, 9, "softlist<")) {
+            // extract subtype name
+            std::string subtype = qt.substr((on ? 10 : 9), qt.size() - (on ? 11 : 10));
+
+            if (subtype.find(',') != std::string::npos) {
+                log(LL_CRITICAL, "unsupported complex softlist type found: '%s'\n", qt.c_str());
+                assert(false);
+            }
+
+            std::string subtype_qt;
+            get_qore_type(subtype, subtype_qt);
+
+            // generate type name
+            // generate type name
+            if (subtype == "auto")
+                qc = on ? "softAutoListOrNothingTypeInfo" : "softAutoListTypeInfo";
+            else {
+                if (on)
+                    qc = "qore_get_complex_softlist_or_nothing_type(" + subtype_qt + ")";
+                else
+                    qc = "qore_get_complex_softlist_type(" + subtype_qt + ")";
+            }
+            log(LL_DEBUG, "registering complex softlist return type '%s': '%s'\n", qt.c_str(), qc.c_str());
         }
         else if (!qt.compare(on ? 1 : 0, 10, "reference<")) {
             // extract subtype name
@@ -738,7 +770,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
             qc = "QC_" + qc;
             qc += on ? "->getOrNothingTypeInfo()" : "->getTypeInfo()";
         }
-        log(LL_DEBUG, "registering object return type '%s': '%s'\n", qt.c_str(), qc.c_str());
+        log(LL_DEBUG, "registering reference return type '%s': '%s'\n", qt.c_str(), qc.c_str());
         oset.insert(qt);
         tmap[qt] = qc;
         cppt = tmap[qt];

@@ -92,6 +92,18 @@ int sub f7(hash<MyHash> h) {
     return 3;
 }
 
+int sub f8(any i) {
+    return 0;
+}
+
+int sub f8(hash h) {
+    return 1;
+}
+
+int sub f8(hash<string, int> h) {
+    return 2;
+}
+
 public class OverloadTest inherits QUnit::Test {
     public {
         const Api = "hash sub p() { return {}; }*hash sub p(string a) {return {};}any sub p(string a, string b) { return 1; }";
@@ -179,6 +191,10 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(2, f7(("a": 1)));
         assertEq(2, f7(cast<hash<string, int>>(("a": 1))));
         assertEq(3, f7(new hash<MyHash>()));
+        assertEq(0, f8());
+        assertEq(1, f8({}));
+        assertEq(2, f8(("a": 1)));
+        assertEq(1, f8(("a": "1")));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));

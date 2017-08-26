@@ -602,7 +602,7 @@ any result = call_function_args("func_name", (arg1, arg2));
 
     @note The function called could also throw other exceptions
 */
-any call_function_args(string name, *softlist vargs) {
+any call_function_args(string name, *softlist<auto> vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
 }
 
@@ -618,7 +618,7 @@ any result = call_function_args(call_ref, (arg1, arg2));
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
-any call_function_args(code f, *softlist vargs) {
+any call_function_args(code f, *softlist<auto> vargs) {
    return f->execValue(vargs, xsink).takeNode();
 }
 
@@ -673,7 +673,7 @@ any result = call_builtin_function_args("func_name", (arg1, arg2));
 
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
-any call_builtin_function_args(string name, *softlist vargs) {
+any call_builtin_function_args(string name, *softlist<auto> vargs) {
    const QoreFunction* f = get_builtin_func(name, xsink);
    if (!f)
       return QoreValue();

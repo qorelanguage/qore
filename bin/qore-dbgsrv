@@ -88,7 +88,7 @@ printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 			}
 
 			if (exists fileName) {
-				Program pgm = dpc.createProgram(fileName, ARGV);
+				Program pgm = dpc.createProgram(fileName, opt, ARGV);
 				logger.log(DUV_INFO, "run program");
 				background pgm.run();
 				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'

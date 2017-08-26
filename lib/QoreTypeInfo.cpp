@@ -62,8 +62,14 @@ const QoreDateOrNothingTypeInfo staticDateOrNothingTypeInfo;
 const QoreHashTypeInfo staticHashTypeInfo;
 const QoreHashOrNothingTypeInfo staticHashOrNothingTypeInfo;
 
+const QoreAutoHashTypeInfo staticAutoHashTypeInfo;
+const QoreAutoHashOrNothingTypeInfo staticAutoHashOrNothingTypeInfo;
+
 const QoreListTypeInfo staticListTypeInfo;
 const QoreListOrNothingTypeInfo staticListOrNothingTypeInfo;
+
+const QoreAutoListTypeInfo staticAutoListTypeInfo;
+const QoreAutoListOrNothingTypeInfo staticAutoListOrNothingTypeInfo;
 
 const QoreNothingTypeInfo staticNothingTypeInfo;
 
@@ -112,6 +118,9 @@ const QoreSoftDateOrNothingTypeInfo staticSoftDateOrNothingTypeInfo;
 const QoreSoftListTypeInfo staticSoftListTypeInfo;
 const QoreSoftListOrNothingTypeInfo staticSoftListOrNothingTypeInfo;
 
+const QoreSoftAutoListTypeInfo staticSoftAutoListTypeInfo;
+const QoreSoftAutoListOrNothingTypeInfo staticSoftAutoListOrNothingTypeInfo;
+
 const QoreTimeoutTypeInfo staticTimeoutTypeInfo;
 const QoreTimeoutOrNothingTypeInfo staticTimeoutOrNothingTypeInfo;
 
@@ -130,7 +139,9 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dateTypeInfo = &staticDateTypeInfo,
    *objectTypeInfo = &staticObjectTypeInfo,
    *hashTypeInfo = &staticHashTypeInfo,
+   *autoHashTypeInfo = &staticAutoHashTypeInfo,
    *listTypeInfo = &staticListTypeInfo,
+   *autoListTypeInfo = &staticAutoListTypeInfo,
    *nothingTypeInfo = &staticNothingTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *numberTypeInfo = &staticNumberTypeInfo,
@@ -145,6 +156,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *softStringTypeInfo = &staticSoftStringTypeInfo,
    *softDateTypeInfo = &staticSoftDateTypeInfo,
    *softListTypeInfo = &staticSoftListTypeInfo,
+   *softAutoListTypeInfo = &staticSoftAutoListTypeInfo,
    *dataTypeInfo = &staticDataTypeInfo,
    *timeoutTypeInfo = &staticTimeoutTypeInfo,
    *bigIntOrFloatTypeInfo = &staticIntOrFloatTypeInfo,
@@ -160,7 +172,9 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *objectOrNothingTypeInfo = &staticObjectOrNothingTypeInfo,
    *dateOrNothingTypeInfo = &staticDateOrNothingTypeInfo,
    *hashOrNothingTypeInfo = &staticHashOrNothingTypeInfo,
+   *autoHashOrNothingTypeInfo = &staticAutoHashOrNothingTypeInfo,
    *listOrNothingTypeInfo = &staticListOrNothingTypeInfo,
+   *autoListOrNothingTypeInfo = &staticAutoListOrNothingTypeInfo,
    *nullOrNothingTypeInfo = &staticNullOrNothingTypeInfo,
    *codeOrNothingTypeInfo = &staticCodeOrNothingTypeInfo,
    *dataOrNothingTypeInfo = &staticDataOrNothingTypeInfo,
@@ -173,6 +187,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *softStringOrNothingTypeInfo = &staticSoftStringOrNothingTypeInfo,
    *softDateOrNothingTypeInfo = &staticSoftDateOrNothingTypeInfo,
    *softListOrNothingTypeInfo = &staticSoftListOrNothingTypeInfo,
+   *softAutoListOrNothingTypeInfo = &staticSoftAutoListOrNothingTypeInfo,
    *timeoutOrNothingTypeInfo = &staticTimeoutOrNothingTypeInfo;
 
 QoreListNode* emptyList;
@@ -216,7 +231,9 @@ tmap_t ch_map,          // complex hash map
    cl_map,              // complex list map
    clon_map,            // complex list or nothing map
    cr_map,              // complex reference map
-   cron_map;            // complex reference or nothing map
+   cron_map,            // complex reference or nothing map
+   csl_map,             // complex softlist map
+   cslon_map;           // complex softlist or nothing map
 
 // rwlock for global type map
 static QoreRWLock extern_type_info_map_lock;
@@ -322,6 +339,10 @@ void delete_qore_types() {
       delete i.second;
    for (auto& i : cron_map)
       delete i.second;
+   for (auto& i : csl_map)
+      delete i.second;
+   for (auto& i : cslon_map)
+      delete i.second;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
@@ -348,6 +369,12 @@ const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
       const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
       if (ti)
          return qore_program_private::get(*getProgram())->getComplexHashOrNothingType(ti);
+   }
+
+   {
+      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo);
+      if (ti)
+         return qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(ti);
    }
 
    {
@@ -410,6 +437,30 @@ const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* vt
 
    QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
    clon_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_get_complex_softlist_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = csl_map.lower_bound(vti);
+   if (i != csl_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexSoftListTypeInfo* ti = new QoreComplexSoftListTypeInfo(vti);
+   csl_map.insert(i, tmap_t::value_type(vti, ti));
+   return ti;
+}
+
+const QoreTypeInfo* qore_get_complex_softlist_or_nothing_type(const QoreTypeInfo* vti) {
+   AutoLocker al(ctl);
+
+   tmap_t::iterator i = cslon_map.lower_bound(vti);
+   if (i != cslon_map.end() && i->first == vti)
+      return i->second;
+
+   QoreComplexSoftListOrNothingTypeInfo* ti = new QoreComplexSoftListOrNothingTypeInfo(vti);
+   cslon_map.insert(i, tmap_t::value_type(vti, ti));
    return ti;
 }
 
@@ -564,9 +615,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          }
          return QTI_NOT_EQUAL;
       }
+      case QTS_COMPLEXSOFTLIST:
       case QTS_COMPLEXLIST: {
          //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
          switch (t.typespec) {
+            case QTS_COMPLEXSOFTLIST:
             case QTS_COMPLEXLIST:
                return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
             default: {
@@ -603,8 +656,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          }
          if (u.t == ot) {
             // check special cases
-            if (u.t == NT_HASH && t.typespec != QTS_TYPE)
-               return QTI_AMBIGUOUS;
+            if ((u.t == NT_LIST || u.t == NT_HASH) && t.typespec != QTS_TYPE)
+               return QTI_NEAR;
             return QTI_IDENT;
          }
          return QTI_NOT_EQUAL;
@@ -680,6 +733,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
          }
          break;
       }
+      case QTS_COMPLEXSOFTLIST:
       case QTS_COMPLEXLIST: {
          if (n.getType() == NT_LIST) {
             QoreListNode* l = n.get<QoreListNode>();
@@ -690,7 +744,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
             }
 
             // try to fold values into our type; value types are not identical;
-            // we have to get a new hash
+            // we have to get a new list
             qore_list_private* lp;
             if (!l->is_unique()) {
                discard(n.assign(l = qore_list_private::get(*l)->copy(&typeInfo)), xsink);
@@ -712,6 +766,12 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                   return true;
             }
 
+            ok = true;
+         }
+         else if (typespec == QTS_COMPLEXSOFTLIST) {
+            QoreValue val = n;
+            n.swap(val);
+            n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
             ok = true;
          }
          break;
@@ -771,6 +831,7 @@ bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
          return typed_hash_decl_private::get(*u.hd)->equal(*typed_hash_decl_private::get(*other.u.hd));
       case QTS_COMPLEXHASH:
       case QTS_COMPLEXLIST:
+      case QTS_COMPLEXSOFTLIST:
       case QTS_COMPLEXREF:
          return QoreTypeInfo::equal(u.ti, other.u.ti);
    }
@@ -799,10 +860,13 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
       if (ti && QoreTypeInfo::equal(u.ti, ti))
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
    }
-   else if (ot == NT_LIST && typespec == QTS_COMPLEXLIST) {
+   else if (ot == NT_LIST && (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST)) {
       const QoreTypeInfo* ti = n.get<const QoreListNode>()->getValueTypeInfo();
       if (ti && QoreTypeInfo::equal(u.ti, ti))
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+   }
+   else if (typespec == QTS_COMPLEXSOFTLIST) {
+      return QTI_AMBIGUOUS;
    }
    else if (ot == NT_REFERENCE && typespec == QTS_COMPLEXREF) {
       const QoreTypeInfo* ti = n.get<const ReferenceNode>()->getLValueTypeInfo();
@@ -817,9 +881,15 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
       if (u.t == NT_HASH && ot == NT_HASH) {
          const qore_hash_private* h = qore_hash_private::get(*n.get<const QoreHashNode>());
          if (h->hashdecl || h->complexTypeInfo)
-            return QTI_AMBIGUOUS;
+            return QTI_NEAR;
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
       }
+      if (u.t == NT_LIST && ot == NT_LIST) {
+            const qore_list_private* l = qore_list_private::get(*n.get<const QoreListNode>());
+            if (l->complexTypeInfo)
+               return QTI_NEAR;
+            return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+         }
 
       if (u.t == NT_ALL || u.t == ot)
          return exact ? QTI_IDENT : QTI_AMBIGUOUS;
@@ -893,6 +963,8 @@ bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& b) {
 const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) const {
    if (!strcmp(cscope->ostr, "hash")) {
       if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? autoHashOrNothingTypeInfo : autoHashTypeInfo;
          // resolve hashdecl
          const TypedHashDecl* hd = qore_root_ns_private::get(*getRootNS())->parseFindHashDecl(loc, *subtypes[0]->cscope);
          //printd(5, "QoreParseTypeInfo::resolveSubtype() this: %p '%s' hd: %p '%s' type: %p (pgm: %p)\n", this, getName(), hd, hd ? hd->getName() : "n/a", hd ? hd->getTypeInfo(false) : nullptr, getProgram());
@@ -903,6 +975,9 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
             parseException(loc, "PARSE-TYPE-ERROR", "invalid complex hash type '%s'; hash key type must be 'string'; cannot declare a hash with key type '%s'", getName(), subtypes[0]->cscope->ostr);
          }
          else {
+            if (!strcmp(subtypes[1]->cscope->ostr, "auto"))
+              return or_nothing ? autoHashOrNothingTypeInfo : autoHashTypeInfo;
+
             // resolve value type
             const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[1], loc);
             if (QoreTypeInfo::hasType(valueType)) {
@@ -919,6 +994,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
    }
    if (!strcmp(cscope->ostr, "list")) {
       if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? autoListOrNothingTypeInfo : autoListTypeInfo;
          // resolve value type
          const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
          if (QoreTypeInfo::hasType(valueType)) {
@@ -932,8 +1009,27 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       }
       return or_nothing ? listOrNothingTypeInfo : listTypeInfo;
    }
+   if (!strcmp(cscope->ostr, "softlist")) {
+      if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? softAutoListOrNothingTypeInfo : softAutoListTypeInfo;
+         // resolve value type
+         const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
+         if (QoreTypeInfo::hasType(valueType)) {
+            return !or_nothing
+            ? qore_program_private::get(*getProgram())->getComplexSoftListType(valueType)
+            : qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(valueType);
+         }
+      }
+      else {
+         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'softlist' takes a single type name giving list element value type", getName(), (int)subtypes.size());
+      }
+      return or_nothing ? softListOrNothingTypeInfo : softListTypeInfo;
+   }
    if (!strcmp(cscope->ostr, "reference")) {
       if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? referenceOrNothingTypeInfo : referenceTypeInfo;
          // resolve value type
          const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
          if (QoreTypeInfo::hasType(valueType)) {
@@ -952,6 +1048,9 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
          return or_nothing ? objectOrNothingTypeInfo : objectTypeInfo;
       }
+
+      if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+         return or_nothing ? objectOrNothingTypeInfo : objectTypeInfo;
 
       // resolve class
       return resolveClass(loc, *subtypes[0]->cscope, or_nothing);
@@ -1003,7 +1102,56 @@ QoreValue QoreHashDeclTypeInfo::getDefaultQoreValueImpl() const {
    //return new QoreHashNode(accept_vec[0].spec.getHashDecl(), xsink);
 }
 
+QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
+      {QoreComplexListTypeSpec(vti), nullptr, true},
+      {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
+            QoreValue val;
+            n.swap(val);
+            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+         }
+      },
+      {NT_NOTHING, [vti] (QoreValue& n, ExceptionSink* xsink) {
+            QoreListNode* l = new QoreListNode(vti);
+            n.assign(l);
+         }
+      },
+      {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
+            QoreValue val;
+            n.swap(val);
+            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+         }
+      },
+   }, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+   assert(vti);
+   tname.sprintf("softlist<%s>", QoreTypeInfo::getName(vti));
+}
+
+QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListOrNothingTypeInfo(q_accept_vec_t {
+      {QoreComplexListTypeSpec(vti), nullptr},
+      {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
+            QoreValue val;
+            n.swap(val);
+            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+         }
+      },
+      {NT_NOTHING, nullptr},
+      {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+      {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
+            QoreValue val;
+            n.swap(val);
+            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+         }
+      },
+      }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+   assert(vti);
+   tname.sprintf("*softlist<%s>", QoreTypeInfo::getName(vti));
+}
+
 void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
+   ReferenceHolder<QoreHashNode> h(n.get<QoreHashNode>(), xsink);
+   n.assign(copy_strip_complex_types(*h));
+
+   /*
    QoreHashNode* h = n.get<QoreHashNode>();
    qore_hash_private* ph = qore_hash_private::get(*h);
    //printd(5, "map_get_plain_hash ph: %p hd: %p c: %p refs: %d\n", ph, ph->hashdecl, ph->complexTypeInfo, h->reference_count());
@@ -1016,9 +1164,14 @@ void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
    }
    ph->hashdecl = nullptr;
    ph->complexTypeInfo = nullptr;
+   */
 }
 
 void map_get_plain_list(QoreValue& n, ExceptionSink* xsink) {
+   ReferenceHolder<QoreListNode> l(n.get<QoreListNode>(), xsink);
+   n.assign(copy_strip_complex_types(*l));
+
+   /*
    QoreListNode* l = n.get<QoreListNode>();
    qore_list_private* pl = qore_list_private::get(*l);
    //printd(5, "map_get_plain_list pl: %p c: %p refs: %d\n", ph, pl->complexTypeInfo, l->reference_count());
@@ -1030,4 +1183,5 @@ void map_get_plain_list(QoreValue& n, ExceptionSink* xsink) {
       return;
    }
    pl->complexTypeInfo = nullptr;
+   */
 }
