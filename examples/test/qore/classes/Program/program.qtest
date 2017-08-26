@@ -237,6 +237,24 @@ class ProgramTest inherits QUnit::Test {
         assertEq("memberGate-member", to.member);
         assertEq("method", to.method());
 
+        a.define("MY_TEST_EMPTY");
+        a.define("MY_TEST_STR", "a");
+        assertEq(True, a.isDefined("MY_TEST_EMPTY"));
+        assertEq(True, a.isDefined("MY_TEST_STR"));
+        assertEq(False, a.isDefined("MY_TEST_NONE"));
+
+        assertEq(False, exists a.getDefine("MY_TEST_EMPTY"));
+        assertEq("a", a.getDefine("MY_TEST_STR"));
+
+        a.undefine("MY_TEST_STR");
+        assertEq(False, a.isDefined("MY_TEST_STR"));
+
+        *hash defs = a.getAllDefines();
+        assertEq(True, defs.PO_NEW_STYLE);
+        assertEq(True, exists defs.QorePlatformCPU);
+        assertEq(True, inlist("MY_TEST_EMPTY", keys defs));
+        assertEq(False, inlist("MY_TEST_STR", keys defs));
+
         try {
             a.callFunction("deleteException");
         }
