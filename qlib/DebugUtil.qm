@@ -1019,7 +1019,7 @@ Linenoise::history_add('history load filename');
 			# restore default options
 			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
             if (exists opts.parse_option) {
-                hash poops = Qore::ParseOptionStringMap;   # TODO: ParseOptionCmdStringMap
+                hash poops = Qore::ParseOptionCmdStringMap;
                 int oo = 0;
                 foreach string o in (opts.parse_option) {
                     if (!exists poops{o}) {
@@ -1187,7 +1187,7 @@ Linenoise::history_add('history load filename');
                             break;
 
                         case 'list':
-                            *hash defs = ('QoreDebug': True, 'QorePlatformCPU': "x86", 'PO_NEW_STYLE': True);    # TODO: pgm.getAllDefines();
+                            *hash defs = pgm.getAllDefines();
                             list dd = DebugCommandLine::enumFilter(keys defs, defName);
                             result = hash();
                             map result{$1} = defs{$1}, dd;
@@ -1502,9 +1502,6 @@ Linenoise::history_add('history load filename');
                                 break;
                             case 'list':
                                 softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
-/*                                foreach my string s in (\l) {
-                                    s =~ s/^Qore:://;
-                                } */
                                 result = DebugCommandLine::enumFilter(l, varName);
                                 break;
                             }
@@ -1576,14 +1573,6 @@ Linenoise::history_add('history load filename');
                             }
                             break;
 
-/*                        case 'list':
-                            switch (rd.name) {
-                            case 'programs':
-                            case 'breakpoint':
-                            case 'stack':
-                            }
-                            break;
-*/
                         case 'stack':
                             list stack = get_thread_call_stack();
                             int i = frameOffset;
