@@ -4,6 +4,16 @@
 %new-style
 #%allow-debugging
 
+class TestClass {
+    nothing log(string fmt) {
+        vprintf(fmt, argv);
+    }
+}
+
+sub log(string fmt) {
+    vprintf(fmt, argv);
+}
+
 our string globalString = 'global string';
 our any globalAny;
 
@@ -24,6 +34,9 @@ nothing sub main() {
     list localList;
     int i = 0;
     int zero = 0;
+    TestClass tc();
+    tc.log("TestClass::log() %s\n", "ABC");
+    log("log() %s\n", "CDE");
     while (i < 3) {
         push localList, func("F", i);
         i++;

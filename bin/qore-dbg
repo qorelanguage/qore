@@ -123,7 +123,8 @@ class DebugWrapper {
 				logger.log(DUV_INFO, "run program");
 				dcl.setContextValue('programId', pgm.getProgramId());
 				background pgm.run();
-				sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
+				# Seems workaround no more needed
+				#sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
 			}
 
 			dcl.runCmdLine();

@@ -148,7 +148,11 @@ public namespace DebugUtil {
         */
 	    public log(int verbosity, string fmt) {
             if (verbose >= verbosity)
-    	        stdout.print(fmt+"\n");
+                if (argv) {
+                    stdout.vprintf(fmt+"\n", argv);
+                } else {
+        	        stdout.print(fmt+"\n");
+                }
         }
     }
 
@@ -216,7 +220,7 @@ public namespace DebugUtil {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dcl.logger.log(DUV_INFO, sprintf("load history: %y", fn));
+                                        dcl.logger.log(DUV_INFO, "load history: %y", fn);
                                         Linenoise::history_load(fn);
                                     }
                                 },
@@ -226,7 +230,7 @@ public namespace DebugUtil {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dcl.logger.log(DUV_INFO, sprintf("save history: %y", fn));
+                                        dcl.logger.log(DUV_INFO, "save history: %y", fn);
                                         Linenoise::history_save(fn);
                                     }
                                 },
@@ -260,7 +264,7 @@ public namespace DebugUtil {
                                     if (!exists data.filename)
                                         throw "DEBUG-COMMAND", "Missing file name";
                                     data.args = args;
-                                    dcl.logger.log(DUV_INFO, sprintf("load: %y", data));
+                                    dcl.logger.log(DUV_INFO, "load: %y", data);
                                     dcl.doCommand(data);
                                 },
                             ),
@@ -268,7 +272,7 @@ public namespace DebugUtil {
                                 'desc': 'list programs',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program//list';
-                                    dcl.logger.log(DUV_INFO, sprintf("list: %y", data));
+                                    dcl.logger.log(DUV_INFO, "list: %y", data);
                                     dcl.doCommand(data);
                                 },
                             ),
@@ -978,7 +982,7 @@ Linenoise::history_add('history load filename');
             #! lock for @ref ctxConnection access
             Qore::Thread::RWLock rwlConnection();
 
-            const frameOffset = 3;
+            const frameOffset = 2;
         }
         public {
             const runStateStrings = ('detach': DebugDetach, 'run': DebugRun, 'step': DebugStep, 'stepover': DebugStepOver, 'untilreturn': DebugUntilReturn);
@@ -1014,7 +1018,7 @@ Linenoise::history_add('history load filename');
 
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
-            logger.log(DUV_DEBUG, sprintf("create program: %y", fileName));
+            logger.log(DUV_DEBUG, "create program: %y", fileName);
 			Program pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
 			# restore default options
 			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
@@ -1054,9 +1058,9 @@ Linenoise::history_add('history load filename');
                 if (fileName == '/dev/stdin') {  # is exception needed ??
                     logger.log(DUV_DEBUG, "read stdin");
                     script = stdin.read(-1, 0);
-                    logger.log(DUV_DEBUG, sprintf("%s", script));
+                    logger.log(DUV_DEBUG, "%s", script);
                 } else {
-                    logger.log(DUV_DEBUG, sprintf("read file: %y", fileName));
+                    logger.log(DUV_DEBUG, "read file: %y", fileName);
                     script = ReadOnlyFile::readTextFile(fileName);
                 }
             }
@@ -1064,19 +1068,19 @@ Linenoise::history_add('history load filename');
 			logger.log(DUV_DEBUG, "parse code");
 			*hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
 			if (wh) {
-				logger.log(DUV_INFO, sprintf("warning: %N", wh));
+				logger.log(DUV_INFO, "warning: %N", wh);
 			}
             return pgm;
         }
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
-            logger.log(DUV_INFO, sprintf("processCommand: %y", receiveData));
+            logger.log(DUV_INFO, "processCommand: %y", receiveData);
             hash sendData;
             any result;
             try {
                 list cmd = receiveData.cmd.split('/');
-                logger.log(DUV_DEBUG, sprintf("command: %y", cmd));
+                logger.log(DUV_DEBUG, "command: %y", cmd);
 
                 switch (shift cmd) {
                 case 'help':
@@ -1095,7 +1099,7 @@ Linenoise::history_add('history load filename');
                     default:
                         pgm = Program::resolveProgramId(pgmName);
                     }
-                    logger.log(DUV_DEBUG, sprintf("program / %y", cmd));
+                    logger.log(DUV_DEBUG, "program / %y", cmd);
                     switch (shift cmd) {
                     case 'stop':
                         # no locking
@@ -1363,7 +1367,7 @@ Linenoise::history_add('history load filename');
                     sendData.type = 'response';
                 }
             } catch (hash ex) {
-                logger.log(DUV_DEBUG, sprintf("exception: %y", ex));
+                logger.log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
                 result.desc = ex.desc;
@@ -1429,11 +1433,11 @@ Linenoise::history_add('history load filename');
               'func': func,
               'runstate': encodeValue('runState', runState, runStateStrings),
               'frame': 0,
-'localvars0': get_local_vars(0),
-'localvars1': get_local_vars(1),
+#'localvars0': keys get_local_vars(0),
+#'localvars1': keys get_local_vars(1),
 'localvars2': get_local_vars(2),
-'localvars3': keys get_local_vars(3),
-'localvars4': keys get_local_vars(4),
+'localvars3': get_local_vars(3),
+'localvars4': get_local_vars(4),
 'localvars5': keys get_local_vars(5),
 'localvars6': keys get_local_vars(6),
 'localvars7': keys get_local_vars(7),
