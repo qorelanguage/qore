@@ -216,14 +216,14 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": "Test");
-                assertEq(NOTHING, so.validateRequest("get", uri_path, NOTHING, hdr));
-                assertThrows("MISSING-PARAMETER", \so.validateRequest(), ("get", uri_path));
+                assertEq(Type::Hash, so.processRequest("get", uri_path, NOTHING, hdr).type());
+                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path));
             }
 
             {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": 1);
-                assertThrows("INVALID-PARAMETER-TYPE", \so.validateRequest(), ("get", uri_path, NOTHING, hdr));
+                assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, NOTHING, hdr));
             }
         }
     }
@@ -1320,12 +1320,12 @@ public class SwaggerTest inherits QUnit::Test {
     }
 
     private testValidation(SwaggerObject so) {
-        so.validateRequest("get", "/user/login?username=user;password=pass");
-        assertThrows("MISSING-PARAMETER", \so.validateRequest(), ("get", "/user/login"));
-        assertThrows("INVALID-PARAMETER-NAME", \so.validateRequest(), ("post", "/pet?username=user"));
-        assertThrows("INVALID-PARAMETER-TYPE", \so.validateRequest(), ("get", "/user/login?username;password=pass"));
-        so.validateRequest("get", "/pet/findByStatus?status=available");
-        assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.validateRequest(), ("get", "/pet/findByStatus?status=happy"));
+        so.processRequest("get", "/user/login?username=user;password=pass");
+        assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
+        assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
+        assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", "/user/login?username;password=pass"));
+        so.processRequest("get", "/pet/findByStatus?status=available");
+        assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
 
         {
             hash hdr = {};
@@ -1335,13 +1335,11 @@ public class SwaggerTest inherits QUnit::Test {
                     "photoUrls": (),
                 ),
             );
-            hash<string, bool> mime_types;
-            so.validateRequest("POST", "/pet", body, hdr, \mime_types);
-            assertEq(True, mime_types{MimeTypeJson});
-            assertEq(True, mime_types{MimeTypeXmlApp});
-
 %ifndef NoJson
-            hash req = so.processRequest("POST", "/pet", body, hdr);
+            hash<RestRequestClientInfo> req = so.processRequest("POST", "/pet", body, hdr);
+            assertEq(MimeTypeJson, req.content);
+
+            req = so.processRequest("POST", "/pet", body, hdr);
             assertEq(MimeTypeJson, req.content);
             assertEq(Type::String, req.body.type());
             assertEq("UTF-8", req.body.encoding());
@@ -1350,7 +1348,7 @@ public class SwaggerTest inherits QUnit::Test {
             assertThrows("SERIALIZATION-ERROR", MimeTypeOctetStream, \so.processRequest(), ("POST", "/pet", body, hdr, MimeTypeOctetStream));
 
             delete body.body.photoUrls;
-            assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.validateRequest(), ("post", "/pet", body, hdr));
+            assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
         }
     }
 }
