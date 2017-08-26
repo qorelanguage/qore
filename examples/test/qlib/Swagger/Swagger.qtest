@@ -226,6 +226,37 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, NOTHING, hdr));
             }
         }
+
+        {
+            hash soh = ValidSwaggerObject + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "parameters": ((
+                                "in": "query",
+                                "name": "bin",
+                                "type": "string",
+                                "format": "byte",
+                            ),),
+                        ),
+                    ),
+                ),
+            );
+            SwaggerObject so(soh);
+
+            {
+                string uri_path = "/test?bin=abc";
+                hash h = so.processRequest("get", uri_path);
+                assertEq(Type::Hash, h.type());
+                assertEq("/test?bin=YWJj", h.uri_path);
+            }
+        }
     }
 
     testInfoObject() {

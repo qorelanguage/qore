@@ -119,6 +119,8 @@ public const ValidSchemesHash = map {$1: True}, ValidSchemes;
 
 #! a hash of information about a client-side request
 public hashdecl RestRequestClientInfo {
+    #! the URI path for the request
+    string uri_path;
     #! the Content-Type for the message
     string content;
     #! the serialized message body hash
@@ -248,9 +250,15 @@ class SchemaBase {
             checkRequestIntern(client, type, path, method, name, value, \value);
     }
 
+    #! validates string values
     private checkRequestIntern(bool client, string type, string path, string method, string name, string v, reference<string> value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
+
+        checkStringIntern(path, method, name, value);
+    }
+
+    private checkStringIntern(string path, string method, string name, data value) {
         if (exists maxLength && value.size() > maxLength)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y is too long (maxLength: %d, actual: %d)",
@@ -259,7 +267,7 @@ class SchemaBase {
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y is too short (minLength: %d, actual: %d)",
                     name, path, method, minLength, value.size());
-        if (exists pattern && !value.regex(pattern))
+        if (exists pattern && value.typeCode() == NT_STRING && !value.regex(pattern))
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y does not fit the parameter string pattern (pattern:%y, value: %y)",
                     name, path, method, pattern, value);
@@ -579,18 +587,25 @@ public class SwaggerObject inherits ObjectBase {
 
         #! Additional external documentation.
         *ExternalDocumentationObject externalDocs;
+
+        #! SwaggerObject options
+        const SwaggerOptions = (
+            "compact_serialization": True,
+        );
     }
 
     #! Builds the schema representation from the deserialized schema hash describing the root document object
     /**
         @param oh deserialized hash from the source schema description describing the root document object
+        @param opts options as per @ref SwaggerOptions as follows:
+        - \c compact_serialization (default @ref Qore::True "True"): optimize the size of serialized data strings
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
      */
-    public constructor(hash oh) : ObjectBase(oh) {
+    public constructor(hash oh, *hash opts) : ObjectBase(oh) {
         string objType = "Swagger";
         if (!oh.hasKey("swagger"))
             throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: 'swagger' field is missing", objType);
@@ -718,8 +733,18 @@ public class SwaggerObject inherits ObjectBase {
         OperationObject op = pio.getOperation(method, h.method);
 
         op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
+
+        hash<RestRequestClientInfo> rv((
+            "uri_path": h.method,
+        ));
+
+        if (h.params) {
+            string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
+            rv.uri_path += "?" + (foldl $1 + query_arg_separator + $2, (map sprintf("%s=%s", $1.key, $1.value), h.params.pairIterator()));
+        }
+
         if (!body)
-            return new hash<RestRequestClientInfo>();
+            return rv;
 
         foreach string content in (content_types) {
             if (!mime_types{content})
@@ -729,19 +754,19 @@ public class SwaggerObject inherits ObjectBase {
 %ifdef NoYaml
                     throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the yaml module is not available", method.upr(), path, content);
 %else
-                    return new hash<RestRequestClientInfo>((
+                    return rv += (
                         "body": make_yaml(body),
                         "content": MimeTypeYaml,
-                    ));
+                    );
 %endif
                 case MimeTypeJson:
 %ifdef NoJson
                     throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the json module is not available", method.upr(), path, content);
 %else
-                    return new hash<RestRequestClientInfo>((
+                    return rv += (
                         "body": make_json(body),
                         "content": MimeTypeJson,
-                    ));
+                    );
 %endif
             }
         }
@@ -750,7 +775,7 @@ public class SwaggerObject inherits ObjectBase {
                 throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME types: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
             else
                 throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME types: %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
-        return new hash<RestRequestClientInfo>();
+        return rv;
     }
 
     #! processes and parses a client request and returns the deserialized message body (if any)
@@ -1833,6 +1858,92 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         }
     }
 
+    #! validates string values
+    private checkRequestIntern(bool client, string type, string path, string method, string name, string v, reference value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (client) {
+            switch (format) {
+                case "byte":
+                    value = make_base64_string(v);
+                    break;
+                case "binary":
+                    value = make_hex_string(v);
+                    break;
+            }
+        }
+        else {
+            switch (format) {
+                # NOTE: deserializes to a binary object
+                case "byte":
+                    value = parse_base64_string(v);
+                    break;
+                # NOTE: deserializes to a binary object
+                case "binary":
+                    value = parse_hex_string(v);
+                    break;
+                # NOTE: deserializes to a date/time value
+                case "date":
+                case "date-time":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = date(v);
+                    break;
+            }
+        }
+        checkStringIntern(path, method, name, value);
+    }
+
+    #! converts binary values to strings for supported formats
+    private checkRequestIntern(bool client, string type, string path, string method, string name, binary v, reference value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (client) {
+            switch (format) {
+                case "byte":
+                    value = make_base64_string(v);
+                    break;
+                case "binary":
+                    value = make_hex_string(v);
+                    break;
+                default:
+                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
+            }
+        }
+        # server-side data should come serialized as a string
+        else
+            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
+
+        checkStringIntern(path, method, name, value);
+    }
+
+    #! converts strings to/from date/time values for supported formats
+    private checkRequestIntern(bool client, string type, string path, string method, string name, date v, reference value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (client) {
+            switch (format) {
+                case "date":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = v.format("YYYY-MM-DD");
+                    break;
+                case "date-time":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = v.format("YYYY-MM-DD HH:mm:SS.y Z");
+                    break;
+                default:
+                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
+            }
+        }
+        # server-side data should come serialized as a string
+        else
+            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
+
+        checkStringIntern(path, method, name, value);
+    }
+
     #! returns the default value of the parameter (default: @ref nothing)
     any getDefaultValue() {
         return defaultVal;
@@ -2460,6 +2571,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         SchemaBase::checkRequest(client, type, items, path, method, name, \value);
     }
 
+    #! validates a schema object against a value
     private checkRequestIntern(bool client, string type, string path, string method, string name, hash v, reference<hash> value) {
         if (type != "object")
             throwInvalidType(name, "object", type);
@@ -2488,8 +2600,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (!value.hasKey(prop))
                 throw "MISSING-PROPERTY", sprintf("object %y: missing required property %y", name, prop);
         }
-        #xxx
-        #printf("check %y type: %y val: %y self: %N\n", name, type, value, self);
+        #printf("SchemaObject::checkRequestIntern() %y type: %y val: %y self: %N\n", name, type, value, self);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
