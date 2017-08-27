@@ -105,10 +105,22 @@ public const MimeDataTypes = {
         "module": "yaml",
     ),
 %endif
+    # Content-Type: application/x-www-form-urlencoded
+    MimeTypeFormUrlEncoded: (
+        "serialize": \mime_get_form_urlencoded_string(),
+        "deserialize": \mime_parse_form_urlencoded_string(),
+    ),
+    /*
+    # Content-Type: multipart/form-data
+    MimeTypeMultipartFormData: (
+        "serialize": \xxx(),
+        "deserialize": \xxx(),
+    ),
+    */
 };
 
 #! modules available for data serialization and/or deserialization
-public const SerializationModules = map $1.module, MimeDataTypes.iterator();
+public const SerializationModules = map $1.module, MimeDataTypes.iterator(), $1;
 
 #! MIME types for data serialization
 public const MimeContentTypes = keys MimeDataTypes;
@@ -1511,11 +1523,12 @@ public class OperationObject inherits ObjectBase {
                             headers{ph.key} = val;
                         break;
                     case "body":
+                    # "formData" treated like "body" since it's subject to de/serialization in the same way
+                    case "formData":
                         if (!exists body{ph.key})
                             body{ph.key} = val;
                         break;
-                    # NOTE: formData checks not implemented
-                    # NOTE: path checks not implemented
+                    # NOTE: default "path" values are not possible
                 }
             }
         }
@@ -1541,8 +1554,12 @@ public class OperationObject inherits ObjectBase {
                         if (!exists body{ph.key})
                             error("MISSING-PARAMETER", "request is missing required body parameter %y", ph.key);
                         break;
-                    # NOTE: formData checks not implemented
-                    # NOTE: path checks not implemented
+                    # "formData" treated like "body" since it's subject to de/serialization in the same way
+                    case "formData":
+                        if (!exists body{ph.key})
+                            error("MISSING-PARAMETER", "request is missing required formData parameter %y", ph.key);
+                        break;
+                    # NOTE: missing path parameters are not possible (path would not be matched in the first place)
                 }
             }
         }

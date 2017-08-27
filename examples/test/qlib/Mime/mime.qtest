@@ -22,6 +22,35 @@ public class MimeTest inherits QUnit::Test {
 
         const UrlEncodingSource = "this,is!a\"test\"&it really is$-_.*'()";
         const UrlEncodingTarget = "this,is!a%22test%22%26it%20really%20is$-_.*'()";
+
+        const FormDataBoundary = "---------------------------735323031399963166993862150";
+        const FormDataBody = "-----------------------------735323031399963166993862150\r
+Content-Disposition: form-data; name=\"text1\"\r
+\r
+text default\r
+-----------------------------735323031399963166993862150\r
+Content-Disposition: form-data; name=\"text2\"\r
+\r
+aωb\r
+-----------------------------735323031399963166993862150\r
+Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r
+Content-Type: text/plain\r
+\r
+Content of a.txt.\r
+\r
+-----------------------------735323031399963166993862150\r
+Content-Disposition: form-data; name=\"file2\"; filename=\"a.html\"\r
+Content-Type: text/html\r
+\r
+<!DOCTYPE html><title>Content of a.html.</title>\r
+\r
+-----------------------------735323031399963166993862150\r
+Content-Disposition: form-data; name=\"file3\"; filename=\"binary\"\r
+Content-Type: application/octet-stream\r
+\r
+aωb\r
+-----------------------------735323031399963166993862150--\r
+";
     }
 
     constructor() : Test("MimeTest", "1.0") {
@@ -30,6 +59,7 @@ public class MimeTest inherits QUnit::Test {
         addTestCase("Header word q test", \wordQTest());
         addTestCase("Header word b test", \wordBTest());
         addTestCase("urlencoding", \urlEncodingTest());
+        addTestCase("form data", \formDataTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -59,5 +89,16 @@ public class MimeTest inherits QUnit::Test {
         assertEq(UrlEncodingTarget, mime_get_urlencoded_string(UrlEncodingSource));
         assertEq("a=b&a%20x=c", mime_get_form_urlencoded_string(("a": "b", "a x": "c")));
         assertEq(UrlEncodingSource, mime_decode_urlencoded_string(UrlEncodingTarget));
+    }
+
+    formDataTest() {
+        hash<MessageInfo> mh = MultiPartMessage::parseBody(FormDataBoundary, FormDataBody);
+        assertEq("", mh.body);
+        assertEq(5, mh.part.size());
+        #printf("mh: %N\n", mh);
+
+        list<hash<FormDataMessageInfo>> l = MultiPartFormDataMessage::parseMessage("multipart/form-data; boundary=---------------------------735323031399963166993862150", FormDataBody);
+        assertEq(5, l.size());
+        #printf("l: %N\n", l);
     }
 }

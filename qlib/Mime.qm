@@ -56,8 +56,10 @@ module Mime {
     - @ref MimeEncodingFunctions "MimeEncodingFunctions": functions for encoding MIME data
     - @ref MimeDecodingFunctions "MimeDecodingFunctions": functions for decoding MIME data
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
+    - @ref Mime::MultiPartFormDataMessage "MultiPartFormDataMessage": a class for handling multipart/form-data messages
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
       - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": this static function can be used to parse a multipart message body (including parts with subparts if the \a decode argument is @ref Qore::True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
+    - @ref Mime::MultiPartMixedMessage "MultiPartMixedMessage": a class for handling multipart/mixed messages
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
 
     based on:
@@ -89,6 +91,10 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
 
     @subsection mime_1_4 v1.4
     - added complex type support
+    - added the following constants:
+      - @ref Mime::MimeTypeMultipartFormData "MimeTypeMultipartFormData"
+      - @ref Mime::MimeTypeMultipartRelated "MimeTypeMultipartRelated"
+      - @ref Mime::MimeTypeMultipartMixed "MimeTypeMultipartMixed"
 
     @subsection mime_1_3_4_1 v1.3.4.1
     - added support for generating and parsing MIME multipart form encoded data
@@ -149,6 +155,18 @@ public namespace Mime {
         hash hdr;
     }
 
+    #! parsed form-data message part info
+    public hashdecl FormDataMessageInfo {
+        #! the name of the part
+        string name;
+        #! the optional filename for the part
+        *string filename;
+        #! message or part headers
+        hash hdr;
+        #! the data for the message or part
+        data body;
+    }
+
     /** @defgroup MimeTypeDefinitions MIME Type Definitions
         These are constants for common MIME types
      */
@@ -205,6 +223,15 @@ public namespace Mime {
 
     #! Mime type for multipart form URL encoding
     public const MimeTypeFormUrlEncoded = "application/x-www-form-urlencoded";
+
+    #! Mime type for multipart form data
+    public const MimeTypeMultipartFormData = "multipart/form-data";
+
+    #! Mime type for multipart related
+    public const MimeTypeMultipartRelated = "multipart/related";
+
+    #! Mime type for multipart mixed
+    public const MimeTypeMultipartMixed = "multipart/mixed";
 
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     /** @showinitializer
@@ -277,6 +304,7 @@ public namespace Mime {
         "jpeg": MimeTypeJpeg,
         "jpg": MimeTypeJpeg,
         "js": MimeTypeJavascript,
+        "json": MimeTypeJson,
         "kar": "audio/midi",
         "latex": "application/x-latex",
         "lha": MimeTypeUnknown,
@@ -1185,7 +1213,7 @@ hash: (2 members)
         #! @endcond
     }
 
-    #! implements a MultiPartRelatedMessage class, a specialization of MultiPartMessage
+    #! implements the MultiPartRelatedMessage class, a specialization of MultiPartMessage
     public class MultiPartRelatedMessage inherits MultiPartMessage {
         #! @cond nodoc
         private {
@@ -1244,7 +1272,7 @@ hash: (2 members)
         }
     }
 
-    #! implements a MultiPartMixedMessage class, a specialization of MultiPartMessage
+    #! implements the MultiPartMixedMessage class, a specialization of MultiPartMessage
     public class MultiPartMixedMessage inherits MultiPartMessage {
         #! creates the object
         /** @param boundary the boundary to use between parts
@@ -1350,6 +1378,136 @@ hash: (2 members)
          */
         hash<MessageInfo> getMsgAndHeaders() {
             return getMsgAndHeadersIntern(NOTHING, False);
+        }
+    }
+
+    #! implements the MultiPartFormDataMessage class, a specialization of MultiPartMessage
+    /** @since %Mime 1.4
+    */
+    public class MultiPartFormDataMessage inherits MultiPartMessage {
+        private {
+            #! hash of part names to ensure uniqueness
+            hash parts;
+        }
+
+        #! creates the object
+        /** @param boundary the boundary to use between parts
+         */
+        constructor(string boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_FORM_DATA, boundary) {
+        }
+
+        #! adds a message part to the start of the list
+        /** @param data the data for the part
+            @param name the unique name for the part
+            @param hdr an optional hash of headers for the part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name
+         */
+        splicePart(data data, string name, *hash hdr) {
+            checkPartName(name);
+            splicePartIntern(data, getPartHeader(name, NOTHING, NOTHING, hdr));
+        }
+
+        #! adds a message part to the start of the list
+        /** @param data the data for the part
+            @param name the unique name for the part
+            @param filename the filename for the part
+            @param content_type the content_type for the part
+            @param hdr an optional hash of headers for the part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
+         */
+        splicePart(data data, string name, string filename, string content_type, *hash hdr) {
+            checkPartName(name);
+            splicePartIntern(data, getPartHeader(name, filename, content_type, hdr));
+        }
+
+        #! adds a message part to the end of the list
+        /** @param data the data for the part
+            @param name the unique name for the part
+            @param hdr an optional hash of headers for the part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name
+         */
+        addPart(data data, string name, *hash hdr) {
+            checkPartName(name);
+            addPartIntern(data, getPartHeader(name, NOTHING, NOTHING, hdr));
+        }
+
+        #! adds a message part to the end of the list
+        /** @param data the data for the part
+            @param name the unique name for the part
+            @param filename the filename for the part
+            @param content_type the content_type for the part
+            @param hdr an optional hash of headers for the part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
+         */
+        addPart(data data, string name, string filename, string content_type, *hash hdr) {
+            checkPartName(name);
+            addPartIntern(data, getPartHeader(name, filename, content_type, hdr));
+        }
+
+        #! parses a multipart/form-data encoded message and returns a hash of its ContentTransEnc7Bit
+        /** @param content_type the message \c Content-Type string which must contain the message boundary string
+            @param the message body to parse
+
+            @throws MULTIPART-FORMDATA-MESSAGE-ERROR cannot find message boundary string; invalid form-data part data
+
+            @since %Mime 1.4
+        */
+        static list<hash<FormDataMessageInfo>> parseMessage(string content_type, string body) {
+            *string boundary = (content_type =~ x/boundary="?([^"]+)"?/)[0];
+            if (!exists boundary)
+                throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could not find message boundary", content_type);
+
+            hash<MessageInfo> mh = MultiPartMessage::parseBody(boundary, body);
+
+            list<hash<FormDataMessageInfo>> rv();
+
+            foreach hash<MessageInfo> h in (mh.part) {
+                # parse Content-Disposition header
+                *string cd = h.hdr."content-disposition";
+                if (!cd.val())
+                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing in part %d/%d", $# + 1, mh.part.size());
+                *string name = (cd =~ x/name="([^"]+)"/)[0];
+                if (!name.val())
+                    throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing the part name in part %d/%d", $# + 1, mh.part.size());
+                *string filename = (cd =~ x/filename="([^"]+)"/)[0];
+                rv += new hash<FormDataMessageInfo>((
+                    "name": name,
+                    "filename": filename,
+                    "hdr": h.hdr,
+                    "body": h.body,
+                ));
+            }
+
+            return rv;
+        }
+
+        #! check for unique part names and adds the part to the unique name hash
+        private checkPartName(string name) {
+            if (name.empty())
+                throw "MULTIPART-FORMDATA-ERROR", "missing second argument giving the name of the part";
+            if (parts{name})
+                throw "MULTIPART-FORMDATA-ERROR", sprintf("part %y given twice", name);;
+            parts{name} = True;
+        }
+
+        #! builds the header for the part
+        private hash getPartHeader(string name, *string filename, *string content_type, *hash hdr) {
+            # make Content-Disposition part header
+            string cd = sprintf("%s; name=%y", MPT_FORM_DATA, name);
+            if (filename.val()) {
+                if (!content_type)
+                    throw "MULTIPART-FORMDATA-ERROR", sprintf("the content_type argument is required when a filename (%y) is given", filename);
+                cd += sprintf("; filename=%y", filename);
+                hdr."Content-Type" = content_type;
+            }
+            else if (content_type)
+                throw "MULTIPART-FORMDATA-ERROR", sprintf("a filename argument value must be given if the content_type (%y) is given", content_type);
+            hdr."Content-Disposition" = cd;
+            return hdr;
         }
     }
 }
