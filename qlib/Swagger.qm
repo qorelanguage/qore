@@ -110,13 +110,8 @@ public const MimeDataTypes = {
         "serialize": \mime_get_form_urlencoded_string(),
         "deserialize": \mime_parse_form_urlencoded_string(),
     ),
-    /*
-    # Content-Type: multipart/form-data
-    MimeTypeMultipartFormData: (
-        "serialize": \xxx(),
-        "deserialize": \xxx(),
-    ),
-    */
+    # Content-Type: multipart/form-data (handled manually)
+    MimeTypeMultipartFormData: {},
 };
 
 #! modules available for data serialization and/or deserialization
@@ -759,7 +754,23 @@ public class SwaggerObject inherits ObjectBase {
             return rv;
 
         foreach string content in (content_types) {
-            if (!mime_types{content} || !MimeDataTypes{content})
+            if (!mime_types{content})
+                continue;
+            if (content == MimeTypeMultipartFormData) {
+                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                    "name": $1.key,
+                    "filename": $1.key,
+                    "hdr": ("Content-Type": MimeTypeText),
+                    "body": $1.value,
+                  ))}, body.pairIterator());
+
+                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                return rv += (
+                    "body": mh.body,
+                    "content": mh.hdr."Content-Type",
+                );
+            }
+            if (!MimeDataTypes{content})
                 continue;
             return rv += (
                 "body": MimeDataTypes{content}.serialize(body),
