@@ -485,6 +485,51 @@ public class TextWrapper {
     }
 }
 
+# -- Convenience interface ---------------------------------------------
+
+#! Wrap a single paragraph of text, returning a list of wrapped lines.
+/**
+    Reformat the single paragraph in 'text' so it fits in lines of no
+    more than 'width' columns, and return a list of wrapped lines.  By
+    default, tabs in 'text' are expanded with string.expandtabs(), and
+    all other whitespace characters (including newline) are converted to
+    space.  See TextWrapper class for available keyword args to customize
+    wrapping behaviour.
+*/
+public list sub wrap (string text, int width=70, *hash opts) {
+    TextWrapper w (opts + ('width': width));
+    return w.wrap (text);
+}
+
+#! Fill a single paragraph of text, returning a new string.
+/**
+    Reformat the single paragraph in 'text' to fit in lines of no more
+    than 'width' columns, and return a new string containing the entire
+    wrapped paragraph.  As with wrap(), tabs are expanded and other
+    whitespace characters converted to space.  See TextWrapper class for
+    available keyword args to customize wrapping behaviour.
+*/
+public string sub fill (string text, int width=70, *hash opts) {
+    TextWrapper w (opts + ('width': width));
+    return w.fill (text);
+}
+
+#! Collapse and truncate the given text to fit in the given width.
+/**
+    The text first has its whitespace collapsed.  If it then fits in
+    the *width*, it is returned as is.  Otherwise, as many words
+    as possible are joined and then the placeholder is appended::
+
+        >>> textwrap.shorten("Hello  world!", width=12)
+        'Hello world!'
+        >>> textwrap.shorten("Hello  world!", width=11)
+        'Hello [...]'
+*/
+public string sub shorten (string text, int width, *hash opts) {
+    TextWrapper w (opts + ('width': width, 'max_lines': 1));
+    return w.fill (regex_subst (trim(text), '\\s+', ' ', Qore::RE_Global));
+}
+
 # -- Loosely related functionality -------------------------------------
 
 #! Adds 'prefix' to the beginning of selected lines in 'text'.
