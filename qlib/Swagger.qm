@@ -1154,6 +1154,9 @@ public class PathItemObject inherits ObjectBase {
             There can be one \c body parameter at most.
          */
         hash<string, AbstractParameterObject> parameters();
+
+        #! The body parameter, if defined for this path
+        AbstractParameterObject body;
     }
 
     private {
@@ -1220,7 +1223,10 @@ public class PathItemObject inherits ObjectBase {
                         sprintf("Path Item Object: 'parameters' list value has invalid type %y",
                             param.type());
                 AbstractParameterObject p = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, params.lsize()), param, swagger);
-                parameters{p.name} = p;
+                if (p.inLoc == "body")
+                    body = p;
+                else
+                    parameters{p.name} = p;
             }
         }
 
@@ -1310,6 +1316,9 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, AbstractParameterObject> parameters();
 
+        #! the body parameter, if defined for this operation
+        AbstractParameterObject body;
+
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
 
@@ -1387,7 +1396,10 @@ public class OperationObject inherits ObjectBase {
                 if (p.typeCode() != NT_HASH)
                     error("INVALID-FIELD-TYPE", "invalid 'parameters' list value datatype %y; expecing \"hash\"", p.type());
                 AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
-                parameters{param.name} = param;
+                if (param.inLoc == "body")
+                    body = param;
+                else
+                    parameters{param.name} = param;
             }
         }
 
@@ -1470,13 +1482,11 @@ public class OperationObject inherits ObjectBase {
 
         # check body parameters
         {
-            *AbstractParameterObject body_po = parameters.body ?? pio.parameters.body;
-            if (body_po.inLoc == "body") {
+            *AbstractParameterObject body_po = self.body ?? pio.body;
+            if (body_po)
                 body_po.checkRequest(client, path, method, "body", \body);
-            }
-            else if (body) {
+            else if (body)
                 error("INVALID-PARAMETER-NAME", "No message body is accepted; body keys passed: %y", keys body);
-            }
         }
 
         # check for missing required parameters
