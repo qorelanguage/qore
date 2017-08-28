@@ -29,6 +29,8 @@
 %require-types
 %enable-all-warnings
 
+%requires Util
+
 module TextWrap {
     version = "0.1";
     desc    = "Text wrapping and filling";
@@ -45,7 +47,7 @@ namespace Init {
 
 public namespace TextWrap {
 
-const c_whitespace = "\t\n\r ";
+const c_whitespace = "\t\n\013\014\r ";
 
 # -- Private helpers ---------------------------------------------------
 
@@ -93,6 +95,394 @@ string sub xsprintf (string fmt, hash args) {
             throw "VALUE-ERROR", "incomplete format";
     }
     return vsprintf (fmtlist.join(''), arglist);
+}
+
+# -- Public functionality ----------------------------------------------
+
+/**
+    Object for wrapping/filling text.  The public interface consists of
+    the wrap() and fill() methods; the other methods are just there for
+    subclasses to override in order to tweak the default behaviour.
+    If you want to completely replace the main wrapping algorithm,
+    you'll probably have to override _wrap_chunks().
+
+    Several instance attributes control various aspects of wrapping:
+      width (default: 70)
+        the maximum width of wrapped lines (unless break_long_words
+        is false)
+      initial_indent (default: "")
+        string that will be prepended to the first line of wrapped
+        output.  Counts towards the line's width.
+      subsequent_indent (default: "")
+        string that will be prepended to all lines save the first
+        of wrapped output; also counts towards each line's width.
+      expand_tabs (default: true)
+        Expand tabs in input text to spaces before further processing.
+        Each tab will become 0 .. 'tabsize' spaces, depending on its position
+        in its line.  If false, each tab is treated as a single character.
+      tabsize (default: 8)
+        Expand tabs in input text to 0 .. 'tabsize' spaces, unless
+        'expand_tabs' is false.
+      replace_whitespace (default: true)
+        Replace all whitespace characters in the input text by spaces
+        after tab expansion.  Note that if expand_tabs is false and
+        replace_whitespace is true, every tab will be converted to a
+        single space!
+      fix_sentence_endings (default: false)
+        Ensure that sentence-ending punctuation is always followed
+        by two spaces.  Off by default because the algorithm is
+        (unavoidably) imperfect.
+      break_long_words (default: true)
+        Break words longer than 'width'.  If false, those words will not
+        be broken, and some lines might be longer than 'width'.
+      break_on_hyphens (default: true)
+        Allow breaking hyphenated words. If true, wrapping will occur
+        preferably on whitespaces and right after hyphens part of
+        compound words.
+      drop_whitespace (default: true)
+        Drop leading and trailing whitespace from lines.
+      max_lines (default: None)
+        Truncate wrapped lines.
+      placeholder (default: ' [...]')
+        Append to the last line of truncated text.
+*/
+public class TextWrapper {
+    private {
+        int width = 70;
+        string initial_indent = "";
+        string subsequent_indent = "";
+        bool expand_tabs = True;
+        bool replace_whitespace = True;
+        bool fix_sentence_endings = False;
+        bool break_long_words = True;
+        bool drop_whitespace = True;
+        bool break_on_hyphens = True;
+        int tabsize = 8;
+        int max_lines;
+        string placeholder = ' [...]';
+
+        hash whitespace_trans;
+        string wordsep_re;
+        string wordsep_simple_re;
+        string sentence_end_re;
+    }
+
+    constructor (hash opts) {
+        if (opts.hasKey('width'))
+            self.width = opts.width;
+        if (opts.hasKey('initial_indent'))
+            self.initial_indent = opts.initial_indent;
+        if (opts.hasKey('subsequent_indent'))
+            self.subsequent_indent = opts.subsequent_indent;
+        if (opts.hasKey('expand_tabs'))
+            self.expand_tabs = opts.expand_tabs;
+        if (opts.hasKey('replace_whitespace'))
+            self.replace_whitespace = opts.replace_whitespace;
+        if (opts.hasKey('fix_sentence_endings'))
+            self.fix_sentence_endings = opts.fix_sentence_endings;
+        if (opts.hasKey('break_long_words'))
+            self.break_long_words = opts.break_long_words;
+        if (opts.hasKey('drop_whitespace'))
+            self.drop_whitespace = opts.drop_whitespace;
+        if (opts.hasKey('break_on_hyphens'))
+            self.break_on_hyphens = opts.break_on_hyphens;
+        if (opts.hasKey('tabsize'))
+            self.tabsize = opts.tabsize;
+        if (opts.hasKey('max_lines'))
+            self.max_lines = opts.max_lines;
+        if (opts.hasKey('placeholder'))
+            self.placeholder = opts.placeholder;
+
+        for (int i=0; i < c_whitespace.length(); i++)
+            self.whitespace_trans.(ord(c_whitespace[i])) = ord(' ');
+
+        # This funky little regex is just the trick for splitting
+        # text up into word-wrappable chunks.  E.g.
+        #   "Hello there -- you goof-ball, use the -b option!"
+        # splits into
+        #   Hello/ /there/ /--/ /you/ /goof-/ball,/ /use/ /the/ /-b/ /option!
+        # (after stripping out empty strings).
+        string word_punct = '[\w!"' + "'&.,?]";
+        string letter = '[^\d\W]';
+        string whitespace = sprintf ('[%s]', regex_escape (c_whitespace));
+        string nowhitespace = '[^' + whitespace.substr(1);
+        wordsep_re = xsprintf('
+            ( # any whitespace
+              %(ws)s+
+            | # em-dash between words
+              (?<=%(wp)s) -{2,} (?=\w)
+            | # word, possibly hyphenated
+              %(nws)s+? (?:
+                # hyphenated word
+                  -(?: (?<=%(lt)s{2}-) | (?<=%(lt)s-%(lt)s-))
+                  (?= %(lt)s -? %(lt)s)
+                | # end of word
+                  (?=%(ws)s|\Z)
+                | # em-dash
+                  (?<=%(wp)s) (?=-{2,}\w)
+                )
+            )', {'wp': word_punct, 'lt': letter,
+                 'ws': whitespace, 'nws': nowhitespace});
+
+        # This less funky little regex just split on recognized spaces. E.g.
+        #   "Hello there -- you goof-ball, use the -b option!"
+        # splits into
+        #   Hello/ /there/ /--/ /you/ /goof-ball,/ /use/ /the/ /-b/ /option!/
+        wordsep_simple_re = sprintf ('(%s+)', whitespace);
+
+        # XXX this is not locale- or charset-aware -- string.lowercase
+        # is US-ASCII only (and therefore English-only)
+        sentence_end_re = '[a-z]'       # lowercase letter
+                          '[\.\!\?]'    # sentence-ending punct.
+                          '[\"\'"']?"   # optional end-of-quote
+                          '\Z';         # end of chunk
+    }
+
+    # -- Private methods -----------------------------------------------
+    # (possibly useful for subclasses to override)
+
+    #! _munge_whitespace(text : string) -> string
+    /**
+        Munge whitespace in text: expand tabs and convert all other
+        whitespace characters to spaces.  Eg. " foo\\tbar\\n\\nbaz"
+        becomes " foo    bar  baz".
+    */
+    private string _munge_whitespace (string text) {
+        if (self.expand_tabs)
+            text = expandtabs (text, self.tabsize);
+        if (self.replace_whitespace)
+            text = translate (text, self.whitespace_trans);
+        return text;
+    }
+
+    #! _split(text : string) -> [string]
+    /**
+        Split the text to wrap into indivisible chunks.  Chunks are
+        not quite the same as words; see _wrap_chunks() for full
+        details.  As an example, the text
+          Look, goof-ball -- use the -b option!
+        breaks into the following chunks:
+          'Look,', ' ', 'goof-', 'ball', ' ', '--', ' ',
+          'use', ' ', 'the', ' ', '-b', ' ', 'option!'
+        if break_on_hyphens is True, or in:
+          'Look,', ' ', 'goof-ball', ' ', '--', ' ',
+          'use', ' ', 'the', ' ', '-b', ' ', option!'
+        otherwise.
+    */
+    private list _split (string text) {
+        softlist chunks;
+        if (self.break_on_hyphens)
+            chunks = regex_extract (text, self.wordsep_re, Qore::RE_Extended + Qore::RE_Global);
+        else
+            chunks = regex_extract (text, self.wordsep_simple_re);
+        chunks = select chunks, $1;
+        return chunks;
+    }
+
+    #! _fix_sentence_endings(chunks : [string])
+    /**
+        Correct for sentence endings buried in 'chunks'.  Eg. when the
+        original text contains "... foo.\\nBar ...", munge_whitespace()
+        and split() will convert that to [..., "foo.", " ", "Bar", ...]
+        which has one too few spaces; this method simply changes the one
+        space to two.
+    */
+    private _fix_sentence_endings (reference chunks) {
+        int i = 0;
+        while (i < chunks.size() - 1) {
+            if (chunks[i+1] == " " && regex (chunks[i], self.sentence_end_re)) {
+                chunks[i+1] = "  ";
+                i += 2;
+            }
+            else
+                i += 1;
+        }
+    }
+
+    /**
+        _handle_long_word(chunks : [string],
+                          cur_line : [string],
+                          cur_len : int, width : int)
+
+        Handle a chunk of text (most likely a word, not whitespace) that
+        is too long to fit in any line.
+    */
+    private _handle_long_word (reference reversed_chunks, reference cur_line, int cur_len, int width) {
+        # Figure out when indent is larger than the specified width, and make
+        # sure at least one character is stripped off on every pass
+        int space_left = (width < 1) ? 1 : width - cur_len;
+
+        # If we're allowed to break long words, then do so: put as much
+        # of the next chunk onto the current line as will fit.
+        if (self.break_long_words) {
+            push cur_line, reversed_chunks.last().substr(0, space_left);
+            push reversed_chunks, (pop reversed_chunks).substr(space_left);
+        }
+
+        # Otherwise, we have to preserve the long word intact.  Only add
+        # it to the current line if there's nothing already there --
+        # that minimizes how much we violate the width constraint.
+        else if (!cur_line)
+            push cur_line, (pop reversed_chunks);
+
+        # If we're not allowed to break long words, and there's already
+        # text on the current line, do nothing.  Next time through the
+        # main loop of _wrap_chunks(), we'll wind up here again, but
+        # cur_len will be zero, so the next line will be entirely
+        # devoted to the long word that we can't handle right now.
+    }
+
+    #! _wrap_chunks(chunks : [string]) -> [string]
+    /**
+        Wrap a sequence of text chunks and return a list of lines of
+        length 'self.width' or less.  (If 'break_long_words' is false,
+        some lines may be longer than this.)  Chunks correspond roughly
+        to words and the whitespace between them: each chunk is
+        indivisible (modulo 'break_long_words'), but a line break can
+        come between any two chunks.  Chunks should not have internal
+        whitespace; ie. a chunk is either all whitespace or a "word".
+        Whitespace chunks will be removed from the beginning and end of
+        lines, but apart from that whitespace is preserved.
+    */
+    private list _wrap_chunks (list chunks) {
+        list lines = ();
+        string indent;
+
+        if (self.width <= 0)
+            throw "VALUE-ERROR", sprintf ("invalid width %y (must be > 0)", self.width);
+
+        if (exists self.max_lines) {
+            if (self.max_lines > 1)
+                indent = self.subsequent_indent;
+            else
+                indent = self.initial_indent;
+            if (indent.length() + ltrim(self.placeholder).length() > self.width)
+                throw "VALUE-ERROR", "placeholder too large for max width";
+        }
+
+        # Arrange in reverse order so items can be efficiently popped from a stack of chunks.
+        chunks = reverse (chunks);
+
+        while (chunks) {
+            # Start the list of chunks that will make up the current line.
+            # cur_len is just the length of all the chunks in cur_line.
+            list cur_line = ();
+            int cur_len = 0;
+
+            # Figure out which static string will prefix this line.
+            if (lines)
+                indent = self.subsequent_indent;
+            else
+                indent = self.initial_indent;
+
+            # Maximum width for this line.
+            int width = self.width - indent.length();
+
+            # First chunk on line is whitespace -- drop it, unless this
+            # is the very beginning of the text (ie. no lines started yet).
+            if (self.drop_whitespace && trim(chunks.last()) == '' && lines)
+                pop chunks;
+
+            while (chunks) {
+                int l = chunks.last().length();
+
+                # Can at least squeeze this chunk onto the current line.
+                if (cur_len + l <= width) {
+                    push cur_line, (pop chunks);
+                    cur_len += l;
+                }
+                # Nope, this line is full.
+                else
+                    break;
+            }
+
+            # The current line is full, and the next chunk is too big to
+            # fit on *any* line (not just this one).
+            if (chunks && chunks.last().length() > width) {
+                self._handle_long_word (\chunks, \cur_line, cur_len, width);
+                cur_len = sum (map $1.length(), cur_line);
+            }
+
+            # If the last chunk on this line is all whitespace, drop it.
+            if (self.drop_whitespace && cur_line && trim(cur_line.last()) == '') {
+                cur_len -= cur_line.last().length();
+                pop cur_line;
+            }
+
+            if (cur_line) {
+                if (!exists self.max_lines ||
+                    lines.size() + 1 < self.max_lines ||
+                    (!chunks ||
+                     self.drop_whitespace &&
+                     chunks.size() == 1 &&
+                     !trim(chunks[0])) && cur_len <= width) {
+                    # Convert current line back to a string and store it in
+                    # list of all lines (return value).
+                    push lines, (indent + cur_line.join(''));
+                }
+                else {
+                    bool broke;
+                    while (cur_line) {
+                        if (trim(cur_line.last()) &&
+                            cur_len + self.placeholder.length() <= width) {
+                            push cur_line, self.placeholder;
+                            push lines, (indent + cur_line.join(''));
+                            broke = True;
+                            break;
+                        }
+                        cur_len -= cur_line.last().length();
+                        pop cur_line;
+                    }
+                    if (!broke) {
+                        if (lines) {
+                            string prev_line = rtrim(lines.last());
+                            if (prev_line.length() + self.placeholder.length() <= self.width) {
+                                pop lines;
+                                push lines, (prev_line + self.placeholder);
+                                break;
+                            }
+                        }
+                        push lines, (indent + ltrim(self.placeholder));
+                    }
+                    break;
+                }
+            }
+        }
+
+        return lines;
+    }
+
+    private list _split_chunks (string text) {
+        text = self._munge_whitespace(text);
+        return self._split(text);
+    }
+
+    # -- Public interface ----------------------------------------------
+
+    #! wrap(text : string) -> [string]
+    /**
+        Reformat the single paragraph in 'text' so it fits in lines of
+        no more than 'self.width' columns, and return a list of wrapped
+        lines.  Tabs in 'text' are expanded with string.expandtabs(),
+        and all other whitespace characters (including newline) are
+        converted to space.
+    */
+    public list wrap (string text) {
+        list chunks = self._split_chunks (text);
+        if (self.fix_sentence_endings)
+            self._fix_sentence_endings (\chunks);
+        return self._wrap_chunks (chunks);
+    }
+
+    #! fill(text : string) -> string
+    /**
+        Reformat the single paragraph in 'text' to fit in lines of no
+        more than 'self.width' columns, and return a new string
+        containing the entire wrapped paragraph.
+    */
+    public string fill (string text) {
+        return self.wrap(text).join("\n");
+    }
 }
 
 # -- Loosely related functionality -------------------------------------
