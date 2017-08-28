@@ -1357,8 +1357,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeOctetStream));
 
-            h = so.processRequest("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeMultipartFormData);
-
+            #h = so.processRequest("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeMultipartFormData);
         }
 
         # TODO

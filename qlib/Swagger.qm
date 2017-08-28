@@ -759,7 +759,7 @@ public class SwaggerObject inherits ObjectBase {
             return rv;
 
         foreach string content in (content_types) {
-            if (!mime_types{content})
+            if (!mime_types{content} || !MimeDataTypes{content})
                 continue;
             return rv += (
                 "body": MimeDataTypes{content}.serialize(body),
