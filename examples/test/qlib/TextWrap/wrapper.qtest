@@ -1,0 +1,74 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+# %requires Util
+
+%exec-class WrapTest
+
+#! Test TextWrapper
+public class WrapTest inherits BaseTest {
+    constructor () : BaseTest ("WrapTest", "1.0") {
+        addTestCase ("TextWrap - test_simple", \test_simple());
+        addTestCase ("TextWrap - test_empty_string", \test_empty_string());
+        addTestCase ("TextWrap - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
+        addTestCase ("TextWrap - test_wrap_short", \test_wrap_short());
+        addTestCase ("TextWrap - test_wrap_short_1line", \test_wrap_short_1line());
+        set_return_value(main());
+    }
+
+    setUp () {
+        self.wrapper = new TextWrapper (('width': 45));
+    }
+
+    test_simple () {
+        # Simple case: just words, spaces, and a bit of punctuation
+        string text = "Hello there, how are you this fine day?  I'm glad to hear it!";
+
+        self.check_wrap(text, 12,
+                        ("Hello there,",
+                         "how are you",
+                         "this fine",
+                         "day?  I'm",
+                         "glad to hear",
+                         "it!"));
+        self.check_wrap(text, 42,
+                        ("Hello there, how are you this fine day?",
+                         "I'm glad to hear it!"));
+        self.check_wrap(text, 80, (text,));
+    }
+
+    test_empty_string () {
+        # Check that wrapping the empty string returns an empty list.
+        self.check_wrap("", 6, ());
+        self.check_wrap("", 6, (), ('drop_whitespace': False));
+    }
+
+    test_empty_string_with_initial_indent () {
+        # Check that the empty string is not indented.
+        self.check_wrap("", 6, (), ('initial_indent': "++"));
+        self.check_wrap("", 6, (), ('initial_indent': "++", 'drop_whitespace': False));
+    }
+
+    test_wrap_short () {
+        # Wrapping to make short lines longer
+        string text = "This is a\nshort paragraph.";
+
+        self.check_wrap(text, 20, ("This is a short",
+                                   "paragraph."));
+        self.check_wrap(text, 40, ("This is a short paragraph.",));
+    }
+
+    test_wrap_short_1line () {
+        # Test endcases
+        string text = "This is a short line.";
+
+        self.check_wrap(text, 30, ("This is a short line.",));
+        self.check_wrap(text, 30, ("(1) This is a short line.",),
+                ('initial_indent': "(1) "));
+    }
+}

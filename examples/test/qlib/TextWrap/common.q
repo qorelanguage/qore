@@ -16,6 +16,10 @@ class BaseTest inherits QUnit::Test {
         set_return_value (main());
     }
 
+    private {
+        TextWrapper wrapper;
+    }
+
     string show (list text) {
         list result = ();
         for (int i=0; i < text.size(); i++)
@@ -29,7 +33,12 @@ class BaseTest inherits QUnit::Test {
 
     check (any result, any expect) {
         assertEq (expect, result,
-                sprintf ("expected:\n%s\nbut got:\n%s", self.show(expect), self.show(result))
+                # sprintf ("expected:\n%s\nbut got:\n%s", self.show(expect), self.show(result))
                 );
+    }
+
+    check_wrap (string text, int width, list expect, *hash kwargs) {
+        list result = wrap (text, width, kwargs);
+        self.check (result, expect);
     }
 }
