@@ -47,6 +47,54 @@ public namespace TextWrap {
 
 const c_whitespace = "\t\n\r ";
 
+# -- Private helpers ---------------------------------------------------
+
+string sub expandtabs (string text, int tabsize = 8) {
+    return replace (text, "\t", strmul(' ', tabsize));
+}
+
+any sub sum (list la, *any start) {
+    map start += $1, la;
+    return start ?? 0;
+}
+
+string sub translate (string text, hash table) {
+    foreach hash x in (table.pairIterator())
+        text = replace (text, chr(int(x.key)), chr(int(x.value)));
+    return text;
+}
+
+string sub xsprintf (string fmt, hash args) {
+    list fmtlist;
+    list arglist;
+    int len = fmt.length();
+    int i = 0;
+
+    while (i < len) {
+        int s = fmt.find('%', i);
+        if (s < 0) {
+            fmtlist += fmt.substr(i, len - i);
+            break;
+        }
+        else if (fmt[s+1] == '%') {
+            fmtlist += '%%';
+            i = s+2;
+        }
+        else if (fmt[s+1] == '(') {
+            int e = fmt.find(')', s+2);
+            if (e < 0)
+                throw "VALUE-ERROR", "incomplete format key";
+            string kw = fmt.substr(s+2, e-s-2);
+            fmtlist += fmt.substr(i, s-i+1);
+            arglist += args.(kw);
+            i = e+1;
+        }
+        else
+            throw "VALUE-ERROR", "incomplete format";
+    }
+    return vsprintf (fmtlist.join(''), arglist);
+}
+
 # -- Loosely related functionality -------------------------------------
 
 #! Adds 'prefix' to the beginning of selected lines in 'text'.
