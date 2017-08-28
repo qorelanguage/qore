@@ -638,6 +638,10 @@ public:
       return 0;
    }
 
+   DLLLOCAL QoreProgram* getProgram() const {
+      return old_pgm;
+   }
+
 protected:
    QoreProgram* old_pgm = nullptr;
    ThreadLocalProgramData* old_tlpd = nullptr;
@@ -646,7 +650,7 @@ protected:
 
    // returns true if the next program allows debugging
    DLLLOCAL bool nextOk() const {
-      return old_pgm && (old_pgm->getParseOptions64() & PO_ALLOW_DEBUGGING);
+      return old_pgm;
    }
 };
 
