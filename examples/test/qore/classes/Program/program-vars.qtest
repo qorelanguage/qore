@@ -23,7 +23,7 @@ class ProgramVarsTest inherits QUnit::Test {
     varTest() {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
+            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); } hash sub test3() { try { throw 1; } catch (hash<ExceptionInfo> ex) { return get_local_vars(0); }}", "");
 
             hash vh = (
                 "str": ("type": "local", "value": "hi"),
@@ -46,6 +46,27 @@ class ProgramVarsTest inherits QUnit::Test {
             assertEq({}, p.callFunction("test2", -1));
             # cannot retrieve local vars in parent because %allow-debugging is not set
             assertEq({}, p.callFunction("test2", 2));
+
+            vh = (
+                "ex": (
+                    "type": "local",
+                    "value": new hash<ExceptionInfo>((
+                        "type": "User",
+                        "file": "<run-time-loaded: >",
+                        "line": 1,
+                        "endline": 1,
+                        "source": "",
+                        "offset": 0,
+                        "callstack": new list<hash<CallStackInfo>>(),
+                        "err": 1,
+                    )),
+                ),
+                "argv": (
+                    "type": "local",
+                    "value": NOTHING,
+                ),
+            );
+            assertEq(vh, p.callFunction("test3"));
         }
     }
 }
