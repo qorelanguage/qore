@@ -217,7 +217,7 @@ while (i.next()) {
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
-any HashListReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
+auto HashListReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
 

@@ -51,6 +51,7 @@ DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
    FalseString, EmptyHashString, EmptyListString;
 
 DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
+   *autoTypeInfo,
    *bigIntTypeInfo,
    *floatTypeInfo,
    *boolTypeInfo,

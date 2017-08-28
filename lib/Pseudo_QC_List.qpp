@@ -129,14 +129,14 @@ bool <list>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any e = l.first();
+auto e = l.first();
     @endcode
 
     @see <list>::last()
 
     @since %Qore 0.8.5
  */
-any <list>::first() [flags=CONSTANT] {
+auto <list>::first() [flags=CONSTANT] {
    return l->get_referenced_entry(0);
 }
 
@@ -145,14 +145,14 @@ any <list>::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any e = l.last();
+auto e = l.last();
     @endcode
 
     @see <list>::first()
 
     @since %Qore 0.8.5
  */
-any <list>::last() [flags=CONSTANT] {
+auto <list>::last() [flags=CONSTANT] {
    return l->get_referenced_entry((qore_size_t)(l->size() - 1));
 }
 
@@ -186,7 +186,7 @@ string <list>::join(string str) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
-foreach any element in (val) {
+foreach auto element in (val) {
     do_something(element);
 }
     @endcode

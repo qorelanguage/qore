@@ -40,6 +40,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 
 const QoreAnyTypeInfo staticAnyTypeInfo;
+const QoreAutoTypeInfo staticAutoTypeInfo;
 
 const QoreBigIntTypeInfo staticBigIntTypeInfo;
 const QoreBigIntOrNothingTypeInfo staticBigIntOrNothingTypeInfo;
@@ -131,6 +132,7 @@ const QoreIntFloatOrNumberTypeInfo staticIntFloatOrNumberTypeInfo;
 const QoreFloatOrNumberTypeInfo staticFloatOrNumberTypeInfo;
 
 const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
+   *autoTypeInfo = &staticAutoTypeInfo,
    *bigIntTypeInfo = &staticBigIntTypeInfo,
    *floatTypeInfo = &staticFloatTypeInfo,
    *boolTypeInfo = &staticBoolTypeInfo,
@@ -285,6 +287,7 @@ void init_qore_types() {
    do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
    do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
    do_maps(NT_ALL,         "any", anyTypeInfo, anyTypeInfo);
+   do_maps(NT_ALL,         "auto", autoTypeInfo, autoTypeInfo);
    do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
    do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
    do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);
@@ -1057,7 +1060,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
    }
 
    parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
-   return anyTypeInfo;
+   return autoTypeInfo;
 }
 
 const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation& loc) const {

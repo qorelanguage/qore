@@ -545,7 +545,7 @@ smtp.setWarningQueue(5000, 5000, queue, "socket-1");
 
             @since %SmtpClient 1.3
         */
-        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
+        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
             sock.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
         }
 

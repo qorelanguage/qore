@@ -201,7 +201,7 @@ module SqlUtil {
     @section retrieving_data Retrieving Data from the Database
 
     There are many methods in the @ref SqlUtil::AbstractTable "AbstractTable" class for retrieving data from the database; here is an overview:
-    - @ref SqlUtil::AbstractTable::find(any): finds a row corresponding to the given single value of the primary key; if not present @ref nothing is returned
+    - @ref SqlUtil::AbstractTable::find(auto): finds a row corresponding to the given single value of the primary key; if not present @ref nothing is returned
     - @ref SqlUtil::AbstractTable::find(list): finds all rows corresponding to the given list of values of the primary key; if none are present @ref nothing is returned
     - @ref SqlUtil::AbstractTable::find(hash): find a row corresponding to the given hash of column name/value pairs, which must at least reference all columns of the table's primary key; if no row matches, @ref nothing is returned
     - @ref SqlUtil::AbstractTable::findSingle(): finds the first (of possibly many) rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
@@ -2199,52 +2199,52 @@ public namespace SqlUtil {
         COP_VALUE: (
             "sqlvalue": True,
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return arg;
             },
         ),
         COP_UPPER: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("upper(%s)", cve);
             },
         ),
         COP_LOWER: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("lower(%s)", cve);
             },
         ),
         COP_DISTINCT: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("distinct %s", cve);
             },
         ),
         COP_MIN: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("min(%s)", cve);
             },
             "group": True,
         ),
         COP_MAX: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("max(%s)", cve);
             },
             "group": True,
         ),
         COP_AVG: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("avg(%s)", cve);
             },
             "group": True,
         ),
         COP_SUM: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("sum(%s)", cve);
             },
             "group": True,
         ),
         COP_COUNT: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return sprintf("count(%s)", cve ? cve : "*");
             },
         ),
@@ -2298,7 +2298,7 @@ public namespace SqlUtil {
             },
         ),
         COP_LENGTH: (
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("length(%s)", cve);
             },
         ),
@@ -2347,7 +2347,7 @@ public namespace SqlUtil {
 
         @note Normally this function is not called directly, but rather by the other column operator functions
     */
-    public hash<ColumnOperatorInfo> sub make_cop(string cop, any column, any arg) {
+    public hash<ColumnOperatorInfo> sub make_cop(string cop, auto column, auto arg) {
         switch (column.typeCode()) {
             case NT_HASH:
             case NT_STRING: return new hash<ColumnOperatorInfo>(("cop": cop, "column": column, "arg": arg));
@@ -2368,7 +2368,7 @@ public namespace SqlUtil {
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash<ColumnOperatorInfo> sub cop_as(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_as(auto column, string arg) {
         return make_cop(COP_AS, column, arg);
     }
 
@@ -2387,7 +2387,7 @@ public namespace SqlUtil {
 
         @see SqlUtil::cop_value for SQL literals handling
     */
-    public hash<ColumnOperatorInfo> sub cop_cast(any column, string arg, *any arg1, *any arg2) {
+    public hash<ColumnOperatorInfo> sub cop_cast(auto column, string arg, auto arg1, auto arg2) {
         return make_cop(COP_CAST, column, (arg, arg1, arg2));
     }
 
@@ -2402,7 +2402,7 @@ public namespace SqlUtil {
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_prepend(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_prepend(auto column, string arg) {
         return make_cop(COP_PREPEND, column, arg);
     }
 
@@ -2417,7 +2417,7 @@ public namespace SqlUtil {
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_append(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_append(auto column, string arg) {
         return make_cop(COP_APPEND, column, arg);
     }
 
@@ -2502,7 +2502,7 @@ hash: (9 members)
 sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421105657000000', 'YYYYMMDDHH24MISSFF6') as as_date,'foo bar' as as_string,'sysdate' as as_function_call,1 as as_bool,null as as_null,null as as_nothing from pvanek_omq.workflows fetch next %v rows only
     @endcode
     */
-    public hash<ColumnOperatorInfo> sub cop_value(any arg) {
+    public hash<ColumnOperatorInfo> sub cop_value(auto arg) {
         return make_cop(COP_VALUE, "", arg);
     }
 
@@ -2516,7 +2516,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_upper(any column) {
+    public hash<ColumnOperatorInfo> sub cop_upper(auto column) {
         return make_cop(COP_UPPER, column);
     }
 
@@ -2530,7 +2530,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_lower(any column) {
+    public hash<ColumnOperatorInfo> sub cop_lower(auto column) {
         return make_cop(COP_LOWER, column);
     }
 
@@ -2544,7 +2544,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_distinct(any column) {
+    public hash<ColumnOperatorInfo> sub cop_distinct(auto column) {
         return make_cop(COP_DISTINCT, column);
     }
 
@@ -2558,7 +2558,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_min(any column) {
+    public hash<ColumnOperatorInfo> sub cop_min(auto column) {
         return make_cop(COP_MIN, column);
     }
 
@@ -2572,7 +2572,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_max(any column) {
+    public hash<ColumnOperatorInfo> sub cop_max(auto column) {
         return make_cop(COP_MAX, column);
     }
 
@@ -2586,7 +2586,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_avg(any column) {
+    public hash<ColumnOperatorInfo> sub cop_avg(auto column) {
         return make_cop(COP_AVG, column);
     }
 
@@ -2600,7 +2600,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_sum(any column) {
+    public hash<ColumnOperatorInfo> sub cop_sum(auto column) {
         return make_cop(COP_SUM, column);
     }
 
@@ -2612,7 +2612,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_count(any column = "") {
+    public hash<ColumnOperatorInfo> sub cop_count(auto column = "") {
         return make_cop(COP_COUNT, column);
     }
 
@@ -2624,7 +2624,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_over(any column, string arg) {
+    public hash<ColumnOperatorInfo> sub cop_over(auto column, string arg) {
         return make_cop(COP_OVER, column, arg);
     }
 
@@ -2639,7 +2639,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_minus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_minus(auto column1, auto column2) {
         return make_cop(COP_MINUS, column1, column2);
     }
 
@@ -2654,7 +2654,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_plus(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_plus(auto column1, auto column2) {
         return make_cop(COP_PLUS, column1, column2);
     }
 
@@ -2669,7 +2669,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_divide(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_divide(auto column1, auto column2) {
         return make_cop(COP_DIVIDE, column1, column2);
     }
 
@@ -2684,7 +2684,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_multiply(any column1, any column2) {
+    public hash<ColumnOperatorInfo> sub cop_multiply(auto column1, auto column2) {
         return make_cop(COP_MULTIPLY, column1, column2);
     }
 
@@ -2698,7 +2698,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_year(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year(auto column) {
         return make_cop(COP_YEAR, column);
     }
 
@@ -2712,7 +2712,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_year_month(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_month(auto column) {
         return make_cop(COP_YEAR_MONTH, column);
     }
 
@@ -2726,7 +2726,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_year_day(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_day(auto column) {
         return make_cop(COP_YEAR_DAY, column);
     }
 
@@ -2740,7 +2740,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_year_hour(any column) {
+    public hash<ColumnOperatorInfo> sub cop_year_hour(auto column) {
         return make_cop(COP_YEAR_HOUR, column);
     }
 
@@ -2787,8 +2787,8 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @throw COALESCE-ERROR the arguments must be either string column designators or column operator hashes
     */
-    public hash<ColumnOperatorInfo> sub cop_coalesce(any col1, any col2) {
-        code check = sub (any c) {
+    public hash<ColumnOperatorInfo> sub cop_coalesce(auto col1, auto col2) {
+        code check = sub (auto c) {
             if (c.typeCode() != NT_STRING && c.typeCode() != NT_HASH)
                 throw "COALESCE-ERROR", sprintf("cop_coalesce() accepts string column designators or column operator hashes as arguments; got: %y", c);
         };
@@ -2817,7 +2817,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_substr(any column, int start, *int count) {
+    public hash<ColumnOperatorInfo> sub cop_substr(auto column, int start, *int count) {
         return make_cop(COP_SUBSTR, column, (start, count));
     }
 
@@ -2833,7 +2833,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @since %SqlUtil 1.3.1
     */
-    public hash<ColumnOperatorInfo> sub cop_length(any column) {
+    public hash<ColumnOperatorInfo> sub cop_length(auto column) {
         return make_cop(COP_LENGTH, column);
     }
 
@@ -2852,7 +2852,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @since %SqlUtil 1.4.0
     */
-    public hash sub cop_trunc_date(any column, string mask) {
+    public hash sub cop_trunc_date(auto column, string mask) {
         if (!inlist(mask, DT_ALL_VALUES)) {
             throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", mask, DT_ALL_VALUES);
         }
@@ -2913,25 +2913,25 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         COP_LOWER: True,
         COP_MINUS: (
             "sqlvalue": True,
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("%s - %s", cve, arg);
             },
         ),
         COP_PLUS: (
             "sqlvalue": True,
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("%s + %s", cve, arg);
             },
         ),
         COP_DIVIDE: (
             "sqlvalue": True,
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("%s / %s", cve, arg);
             },
         ),
         COP_MULTIPLY: (
             "sqlvalue": True,
-            "code": string sub (string cve, any arg) {
+            "code": string sub (string cve, auto arg) {
                 return sprintf("%s * %s", cve, arg);
             },
         ),
@@ -2987,7 +2987,7 @@ int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lowe
 
         @note Normally this function is not called directly, but rather by the other update operator functions
     */
-    public hash<UpdateOperatorInfo> sub make_uop(string uop, any arg, *hash<UpdateOperatorInfo> nest) {
+    public hash<UpdateOperatorInfo> sub make_uop(string uop, auto arg, *hash<UpdateOperatorInfo> nest) {
         return new hash<UpdateOperatorInfo>(("uop": uop, "arg": arg, "nest": nest));
     }
 
@@ -3076,7 +3076,7 @@ int rows_updated = t.update(("counter": uop_plus(1)));
 
         @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash<UpdateOperatorInfo> sub uop_plus(any arg, *hash<UpdateOperatorInfo> nest) {
+    public hash<UpdateOperatorInfo> sub uop_plus(auto arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_PLUS, arg, nest);
     }
 
@@ -3091,7 +3091,7 @@ int rows_updated = t.update(("counter": uop_minus(1)));
 
         @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash<UpdateOperatorInfo> sub uop_minus(any arg, *hash<UpdateOperatorInfo> nest) {
+    public hash<UpdateOperatorInfo> sub uop_minus(auto arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_MINUS, arg, nest);
     }
 
@@ -3106,7 +3106,7 @@ int rows_updated = t.update(("counter": uop_multiply(2)));
 
         @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash<UpdateOperatorInfo> sub uop_multiply(any arg, *hash<UpdateOperatorInfo> nest) {
+    public hash<UpdateOperatorInfo> sub uop_multiply(auto arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_MULTIPLY, arg, nest);
     }
 
@@ -3121,7 +3121,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @return an @ref UpdateOperatorInfo hash corresponding to the arguments for use in update statements
     */
-    public hash<UpdateOperatorInfo> sub uop_divide(any arg, *hash<UpdateOperatorInfo> nest) {
+    public hash<UpdateOperatorInfo> sub uop_divide(auto arg, *hash<UpdateOperatorInfo> nest) {
         return make_uop(COP_DIVIDE, arg, nest);
     }
 
@@ -3760,37 +3760,37 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
         ),
         OP_LT: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
@@ -3798,7 +3798,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_EQ: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
                 args += arg;
@@ -3806,51 +3806,51 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_BETWEEN: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg[0];
                 args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
             "recursive": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s < %s", cn, arg);
             },
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s <= %s", cn, arg);
             },
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s > %s", cn, arg);
             },
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s >= %s", cn, arg);
             },
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 return sprintf("%s != %s", cn, arg);
             },
         ),
@@ -3861,7 +3861,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_SUBSTR: (
-            "code": string sub (object t, string cn, any arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                 args += arg[0]; # start
                 if (!exists arg[1]) {
                     args += arg[2]; # text
@@ -3903,7 +3903,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
      */
     #@{
     #! returns an @ref OperatorInfo hash
-    public hash<OperatorInfo> sub make_op(string op, any arg) {
+    public hash<OperatorInfo> sub make_op(string op, auto arg) {
         return new hash<OperatorInfo>(("op": op, "arg": arg));
     }
 
@@ -3933,7 +3933,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @see op_clt() for a function to be used when comparing two column values
     */
-    public hash<OperatorInfo> sub op_lt(any arg) {
+    public hash<OperatorInfo> sub op_lt(auto arg) {
         return make_op(OP_LT, arg);
     }
 
@@ -3949,7 +3949,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @see op_cle() for a function to be used when comparing two column values
     */
-    public hash<OperatorInfo> sub op_le(any arg) {
+    public hash<OperatorInfo> sub op_le(auto arg) {
         return make_op(OP_LE, arg);
     }
 
@@ -3965,7 +3965,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @see op_cgt() for a function to be used when comparing two column values
     */
-    public hash<OperatorInfo> sub op_gt(any arg) {
+    public hash<OperatorInfo> sub op_gt(auto arg) {
         return make_op(OP_GT, arg);
     }
 
@@ -3981,7 +3981,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @see op_cge() for a function to be used when comparing two column values
     */
-    public hash<OperatorInfo> sub op_ge(any arg) {
+    public hash<OperatorInfo> sub op_ge(auto arg) {
         return make_op(OP_GE, arg);
     }
 
@@ -3999,7 +3999,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NOT NULL</tt> clause.
     */
-    public hash<OperatorInfo> sub op_ne(any arg) {
+    public hash<OperatorInfo> sub op_ne(auto arg) {
         return make_op(OP_NE, arg);
     }
 
@@ -4017,7 +4017,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NULL</tt> clause.
     */
-    public hash<OperatorInfo> sub op_eq(any arg) {
+    public hash<OperatorInfo> sub op_eq(auto arg) {
         return make_op(OP_EQ, arg);
     }
 
@@ -4034,7 +4034,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @throw BETWEEN-ERROR one or both of the required arguments are @ref null or @ref nothing
      */
-    public hash<OperatorInfo> sub op_between(any l, any r) {
+    public hash<OperatorInfo> sub op_between(auto l, auto r) {
         if (!exists l || l === NULL)
             throw "BETWEEN-ERROR", sprintf("the first argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", l);
         if (!exists r || r === NULL)
@@ -4270,7 +4270,7 @@ select * from schema.table where name = other_name and ((type = %v and validatio
 
         @note Normally this function is not called directly, but rather by the other insert operator functions
     */
-    public hash<InsertOperatorInfo> sub make_iop(string iop, any arg) {
+    public hash<InsertOperatorInfo> sub make_iop(string iop, auto arg) {
         return new hash<InsertOperatorInfo>(("_iop": iop, "arg": arg));
     }
 
@@ -4338,7 +4338,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         #! returns the value of the given key in the contained hash if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-any v = c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -4351,7 +4351,7 @@ any v = c.name;
 
             @see @ref memberGate_methods
         */
-        any memberGate(string k) {
+        auto memberGate(string k) {
             if (!h.hasKey(k))
                 throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
             return h{k};
@@ -4369,7 +4369,7 @@ c.clear();
         }
 
         #! removes the given key from the contained hash and returns the value
-        abstract any take(string k);
+        abstract auto take(string k);
 
         #! renames the given key; maintains the key order
         renameKey(string old_name, string new_name) {
@@ -4667,7 +4667,7 @@ bool b = h.hasKeyValue(key);
         #! returns the value of the given element in the contained list if it exists, otherwise throws an \c ELEMENT-ERROR exception
         /** @par Example:
             @code{.py}
-any v = c.get(2);
+auto v = c.get(2);
             @endcode
 
             @param i the index of the element to access
@@ -4676,15 +4676,15 @@ any v = c.get(2);
 
             @throw ELEMENT-ERROR the given element does not exist in the contained list
         */
-        abstract any get(softint i);
+        abstract auto get(softint i);
 
         #! adds the given value to the list
-        add(any val) {
+        add(auto val) {
             l += val;
         }
 
         #! removes the given element from the contained list and returns the value
-        any take(int i) {
+        auto take(int i) {
             checkIndex(i);
             return extract l, i, 1;
         }
@@ -6381,7 +6381,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 }
                 case "softstringlist": {
                     softlist l = opt;
-                    foreach any v in (l) {
+                    foreach auto v in (l) {
                         if (v.typeCode() != NT_STRING)
                             throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
                     }
@@ -6391,7 +6391,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 }
                 case "stringhashlist": {
                     softlist l = opt;
-                    foreach any v in (l) {
+                    foreach auto v in (l) {
                         switch (v.typeCode()) {
                             case NT_STRING:
                             case NT_HASH:
@@ -6406,7 +6406,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 }
                 case "softstringinthashlist": {
                     softlist l = opt;
-                    foreach any v in (l) {
+                    foreach auto v in (l) {
                         int t = v.typeCode();
                         bool ok;
                         if (t == NT_STRING) {
@@ -6430,7 +6430,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 }
                 case "hash/list": {
                     if (opt.typeCode() == NT_LIST) {
-                        foreach any v in (opt) {
+                        foreach auto v in (opt) {
                             if (v.typeCode() != NT_HASH)
                                 throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);
                         }
@@ -6459,7 +6459,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         }
 
         #! Check input node for all hash keys - if it contains a key with whitespace in the beginning or at the end -> error
-        private validateHashKeysForWhitespaces(any node) {
+        private validateHashKeysForWhitespaces(auto node) {
             switch (node.typeCode()) {
                 case NT_HASH: {
                         HashIterator it(node);
@@ -6903,7 +6903,7 @@ list l = db.getAlignSql(schema_hash);
             HashIterator i(schema_hash.sequence_map);
             while (i.next()) {
                 string key = i.getKey();
-                any value = i.getValue();
+                auto value = i.getValue();
                 if (value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("sequence_map %y value is not a string in the schema description hash; got type %y instead (%y)", key, value.type(), value);
 
@@ -7082,7 +7082,7 @@ list l = db.getDropSchemaSql(schema_hash);
             HashIterator i(fmap);
             while (i.next()) {
                 string key = i.getKey();
-                any value = i.getValue();
+                auto value = i.getValue();
                 if (value.typeCode() != NT_STRING)
                     throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", key, value.type(), value);
 
@@ -7826,12 +7826,12 @@ string sql = t.getSqlFromList(list);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return ds.vexec(sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql) {
+        private auto tryExecRawImpl(string sql) {
             return ds.execRaw(sql);
         }
 
@@ -8514,7 +8514,7 @@ t.tryExec("drop table tmp_table");
 
             @return any return value from the SQL command executed
          */
-        any tryExec(string sql) {
+        auto tryExec(string sql) {
             return tryExecArgsImpl(sql, argv);
         }
 
@@ -8529,7 +8529,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
 
             @return any return value from the SQL command executed
          */
-        any tryExecArgs(string sql, *softlist args) {
+        auto tryExecArgs(string sql, *softlist args) {
             return tryExecArgsImpl(sql, args);
         }
 
@@ -8545,7 +8545,7 @@ t.tryExecRaw("drop table tmp_table");
 
             @return any return value from the SQL command executed
          */
-        any tryExecRaw(string sql) {
+        auto tryExecRaw(string sql) {
             return tryExecRawImpl(sql);
         }
 
@@ -9311,7 +9311,7 @@ printf("%s;\n", sql);
 
             hash ch;
             while (cols) {
-                any v = shift cols;
+                auto v = shift cols;
                 if (v.typeCode() != NT_STRING)
                     throw "PRIMARY-KEY-ERROR", sprintf("%s add primary key %y: %y argument passed as column name to %s::addPrimaryKey(); expecting \"string\" (value: %y)", getDesc(), pkname, v.type(), self.className(), v);
                 if (!columns.hasKey(v))
@@ -9570,7 +9570,7 @@ printf("%s;\n", sql);
 
             hash ch;
             while (cols) {
-                any v = shift cols;
+                auto v = shift cols;
                 if (v.typeCode() != NT_STRING)
                     throw "PRIMARY-KEY-ERROR", sprintf("%s add unique constraint %y: %y argument passed as column name to %s::addUniqueConstraint(); expecting \"string\" (value: %y)", getDesc(), cname, v.type(), self.className(), v);
                 if (!columns.hasKey(v))
@@ -9693,7 +9693,7 @@ printf("%s;\n", sql);
 
             hash ch;
             while (cols) {
-                any v = shift cols;
+                auto v = shift cols;
                 if (v.typeCode() != NT_STRING)
                     throw "INDEX-ERROR", sprintf("%s: %y argument passed as column name to %s::addIndex(); expecting \"string\" (value: %y)", getDesc(), v.type(), self.className(), v);
                 # only check for column if the index is not a function index
@@ -9946,7 +9946,7 @@ printf("%s;\n", sql);
 
             hash ch;
             while (cols) {
-                any v = shift cols;
+                auto v = shift cols;
                 if (v.typeCode() != NT_STRING)
                     throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y: %y argument passed as column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", getDesc(), v.type(), self.className(), v);
                 if (!columns.hasKey(v))
@@ -9961,7 +9961,7 @@ printf("%s;\n", sql);
             Columns targ_cols = getReferencedTableColumnsUnlocked(table, opt.table_cache);
             hash tch;
             while (tcols) {
-                any v = shift tcols;
+                auto v = shift tcols;
                 if (v.typeCode() != NT_STRING)
                     throw "FOREIGN-CONSTRAINT-ERROR", sprintf("%y target %y: %y argument passed as target column name to %s::addForeignConstraint(); expecting \"string\" (value: %y)", getDesc(), table, v.type(), self.className(), v);
                 if (!targ_cols.hasKey(v))
@@ -10821,7 +10821,7 @@ table.insert(row);
             # check for a bulk insert in case the driver does not support array binding
             if (!hasArrayBind()) {
                 int size = 0;
-                foreach any arg in (args) {
+                foreach auto arg in (args) {
                     if (arg.typeCode() == NT_LIST) {
                         size = arg.size();
                         break;
@@ -10865,7 +10865,7 @@ table.insert(row);
             HashIterator i(row);
             while (i.next()) {
                 string key = i.getKey();
-                any v = i.getValue();
+                auto v = i.getValue();
                 string ph = "%v";
                 if (v.typeCode() == NT_LIST)
                     v = v[0];
@@ -11987,7 +11987,7 @@ string sql = table.getSelectSql(sh, \args);
             if (qh.columns) {
                 # column expressions
                 list ce = ();
-                foreach any cv in (qh.columns) {
+                foreach auto cv in (qh.columns) {
                     switch (cv.typeCode()) {
                         case NT_STRING: {
                             string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
@@ -12037,7 +12037,7 @@ string sql = table.getSelectSql(sh, \args);
                 sql += " " + qh.alias;
 
             # process join specifications
-            foreach any js in (qh.join.iterator()) {
+            foreach auto js in (qh.join.iterator()) {
                 hash jh;
                 if (js.typeCode() == NT_HASH)
                     jh = js;
@@ -12148,7 +12148,7 @@ string sql = table.getSelectSql(sh, \args);
                 HashIterator i(qh.having);
                 while (i.next()) {
                     string key = i.getKey();
-                    any value = i.getValue();
+                    auto value = i.getValue();
                     if (value.typeCode() != NT_LIST)
                         throw "SELECT-ERROR", sprintf("%s: expecting a list argument to the \"having\" condition for column %y; got type %y instead (value: %y)", getDesc(), key, value.type(), value);
                     if (value[0].typeCode() != NT_STRING)
@@ -12166,7 +12166,7 @@ string sql = table.getSelectSql(sh, \args);
 
             if (qh.orderby) {
                 # process minuses to generate the "orderbydesc" keys
-                foreach any k in (\qh.orderby) {
+                foreach auto k in (\qh.orderby) {
                     if (k.typeCode() == NT_STRING && k =~ /^-/) {
                         k = k.substr(1);
                         qh.orderbydesc{k} = True;
@@ -12228,7 +12228,7 @@ string sql = table.getSelectSql(sh, \args);
                 }
             };
 
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)
@@ -12263,7 +12263,7 @@ string sql = table.getSelectSql(sh, \args);
             return getSqlName();
         }
 
-        private string getColumnExpressionIntern(any cvc, *hash jch, bool join, *hash ch, *hash psch) {
+        private string getColumnExpressionIntern(auto cvc, *hash jch, bool join, *hash ch, *hash psch) {
             switch (cvc.typeCode()) {
                 case NT_HASH:
                     return doColumnOperatorIntern(cvc, jch, join, ch, psch);
@@ -12277,7 +12277,7 @@ string sql = table.getSelectSql(sh, \args);
             return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch, psch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch, \psch_ref);
         }
 
-        private string doColumnOperatorIntern(any cop, any arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch, *reference psch_ref) {
+        private string doColumnOperatorIntern(auto cop, auto arg, *string cve, hash cm, *hash jch, bool join, *hash ch, *hash psch, *reference psch_ref) {
             if (cop.typeCode() != NT_STRING)
                 throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
 
@@ -12307,7 +12307,7 @@ string sql = table.getSelectSql(sh, \args);
             else if (cmd.columnargs) {
                 if (arg.args.typeCode() != NT_LIST)
                     throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
-                foreach any narg in (\arg.args) {
+                foreach auto narg in (\arg.args) {
                     switch (narg.typeCode()) {
                         case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
                         case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
@@ -12417,7 +12417,7 @@ string sql = table.getSelectSql(sh, \args);
             return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch), cond.pairIterator();
         }
 
-        private string doWhereExpressionIntern(string cn, any we, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private string doWhereExpressionIntern(string cn, auto we, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
             int wt = we.typeCode();
             if (wt == NT_HASH) {
                 if (we.hasKey("cop")) {
@@ -12699,7 +12699,7 @@ int ucnt = table.update(("id": id), ("name": name));
             HashIterator i(set);
             while (i.next()) {
                 string key = i.getKey();
-                any value = i.getValue();
+                auto value = i.getValue();
                 string exp = sprintf("%s = ", getColumnSqlName(key));
                 if (value.uop)
                     exp += getUpdateExpression(key, cast<hash<UpdateOperatorInfo>>(value));
@@ -12748,7 +12748,7 @@ int ucnt = table.update(("id": id), ("name": name));
             else if (cmd.columnargs) {
                 if (uh.arg.typeCode() != NT_LIST)
                     throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
-                foreach any narg in (\uh.arg) {
+                foreach auto narg in (\uh.arg) {
                     switch (narg.typeCode()) {
                         case NT_STRING: narg = getColumnNameIntern(narg, NOTHING, False); break;
                         case NT_HASH: narg = doColumnOperatorIntern(narg, NOTHING, False); break;
@@ -13028,7 +13028,7 @@ string str = table.getSqlValue(date);
 
             @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
-        string getSqlValue(any v) {
+        string getSqlValue(auto v) {
             *string str = getSqlValueImpl(v);
             if (!exists str)
                 throw "VALUE-ERROR", sprintf("%s: class %s cannot convert type %y to an SQL string (value: %y)", getDesc(), self.className(), v.type(), v);
@@ -13908,7 +13908,7 @@ string sql = table.getAlignSqlString(table2);
 
             @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
          */
-        *hash find(any id) {
+        *hash find(auto id) {
             string cname = getPrimaryKeyColumn();
 
             return ds.selectRow("select * from %s where %s = %v", getSqlName(), getColumnSqlName(cname), id);
@@ -14318,7 +14318,7 @@ string sql = table.getAlignSqlString(table2);
             getTriggersUnlocked();
         }
 
-        private any execData(*hash opt, string sql, *list args) {
+        private auto execData(*hash opt, string sql, *list args) {
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(sql, args);
             return ds.vexec(sql, args);
@@ -14506,12 +14506,12 @@ string sql = table.getAlignSqlString(table2);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return ds.vexec(sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql) {
+        private auto tryExecRawImpl(string sql) {
             return ds.execRaw(sql);
         }
 
@@ -14527,7 +14527,7 @@ string sql = table.getAlignSqlString(table2);
         private abstract bool emptyImpl();
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private abstract *string getSqlValueImpl(any v);
+        private abstract *string getSqlValueImpl(auto v);
 
         #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
         /** this method will only be called if inDb is @ref Qore::False "False" and

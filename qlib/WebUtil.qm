@@ -122,7 +122,7 @@ public namespace WebUtil {
         }
 
         #! returns data to send
-        private any sendImpl() {
+        private auto sendImpl() {
             return txt ? f.read(cs, 1m) : f.readBinary(cs, 1m);
         }
     }
@@ -219,7 +219,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             foreach hash h in (\l) {
                 switch (h.type) {
                     case "text": h.text =~ s/"/\"/g; src += h.text; break;
-                    case "exp": src += TextTemplateBase::getCode(bare_refs, "\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
+                    case "exp": src += TextTemplateBase::getCode(bare_refs, "\";my auto $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
                     case "stmt": src += "\";" + h.text + TextTemplateBase::getCode(bare_refs, "$rv_TEMPLATE_str+=\""); break;
                 }
             }

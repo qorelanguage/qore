@@ -345,6 +345,9 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
+      if (first == autoTypeInfo) {
+         return QTI_AMBIGUOUS;
+      }
       if (!hasType(first)) {
          if (!may_need_filter && isComplex(second))
             may_need_filter = true;
@@ -454,7 +457,7 @@ public:
    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, param_num, param_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -462,7 +465,7 @@ public:
    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, true, -1, member_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -470,7 +473,7 @@ public:
    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, member_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -479,7 +482,7 @@ public:
       assert(text && text[0] == '<');
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, text, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -495,7 +498,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
-      if (!hasType(ti)) {
+      if (!hasType(ti) && ti != autoTypeInfo) {
          return isComplex(n.getTypeInfo());
       }
       assert(ti);
@@ -583,7 +586,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
-      if (ti && hasType(ti))
+      if (ti && (hasType(ti) || ti == autoTypeInfo))
          str.append(ti->tname.c_str());
       else
          str.append(NO_TYPE_INFO);
@@ -1105,6 +1108,22 @@ private:
 class QoreAnyTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreAnyTypeInfo() : QoreTypeInfo("any", q_accept_vec_t {{NT_ALL, nullptr}}, q_return_vec_t {{NT_ALL}}) {
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.concat("no value");
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+};
+
+class QoreAutoTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreAutoTypeInfo() : QoreTypeInfo("auto", q_accept_vec_t {{NT_ALL, nullptr}}, q_return_vec_t {{NT_ALL}}) {
    }
 
 protected:

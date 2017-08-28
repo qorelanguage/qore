@@ -137,13 +137,13 @@ hashdecl ExceptionInfo {
     list<hash<CallStackInfo>> callstack;
 
     //! this key is populated with the value of the first expression of the @ref throw "throw statement". For system exceptions, this is a string giving the exception code.
-    any err;
+    auto err;
 
     //! this key is populated with the value of the second expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is a string giving a text description of the error.
-    any desc;
+    auto desc;
 
     //! this key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
-    any arg;
+    auto arg;
 
     //! chained exception info
     hash<ExceptionInfo> next;

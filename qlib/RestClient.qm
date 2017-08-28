@@ -183,7 +183,7 @@ public namespace RestClient {
                 ),
                 "rawxml": (
                     "ct": MimeTypeXmlApp,
-                    "out": string sub (any v) {
+                    "out": string sub (auto v) {
                         switch (v.typeCode()) {
                             case NT_LIST: return make_xml(("list": ("element": v)));
                             case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
@@ -194,7 +194,7 @@ public namespace RestClient {
 %endif
                 "url": (
                     "ct": MimeTypeFormUrlEncoded,
-                    "out": string sub (any v) {
+                    "out": string sub (auto v) {
                         if (v.typeCode() == NT_HASH)
                             return mime_get_form_urlencoded_string(v);
                         throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
@@ -202,7 +202,7 @@ public namespace RestClient {
                 ),
                 "text": (
                     "ct": MimeTypeText,
-                    "out": string sub (any s) { return sprintf("%s", s); },
+                    "out": string sub (auto s) { return sprintf("%s", s); },
                 ),
                 };
 
@@ -590,7 +590,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash get(string path, any body, *reference<hash> info, *hash hdr) {
+        hash get(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -629,7 +629,7 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash put(string path, any body, *reference<hash> info, *hash hdr) {
+        hash put(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("PUT", path, body, \info, NOTHING, hdr);
         }
 
@@ -668,7 +668,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash post(string path, any body, *reference<hash> info, *hash hdr) {
+        hash post(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
@@ -707,7 +707,7 @@ hash ans = rest.del("/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash del(string path, any body, *reference<hash> info, *hash hdr) {
+        hash del(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("DELETE", path, body, \info, NOTHING, hdr);
         }
 
@@ -787,7 +787,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash doRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             prepareMsg(\body, \hdr);
 
             on_exit if (exists body) {

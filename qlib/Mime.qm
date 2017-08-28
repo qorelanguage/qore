@@ -729,7 +729,7 @@ public namespace Mime {
 
         @since %Mime 1.3.4.1
      */
-    public string sub mime_get_urlencoded_string(any val) {
+    public string sub mime_get_urlencoded_string(auto val) {
         if (!val.strp())
             throw "INVALID-VALUE", sprintf("type %y cannot be converted to a string (value: %y)", val.type(), val);
         string str = val.toString();

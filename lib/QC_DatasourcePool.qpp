@@ -194,7 +194,7 @@ DatasourcePool db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 3, 1
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR invalid min, max, or port argument
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0, *Qore::Thread::Queue[Queue] queue, any arg) {
+DatasourcePool::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, softint min = 3, softint max = 10, softint port = 0, *Qore::Thread::Queue[Queue] queue, auto arg) {
    if (!port && min == 3 && max == 10 && driver->find(':') != -1) {
       ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
       if (!h) {
@@ -253,7 +253,7 @@ DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
 
     @since %Qore 0.8.6
  */
-DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
+DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
    ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
    if (!h) {
@@ -285,7 +285,7 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
+DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
    dsp_constructor_hash(opts, self, queue, arg, xsink);
 }
 
@@ -353,7 +353,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any DatasourcePool::exec(string sql, ...) {
+auto DatasourcePool::exec(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
@@ -375,7 +375,7 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any DatasourcePool::vexec(string sql, *softlist vargs) {
+auto DatasourcePool::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
@@ -396,7 +396,7 @@ db.execRaw("create table my_tab (id number, some_text varchar2(30))");
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any DatasourcePool::execRaw(string sql) {
+auto DatasourcePool::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
@@ -432,7 +432,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any DatasourcePool::select(string sql, ...) {
+auto DatasourcePool::select(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
@@ -458,7 +458,7 @@ any DatasourcePool::select(string sql, ...) {
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any DatasourcePool::selectRow(string sql, ...) {
+auto DatasourcePool::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
@@ -486,7 +486,7 @@ any DatasourcePool::selectRow(string sql, ...) {
 
     @see DatasourcePool::select()
  */
-any DatasourcePool::selectRows(string sql, ...) {
+auto DatasourcePool::selectRows(string sql, ...) {
    ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
@@ -520,7 +520,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any DatasourcePool::vselect(string sql, *softlist vargs) {
+auto DatasourcePool::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
@@ -545,7 +545,7 @@ any DatasourcePool::vselect(string sql, *softlist vargs) {
 
     @see DatasourcePool::selectRow()
  */
-any DatasourcePool::vselectRow(string sql, *softlist vargs) {
+auto DatasourcePool::vselectRow(string sql, *softlist vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
@@ -574,7 +574,7 @@ any DatasourcePool::vselectRow(string sql, *softlist vargs) {
 
     @see DatasourcePool::selectRows()
  */
-any DatasourcePool::vselectRows(string sql, *softlist vargs) {
+auto DatasourcePool::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
@@ -768,12 +768,12 @@ string DatasourcePool::toString() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any ver = db.getServerVersion();
+auto ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any DatasourcePool::getServerVersion() {
+auto DatasourcePool::getServerVersion() {
    return ds->getServerVersion(xsink);
 }
 
@@ -782,12 +782,12 @@ any DatasourcePool::getServerVersion() {
 
     @par Example:
     @code{.py}
-any ver = db.getClientVersion();
+auto ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
  */
-any DatasourcePool::getClientVersion() {
+auto DatasourcePool::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
@@ -836,7 +836,7 @@ hash DatasourcePool::getOptionHash() [flags=CONSTANT] {
 
     @since %Qore 0.8.6
  */
-any DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
+auto DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);
 }
 
@@ -897,7 +897,7 @@ ds.setWarningCallback(5s, cb);
 
     @since %Qore 0.8.9
 */
-DatasourcePool::setWarningCallback(timeout ms, code callback, any arg) {
+DatasourcePool::setWarningCallback(timeout ms, code callback, auto arg) {
    ds->setWarningCallback(ms, callback->refRefSelf(), arg.getReferencedValue(), xsink);
 }
 
@@ -960,7 +960,7 @@ int DatasourcePool::getErrorTimeout() [flags=CONSTANT] {
 
     @since %Qore 0.8.9
  */
-nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
+nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (queue->getMax() != -1)

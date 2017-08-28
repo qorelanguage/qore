@@ -363,7 +363,7 @@ on_error ds.rollback();
         private setupInitialRowColumns(hash row) {
             # ensure we have at least one list of columns values
             bool has_list;
-            foreach any val in (row.iterator()) {
+            foreach auto val in (row.iterator()) {
                 if (val.typeCode() == NT_LIST) {
                     has_list = True;
                     break;
@@ -687,7 +687,7 @@ inserter.setRowCode(rowcode);
                 else {
                     softlist args = (hbuf + cval + static_ret_expr).values();
                     int size = 0;
-                    foreach any arg in (args) {
+                    foreach auto arg in (args) {
                         if (arg.typeCode() == NT_LIST) {
                             size = arg.size();
                             break;

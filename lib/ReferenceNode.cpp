@@ -162,6 +162,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
    if (QoreTypeInfo::hasType(argTypeInfo)) {
       returnTypeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexReferenceType(argTypeInfo);
    }
+   //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
    return this;
 }
 
