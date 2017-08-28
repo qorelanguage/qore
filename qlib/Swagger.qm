@@ -761,32 +761,16 @@ public class SwaggerObject inherits ObjectBase {
         foreach string content in (content_types) {
             if (!mime_types{content})
                 continue;
-            switch (content) {
-                case MimeTypeYaml:
-%ifdef NoYaml
-                    throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the yaml module is not available", method.upr(), path, content);
-%else
-                    return rv += (
-                        "body": make_yaml(body),
-                        "content": MimeTypeYaml,
-                    );
-%endif
-                case MimeTypeJson:
-%ifdef NoJson
-                    throw "SERIALIZATION-ERROR", sprintf("%s %s: MIME type %y requested for serialization and supported by the schema, but the json module is not available", method.upr(), path, content);
-%else
-                    return rv += (
-                        "body": make_json(body),
-                        "content": MimeTypeJson,
-                    );
-%endif
-            }
+            return rv += (
+                "body": MimeDataTypes{content}.serialize(body),
+                "content": content,
+            );
         }
         if (body)
             if (content_types == MimeContentTypes)
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME types: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
             else
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME types: %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
         return rv;
     }
 

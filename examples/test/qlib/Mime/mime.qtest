@@ -97,8 +97,14 @@ aωb\r
         assertEq(5, mh.part.size());
         #printf("mh: %N\n", mh);
 
-        list<hash<FormDataMessageInfo>> l = MultiPartFormDataMessage::parseMessage("multipart/form-data; boundary=---------------------------735323031399963166993862150", FormDataBody);
-        assertEq(5, l.size());
-        #printf("l: %N\n", l);
+        hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage("multipart/form-data; boundary=---------------------------735323031399963166993862150", FormDataBody);
+        assertEq(5, h.size());
+        #printf("h: %N\n", h);
+
+        MultiPartFormDataMessage msg = MultiPartFormDataMessage::makeMessage(h);
+        assertEq(5, msg.size());
+        #printf("str: %s\n%s <- boundary\n", msg.serializeBody().toString(), msg.getBoundary());
+        h = MultiPartFormDataMessage::parseMessage(MimeTypeMultipartFormData + ";boundary=" + msg.getBoundary(), msg.serializeBody().toString());
+        assertEq(5, h.size());
     }
 }

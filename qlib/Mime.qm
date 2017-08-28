@@ -95,6 +95,11 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
       - @ref Mime::MimeTypeMultipartFormData "MimeTypeMultipartFormData"
       - @ref Mime::MimeTypeMultipartRelated "MimeTypeMultipartRelated"
       - @ref Mime::MimeTypeMultipartMixed "MimeTypeMultipartMixed"
+    - added the following methods:
+      - @ref Mime::MultipartMessage::getBoundary() "MultipartMessage::getBoundary()"
+      - @ref Mime::MultipartMessage::serializeBody() "MultipartMessage::serializeBody()"
+      - @ref Mime::MultipartMessage::size() "MultipartMessage::size()"
+    - fixed a bug parsing multipart messages where unnecessary characters were searched (<a href="https://github.com/qorelanguage/qore/issues/2099">issue 2099</a>)
 
     @subsection mime_1_3_4_1 v1.3.4.1
     - added support for generating and parsing MIME multipart form encoded data
@@ -923,11 +928,10 @@ public namespace Mime {
         /** @param n_mptype the type of multi-part message: see @ref MultiPartConstants for possible values
             @param n_boundary the boundary to use between parts
          */
-        constructor(string n_mptype, string n_boundary = MultiPartMessage::getBoundary()) {
-            mptype = n_mptype;
-            boundary = n_boundary;
-            ct = sprintf("multipart/%s;boundary=%s", n_mptype, n_boundary);
-            boundary = "--" + boundary;
+        constructor(string mptype, string boundary = MultiPartMessage::getBoundary()) {
+            self.mptype = mptype;
+            self.boundary = boundary;
+            ct = sprintf("multipart/%s;boundary=%s", mptype, boundary);
         }
 
         #! returns a string embedded with the current timestamp designed to be used as MultiPart boundary string
@@ -959,7 +963,7 @@ This is the body of the message.\r
 Content-Type: text/html\r
 Content-Transfer-Encoding: base64\r
 \r
-PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg\r
+PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg\rMultiPartFormDataMessage
 Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=\r
 --frontier--\r
 ";
@@ -1022,9 +1026,9 @@ hash: (2 members)
             #printf("MSTR (i: %d): %s\n", i, mstr);
 
             # find end
-            int j = mstr.find("\r\n--" + boundary + "--\r\n");
+            int j = mstr.find("\r\n--" + boundary + "--");
             if (j == -1)
-                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", boundary + "--");
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", "--" + boundary + "--");
 
             # remove multipart string from body
             splice body, i, j + boundary.size() * 2 + 8 + so;
@@ -1118,12 +1122,37 @@ hash: (2 members)
             ));
         }
 
-        #! serializes the message and returns a binary object ready to send over a socket
+        #! serializes the message with the Content-Type header first and returns a binary object ready to send over a socket
         binary serialize() {
             hash<MessageInfo> h = getMsgAndHeaders();
             binary rv = MultiPartMessage::serializeHeaders(h.hdr);
             rv += h.body;
             return rv;
+        }
+
+        #! serializes the message body only and returns a binary object ready to send over a socket
+        /** @since %Mime 1.4
+        */
+        binary serializeBody() {
+            return getMsgAndHeaders().body;
+        }
+
+        #! returns the number of parts in the message
+        /** @return the number of parts in the message
+
+            @since %Mime 1.4
+        */
+        int size() {
+            return l.size();
+        }
+
+        #! returns the message boundary string used
+        /** @return the message boundary string used
+
+            @since %Mime 1.4
+        */
+        string getBoundary() {
+            return boundary;
         }
 
         #! serializes a header hash to a binary object
@@ -1133,8 +1162,7 @@ hash: (2 members)
          */
         static binary serializeHeaders(hash hdr) {
             binary b;
-            foreach hash hh in (hdr.pairIterator())
-                b += sprintf("%s: %s\r\n", hh.key, hh.value);
+            map b += sprintf("%s: %s\r\n", $1.key, $1.value), hdr.pairIterator();
             b += "\r\n";
             return b;
         }
@@ -1147,7 +1175,6 @@ hash: (2 members)
         abstract hash<MessageInfo> getMsgAndHeaders();
 
         #! @cond nodoc
-
         # don't reimplement this method; fix/enhance it in the module
         final private hash<MessageInfo> getMsgAndHeadersIntern(*string content_type, bool conlen = True) {
             if (!exists content_type)
@@ -1159,11 +1186,11 @@ hash: (2 members)
             binary msg = binary(MP_DEFAULT_MSG);
             foreach hash<MessagePartInfo> m in (l) {
                 binary bd = binary(m.data);
-                msg += "\r\n" + boundary + "\r\n";
+                msg += "\r\n--" + boundary + "\r\n";
                 msg += MultiPartMessage::serializeHeaders(m.hdr + (conlen ? ("Content-Length": bd.size()) : NOTHING));
                 msg += bd;
             }
-            msg += "\r\n" + boundary + "--";
+            msg += "\r\n--" + boundary + "--";
 
             return new hash<MessageInfo>((
                 "hdr": hdr + ("Content-Type": content_type),
@@ -1187,7 +1214,12 @@ hash: (2 members)
 
             switch (data.typeCode()) {
                 case NT_STRING: {
-                    string ct = hdr."Content-Type";
+                    *string ct;
+                    if (hdr."content-type") {
+                        ct = hdr."Content-Type" = remove hdr."content-type";
+                    }
+                    else
+                        ct = hdr."Content-Type";
                     # NOTE we do not check if the charset matches the actual encoding here
                     # we just add the charset= text if it's not already present
                     if (ct !~ /charset=/) {
@@ -1422,6 +1454,16 @@ hash: (2 members)
             splicePartIntern(data, getPartHeader(name, filename, content_type, hdr));
         }
 
+        #! adds a message part to the start of the list
+        /** @param h the information for this part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
+         */
+        splicePart(hash<FormDataMessageInfo> h) {
+            checkPartName(h.name);
+            splicePartIntern(h.body, getPartHeader(h.name, h.filename, h.hdr."Content-Type" ?? h.hdr."content-type", h.hdr - ("Content-Type", "content-type")));
+        }
+
         #! adds a message part to the end of the list
         /** @param data the data for the part
             @param name the unique name for the part
@@ -1448,33 +1490,54 @@ hash: (2 members)
             addPartIntern(data, getPartHeader(name, filename, content_type, hdr));
         }
 
+        #! adds a message part to the end of the list
+        /** @param h the information for this part
+
+            @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
+         */
+        addPart(hash<FormDataMessageInfo> h) {
+            checkPartName(h.name);
+            addPartIntern(h.body, getPartHeader(h.name, h.filename, h.hdr."Content-Type" ?? h.hdr."content-type", h.hdr - ("Content-Type", "content-type")));
+        }
+
+        #! returns a hash of the message
+        /** @return a hash of the message with the following keys:
+            - \c hdr: a hash of header information
+            - \c body: a binary object of serialized message parts
+         */
+        hash<MessageInfo> getMsgAndHeaders() {
+            return getMsgAndHeadersIntern(NOTHING, False);
+        }
+
         #! parses a multipart/form-data encoded message and returns a hash of its ContentTransEnc7Bit
         /** @param content_type the message \c Content-Type string which must contain the message boundary string
             @param the message body to parse
+
+            @return a hash of @ref FormDataMessageInfo hashes keyed by part name
 
             @throws MULTIPART-FORMDATA-MESSAGE-ERROR cannot find message boundary string; invalid form-data part data
 
             @since %Mime 1.4
         */
-        static list<hash<FormDataMessageInfo>> parseMessage(string content_type, string body) {
-            *string boundary = (content_type =~ x/boundary="?([^"]+)"?/)[0];
+        static hash<string, hash<FormDataMessageInfo>> parseMessage(string content, string body) {
+            *string boundary = (content =~ x/boundary="?([^"]+)"?/)[0];
             if (!exists boundary)
-                throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could not find message boundary", content_type);
+                throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could not find message boundary", content);
 
             hash<MessageInfo> mh = MultiPartMessage::parseBody(boundary, body);
 
-            list<hash<FormDataMessageInfo>> rv();
+            hash<string, hash<FormDataMessageInfo>> rv();
 
             foreach hash<MessageInfo> h in (mh.part) {
                 # parse Content-Disposition header
-                *string cd = h.hdr."content-disposition";
+                *string cd = h.hdr."content-disposition" ?? h.hdr."Content-Disposition";
                 if (!cd.val())
                     throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing in part %d/%d", $# + 1, mh.part.size());
                 *string name = (cd =~ x/name="([^"]+)"/)[0];
                 if (!name.val())
                     throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("the Content-Disposion part header is missing the part name in part %d/%d", $# + 1, mh.part.size());
                 *string filename = (cd =~ x/filename="([^"]+)"/)[0];
-                rv += new hash<FormDataMessageInfo>((
+                rv{name} = new hash<FormDataMessageInfo>((
                     "name": name,
                     "filename": filename,
                     "hdr": h.hdr,
@@ -1485,12 +1548,32 @@ hash: (2 members)
             return rv;
         }
 
+        #! creates a multipart/form-data message from a hash of @ref FormDataMessageInfo hashes keyed by part name
+        /** @param parts a hash of @ref FormDataMessageInfo hashes keyed by part name
+
+            @return the message object corresponding to the arguments
+        */
+        static MultiPartFormDataMessage makeMessage(hash<string, hash<FormDataMessageInfo>> parts) {
+            MultiPartFormDataMessage msg();
+            map msg.addPart($1), parts.iterator();
+            return msg;
+        }
+
+        #! creates a multipart/form-data message body from a hash of @ref FormDataMessageInfo hashes keyed by part name
+        /** @param parts a hash of @ref FormDataMessageInfo hashes keyed by part name
+
+            @return the serialized message body corresponding to the arguments
+        */
+        static binary makeMessageBody(hash<string, hash<FormDataMessageInfo>> parts) {
+            return MultiPartFormDataMessage::makeMessage(parts).serialize();
+        }
+
         #! check for unique part names and adds the part to the unique name hash
         private checkPartName(string name) {
             if (name.empty())
                 throw "MULTIPART-FORMDATA-ERROR", "missing second argument giving the name of the part";
             if (parts{name})
-                throw "MULTIPART-FORMDATA-ERROR", sprintf("part %y given twice", name);;
+                throw "MULTIPART-FORMDATA-ERROR", sprintf("part %y given twice", name);
             parts{name} = True;
         }
 

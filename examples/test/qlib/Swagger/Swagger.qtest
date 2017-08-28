@@ -1333,6 +1333,8 @@ public class SwaggerTest inherits QUnit::Test {
                     "consumes": (
                         MimeTypeJson,
                         MimeTypeYamlRpc,
+                        MimeTypeFormUrlEncoded,
+                        MimeTypeMultipartFormData,
                     ),
                     "produces": (
                         MimeTypeJson,
@@ -1345,6 +1347,18 @@ public class SwaggerTest inherits QUnit::Test {
             SwaggerObject so(b);
 
             assertThrows("READONLY-PROPERTY-ERROR", \so.processRequest(), ("get", "/api/smtg", ("test": ("a": "a"))));
+
+            b.definitions.a = ("type": "string");
+            so = new SwaggerObject(b);
+            hash h = so.processRequest("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeFormUrlEncoded);
+            assertEq("/api/smtg", h.uri_path);
+            assertEq("test=a", h.body);
+            assertEq(MimeTypeFormUrlEncoded, h.content);
+
+            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeOctetStream));
+
+            h = so.processRequest("get", "/api/smtg", ("test": "a"), NOTHING, MimeTypeMultipartFormData);
+
         }
 
         # TODO
