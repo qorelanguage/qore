@@ -799,11 +799,17 @@ public class SwaggerObject inherits ObjectBase {
         hash body;
         # deserialize body according to Content-Type
         if (http_body) {
-            *code ds = MimeDataTypes.(headers."content-type").deserialize;
-            if (!ds)
-                throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
+            if (headers."content-type" =~ /^multipart\/form-data/) {
+                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
+                body = map {$1.key: $1.value.body}, h.pairIterator();
+            }
+            else {
+                *code ds = MimeDataTypes.(headers."content-type").deserialize;
+                if (!ds)
+                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
 
-            body = ds(body);
+                body = ds(http_body);
+            }
         }
 
         hash<UriQueryInfo> h = parse_uri_query(path);
@@ -1463,15 +1469,14 @@ public class OperationObject inherits ObjectBase {
         }
 
         # check body parameters
-        foreach string key in (keys body) {
-            # find URI parameter object
-            *AbstractParameterObject po = parameters{key} ?? pio.parameters{key};
-            if (!po)
-                error("INVALID-PARAMETER-NAME", "No parameter named %y defined for this path and method", key);
-            if (po.inLoc != "body")
-                error("INVALID-PARAMETER-LOCATION", "invalid parameter %y given in the message body; expected location %y", key, po.inLoc);
-
-            po.checkRequest(client, path, method, key, \body{key});
+        {
+            *AbstractParameterObject body_po = parameters.body ?? pio.parameters.body;
+            if (body_po.inLoc == "body") {
+                body_po.checkRequest(client, path, method, "body", \body);
+            }
+            else if (body) {
+                error("INVALID-PARAMETER-NAME", "No message body is accepted; body keys passed: %y", keys body);
+            }
         }
 
         # check for missing required parameters
@@ -1504,8 +1509,8 @@ public class OperationObject inherits ObjectBase {
     #! add default parameters
     doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
-            # don't check if child params already checked
-            if (child_params{ph.key})
+            # don't check if child params already checked or if it's the single message body param
+            if (child_params{ph.key} || (ph.key == "body" && ph.value.inLoc == "body"))
                 continue;
             if (exists (auto val = ph.value.getDefaultValue())) {
                 switch (ph.value.inLoc) {
@@ -1517,13 +1522,11 @@ public class OperationObject inherits ObjectBase {
                         if (!exists headers{ph.key})
                             headers{ph.key} = val;
                         break;
-                    case "body":
-                    # "formData" treated like "body" since it's subject to de/serialization in the same way
                     case "formData":
                         if (!exists body{ph.key})
                             body{ph.key} = val;
                         break;
-                    # NOTE: default "path" values are not possible
+                    # NOTE: default "path" values are not possible, "body" is handled specially
                 }
             }
         }
@@ -1533,7 +1536,7 @@ public class OperationObject inherits ObjectBase {
     checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
-            if (child_params{ph.key})
+            if (child_params{ph.key} || (ph.key == "body" && ph.value.inLoc == "body"))
                 continue;
             if (ph.value.required) {
                 switch (ph.value.inLoc) {
@@ -1545,16 +1548,12 @@ public class OperationObject inherits ObjectBase {
                         if (!exists headers{ph.key})
                             error("MISSING-PARAMETER", "request is missing required header parameter %y", ph.key);
                         break;
-                    case "body":
-                        if (!exists body{ph.key})
-                            error("MISSING-PARAMETER", "request is missing required body parameter %y", ph.key);
-                        break;
-                    # "formData" treated like "body" since it's subject to de/serialization in the same way
                     case "formData":
                         if (!exists body{ph.key})
                             error("MISSING-PARAMETER", "request is missing required formData parameter %y", ph.key);
                         break;
                     # NOTE: missing path parameters are not possible (path would not be matched in the first place)
+                    #       "body" is handled specially
                 }
             }
         }
