@@ -68,6 +68,9 @@ public class SwaggerTest inherits QUnit::Test {
 
         const OtherJsonErr = '{"type": "object", "properties": {"name": {"type": "string"}}}';
         const OtherJsonOk = '{"info": {"type": "object", "properties": {"name": {"type": "string"}}}}';
+
+        const OtherYamlErr = '{type: object, properties: {name: {type: string}}}';
+        const OtherYamlOk = '{info: {type: object, properties: {name: {type: string}}}}';
     }
 
     constructor() : Test("SwaggerTest", "1.0") {
@@ -152,6 +155,16 @@ public class SwaggerTest inherits QUnit::Test {
             code try_import = string sub (string fn) { return OtherJsonErr; };
             assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerObject so(soh, ("try_import": try_import));});
             try_import = string sub (string fn) { return OtherJsonOk; };
+            {
+                SwaggerObject so(soh, ("try_import": try_import));
+            }
+
+            soh.paths."/test".get.parameters[0].schema."$ref" = "other.yaml#/info";
+            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerObject so(soh);});
+
+            try_import = string sub (string fn) { return OtherYamlErr; };
+            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerObject so(soh, ("try_import": try_import));});
+            try_import = string sub (string fn) { return OtherYamlOk; };
             SwaggerObject so(soh, ("try_import": try_import));
         }
     }
