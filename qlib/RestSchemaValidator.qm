@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file Swagger.qm Swagger: https://swagger.io/, OpenAPI: https://github.com/OAI/OpenAPI-Specification
+#! @file RestSchemaValidator.qm an abstract API for validating REST schemas
 
-/*  Swagger.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+/*  RestSchemaValidator.qm Copyright (C) 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -140,10 +140,10 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param body the unserialized message body hash
+            @param http_body the unserialized message body hash
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
-            @return a @ref RestRequestInfo hash of request information
+            @return a @ref RestRequestServerInfo hash of request information
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized
         */
@@ -207,10 +207,10 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param body the unserialized message body hash
+            @param http_body the unserialized message body hash
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
-            @return a @ref RestRequestInfo hash of request information
+            @return a @ref RestRequestServerInfo hash of request information
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized
         */
@@ -363,10 +363,10 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param body the unserialized message body hash
+            @param http_body the unserialized message body hash
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
-            @return a @ref RestRequestInfo hash of request information
+            @return a @ref RestRequestServerInfo hash of request information
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized
         */

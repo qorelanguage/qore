@@ -826,7 +826,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         #! decode any REST errors returned if possible
         static private:internal decodeError(hash h, *reference<hash> info) {
             try {
-                RestClient::decodeResponse(\h, \info);
+                RestClient::tryDecodeErrorResponse(\h, \info);
                 info."response-body" = h.body;
             }
             catch () {
@@ -843,8 +843,8 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             }
         }
 
-        #! decodes the response
-        static private:internal decodeResponse(reference<hash> h, *reference<hash> info) {
+        #! tries to decode an error response
+        static private:internal tryDecodeErrorResponse(reference<hash> h, *reference<hash> info) {
             #info."response-body" = h.body;
             *hash dh = NullRestSchemaValidator::DataDeserializationSupport.(h."content-type");
             if (!dh)
