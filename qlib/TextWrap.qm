@@ -247,7 +247,7 @@ public class TextWrapper {
         whitespace characters to spaces.  Eg. " foo\\tbar\\n\\nbaz"
         becomes " foo    bar  baz".
     */
-    private string _munge_whitespace (string text) {
+    string _munge_whitespace (string text) {
         if (self.expand_tabs)
             text = expandtabs (text, self.tabsize);
         if (self.replace_whitespace)
@@ -269,7 +269,7 @@ public class TextWrapper {
           'use', ' ', 'the', ' ', '-b', ' ', option!'
         otherwise.
     */
-    private list _split (string text) {
+    list _split (string text) {
         softlist chunks;
         if (self.break_on_hyphens)
             chunks = regex_extract (text, self.wordsep_re, Qore::RE_Extended + Qore::RE_Global);
@@ -287,7 +287,7 @@ public class TextWrapper {
         which has one too few spaces; this method simply changes the one
         space to two.
     */
-    private _fix_sentence_endings (reference chunks) {
+    _fix_sentence_endings (reference chunks) {
         int i = 0;
         while (i < chunks.size() - 1) {
             if (chunks[i+1] == " " && regex (chunks[i], self.sentence_end_re)) {
@@ -307,7 +307,7 @@ public class TextWrapper {
         Handle a chunk of text (most likely a word, not whitespace) that
         is too long to fit in any line.
     */
-    private _handle_long_word (reference reversed_chunks, reference cur_line, int cur_len, int width) {
+    _handle_long_word (reference reversed_chunks, reference cur_line, int cur_len, int width) {
         # Figure out when indent is larger than the specified width, and make
         # sure at least one character is stripped off on every pass
         int space_left = (width < 1) ? 1 : width - cur_len;
@@ -344,7 +344,7 @@ public class TextWrapper {
         Whitespace chunks will be removed from the beginning and end of
         lines, but apart from that whitespace is preserved.
     */
-    private list _wrap_chunks (list chunks) {
+    list _wrap_chunks (list chunks) {
         list lines = ();
         string indent;
 
@@ -452,7 +452,7 @@ public class TextWrapper {
         return lines;
     }
 
-    private list _split_chunks (string text) {
+    list _split_chunks (string text) {
         text = self._munge_whitespace(text);
         return self._split(text);
     }

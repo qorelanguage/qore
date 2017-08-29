@@ -41,4 +41,15 @@ class BaseTest inherits QUnit::Test {
         list result = wrap (text, width, kwargs);
         self.check (result, expect);
     }
+
+    check_split (string text, list expect) {
+        list result = self.wrapper._split(text);
+        assertEq (expect, result,
+                # sprintf ("expected: %n\nbut got:  %n", expect, result)
+                );
+    }
+
+    list wssplit (string text) {
+        return regex_subst(text, '\s+', ' ', Qore::RE_Global).split(' ');
+    }
 }
