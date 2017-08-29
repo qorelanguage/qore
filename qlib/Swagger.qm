@@ -48,6 +48,8 @@
 %requires(reexport) Mime >= 1.3.4.1
 # requires the Util module
 %requires(reexport) Util >= 1.3
+# requires the HttpServerUtil module
+%requires(reexport) HttpServerUtil >= 0.3.12
 
 module Swagger {
     version = "0.1.0";
@@ -256,16 +258,16 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkRequest(bool client, string type, *ItemsObject items, string path, string method, string name, reference value) {
+    private check(bool serialize, bool request, string type, *ItemsObject items, string path, string method, string name, reference value) {
         # accept a single value for an array (= one-element list)
         if (type == "array")
-            checkRequestArrayParam(client, items, path, method, name, \value);
+            checkArrayParam(serialize, request, items, path, method, name, \value);
         else
-            checkRequestIntern(client, type, path, method, name, value, \value);
+            checkIntern(serialize, request, type, path, method, name, value, \value);
     }
 
     #! validates string values
-    private checkRequestIntern(bool client, string type, string path, string method, string name, string v, reference<string> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, string v, reference<string> value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
@@ -291,7 +293,7 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkRequestIntern(bool client, string type, string path, string method, string name, int v, reference<int> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, int v, reference<int> value) {
         if (type != "integer")
             throwInvalidType(name, "integer", type);
         if (exists maximum) {
@@ -331,7 +333,7 @@ class SchemaBase {
     }
 
     # NOTE: "number" also accepts "float"
-    private checkRequestIntern(bool client, string type, string path, string method, string name, number v, reference<number> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, number v, reference<number> value) {
         if (type != "number")
             throwInvalidType(name, "number", type);
         if (exists maximum) {
@@ -370,18 +372,18 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkRequestIntern(bool client, string type, string path, string method, string name, bool v, reference<bool> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, bool v, reference<bool> value) {
         if (type != "boolean")
             throwInvalidType(name, "boolean", type);
     }
 
-    private checkRequestIntern(bool client, string type, string path, string method, string name, nothing v, reference<nothing> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, nothing v, reference<nothing> value) {
         if (type != "null")
             throw "INVALID-PARAMETER-VALUE", sprintf("Parameter %y for path %y and method %y is null, but the expected type is %y", name, path, method, type);
     }
 
     #! validates the value against the schema definition
-    private checkRequestArrayParam(bool client, ItemsObject items, string path, string method, string name, reference<softlist> value) {
+    private checkArrayParam(bool serialize, bool request, ItemsObject items, string path, string method, string name, reference<softlist> value) {
         if (exists maxItems && value.size() > maxItems)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
@@ -397,7 +399,7 @@ class SchemaBase {
             #printf("v: %y self: %N\n", value, self);
             hash h;
             foreach any v in (\value) {
-                items.checkRequest(client, path, method, name, \v);
+                items.check(serialize, request, path, method, name, \v);
                 if (uniqueItems) {
                     if (h{v})
                         throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameter value %y is duplicated in the array", method, path, v);
@@ -409,7 +411,7 @@ class SchemaBase {
             # perform slow array uniqueness check
             list uniqueItems = ();
             foreach any val in (\value) {
-                items.checkRequest(client, path, method, name, \val);
+                items.check(serialize, request, path, method, name, \val);
                 if (uniqueItems.contains(val))
                     throw "INVALID-PARAMETER-VALUE",
                         sprintf("%s %s: Array parameter %y does not have unique items",
@@ -796,7 +798,7 @@ public class SwaggerObject inherits ObjectBase {
         @param path the URI path with any query arguments
         @param body the unserialized message body hash
         @param headers any headers to include in the request
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then yaml is preferred over json
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
         @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
         - \c body the serialized message body (if any)
@@ -899,6 +901,67 @@ public class SwaggerObject inherits ObjectBase {
             "body": body,
         ));
     }
+
+    #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+    /** @param method the HTTP method of the original request
+        @param path the URI path of the original request (without query arguments)
+        @param code the HTTP response code
+        @param response_body the response body data (if any)
+        @param headers HTTP headers to include in the response
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+        @return an HttpResponseInfo hash for the response
+
+        @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+    */
+    hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, softlist<string> content_types = MimeContentTypes) {
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method.lwr(), path);
+
+        hash<string, bool> mime_types;
+        op.validateResponse(method, path, pio, code, response_body, \mime_types);
+
+        hash<HttpResponseInfo> rv((
+            "code": code,
+            "hdr": headers,
+        ));
+
+        if (exists response_body) {
+            foreach string content in (content_types) {
+                if (!mime_types{content})
+                    continue;
+                if (content == MimeTypeMultipartFormData) {
+                    if (response_body.typeCode() != NT_HASH)
+                        throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME type %y; expecing \"hash\"", method.upr(), path, response_body.type(), content);
+                    hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                        "name": $1.key,
+                        "filename": $1.key,
+                        "hdr": ("Content-Type": MimeTypeText),
+                        "body": $1.value,
+                    ))}, response_body.pairIterator());
+
+                    hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                    return rv += (
+                        "body": mh.body,
+                        "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
+                    );
+                }
+                if (!MimeDataTypes{content})
+                    continue;
+                return rv += (
+                    "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
+                    "hdr": rv.hdr + ("Content-Type": content),
+                );
+            }
+            if (content_types == MimeContentTypes)
+                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            else
+                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+        }
+
+        return rv;
+    }
+
 
     #! retrieves external references
     /** @throw INVALID-REFERENCE invalid reference
@@ -1554,7 +1617,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! processes a REST API client-side request to the operation
-    /** @param client is this a client-side validation or a server-side validation
+    /** @param serialize if request arguments should be processed for serialization (client-side) or not (server-side)
         @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
         @param body a reference to the HTTP message body data hash
@@ -1565,7 +1628,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
-    validateRequest(bool client, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> body, reference<hash> headers, *reference<hash<string, bool>> mime_types) {
+    validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> body, reference<hash> headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach string key in (keys h.params) {
             # find URI parameter object
@@ -1575,7 +1638,7 @@ public class OperationObject inherits ObjectBase {
             if (po.inLoc != "query")
                 error("INVALID-PARAMETER-LOCATION", "invalid parameter %y given in the URI query; expected location %y", key, po.inLoc);
 
-            po.checkRequest(client, path, method, key, \h.params{key});
+            po.check(serialize, True, path, method, key, \h.params{key});
         }
 
         # check header parameters
@@ -1586,14 +1649,14 @@ public class OperationObject inherits ObjectBase {
             if (!po || po.inLoc != "header")
                 continue;
 
-            po.checkRequest(client, path, method, key, \headers{key});
+            po.check(serialize, True, path, method, key, \headers{key});
         }
 
         # check body parameters
         {
             *AbstractParameterObject body_po = self.body ?? pio.body;
             if (body_po)
-                body_po.checkRequest(client, path, method, "body", \body);
+                body_po.check(serialize, True, path, method, "body", \body);
             else if (body)
                 error("INVALID-PARAMETER-NAME", "No message body is accepted; body keys passed: %y", keys body);
         }
@@ -1602,7 +1665,8 @@ public class OperationObject inherits ObjectBase {
         checkMissingParams(h, headers, body, parameters);
         checkMissingParams(h, headers, body, pio.parameters, parameters);
 
-        mime_types = consumes;
+        if (consumes)
+            mime_types = consumes;
     }
 
     #! parses and processes a REST request on the server side
@@ -1623,6 +1687,16 @@ public class OperationObject inherits ObjectBase {
         # set default parameter values
         doDefaultParams(\h, \headers, \body, parameters);
         doDefaultParams(\h, \headers, \body, pio.parameters, parameters);
+    }
+
+    #! validates a response against the response definition, if any
+    validateResponse(string method, string path, PathItemObject pio, int code, any response_body, reference<hash<string, bool>> mime_types) {
+        *ResponseObject res = getResponse(code);
+        if (res.schema)
+            res.schema.check(True, False, path, method, "response body", \response_body);
+
+        if (produces)
+            mime_types = produces;
     }
 
     #! add default parameters
@@ -1676,6 +1750,13 @@ public class OperationObject inherits ObjectBase {
                 }
             }
         }
+    }
+
+    #! returns the ResponseObject for hthe given HTTP code or @ref nothing if none is configured
+    /** @return the ResponseObject for hthe given HTTP code or @ref nothing if none is configured
+    */
+    *ResponseObject getResponse(int code) {
+        return responses.responses{code} ?? responses.defaultResp;
     }
 
     #! raises an exception with context information
@@ -1812,7 +1893,7 @@ public class AbstractParameterObject inherits ObjectBase {
     }
 
     #! verifies the parameter in an actual REST API call
-    abstract checkRequest(bool client, string path, string method, string name, reference value);
+    abstract check(bool serialize, bool request, string path, string method, string name, reference value);
 
     #! returns the default value of the parameter (default: @ref nothing)
     any getDefaultValue() {
@@ -1854,8 +1935,8 @@ public class BodyParameter inherits AbstractParameterObject {
     }
 
     #! verifies the parameter in an actual REST API call
-    checkRequest(bool client, string path, string method, string name, reference value) {
-        return schema.checkRequest(client, path, method, name, \value);
+    check(bool serialize, bool request, string path, string method, string name, reference value) {
+        return schema.check(serialize, request, path, method, name, \value);
     }
 }
 
@@ -1977,8 +2058,8 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    checkRequest(bool client, string path, string method, string name, reference value) {
-        SchemaBase::checkRequest(client, type, items, path, method, name, \value);
+    check(bool serialize, bool request, string path, string method, string name, reference value) {
+        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
         switch (value.typeCode()) {
             case NT_NOTHING:
                 if (!allowEmptyValue)
@@ -1989,11 +2070,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! validates string values
-    private checkRequestIntern(bool client, string type, string path, string method, string name, string v, reference value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, string v, reference value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
-        if (client) {
+        if (serialize) {
             switch (format) {
                 case "byte":
                     value = make_base64_string(v);
@@ -2025,11 +2106,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! converts binary values to strings for supported formats
-    private checkRequestIntern(bool client, string type, string path, string method, string name, binary v, reference value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, binary v, reference value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
-        if (client) {
+        if (serialize) {
             switch (format) {
                 case "byte":
                     value = make_base64_string(v);
@@ -2041,7 +2122,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                     throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
             }
         }
-        # server-side data should come serialized as a string
+        # already-serialized dataa must be a string
         else
             throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
 
@@ -2049,11 +2130,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! converts strings to/from date/time values for supported formats
-    private checkRequestIntern(bool client, string type, string path, string method, string name, date v, reference value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, date v, reference value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
-        if (client) {
+        if (serialize) {
             switch (format) {
                 case "date":
                     # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
@@ -2067,7 +2148,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                     throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
             }
         }
-        # server-side data should come serialized as a string
+        # already-serialized dataa must be a string
         else
             throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
 
@@ -2188,8 +2269,8 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    checkRequest(bool client, string path, string method, string name, reference value) {
-        SchemaBase::checkRequest(client, type, items, path, method, name, \value);
+    check(bool serialize, bool request, string path, string method, string name, reference value) {
+        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
     }
 
     #! creates a new ItemsObject and resolves any references
@@ -2694,20 +2775,20 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    checkRequest(bool client, string path, string method, string name, reference value) {
-        if (readOnly)
+    check(bool serialize, bool request, string path, string method, string name, reference value) {
+        if (request && readOnly)
             throw "READONLY-PROPERTY-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
 
-        SchemaBase::checkRequest(client, type, items, path, method, name, \value);
+        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
     }
 
     #! validates a schema object against a value
-    private checkRequestIntern(bool client, string type, string path, string method, string name, hash v, reference<hash> value) {
+    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, hash v, reference<hash> value) {
         if (type != "object")
             throwInvalidType(name, "object", type);
 
         # check "allOf" schemas, if any
-        map $1.checkRequestIntern(client, type, path, method, name, v, \value), allOf;
+        map $1.checkIntern(serialize, request, type, path, method, name, v, \value), allOf;
 
         /*
         If additionalProperties is set to true, any number of additionalProperties may be present of any data type.
@@ -2718,11 +2799,12 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             foreach string key in (keys value) {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
-                    prop = additionalProperties{key};
+                    if (additionalProperties instanceof SchemaObject)
+                        prop = additionalProperties.properties{key};
                     if (!prop)
                         throw "INVALID-PROPERTY", sprintf("property %y is not valid for object %y", key, name);
                 }
-                prop.checkRequest(client, path, method, name, \value{key});
+                prop.check(serialize, request, path, method, name, \value{key});
             }
         }
         # check for missing required properties
@@ -2730,7 +2812,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (!value.hasKey(prop))
                 throw "MISSING-PROPERTY", sprintf("object %y: missing required property %y", name, prop);
         }
-        #printf("SchemaObject::checkRequestIntern() %y type: %y val: %y self: %N\n", name, type, value, self);
+        #printf("SchemaObject::checkIntern() %y type: %y val: %y self: %N\n", name, type, value, self);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
