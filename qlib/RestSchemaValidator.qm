@@ -33,6 +33,21 @@
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
 
+# need mime definitions
+%requires(reexport) Mime >= 1.4
+
+%try-module yaml >= 0.5
+%define NoYaml
+%endtry
+
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
 module RestSchemaValidator {
     version = "1.0";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
@@ -51,6 +66,7 @@ module RestSchemaValidator {
 
     Primary classes provided by this module:
     - @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+    - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
 
@@ -89,24 +105,35 @@ public namespace RestSchemaValidator {
         any body;
         #! the HTTP headers received
         hash hdr;
+        #! miscellaneous free-form info about the parsed response
+        hash info;
     }
 
     #! abstract REST schema validation classes
     public class AbstractRestSchemaValidator {
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        string getTargetUrl() {
+            return getTargetUrlImpl();
+        }
+
         #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param body the unserialized message body hash
+            @param body the unserialized message body data
             @param headers any headers to include in the request
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-            @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
+            @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
             - \c body the serialized message body (if any)
             - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        hash<RestRequestClientInfo> processRequest(string method, string path, *hash body, *hash headers, *softlist<string> content_types) {
+        hash<RestRequestClientInfo> processRequest(string method, string path, any body, *hash headers, *softlist<string> content_types) {
             return processRequestImpl(method, path, body, headers, content_types);
         }
 
@@ -150,23 +177,32 @@ public namespace RestSchemaValidator {
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
         hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash hdr) {
+            # strip any query arguments from the path when validating
+            path =~ s/\?.*//;
             return parseResponseImpl(method, path, code, response_body, hdr);
         }
+
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        private abstract string getTargetUrlImpl();
 
         #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param body the unserialized message body hash
+            @param body the unserialized message body data
             @param headers any headers to include in the request
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-            @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
+            @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
             - \c body the serialized message body (if any)
             - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, *hash body, *hash headers, *softlist<string> content_types);
+        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types);
 
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
@@ -204,5 +240,192 @@ public namespace RestSchemaValidator {
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
         private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+    }
+
+    #! null REST validator; no schema is used but default serialization and deserialization is performed
+    public class NullRestSchemaValidator inherits AbstractRestSchemaValidator {
+        public {
+            #! Data serialization support mapping codes to MIME types and de/serialization functions
+            const DataSerializationSupport = {
+%ifndef NoJson
+                MimeTypeJson: \make_json(),
+%endif
+%ifndef NoYaml
+                MimeTypeYaml: \make_yaml(),
+%endif
+%ifndef NoXml
+                MimeTypeXml: \make_xmlrpc_value(),
+                MimeTypeXmlApp: string sub (auto v) {
+                    switch (v.typeCode()) {
+                        case NT_LIST: return make_xml(("list": ("element": v)));
+                        case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                    }
+                    return make_xml(("value": v));
+                },
+%endif
+                MimeTypeFormUrlEncoded: string sub (auto v) {
+                    if (v.typeCode() == NT_HASH)
+                        return mime_get_form_urlencoded_string(v);
+                    throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
+                },
+                MimeTypeText: string sub (auto s) { return sprintf("%s", s); },
+            };
+
+            const DataSerializationSupportList = keys DataSerializationSupport;
+
+%ifndef NoYaml
+            const DeserializeYaml = (
+                "code": "yaml",
+                "in": \parse_yaml(),
+                );
+%endif
+%ifndef NoXml
+            const DeserializeXml = (
+                "code": "xml",
+                "arg": True,
+                "in": hash sub (string xml, reference<string> type) {
+                    try {
+                        on_success type = "xml";
+                        return parse_xmlrpc_value(xml);
+                    }
+                    catch (hash<ExceptionInfo> ex) {
+                        try {
+                            on_success type = "rawxml";
+                            return parse_xml(xml);
+                        }
+                        catch () {
+                        }
+                        rethrow;
+                    }
+                },
+                );
+%endif
+
+            #! Data deserialization support MIME types to codes and de/serialization functions
+            const DataDeserializationSupport = {
+                MimeTypeFormUrlEncoded: (
+                    "code": "url",
+                    "in": \mime_parse_form_urlencoded_string(),
+                ),
+%ifndef NoJson
+                MimeTypeJson: (
+                    "code": "json",
+                    "in": \parse_json(),
+                ),
+%endif
+%ifndef NoYaml
+                MimeTypeYamlRpc: DeserializeYaml,
+                MimeTypeYaml: DeserializeYaml,
+%endif
+%ifndef NoXml
+                MimeTypeXml: DeserializeXml,
+                MimeTypeXmlApp: DeserializeXml,
+%endif
+                MimeTypeText: (
+                    "code": "text",
+                    "in": string sub (string s) { return s; },
+                ),
+
+            };
+        }
+
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        private string getTargetUrlImpl() {
+            throw "MISSING-TARGET-URL", "no target URL provided";
+        }
+
+        #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param body the unserialized message body data
+            @param headers any headers to include in the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
+            - \c body the serialized message body (if any)
+            - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+
+            @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+        */
+        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+            string ct = content_types[0] ?? DataSerializationSupportList[0];
+            return cast<hash<RestRequestClientInfo>>((
+                "uri_path": path,
+                "content": ct,
+                "body": DataSerializationSupport{ct}(body),
+            ));
+        }
+
+        #! processes and parses a client request and returns the deserialized message body (if any)
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param body the unserialized message body hash
+            @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+            @return a @ref RestRequestInfo hash of request information
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+        */
+        private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
+
+        }
+
+        #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+        /** @param method the HTTP method of the original request
+            @param path the URI path of the original request (without query arguments)
+            @param code the HTTP response code
+            @param response_body the response body data (if any)
+            @param headers HTTP headers to include in the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+            @return an HttpResponseInfo hash for the response
+
+            @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+        */
+        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+
+        }
+
+        #! parses and validates the response from the server and returns a hash of the processed info
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the original request (without any query arguments)
+            @param code the HTTP response code
+            @param response_body the HTTP response body data (if any)
+            @param hdr as hash of HTTP headers received
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        */
+        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+            hash<RestResponseClientInfo> rv((
+                "code": code,
+                "hdr": hdr,
+            ));
+
+            if (exists response_body) {
+                *hash dh = DataDeserializationSupport.(hdr."content-type");
+                if (!dh)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", hdr."content-type", keys DataDeserializationSupport, response_body);
+
+                if (response_body.typeCode() != NT_STRING)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", hdr."content-type", response_body.type());
+
+                string ds_code = dh.code;
+                rv.body = dh.arg
+                    ? dh.in(response_body, \ds_code)
+                    : dh.in(response_body);
+
+                rv.info.code = ds_code;
+            }
+
+            return rv;
+        }
+
+        static hash<RestResponseClientInfo> decodeResponse() {
+
+        }
     }
 }

@@ -20,8 +20,57 @@
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
 
 %exec-class SwaggerTest
+
+class HttpTestServer {
+    public {
+        int port;
+        string body;
+    }
+
+    private {
+        Counter end(1);
+        string resp;
+    }
+
+    constructor(string r) {
+        resp = r;
+        # start a fake server
+        Socket s();
+        if (s.bind(0, True))
+            throw "BIND-ERROR", strerror();
+
+        if (s.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        port = s.getSocketInfo().port;
+
+        background startListener(s);
+    }
+
+    done() {
+        end.dec();
+    }
+
+    private startListener(Socket s) {
+        Socket s1 = s.accept();
+        hash h = s1.readHTTPHeader();
+        if (h."content-length")
+            body = s1.recv(h."content-length");
+        else if (h."transfer-encoding" == "chunked")
+            body = s1.readHTTPChunkedBody().body;
+        s1.send(resp);
+        end.waitForZero();
+        s.close();
+        s.shutdown();
+    }
+
+    string getBody() {
+        return body;
+    }
+}
 
 public class SwaggerTest inherits QUnit::Test {
     private:internal {
@@ -76,27 +125,27 @@ public class SwaggerTest inherits QUnit::Test {
     }
 
     constructor() : Test("SwaggerTest", "1.0") {
-        addTestCase("Test loading from files", \testFiles(), NOTHING);
-        addTestCase("Test SwaggerObject", \testSwaggerObject(), NOTHING);
-        addTestCase("Test InfoObject", \testInfoObject(), NOTHING);
-        addTestCase("Test ContactObject", \testContactObject(), NOTHING);
-        addTestCase("Test LicenseObject", \testLicenseObject(), NOTHING);
-        addTestCase("Test PathsObject", \testPathsObject(), NOTHING);
-        addTestCase("Test PathItemObject", \testPathItemObject(), NOTHING);
-        addTestCase("Test OperationObject", \testOperationObject(), NOTHING);
-        addTestCase("Test ExternalDocumentationObject", \testExternalDocumentationObject(), NOTHING);
-        addTestCase("Test ParameterObject", \testParameterObject(), NOTHING);
-        addTestCase("Test ItemsObject", \testItemsObject(), NOTHING);
-        addTestCase("Test ResponsesObject", \testResponsesObject(), NOTHING);
-        addTestCase("Test ResponseObject", \testResponseObject(), NOTHING);
-        addTestCase("Test HeaderObject", \testHeaderObject(), NOTHING);
-        addTestCase("Test TagObject", \testTagObject(), NOTHING);
-        addTestCase("Test ReferenceObject", \testReferenceObject(), NOTHING);
-        addTestCase("Test SchemaObject", \testSchemaObject(), NOTHING);
-        addTestCase("Test XmlObject", \testXmlObject(), NOTHING);
-        addTestCase("Test SecuritySchemeObject", \testSecuritySchemeObject(), NOTHING);
-        addTestCase("Test ScopesObject", \testScopesObject(), NOTHING);
-        addTestCase("Test validation", \testValidation(), NOTHING);
+        addTestCase("Test loading from files", \testFiles());
+        addTestCase("Test SwaggerObject", \testSwaggerObject());
+        addTestCase("Test InfoObject", \testInfoObject());
+        addTestCase("Test ContactObject", \testContactObject());
+        addTestCase("Test LicenseObject", \testLicenseObject());
+        addTestCase("Test PathsObject", \testPathsObject());
+        addTestCase("Test PathItemObject", \testPathItemObject());
+        addTestCase("Test OperationObject", \testOperationObject());
+        addTestCase("Test ExternalDocumentationObject", \testExternalDocumentationObject());
+        addTestCase("Test ParameterObject", \testParameterObject());
+        addTestCase("Test ItemsObject", \testItemsObject());
+        addTestCase("Test ResponsesObject", \testResponsesObject());
+        addTestCase("Test ResponseObject", \testResponseObject());
+        addTestCase("Test HeaderObject", \testHeaderObject());
+        addTestCase("Test TagObject", \testTagObject());
+        addTestCase("Test ReferenceObject", \testReferenceObject());
+        addTestCase("Test SchemaObject", \testSchemaObject());
+        addTestCase("Test XmlObject", \testXmlObject());
+        addTestCase("Test SecuritySchemeObject", \testSecuritySchemeObject());
+        addTestCase("Test ScopesObject", \testScopesObject());
+        addTestCase("Test validation", \testValidation());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -1535,6 +1584,9 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
         assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
         assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", "/user/login?username;password=pass"));
+
+        so.parseResponse("get", "/user/login", 200, "\"string\"", ("content-type": MimeTypeJson));
+
         so.processRequest("get", "/pet/findByStatus?status=available");
         assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
 
@@ -1585,5 +1637,31 @@ public class SwaggerTest inherits QUnit::Test {
             delete body.body.photoUrls;
             assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
         }
+
+        {
+            string rep = makeBody("OK");
+
+            HttpTestServer serv(rep);
+            on_exit serv.done();
+
+            string url = sprintf("http://localhost:%d", serv.port);
+            hash opts = (
+                "url": url,
+                "validator": so,
+            );
+
+            RestClient rc(opts);
+            printf("url: %y\n", url);
+            rc.get("/user/login?username=user;password=pass");
+        }
+    }
+
+    static string makeBody(any b) {
+        string json;
+%ifndef NoJson
+        json = make_json(b);
+%endif
+
+        return sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: application/json\r\nContent-Length: %d\r\nDate: %s GMT\r\n\r\n%s", json.size(), gmtime().format("Dy, DD Mon YYYY HH:mm:SS"), json);
     }
 }
