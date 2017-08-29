@@ -40,6 +40,10 @@
 %define NoYaml
 %endtry
 
+%try-module xml
+%define NoXml
+%endtry
+
 # need mime definitions
 %requires(reexport) Mime >= 1.3.4.1
 # requires the Util module
@@ -94,6 +98,7 @@ public const MimeDataTypes = {
 %ifndef NoJson
     MimeTypeJson: (
         "serialize": \make_json(),
+        "serialize_verbose": string sub (hash h) {return make_json(h, JGF_ADD_FORMATTING);},
         "deserialize": \parse_json(),
         "module": "json",
     ),
@@ -101,6 +106,7 @@ public const MimeDataTypes = {
 %ifndef NoYaml
     MimeTypeYamlRpc: (
         "serialize": \make_yaml(),
+        "serialize_verbose": string sub (hash h) {return make_yaml(h, BlockStyle);},
         "deserialize": \parse_yaml(),
         "module": "yaml",
     ),
@@ -108,6 +114,7 @@ public const MimeDataTypes = {
     # Content-Type: application/x-www-form-urlencoded
     MimeTypeFormUrlEncoded: (
         "serialize": \mime_get_form_urlencoded_string(),
+        "serialize_verbose": \mime_get_form_urlencoded_string(),
         "deserialize": \mime_parse_form_urlencoded_string(),
     ),
     # Content-Type: multipart/form-data (handled manually)
@@ -429,7 +436,7 @@ public class SwaggerLoader {
         @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
      */
-    public static SwaggerObject fromString(string swaggerSpecification, bool json = True) {
+    static SwaggerObject fromString(string swaggerSpecification, bool json = True) {
         hash val;
         if (json) {
 %ifdef NoJson
@@ -452,38 +459,83 @@ public class SwaggerLoader {
     /**
         @param filepath path to the Swagger file
 
-        @throws EMPTY-SWAGGER-FILE swagger file is empty
-        @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
-        @throws YAML-MODULE-MISSING trying to parsea YAML Swagger specification with YAML module unavailable
+        @throws EMPTY-SCHEMA-FILE swagger file is empty
+        @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with the json module unavailable
+        @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with the yaml module unavailable
+        @throws XML-MODULE-MISSING trying to parse an XML Swagger specification with the xml module unavailable
      */
-    public static SwaggerObject fromFile(string filepath) {
-        string swaggerStr = ReadOnlyFile::readTextFile(filepath);
-        if (!swaggerStr)
-            throw "EMPTY-SWAGGER-FILE", sprintf("%y: file is empty", filepath);
+    static SwaggerObject fromFile(string filepath) {
+        return new SwaggerObject(SwaggerLoader::parseSchemaContent(filepath, ReadOnlyFile::readTextFile(filepath)));
+    }
 
-        bool json = True;
+    #! Load a schema definition from a file
+    /**
+        @param filepath path to the schema file
+
+        @throws EMPTY-SCHEMA-FILE schema file is empty
+        @throws JSON-MODULE-MISSING trying to parse a JSON schema with the json module unavailable
+        @throws YAML-MODULE-MISSING trying to parse a YAML schema specification with the yaml module unavailable
+        @throws XML-MODULE-MISSING trying to parse an XML schema specification with the xml module unavailable
+     */
+    static hash parseSchemaContent(string filepath, string str) {
+        if (!str)
+            throw "EMPTY-SCHEMA-FILE", sprintf("%y: file is empty", filepath);
+
+        string ser = "json";
         string filename = basename(filepath);
         if (filename =~ /.*\.json$/i) {
-            json = True;
+            ser = "json";
         }
         else if (filename =~ /.*\.yaml$/i) {
-            json = False;
+            ser = "yaml";
+        }
+        else if (filename =~ /.*\.xml$/i) {
+            ser = "xml";
         }
         else {
-            DataLineIterator it(swaggerStr);
+            DataLineIterator it(str);
             while (it.next()) {
                 string line = trim(it.getValue());
                 if (line.size()) {
-                    if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/)
-                        json = False;
+                    if (line =~ /^<\?xml/)
+                        ser = "xml";
+                    else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/)
+                        ser = "yaml";
                     else
-                        json = True;
+                        ser = "json";
                     break;
                 }
             }
         }
 
-        return SwaggerLoader::fromString(swaggerStr, json);
+        hash rv;
+        switch (ser) {
+            case "json": {
+%ifdef NoJson
+                throw "JSON-MODULE-MISSING", "Trying to parse a JSON schema, but the json module is unavailable";
+%else
+                rv = parse_json(str);
+                break;
+%endif
+            }
+            case "yaml": {
+%ifdef NoYaml
+                throw "YAML-MODULE-MISSING", "Trying to parse a YAML schema, but the yaml module is unavailable";
+%else
+                rv = parse_yaml(str);
+                break;
+%endif
+            }
+            case "xml": {
+%ifdef NoXml
+                throw "XML-MODULE-MISSING", "Trying to parse an XML schema, but the xml module is unavailable";
+%else
+                rv = parse_xml(str);
+                break;
+%endif
+            }
+        }
+        return rv;
     }
 }
 
@@ -598,7 +650,20 @@ public class SwaggerObject inherits ObjectBase {
         #! SwaggerObject options
         const SwaggerOptions = (
             "compact_serialization": True,
+            "def_path": True,
+            "try_import": True,
         );
+    }
+
+    private {
+        #! if serialized data should be subject to compact serialization (default: @ref Qore::True "True")
+        bool compact_serialization;
+
+        #! the default path to use when retrieving external schema references
+        *string def_path;
+
+        #! a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
+        *code try_import;
     }
 
     #! Builds the schema representation from the deserialized schema hash describing the root document object
@@ -606,6 +671,8 @@ public class SwaggerObject inherits ObjectBase {
         @param oh deserialized hash from the source schema description describing the root document object
         @param opts options as per @ref SwaggerOptions as follows:
         - \c compact_serialization (default @ref Qore::True "True"): optimize the size of serialized data strings
+        - \c def_path: the default path to use when retrieving external schema references
+        - \c try_import: a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -613,6 +680,13 @@ public class SwaggerObject inherits ObjectBase {
         @throws SECURITY-ERROR inconsistent security information in schema
      */
     public constructor(hash oh, *hash opts) : ObjectBase(oh) {
+        # process options
+        compact_serialization = remove opts.compact_serialization ?? True;
+        def_path = remove opts.def_path;
+        try_import = remove opts.try_import;
+        if (opts)
+            throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerObject constructor: %y; known options: %y", keys opts, keys SwaggerOptions);
+
         string objType = "Swagger";
         if (!oh.hasKey("swagger"))
             throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: 'swagger' field is missing", objType);
@@ -773,7 +847,7 @@ public class SwaggerObject inherits ObjectBase {
             if (!MimeDataTypes{content})
                 continue;
             return rv += (
-                "body": MimeDataTypes{content}.serialize(body),
+                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
                 "content": content,
             );
         }
@@ -826,12 +900,44 @@ public class SwaggerObject inherits ObjectBase {
         ));
     }
 
+    #! retrieves external references
+    /** @throw INVALID-REFERENCE invalid reference
+    */
+    private hash getExternalReference(string refstr) {
+        (string ext_ref, *string int_ref) = (refstr =~ x/([^#]+)(?:#\/(.*))/);
+
+        #! get file content
+        string content;
+
+        if (try_import)
+            content = call_function(try_import, ext_ref);
+        else {
+            # do environment variable substitution
+            map ext_ref = replace(ext_ref, "\$" + $1, ENV.$1), (ext_ref =~ x/\$(\w+)/g);
+            # derive target file name if def_path is set and the reference is not an absolute path
+            if (def_path && !absolute_path(ext_ref))
+                ext_ref = def_path + DirSep + ext_ref;
+            content = ReadOnlyFile::readTextFile(ext_ref);
+        }
+
+        hash h = SwaggerLoader::parseSchemaContent(ext_ref, content);
+        if (int_ref) {
+            if (!h.hasKey(int_ref))
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not available; known internal references: %y", refstr, ext_ref, content.size(), int_ref, keys h);
+            if (h{int_ref}.typeCode() != NT_HASH)
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not a hash; got type %y instead", refstr, ext_ref, content.size(), int_ref, h{int_ref}.type());
+            return h{int_ref};
+        }
+        return h;
+    }
+
     #! resolves a reference to a schema object
     /** @throw INVALID-REFERENCE invalid reference
     */
     SchemaObject resolveSchemaObject(string name, string refstr, hash oh) {
+        # resolve external reference
         if (refstr !~ /^#\//)
-            throw "INVALID-REFERENCE", sprintf("SchemaObject %y reference %y is not relative; cannot resolve external references", name, refstr);
+            return SchemaObject::newSchemaObject(name, getExternalReference(refstr), self);
         if (refstr !~ /^#\/definitions\//)
             throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
         string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
@@ -848,8 +954,9 @@ public class SwaggerObject inherits ObjectBase {
     /** @throw INVALID-REFERENCE invalid reference
     */
     AbstractParameterObject resolveParameter(string name, string refstr, hash oh) {
+        # resolve external reference
         if (refstr !~ /^#\//)
-            throw "INVALID-REFERENCE", sprintf("ParameterObject %y reference %y is not relative; cannot resolve external references", name, refstr);
+            return AbstractParameterObject::newParameter(name, getExternalReference(refstr), self);
         if (refstr !~ /^#\/parameters\//)
             throw "INVALID-REFERENCE", sprintf("cannot resolve ParameterObject %y reference %y; expecting \"#/parameters/...\"", name, refstr);
         string rstr = (refstr =~ x/^#\/parameters\/(.*)$/)[0];
@@ -866,8 +973,9 @@ public class SwaggerObject inherits ObjectBase {
     /** @throw INVALID-RESPONSE invalid response
     */
     ResponseObject resolveResponse(string name, string refstr, hash oh) {
+        # resolve external reference
         if (refstr !~ /^#\//)
-            throw "INVALID-RESPONSE", sprintf("ResponseObject %y reference %y is not relative; cannot resolve external references", name, refstr);
+            return ResponseObject::newResponse(name, getExternalReference(refstr), self);
         if (refstr !~ /^#\/responses\//)
             throw "INVALID-RESPONSE", sprintf("cannot resolve ResponseObject %y reference %y; expecting \"#/responses/...\"", name, refstr);
         string rstr = (refstr =~ x/^#\/responses\/(.*)$/)[0];
@@ -884,8 +992,9 @@ public class SwaggerObject inherits ObjectBase {
     /** @throw INVALID-ITEMS invalid ItemsObject reference
     */
     ItemsObject resolveItems(string refstr, hash oh) {
+        # resolve external reference
         if (refstr !~ /^#\//)
-            throw "INVALID-ITEMS", sprintf("ItemsObject reference %y is not relative; cannot resolve external references", refstr);
+            return ItemsObject::newItemsObject(getExternalReference(refstr), NOTHING, self);
         if (refstr !~ /^#\/definitions\//)
             throw "INVALID-ITEMS", sprintf("cannot resolve ItemsObject reference %y; expecting \"#/responses/...\"", refstr);
         string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
