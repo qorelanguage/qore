@@ -153,6 +153,16 @@ public hashdecl RestRequestServerInfo {
     *hash body;
 }
 
+#! a hash of information about a response from the server
+public hashdecl RestResponseClientInfo {
+    #! the HTTP status code
+    int code;
+    #! the deserialized message body
+    any body;
+    #! the HTTP headers received
+    hash hdr;
+}
+
 #! Base class for the Swagger specification objects, wrapping the vendor extensions.
 class ObjectBase {
     public {
@@ -874,7 +884,7 @@ public class SwaggerObject inherits ObjectBase {
     hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
         hash body;
         # deserialize body according to Content-Type
-        if (http_body) {
+        if (exists http_body) {
             if (headers."content-type" =~ /^multipart\/form-data/) {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
@@ -915,8 +925,9 @@ public class SwaggerObject inherits ObjectBase {
         @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
     */
     hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, softlist<string> content_types = MimeContentTypes) {
+        method = method.lwr();
         PathItemObject pio = paths.match(path);
-        OperationObject op = pio.getOperation(method.lwr(), path);
+        OperationObject op = pio.getOperation(method, path);
 
         hash<string, bool> mime_types;
         op.validateResponse(method, path, pio, code, response_body, \mime_types);
@@ -962,6 +973,51 @@ public class SwaggerObject inherits ObjectBase {
         return rv;
     }
 
+    #! parses and validates the response from the server and returns a hash of the processed info
+    /** @param method the HTTP method (case insensitive)
+        @param path the URI path of the original request (without any query arguments)
+        @param code the HTTP response code
+        @param response_body the HTTP response body data (if any)
+        @param hdr as hash of HTTP headers received
+
+        @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+    */
+    hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash hdr) {
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        hash<RestResponseClientInfo> rv((
+            "code": code,
+            "hdr": hdr,
+        ));
+
+        string content = hdr."content-type" ?? hdr."Content-Type";
+
+        # deserialize body according to Content-Type
+        if (exists response_body) {
+            if (content =~ /^multipart\/form-data/) {
+                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
+                rv.body = map {$1.key: $1.value.body}, h.pairIterator();
+                content = MimeTypeMultipartFormData;
+            }
+            else {
+                *code ds = MimeDataTypes{content}.deserialize;
+                if (!ds)
+                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, hdr."content-type", MimeContentTypes, SerializationModules);
+
+                rv.body = ds(response_body);
+            }
+        }
+
+        hash<string, bool> mime_types;
+        op.validateResponse(method, path, pio, code, rv.body, \mime_types);
+
+        if (!mime_types{content})
+            throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
+
+        return rv;
+    }
 
     #! retrieves external references
     /** @throw INVALID-REFERENCE invalid reference

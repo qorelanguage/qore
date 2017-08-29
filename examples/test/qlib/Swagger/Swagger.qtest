@@ -294,17 +294,103 @@ public class SwaggerTest inherits QUnit::Test {
                                 "type": "string",
                                 "format": "byte",
                             ),),
+                            "consumes": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                            "produces": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
                         ),
                     ),
                 ),
             );
-            SwaggerObject so(soh);
 
             {
+                SwaggerObject so(soh);
+
                 string uri_path = "/test?bin=abc";
                 hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
                 assertEq(Type::Hash, h.type());
                 assertEq("/test?bin=YWJj", h.uri_path);
+
+                hash<HttpResponseInfo> res = so.processResponse("get", "/test", 200, "OK", NOTHING, MimeTypeJson);
+                assertEq(200, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"OK\"", res.body);
+
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(200, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("OK", cres.body);
+                #printf("cres: %N\n", cres);
+
+                res = so.processResponse("get", "/test", 400, "ERR", NOTHING, MimeTypeJson);
+                assertEq(400, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"ERR\"", res.body);
+                #printf("res: %N\n", res);
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(400, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("ERR", cres.body);
+            }
+
+            soh.definitions = (
+                "robj": (
+                    "type": "object",
+                    "properties": (
+                        "a": (
+                            "type": "string",
+                        ),
+                        "b": (
+                            "type": "integer",
+                        ),
+                    ),
+                ),
+            );
+            soh.paths."/test".get.responses."200".schema = (
+                "$ref": "#/definitions/robj",
+            );
+
+            {
+                SwaggerObject so(soh);
+
+                assertThrows("INVALID-PARAMETER-TYPE", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
+
+                hash body = (
+                    "a": "hi",
+                    "b": 2,
+                );
+                hash<HttpResponseInfo> res = so.processResponse("get", "/test", 200, body, NOTHING, MimeTypeJson);
+                assertEq(200, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq(Type::String, res.body.type());
+%ifndef NoJson
+                assertEq(body, parse_json(res.body));
+%endif
+
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(200, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq(body, cres.body);
+                #printf("cres: %N\n", cres);
+
+                res = so.processResponse("get", "/test", 400, "ERR", NOTHING, MimeTypeJson);
+                assertEq(400, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"ERR\"", res.body);
+
+                assertThrows("INVALID-PROPERTY", \so.processResponse(), ("get", "/test", 200, ("x": 2), NOTHING, MimeTypeJson));
+                #printf("res: %N\n", res);
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(400, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("ERR", cres.body);
+                #printf("cres: %N\n", cres);
             }
         }
     }
@@ -1442,6 +1528,8 @@ public class SwaggerTest inherits QUnit::Test {
     }
 
     private testValidation(SwaggerObject so) {
+        checkModules();
+
         so.processRequest("get", "/user/login?username=user;password=pass");
         assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
         assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
@@ -1455,7 +1543,6 @@ public class SwaggerTest inherits QUnit::Test {
                 "name": "Scooby",
                 "photoUrls": (),
             );
-%ifndef NoJson
             hash<RestRequestClientInfo> req = so.processRequest("POST", "/pet", body, hdr);
             assertEq(MimeTypeJson, req.content);
             assertEq(Type::String, req.body.type());
@@ -1491,7 +1578,6 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq((), sh.body.photoUrls);
                 assertEq("available", sh.body.status);
             }
-%endif
 
             assertThrows("SERIALIZATION-ERROR", MimeTypeOctetStream, \so.processRequest(), ("POST", "/pet", body, hdr, MimeTypeOctetStream));
 
