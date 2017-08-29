@@ -37,6 +37,7 @@
 %requires Util
 %requires HttpServerUtil >= 0.3.11
 %requires Mime >= 1.3
+%requires(reexport) RestSchemaValidator >= 1.0
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -311,6 +312,7 @@ Content-Length: 36
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - added @ref RestHandler::RestHandler::handleExternalRequest "RestHandler::handleExternalRequest()" to allow for REST API methods to be called internally (i.e. without an HTTP call)
     - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
+    - added support for REST schema validation
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -817,12 +819,16 @@ public namespace RestHandler {
 
             #! mutex lock
             Mutex mx();
+
+            #! REST schema validator
+            RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
 
         #! create the object optionally with the given HttpServer::AbstractAuthenticator
         /** @param auth the authentication object to use to authenticate connections (see HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by default no authentication will be required
          */
-        constructor(*HttpServer::AbstractAuthenticator auth) : HttpServer::AbstractHttpRequestHandler(auth, True) {
+        constructor(*HttpServer::AbstractAuthenticator auth, RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator()) : HttpServer::AbstractHttpRequestHandler(auth, True) {
+            self.validator = validator;
         }
 
         #! returns the name of the root REST class
@@ -986,8 +992,14 @@ public namespace RestHandler {
 
             removeRootPath(\path);
 
+            hash<RestRequestServerInfo> req = validator.parseRequest(hdr.method, path, body, \hdr);
+
             # get object and args
-            hash ah = path ? parse_uri_query(path) : {};
+            hash ah = path ? (
+                "method": req.path,
+                "params": req.query,
+            ) : {};
+            #path ? parse_uri_query(path) : {};
 
             *hash args;
             if (ah.params) {
@@ -996,22 +1008,12 @@ public namespace RestHandler {
                 args = ah.params;
             }
 
-            # deserialize body according to Content-Type
-            if (body) {
-                *code ds = MimeDataTypes.(hdr."content-type").deserialize;
-                if (!ds) {
-                    requestDeserializationError(hdr, cx, body);
-                    return RestHandler::make501("cannot deserialize request body; content-type is: %y; types supported: %y; discarding request body: %y", hdr."content-type", MimeDataTypes.keys(), body);
-                }
-
-                body = ds(body);
-            }
-            else
-                body = args;
+            if (exists body)
+                body = req.body;
 
             # reflect body in arguments if body is a hash
             if (body.typeCode() == NT_HASH)
-                map args.$1 = body.$1, body.keyIterator(), !exists args.$1;
+                map args.$1 = body.$1, keys body, !exists args.$1;
 
             if (!Methods.(hdr.method))
                 return RestHandler::make400("unsupported HTTP method %y given in REST call %y", hdr.method, path);
@@ -1114,10 +1116,19 @@ public namespace RestHandler {
             #logDebug("DBG: rv: %y", rv);
 
             if (!rv.reply_sent) {
+                # verify response with the REST schema
+                hash<HttpResponseInfo> res = validator.processResponse(hdr.method, ah.method, rv.code, rv.body, rv.hdr, aih."*/*" ? NOTHING : keys aih);
+
+                rv += (
+                    "body": res.body,
+                    "hdr": res.hdr,
+                );
+
+                /*
                 # serialize response according to client's capabilities if necessary
                 # process Accept values in the order sent by the sender
                 *code ds;
-                foreach string a in (aih.keyIterator()) {
+                foreach string a in (keys aih) {
                     ds = MimeDataTypes{a}.serialize;
                     if (ds) {
                         rv.body = ds(rv.body);
@@ -1127,7 +1138,7 @@ public namespace RestHandler {
                 }
 
                 # if still not encoded and the client accepts anything, encode with the first possible serialization method
-                if (!ds && aih."*/*") {
+                if (!ds && aih."* /*") {
                     foreach string k in (MimeDataTypes.keyIterator()) {
                         ds = MimeDataTypes{k}.serialize;
                         if (ds) {
@@ -1139,9 +1150,10 @@ public namespace RestHandler {
                     if (!ds) {
                         responseSerializationError(cx, aih, rv);
                         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
-                        return RestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), MimeDataTypes.keys(), rv.body);
+                        return AbstractHttpRequestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", aih.keys(), MimeDataTypes.keys(), rv.body);
                     }
                 }
+                */
 
                 logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv.code, rv.hdr."Content-Type", rv.body.size());
             }

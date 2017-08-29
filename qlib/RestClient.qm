@@ -329,7 +329,7 @@ public namespace RestClient {
             # send content encoding hash
             *hash seh;
             # REST schema validator
-            AbstractRestSchemaValidator validator;
+            RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server

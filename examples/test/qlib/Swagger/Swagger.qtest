@@ -1651,7 +1651,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             RestClient rc(opts);
-            printf("url: %y\n", url);
+            #printf("url: %y\n", url);
             rc.get("/user/login?username=user;password=pass");
         }
     }

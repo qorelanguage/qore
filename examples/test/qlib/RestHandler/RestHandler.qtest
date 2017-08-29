@@ -10,6 +10,7 @@
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
 
