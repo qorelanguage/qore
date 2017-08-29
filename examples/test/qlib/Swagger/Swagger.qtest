@@ -18,6 +18,7 @@
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/Swagger.qm
 
 %exec-class SwaggerTest

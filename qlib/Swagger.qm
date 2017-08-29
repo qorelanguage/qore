@@ -26,7 +26,6 @@
 %enable-all-warnings
 %require-types
 %strict-args
-%allow-weak-references
 
 # make sure we have the required qore version
 %requires qore >= 0.8.13
@@ -50,6 +49,8 @@
 %requires(reexport) Util >= 1.3
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
+# requires the RestSchemaValidator module
+%requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
     version = "0.1.0";
@@ -132,36 +133,6 @@ public const MimeContentTypes = keys MimeDataTypes;
 #! Valid transfer protocol schemes.
 public const ValidSchemes = ("http", "https", "ws", "wss");
 public const ValidSchemesHash = map {$1: True}, ValidSchemes;
-
-#! a hash of information about a client-side request
-public hashdecl RestRequestClientInfo {
-    #! the URI path for the request
-    string uri_path;
-    #! the Content-Type for the message
-    string content;
-    #! the serialized message body hash
-    *data body;
-}
-
-#! a hash of information about a server-side request
-public hashdecl RestRequestServerInfo {
-    #! the URI path without query arguments
-    string path;
-    #! any query arguments
-    *hash query;
-    #! the deserialized message body hash
-    *hash body;
-}
-
-#! a hash of information about a response from the server
-public hashdecl RestResponseClientInfo {
-    #! the HTTP status code
-    int code;
-    #! the deserialized message body
-    any body;
-    #! the HTTP headers received
-    hash hdr;
-}
 
 #! Base class for the Swagger specification objects, wrapping the vendor extensions.
 class ObjectBase {
@@ -552,7 +523,7 @@ public class SwaggerLoader {
 }
 
 #! This is the root document object for the API specification. It combines what previously was the Resource Listing and API Declaration (version 1.2 and earlier) together into one document.
-public class SwaggerObject inherits ObjectBase {
+public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
     public {
         #! Swagger Specification version being used.
         /**
@@ -803,253 +774,6 @@ public class SwaggerObject inherits ObjectBase {
         }
     }
 
-    #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
-    /** @param method the HTTP method (case-insensitive)
-        @param path the URI path with any query arguments
-        @param body the unserialized message body hash
-        @param headers any headers to include in the request
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
-
-        @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
-        - \c body the serialized message body (if any)
-        - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
-
-        @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
-    */
-    hash<RestRequestClientInfo> processRequest(string method, string path, *hash body, *hash headers, softlist<string> content_types = MimeContentTypes) {
-        hash<string, bool> mime_types;
-
-        hash<UriQueryInfo> h = parse_uri_query(path);
-        method = method.lwr();
-
-        PathItemObject pio = paths.match(h.method);
-        OperationObject op = pio.getOperation(method, h.method);
-
-        op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
-
-        hash<RestRequestClientInfo> rv((
-            "uri_path": h.method,
-        ));
-
-        if (h.params) {
-            string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
-            rv.uri_path += "?" + (foldl $1 + query_arg_separator + $2, (map sprintf("%s=%s", $1.key, $1.value), h.params.pairIterator()));
-        }
-
-        if (!body)
-            return rv;
-
-        foreach string content in (content_types) {
-            if (!mime_types{content})
-                continue;
-            if (content == MimeTypeMultipartFormData) {
-                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                    "name": $1.key,
-                    "filename": $1.key,
-                    "hdr": ("Content-Type": MimeTypeText),
-                    "body": $1.value,
-                  ))}, body.pairIterator());
-
-                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
-                return rv += (
-                    "body": mh.body,
-                    "content": mh.hdr."Content-Type",
-                );
-            }
-            if (!MimeDataTypes{content})
-                continue;
-            return rv += (
-                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
-                "content": content,
-            );
-        }
-        if (body)
-            if (content_types == MimeContentTypes)
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
-            else
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
-        return rv;
-    }
-
-    #! processes and parses a client request and returns the deserialized message body (if any)
-    /** @param method the HTTP method (case-insensitive)
-        @param path the URI path with any query arguments
-        @param body the unserialized message body hash
-        @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
-
-        @return a @ref RestRequestInfo hash of request information
-
-        @throw DESERIALIZATION-ERROR the request body could not be deserialized
-    */
-    hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
-        hash body;
-        # deserialize body according to Content-Type
-        if (exists http_body) {
-            if (headers."content-type" =~ /^multipart\/form-data/) {
-                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
-                body = map {$1.key: $1.value.body}, h.pairIterator();
-            }
-            else {
-                *code ds = MimeDataTypes.(headers."content-type").deserialize;
-                if (!ds)
-                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
-
-                body = ds(http_body);
-            }
-        }
-
-        hash<UriQueryInfo> h = parse_uri_query(path);
-        method = method.lwr();
-
-        PathItemObject pio = paths.match(h.method);
-        OperationObject op = pio.getOperation(method, h.method);
-
-        op.parseRequest(pio, \h, \body, \headers);
-        return new hash<RestRequestServerInfo>((
-            "path": h.method,
-            "query": h.params,
-            "body": body,
-        ));
-    }
-
-    #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
-    /** @param method the HTTP method of the original request
-        @param path the URI path of the original request (without query arguments)
-        @param code the HTTP response code
-        @param response_body the response body data (if any)
-        @param headers HTTP headers to include in the response
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
-
-        @return an HttpResponseInfo hash for the response
-
-        @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
-    */
-    hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, softlist<string> content_types = MimeContentTypes) {
-        method = method.lwr();
-        PathItemObject pio = paths.match(path);
-        OperationObject op = pio.getOperation(method, path);
-
-        hash<string, bool> mime_types;
-        op.validateResponse(method, path, pio, code, response_body, \mime_types);
-
-        hash<HttpResponseInfo> rv((
-            "code": code,
-            "hdr": headers,
-        ));
-
-        if (exists response_body) {
-            foreach string content in (content_types) {
-                if (!mime_types{content})
-                    continue;
-                if (content == MimeTypeMultipartFormData) {
-                    if (response_body.typeCode() != NT_HASH)
-                        throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME type %y; expecing \"hash\"", method.upr(), path, response_body.type(), content);
-                    hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                        "name": $1.key,
-                        "filename": $1.key,
-                        "hdr": ("Content-Type": MimeTypeText),
-                        "body": $1.value,
-                    ))}, response_body.pairIterator());
-
-                    hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
-                    return rv += (
-                        "body": mh.body,
-                        "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
-                    );
-                }
-                if (!MimeDataTypes{content})
-                    continue;
-                return rv += (
-                    "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
-                    "hdr": rv.hdr + ("Content-Type": content),
-                );
-            }
-            if (content_types == MimeContentTypes)
-                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
-            else
-                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
-        }
-
-        return rv;
-    }
-
-    #! parses and validates the response from the server and returns a hash of the processed info
-    /** @param method the HTTP method (case insensitive)
-        @param path the URI path of the original request (without any query arguments)
-        @param code the HTTP response code
-        @param response_body the HTTP response body data (if any)
-        @param hdr as hash of HTTP headers received
-
-        @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
-    */
-    hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash hdr) {
-        method = method.lwr();
-        PathItemObject pio = paths.match(path);
-        OperationObject op = pio.getOperation(method, path);
-
-        hash<RestResponseClientInfo> rv((
-            "code": code,
-            "hdr": hdr,
-        ));
-
-        string content = hdr."content-type" ?? hdr."Content-Type";
-
-        # deserialize body according to Content-Type
-        if (exists response_body) {
-            if (content =~ /^multipart\/form-data/) {
-                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
-                rv.body = map {$1.key: $1.value.body}, h.pairIterator();
-                content = MimeTypeMultipartFormData;
-            }
-            else {
-                *code ds = MimeDataTypes{content}.deserialize;
-                if (!ds)
-                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, hdr."content-type", MimeContentTypes, SerializationModules);
-
-                rv.body = ds(response_body);
-            }
-        }
-
-        hash<string, bool> mime_types;
-        op.validateResponse(method, path, pio, code, rv.body, \mime_types);
-
-        if (!mime_types{content})
-            throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
-
-        return rv;
-    }
-
-    #! retrieves external references
-    /** @throw INVALID-REFERENCE invalid reference
-    */
-    private hash getExternalReference(string refstr) {
-        (string ext_ref, *string int_ref) = (refstr =~ x/([^#]+)(?:#\/(.*))/);
-
-        #! get file content
-        string content;
-
-        if (try_import)
-            content = call_function(try_import, ext_ref);
-        else {
-            # do environment variable substitution
-            map ext_ref = replace(ext_ref, "\$" + $1, ENV.$1), (ext_ref =~ x/\$(\w+)/g);
-            # derive target file name if def_path is set and the reference is not an absolute path
-            if (def_path && !absolute_path(ext_ref))
-                ext_ref = def_path + DirSep + ext_ref;
-            content = ReadOnlyFile::readTextFile(ext_ref);
-        }
-
-        hash h = SwaggerLoader::parseSchemaContent(ext_ref, content);
-        if (int_ref) {
-            if (!h.hasKey(int_ref))
-                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not available; known internal references: %y", refstr, ext_ref, content.size(), int_ref, keys h);
-            if (h{int_ref}.typeCode() != NT_HASH)
-                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not a hash; got type %y instead", refstr, ext_ref, content.size(), int_ref, h{int_ref}.type());
-            return h{int_ref};
-        }
-        return h;
-    }
-
     #! resolves a reference to a schema object
     /** @throw INVALID-REFERENCE invalid reference
     */
@@ -1124,6 +848,258 @@ public class SwaggerObject inherits ObjectBase {
         if (size > 1)
             throw "INVALID-ITEMS", sprintf("Invalid attribute(s) in ItemsObject reference: %y", (map $1, keys oh, $1 !~ /^x-/));
         return new ItemsObject(ref);
+    }
+
+    #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body hash
+        @param headers any headers to include in the request
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+        @return if there is ano message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
+        - \c body the serialized message body (if any)
+        - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+
+        @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+    */
+    private hash<RestRequestClientInfo> processRequestImpl(string method, string path, *hash body, *hash headers, *softlist<string> content_types) {
+        hash<string, bool> mime_types;
+
+        hash<UriQueryInfo> h = parse_uri_query(path);
+        method = method.lwr();
+
+        PathItemObject pio = paths.match(h.method);
+        OperationObject op = pio.getOperation(method, h.method);
+
+        op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
+
+        hash<RestRequestClientInfo> rv((
+            "uri_path": h.method,
+        ));
+
+        if (h.params) {
+            string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
+            rv.uri_path += "?" + (foldl $1 + query_arg_separator + $2, (map sprintf("%s=%s", $1.key, $1.value), h.params.pairIterator()));
+        }
+
+        if (!body)
+            return rv;
+
+        if (!exists content_types)
+            content_types = MimeContentTypes;
+
+        foreach string content in (content_types) {
+            if (!mime_types{content})
+                continue;
+            if (content == MimeTypeMultipartFormData) {
+                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                    "name": $1.key,
+                    "filename": $1.key,
+                    "hdr": ("Content-Type": MimeTypeText),
+                    "body": $1.value,
+                  ))}, body.pairIterator());
+
+                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                return rv += (
+                    "body": mh.body,
+                    "content": mh.hdr."Content-Type",
+                );
+            }
+            if (!MimeDataTypes{content})
+                continue;
+            return rv += (
+                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
+                "content": content,
+            );
+        }
+        if (body)
+            if (content_types == MimeContentTypes)
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            else
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+        return rv;
+    }
+
+    #! processes and parses a client request and returns the deserialized message body (if any)
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body hash
+        @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+        @return a @ref RestRequestInfo hash of request information
+
+        @throw DESERIALIZATION-ERROR the request body could not be deserialized
+    */
+    private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
+        hash body;
+        # deserialize body according to Content-Type
+        if (exists http_body) {
+            if (headers."content-type" =~ /^multipart\/form-data/) {
+                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
+                body = map {$1.key: $1.value.body}, h.pairIterator();
+            }
+            else {
+                *code ds = MimeDataTypes.(headers."content-type").deserialize;
+                if (!ds)
+                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
+
+                body = ds(http_body);
+            }
+        }
+
+        hash<UriQueryInfo> h = parse_uri_query(path);
+        method = method.lwr();
+
+        PathItemObject pio = paths.match(h.method);
+        OperationObject op = pio.getOperation(method, h.method);
+
+        op.parseRequest(pio, \h, \body, \headers);
+        return new hash<RestRequestServerInfo>((
+            "path": h.method,
+            "query": h.params,
+            "body": body,
+        ));
+    }
+
+    #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+    /** @param method the HTTP method of the original request
+        @param path the URI path of the original request (without query arguments)
+        @param code the HTTP response code
+        @param response_body the response body data (if any)
+        @param headers HTTP headers to include in the response
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+        @return an HttpResponseInfo hash for the response
+
+        @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+    */
+    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        hash<string, bool> mime_types;
+        op.validateResponse(method, path, pio, code, response_body, \mime_types);
+
+        hash<HttpResponseInfo> rv((
+            "code": code,
+            "hdr": headers,
+        ));
+
+        if (exists response_body) {
+            if (!exists content_types)
+                content_types = MimeContentTypes;
+            foreach string content in (content_types) {
+                if (!mime_types{content})
+                    continue;
+                if (content == MimeTypeMultipartFormData) {
+                    if (response_body.typeCode() != NT_HASH)
+                        throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME type %y; expecing \"hash\"", method.upr(), path, response_body.type(), content);
+                    hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                        "name": $1.key,
+                        "filename": $1.key,
+                        "hdr": ("Content-Type": MimeTypeText),
+                        "body": $1.value,
+                    ))}, response_body.pairIterator());
+
+                    hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                    return rv += (
+                        "body": mh.body,
+                        "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
+                    );
+                }
+                if (!MimeDataTypes{content})
+                    continue;
+                return rv += (
+                    "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
+                    "hdr": rv.hdr + ("Content-Type": content),
+                );
+            }
+            if (content_types == MimeContentTypes)
+                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            else
+                throw "SERIALIZATION-ERROR", sprintf("response to %s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+        }
+
+        return rv;
+    }
+
+    #! parses and validates the response from the server and returns a hash of the processed info
+    /** @param method the HTTP method (case insensitive)
+        @param path the URI path of the original request (without any query arguments)
+        @param code the HTTP response code
+        @param response_body the HTTP response body data (if any)
+        @param hdr as hash of HTTP headers received
+
+        @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+    */
+    private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        hash<RestResponseClientInfo> rv((
+            "code": code,
+            "hdr": hdr,
+        ));
+
+        string content = hdr."content-type" ?? hdr."Content-Type";
+
+        # deserialize body according to Content-Type
+        if (exists response_body) {
+            if (content =~ /^multipart\/form-data/) {
+                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
+                rv.body = map {$1.key: $1.value.body}, h.pairIterator();
+                content = MimeTypeMultipartFormData;
+            }
+            else {
+                *code ds = MimeDataTypes{content}.deserialize;
+                if (!ds)
+                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, hdr."content-type", MimeContentTypes, SerializationModules);
+
+                rv.body = ds(response_body);
+            }
+        }
+
+        hash<string, bool> mime_types;
+        op.validateResponse(method, path, pio, code, rv.body, \mime_types);
+
+        if (!mime_types{content})
+            throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
+
+        return rv;
+    }
+
+    #! retrieves external references
+    /** @throw INVALID-REFERENCE invalid reference
+    */
+    private hash getExternalReference(string refstr) {
+        (string ext_ref, *string int_ref) = (refstr =~ x/([^#]+)(?:#\/(.*))/);
+
+        #! get file content
+        string content;
+
+        if (try_import)
+            content = call_function(try_import, ext_ref);
+        else {
+            # do environment variable substitution
+            map ext_ref = replace(ext_ref, "\$" + $1, ENV.$1), (ext_ref =~ x/\$(\w+)/g);
+            # derive target file name if def_path is set and the reference is not an absolute path
+            if (def_path && !absolute_path(ext_ref))
+                ext_ref = def_path + DirSep + ext_ref;
+            content = ReadOnlyFile::readTextFile(ext_ref);
+        }
+
+        hash h = SwaggerLoader::parseSchemaContent(ext_ref, content);
+        if (int_ref) {
+            if (!h.hasKey(int_ref))
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not available; known internal references: %y", refstr, ext_ref, content.size(), int_ref, keys h);
+            if (h{int_ref}.typeCode() != NT_HASH)
+                throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not a hash; got type %y instead", refstr, ext_ref, content.size(), int_ref, h{int_ref}.type());
+            return h{int_ref};
+        }
+        return h;
     }
 }
 
