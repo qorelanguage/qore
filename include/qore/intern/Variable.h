@@ -167,7 +167,7 @@ public:
       assert(val.type == QV_Node);
       // try to set an optimized value type for the value holder if possible
       val.set(typeInfo);
-      discard(val.assignInitial(v), 0);
+      discard(val.assignInitial(v), nullptr);
    }
 
    DLLLOCAL bool isImported() const;
@@ -225,12 +225,12 @@ public:
 
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
       if (!val.hasValue())
-         discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
+         discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), nullptr);
 #endif
    }
 
    DLLLOCAL QoreParseTypeInfo* copyParseTypeInfo() const {
-      return parseTypeInfo ? parseTypeInfo->copy() : 0;
+      return parseTypeInfo ? parseTypeInfo->copy() : nullptr;
    }
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() {
