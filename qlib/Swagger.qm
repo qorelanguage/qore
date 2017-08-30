@@ -1083,6 +1083,50 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return rv;
     }
 
+    #! returns example Qore code for the given request
+    /** @param method the HTTP method (case insensitive)
+        @param path the URI path of the request
+
+        @return a string giving example Qore code to generate the given message
+    */
+    private string getQoreExampleRequestImpl(string method, string path) {
+        return "";
+    }
+
+    #! returns a hash of example message information for the given request
+    /** @param method the HTTP method (case insensitive)
+        @param path the URI path of the request
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+        @return a @ref RestExampleRequestInfo of example message information for the given request
+    */
+    private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+        return new hash<RestExampleRequestInfo>();
+    }
+
+    #! returns example Qore code for the given response
+    /** @param method the HTTP method of the original request (case insensitive)
+        @param path the URI path of the original request
+        @param int code the HTTP response code of the response
+
+        @return a string giving example Qore code to generate the given response message
+    */
+    private string getQoreExampleResponseImpl(string method, string path, int code) {
+        return "";
+    }
+
+    #! returns a hash of example message information for the given request
+    /** @param method the HTTP method of the original request (case insensitive)
+        @param path the URI path of the original request
+        @param code the HTTP response code of the response
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+        @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+    */
+    private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+        return new hash<RestExampleResponseInfo>();
+    }
+
     #! retrieves external references
     /** @throw INVALID-REFERENCE invalid reference
     */

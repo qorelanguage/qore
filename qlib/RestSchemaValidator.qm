@@ -111,6 +111,26 @@ public namespace RestSchemaValidator {
         hash info;
     }
 
+    #! a hash giving example info for example HTTP request messages
+    public hashdecl RestExampleRequestInfo {
+        #! the HTTP request URI
+        string request_uri;
+        #! the HTTP request header hash
+        hash hdr;
+        #! the HTTP request body
+        string body;
+    }
+
+    #! a hash giving example info for example HTTP response messages
+    public hashdecl RestExampleResponseInfo {
+        #! the HTTP status code
+        int code;
+        #! the HTTP response header hash
+        hash hdr;
+        #! the HTTP response body
+        string body;
+    }
+
     #! abstract REST schema validation classes
     public class AbstractRestSchemaValidator {
         #! returns the target URL for the schema
@@ -129,9 +149,7 @@ public namespace RestSchemaValidator {
             @param headers any headers to include in the request
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-            @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
-            - \c body the serialized message body (if any)
-            - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+            @return if there is no message body to serialize, an empty hash is returned, otherwise a @ref RestRequestClientInfo hash is returned
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
@@ -161,7 +179,7 @@ public namespace RestSchemaValidator {
             @param headers HTTP headers to include in the response
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
-            @return an HttpResponseInfo hash for the response
+            @return an @ref HttpServer::HttpResponseInfo hash for the response
 
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
         */
@@ -182,6 +200,38 @@ public namespace RestSchemaValidator {
             # strip any query arguments from the path when validating
             path =~ s/\?.*//;
             return parseResponseImpl(method, path, code, response_body, hdr);
+        }
+
+        #! returns example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a string giving example Qore code to generate the given message
+        */
+        string getQoreExampleRequest(string method, string path) {
+            return getQoreExampleRequestImpl(method, path);
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        hash<RestExampleRequestInfo> getExampleRequest(string method, string path, *softlist<string> content_types) {
+            return getExampleRequestImpl(method, path, content_types);
+        }
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param int code the HTTP response code of the response
+
+            @return a string giving example Qore code to generate the given response message
+        */
+        string getQoreExampleResponse(string method, string path, int code) {
+            return getQoreExampleResponseImpl(method, path, code);
         }
 
         #! returns the target URL for the schema
@@ -242,6 +292,42 @@ public namespace RestSchemaValidator {
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
         private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+
+        #! returns example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a string giving example Qore code to generate the given message
+        */
+        private abstract string getQoreExampleRequestImpl(string method, string path);
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        private abstract hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types);
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param int code the HTTP response code of the response
+
+            @return a string giving example Qore code to generate the given response message
+        */
+        private abstract string getQoreExampleResponseImpl(string method, string path, int code);
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+        */
+        private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types);
     }
 
     #! null REST validator; no schema is used but default serialization and deserialization is performed
@@ -452,6 +538,50 @@ public namespace RestSchemaValidator {
             }
 
             return rv;
+        }
+
+        #! returns example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a string giving example Qore code to generate the given message
+        */
+        private string getQoreExampleRequestImpl(string method, string path) {
+            return "";
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+            return new hash<RestExampleRequestInfo>();
+        }
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param int code the HTTP response code of the response
+
+            @return a string giving example Qore code to generate the given response message
+        */
+        private string getQoreExampleResponseImpl(string method, string path, int code) {
+            return "";
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+        */
+        private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+            return new hash<RestExampleResponseInfo>();
         }
     }
 }
