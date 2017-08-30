@@ -96,9 +96,9 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
       - @ref Mime::MimeTypeMultipartRelated "MimeTypeMultipartRelated"
       - @ref Mime::MimeTypeMultipartMixed "MimeTypeMultipartMixed"
     - added the following methods:
-      - @ref Mime::MultipartMessage::getBoundary() "MultipartMessage::getBoundary()"
-      - @ref Mime::MultipartMessage::serializeBody() "MultipartMessage::serializeBody()"
-      - @ref Mime::MultipartMessage::size() "MultipartMessage::size()"
+      - @ref Mime::MultiPartMessage::getBoundary() "MultiPartMessage::getBoundary()"
+      - @ref Mime::MultiPartMessage::serializeBody() "MultiPartMessage::serializeBody()"
+      - @ref Mime::MultiPartMessage::size() "MultiPartMessage::size()"
     - fixed a bug parsing multipart messages where unnecessary characters were searched (<a href="https://github.com/qorelanguage/qore/issues/2099">issue 2099</a>)
 
     @subsection mime_1_3_4_1 v1.3.4.1
@@ -176,6 +176,7 @@ public namespace Mime {
         These are constants for common MIME types
      */
     #@{
+    #! MIME type for unknown file types
     public const MimeTypeUnknown = MimeTypeOctetStream;
 
     #! MIME type for unknown file types
@@ -740,7 +741,7 @@ public namespace Mime {
     /** @defgroup MimeMiscFunctions Misc MIME Functions
      */
     #@{
-    #! returns the mime type for the given filename from the extension or @ref MimeTypeUnknown if the extension is not present or unknown
+    #! returns the mime type for the given filename from the extension or @ref Mime::MimeTypeUnknown if the extension is not present or unknown
     public string sub get_mime_type_from_ext(string path) {
         *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
         return (ext && (ext = MimeTypes{ext.lwr()})) ? ext : MimeTypeUnknown;
@@ -749,7 +750,7 @@ public namespace Mime {
     #! returns a single string in MIME URL encoded format
     /** reserved characters are replaced with percent encoding, characters outside the ASCII character set cause an exception to be thrown
 
-        @param the input value
+        @param val the input value
 
         @return the output string in MIME URL encoded format
 
@@ -925,13 +926,58 @@ public namespace Mime {
         #! @endcond
 
         #! creates the object
-        /** @param n_mptype the type of multi-part message: see @ref MultiPartConstants for possible values
-            @param n_boundary the boundary to use between parts
+        /** @param mptype the type of multi-part message: see @ref MultiPartConstants for possible values
+            @param boundary the boundary to use between parts
          */
         constructor(string mptype, string boundary = MultiPartMessage::getBoundary()) {
             self.mptype = mptype;
             self.boundary = boundary;
             ct = sprintf("multipart/%s;boundary=%s", mptype, boundary);
+        }
+
+        #! serializes the message with the Content-Type header first and returns a binary object ready to send over a socket
+        binary serialize() {
+            hash<MessageInfo> h = getMsgAndHeaders();
+            binary rv = MultiPartMessage::serializeHeaders(h.hdr);
+            rv += h.body;
+            return rv;
+        }
+
+        #! serializes the message body only and returns a binary object ready to send over a socket
+        /** @since %Mime 1.4
+        */
+        binary serializeBody() {
+            return getMsgAndHeaders().body;
+        }
+
+        #! returns the number of parts in the message
+        /** @return the number of parts in the message
+
+            @since %Mime 1.4
+        */
+        int size() {
+            return l.size();
+        }
+
+        #! returns the message boundary string used
+        /** @return the message boundary string used
+
+            @since %Mime 1.4
+        */
+        string getBoundary() {
+            return boundary;
+        }
+
+        #! serializes a header hash to a binary object
+        /** @param hdr the hash to serialize
+
+            @return the binary object representing the hash with each header separated by \c "\r\n"
+         */
+        static binary serializeHeaders(hash hdr) {
+            binary b;
+            map b += sprintf("%s: %s\r\n", $1.key, $1.value), hdr.pairIterator();
+            b += "\r\n";
+            return b;
         }
 
         #! returns a string embedded with the current timestamp designed to be used as MultiPart boundary string
@@ -1120,51 +1166,6 @@ hash: (2 members)
                 "body": body,
                 "part": plist,
             ));
-        }
-
-        #! serializes the message with the Content-Type header first and returns a binary object ready to send over a socket
-        binary serialize() {
-            hash<MessageInfo> h = getMsgAndHeaders();
-            binary rv = MultiPartMessage::serializeHeaders(h.hdr);
-            rv += h.body;
-            return rv;
-        }
-
-        #! serializes the message body only and returns a binary object ready to send over a socket
-        /** @since %Mime 1.4
-        */
-        binary serializeBody() {
-            return getMsgAndHeaders().body;
-        }
-
-        #! returns the number of parts in the message
-        /** @return the number of parts in the message
-
-            @since %Mime 1.4
-        */
-        int size() {
-            return l.size();
-        }
-
-        #! returns the message boundary string used
-        /** @return the message boundary string used
-
-            @since %Mime 1.4
-        */
-        string getBoundary() {
-            return boundary;
-        }
-
-        #! serializes a header hash to a binary object
-        /** @param hdr the hash to serialize
-
-            @return the binary object representing the hash with each header separated by \c "\r\n"
-         */
-        static binary serializeHeaders(hash hdr) {
-            binary b;
-            map b += sprintf("%s: %s\r\n", $1.key, $1.value), hdr.pairIterator();
-            b += "\r\n";
-            return b;
         }
 
         #! returns a hash of the message
@@ -1510,8 +1511,8 @@ hash: (2 members)
         }
 
         #! parses a multipart/form-data encoded message and returns a hash of its ContentTransEnc7Bit
-        /** @param content_type the message \c Content-Type string which must contain the message boundary string
-            @param the message body to parse
+        /** @param content the message \c Content-Type string which must contain the message boundary string
+            @param body the message body to parse
 
             @return a hash of @ref FormDataMessageInfo hashes keyed by part name
 

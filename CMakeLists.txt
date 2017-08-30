@@ -773,9 +773,11 @@ qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
 
 # base 5 modules
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
-qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator")
 
 # base 6 modules
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
+
+# base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")

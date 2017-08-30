@@ -39,6 +39,7 @@
 %requires Mime >= 1.3
 %requires(reexport) ConnectionProvider >= 1.0
 %requires(reexport) RestSchemaValidator >= 1.0
+%requires Swagger >= 0.1
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -97,6 +98,8 @@ module RestClient {
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
 
+    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in @ref RestClient::RestClient::constructor() "RestClient::constructor()".
+
     For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other encoding method
     is chosen and the \c "json" module is available.
 
@@ -124,6 +127,7 @@ printf("%N\n", ans.body);
     - added support for the \c text/plain Content-Type
     - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
+    - added support for REST API validation with a REST schema through the @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
 
     @subsection restclientv1_3_1 RestClient v1.3.1
     - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
@@ -206,33 +210,6 @@ public namespace RestClient {
                 },
                 );
 %endif
-
-            #! Data deserialization support MIME types to codes and de/serialization functions
-            const DataDeserializationSupport = {
-                MimeTypeFormUrlEncoded: (
-                    "code": "url",
-                    "in": \mime_parse_form_urlencoded_string(),
-                ),
-%ifndef NoJson
-                MimeTypeJson: (
-                    "code": "json",
-                    "in": \parse_json(),
-                ),
-%endif
-%ifndef NoYaml
-                MimeTypeYamlRpc: DeserializeYaml,
-                MimeTypeYaml: DeserializeYaml,
-%endif
-%ifndef NoXml
-                MimeTypeXml: DeserializeXml,
-                MimeTypeXmlApp: DeserializeXml,
-%endif
-                MimeTypeText: (
-                    "code": "text",
-                    "in": string sub (string s) { return s; },
-                ),
-
-            };
 
             #! Accept header list
             const AcceptList = (
@@ -354,16 +331,17 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
-            - \c validator: a @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages
+            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
             @since
             - %RestClient 1.2 the \a send_encoding option was added
-            - %RestClient 1.4 the \a validator option was added
+            - %RestClient 1.4 the \a validator and \a swagger options were added
         */
         constructor(*hash opts, *softbool do_not_connect) : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : ("url": opts.validator.getTargetUrl()))) {
             setSerialization(opts.data);
@@ -387,8 +365,12 @@ RestClient rest(("url": "http://localhost:8001/rest"));
                     throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of AbstractRestSchemaValidatorl got %y instead", opts.validator.type());
                 validator = opts.validator;
             }
-            else
-                validator = new NullRestSchemaValidator();
+            else {
+                if (opts.swagger)
+                    validator = SwaggerLoader::fromFile(opts.swagger);
+                else
+                    validator = new NullRestSchemaValidator();
+            }
 
             if (!do_not_connect)
                 connect();
@@ -824,7 +806,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! decode any REST errors returned if possible
-        static private:internal decodeError(hash h, *reference<hash> info) {
+        static private decodeError(hash h, *reference<hash> info) {
             try {
                 RestClient::tryDecodeErrorResponse(\h, \info);
                 info."response-body" = h.body;
@@ -872,7 +854,11 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
         - \c "timeout": transfer timeout to use in milliseconds
+
+        @note additionally supports the following runtime option in getImpl():
+        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
 
         @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
 
@@ -888,6 +874,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 "data": True,
                 "send_encoding": True,
                 "content_encoding": True,
+                "swagger": True,
                 );
 
             const OptionList = Options.keys();
@@ -907,12 +894,13 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
 
         #! returns a @ref RestClient::RestClient object
         /** @param connect if @ref Qore::True "True", then the connection is returned already connected
-            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+            @param rtopts supports the following runtime option in getImpl():
+            - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
 
             @return a @ref RestClient::RestClient "RestClient" object
         */
         private RestClient getImpl(bool connect = True, *hash rtopts) {
-            return new RestClient(real_opts, !connect);
+            return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
         }
 
         #! gets options
@@ -924,6 +912,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options

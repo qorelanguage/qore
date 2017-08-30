@@ -212,8 +212,6 @@
       - @ref Qore::round() "round()": now allows the precision to be specified
       - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
     - module updates:
-      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
-        - added a minimal substring of string bodies received to the log message when logging HTTP requests
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - added support for streams
       - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
@@ -221,6 +219,8 @@
         - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
         - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
         - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+        - added a minimal substring of string bodies received to the log message when logging HTTP requests
       - <a href="../../modules/Mime/html/index.html">Mime</a> module updates:
         - added complex type support
         - added the following constants:
@@ -239,8 +239,12 @@
       - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
         - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - support for the \c text/plain \c Content-Type
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
+        - added support for runtime REST API validation against a REST schema using the <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+        - added support for Swagger 2.0 REST API validation and \c "swagger" options using the <a href="../../modules/Swagger/html/index.html">Swagger</a> module in the \c RestClient and \c RestConnection classes
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
         - added an API to allow REST calls to be made internally (<a href="https://github.com/qorelanguage/qore/issues/1899">issue 1899</a>)
+        - added support for runtime REST API validation against a REST schema using the <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
       - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module:
         - added this new module providing a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> schema validation API
       - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:

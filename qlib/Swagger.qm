@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "0.1.0";
+    version = "0.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,7 +69,7 @@ module Swagger {
     The %Swagger module provides a <a href="https://swagger.io/">Swagger 2.0 REST API validation API</a> to %Qore.
 
     Primary classes provided by this module:
-    - @ref Swagger::SwaggerObject "SwaggerObject"
+    - @ref Swagger::SwaggerSchema "SwaggerSchema"
 
     JSON and YAML serialization and deserialization are supported, XML is currently not supported.
 
@@ -419,7 +419,7 @@ public class SwaggerLoader {
         @throws JSON-MODULE-MISSING trying to parse a JSON Swagger specification with JSON module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with YAML module unavailable
      */
-    static SwaggerObject fromString(string swaggerSpecification, bool json = True) {
+    static SwaggerSchema fromString(string swaggerSpecification, bool json = True) {
         hash val;
         if (json) {
 %ifdef NoJson
@@ -435,7 +435,7 @@ public class SwaggerLoader {
             val = parse_yaml(swaggerSpecification);
 %endif
         }
-        return new SwaggerObject(val);
+        return new SwaggerSchema(val);
     }
 
     #! Load Swagger definition from a file.
@@ -447,13 +447,14 @@ public class SwaggerLoader {
         @throws YAML-MODULE-MISSING trying to parse a YAML Swagger specification with the yaml module unavailable
         @throws XML-MODULE-MISSING trying to parse an XML Swagger specification with the xml module unavailable
      */
-    static SwaggerObject fromFile(string filepath) {
-        return new SwaggerObject(SwaggerLoader::parseSchemaContent(filepath, ReadOnlyFile::readTextFile(filepath)));
+    static SwaggerSchema fromFile(string filepath) {
+        return new SwaggerSchema(SwaggerLoader::parseSchemaContent(filepath, ReadOnlyFile::readTextFile(filepath)));
     }
 
     #! Load a schema definition from a file
     /**
         @param filepath path to the schema file
+        @param str the file content to parse
 
         @throws EMPTY-SCHEMA-FILE schema file is empty
         @throws JSON-MODULE-MISSING trying to parse a JSON schema with the json module unavailable
@@ -523,7 +524,7 @@ public class SwaggerLoader {
 }
 
 #! This is the root document object for the API specification. It combines what previously was the Resource Listing and API Declaration (version 1.2 and earlier) together into one document.
-public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
+public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     public {
         #! Swagger Specification version being used.
         /**
@@ -547,7 +548,7 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
          */
         *string host;
 
-        #! The base path on which the API is served, which is relative to the @ref SwaggerObject::host "host".
+        #! The base path on which the API is served, which is relative to the @ref SwaggerSchema::host "host".
         /**
             If it is not included, the API is served directly under the \c host.
             The value MUST start with a leading slash (/).
@@ -566,14 +567,14 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
         #! A set of MIME types (strings) the APIs can consume.
         /**
             This is global to all APIs but can be overridden on specific API calls.
-            Values MUST be as described under @ref mimetypes "Mime Types".
+            Key values MUST be Mime Types.
          */
         hash<string, bool> consumes;
 
         #! A set of MIME types (strings) the APIs can produce.
         /**
             This is global to all APIs but can be overridden on specific API calls.
-            Values MUST be as described under @ref mimetypes "Mime Types".
+            Key values MUST be Mime Types.
          */
         hash<string, bool> produces;
 
@@ -610,7 +611,7 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
             Individual values are hashes in the form of Security Requirement Objects.
             See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#securityRequirementObject.
             That is, the hash keys MUST correspond to security schemes declared
-            in the @ref SwaggerObject::securityDefinitions "Security Definitions",
+            in the @ref SwaggerSchema::securityDefinitions "Security Definitions",
             while the values are lists of scope names (strings) required for the execution.
          */
         hash<string, softlist<string>> security;
@@ -630,7 +631,7 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
         #! Additional external documentation.
         *ExternalDocumentationObject externalDocs;
 
-        #! SwaggerObject options
+        #! SwaggerSchema options
         const SwaggerOptions = (
             "compact_serialization": True,
             "def_path": True,
@@ -668,7 +669,7 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
         def_path = remove opts.def_path;
         try_import = remove opts.try_import;
         if (opts)
-            throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerObject constructor: %y; known options: %y", keys opts, keys SwaggerOptions);
+            throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerSchema constructor: %y; known options: %y", keys opts, keys SwaggerOptions);
 
         string objType = "Swagger";
         if (!oh.hasKey("swagger"))
@@ -936,11 +937,11 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
         @param http_body the unserialized message body hash
         @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
-        @return a @ref RestRequestServerInfo hash of request information
+        @return a @ref RestSchemaValidator::RestRequestServerInfo hash of request information
 
         @throw DESERIALIZATION-ERROR the request body could not be deserialized
     */
-    private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
+    private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
         hash body;
         # deserialize body according to Content-Type
         if (exists http_body) {
@@ -1041,9 +1042,11 @@ public class SwaggerObject inherits ObjectBase, AbstractRestSchemaValidator {
         @param response_body the HTTP response body data (if any)
         @param hdr as hash of HTTP headers received
 
+        @return a @ref RestSchemaValidator::RestResponseClientInfo hash describing the response
+
         @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
     */
-    private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+    private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1211,7 +1214,7 @@ public class LicenseObject inherits ObjectBase {
 
 #! Holds the relative paths to the individual endpoints.
 /**
-    The path is appended to the @ref SwaggerObject::basePath "basePath" in order to construct the full URL.
+    The path is appended to the @ref SwaggerSchema::basePath "basePath" in order to construct the full URL.
     The Paths may be empty, due to ACL constraints.
 
     This class stores a tree or a component of a path for path matching, supports wildcard matching
@@ -1235,7 +1238,7 @@ public class PathComponent {
     }
 
     #! creates the object
-    constructor(hash oh, string pfx, SwaggerObject swagger) {
+    constructor(hash oh, string pfx, SwaggerSchema swagger) {
         self.pfx = pfx;
         name = "/";
         foreach hash h in (oh.pairIterator()) {
@@ -1257,7 +1260,7 @@ public class PathComponent {
     }
 
     #! adds a component or a Path Item Object to the tree
-    private add(string full_path, list l, int offset, hash oh, SwaggerObject swagger) {
+    private add(string full_path, list l, int offset, hash oh, SwaggerSchema swagger) {
         #printf("PathComponent::add(): %y l: %y offset: %y\n", full_path, l, offset);
         if (offset == l.size()) {
             if (pio)
@@ -1293,6 +1296,7 @@ public class PathComponent {
     }
 }
 
+#! This class stores the path tree for URI path matching
 public class PathsObject inherits ObjectBase {
     private {
         #! the tree of path components for path matching with wildcards
@@ -1302,12 +1306,13 @@ public class PathsObject inherits ObjectBase {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing paths to schema endpoints
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
      */
-    public constructor(hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+    public constructor(hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
         paths = new PathComponent(oh, "", swagger);
     }
 
@@ -1391,12 +1396,13 @@ public class PathItemObject inherits ObjectBase {
     /**
         @param path the URI path for the object
         @param oh deserialized hash from the source schema description describing the operations available on a single path
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+    public constructor(string path, hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
         string objType = "Path Item";
         optional_field(objType, oh, "$ref", NT_STRING, \ref);
 
@@ -1504,17 +1510,17 @@ public class OperationObject inherits ObjectBase {
 
         #! A list of MIME types (strings) the operation can consume.
         /**
-            This overrides the @ref SwaggerObject::consumes "consumes" definition
+            This overrides the @ref SwaggerSchema::consumes "consumes" definition
             at the Swagger Object. An empty value MAY be used to clear the global definition.
-            Values MUST be as described under @ref mimetypes "Mime Types".
+            Key values MUST be Mime Types.
          */
         hash<string, bool> consumes;
 
         #! A hash of MIME types (strings) the operation can produce.
         /**
-            This overrides the @ref SwaggerObject::produces "produces" definition
+            This overrides the @ref SwaggerSchema::produces "produces" definition
             at the Swagger Object. An empty value MAY be used to clear the global definition.
-            Values MUST be as described under @ref mimetypes "Mime Types".
+            Key values MUST be Mime Types.
          */
         hash<string, bool> produces;
 
@@ -1538,7 +1544,7 @@ public class OperationObject inherits ObjectBase {
         #! The transfer protocol for the operation.
         /**
             Values MUST be from the list: \c "http", \c "https", \c "ws", \c "wss".
-            The value overrides the SwaggerObject @ref SwaggerObject::schemes "schemes" definition.
+            The value overrides the SwaggerSchema @ref SwaggerSchema::schemes "schemes" definition.
          */
         list<string> schemes;
 
@@ -1546,13 +1552,13 @@ public class OperationObject inherits ObjectBase {
         /**
             The list of values describes alternative security schemes that can be
             used (that is, there is a logical OR between the security requirements).
-            This definition overrides any declared top-level @ref SwaggerObject::security "security".
+            This definition overrides any declared top-level @ref SwaggerSchema::security "security".
             To remove a top-level security declaration, an empty array can be used.
 
             Individual values are hashes in the form of Security Requirement Objects.
             See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#securityRequirementObject.
             That is, the hash keys MUST correspond to security schemes declared
-            in the @ref SwaggerObject::securityDefinitions "Security Definitions",
+            in the @ref SwaggerSchema::securityDefinitions "Security Definitions",
             while the values are lists of scope names (strings) required for the execution.
          */
         list<hash<string, list<string>>> security;
@@ -1562,12 +1568,13 @@ public class OperationObject inherits ObjectBase {
     /** @param path the path for the operation
         @param method the HTTP method for the operation
         @param oh deserialized hash from the source schema description describing the operation
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, string method, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
         self.path = path;
         self.method = method.upr();
         string objType = "Operation";
@@ -1711,8 +1718,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! parses and processes a REST request on the server side
-    /** @param method the HTTP method in lower case
-        @param pio the PathItemObject corresponding to the URI path
+    /** @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
         @param body a reference to the HTTP message body data hash
         @param headers a reference to a hash of HTTP headers
@@ -1863,7 +1869,7 @@ public class ExternalDocumentationObject inherits ObjectBase {
                 This is normally used for simple parameters that are being transferred.
             - <tt>multipart/form-data</tt> - each parameter takes a section in
                 the payload with an internal header. For example, for the header
-                <tt>Content-Disposition: form-data; name="submit-name"<tt> the name
+                <tt>Content-Disposition: form-data; name="submit-name"</tt> the name
                 of the parameter is \c submit-name. This type of form parameters
                 is more commonly used for file transfers.
  */
@@ -1873,8 +1879,7 @@ public class AbstractParameterObject inherits ObjectBase {
         /**
             - If @ref AbstractParameterObject::inLoc "inLoc" is \c "path", the \c name
                 field MUST correspond to the associated path segment from the
-                @ref PathsObject::path "path" field in the @ref PathsObject.
-                See Path Templating for further information.
+                \c "path" field in the @ref Swagger::PathsObject.
             - For all other cases, the name corresponds to the parameter name
                 used based on the @ref AbstractParameterObject::inLoc "inLoc" property.
          */
@@ -1941,7 +1946,7 @@ public class AbstractParameterObject inherits ObjectBase {
     }
 
     #! gets a concrete instance of an AbstractParameterObject
-    static AbstractParameterObject newParameter(string name, hash oh, SwaggerObject swagger) {
+    static AbstractParameterObject newParameter(string name, hash oh, SwaggerSchema swagger) {
         if (oh.hasKey("$ref"))
             return swagger.resolveParameter(name, oh."$ref", oh);
 
@@ -1965,11 +1970,12 @@ public class BodyParameter inherits AbstractParameterObject {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing a body parameter
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, SwaggerObject swagger) : AbstractParameterObject(oh) {
+    public constructor(hash oh, SwaggerSchema swagger) : AbstractParameterObject(oh) {
         hash schemaObj;
         required_field("Body Parameter", oh, "schema", NT_HASH, \schemaObj);
         schema = SchemaObject::newSchemaObject("schema for body parameter", schemaObj, swagger);
@@ -2015,7 +2021,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             Possible values are:
             - \c "csv": comma separated values; ex: foo,bar
             - \c "ssv": space separated values; ex: foo bar
-            - \c "tsv": tab separated values; ex: foo\tbar
+            - \c "tsv": tab separated values; ex: foo\\tbar
             - \c "pipes": pipe separated values; ex: foo|bar
             - \c "multi": corresponds to multiple parameter instances instead of
                 multiple values for a single instance <tt>foo=bar&foo=baz</tt>.
@@ -2050,12 +2056,13 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing general parameters (other than \c "body" parameters)
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, SwaggerObject swagger) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
+    public constructor(hash oh, SwaggerSchema swagger) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!ParameterTypes{type})
@@ -2226,7 +2233,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
             Possible values are:
             - \c "csv" - comma separated values foo,bar.
             - \c "ssv" - space separated values foo bar.
-            - \c "tsv" - tab separated values foo\tbar.
+            - \c "tsv" - tab separated values foo\\tbar.
             - \c "pipes" - pipe separated values foo|bar.
 
             Default value is \c "csv".
@@ -2254,12 +2261,14 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing an item to be used by parameter definitions that are not located @ref AbstractParameterObject::inLoc "in" \c "body"
+        @param collectionFormats a hash of valid collection formats
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(hash oh, *hash<string, bool> collectionFormats, SwaggerObject swagger) : ObjectBase(oh.items), SchemaBase("Items", oh.items) {
+    private constructor(hash oh, *hash<string, bool> collectionFormats, SwaggerSchema swagger) : ObjectBase(oh.items), SchemaBase("Items", oh.items) {
         string objType = "Items";
 
         hash itemsObj;
@@ -2315,7 +2324,7 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     }
 
     #! creates a new ItemsObject and resolves any references
-    static ItemsObject newItemsObject(hash oh, *hash<string, bool> collectionFormats, SwaggerObject swagger) {
+    static ItemsObject newItemsObject(hash oh, *hash<string, bool> collectionFormats, SwaggerSchema swagger) {
         if (oh.items.typeCode() != NT_HASH)
             throw "INVALID-FIELD-TYPE", sprintf("expecting a hash 'items' definition; got type %y instead", oh.items.type());
         if (oh.items.hasKey("$ref"))
@@ -2347,12 +2356,13 @@ public class ResponsesObject inherits ObjectBase {
         @param path the URI path for the operation
         @param method the HTTP method for the operation
         @param oh deserialized hash from the source schema description describing the responses for an operation
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws EMPTY-RESPONSES no responses given
      */
-    public constructor(string path, string method, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+    public constructor(string path, string method, hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
         string objType = "Responses";
         *hash defaultObj;
         if (optional_field(objType, oh, "default", NT_HASH, \defaultObj))
@@ -2404,13 +2414,14 @@ public class ResponseObject inherits ObjectBase {
 
     #! private constructor; use newResponse() instead
     /**
+        @param key the response code for error reporting
         @param oh deserialized hash from the source schema description describing a single response for an API operation
-        @param swagger the schema object for reference lookups
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string key, hash oh, SwaggerObject swagger) : ObjectBase(oh) {
+    private constructor(string key, hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
         string objType = key + " Response";
         required_field(objType, oh, "description", NT_STRING, \desc);
 
@@ -2430,12 +2441,12 @@ public class ResponseObject inherits ObjectBase {
     /**
         @param key the response code for the response
         @param oh deserialized hash from the source schema description describing a single response for an API operation
-        @param swagger the schema object for reference lookups
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    static ResponseObject newResponse(string key, hash oh, SwaggerObject swagger) {
+    static ResponseObject newResponse(string key, hash oh, SwaggerSchema swagger) {
         if (oh.hasKey("$ref"))
             return swagger.resolveResponse(key, oh."$ref", oh);
         return new ResponseObject(key, oh, swagger);
@@ -2466,7 +2477,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
             Possible values are:
             - \c "csv": comma separated values; ex: foo,bar
             - \c "ssv": space separated values; ex: foo bar
-            - \c "tsv": tab separated values; ex: foo\tbar
+            - \c "tsv": tab separated values; ex: foo\\tbar
             - \c "pipes": pipe separated values; ex: foo|bar
 
             Default value is \c "csv".
@@ -2486,12 +2497,13 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
     #! Constructor.
     /**
         @param oh deserialized hash from the source schema description describing a single HTTP header
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, SwaggerObject swagger) : ObjectBase(oh), SchemaBase("Header", oh) {
+    public constructor(hash oh, SwaggerSchema swagger) : ObjectBase(oh), SchemaBase("Header", oh) {
         string objType = "Header";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!SchemaObject::ScalarTypes{type})
@@ -2661,7 +2673,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             Adds Additional metadata to describe the XML representation format of this property.
 
             The \c xml property allows extra definitions when translating the
-            JSON definition to XML. The @ref XMLObject contains additional
+            JSON definition to XML. The @ref XmlObject contains additional
             information about the available options.
          */
         *XmlObject xml;
@@ -2691,7 +2703,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     /**
         @param name the name of the object
         @param oh deserialized hash from the source schema description describing an object in the schema
-        @param swagger schema object so references can be resolved
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -2700,7 +2712,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash oh, SwaggerObject swagger) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    private constructor(string name, hash oh, SwaggerSchema swagger) : ObjectBase(oh), SchemaBase("Schema", oh) {
         string objType = "Schema";
 
         required_field(objType, oh, "type", NT_STRING, \type);
@@ -2860,7 +2872,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     /**
         @param name the name of the object
         @param oh deserialized hash from the source schema description describing an object in the schema
-        @param swagger schema object so references can be resolved
+        @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -2869,7 +2881,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static SchemaObject newSchemaObject(string name, hash oh, SwaggerObject swagger) {
+    static SchemaObject newSchemaObject(string name, hash oh, SwaggerSchema swagger) {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
@@ -2904,7 +2916,7 @@ public class XmlObject inherits ObjectBase {
         #! Declares whether the property definition translates to an attribute instead of an element. Default value is \c false.
         bool attribute = False;
 
-        #! MAY be used only for an array definition. Signifies whether the array is wrapped (for example, \c <books><book/><book/></books>) or unwrapped (\c <book/><book/>).
+        #! MAY be used only for an array definition. Signifies whether the array is wrapped (for example, \c &lt;books&gt;&lt;book/&gt;&lt;book/&gt;&lt;/books&gt;) or unwrapped (\c &lt;book/&gt;&lt;book/&gt;).
         /**
             Default value is \c false. The definition takes effect only when
             defined alongside \c type being \c array (outside the \c items).
@@ -2978,7 +2990,7 @@ public class SecuritySchemeObject inherits ObjectBase {
         /**
             Required when type is \c "oauth2".
 
-            A hash in the form of </tt>Scopes Object</tt> mapping scope names to short descriptions of them.
+            A hash in the form of <tt>Scopes Object</tt> mapping scope names to short descriptions of them.
             See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#scopesObject
             Keys are scope names. Values are short string descriptions.
          */

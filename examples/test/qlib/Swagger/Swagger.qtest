@@ -83,7 +83,7 @@ public class SwaggerTest inherits QUnit::Test {
                 "parameters": ( {"$ref": "#/parameters/a"}, )
             }
         };
-        const ValidSwaggerObject = {
+        const ValidSwaggerSchema = {
             "swagger": "2.0",
             "info": ValidInfoObject,
             "paths": ValidPathsObject,
@@ -101,13 +101,13 @@ public class SwaggerTest inherits QUnit::Test {
 %ifndef NoJson
         const ValidInfoObjectJSON = make_json(ValidInfoObject);
         #const ValidPathsObjectJSON = make_json(ValidPathsObject);
-        const ValidSwaggerObjectJSON = make_json(ValidSwaggerObject);
+        const ValidSwaggerSchemaJSON = make_json(ValidSwaggerSchema);
 %endif
 
 %ifndef NoYaml
         const ValidInfoObjectYAML = make_yaml(ValidInfoObject);
         #const ValidPathsObjectYAML = make_yaml(ValidPathsObject);
-        const ValidSwaggerObjectYAML = make_yaml(ValidSwaggerObject);
+        const ValidSwaggerSchemaYAML = make_yaml(ValidSwaggerSchema);
 %endif
 
         code loadjson = bool sub (string str) {
@@ -126,7 +126,7 @@ public class SwaggerTest inherits QUnit::Test {
 
     constructor() : Test("SwaggerTest", "1.0") {
         addTestCase("Test loading from files", \testFiles());
-        addTestCase("Test SwaggerObject", \testSwaggerObject());
+        addTestCase("Test SwaggerSchema", \testSwaggerSchema());
         addTestCase("Test InfoObject", \testInfoObject());
         addTestCase("Test ContactObject", \testContactObject());
         addTestCase("Test LicenseObject", \testLicenseObject());
@@ -164,7 +164,7 @@ public class SwaggerTest inherits QUnit::Test {
         checkModules();
 
         {
-            Swagger::SwaggerObject so;
+            Swagger::SwaggerSchema so;
             string basePath = getcwd() + DirSep + dirname(get_script_path()) + DirSep;
 
             # Should not throw.
@@ -179,7 +179,7 @@ public class SwaggerTest inherits QUnit::Test {
         }
 
         {
-            hash soh = ValidSwaggerObject + (
+            hash soh = ValidSwaggerSchema + (
                 "paths": (
                     "/test": (
                         "get": (
@@ -201,26 +201,26 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
-            assertThrows("FILE-OPEN2-ERROR", "other.json", sub () {SwaggerObject so(soh);});
+            assertThrows("FILE-OPEN2-ERROR", "other.json", sub () {SwaggerSchema so(soh);});
 
             code try_import = string sub (string fn) { return OtherJsonErr; };
-            assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerObject so(soh, ("try_import": try_import));});
+            assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
             try_import = string sub (string fn) { return OtherJsonOk; };
             {
-                SwaggerObject so(soh, ("try_import": try_import));
+                SwaggerSchema so(soh, ("try_import": try_import));
             }
 
             soh.paths."/test".get.parameters[0].schema."$ref" = "other.yaml#/info";
-            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerObject so(soh);});
+            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerSchema so(soh);});
 
             try_import = string sub (string fn) { return OtherYamlErr; };
-            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerObject so(soh, ("try_import": try_import));});
+            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
             try_import = string sub (string fn) { return OtherYamlOk; };
-            SwaggerObject so(soh, ("try_import": try_import));
+            SwaggerSchema so(soh, ("try_import": try_import));
         }
     }
 
-    testSwaggerObject() {
+    testSwaggerSchema() {
         checkModules();
 
         assertThrows("INVALID-FIELD-TYPE", loadjson, '{"swagger": true}');
@@ -229,11 +229,11 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", loadjson, '{"swagger": 2.0, "info": []}', "invalid info field type");
         assertThrows("REQUIRED-FIELD-MISSING", loadjson, '{"swagger": 2.0, "info": {"title":"", "version":""}}', "missing paths field");
 
-        assertTrue(loadjson(ValidSwaggerObjectJSON));
-        assertTrue(loadyaml(ValidSwaggerObjectYAML));
+        assertTrue(loadjson(ValidSwaggerSchemaJSON));
+        assertTrue(loadyaml(ValidSwaggerSchemaYAML));
 
         # Used for following tests.
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
 
         assertTrue(loadyaml(make_yaml(base + {"host": "localhost"})));
         assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"host": 2.0}), "invalid host field type");
@@ -290,7 +290,7 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"externalDocs": 2}), "invalid externalDocs field type");
 
         {
-            hash soh = ValidSwaggerObject + (
+            hash soh = ValidSwaggerSchema + (
                 "paths": (
                     "/test": (
                         "get": (
@@ -311,7 +311,7 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
-            SwaggerObject so(soh);
+            SwaggerSchema so(soh);
 
             {
                 string uri_path = "/test";
@@ -328,7 +328,7 @@ public class SwaggerTest inherits QUnit::Test {
         }
 
         {
-            hash soh = ValidSwaggerObject + (
+            hash soh = ValidSwaggerSchema + (
                 "paths": (
                     "/test": (
                         "get": (
@@ -358,7 +358,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             {
-                SwaggerObject so(soh);
+                SwaggerSchema so(soh);
 
                 string uri_path = "/test?bin=abc";
                 hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
@@ -406,7 +406,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             {
-                SwaggerObject so(soh);
+                SwaggerSchema so(soh);
 
                 assertThrows("INVALID-PARAMETER-TYPE", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
 
@@ -448,7 +448,7 @@ public class SwaggerTest inherits QUnit::Test {
     testInfoObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash info;
 
         assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"info": {}}));
@@ -476,7 +476,7 @@ public class SwaggerTest inherits QUnit::Test {
     testContactObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash info;
 
         info = ValidInfoObject + {"contact": {}};
@@ -492,7 +492,7 @@ public class SwaggerTest inherits QUnit::Test {
     testLicenseObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash info;
 
         info = ValidInfoObject + {"license": {"name": "name"}};
@@ -510,7 +510,7 @@ public class SwaggerTest inherits QUnit::Test {
     testPathsObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash p;
 
         p = {};
@@ -522,7 +522,7 @@ public class SwaggerTest inherits QUnit::Test {
     testPathItemObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash p;
 
         p = {"/a": {}};
@@ -564,7 +564,7 @@ public class SwaggerTest inherits QUnit::Test {
     testOperationObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash r = {"200": {"description": "a"}};
         hash p;
 
@@ -659,7 +659,7 @@ public class SwaggerTest inherits QUnit::Test {
     testExternalDocumentationObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash extDocs;
 
         extDocs = {"externalDocs": {"url": "a"}};
@@ -677,7 +677,7 @@ public class SwaggerTest inherits QUnit::Test {
     testParameterObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash p;
 
         # name and in checks
@@ -830,7 +830,7 @@ public class SwaggerTest inherits QUnit::Test {
     testItemsObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash paramBase = {"name": "a", "in": "query", "type": "array"};
         hash p;
 
@@ -932,7 +932,7 @@ public class SwaggerTest inherits QUnit::Test {
     testResponsesObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash p;
 
         p = {"get": {"responses": {"200": {"description": "a"}}}};
@@ -949,7 +949,7 @@ public class SwaggerTest inherits QUnit::Test {
     testResponseObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash r;
 
         r = {"a": {}};
@@ -970,7 +970,7 @@ public class SwaggerTest inherits QUnit::Test {
     testHeaderObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash r;
 
         r = {"a": {"description": "a", "headers": {}}};
@@ -1077,7 +1077,7 @@ public class SwaggerTest inherits QUnit::Test {
     testTagObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash tag;
 
         tag = {"name": "a"};
@@ -1105,7 +1105,7 @@ public class SwaggerTest inherits QUnit::Test {
     testSchemaObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash s;
 
         # ref checks
@@ -1341,7 +1341,7 @@ public class SwaggerTest inherits QUnit::Test {
     testXmlObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash s;
 
         s = {"type": "string", "xml": {}};
@@ -1385,7 +1385,7 @@ public class SwaggerTest inherits QUnit::Test {
     testSecuritySchemeObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash sd;
 
         # type checks
@@ -1471,7 +1471,7 @@ public class SwaggerTest inherits QUnit::Test {
     testScopesObject() {
         checkModules();
 
-        hash base = ValidSwaggerObject;
+        hash base = ValidSwaggerSchema;
         hash sdbase = {"type": "oauth2", "flow": "password", "tokenUrl": "a"};
         hash sd;
 
@@ -1490,7 +1490,7 @@ public class SwaggerTest inherits QUnit::Test {
         testValidation(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
 
         {
-            hash b = ValidSwaggerObject + {
+            hash b = ValidSwaggerSchema + {
                 "definitions": {
                     "a": {
                         "type": "object",
@@ -1534,12 +1534,12 @@ public class SwaggerTest inherits QUnit::Test {
             );
             remove b.parameters.a.type;
 
-            SwaggerObject so(b);
+            SwaggerSchema so(b);
 
             assertThrows("READONLY-PROPERTY-ERROR", \so.processRequest(), ("get", "/api/smtg", ("a": "a")));
 
             b.definitions.a.properties.a.readOnly = False;
-            so = new SwaggerObject(b);
+            so = new SwaggerSchema(b);
             hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
             assertEq("/api/smtg", h.uri_path);
             assertEq("a=a", h.body);
@@ -1575,9 +1575,30 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("a", sh.body.a);
             }
         }
+
+        {
+            string rep = makeBody("OK");
+
+            HttpTestServer serv(rep);
+            on_exit serv.done();
+
+            string url = sprintf("http://localhost:%d", serv.port);
+            hash opts = (
+                "url": url,
+                "swagger": dirname(get_script_path()) + DirSep + "PetStore.swagger.yaml",
+            );
+
+            RestClient rc(opts);
+            #printf("url: %y\n", url);
+            hash h = rc.get("/user/login?username=user;password=pass");
+            assertEq("OK", h.body);
+
+            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
+            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
+        }
     }
 
-    private testValidation(SwaggerObject so) {
+    private testValidation(SwaggerSchema so) {
         checkModules();
 
         so.processRequest("get", "/user/login?username=user;password=pass");
@@ -1652,7 +1673,11 @@ public class SwaggerTest inherits QUnit::Test {
 
             RestClient rc(opts);
             #printf("url: %y\n", url);
-            rc.get("/user/login?username=user;password=pass");
+            hash h = rc.get("/user/login?username=user;password=pass");
+            assertEq("OK", h.body);
+
+            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
+            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
         }
     }
 
