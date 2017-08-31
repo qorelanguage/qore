@@ -67,7 +67,7 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
 
    assert(exp);
 
-   const QoreTypeInfo* lti = 0;
+   const QoreTypeInfo* lti = nullptr;
    exp = exp->parseInit(oflag, pflag, lvids, lti);
 
    if (r) {
@@ -80,6 +80,7 @@ AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int
       assert(ti);
 #endif
 
+   //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp, QoreTypeInfo::getName(lti));;
    if (!QoreTypeInfo::parseAccepts(ti, lti)) {
       QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
       qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);

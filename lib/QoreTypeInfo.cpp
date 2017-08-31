@@ -354,6 +354,10 @@ void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
    extern_type_info_map[t] = typeInfo;
 }
 
+const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo) {
+   return QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING) ? typeInfo : get_or_nothing_type(typeInfo);
+}
+
 const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
    assert(!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING));
 
