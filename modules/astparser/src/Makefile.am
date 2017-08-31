@@ -44,7 +44,7 @@ lib_LTLIBRARIES = astparser.la
 astparser_la_SOURCES = $(ASTPARSER_SOURCES)
 astparser_la_LDFLAGS = -module -avoid-version ${ASTPARSER_LIBS} ${MODULE_LDFLAGS}
 
-ASTPARSER_CPPFLAGS = -I$(top_srcdir)/modules/astparser/src
+ASTPARSER_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/modules/astparser/src
 
 AM_CPPFLAGS=$(QORE_CPPFLAGS) $(ASTPARSER_CPPFLAGS)
 
