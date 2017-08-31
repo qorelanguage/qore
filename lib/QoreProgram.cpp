@@ -1477,6 +1477,12 @@ int QoreProgram::setGlobalVarValue(const char* name, QoreValue val, ExceptionSin
    return priv->setGlobalVarValue(name, val, xsink);
 }
 
+QoreListNode* QoreProgram::getThreadList() const {
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(bigIntTypeInfo), nullptr);
+   priv->getThreadList(**rv);
+   return rv.release();
+}
+
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
 }
 

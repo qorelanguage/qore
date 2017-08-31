@@ -67,6 +67,7 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 // returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
+DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
 DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valueTypeInfo);
 DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);

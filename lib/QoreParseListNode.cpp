@@ -94,16 +94,32 @@ AbstractQoreNode* QoreParseListNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
 QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
-    ReferenceHolder<QoreListNode> l(new QoreListNode(vtype), xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
     qore_list_private::get(**l)->reserve(values.size());
+
+    // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
+    const QoreTypeInfo* vtype = nullptr;
+    // try to find a common value type, if any
+    bool vcommon = false;
 
     for (size_t i = 0; i < values.size(); ++i) {
         QoreNodeEvalOptionalRefHolder v(values[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 
-        l->push(v.getReferencedValue());
+        AbstractQoreNode* val = v.getReferencedValue();
+        l->push(val);
+
+        if (!i) {
+            vtype = getTypeInfoForValue(val);
+            vcommon = true;
+        }
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+            vcommon = false;
     }
+
+    if (QoreTypeInfo::hasType(vtype))
+       qore_list_private::get(**l)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
 
     return l.release();
 }

@@ -453,7 +453,6 @@ public:
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
       return parse_assigned && refTypeInfo ? refTypeInfo : typeInfo;
-      //return typeInfo;
    }
 
    DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
