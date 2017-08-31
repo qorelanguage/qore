@@ -61,6 +61,7 @@ RM_OTHER=$(DESTDIR)$(libdir)/$(MNAME).dll.a
 endif
 
 install-exec-hook:
+	test -d $(MODULE_DIR) || mkdir -p $(MODULE_DIR)
 	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
 	$(RM) $(DESTDIR)$(libdir)/$(MNAME).la $(DESTDIR)$(libdir)/$(MNAME).a $(RM_OTHER)
 
