@@ -152,7 +152,7 @@ class ProgramTest inherits QUnit::Test {
             assertEq("PARSE-EXCEPTION", ex.err);
         }
 
-        string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
+        string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); } list<int> sub get_thread_list0(Program p) { return p.getThreadList(); } list<int> sub get_thread_list1(Program p) { Counter c0(1); Counter c1(1); background waiter(c0, c1); c0.waitForZero(); on_exit c1.dec(); return p.getThreadList(); } sub waiter(Counter c0, Counter c1) { c0.dec(); c1.waitForZero(); }";
 
         Program p1(PO_NEW_STYLE);
         Program p2(PO_NEW_STYLE);
@@ -163,6 +163,13 @@ class ProgramTest inherits QUnit::Test {
         object o2 = p1.callFunction("getT");
         assertEq(1, p1.callFunction("checkT", o2));
         assertEq(1, p2.callFunction("checkT", o2));
+
+        list<int> l = p1.callFunction("get_thread_list0", p1);
+        assertEq(1, l.size());
+        assertEq(gettid(), l[0]);
+        l = p1.callFunction("get_thread_list1", p1);
+        assertEq(2, l.size());
+        assertEq(gettid(), l[0]);
 
         Program p4(PO_NEW_STYLE);
         try {
