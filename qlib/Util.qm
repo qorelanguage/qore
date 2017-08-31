@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2016 Qore Technologies, sro
+/*  Util.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.2";
+    version = "1.3";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -63,6 +63,9 @@ module Util {
     - @ref Util::get_marketing_byte_size()
     - @ref Util::get_random_string()
     - @ref Util::glob_to_regex()
+    - @ref Util::is_int()
+    - @ref Util::is_float()
+    - @ref Util::is_number()
     - @ref Util::lpad()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
@@ -79,12 +82,18 @@ module Util {
 
     @section utilrelnotes Release Notes
 
+    @subsection util_1_3 Util 1.3
+    - updated for complex types
+
     @subsection util_1_2 Util 1.2
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
     - added Util::glob_to_regex()
+    - added Util::is_int()
+    - added Util::is_float()
+    - added Util::is_number()
     - added Util::lpad()
     - added Util::ordinal()
     - added Util::plural()
@@ -153,8 +162,8 @@ int result = compare_version("2.11.1", "2.2");
                 splice ll, 0, i;
                 return (select ll, $1) ? 1 : 0;
             }
-            any l = ll[i];
-            any r = rl[i];
+            auto l = ll[i];
+            auto r = rl[i];
             if (l =~ /^[0-9]/)
                 l = int(l);
             if (r =~ /^[0-9]/)
@@ -467,17 +476,17 @@ bool abs = absolute_path_windows(path);
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
     hash sub eval_text(string arg, bool err = False) {
         # try to evaluate as a Qore expression
-        string str = sprintf("any sub get() { return %s; }", arg);
+        string str = sprintf("auto sub get() { return %s; }", arg);
         # use a sandboxed Program object
         Program prog(PO_LOCKDOWN);
         try {
             prog.parse(str, "main");
-            any rv = prog.callFunction("get");
+            auto rv = prog.callFunction("get");
             # if it's a float, then return a string to preseve formatting
             if (rv.typeCode() != NT_FLOAT && rv.val())
                 return ("valid": True, "value": rv);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (err)
                 throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", ex.err, ex.desc, arg);
         }
@@ -488,7 +497,7 @@ bool abs = absolute_path_windows(path);
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
     /* returns the value parsed
     */
-    any sub parse_to_basic_value(*string arg) {
+    auto sub parse_to_basic_value(*string arg) {
         if (arg.empty())
             return;
 
@@ -541,7 +550,7 @@ bool abs = absolute_path_windows(path);
         <b>String Parsing</b>
         |!Format|!Description
         |<tt><i>key_string</i> = <i>value</i>[, ...]</tt>|a @ref hash "hash"
-        |<tt><i>value</i>, [...]|a @ref list "list"
+        |<tt><i>value</i>, [...]</tt>|a @ref list "list"
         |integers|an @ref integer "integer"
         |floats|a @ref float "float"
         |arbitrary-numeric value|a @ref number "number"
@@ -552,7 +561,7 @@ bool abs = absolute_path_windows(path);
 
         @par Examples:
         @verbatim
-prompt% qore -l ./Util.qm -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
+prompt% qore -l Util -X 'parse_to_qore_value("(a=(b=(c=x, 2, 3)))")'
 hash: (1 member)
   a : hash: (1 member)
     b : list: (3 elements)
@@ -568,7 +577,7 @@ hash: (1 member)
 
         @throw PARSE-ERROR cannot parse the string given
     */
-    public any sub parse_to_qore_value(string arg) {
+    public auto sub parse_to_qore_value(string arg) {
         # see if there is aprocessing cmd
         if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
             if (pc[0] == "STR")
@@ -577,6 +586,7 @@ hash: (1 member)
                 return eval_text(pc[1], True).value;
         }
 
+        # we should not use "auto" here because this lvalue must be able to convert to an untyped list
         any v;
 
         list l = scan_exp(arg);
@@ -586,9 +596,9 @@ hash: (1 member)
         bool do_break;
 
         # process values after an "=" sign
-        code do_eq = sub (reference i, string key) {
+        code do_eq = sub (reference<int> i, string key) {
             # get the value
-            any val;
+            auto val;
             switch (l[i+2].type) {
                 case ET_BracketString: val = parse_to_qore_value(l[i+2].val); break;
                 case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
@@ -621,7 +631,7 @@ hash: (1 member)
         };
 
         # process other values
-        code do_val = sub (any val) {
+        code do_val = sub (auto val) {
             switch (v.typeCode()) {
                 case NT_LIST: {
                     v += val;
@@ -711,6 +721,8 @@ string pass = get_random_string();
         - 4: +symbols but not including any quote characters
 
         @return a random string of the given length containing only printable ASCII characters according to the \a level argument
+
+        @see @ref Qore::get_random_bytes()
     */
     public string sub get_random_string(softint len = 15, int level = 3) {
         string str;
@@ -868,7 +880,7 @@ string str = get_marketing_byte_size(n);
         if (l.size() < 2) {
             return True;
         }
-        any random_value = l[0];
+        auto random_value = l[0];
         for (int i = 1; i < l.size(); ++i) {
             if (l[i] != random_value) {
                 return False;
@@ -922,6 +934,91 @@ unlink(testfile);
             throw "TMP-ERROR", sprintf("unable to find the location of the temporary directory; %y is not writable", dir);
 
         return realpath(dir);
+    }
+
+    #! Checks whether string represents a (true) integer value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only integers match, otherwise check floats too.
+        @return True if input represents an integer value, False otherwise.
+
+        @par Example:
+        @code{.py}
+bool match = is_int("123");
+# returns True, while any of the following returns False:
+match = is_int("1.0", True);
+match = is_int("12x");
+        @endcode
+
+        @note The function only checks whether a string represents an integer value, but it does not validate size restrictions (that is whether it would fit %Qore's native int type) etc.
+
+        @since Util 1.2
+    */
+    public bool sub is_int(string text, bool pure = False) {
+        if (text =~ /^\s*[-+]?\d+\s*$/ || (!pure && is_float(text, True) && (float(text) == floor(float(text)))))
+            return True;
+        return False;
+    }
+
+    const RE_FLOAT = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        ')\s*$'; #';
+
+    #! Checks whether string represents a (true) float value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only floats match, otherwise include integers.
+        @return True if input represents a float value, False otherwise.
+
+        @par Example:
+        @code{.py}
+bool match = is_float("1.2");
+# returns True, while any of the following returns False:
+match = is_float("12", True);
+match = is_float("1.2x");
+        @endcode
+
+        @note The function only checks whether a string represents a float value, but it does not validate size / precision restrictions (whether it would fit %Qore's native float type).
+
+        @since Util 1.2
+    */
+    public bool sub is_float(string text, bool pure = False) {
+        if (text.regex(RE_FLOAT) || (!pure && is_int(text)))
+            return True;
+        return False;
+    }
+
+    const RE_NUMBER = '^\s*[-+]?('
+        '\d+\.\d*(e[-+]?\d+)?' # floating point number, with dot, optional exponent
+        '|\.\d+(e[-+]?\d+)?' # floating point number, starting with a dot, optional exponent
+        '|\d+e[-+]?\d+' # floating point number, without dot, with exponent
+        '|\d+)n\s*$'; #'; #integer
+
+    #! Checks whether string represents a (true) number value.
+    /**
+        @param  text a string to check
+        @param  pure if True then only numbers match, otherwise include floats and integers.
+        @return True if input represents a number value, False otherwise.
+
+        @par Example:
+        @code{.py}
+bool match = is_number("1.2n");
+# returns True, while any of the following returns False:
+match = is_number("12", True);
+match = is_number("1.2", True);
+match = is_number("1.2x");
+        @endcode
+
+        @note The function only checks whether a string represents an arbitrary precision number value, but it does not validate any restrictions (whether it would fit %Qore's native number type).
+
+        @since Util 1.2
+    */
+    public bool sub is_number(string text, bool pure = False) {
+        if (text.regex(RE_NUMBER) || (!pure && is_float(text, pure)))
+            return True;
+        return False;
     }
 
     #! Returns a string left-padded to a specified length with the specified characters.

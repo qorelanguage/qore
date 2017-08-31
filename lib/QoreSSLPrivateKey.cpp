@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreSSLPrivateKey.h>
-#include <qore/intern/QoreSSLIntern.h>
+#include "qore/intern/QoreSSLIntern.h"
 
 #include <errno.h>
 #include <openssl/err.h>

@@ -1,11 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.12.12],
+AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
+AC_CONFIG_HEADER(modules/astparser/config.h)
 
 # fix default include dir
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
@@ -169,6 +170,8 @@ case "${host_os}" in
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
 		   if test -z "$NATIVE_CXX"; then
 		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   else
+                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
 		   fi
 		fi
 		if test -z "$NATIVE_CXX"; then
@@ -206,6 +209,12 @@ QPP_CPPFLAGS="$QPP_CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
+
+# test for C++11
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+if test "$HAVE_CXX11" = "1"; then
+    AM_CXXFLAGS=-std=gnu++11
+fi
 
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
@@ -1448,7 +1457,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
+AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
@@ -1635,6 +1644,32 @@ if test "$darwin" = "yes"; then
     LIBS="$SAVE_LIBS"
 fi
 
+# do we need -latomic on this platform
+AC_MSG_CHECKING([for pure compile-time atomic functionality])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <atomic>]],
+[[bool b = std::atomic_int{}.is_lock_free();]])],
+   [ATOMIC_COMPILE_ONLY=1
+    AC_MSG_RESULT([found])
+    AC_DEFINE([HAVE_ATOMIC_COMPILE_ONLY], 1, [define if there is no need to link with libatomic])],
+   [AC_MSG_RESULT([needs libatomic])])
+if test "$ATOMIC_COMPILE_ONLY" != "1"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -latomic"
+    AC_MSG_CHECKING([for libatomic])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <atomic>]],
+    [[bool b = std::atomic_int{}.is_lock_free();]])],
+       [LIBATOMIC_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_LIBATOMIC], 1, [define if libatomic])],
+       [AC_MSG_RESULT([not found])])
+    if test "$LIBATOMIC_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -latomic"
+    fi
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
@@ -1703,9 +1738,12 @@ fi
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API=$MODULE_API_MAJOR.$MODULE_API_MINOR
+
 mypkglibdir=qore-modules
 AC_SUBST([MODULE_API_MAJOR])
 AC_SUBST([MODULE_API_MINOR])
+AC_SUBST(MODULE_API)
 AC_SUBST([mypkglibdir])
 
 # save more version information in config.h
@@ -1807,12 +1845,14 @@ AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
-CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
-CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
-CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
+CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"
+CMAKE_INSTALL_FULL_LIBDIR="`eval echo ${myprefix}/lib${LIBSUFFIX}`"
+CMAKE_INSTALL_FULL_DATADIR="`eval echo ${datarootdir}`"
 AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_DATADIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
@@ -1843,6 +1883,22 @@ else
    QORE_LIB_CFLAGS="$QORE_LIB_CPPFLAGS"
 fi
 
+# if compiling for mingw32, we have to add qore ldflags to the module's ldflags
+if test "$mingw" = yes; then
+    MODULE_LDFLAGS="$MODULE_LDFLAGS $QORE_LDFLAGS"
+    AC_SUBST(MODULE_LDFLAGS)
+fi
+
+# save more version information in config.h
+MODULE_VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
+MODULE_VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
+MODULE_VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
+QORE_MODULE_PACKAGE_VERSION="$PACKAGE_VERSION"
+
+# set user module directory
+mymodverdir=${qore_version}
+AC_SUBST([mymodverdir])
+
 # save compiler settings in config file
 AC_DEFINE_UNQUOTED([QORE_LIB_CXX], "$CXX", [c++ compiler used])
 AC_DEFINE_UNQUOTED([QORE_LIB_CPPFLAGS], "$QORE_LIB_CPPFLAGS", [preprocessor flags])
@@ -1851,7 +1907,17 @@ AC_DEFINE_UNQUOTED([QORE_LIB_CFLAGS],   "$QORE_LIB_CFLAGS", [c++ compiler flags]
 AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
+# set version information
+AC_DEFINE_UNQUOTED([MODULE_VERSION_MAJOR], $MODULE_VERSION_MAJOR, [major version number])
+AC_DEFINE_UNQUOTED([MODULE_VERSION_MINOR], $MODULE_VERSION_MINOR, [minor version number])
+AC_DEFINE_UNQUOTED([MODULE_VERSION_SUB], $MODULE_VERSION_SUB, [sub version number])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_ARCH], "$ARCH", [host type])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_OS], "$OS", [host type])
+AC_DEFINE_UNQUOTED([MODULE_TARGET_BITS], $bits, [32 or 64 bit build])
+AC_DEFINE_UNQUOTED([QORE_MODULE_PACKAGE_VERSION], "$QORE_MODULE_PACKAGE_VERSION", [qore module package version])
+
 AC_CONFIG_FILES([Makefile lib/Makefile])
+AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

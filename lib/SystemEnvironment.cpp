@@ -127,7 +127,7 @@ bool SystemEnvironment::valueExists(const char* name) {
   if (!name || !name[0]) return false;
   QoreString *s = get(name);
   if (!s) return false;
-  std::auto_ptr<QoreString> holder(s);
+  std::unique_ptr<QoreString> holder(s);
   const char *str = s->getBuffer();
   return str && str[0];
 }
@@ -168,7 +168,7 @@ bool AtomicEnvironmentSetter::valueExists(const char* name) {
   if (!name || !name[0]) return false;
   QoreString *s = SystemEnvironment::get(name);
   if (!s) return false;
-  std::auto_ptr<QoreString> holder(s);
+  std::unique_ptr<QoreString> holder(s);
   const char *str = s->getBuffer();
   return str && str[0];
 }

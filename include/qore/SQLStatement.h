@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,6 @@
 #ifndef _QORE_SQLSTATEMENT_H
 #define _QORE_SQLSTATEMENT_H
 
-class DatasourceStatementHelper;
-
 //! This is the public class for DBI drivers supporting Qore's new prepared statement API
 /** @see DBIDriver
  */
@@ -46,6 +44,9 @@ private:
 
 public:
    DLLLOCAL SQLStatement();
+
+   DLLLOCAL SQLStatement(Datasource* ds, void* data);
+
    DLLLOCAL ~SQLStatement();
 
    //! returns the private DBI-specific data structure for this object

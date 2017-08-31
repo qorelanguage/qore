@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebSocketUtil {
-    version = "1.3";
+    version = "1.4";
     desc = "user module providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -64,6 +64,9 @@ module WebSocketUtil {
     - @ref opcodes
 
     @section websocketutil_relnotes WebSocketUtil Module Release History
+
+    @subsection wsu_v14 v1.4
+    - added the @ref WebSocketUtil::ws_get_response_key() function
 
     @subsection wsu_v13 v1.3
     - added timeout values to @ref Qore::Socket "Socket" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
@@ -299,5 +302,16 @@ hash h = ws_read_message(sock);
         return h + (
             "msg": data,
             );
+    }
+
+    #! returns a string response key from the binary key and the WebSocket GUID value
+    /** @param key the base64-encoded key received in the \c Sec-WebSocket-Key header
+
+        @return the base64-encoded string value for the \c Sec-WebSocket-Accept header
+
+        @since %WebSocketUtil 1.4
+    */
+    public string sub ws_get_response_key(string key) {
+        return make_base64_string(SHA1_bin(key + WS_GUID));
     }
 }
