@@ -6,33 +6,31 @@
 %require-types
 %enable-all-warnings
 
-# %requires Util
-
 %exec-class WrapTest
 
-#! Test TextWrapper
+#! Test TextWrap::TextWrapper
 public class WrapTest inherits BaseTest {
     constructor () : BaseTest ("WrapTest", "1.0") {
-        addTestCase ("TextWrap - test_simple", \test_simple());
-        addTestCase ("TextWrap - test_empty_string", \test_empty_string());
-        addTestCase ("TextWrap - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
-        addTestCase ("TextWrap - test_wrap_short", \test_wrap_short());
-        addTestCase ("TextWrap - test_wrap_short_1line", \test_wrap_short_1line());
-        addTestCase ("TextWrap - test_hyphenated", \test_hyphenated());
-        addTestCase ("TextWrap - test_hyphenated_numbers", \test_hyphenated_numbers());
-        addTestCase ("TextWrap - test_em_dash", \test_em_dash());
-        addTestCase ("TextWrap - test_unix_options", \test_unix_options());
-        addTestCase ("TextWrap - test_funky_hyphens", \test_funky_hyphens());
-        addTestCase ("TextWrap - test_punct_hyphens", \test_punct_hyphens());
-        addTestCase ("TextWrap - test_funky_parens", \test_funky_parens());
-        addTestCase ("TextWrap - test_drop_whitespace_false", \test_drop_whitespace_false());
-        addTestCase ("TextWrap - test_drop_whitespace_false_whitespace_only", \test_drop_whitespace_false_whitespace_only());
-        addTestCase ("TextWrap - test_drop_whitespace_false_whitespace_only_with_indent", \test_drop_whitespace_false_whitespace_only_with_indent());
-        addTestCase ("TextWrap - test_drop_whitespace_whitespace_only", \test_drop_whitespace_whitespace_only());
-        addTestCase ("TextWrap - test_drop_whitespace_leading_whitespace", \test_drop_whitespace_leading_whitespace());
-        addTestCase ("TextWrap - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
-        addTestCase ("TextWrap - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
-        addTestCase ("TextWrap - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
+        addTestCase ("TextWrap - WrapTest - test_simple", \test_simple());
+        addTestCase ("TextWrap - WrapTest - test_empty_string", \test_empty_string());
+        addTestCase ("TextWrap - WrapTest - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
+        addTestCase ("TextWrap - WrapTest - test_wrap_short", \test_wrap_short());
+        addTestCase ("TextWrap - WrapTest - test_wrap_short_1line", \test_wrap_short_1line());
+        addTestCase ("TextWrap - WrapTest - test_hyphenated", \test_hyphenated());
+        addTestCase ("TextWrap - WrapTest - test_hyphenated_numbers", \test_hyphenated_numbers());
+        addTestCase ("TextWrap - WrapTest - test_em_dash", \test_em_dash());
+        addTestCase ("TextWrap - WrapTest - test_unix_options", \test_unix_options());
+        addTestCase ("TextWrap - WrapTest - test_funky_hyphens", \test_funky_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_punct_hyphens", \test_punct_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_funky_parens", \test_funky_parens());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false", \test_drop_whitespace_false());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only", \test_drop_whitespace_false_whitespace_only());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only_with_indent", \test_drop_whitespace_false_whitespace_only_with_indent());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only", \test_drop_whitespace_whitespace_only());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_leading_whitespace", \test_drop_whitespace_leading_whitespace());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
         set_return_value(main());
     }
 

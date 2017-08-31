@@ -10,7 +10,7 @@
 
 %exec-class IndentTest
 
-#! Test TextWrap.indent()
+#! Test TextWrap::indent()
 public class IndentTest inherits QUnit::Test {
     constructor () : Test ("IndentTest", "1.0") {
         addTestCase ("TextWrap - test_indent_nomargin_default", \test_indent_nomargin_default());

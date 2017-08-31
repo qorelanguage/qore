@@ -47,6 +47,9 @@ namespace Init {
 
 public namespace TextWrap {
 
+# Hardcode the recognized whitespace characters to the US-ASCII
+# whitespace characters.  The main reason for doing this is that
+# some Unicode spaces (like \u00a0) are non-breaking whitespaces.
 const c_whitespace = "\t\n\013\014\r ";
 
 # -- Private helpers ---------------------------------------------------
@@ -136,7 +139,7 @@ string sub xsprintf (string fmt, hash args) {
         Break words longer than 'width'.  If false, those words will not
         be broken, and some lines might be longer than 'width'.
       break_on_hyphens (default: true)
-        Allow breaking hyphenated words. If true, wrapping will occur
+        Allow breaking hyphenated words.  If true, wrapping will occur
         preferably on whitespaces and right after hyphens part of
         compound words.
       drop_whitespace (default: true)
@@ -147,7 +150,7 @@ string sub xsprintf (string fmt, hash args) {
         Append to the last line of truncated text.
 */
 public class TextWrapper {
-    private {
+    public {
         int width = 70;
         string initial_indent = "";
         string subsequent_indent = "";
@@ -160,14 +163,16 @@ public class TextWrapper {
         int tabsize = 8;
         int max_lines;
         string placeholder = ' [...]';
+    }
 
+    private {
         hash whitespace_trans;
         string wordsep_re;
         string wordsep_simple_re;
         string sentence_end_re;
     }
 
-    constructor (hash opts) {
+    constructor (*hash opts) {
         if (opts.hasKey('width'))
             self.width = opts.width;
         if (opts.hasKey('initial_indent'))
@@ -202,7 +207,7 @@ public class TextWrapper {
         # splits into
         #   Hello/ /there/ /--/ /you/ /goof-/ball,/ /use/ /the/ /-b/ /option!
         # (after stripping out empty strings).
-        string word_punct = '[\w!"' + "'&.,?]";
+        string word_punct = '[\w!"'"'&.,?]";
         string letter = '[^\d\W]';
         string whitespace = sprintf ('[%s]', regex_escape (c_whitespace));
         string nowhitespace = '[^' + whitespace.substr(1);
@@ -224,7 +229,7 @@ public class TextWrapper {
             )', {'wp': word_punct, 'lt': letter,
                  'ws': whitespace, 'nws': nowhitespace});
 
-        # This less funky little regex just split on recognized spaces. E.g.
+        # This less funky little regex just splits on recognized spaces. E.g.
         #   "Hello there -- you goof-ball, use the -b option!"
         # splits into
         #   Hello/ /there/ /--/ /you/ /goof-ball,/ /use/ /the/ /-b/ /option!/
@@ -274,7 +279,7 @@ public class TextWrapper {
         if (self.break_on_hyphens)
             chunks = regex_extract (text, self.wordsep_re, Qore::RE_Extended + Qore::RE_Global);
         else
-            chunks = regex_extract (text, self.wordsep_simple_re);
+            chunks = regex_extract (text, self.wordsep_simple_re, Qore::RE_Global);
         chunks = select chunks, $1;
         return chunks;
     }
@@ -309,7 +314,7 @@ public class TextWrapper {
     */
     _handle_long_word (reference reversed_chunks, reference cur_line, int cur_len, int width) {
         # Figure out when indent is larger than the specified width, and make
-        # sure at least one character is stripped off on every pass
+        # sure at least one character is stripped off on every pass.
         int space_left = (width < 1) ? 1 : width - cur_len;
 
         # If we're allowed to break long words, then do so: put as much
@@ -453,8 +458,8 @@ public class TextWrapper {
     }
 
     list _split_chunks (string text) {
-        text = self._munge_whitespace(text);
-        return self._split(text);
+        text = self._munge_whitespace (text);
+        return self._split (text);
     }
 
     # -- Public interface ----------------------------------------------
@@ -517,17 +522,17 @@ public string sub fill (string text, int width=70, *hash opts) {
 #! Collapse and truncate the given text to fit in the given width.
 /**
     The text first has its whitespace collapsed.  If it then fits in
-    the *width*, it is returned as is.  Otherwise, as many words
-    as possible are joined and then the placeholder is appended::
+    the 'width', it is returned as is.  Otherwise, as many words
+    as possible are joined and then the placeholder is appended:
 
-        >>> textwrap.shorten("Hello  world!", width=12)
+        >>> TextWrap::shorten("Hello  world!", 12)
         'Hello world!'
-        >>> textwrap.shorten("Hello  world!", width=11)
+        >>> TextWrap::shorten("Hello  world!", 11)
         'Hello [...]'
 */
 public string sub shorten (string text, int width, *hash opts) {
     TextWrapper w (opts + ('width': width, 'max_lines': 1));
-    return w.fill (regex_subst (trim(text), '\\s+', ' ', Qore::RE_Global));
+    return w.fill (regex_subst (trim(text), '\s+', ' ', Qore::RE_Global));
 }
 
 # -- Loosely related functionality -------------------------------------

@@ -38,7 +38,7 @@ class BaseTest inherits QUnit::Test {
     }
 
     check_wrap (string text, int width, list expect, *hash kwargs) {
-        list result = wrap (text, width, kwargs);
+        list result = TextWrap::wrap (text, width, kwargs);
         self.check (result, expect);
     }
 
