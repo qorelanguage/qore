@@ -647,6 +647,7 @@ bool QoreHttpClientObject::isProxySecure() const {
 
 int QoreHttpClientObject::connect(ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
+   http_priv->disconnect_unlocked();
    return http_priv->connect_unlocked(xsink);
 }
 
