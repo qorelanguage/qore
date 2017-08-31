@@ -176,7 +176,7 @@ public:
       else if (typespec == QTS_COMPLEXREF)
          return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
       if (u.t == NT_ALL)
-         return QTI_AMBIGUOUS;
+         return QTI_WILDCARD;
       return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
    }
 
@@ -303,7 +303,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_WILDCARD;
    }
 
    // static version of method, checking for null pointer
@@ -328,7 +328,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
-      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_WILDCARD;
    }
 
    // static version of method, checking for null pointer
@@ -347,12 +347,12 @@ public:
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
       if (first == autoTypeInfo) {
-         return QTI_AMBIGUOUS;
+         return QTI_WILDCARD;
       }
       if (!hasType(first)) {
          if (!may_need_filter && isComplex(second))
             may_need_filter = true;
-         return QTI_AMBIGUOUS;
+         return QTI_WILDCARD;
       }
       if (!hasType(second)) {
          if (!may_need_filter) {
@@ -829,7 +829,7 @@ protected:
             qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
             if (res == QTI_IDENT)
                return res;
-            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR) {
+            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
                assert(ok);
                if (may_not_match)
                   return res;
@@ -884,6 +884,7 @@ protected:
          // fall down to next case
          case QTI_NEAR:
          case QTI_AMBIGUOUS:
+         case QTI_WILDCARD:
             if (at.map && !may_need_filter)
                may_need_filter = true;
             if (t_no_match) {
