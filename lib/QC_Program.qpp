@@ -1673,3 +1673,17 @@ pgm.setGlobalVarValue("a", 1);
 nothing Program::setGlobalVarValue(string name, auto value) {
    p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
+
+//! returns a list of thread IDs active in this Program
+/** @par Example:
+    @code
+list<int> l = pgm.getThreadList();
+    @endcode
+
+    @return a list of thread IDs active in this Program
+
+    @since %Qore 0.8.13
+*/
+list<int> Program::getThreadList() [flags=CONSTANT] {
+    return p->getThreadList();
+}
