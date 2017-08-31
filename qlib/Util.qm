@@ -586,7 +586,8 @@ hash: (1 member)
                 return eval_text(pc[1], True).value;
         }
 
-        auto v;
+        # we should not use "auto" here because this lvalue must be able to convert to an untyped list
+        any v;
 
         list l = scan_exp(arg);
 
