@@ -467,7 +467,8 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
 #endif
 
    AbstractQoreNode* current_value = getValue();
-   if (current_value && current_value->getType() == NT_REFERENCE) {
+   //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
+   if (get_node_type(current_value) == NT_REFERENCE) {
       const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
       if (val)
          val = nullptr;
@@ -1218,8 +1219,8 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 #endif
 }
 
-int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo) const {
-   //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
+int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const {
+   //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s'\n", this, val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
    if (val.getType() == NT_REFERENCE) {
       ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
       LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);
@@ -1227,7 +1228,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeI
    }
 
    // note: type info is not stored at runtime for local variables
-   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
+   lvh.setValue((QoreLValueGeneric&)val, val.assigned && refTypeInfo ? refTypeInfo : typeInfo);
    return 0;
 }
 
@@ -1267,7 +1268,7 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
 
    lvh.set(rml);
    sl.stay_locked();
-   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
+   lvh.setValue((QoreLValueGeneric&)val, val.assigned && refTypeInfo ? refTypeInfo : typeInfo);
    return 0;
 }
 
@@ -1357,7 +1358,7 @@ bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
 }
 
 AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id) {
-   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s' ti: '%s' rti: '%s'\n", this, name, val.getTypeName(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s' assigned: %d ti: '%s' rti: '%s'\n", this, name, val.getTypeName(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
    {
       QoreSafeVarRWWriteLocker sl(rml);
       if (val.getType() == NT_REFERENCE) {
@@ -1366,7 +1367,7 @@ AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, 
       }
       else {
          // creating a reference to an unassigned reference assigns the reference
-         if (!val.assigned && refTypeInfo) {
+         if (/*!val.assigned && */refTypeInfo) {
             typeInfo = refTypeInfo;
          }
          lvalue_id = this;

@@ -36,6 +36,10 @@ class TypeTest inherits QUnit::Test {
         list l = ();
         l += (val,);
         assertEq("list<hash<string, nothing>>", (("a": val),).fullType());
+
+        any anyval = ("a": 1);
+        h = ("a": anyval);
+        assertEq(Type::Hash, h.fullType());
     }
 
     testComplexAutoTypes() {

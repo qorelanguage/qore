@@ -508,28 +508,34 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool equal(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return (a == b) ? true : accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
+         return accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
       return hta || htb ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return (a == b) ? true : accept_vec_compare(a->accept_vec, b->accept_vec);
+         return accept_vec_compare(a->accept_vec, b->accept_vec);
       return hta || htb ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return a == b ? true : return_vec_compare(a->return_vec, b->return_vec);
+         return return_vec_compare(a->return_vec, b->return_vec);
       return hta || htb ? false : true;
    }
 

@@ -70,6 +70,7 @@ class ReferenceTest inherits QUnit::Test {
             reference<list> r1 = \x;
             r1 = ();
             assertEq((), x);
+            delete x;
             *reference<int> r2 = \x;
             r2 = 3;
             assertEq(3, x);

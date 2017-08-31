@@ -477,7 +477,7 @@ DLLLOCAL void thread_uninstantiate_self();
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign);
 DLLLOCAL void thread_instantiate_closure_var(ClosureVarValue* cvar);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
 DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
