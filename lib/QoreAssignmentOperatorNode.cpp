@@ -73,7 +73,8 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
       bool may_not_match = false;
       bool may_need_filter = false;
       res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
-      ident = QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) && !may_need_filter);
+      if (res)
+         ident = QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || !may_not_match) && !may_need_filter);
    }
    else
       res = QTI_AMBIGUOUS;

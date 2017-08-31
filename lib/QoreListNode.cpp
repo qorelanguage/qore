@@ -163,9 +163,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 const QoreTypeInfo* vti2 = getTypeInfoForValue(i.getValue());
                 bool may_not_match = false;
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
-                if (res == QTI_IDENT
-                    || ((res == QTI_AMBIGUOUS)
-                        && (!strict_check || !may_not_match)))
+                if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
                 parse_error(loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)i.index() + 1, (int)i.max(), QoreTypeInfo::getName(vti2));
             }
@@ -178,9 +176,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 const QoreTypeInfo* vti2 = vtypes[i];
                 bool may_not_match = false;
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
-                if (res == QTI_IDENT
-                    || ((res == QTI_AMBIGUOUS)
-                        && (!strict_check || !may_not_match)))
+                if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
                 parse_error(loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(), QoreTypeInfo::getName(vti2));
             }
@@ -190,9 +186,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
             const QoreTypeInfo* vti2 = getTypeInfoForValue(arg);
             bool may_not_match = false;
             qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
-            if (res == QTI_IDENT
-                || ((res == QTI_AMBIGUOUS)
-                    && (!strict_check || !may_not_match)))
+            if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                 break;
 
             parse_error(loc, "cannot %s 'list<%s>' from a value with incompatible type '%s'", context_action, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(vti2));

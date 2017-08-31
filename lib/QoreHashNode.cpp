@@ -171,9 +171,7 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 const QoreTypeInfo* kti = getTypeInfoForValue(i.getValue());
                 bool may_not_match = false;
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, kti, may_not_match);
-                if (res == QTI_IDENT
-                    || ((res == QTI_AMBIGUOUS)
-                        && (!strict_check || !may_not_match)))
+                if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
                 parse_error(loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), i.getKey(), QoreTypeInfo::getName(kti));
             }
@@ -189,9 +187,7 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 const QoreTypeInfo* vti2 = vtypes[i];
                 bool may_not_match = false;
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
-                if (res == QTI_IDENT
-                    || ((res == QTI_AMBIGUOUS)
-                        && (!strict_check || !may_not_match)))
+                if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
                 const AbstractQoreNode* kn = keys[i];
                 const QoreStringNode* key = get_node_type(kn) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(kn) : nullptr;

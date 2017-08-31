@@ -109,12 +109,10 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
             bool may_not_match = false;
             qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), i->second->getTypeInfo(), may_not_match);
 
-            if (res == QTI_IDENT
-                || ((res == QTI_AMBIGUOUS)
-                    && (!strict_check || !may_not_match)))
+            if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                 continue;
 
-            if (res == QTI_AMBIGUOUS && may_not_match)
+            if ((res == QTI_WILDCARD || res == QTI_AMBIGUOUS || res == QTI_NEAR) && may_not_match)
                 parse_error(loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), i->first, hd.name.c_str(), context, QoreTypeInfo::getName(i->second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
             else
                 parse_error(loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has incompatible type '%s'; expecting '%s'", name.c_str(), i->first, hd.name.c_str(), context, QoreTypeInfo::getName(i->second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()));
@@ -139,9 +137,7 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), kti, may_not_match);
                     if (may_not_match && !runtime_check)
                         runtime_check = true;
-                    if (res == QTI_IDENT
-                        || ((res == QTI_AMBIGUOUS)
-                            && (!strict_check || !may_not_match)))
+                    if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                         continue;
                     parse_error(loc, "hashdecl '%s' initializer value from %s cannot be assigned from key '%s' with incompatible value type '%s'; expecting '%s'", name.c_str(), context, i.getKey(), QoreTypeInfo::getName(kti), QoreTypeInfo::getName(m->getTypeInfo()));
                 }
@@ -170,12 +166,10 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), vti, may_not_match);
                     if (may_not_match && !runtime_check)
                         runtime_check = true;
-                    if (res == QTI_IDENT
-                        || ((res == QTI_AMBIGUOUS)
-                            && (!strict_check || !may_not_match)))
+                    if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                         continue;
 
-                    if (res == QTI_AMBIGUOUS && may_not_match)
+                    if ((res == QTI_WILDCARD || res == QTI_AMBIGUOUS || res == QTI_NEAR) && may_not_match)
                         parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
                     else
                         parse_error(loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
