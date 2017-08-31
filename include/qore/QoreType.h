@@ -174,9 +174,10 @@ enum qore_type_result_e {
    QTI_UNASSIGNED  = -1,  //!< for internal use only
 
    QTI_NOT_EQUAL   =  0,  //!< types do not match
-   QTI_AMBIGUOUS   =  1,  //!< types match, but are not identical
-   QTI_NEAR        =  2,  //!< types nearly match, but are not identical
-   QTI_IDENT       =  3   //!< types match perfectly
+   QTI_WILDCARD    =  1,  //!< types match with a basic wildcard
+   QTI_AMBIGUOUS   =  2,  //!< types match, but are not identical
+   QTI_NEAR        =  3,  //!< types nearly match, but are not identical
+   QTI_IDENT       =  4   //!< types match perfectly
 };
 
 DLLEXPORT int testObjectClassAccess(const QoreObject* obj, const QoreClass* classtoaccess);

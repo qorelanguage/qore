@@ -654,7 +654,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
       case QTS_TYPE: {
          qore_type_t ot = t.getType();
          if (u.t == NT_ALL) {
-            return QTI_AMBIGUOUS;
+            return QTI_WILDCARD;
          }
          // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
          if (ot == NT_ALL) {
