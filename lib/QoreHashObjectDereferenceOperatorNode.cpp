@@ -104,7 +104,8 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
             }
          }
          else {
-            complexKeyTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(lti);
+            // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
+            complexKeyTypeInfo = get_or_nothing_type_check(QoreTypeInfo::getUniqueReturnComplexHash(lti));
          }
       }
 

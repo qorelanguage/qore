@@ -64,7 +64,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
             argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
         }
 
-        argTypeInfo = 0;
+        argTypeInfo = nullptr;
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
         if (!i) {
