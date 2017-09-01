@@ -832,8 +832,8 @@ LocalVarValue* thread_find_lvar(const char* id) {
    return td->tlpd->lvstack.find(id);
 }
 
-ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
+ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
+   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval, assign);
 }
 
 void thread_instantiate_closure_var(ClosureVarValue* cvar) {

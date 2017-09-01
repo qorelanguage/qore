@@ -52,14 +52,14 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (v->getType() == VT_CLOSURE) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
-         assert(cvv->typeInfo == v->ref.id->getTypeInfo());
+         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
          return cvv->getReference(loc, name, lvalue_id);
       }
 
       if (v->getType() == VT_LOCAL_TS) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_find_closure_var(name);
-         assert(cvv->typeInfo == v->ref.id->getTypeInfo());
+         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
          return cvv->getReference(loc, name, lvalue_id);
       }
    }
