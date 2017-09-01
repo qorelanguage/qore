@@ -170,6 +170,10 @@ public:
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       if (assign)
          discard(val.assignAssumeInitial(nval, static_assignment), nullptr);
+#ifdef DEBUG
+      else
+         assert(!val.assigned);
+#endif
    }
 
    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
@@ -239,7 +243,11 @@ public:
       // also since only basic value types could be returned, no exceptions can occur with the value passed either
       if (assign)
          discard(val.assignAssumeInitial(nval), nullptr);
-   }
+#ifdef DEBUG
+      else
+         assert(!val.assigned);
+#endif
+      }
 
    DLLLOCAL virtual ~ClosureVarValue() {
       //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);

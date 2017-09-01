@@ -755,11 +755,6 @@ public:
       //printd(5, "QoreLValue::assignAssumeInitial() this: %p n: %s sa: %d\n", this, n.getTypeName(), is_static_assignment);
       if (is_static_assignment)
          static_assignment = true;
-      if (n.isNothing()) {
-         if (!assigned)
-            assigned = true;
-         return nullptr;
-      }
       return assignAssume(n);
    }
 
