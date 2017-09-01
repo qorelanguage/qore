@@ -1010,6 +1010,8 @@ public namespace RestHandler {
 
             if (exists body)
                 body = req.body;
+            else
+                body = args;
 
             # reflect body in arguments if body is a hash
             if (body.typeCode() == NT_HASH)

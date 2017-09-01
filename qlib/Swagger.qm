@@ -1646,11 +1646,11 @@ public class OperationObject inherits ObjectBase {
         # TODO check operationId uniqueness as per docs
 
         # use the global "consumes" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes))
+        if (!optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes) && swagger.consumes)
             consumes = swagger.consumes;
 
         # use the global "produces" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "produces", SwaggerListToSet, \produces))
+        if (!optional_field(objType, oh, "produces", SwaggerListToSet, \produces) && swagger.produces)
             produces = swagger.produces;
 
         {

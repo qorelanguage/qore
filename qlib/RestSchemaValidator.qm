@@ -498,11 +498,29 @@ public namespace RestSchemaValidator {
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
         */
         private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
-            string ct = content_types[0] ?? DataSerializationSupportList[0];
+            if (exists response_body) {
+                string ct;
+                if (!content_types)
+                    ct = DataSerializationSupport.firstKey();
+                else {
+                    foreach string rct in (content_types) {
+                        if (DataSerializationSupport{rct}) {
+                            ct = rct;
+                            break;
+                        }
+                    }
+                }
+
+                if (!ct)
+                    return AbstractHttpRequestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body);
+                headers."Content-Type" = ct;
+                response_body = DataSerializationSupport{ct}(response_body);
+            }
+
             return cast<hash<HttpResponseInfo>>((
                 "code": code,
-                "body": DataSerializationSupport{ct}(response_body),
-                "hdr": headers + ("Content-Type": ct),
+                "body": response_body,
+                "hdr": headers,
             ));
         }
 
