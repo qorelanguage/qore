@@ -94,8 +94,8 @@ RangeIterator i(5);
 
     @since %Qore 0.8.11.1
  */
-RangeIterator::constructor(int stop, auto val) {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+RangeIterator::constructor(int stop) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
    if (*xsink)
       return;
    self->setPrivate(CID_RANGEITERATOR, r.release());
@@ -273,8 +273,8 @@ xrange(-3); # 0, -1, -2, -3
     @since %Qore 0.8.6
     @since %Qore 0.8.11.1 this function takes the optional \a val argument
  */
-RangeIterator xrange(int stop, auto val) [flags=CONSTANT] {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+RangeIterator xrange(int stop) [flags=CONSTANT] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
    if (*xsink)
       return QoreValue();
 
