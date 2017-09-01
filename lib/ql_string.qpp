@@ -1203,7 +1203,6 @@ string replace(string str, string source, string target, int start = 0, int end 
     // only execute the replace logic if there is a pattern
     if (plen) {
         const char* pattern = t1->c_str();
-        cstr = str->c_str();
 
         if (start) {
             const char* cn = cstr + str->size();
