@@ -74,18 +74,20 @@ static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n) {
 #endif
 
 ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
-   : saved_node(0), access(n_access), loc(loc), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub),
+   : saved_node(nullptr), access(n_access), loc(loc), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub),
      init(n_init), builtin(n_builtin) {
    QoreProgram* pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
+
+   //printd(5, "ConstantEntry::ConstantEntry() this: %p '%s' ti: '%s' nti: '%s'\n", this, n, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(getTypeInfoForValue(v)));
 }
 
 ConstantEntry::ConstantEntry(const ConstantEntry& old) :
-   saved_node(old.saved_node ? old.saved_node->refSelf() : 0),
+   saved_node(old.saved_node ? old.saved_node->refSelf() : nullptr),
    access(old.access),
    loc(old.loc), pwo(old.pwo), name(old.name),
-   typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : 0),
+   typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : nullptr),
    in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
    assert(!old.in_init);
    assert(old.init);
@@ -125,17 +127,17 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 void ConstantEntry::del(QoreListNode& l) {
    //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
    if (saved_node) {
-      node->deref(0);
+      node->deref(nullptr);
       l.push(saved_node);
 #ifdef DEBUG
-      node = 0;
-      saved_node = 0;
+      node = nullptr;
+      saved_node = nullptr;
 #endif
    }
    else if (node) {
       l.push(node);
 #ifdef DEBUG
-      node = 0;
+      node = nullptr;
 #endif
    }
 
@@ -204,8 +206,11 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
    //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d type: '%s'\n", this, name.c_str(), node, get_type_name(node), node->is_value(), QoreTypeInfo::getName(typeInfo));
 
-   if (node->is_value())
+   if (node->is_value()) {
+      if (!QoreTypeInfo::hasType(typeInfo))
+         typeInfo = getTypeInfoForValue(node);
       return 0;
+   }
 
    // do not evaluate expression if any parse exceptions have been thrown
    QoreProgram* pgm = getProgram();
@@ -232,6 +237,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
          }
          else {
             typeInfo = getTypeInfoForValue(node);
+            //printd(5, "ConstantEntry::parseInit() this: %p ti: '%s'\n", this, QoreTypeInfo::getName(typeInfo));
          }
       }
       else {
