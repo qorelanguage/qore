@@ -73,8 +73,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
       bool may_not_match = false;
       bool may_need_filter = false;
       res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
-      if (res)
-         ident = QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || !may_not_match) && !may_need_filter);
+      // issue #2106 do not set the ident flag for any other type in case runtime types are more speficic (complex) than parse types and require filtering
    }
    else
       res = QTI_AMBIGUOUS;

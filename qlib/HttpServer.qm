@@ -1540,7 +1540,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 if (body && hdr."content-encoding" && handler.decompress)
                     body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body, handler.decompress_to_string ? s.getEncoding() : NOTHING);
 
-                rv = handler.handleRequest(listener, s, cx, hdr, body);
+                rv = cast<hash<HttpResponseInfo>>(handler.handleRequest(listener, s, cx, hdr, body));
 
                 # manage persistent handler info, if applicable
                 if (!phi.handler) {

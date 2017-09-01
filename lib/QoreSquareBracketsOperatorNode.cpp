@@ -40,7 +40,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
    assert(!typeInfo);
    assert(!returnTypeInfo);
 
-   const QoreTypeInfo* lti = 0, *rti = 0;
+   const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
@@ -75,8 +75,10 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
       }
       if (!returnTypeInfo) {
          const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
-         if (ti)
-             returnTypeInfo = ti;
+         if (ti) {
+            // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
+            returnTypeInfo = get_or_nothing_type_check(ti);
+         }
       }
    }
 
