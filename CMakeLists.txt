@@ -238,7 +238,7 @@ set(QORE_DOX_TMPL_SRC
 
 # qore interpreter
 set(QORE_CPP_SRC command-line.cpp qore-main.cpp)
-set(QR_CPP_SRC command-line.cpp qr-main.cpp)
+#set(QR_CPP_SRC command-line.cpp qr-main.cpp)
 
 # find needed libraries
 qore_find_pthreads()
@@ -622,13 +622,14 @@ else (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 5)
 endif (APPLE)
 
-# prepare qore and qr targets
+# prepare qore target
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
-add_executable(qr ${QR_CPP_SRC})
-target_link_libraries(qr libqore)
+#add_executable(qr ${QR_CPP_SRC})
+#target_link_libraries(qr libqore)
 
-set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+#set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
 message(STATUS "Generating unix-config.h")
@@ -654,9 +655,12 @@ qore_dist(${VERSION})
 install(PROGRAMS ${QORE_BIN_FILES}
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
-install(TARGETS qore qpp qr libqore
+install(TARGETS qore qpp libqore
         RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+#install(TARGETS qore qpp qr libqore
+#        RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+#        LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
         DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/Qore)
 install(FILES ${CMAKE_BINARY_DIR}/qore.pc
