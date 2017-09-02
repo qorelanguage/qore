@@ -146,6 +146,7 @@ public class SwaggerTest inherits QUnit::Test {
         addTestCase("Test SecuritySchemeObject", \testSecuritySchemeObject());
         addTestCase("Test ScopesObject", \testScopesObject());
         addTestCase("Test validation", \testValidation());
+        addTestCase("Test examples", \testExamples());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -1599,8 +1600,6 @@ public class SwaggerTest inherits QUnit::Test {
     }
 
     private testValidation(SwaggerSchema so) {
-        checkModules();
-
         so.processRequest("get", "/user/login?username=user;password=pass");
         assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
         assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
@@ -1679,6 +1678,22 @@ public class SwaggerTest inherits QUnit::Test {
             assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
             assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
         }
+    }
+
+    testExamples() {
+        checkModules();
+
+        testExamples(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testExamples(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
+    }
+
+    private testExamples(SwaggerSchema so) {
+        hash<RestQoreExampleCodeInfo> qex = so.getQoreExampleRequest("get", "/user/login");
+        assertEq(True, qex.example =~ /\/user\/login\?username=[a-z]+;password=[a-z]+/m);
+
+        qex = so.getQoreExampleRequest("POST", "/pet");
+        assertEq(Type::String, qex.example.type());
+        #printf("qex: %N\n", qex);
     }
 
     static string makeBody(any b) {

@@ -238,6 +238,44 @@ class SchemaBase {
             "uniqueItems", "enum", "multipleOf"), exists other.$1;
     }
 
+    #! returns an example value for the given type
+    private any getExampleValue(string type, *string format) {
+        if (enum)
+            return enum.firstKey();
+        switch (type) {
+            case "string": {
+                switch (format) {
+                    case "byte":
+                    case "binary": return "<deadbeef>";
+                    case "date": return now_us().format("YYYY-MM-DD");
+                    case "date-time": return now_us().format("YYYY-MM-DDTHH:mm:SS.xx");
+                    default:
+                        return "value";
+                }
+            }
+            case "integer": {
+                if (exists minimum)
+                    return exclusiveMin ? minimum + 1 : minimum;
+                if (exists maximum)
+                    return exclusiveMax ? maximum - 1 : maximum;
+                return 1;
+            }
+            case "float":
+            case "number": {
+                if (exists minimum)
+                    return exclusiveMin ? minimum + 0.1 : minimum;
+                if (exists maximum)
+                    return exclusiveMax ? maximum - 0.1 : maximum;
+                return 1.1;
+            }
+            case "boolean":
+                return True;
+            case "null":
+                return NOTHING;
+        }
+    }
+
+
     #! validates the value against the schema definition
     private check(bool serialize, bool request, string type, *ItemsObject items, string path, string method, string name, reference value) {
         # accept a single value for an array (= one-element list)
@@ -1089,8 +1127,12 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a string giving example Qore code to generate the given message
     */
-    private string getQoreExampleRequestImpl(string method, string path) {
-        return "";
+    private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        return op.getQoreExampleRequest(method, path, pio, self);
     }
 
     #! returns a hash of example message information for the given request
@@ -1790,11 +1832,84 @@ public class OperationObject inherits ObjectBase {
             mime_types = produces;
     }
 
-    #! add default parameters
-    doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
+    #! returns example Qore code for the given request
+    /** @param method the HTTP method (case insensitive)
+        @param path the URI path of the request
+        @param pio the PathItemObject corresponding to the URI path
+
+        @return a string giving example Qore code to generate the given message
+    */
+    hash<RestQoreExampleCodeInfo> getQoreExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger) {
+        hash<RestQoreExampleCodeInfo> rv();
+
+        #! URI query arguments
+        hash query;
+        #! headers
+        hash headers;
+
+        getQoreExampleParams(\query, \headers, parameters);
+        getQoreExampleParams(\query, \headers, pio.parameters, parameters);
+
+        if (query) {
+            path += "?";
+            path += foldl $1 + ";" + $2, (map sprintf("%s=%s", $1.key, $1.value), query.pairIterator());
+        }
+
+        rv.example = sprintf("RestClient client((\"url\": %y));\n", swagger.getTargetUrl());
+
+        #! get example message body
+        *BodyParameter body_po = body ?? pio.body;
+        if (body_po)
+            rv.example += body_po.getQoreExample(\rv);
+
+        rv.example += "hash info;\n";
+        if (headers) {
+            rv.example += "hash hdr = (\n";
+            rv.example += foldl $1 + "\n" + $2, (map sprintf("    %y: %y,", $1.key, $1.value), headers.pairIterator());
+            rv.example += "\n);\n";
+        }
+
+        rv.example += sprintf("hash res = rest.%s", method.lwr());
+        rv.example += sprintf("(%y, ", path);
+        # body
+        rv.example += body_po ? "rest_body, " : "NOTHING, ";
+        # info reference
+        rv.example += "\\info";
+        # headers
+        if (headers)
+            rv.example += ", hdr";
+        rv.example += ");\n";
+
+        return rv;
+    }
+
+    private getQoreExampleParams(reference<hash> query, reference<hash> headers, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
-            if (child_params{ph.key} || (ph.key == "body" && ph.value.inLoc == "body"))
+            if (child_params{ph.key} || ph.value.inLoc == "body")
+                continue;
+            switch (ph.value.inLoc) {
+                case "query":
+                    query{ph.key} = ph.value.getExampleValue();
+                    break;
+                case "header":
+                    headers{ph.key} = ph.value.getExampleValue();
+                    break;
+                /*
+                case "formData":
+                    if (!exists body{ph.key})
+                        body{ph.key} = val;
+                    break;
+                */
+            }
+        }
+    }
+
+    #! add default parameters
+    doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+        foreach hash ph in (parameters.pairIterator()) {
+            # don't check if child params already checked or if it's the single message body param
+            if (child_params{ph.key} || ph.value.inLoc == "body")
                 continue;
             if (exists (auto val = ph.value.getDefaultValue())) {
                 switch (ph.value.inLoc) {
@@ -1817,10 +1932,10 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! checks for missing params
-    checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, ObjectBase> child_params) {
+    checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
-            if (child_params{ph.key} || (ph.key == "body" && ph.value.inLoc == "body"))
+            if (child_params{ph.key} || ph.value.inLoc == "body")
                 continue;
             if (ph.value.required) {
                 switch (ph.value.inLoc) {
@@ -2029,6 +2144,11 @@ public class BodyParameter inherits AbstractParameterObject {
     check(bool serialize, bool request, string path, string method, string name, reference value) {
         return schema.check(serialize, request, path, method, name, \value);
     }
+
+    #! generates Qore example code for a REST API call
+    string getQoreExample(reference<hash<RestQoreExampleCodeInfo>> rv) {
+        return schema.getQoreExample("rest_body", \rv, True);
+    }
 }
 
 #! @ref AbstractParameterObject specialization for parameters other than \c "body".
@@ -2161,6 +2281,18 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         }
     }
 
+    #! returns the default value of the parameter (default: @ref nothing)
+    any getDefaultValue() {
+        return defaultVal;
+    }
+
+    #! returns an example value of the parameter (default: @ref nothing)
+    any getExampleValue() {
+        if (defaultVal)
+            return defaultVal;
+        return getExampleValue(type, format);
+    }
+
     #! validates string values
     private checkIntern(bool serialize, bool request, string type, string path, string method, string name, string v, reference value) {
         if (type != "string")
@@ -2245,11 +2377,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
 
         checkStringIntern(path, method, name, value);
-    }
-
-    #! returns the default value of the parameter (default: @ref nothing)
-    any getDefaultValue() {
-        return defaultVal;
     }
 }
 
@@ -2365,6 +2492,20 @@ public class ItemsObject inherits ObjectBase, SchemaBase {
     #! validates the value against the schema definition
     check(bool serialize, bool request, string path, string method, string name, reference value) {
         SchemaBase::check(serialize, request, type, items, path, method, name, \value);
+    }
+
+    #! returns example Qore code for the object
+    string getQoreExample(string name, reference<hash<RestQoreExampleCodeInfo>> rv, bool decl) {
+        string str;
+        if (decl)
+            str = sprintf("list<%s> %s(", , name);
+        else
+            str = sprintf("%y: new list<%s>(", name, get_qore_type(name, type, format, items));
+        str += sprintf("%y,", getExampleValue(type, format));
+        str += ")";
+        if (decl)
+            str += ";\n";
+        return str;
     }
 
     #! creates a new ItemsObject and resolves any references
@@ -2866,9 +3007,47 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             example = oh.example;
     }
 
-    private checkObjectProperty(string name, string prop) {
-        if (type != "object")
-            throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y", name, prop, type);
+    #! returns example Qore code for the object
+    string getQoreExample(string name, reference<hash<RestQoreExampleCodeInfo>> rv, bool decl) {
+        if (type == "array") {
+            return items.getQoreExample(name, \rv, decl);
+        }
+
+        if (type != "object") {
+            softstring example = sprintf("%y", getExampleValue(type, format));
+            if (decl)
+                return sprintf("%s %s = %s\n;\n", get_qore_type(name, type, format, items), name, example);
+            return sprintf("%y: %s", name, example);
+        }
+
+        if (!rv.hashdecls{name}) {
+            string str = sprintf("hashdecl %s {\n", name);
+            foreach hash h in (properties.pairIterator()) {
+                str += sprintf("    %s %s", get_qore_type(h.key, h.value.type, h.value.format, h.value.items), h.key);
+                if (exists h.value.defaultVal)
+                    str += sprintf(" = %y", h.value.defaultVal);
+                str += ";\n";
+            }
+            str += "}\n";
+            rv.hashdecls{name} = str;
+        }
+
+        string str;
+        if (decl)
+            str = sprintf("hash<%s> %s(", name, name);
+        else
+            str = sprintf("%y: new hash<%s>(", name, name);
+        str += "{\n";
+        foreach hash h in (properties.pairIterator()) {
+            string pstr = h.value.getQoreExample(h.key, \rv, False);
+            # add 4 spaces to the beginning of each line
+            str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
+            str += ",\n";
+        }
+        str += "})";
+        if (decl)
+            str += ";\n";
+        return str;
     }
 
     #! validates the value against the schema definition
@@ -2877,6 +3056,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             throw "READONLY-PROPERTY-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
 
         SchemaBase::check(serialize, request, type, items, path, method, name, \value);
+    }
+
+    private checkObjectProperty(string name, string prop) {
+        if (type != "object")
+            throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y", name, prop, type);
     }
 
     #! validates a schema object against a value
@@ -3233,5 +3417,30 @@ namespace Priv {
         }
         else
             target = val;
+    }
+
+    #! returns the Qore type for the given schema type
+    string sub get_qore_type(string name, string type, *string format, *ItemsObject items) {
+        switch (type) {
+            case "array": return sprintf("list<%s>", get_qore_type(name, items.type, items.format, items.items));
+            case "integer": return "int";
+            case "boolean": return "bool";
+            case "number":
+            case "float": return type;
+            case "string": {
+                switch (format) {
+                    case "byte":
+                    case "binary":
+                        return "binary";
+                    case "date":
+                    case "date-time":
+                        return "date";
+                }
+                return "string";
+            }
+            case "null": return "nothing";
+            case "object": return sprintf("hash<%s>", name);
+        }
+        return sprintf("unknown<%s = %s>", name, type);
     }
 }

@@ -131,6 +131,15 @@ public namespace RestSchemaValidator {
         string body;
     }
 
+    #! a hash giving example information for building a request or response in Qore
+    public hashdecl RestQoreExampleCodeInfo {
+        #! a hash giving example hashdecl declarations for hash objects in the message; keys are hashdecl names; string values are Qore example code declarations of the given hashdecl
+        hash<string, string> hashdecls();
+
+        #! a string giving the example code generation
+        string example;
+    }
+
     #! abstract REST schema validation classes
     public class AbstractRestSchemaValidator {
         #! returns the target URL for the schema
@@ -202,13 +211,13 @@ public namespace RestSchemaValidator {
             return parseResponseImpl(method, path, code, response_body, hdr);
         }
 
-        #! returns example Qore code for the given request
+        #! returns a hash of example Qore code for the given request
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a string giving example Qore code to generate the given message
+            @return a hash of example Qore code to generate the given message
         */
-        string getQoreExampleRequest(string method, string path) {
+        hash<RestQoreExampleCodeInfo> getQoreExampleRequest(string method, string path) {
             return getQoreExampleRequestImpl(method, path);
         }
 
@@ -293,13 +302,13 @@ public namespace RestSchemaValidator {
         */
         private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
 
-        #! returns example Qore code for the given request
+        #! returns a hash of example Qore code for the given request
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a string giving example Qore code to generate the given message
+            @return a hash of example Qore code to generate the given message
         */
-        private abstract string getQoreExampleRequestImpl(string method, string path);
+        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path);
 
         #! returns a hash of example message information for the given request
         /** @param method the HTTP method (case insensitive)
@@ -514,7 +523,7 @@ public namespace RestSchemaValidator {
                 if (!ct)
                     return AbstractHttpRequestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body);
                 headers."Content-Type" = ct;
-                response_body = DataSerializationSupport{ct}(response_body);
+                response_body = DataSerializationSupport.firstValue()(response_body);
             }
 
             return cast<hash<HttpResponseInfo>>((
@@ -558,14 +567,14 @@ public namespace RestSchemaValidator {
             return rv;
         }
 
-        #! returns example Qore code for the given request
+        #! returns a hash of example Qore code for the given request
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a string giving example Qore code to generate the given message
+            @return a hash of example Qore code to generate the given message
         */
-        private string getQoreExampleRequestImpl(string method, string path) {
-            return "";
+        private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
+            return new hash<RestQoreExampleCodeInfo>();
         }
 
         #! returns a hash of example message information for the given request
