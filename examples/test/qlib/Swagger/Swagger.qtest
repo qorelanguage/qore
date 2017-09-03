@@ -1610,6 +1610,19 @@ public class SwaggerTest inherits QUnit::Test {
         so.processRequest("get", "/pet/findByStatus?status=available");
         assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
 
+        # test arrays in parameters
+        {
+            string uri = "/pet/findByTags?tags=tag1;tags=tag2";
+            hash<RestRequestClientInfo> req = so.processRequest("GET", uri);
+            assertEq(uri, req.uri_path);
+        }
+
+        {
+            string uri = "/pet/findByTags?tags=tag1&tags=tag2";
+            hash<RestRequestClientInfo> req = so.processRequest("GET", uri);
+            assertEq(uri, req.uri_path);
+        }
+
         {
             hash tag1 = (
                 "id": 1,

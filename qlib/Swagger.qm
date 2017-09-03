@@ -919,8 +919,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
         @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
-        - \c body the serialized message body (if any)
-        - \c content the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+        - \c uri_path: the URI request with any query arguments
+        - \c body: the serialized message body (if any)
+        - \c content: the MIME type for the serialized body (if any) to be used for the \c Content-Type header
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
@@ -941,7 +942,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         if (h.params) {
             string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
-            rv.uri_path += "?" + (foldl $1 + query_arg_separator + $2, (map sprintf("%s=%s", $1.key, $1.value), h.params.pairIterator()));
+            rv.uri_path = make_uri_query(h, query_arg_separator);
         }
 
         if (!body)
