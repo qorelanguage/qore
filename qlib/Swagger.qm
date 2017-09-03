@@ -3116,11 +3116,14 @@ public class ParameterItemsSchemaObject inherits SchemaObject {
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
     private constructor(string name, hash oh, SwaggerSchema swagger) : SchemaObject(name, oh, swagger) {
-        if (optional_field("Parameter Items Schema Object", oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+        if (optional_field("Parameter Items Schema", oh, "collectionFormat", NT_STRING, \collectionFormat)) {
             if (!CollectionFormats{collectionFormat})
                 throw "INVALID-FIELD-VALUE",
                     sprintf("Parameter Items Schema Object %y: invalid collectionFormat value %y; expected one of: %y", name, collectionFormat, keys CollectionFormats);
         }
+        if (type == "object")
+            throw "INVALID-FIELD-VALUE",
+                sprintf("Parameter Items Schema Object %y: invalid type value \"object\"; parameter items must be basic types and cannot be objects", name);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
@@ -3138,7 +3141,7 @@ public class ParameterItemsSchemaObject inherits SchemaObject {
     */
     static ParameterItemsSchemaObject newSchemaObject(string name, hash oh, SwaggerSchema swagger) {
         string refstr;
-        if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
+        if (optional_field("Parameter Items Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveParameterItemsSchemaObject(name, refstr, oh);
         return new ParameterItemsSchemaObject(name, oh, swagger);
     }
