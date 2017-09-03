@@ -122,6 +122,189 @@ public class SwaggerTest inherits QUnit::Test {
 
         const OtherYamlErr = '{type: object, properties: {name: {type: string}}}';
         const OtherYamlOk = '{info: {type: object, properties: {name: {type: string}}}}';
+
+        const JsonRequestMessages = (
+            "/pet": (
+                "post": '{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "name": "doggie",
+  "photoUrls": [
+    "string"
+  ],
+  "tags": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "status": "available"
+}',
+                "put": '{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "name": "doggie",
+  "photoUrls": [
+    "string"
+  ],
+  "tags": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "status": "available"
+}',
+            ),
+            "/pet/findByStatus?status=available": (
+                "get": NOTHING,
+            ),
+            "/store/order": (
+                "post": '{
+  "id": 0,
+  "petId": 0,
+  "quantity": 0,
+  "shipDate": "2017-09-03T14:16:20.924Z",
+  "status": "placed",
+  "complete": false
+}',
+            ),
+        );
+
+        const JsonResponseMessages = (
+            "/store/inventory": (
+                "get": (
+                    200: "{
+  \"1\": 1,
+  \"3\": 1,
+  \"111\": 1,
+  \"11111\": 1,
+  \"12312\": 1,
+  \"21212\": 1,
+  \"32432fsfdsfesfsaffwr3432432fdsfsfsff324324323242qafwfwsfwsfefew4324324324sdfdsafsfsafsfsfw324324324123dfsafdsf\": 1,
+  \"unavailable\": 9,
+  \"pending123\": 2,
+  \"bbbbbb\": 1,
+  \"werewrw\": 1,
+  \"олл\": 1,
+  \"xxxxxxxx\": 2,
+  \"рор\": 1,
+  \"ewrwerwe\": 1,
+  \"availableeeeeeee\": 1,
+  \"рот\": 1,
+  \"Available\": 3323,
+  \"цукуцк\": 1,
+  \"мдфв\": 1,
+  \"Vicious\": 1,
+  \"Gð©A\\\u0011.\": 1,
+  \"pata\": 10,
+  \"completed\": 4,
+  \"одб\": 1,
+  \"bzdbznzdn\": 1,
+  \"йуйц\": 1,
+  \"ghthg\": 1,
+  \"dfdgdfh\": 1,
+  \"qweqwe\": 2,
+  \"ertewer\": 1,
+  \"уйцуйц\": 1,
+  \"уцкцу\": 1,
+  \"status\": 21,
+  \"rr\": 1,
+  \"рото\": 1,
+  \"dead\": 1,
+  \"stringgg\": 23,
+  \"cute\": 1,
+  \"sover\": 1,
+  \"notavailable\": 2,
+  \"пот\": 1,
+  \"werwer\": 2,
+  \"taken\": 1,
+  \"fth\": 1,
+  \"available333\": 3,
+  \"available2222\": 3,
+  \"укаука\": 1,
+  \"wrwerw\": 1,
+  \"salt\": 4,
+  \"available2\": 1,
+  \"born\": 1,
+  \"qweq\": 1,
+  \"available1\": 2,
+  \"hhh\": 1,
+  \"aaaaaa\": 1,
+  \"уцкцук\": 2,
+  \"ronaldo\": 1,
+  \"vbsdbsdbsdbsd\": 2,
+  \"vlad\": 3,
+  \"rwetert\": 1,
+  \"retrete\": 1,
+  \"s\": 1,
+  \"|\u001cf\bgOS@D\": 1,
+  \"енн\": 2,
+  \"available\": 13335,
+  \"new avlbl\": 1,
+  \"werwe\": 1,
+  \"addedascanine\": 28,
+  \"ывыаыв\": 1,
+  \"available \": 1,
+  \"мдывапа\": 1,
+  \"йцуйцу\": 3,
+  \"проо\": 2,
+  \"цукцу\": 2,
+  \"jhjhjhj\": 1,
+  \"test\": 5,
+  \"йцу\": 3,
+  \"xxxxx\": 2,
+  \"done\": 3,
+  \"nnn\": 1,
+  \"escaped\": 1,
+  \"еукеу\": 1,
+  \"\u0000\u0001\u00104~\u0012Ý\u0006\u0019\u000fN\": 1,
+  \"vvv\": 1,
+  \"true\": 1,
+  \"retertrey\": 1,
+  \"werr\": 1,
+  \"/¤<\\4uBRµÁÄ\": 1,
+  \"updated\": 1,
+  \"erwerwe\": 1,
+  \"UNavailable\": 1,
+  \"string\": 67283,
+  \"sail\": 1,
+  \"eee\": 2,
+  \"avai12lable\": 2,
+  \"foo\": 1,
+  \"pending\": 324,
+  \"available;pending;sold\": 4,
+  \"avale\": 1,
+  \"Sold\": 4,
+  \"not available\": 1,
+  \"7g5C\f`l\": 1,
+  \"passed\": 1,
+  \"msvc\": 1,
+  \"gogo\": 1,
+  \"sold\": 356,
+  \"false\": 2,
+  \"\\\"Qw\": 1,
+  \"now available\": 1,
+  \"rtyr\": 1,
+  \"ffhh\": 2,
+  \"availableaaa\": 2,
+  \"SOLD\": 1,
+  \"Single\": 1,
+  \"3333available\": 1,
+  \"wrew\": 1,
+  \"\u0019!\b¬í\u001cY'\": 1,
+  \"availble\": 2,
+  \"verybig\": 1
+}",
+                ),
+            ),
+        );
     }
 
     constructor() : Test("SwaggerTest", "1.0") {
@@ -147,6 +330,7 @@ public class SwaggerTest inherits QUnit::Test {
         addTestCase("Test ScopesObject", \testScopesObject());
         addTestCase("Test validation", \testValidation());
         addTestCase("Test examples", \testExamples());
+        addTestCase("Test real msgs", \testRealMessages());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -1742,6 +1926,33 @@ public class SwaggerTest inherits QUnit::Test {
         #printf("res: %N\n", res);
         #printf("qex: %N\n", qex);
         #printf("rex: %N\n", rex);
+    }
+
+    testRealMessages() {
+        checkModules();
+
+        testRealMessages(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testRealMessages(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
+    }
+
+    testRealMessages(SwaggerSchema so) {
+        foreach hash h in (JsonRequestMessages.pairIterator()) {
+            foreach hash mh in (h.value.pairIterator()) {
+                hash hdr."content-type" = MimeTypeJson;
+                hash<RestRequestServerInfo> sh = so.parseRequest(mh.key, h.key, mh.value, \hdr);
+                assertEq(Type::Hash, sh.type());
+            }
+        }
+
+        foreach hash h in (JsonResponseMessages.pairIterator()) {
+            foreach hash mh in (h.value.pairIterator()) {
+                foreach hash ch in (mh.value.pairIterator()) {
+                    hash hdr."content-type" = MimeTypeJson;
+                    hash<RestResponseClientInfo> sh = so.parseResponse(mh.key, h.key, ch.key.toInt(), ch.value, hdr);
+                    assertEq(Type::Hash, sh.type());
+                }
+            }
+        }
     }
 
     static string makeBody(any b) {

@@ -954,9 +954,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             else {
                 *code ds = MimeDataTypes.(headers."content-type").deserialize;
                 if (!ds)
-                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, headers."content-type", MimeContentTypes, SerializationModules);
+                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
 
-                body = ds(http_body);
+                any any_body = ds(http_body);
+                if (exists any_body) {
+                    if (any_body.typeCode() != NT_HASH)
+                        throw "DESERIALIZATION-ERROR", sprintf("%s %s: message body serialized to %y; expecting \"hash\"", method.upr(), path, any_body.type());
+                    body = any_body;
+                }
             }
         }
 
@@ -3114,7 +3119,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
                     if (additionalProperties instanceof SchemaObject)
-                        prop = additionalProperties.properties{key};
+                        prop = additionalProperties;
                     if (!prop)
                         throw "INVALID-PROPERTY", sprintf("property %y is not valid for object %y", key, name);
                 }
