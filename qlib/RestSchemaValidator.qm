@@ -215,7 +215,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a hash of example Qore code to generate the given message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
         */
         hash<RestQoreExampleCodeInfo> getQoreExampleRequest(string method, string path) {
             return getQoreExampleRequestImpl(method, path);
@@ -237,9 +237,9 @@ public namespace RestSchemaValidator {
             @param path the URI path of the original request
             @param int code the HTTP response code of the response
 
-            @return a string giving example Qore code to generate the given response message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
         */
-        string getQoreExampleResponse(string method, string path, int code) {
+        hash<RestQoreExampleCodeInfo> getQoreExampleResponse(string method, string path, int code) {
             return getQoreExampleResponseImpl(method, path, code);
         }
 
@@ -304,7 +304,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a hash of example Qore code to generate the given message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
         */
         private abstract hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path);
 
@@ -322,9 +322,9 @@ public namespace RestSchemaValidator {
             @param path the URI path of the original request
             @param int code the HTTP response code of the response
 
-            @return a string giving example Qore code to generate the given response message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
         */
-        private abstract string getQoreExampleResponseImpl(string method, string path, int code);
+        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code);
 
         #! returns a hash of example message information for the given request
         /** @param method the HTTP method of the original request (case insensitive)
@@ -332,7 +332,7 @@ public namespace RestSchemaValidator {
             @param code the HTTP response code of the response
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-            @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+            @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
         private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types);
     }
@@ -567,7 +567,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case insensitive)
             @param path the URI path of the request
 
-            @return a hash of example Qore code to generate the given message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
         */
         private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
             return new hash<RestQoreExampleCodeInfo>();
@@ -589,10 +589,10 @@ public namespace RestSchemaValidator {
             @param path the URI path of the original request
             @param int code the HTTP response code of the response
 
-            @return a string giving example Qore code to generate the given response message
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
         */
-        private string getQoreExampleResponseImpl(string method, string path, int code) {
-            return "";
+        private hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code) {
+            return new hash<RestQoreExampleCodeInfo>();
         }
 
         #! returns a hash of example message information for the given request
@@ -601,7 +601,7 @@ public namespace RestSchemaValidator {
             @param code the HTTP response code of the response
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-            @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+            @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
         private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
             return new hash<RestExampleResponseInfo>();

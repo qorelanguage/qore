@@ -1089,7 +1089,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case insensitive)
         @param path the URI path of the request
 
-        @return a string giving example Qore code to generate the given message
+        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
     */
     private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
         method = method.lwr();
@@ -1104,7 +1104,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param path the URI path of the request
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-        @return a @ref RestExampleRequestInfo of example message information for the given request
+        @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
     */
     private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
         method = method.lwr();
@@ -1126,12 +1126,16 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! returns example Qore code for the given response
     /** @param method the HTTP method of the original request (case insensitive)
         @param path the URI path of the original request
-        @param int code the HTTP response code of the response
+        @param code the HTTP response code of the response
 
-        @return a string giving example Qore code to generate the given response message
+        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
     */
-    private string getQoreExampleResponseImpl(string method, string path, int code) {
-        return "";
+    private hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code) {
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        return op.getQoreExampleResponse(method, path, code);
     }
 
     #! returns a hash of example message information for the given request
@@ -1140,7 +1144,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param code the HTTP response code of the response
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
-        @return a @ref RestExampleResponseInfo of example response message information corresponding to the arguments
+        @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
     */
     private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
         return new hash<RestExampleResponseInfo>();
@@ -1886,7 +1890,7 @@ public class OperationObject inherits ObjectBase {
         @param pio the PathItemObject corresponding to the URI path
         @param swagger the schema object itself
 
-        @return a string giving example Qore code to generate the given message
+        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
     */
     hash<RestQoreExampleCodeInfo> getQoreExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger) {
         hash<RestQoreExampleCodeInfo> rv();
@@ -1955,6 +1959,26 @@ public class OperationObject inherits ObjectBase {
         *BodyParameter body_po = body ?? pio.body;
         if (body_po)
             rbody = body_po.getExampleValue();
+
+        return rv;
+    }
+
+    #! returns example Qore code for the given response
+    /** @param method the HTTP method of the original request (case insensitive)
+        @param path the URI path of the original request
+        @param pio the PathItemObject corresponding to the URI path
+        @param code the HTTP response code of the response
+
+        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
+    */
+    hash<RestQoreExampleCodeInfo> getQoreExampleResponse(string method, string path, int code) {
+        hash<RestQoreExampleCodeInfo> rv();
+
+        *ResponseObject res = getResponse(code);
+        if (res.schema)
+            rv.example = res.schema.getQoreExample(\rv, "body", True);
+
+        rv.example += sprintf("return RestHandler::makeResponse(%d%s);\n", code, rv.example ? ", body" : "");
 
         return rv;
     }
@@ -2957,7 +2981,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (type != "object") {
             softstring example = sprintf("%y", getExampleValue());
             if (decl)
-                return sprintf("%s %s = %s\n;\n", typestr, name, example);
+                return sprintf("%s %s = %s;\n", typestr, name, example);
             return example;
         }
 
