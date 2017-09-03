@@ -224,6 +224,8 @@
         - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
         - added a minimal substring of string bodies received to the log message when logging HTTP requests
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module updates:
+        - the \c parse_uri_query() function was moved to the <a href="../../modules/Util/html/index.html">Util</a> module
       - <a href="../../modules/Mime/html/index.html">Mime</a> module updates:
         - added complex type support
         - added the following constants:
@@ -271,6 +273,9 @@
         - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - added support for URLs in the constructor()
         - added the \c TelnetClient::getTarget() method
+      - <a href="../../modules/Util/html/index.html">Util</a> module updates:
+        - the \c parse_uri_query() function was moved here from the <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module
+        - \c parse_uri_query() now handles repeated query arguments as a list
       - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
         - added the \c WebSocketConnectionObject class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - updated for complex types
