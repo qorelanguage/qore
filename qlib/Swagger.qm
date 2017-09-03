@@ -89,6 +89,19 @@ public const ValidNumberFormats = ("double", "float");
 #! Valid string type formats
 public const ValidStringFormats = ("binary", "byte", "date", "date-time", "password");
 
+#! allowed collection formats
+public const CollectionFormats = (
+    "csv": True,
+    "ssv": True,
+    "tsv": True,
+    "pipes": True,
+);
+
+#! valid parameter collection formats
+public const ParameterCollectionFormats = CollectionFormats + (
+    "multi": True,
+);
+
 #! A hash of valid integer type formats
 public const ValidIntFormatsHash = map {$1: True}, ValidIntFormats;
 #! A hash of valid number type formats
@@ -171,7 +184,7 @@ class ObjectBase {
     }
 }
 
-#! Base used by @ref OtherParameter, @ref ItemsObject, @ref HeaderObject and @ref SchemaObject.
+#! Base used by @ref OtherParameter, @ref HeaderObject and @ref SchemaObject.
 class SchemaBase {
     public {
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.2.
@@ -277,7 +290,7 @@ class SchemaBase {
 
 
     #! validates the value against the schema definition
-    private check(bool serialize, bool request, string type, *ItemsObject items, string path, string method, string name, reference value) {
+    private check(bool serialize, bool request, string type, *SchemaObject items, string path, string method, string name, reference value) {
         # accept a single value for an array (= one-element list)
         if (type == "array")
             checkArrayParam(serialize, request, items, path, method, name, \value);
@@ -402,7 +415,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkArrayParam(bool serialize, bool request, ItemsObject items, string path, string method, string name, reference<softlist> value) {
+    private checkArrayParam(bool serialize, bool request, SchemaObject items, string path, string method, string name, reference<softlist> value) {
         if (exists maxItems && value.size() > maxItems)
             throw "INVALID-PARAMETER-VALUE",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
@@ -832,6 +845,25 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return ref;
     }
 
+    #! resolves a reference to a parameter items schema object
+    /** @throw INVALID-REFERENCE invalid reference
+    */
+    ParameterItemsSchemaObject resolveParameterItemsSchemaObject(string name, string refstr, hash oh) {
+        # resolve external reference
+        if (refstr !~ /^#\//)
+            return ParameterItemsSchemaObject::newSchemaObject(name, getExternalReference(refstr), self);
+        if (refstr !~ /^#\/definitions\//)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve parameter items SchemaObject %y reference %y", name, refstr);
+        string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
+        *SchemaObject ref = definitions{rstr};
+        if (!ref)
+            throw "INVALID-REFERENCE", sprintf("cannot resolve parameter items SchemaObject %y reference %y", name, refstr);
+        int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
+        if (size > 1)
+            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
+        return ref;
+    }
+
     #! resolves a reference to a parameter
     /** @throw INVALID-REFERENCE invalid reference
     */
@@ -868,25 +900,6 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (size > 1)
             throw "INVALID-RESPONSE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
         return res;
-    }
-
-    #! resolves a reference to an ItemsObject
-    /** @throw INVALID-ITEMS invalid ItemsObject reference
-    */
-    ItemsObject resolveItems(string refstr, hash oh) {
-        # resolve external reference
-        if (refstr !~ /^#\//)
-            return ItemsObject::newItemsObject(getExternalReference(refstr), NOTHING, self);
-        if (refstr !~ /^#\/definitions\//)
-            throw "INVALID-ITEMS", sprintf("cannot resolve ItemsObject reference %y; expecting \"#/responses/...\"", refstr);
-        string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
-        *SchemaObject ref = definitions{rstr};
-        if (!ref)
-            throw "INVALID-ITEMS", sprintf("cannot resolve ItemsObject reference %y; known definition references: %y", refstr, keys definitions);
-        int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
-        if (size > 1)
-            throw "INVALID-ITEMS", sprintf("Invalid attribute(s) in ItemsObject reference: %y", (map $1, keys oh, $1 !~ /^x-/));
-        return new ItemsObject(ref);
     }
 
     #! returns the target URL for the schema
@@ -2114,7 +2127,7 @@ public class AbstractParameterObject inherits ObjectBase {
         if (oh."in" == "body")
             return new BodyParameter(oh, swagger);
         else if (OtherParameterMap{oh."in"})
-            return new OtherParameter(oh, swagger);
+            return new OtherParameter(name, oh, swagger);
         throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid location (\"in\") parameter value: %y", name, oh."in");
     }
 }
@@ -2147,7 +2160,7 @@ public class BodyParameter inherits AbstractParameterObject {
 
     #! generates Qore example code for a REST API call
     string getQoreExample(reference<hash<RestQoreExampleCodeInfo>> rv) {
-        return schema.getQoreExample("rest_body", \rv, True);
+        return schema.getQoreExample(\rv, "rest_body", True);
     }
 }
 
@@ -2178,7 +2191,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         bool allowEmptyValue = False;
 
         #! Required if @ref OtherParameter::type "type" is \c "array". Describes the type of items in the array.
-        *ItemsObject items;
+        *ParameterItemsSchemaObject items;
 
         #! Determines the format of the array if type array is used.
         /**
@@ -2210,11 +2223,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         const ParameterTypes = SchemaObject::ScalarTypes + (
             "file": True,
         );
-
-        #! valid collection formats
-        const CollectionFormats = ItemsObject::CollectionFormats + (
-            "multi": True,
-        );
     }
 
     #! Constructor.
@@ -2226,27 +2234,33 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh, SwaggerSchema swagger) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
+    public constructor(string name, hash oh, SwaggerSchema swagger) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!ParameterTypes{type})
-            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object: invalid parameter type value passed: %y, expecting one of: %y", type, keys ParameterTypes);
+            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, expecting one of: %y", name, type, keys ParameterTypes);
         if (type == "array") {
-            items = ItemsObject::newItemsObject(oh, CollectionFormats, swagger);
-            if (items.collectionFormat == "multi" && inLoc != "query" && inLoc != "formData")
-                throw "INVALID-FIELD-VALUE",
-                    "Parameter Object: invalid collectionFormat value 'multi' - is only valid when 'in' (location) is either 'query' or 'formData'";
+            items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+                if (!ParameterCollectionFormats{collectionFormat})
+                    throw "INVALID-FIELD-VALUE",
+                        sprintf("Parameter Object %y: invalid collectionFormat value %y; expected one of: %y", name, collectionFormat, keys ParameterCollectionFormats);
+
+                if (collectionFormat == "multi" && inLoc != "query" && inLoc != "formData")
+                    throw "INVALID-FIELD-VALUE",
+                        sprintf("Parameter Object %y: invalid collectionFormat value 'multi' - is only valid when 'in' (location) is either 'query' or 'formData'", name);
+            }
         }
         else if (oh.collectionFormat)
-            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", type, oh.collectionFormat);
+            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object %y: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", name, type, oh.collectionFormat);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid integer type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid integer type format value passed: %y", name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid number type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid number type format value passed: %y", name, format);
             else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Parameter Object: invalid string type format value passed: " + format;
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid string type format value passed: %y", name, format);
         }
 
         optional_field(objType, oh, "allowEmptyValue", NT_BOOLEAN, \allowEmptyValue);
@@ -2262,9 +2276,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                     sprintf("Parameter Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
-            /*if (type == "array")
-                defaultVal = new ItemsObject(defaultVal);*/
-
             # TODO file type default value
         }
     }
@@ -2377,145 +2388,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
 
         checkStringIntern(path, method, name, value);
-    }
-}
-
-#! A limited subset of JSON-Schema's items object.
-/**
-    It is used by parameter definitions that are not located @ref AbstractParameterObject::inLoc "in" \c "body".
- */
-public class ItemsObject inherits ObjectBase, SchemaBase {
-    public {
-        #! Required. The internal type of the array.
-        /**
-            The value MUST be one of \c "string", \c "number", \c "integer",
-            \c "boolean", or \c "array". Files and models are not allowed.
-         */
-        string type;
-
-        #! The extending format for the previously mentioned \c type. See Data Type Formats for further details.
-        *string format;
-
-        #! Required if type is \c "array". Describes the type of items in the array.
-        *ItemsObject items;
-
-        #! This is the format of this object.
-        /**
-            Possible values are:
-            - \c "csv" - comma separated values foo,bar.
-            - \c "ssv" - space separated values foo bar.
-            - \c "tsv" - tab separated values foo\\tbar.
-            - \c "pipes" - pipe separated values foo|bar.
-
-            Default value is \c "csv".
-         */
-        string collectionFormat = "csv";
-
-        #! Declares the value of the item that the server will use if none is provided.
-        /**
-            (Note: "default" has no meaning for required items.)
-            See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
-            Unlike JSON Schema this value MUST conform to the defined
-            @ref ItemsObject::type "type" for the data type.
-         */
-        any defaultVal;
-
-        #! allowed collection formats
-        const CollectionFormats = (
-            "csv": True,
-            "ssv": True,
-            "tsv": True,
-            "pipes": True,
-        );
-    }
-
-    #! Constructor.
-    /**
-        @param oh deserialized hash from the source schema description describing an item to be used by parameter definitions that are not located @ref AbstractParameterObject::inLoc "in" \c "body"
-        @param collectionFormats a hash of valid collection formats
-        @param swagger the REST schema for resolving references
-
-        @throws INVALID-FIELD-TYPE field has invalid type
-        @throws INVALID-FIELD-VALUE field has invalid value
-        @throws REQUIRED-FIELD-MISSING required field is missing
-     */
-    private constructor(hash oh, *hash<string, bool> collectionFormats, SwaggerSchema swagger) : ObjectBase(oh.items), SchemaBase("Items", oh.items) {
-        string objType = "Items";
-
-        hash itemsObj;
-        required_field(objType, oh, "items", NT_HASH, \itemsObj);
-
-        if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
-            if (collectionFormats && !collectionFormats{collectionFormat})
-                throw "INVALID-FIELD-VALUE", "Items Object: invalid collectionFormat value passed: " + collectionFormat;
-        }
-
-        required_field(objType, itemsObj, "type", NT_STRING, \type);
-        if (!SchemaObject::ScalarTypes{type})
-            throw "INVALID-FIELD-VALUE", "Items Object: invalid items type value passed: " + type;
-
-        if (type == "array")
-            items = ItemsObject::newItemsObject(itemsObj, CollectionFormats, swagger);
-        else if (itemsObj.collectionFormat)
-            throw "INVALID-FIELD-TYPE", sprintf("Items Object: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", type, itemsObj.collectionFormat);
-
-        if (optional_field(objType, itemsObj, "format", NT_STRING, \format)) {
-            if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Items Object: invalid integer type format value passed: " + format;
-            else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Items Object: invalid number type format value passed: " + format;
-            else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Items Object: invalid string type format value passed: " + format;
-        }
-
-        if (itemsObj.hasKey("default")) {
-            defaultVal = itemsObj.default;
-            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
-                (defaultVal.typeCode() == NT_INT && type != "integer") ||
-                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
-                (defaultVal.typeCode() == NT_STRING && type != "string") ||
-                (defaultVal.typeCode() == NT_LIST && type != "array"))
-                throw "INVALID-FIELD-TYPE",
-                    sprintf("Items Object: 'default' value has invalid type %y (should be %y)",
-                        defaultVal.type(), type);
-            # TODO array
-            /*if (type == "array")
-                defaultVal = new ItemsObject(defaultVal);*/
-        }
-    }
-
-    #! creates the object from a SchemaObject reference
-    constructor(SchemaObject obj) : ObjectBase(obj), SchemaBase(obj) {
-        self += obj.("type", "format", "items", "defaultVal");
-    }
-
-    #! validates the value against the schema definition
-    check(bool serialize, bool request, string path, string method, string name, reference value) {
-        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
-    }
-
-    #! returns example Qore code for the object
-    string getQoreExample(string name, reference<hash<RestQoreExampleCodeInfo>> rv, bool decl) {
-        string str;
-        if (decl)
-            str = sprintf("list<%s> %s(", , name);
-        else
-            str = sprintf("%y: new list<%s>(", name, get_qore_type(name, type, format, items));
-        str += sprintf("%y,", getExampleValue(type, format));
-        str += ")";
-        if (decl)
-            str += ";\n";
-        return str;
-    }
-
-    #! creates a new ItemsObject and resolves any references
-    static ItemsObject newItemsObject(hash oh, *hash<string, bool> collectionFormats, SwaggerSchema swagger) {
-        if (oh.items.typeCode() != NT_HASH)
-            throw "INVALID-FIELD-TYPE", sprintf("expecting a hash 'items' definition; got type %y instead", oh.items.type());
-        if (oh.items.hasKey("$ref"))
-            return swagger.resolveItems(oh.items."$ref", oh.items);
-
-        return new ItemsObject(oh, collectionFormats, swagger);
     }
 }
 
@@ -2655,7 +2527,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
         *string format;
 
         #! Required if @ref HeaderObject::type "type" is \c "array". Describes the type of items in the array.
-        *ItemsObject items;
+        *SchemaObject items;
 
         #! Determines the format of the array if type array is used.
         /**
@@ -2694,8 +2566,14 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
         if (!SchemaObject::ScalarTypes{type})
             throw "INVALID-FIELD-VALUE", "Header Object: invalid header type value passed: " + type;
 
-        if (type == "array")
-            items = ItemsObject::newItemsObject(oh, ItemsObject::CollectionFormats, swagger);
+        if (type == "array") {
+            items = SchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+                if (!CollectionFormats{collectionFormat})
+                    throw "INVALID-FIELD-VALUE",
+                        sprintf("Header Object: invalid collectionFormat value %y; expected one of: %y", collectionFormat, keys CollectionFormats);
+            }
+        }
         else if (oh.collectionFormat)
             throw "INVALID-FIELD-TYPE", sprintf("Header Object: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", type, oh.collectionFormat);
 
@@ -2721,8 +2599,6 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
                     sprintf("Header Object: 'default' value has invalid type %y (should be %y)",
                         defaultVal.type(), type);
             # TODO array
-            /*if (type == "array")
-                defaultVal = new ItemsObject(defaultVal);*/
         }
 
         # TODO default value type
@@ -2780,7 +2656,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         *string desc;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.3.1.
-        *ItemsObject items;
+        *SchemaObject items;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
         any defaultVal;
@@ -2893,7 +2769,6 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
-        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
@@ -2903,10 +2778,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!ReferenceTypes{type})
             throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
-        if (type == "array") {
-            # no collection formats for schema objects
-            items = ItemsObject::newItemsObject(oh, NOTHING, swagger);
-        }
+        if (type == "array")
+            items = newSchemaObject("items", oh.items, swagger);
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
@@ -2919,10 +2792,6 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                     sprintf("Schema Object %y: 'default' value has invalid type %y (should be %y)", name,
                         defaultVal.type(), type);
             # TODO array
-            /*
-            if (type == "array")
-                defaultVal = new ItemsObject(defaultVal);
-            */
             # TODO file
             # TODO other possibilities?
         }
@@ -3008,16 +2877,20 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! returns example Qore code for the object
-    string getQoreExample(string name, reference<hash<RestQoreExampleCodeInfo>> rv, bool decl) {
+    string getQoreExample(reference<hash<RestQoreExampleCodeInfo>> rv, string name, bool decl) {
+        string typestr = get_qore_type(name, type, format, items);
         if (type == "array") {
-            return items.getQoreExample(name, \rv, decl);
+            if (decl)
+                return sprintf("%s %s(%s,);\n", typestr, name, items.getQoreExample(\rv, name, False));
+            else
+                return sprintf("(%s,)", items.getQoreExample(\rv, name, False));
         }
 
         if (type != "object") {
             softstring example = sprintf("%y", getExampleValue(type, format));
             if (decl)
-                return sprintf("%s %s = %s\n;\n", get_qore_type(name, type, format, items), name, example);
-            return sprintf("%y: %s", name, example);
+                return sprintf("%s %s = %s\n;\n", typestr, name, example);
+            return example;
         }
 
         if (!rv.hashdecls{name}) {
@@ -3036,10 +2909,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (decl)
             str = sprintf("hash<%s> %s(", name, name);
         else
-            str = sprintf("%y: new hash<%s>(", name, name);
+            str = sprintf("new hash<%s>(", name);
         str += "{\n";
         foreach hash h in (properties.pairIterator()) {
-            string pstr = h.value.getQoreExample(h.key, \rv, False);
+            string pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
             # add 4 spaces to the beginning of each line
             str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
             str += ",\n";
@@ -3105,7 +2978,6 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
-        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
@@ -3114,6 +2986,82 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
         return new SchemaObject(name, oh, swagger);
+    }
+
+    #! throws an \c "INVALID-FIELD-TYPE" exception
+    /** @throws INVALID-FIELD-TYPE due to a type error in the call
+    */
+    static SchemaObject newSchemaObject(string name, any error, SwaggerSchema swagger) {
+        throw "INVALID-FIELD-TYPE", sprintf("invalid field type %y for key %y; expecting \"hash\"", error.type(), name);
+    }
+}
+
+#! items schema object for non-body parameters
+public class ParameterItemsSchemaObject inherits SchemaObject {
+    public {
+        #! Determines the format of the array if type array is used.
+        /**
+            Possible values are:
+            - \c "csv": comma separated values; ex: foo,bar
+            - \c "ssv": space separated values; ex: foo bar
+            - \c "tsv": tab separated values; ex: foo\\tbar
+            - \c "pipes": pipe separated values; ex: foo|bar
+            - \c "multi": corresponds to multiple parameter instances instead of
+                multiple values for a single instance <tt>foo=bar&foo=baz</tt>.
+                This is valid only for parameters @ref AbstractParameterObject::inLoc "in"
+                \c "query" or \c "formData".
+
+            Default value is \c "csv".
+         */
+        *string collectionFormat;
+    }
+
+    #! private constructor; use newSchemaObject() instead
+    /**
+        @param name the name of the object
+        @param oh deserialized hash from the source schema description describing an object in the schema
+        @param swagger the REST schema for resolving references
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
+        @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
+        @throws REQUIRED-FIELD-MISSING required field is missing
+     */
+    private constructor(string name, hash oh, SwaggerSchema swagger) : SchemaObject(name, oh, swagger) {
+        if (optional_field("Parameter Items Schema Object", oh, "collectionFormat", NT_STRING, \collectionFormat)) {
+            if (!CollectionFormats{collectionFormat})
+                throw "INVALID-FIELD-VALUE",
+                    sprintf("Parameter Items Schema Object %y: invalid collectionFormat value %y; expected one of: %y", name, collectionFormat, keys CollectionFormats);
+        }
+    }
+
+    #! returns a SchemaObject for the schema definition; resolves references
+    /**
+        @param name the name of the object
+        @param oh deserialized hash from the source schema description describing an object in the schema
+        @param swagger the REST schema for resolving references
+
+        @throws INVALID-FIELD-FORMAT field has invalid format
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws INVALID-FIELD-VALUE field has invalid value
+        @throws INVALID-COLLECTION-FORMAT invalid collectionFormat value
+        @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
+        @throws REQUIRED-FIELD-MISSING required field is missing
+    */
+    static ParameterItemsSchemaObject newSchemaObject(string name, hash oh, SwaggerSchema swagger) {
+        string refstr;
+        if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
+            return swagger.resolveParameterItemsSchemaObject(name, refstr, oh);
+        return new ParameterItemsSchemaObject(name, oh, swagger);
+    }
+
+    #! throws an \c "INVALID-FIELD-TYPE" exception
+    /** @throws INVALID-FIELD-TYPE due to a type error in the call
+    */
+    static ParameterItemsSchemaObject newSchemaObject(string name, any error, SwaggerSchema swagger) {
+        throw "INVALID-FIELD-TYPE", sprintf("invalid field type %y for key %y; expecting \"hash\"", error.type(), name);
     }
 }
 
@@ -3127,7 +3075,7 @@ public class XmlObject inherits ObjectBase {
     public {
         #! Replaces the name of the element/attribute used for the described schema property.
         /**
-            When defined within the @ref ItemsObject (\c items), it will affect
+            When defined within the \c items, it will affect
             the name of the individual XML elements within the list.
             When defined alongside \c type being \c array (outside the \c items),
             it will affect the wrapping element and only if \c wrapped is \c true.
@@ -3420,7 +3368,7 @@ namespace Priv {
     }
 
     #! returns the Qore type for the given schema type
-    string sub get_qore_type(string name, string type, *string format, *ItemsObject items) {
+    string sub get_qore_type(string name, string type, *string format, *SchemaObject items) {
         switch (type) {
             case "array": return sprintf("list<%s>", get_qore_type(name, items.type, items.format, items.items));
             case "integer": return "int";
