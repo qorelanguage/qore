@@ -788,7 +788,6 @@ hash: (1 member)
             str += foldl $1 + arg_separator + $2, (map sprintf("%s=%s", ph.key, $1), ph.value);
         }
         return h.method + "?" + str;
-        #return sprintf("%s?%s", h.method, (foldl $1 + arg_separator + $2, (map sprintf("%s=%s", $1.key, $1.value), h.params.pairIterator())));
     }
 
     #! function that returns a random string

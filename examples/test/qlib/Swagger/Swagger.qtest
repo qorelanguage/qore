@@ -323,7 +323,6 @@ public class SwaggerTest inherits QUnit::Test {
         addTestCase("Test ResponseObject", \testResponseObject());
         addTestCase("Test HeaderObject", \testHeaderObject());
         addTestCase("Test TagObject", \testTagObject());
-        addTestCase("Test ReferenceObject", \testReferenceObject());
         addTestCase("Test SchemaObject", \testSchemaObject());
         addTestCase("Test XmlObject", \testXmlObject());
         addTestCase("Test SecuritySchemeObject", \testSecuritySchemeObject());
@@ -1279,12 +1278,6 @@ public class SwaggerTest inherits QUnit::Test {
 
         tag = {"name": "a", "externalDocs": 5};
         assertThrows("INVALID-FIELD-TYPE", "externalDocs", loadyaml, make_yaml(base + {"tags": (tag,)}));
-    }
-
-    testReferenceObject() {
-        checkModules();
-
-        # TODO
     }
 
     testSchemaObject() {
