@@ -253,8 +253,16 @@ class SchemaBase {
 
     #! returns an example value for the given type
     private any getExampleValue(string type, *string format) {
-        if (enum)
-            return enum.firstKey();
+        if (enum) {
+            any rv = enum.firstKey();
+            switch (type) {
+                case "integer": rv = rv.toInt(); break;
+                case "float": rv = rv.toFloat(); break;
+                case "number": rv = rv.toNumber(); break;
+                case "boolean": rv = rv.toBool(); break;
+            }
+            return rv;
+        }
         switch (type) {
             case "string": {
                 switch (format) {
@@ -287,7 +295,6 @@ class SchemaBase {
                 return NOTHING;
         }
     }
-
 
     #! validates the value against the schema definition
     private check(bool serialize, bool request, string type, *SchemaObject items, string path, string method, string name, reference value) {
@@ -918,69 +925,12 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param headers any headers to include in the request
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
-        @return if there is no message body to serialize, an empty hash is returned, otherwise a hash is returned with the following keys:
-        - \c uri_path: the URI request with any query arguments
-        - \c body: the serialized message body (if any)
-        - \c content: the MIME type for the serialized body (if any) to be used for the \c Content-Type header
+        @return a @ref RestRequestClientInfo hash with information about the request
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
     private hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
-        hash<string, bool> mime_types;
-
-        hash<UriQueryInfo> h = parse_uri_query(path);
-        method = method.lwr();
-
-        PathItemObject pio = paths.match(h.method);
-        OperationObject op = pio.getOperation(method, h.method);
-
-        op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
-
-        hash<RestRequestClientInfo> rv((
-            "uri_path": h.method,
-        ));
-
-        if (h.params) {
-            string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
-            rv.uri_path = make_uri_query(h, query_arg_separator);
-        }
-
-        if (!body)
-            return rv;
-
-        if (!exists content_types)
-            content_types = MimeContentTypes;
-
-        foreach string content in (content_types) {
-            if (!mime_types{content})
-                continue;
-            if (content == MimeTypeMultipartFormData) {
-                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                    "name": $1.key,
-                    "filename": $1.key,
-                    "hdr": ("Content-Type": MimeTypeText),
-                    "body": $1.value,
-                  ))}, body.pairIterator());
-
-                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
-                return rv += (
-                    "body": mh.body,
-                    "content": mh.hdr."Content-Type",
-                );
-            }
-            if (!MimeDataTypes{content})
-                continue;
-            return rv += (
-                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
-                "content": content,
-            );
-        }
-        if (body)
-            if (content_types == MimeContentTypes)
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
-            else
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
-        return rv;
+        return processRequestIntern(method, path, body, headers, content_types, compact_serialization);
     }
 
     #! processes and parses a client request and returns the deserialized message body (if any)
@@ -1157,7 +1107,20 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @return a @ref RestExampleRequestInfo of example message information for the given request
     */
     private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
-        return new hash<RestExampleRequestInfo>();
+        method = method.lwr();
+        PathItemObject pio = paths.match(path);
+        OperationObject op = pio.getOperation(method, path);
+
+        any body;
+        hash<RestExampleRequestInfo> rv = op.getExampleRequest(method, path, pio, self, content_types, \body);
+        if (exists body) {
+            # serialize example body
+            hash<RestRequestClientInfo> req = processRequestIntern(method, path, body, rv.hdr, content_types, False);
+            rv.hdr."Content-Type" = req.content;
+            rv.body = req.body;
+        }
+
+        return rv;
     }
 
     #! returns example Qore code for the given response
@@ -1212,6 +1175,77 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             return h{int_ref};
         }
         return h;
+    }
+
+    #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+    /** @param method the HTTP method (case-insensitive)
+        @param path the URI path with any query arguments
+        @param body the unserialized message body data
+        @param headers any headers to include in the request
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+        @param compact_serialization overrides the internal \c compact_serialization flag
+
+        @return a @ref RestRequestClientInfo hash with information about the request
+
+        @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+    */
+    private:internal hash<RestRequestClientInfo> processRequestIntern(string method, string path, any body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
+        hash<string, bool> mime_types;
+
+        hash<UriQueryInfo> h = parse_uri_query(path);
+        method = method.lwr();
+
+        PathItemObject pio = paths.match(h.method);
+        OperationObject op = pio.getOperation(method, h.method);
+
+        op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
+
+        hash<RestRequestClientInfo> rv((
+            "uri_path": h.method,
+        ));
+
+        # rebuild URI query after processing
+        if (h.params) {
+            string query_arg_separator = (path =~ x/([;&])/)[0] ?? ";";
+            rv.uri_path = make_uri_query(cast<hash<UriQueryInfo>>(h), query_arg_separator);
+        }
+
+        if (!body)
+            return rv;
+
+        if (!exists content_types)
+            content_types = MimeContentTypes;
+
+        foreach string content in (content_types) {
+            if (!mime_types{content})
+                continue;
+            if (content == MimeTypeMultipartFormData) {
+                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                    "name": $1.key,
+                    "filename": $1.key,
+                    "hdr": ("Content-Type": MimeTypeText),
+                    "body": $1.value,
+                  ))}, body.pairIterator());
+
+                hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+                return rv += (
+                    "body": mh.body,
+                    "content": mh.hdr."Content-Type",
+                );
+            }
+            if (!MimeDataTypes{content})
+                continue;
+            return rv += (
+                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
+                "content": content,
+            );
+        }
+        if (body)
+            if (content_types == MimeContentTypes)
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            else
+                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+        return rv;
     }
 }
 
@@ -1847,9 +1881,10 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! returns example Qore code for the given request
-    /** @param method the HTTP method (case insensitive)
+    /** @param method the HTTP method (in lower case)
         @param path the URI path of the request
         @param pio the PathItemObject corresponding to the URI path
+        @param swagger the schema object itself
 
         @return a string giving example Qore code to generate the given message
     */
@@ -1864,10 +1899,8 @@ public class OperationObject inherits ObjectBase {
         getQoreExampleParams(\query, \headers, parameters);
         getQoreExampleParams(\query, \headers, pio.parameters, parameters);
 
-        if (query) {
-            path += "?";
-            path += foldl $1 + ";" + $2, (map sprintf("%s=%s", $1.key, $1.value), query.pairIterator());
-        }
+        if (query)
+            path = make_uri_query(cast<hash<UriQueryInfo>>(("method": path, "params": query)));
 
         rv.example = sprintf("RestClient client((\"url\": %y));\n", swagger.getTargetUrl());
 
@@ -1897,6 +1930,35 @@ public class OperationObject inherits ObjectBase {
         return rv;
     }
 
+    #! returns a hash of example message information for the given request
+    /** @param method the HTTP method (in lower case)
+        @param path the URI path of the request
+        @param pio the PathItemObject corresponding to the URI path
+        @param swagger the schema object itself
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+        @param body the output example body value, if any
+
+        @return a @ref RestExampleRequestInfo of example message information for the given request
+    */
+    hash<RestExampleRequestInfo> getExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger, *softlist<string> content_types, reference rbody) {
+        hash<RestExampleRequestInfo> rv();
+
+        #! URI query arguments
+        hash query;
+
+        getQoreExampleParams(\query, \rv.hdr, parameters);
+        getQoreExampleParams(\query, \rv.hdr, pio.parameters, parameters);
+
+        rv.request_uri = sprintf("%s %s HTTP/1.1", method.upr(), make_uri_query(cast<hash<UriQueryInfo>>(("method": path, "params": query))));
+
+        #! get example message body
+        *BodyParameter body_po = body ?? pio.body;
+        if (body_po)
+            rbody = body_po.getExampleValue();
+
+        return rv;
+    }
+
     private getQoreExampleParams(reference<hash> query, reference<hash> headers, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
@@ -1920,7 +1982,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! add default parameters
-    doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+    private doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
             if (child_params{ph.key} || ph.value.inLoc == "body")
@@ -1946,7 +2008,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! checks for missing params
-    checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+    private checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
             if (child_params{ph.key} || ph.value.inLoc == "body")
@@ -1975,12 +2037,12 @@ public class OperationObject inherits ObjectBase {
     #! returns the ResponseObject for hthe given HTTP code or @ref nothing if none is configured
     /** @return the ResponseObject for hthe given HTTP code or @ref nothing if none is configured
     */
-    *ResponseObject getResponse(int code) {
+    private *ResponseObject getResponse(int code) {
         return responses.responses{code} ?? responses.defaultResp;
     }
 
     #! raises an exception with context information
-    error(string err, string fmt) {
+    private error(string err, string fmt) {
         throw err, sprintf("%s %s Operation Object: %s", method.upr(), path, vsprintf(fmt, argv));
     }
 }
@@ -2163,6 +2225,11 @@ public class BodyParameter inherits AbstractParameterObject {
     string getQoreExample(reference<hash<RestQoreExampleCodeInfo>> rv) {
         return schema.getQoreExample(\rv, "rest_body", True);
     }
+
+    # returns an example value for a REST API call
+    any getExampleValue() {
+        return schema.getExampleValue();
+    }
 }
 
 #! @ref AbstractParameterObject specialization for parameters other than \c "body".
@@ -2300,7 +2367,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
     #! returns an example value of the parameter (default: @ref nothing)
     any getExampleValue() {
-        if (defaultVal)
+        if (exists defaultVal)
             return defaultVal;
         return getExampleValue(type, format);
     }
@@ -2888,7 +2955,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         }
 
         if (type != "object") {
-            softstring example = sprintf("%y", getExampleValue(type, format));
+            softstring example = sprintf("%y", getExampleValue());
             if (decl)
                 return sprintf("%s %s = %s\n;\n", typestr, name, example);
             return example;
@@ -2922,6 +2989,24 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (decl)
             str += ";\n";
         return str;
+    }
+
+    # returns an example value for a REST API call
+    any getExampleValue() {
+        if (exists example)
+            return example;
+        if (exists defaultVal)
+            return defaultVal;
+
+        if (type == "object") {
+            return map {$1.key: $1.value.getExampleValue()}, properties.pairIterator();
+        }
+
+        if (type == "array") {
+            return (items.getExampleValue(),);
+        }
+
+        return SchemaBase::getExampleValue(type, format);
     }
 
     #! validates the value against the schema definition
