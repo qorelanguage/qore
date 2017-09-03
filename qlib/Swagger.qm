@@ -925,11 +925,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param headers any headers to include in the request
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
-        @return a @ref RestRequestClientInfo hash with information about the request
+        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
-    private hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+    private hash<RestSchemaValidator::RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
         return processRequestIntern(method, path, body, headers, content_types, compact_serialization);
     }
 
@@ -1064,7 +1064,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
     */
-    private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+    private hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1159,11 +1159,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
         @param compact_serialization overrides the internal \c compact_serialization flag
 
-        @return a @ref RestRequestClientInfo hash with information about the request
+        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
-    private:internal hash<RestRequestClientInfo> processRequestIntern(string method, string path, any body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
+    private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, any body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
         hash<string, bool> mime_types;
 
         hash<UriQueryInfo> h = parse_uri_query(path);
@@ -1973,11 +1973,11 @@ public class OperationObject inherits ObjectBase {
         @param path the URI path of the request
         @param pio the PathItemObject corresponding to the URI path
         @param swagger the schema object itself
-        @param body the output example body value, if any
+        @param rbody the output example body value, if any
 
-        @return a @ref RestExampleRequestInfo of example message information for the given request
+        @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
     */
-    hash<RestExampleRequestInfo> getExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger, reference rbody) {
+    hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger, reference rbody) {
         hash<RestExampleRequestInfo> rv();
 
         #! URI query arguments
@@ -1999,7 +1999,6 @@ public class OperationObject inherits ObjectBase {
     #! returns example Qore code for the given response
     /** @param method the HTTP method of the original request (case insensitive)
         @param path the URI path of the original request
-        @param pio the PathItemObject corresponding to the URI path
         @param code the HTTP response code of the response
 
         @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
@@ -2370,6 +2369,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
     #! Constructor.
     /**
+        @param name the parameter name
         @param oh deserialized hash from the source schema description describing general parameters (other than \c "body" parameters)
         @param swagger the REST schema for resolving references
 

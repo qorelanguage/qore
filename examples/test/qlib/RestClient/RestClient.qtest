@@ -44,8 +44,8 @@ const VALUE_XMLRPC = (
         "output" : ("foo": 1),
     );
 const VALUE_YAML = (
-        "input" : "foo:\n bar: 1",
-        "output" : ("foo" : ("bar" : 1)),
+        "input": "foo:\n bar: 1\n other: '2017-01-01 00:00:00Z'",
+        "output": ("foo": ("bar": 1, "other": 2017-01-01Z)),
     );
 const VALUE_JSON = (
         "input" : "{\"foo\":{\"bar\":1}}",

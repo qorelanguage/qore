@@ -11,6 +11,7 @@
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
 
@@ -63,13 +64,15 @@ public class RestHandlerTest inherits QUnit::Test {
 
         const AllValues = ("1", "one", ListValue, SimpleHashValue, LargerHashValue, HashValue);
 
+        const AllYamlValues = AllValues + (now_us(), <bead>);
+
         const DataValues = (
 %ifndef NoXml
             "xml": AllValues,
 %endif
             "auto": AllValues,
 %ifndef NoYaml
-            "yaml": AllValues,
+            "yaml": AllYamlValues,
 %endif
 %ifndef NoJson
             "json": AllValues,
