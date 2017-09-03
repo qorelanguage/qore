@@ -1611,22 +1611,34 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
 
         {
+            hash tag1 = (
+                "id": 1,
+                "name": "n1",
+            );
+            hash tag2 = (
+                "id": 2,
+                "name": "n2",
+            );
             hash hdr = {};
             hash body = (
                 "name": "Scooby",
-                "photoUrls": (),
+                "photoUrls": ("str1",),
+                "tags": (tag1, tag2),
             );
             hash<RestRequestClientInfo> req = so.processRequest("POST", "/pet", body, hdr);
             assertEq(MimeTypeJson, req.content);
             assertEq(Type::String, req.body.type());
             assertEq("/pet", req.uri_path);
             assertEq("UTF-8", req.body.encoding());
+            #printf("req: %N\n", req);
 
             {
                 hdr = ("content-type": req.content);
                 hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
                 assertEq("Scooby", sh.body.name);
-                assertEq((), sh.body.photoUrls);
+                assertEq(("str1",), sh.body.photoUrls);
+                assertEq((tag1, tag2), sh.body.tags);
+                #printf("sh: %N\n", sh);
             }
 
             body += (
@@ -1648,7 +1660,8 @@ public class SwaggerTest inherits QUnit::Test {
                 hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
                 assertEq(100, sh.body.id);
                 assertEq("Scooby", sh.body.name);
-                assertEq((), sh.body.photoUrls);
+                assertEq(("str1",), sh.body.photoUrls);
+                assertEq((tag1, tag2), sh.body.tags);
                 assertEq("available", sh.body.status);
             }
 
