@@ -20,6 +20,11 @@ class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
         map send($1), WebSocketClientTest::Data;
     }
+
+    gotMessage(string msg) {
+        send("RESPONSE:"+msg);
+        #printf("GOT MSG: %y\n", msg);
+    }
 }
 
 class MyWsHandler inherits WebSocketHandler {
@@ -33,6 +38,7 @@ class WebSocketClientTest inherits QUnit::Test {
         HttpServer mServer;
         MyWsHandler wsHandler();
         int port;
+        int responseSize;
 
         const Data = (
             "test1",
@@ -58,19 +64,26 @@ class WebSocketClientTest inherits QUnit::Test {
         list l = ();
         Counter c(1);
         code cb = sub (*data msg) {
+            #printf("RECEIVED: %y\n", msg);
             if (exists msg) {
                 l += msg;
-                if (l.size() == Data.size())
+                if (l.size() == responseSize)
                     c.dec();
             }
         };
+        responseSize = Data.size();
         WebSocketClient wsc(cb, ("url": "ws://localhost:" + port));
         wsc.connect();
         c.waitForZero();
+        assertEq(Data, l);
+        c.inc();
+        l = ();
+        responseSize = 1;
+        wsc.send("REQUEST");
+        c.waitForZero();
+        assertEq(list("RESPONSE:REQUEST"), l);
         wsc.disconnect();
         delete wsc;
-
-        assertEq(Data, l);
     }
 
     private log(string str) {
