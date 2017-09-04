@@ -784,11 +784,17 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            set_include_path(yytext);
                                            BEGIN(INITIAL);
                                         }
+<append_path_state><<EOF>>              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 ^%append-module-path{WS}*$              { parse_error(get_loc(yylloc), "missing argument to %%append-module-path"); }
 ^%append-module-path{WS}+               BEGIN(append_module_state);
 <append_module_state>[^\n\r]+           {
                                            append_module_path(yytext);
                                            BEGIN(INITIAL);
+                                        }
+<append_module_state><<EOF>>            {
+                                           QORE_FLEX_DO_EOF
                                         }
 ^%set-time-zone{WS}*$                   { parse_error(get_loc(yylloc), "missing argument to %%set-time-zone"); }
 ^%set-time-zone{WS}+                    BEGIN(set_zone);
@@ -799,6 +805,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            else
                                               getProgram()->parseSetTimeZone(yytext);
                                            BEGIN(INITIAL);
+                                        }
+<set_zone><<EOF>>                       {
+                                           QORE_FLEX_DO_EOF
                                         }
 ^%enable-all-warnings{WS}*$             {
                                            if (getProgram()->setWarningMask(-1))
@@ -822,6 +831,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            free(cn);
                                            BEGIN(INITIAL);
                                         }
+<disable_warning><<EOF>>                {
+                                           QORE_FLEX_DO_EOF
+                                        }
 ^%enable-warning{WS}*$                  { parse_error(get_loc(yylloc), "missing argument to %%enable-warning"); }
 ^%enable-warning{WS}+                   BEGIN(enable_warning);
 <enable_warning>[^\n\r]+                {
@@ -834,6 +846,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               qore_program_private::makeParseWarning(getProgram(), get_loc(yylloc), QP_WARN_WARNING_MASK_UNCHANGED, "CANNOT-UPDATE-WARNING-MASK", "this program has its warning mask locked; cannot enable warning '%s'", cn);
                                            free(cn);
                                            BEGIN(INITIAL);
+                                        }
+<enable_warning><<EOF>>                 {
+                                           QORE_FLEX_DO_EOF
                                         }
 ^%exec-class{WS}*$                      { parse_error(get_loc(yylloc), "missing argument to %%exec-class"); }
 ^%exec-class{WS}+                       BEGIN(exec_class_state);
@@ -944,6 +959,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               }
                                            }
                                         }
+<try_module><<EOF>>                     {
+                                           QORE_FLEX_DO_EOF
+                                        }
 <p_skip_to_endtry>{
    ^%endtry{WS}*$                       {
                                            if (parse_try_module_dec(get_loc(yylloc))) {
@@ -966,6 +984,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #endif
                                         }
    \n                                   // ignore
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 ^%endtry{WS}*$                          parse_try_module_dec(get_loc(yylloc));
 ^%requires{WS}*$                        { parse_error(get_loc(yylloc), "missing argument to %%requires"); }
@@ -985,6 +1006,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               }
                                            }
                                            BEGIN(INITIAL);
+                                        }
+<requires><<EOF>>                       {
+                                           QORE_FLEX_DO_EOF
                                         }
 ^%module-cmd{WS}*$                      { parse_error(get_loc(yylloc), "missing argument to %%module-cmd"); }
 ^%module-cmd                            BEGIN(module_cmd);
@@ -1019,6 +1043,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            }
                                            BEGIN(INITIAL);
                                         }
+<module_cmd><<EOF>>                     {
+                                           QORE_FLEX_DO_EOF
+                                        }
 ^%define{WS}*$                          { parse_error(get_loc(yylloc), "missing argument to %%define"); }
 ^%define{WS}+                           BEGIN(p_def);
 <p_def>{WS}*                            // ignore white space
@@ -1041,6 +1068,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               BEGIN(p_skip_to_endif_or_else);
                                            }
                                         }
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 ^%ifndef{WS}*$                           { parse_error(get_loc(yylloc), "missing argument to %%ifndef"); }
 ^%ifndef{WS}+                            BEGIN(p_ifndef);
@@ -1056,6 +1086,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               // skip to the next %else or %endif
                                               BEGIN(p_skip_to_endif_or_else);
                                            }
+                                        }
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
                                         }
 }
 ^%else{WS}*$                            {
@@ -1088,6 +1121,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #endif
                                         }
    \n                                   // ignore
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 <p_skip_to_endif_or_else>{
    ^%else{WS}*$                         {
@@ -1117,6 +1153,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #endif
                                         }
    \n                                   // ignore
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 ^%endif{WS}*$                           parse_cond_pop(get_loc(yylloc));
 ^%include{WS}*$                         { parse_error(get_loc(yylloc), "missing argument to %%include"); }
@@ -1129,6 +1168,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            parse_set_parse_options(yylloc, PO_NO_TOP_LEVEL_STATEMENTS);
                                            free(cn);
                                            BEGIN(INITIAL);
+                                        }
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
                                         }
 }
 <incl>{WS}*                             // ignore white space
@@ -1192,7 +1234,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               }
                                            }
                                         }
-<<EOF>>                                 {
+<incl><<EOF>>                           {
+                                           QORE_FLEX_DO_EOF
+                                        }
+<INITIAL><<EOF>>                        {
                                            QORE_FLEX_DO_EOF
                                         }
 \"                                      yylval->String = new QoreStringNode; yylloc->saveFirst(); BEGIN(str_state);
@@ -1231,6 +1276,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            while (*yptr)
                                               yylval->String->concat(*(yptr++));
                                         }
+      <<EOF>>                           {
+                                            yylval->String->deref();
+                                            QORE_FLEX_DO_EOF
+                                        }
 }
 <regex_subst2>{
       \/                                {
@@ -1256,6 +1305,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            while (*yptr)
                                               yylval->RegexSubst->concatTarget(*(yptr++));
                                         }
+      <<EOF>>                           {
+                                            yylval->RegexSubst->deref();
+                                            QORE_FLEX_DO_EOF
+                                        }
 }
 <regex_subst1>{
       \/                                BEGIN(regex_subst2);
@@ -1266,6 +1319,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->RegexSubst->concatSource(*(yptr++));
+                                        }
+      <<EOF>>                           {
+                                            yylval->RegexSubst->deref();
+                                            QORE_FLEX_DO_EOF
                                         }
 }
 <regex_trans2>{
@@ -1290,6 +1347,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            while (*yptr)
                                               yylval->Trans->concatTarget(*(yptr++));
                                         }
+      <<EOF>>                           {
+                                           yylval->Trans->deref();
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 <regex_trans1>{
       -                                 yylval->Trans->setSourceRange();
@@ -1307,6 +1368,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->Trans->concatSource(*(yptr++));
+                                        }
+      <<EOF>>                           {
+                                           yylval->Trans->deref();
+                                           QORE_FLEX_DO_EOF
                                         }
 }
 <regex_state>{
@@ -1330,6 +1395,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            while (*yptr)
                                               yylval->Regex->concat(*(yptr++));
                                         }
+      <<EOF>>                           {
+                                           yylval->Regex->deref();
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 <regex_extract_state>{
       \/                                {
@@ -1351,6 +1420,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->Regex->concat(*(yptr++));
+                                        }
+      <<EOF>>                           {
+                                           yylval->Regex->deref();
+                                           QORE_FLEX_DO_EOF
                                         }
 }
 \#                                      {
@@ -1416,6 +1489,9 @@ case                                    BEGIN(case_state); return TOK_CASE;
    \/                                   yylval->Regex = new QoreRegex(); yylloc->saveFirst(); BEGIN(regex_state);
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 default                                 return TOK_DEFAULT;
 inherits                                return TOK_INHERITS;
@@ -1610,6 +1686,10 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                            }
                                         }
       [^>]                              yylval->String->concat(yytext);
+      <<EOF>>                           {
+                                           yylval->String->deref();
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
@@ -1705,12 +1785,18 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
    \/                                   yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error(get_loc(yylloc), "missing regular expression after =~"); BEGIN(INITIAL);
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 <regex_negative_universe>{
    m\/                                  yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
    \/                                   yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error(get_loc(yylloc), "missing regular expression after !~"); BEGIN(INITIAL);
+   <<EOF>>                              {
+                                           QORE_FLEX_DO_EOF
+                                        }
 }
 =\~                                     BEGIN(regex_googleplex); return REGEX_MATCH;
 \!\~                                    BEGIN(regex_negative_universe); return REGEX_NMATCH;
