@@ -93,12 +93,12 @@ static int rindex_simple_intern(const char* haystack, int hlen, const char* need
    if ((pos + nlen) > hlen) {
       pos = hlen - nlen;
       if (pos < 0)
-	 return -1;
+         return -1;
    }
 
    while (pos != -1) {
       if (!strncmp(haystack + pos, needle, nlen))
-	 return pos;
+         return pos;
       pos--;
    }
    return -1;
@@ -109,25 +109,25 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
    while (true) {
       const char* p = (const char* )memchr(str, pattern[0], len);
       if (!p)
-	 return 0;
+         return 0;
 
       //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
 
       // if there is not enough string left for the pattern, then return
       if ((len - (p - str)) < pl)
-	 return 0;
+         return 0;
 
       bool found = true;
       for (qore_size_t i = 1; i < pl; ++i) {
-	 if (pattern[i] != p[i]) {
-	    len -= (p - str + 1);
-	    str = p + 1;
-	    found = false;
-	    break;
-	 }
+         if (pattern[i] != p[i]) {
+            len -= (p - str + 1);
+            str = p + 1;
+            found = false;
+            break;
+         }
       }
       if (!found)
-	 continue;
+         continue;
 
       // found
       //printd(5, "memstr() got it! p: %p\n", p);
@@ -256,14 +256,14 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, in
    for (unsigned i = offset; i < l->size(); i++) {
       QoreValue p = l->retrieveEntry(i);
       if (!p.isNothing()) {
-	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-	 if (*xsink)
-	    return nullptr;
+         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+         if (*xsink)
+            return nullptr;
 
-	 str->concat(*t);
+         str->concat(*t);
       }
       if (i < (l->size() - 1))
-	 str->concat(p0);
+         str->concat(p0);
    }
 
    return str.release();
@@ -276,14 +276,14 @@ QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int
    for (unsigned i = offset; i < l->size(); i++) {
       const AbstractQoreNode* p = l->retrieve_entry(i);
       if (p) {
-	 QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-	 if (*xsink)
-	    return 0;
+         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+         if (*xsink)
+            return 0;
 
-	 str->concat(*t);
+         str->concat(*t);
       }
       if (i < (l->size() - 1))
-	 str->concat(p0);
+         str->concat(p0);
    }
 
    return str.release();
@@ -1182,62 +1182,66 @@ string str = replace("hello there", "there", "you"); # returns "hello you"
     @see regex_subst()
  */
 string replace(string str, string source, string target, int start = 0, int end = -1) [flags=RET_VALUE_ONLY] {
-   const QoreEncoding *ccs = str->getEncoding();
+    const QoreEncoding* ccs = str->getEncoding();
 
-   TempEncodingHelper t1(source, ccs, xsink);
-   if (*xsink)
-      return QoreValue();
+    TempEncodingHelper t1(source, ccs, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   if (t1->empty() || !end || (end > 0 && end < start))
-      return str->refSelf();
+    if (t1->empty() || !end || (end > 0 && end < start))
+        return str->refSelf();
 
-   TempEncodingHelper t2(target, ccs, xsink);
-   if (*xsink)
-      return QoreValue();
+    TempEncodingHelper t2(target, ccs, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   QoreStringNode* nstr = new QoreStringNode(ccs);
+    QoreStringNode* nstr = new QoreStringNode(ccs);
 
-   const char* cstr, *pattern;
-   cstr = str->getBuffer();
-   pattern = t1->getBuffer();
-   int plen = strlen(pattern);
+    const char* cstr = str->c_str();
+    size_t plen = t1->size();
 
-   if (start) {
-      const char* cn = cstr + str->size();
-      qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
-      cstr = cn;
-      if (*xsink || (i == str->size()))
-         return QoreValue();
+    // only execute the replace logic if there is a pattern
+    if (plen) {
+        const char* pattern = t1->c_str();
 
-      cstr += i;
-   }
+        if (start) {
+            const char* cn = cstr + str->size();
+            qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
+            cstr = cn;
+            if (*xsink || (i == str->size()))
+                return QoreValue();
 
-   if (end > 0) {
-      const char* cn = cstr + str->size();
-      qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
-      cstr = cn;
-      if (*xsink || i == str->size())
-         return QoreValue();
+            cstr += i;
+        }
 
-      cstr += i;
-   }
+        if (end > 0) {
+            const char* cn = cstr + str->size();
+            qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
+            cstr = cn;
+            if (*xsink || i == str->size())
+                return QoreValue();
 
-   while (const char* p = strstr(cstr, pattern)) {
-      //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->getBuffer());
-      if ((end > 0) && (p - str->getBuffer() + plen) > end)
-         break;
+            cstr += i;
+        }
 
-      if (p != cstr)
-	 nstr->concat(cstr, p - cstr);
-      nstr->concat(*t2);
+        while (const char* p = (const char*)memmem(cstr, str->size() - (cstr - str->c_str()), pattern, plen)) {
+            //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->c_str());
+            if ((end > 0) && (p - str->c_str() + plen) > end)
+                break;
 
-      cstr = p + plen;
-   }
-   // add last field
-   if (*cstr)
-      nstr->concat(cstr);
+            if (p != cstr)
+                nstr->concat(cstr, p - cstr);
+            nstr->concat(*t2);
 
-   return nstr;
+            cstr = p + plen;
+        }
+    }
+
+    // add last field
+    if (*cstr)
+        nstr->concat(cstr);
+
+    return nstr;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
