@@ -587,19 +587,19 @@ public namespace Mime {
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
-    public data sub mime_encode_transfer_data(data data, string enc) {
+    public data sub mime_encode_transfer_data(data mime_data, string enc) {
         enc = enc.lwr();
         switch (enc) {
             case ContentTransEnc7Bit:
             case ContentTransEnc8Bit:
             case ContentTransEncBinary:
-                return data;
+                return mime_data;
 
             case ContentTransEncBase64:
-                return mime_encode_base64(data, MimeBase64LineLen);
+                return mime_encode_base64(mime_data, MimeBase64LineLen);
 
             case ContentTransEncQuotedPrintable:
-                return mime_encode_quoted_printable(data);
+                return mime_encode_quoted_printable(mime_data);
         }
 
         throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", enc);
@@ -689,7 +689,7 @@ public namespace Mime {
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
-    public data sub mime_decode_transfer_data(data data, string enc, *string ct) {
+    public data sub mime_decode_transfer_data(data mime_data, string enc, *string ct) {
         enc = enc.lwr();
         switch (enc) {
             case ContentTransEnc7Bit:
@@ -698,12 +698,12 @@ public namespace Mime {
                 break;
 
             case ContentTransEncBase64: {
-                data = mime_decode_base64(data);
+                mime_data = mime_decode_base64(mime_data);
                 break;
             }
 
             case ContentTransEncQuotedPrintable: {
-                data = mime_decode_quoted_printable(data);
+                mime_data = mime_decode_quoted_printable(mime_data);
                 break;
             }
 
@@ -711,14 +711,14 @@ public namespace Mime {
                 throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", enc);
         }
 
-        if (data.typeCode() == NT_STRING) {
+        if (mime_data.typeCode() == NT_STRING) {
             # see if there is a character encoding specification in the content-type
             *string senc = (ct =~ x/charset="?([^"]+)"?/)[0];
             if (exists senc)
-                data = force_encoding(data, senc);
+                mime_data = force_encoding(mime_data, senc);
         }
 
-        return data;
+        return mime_data;
     }
 
     #! decodes a header string; if any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those parts are decoded and the decoded string is returned
@@ -1200,20 +1200,20 @@ hash: (2 members)
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private splicePartIntern(data data, hash hdr) {
-            splice l, 0, 0, MultiPartMessage::getPart(data, hdr);
+        private splicePartIntern(data mime_data, hash hdr) {
+            splice l, 0, 0, MultiPartMessage::getPart(mime_data, hdr);
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private addPartIntern(data data, hash hdr) {
-            l += MultiPartMessage::getPart(data, hdr);
+        private addPartIntern(data mime_data, hash hdr) {
+            l += MultiPartMessage::getPart(mime_data, hdr);
         }
 
-        private static hash<MessagePartInfo> getPart(data data, hash hdr) {
+        private static hash<MessagePartInfo> getPart(data mime_data, hash hdr) {
             if (exists hdr."Content-Length")
                 throw "HTTP-MULTIPART-ERROR", "illegal part header 'Content-Length': the Content-Length header will be generated automatically according to the size of each part";
 
-            switch (data.typeCode()) {
+            switch (mime_data.typeCode()) {
                 case NT_STRING: {
                     *string ct;
                     if (hdr."content-type") {
@@ -1226,7 +1226,7 @@ hash: (2 members)
                     if (ct !~ /charset=/) {
                         if (!ct.empty())
                             ct += ";";
-                        ct += sprintf("charset=%s", get_encoding(data));
+                        ct += sprintf("charset=%s", get_encoding(mime_data));
                         hdr."Content-Type" = ct;
                     }
                     if (!exists hdr."Content-Transfer-Encoding")
@@ -1239,7 +1239,7 @@ hash: (2 members)
                 }
             }
             return new hash<MessagePartInfo>((
-                "data": data,
+                "data": mime_data,
                 "hdr": hdr,
             ));
         }
@@ -1262,37 +1262,37 @@ hash: (2 members)
         }
 
         #! adds a message part to the start of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param id the multipart/related ID for the part
             @param content_type the content_type for the part
             @param hdr an optional hash of headers for the part
 
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
-        splicePart(data data, string id, string content_type, *hash hdr) {
+        splicePart(data mime_data, string id, string content_type, *hash hdr) {
             if (id.empty())
                 throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
 
             startid = id;
-            splicePartIntern(data, hdr + ("Content-ID": id, "Content-Type": content_type));
+            splicePartIntern(mime_data, hdr + ("Content-ID": id, "Content-Type": content_type));
         }
 
         #! adds a message part to the end of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param id the multipart/related ID for the part
             @param content_type the content_type for the part
             @param hdr an optional hash of headers for the part
 
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
-        addPart(data data, string id, string content_type, *hash hdr) {
+        addPart(data mime_data, string id, string content_type, *hash hdr) {
             if (id.empty())
                 throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
 
             if (!exists startid)
                 startid = id;
 
-            addPartIntern(data, hdr + ("Content-ID": id, "Content-Type": content_type));
+            addPartIntern(mime_data, hdr + ("Content-ID": id, "Content-Type": content_type));
         }
 
         #! returns a hash of the message
@@ -1317,7 +1317,7 @@ hash: (2 members)
         }
 
         #! adds a message part to the start of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param content_type the content_type for the part
             @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
             @param hdr an optional hash of headers for the part
@@ -1329,15 +1329,15 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        splicePart(data data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        splicePart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            splicePartIntern(data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
+            splicePartIntern(mime_data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
         }
 
         #! adds a message part to the end of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param content_type the content_type for the part
             @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
             @param hdr an optional hash of headers for the part
@@ -1349,15 +1349,15 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        addPart(data data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        addPart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            addPartIntern(data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
+            addPartIntern(mime_data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
         }
 
         #! adds a message part to the start of the list; encodes the data according to the transfer encoding argument passed
-        /** @param data the unencoded data for the part
+        /** @param mime_data the unencoded data for the part
             @param enc the transfer encoding to use for the part; see @ref MimeContentTransferEncodingConstants for possible values
             @param content_type the content_type for the part
             @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
@@ -1371,17 +1371,17 @@ hash: (2 members)
             - MultiPartMixedMessage::addPart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        spliceEncodePart(data data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        spliceEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            if (data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
-                content_type += sprintf(";charset=%s", get_encoding(data));
-            splicePartIntern(mime_encode_transfer_data(data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
+            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
+                content_type += sprintf(";charset=%s", get_encoding(mime_data));
+            splicePartIntern(mime_encode_transfer_data(mime_data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
         }
 
         #! adds a message part to the end of the list; encodes the data according to the transfer encoding argument passed
-        /** @param data the unencoded data for the part
+        /** @param mime_data the unencoded data for the part
             @param enc the transfer encoding to use for the part; see @ref MimeContentTransferEncodingConstants for possible values
             @param content_type the content_type for the part
             @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
@@ -1395,13 +1395,13 @@ hash: (2 members)
             - MultiPartMixedMessage::splicePart()
             - MultiPartMixedMessage::spliceEncodePart()
          */
-        addEncodePart(data data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            if (data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
-                content_type += sprintf(";charset=%s", get_encoding(data));
-            addPartIntern(mime_encode_transfer_data(data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
+            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
+                content_type += sprintf(";charset=%s", get_encoding(mime_data));
+            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
         }
 
         #! returns a hash of the message
@@ -1430,19 +1430,19 @@ hash: (2 members)
         }
 
         #! adds a message part to the start of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param name the unique name for the part
             @param hdr an optional hash of headers for the part
 
             @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name
          */
-        splicePart(data data, string name, *hash hdr) {
+        splicePart(data mime_data, string name, *hash hdr) {
             checkPartName(name);
-            splicePartIntern(data, getPartHeader(name, NOTHING, NOTHING, hdr));
+            splicePartIntern(mime_data, getPartHeader(name, NOTHING, NOTHING, hdr));
         }
 
         #! adds a message part to the start of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param name the unique name for the part
             @param filename the filename for the part
             @param content_type the content_type for the part
@@ -1450,9 +1450,9 @@ hash: (2 members)
 
             @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
          */
-        splicePart(data data, string name, string filename, string content_type, *hash hdr) {
+        splicePart(data mime_data, string name, string filename, string content_type, *hash hdr) {
             checkPartName(name);
-            splicePartIntern(data, getPartHeader(name, filename, content_type, hdr));
+            splicePartIntern(mime_data, getPartHeader(name, filename, content_type, hdr));
         }
 
         #! adds a message part to the start of the list
@@ -1466,19 +1466,19 @@ hash: (2 members)
         }
 
         #! adds a message part to the end of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param name the unique name for the part
             @param hdr an optional hash of headers for the part
 
             @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name
          */
-        addPart(data data, string name, *hash hdr) {
+        addPart(data mime_data, string name, *hash hdr) {
             checkPartName(name);
-            addPartIntern(data, getPartHeader(name, NOTHING, NOTHING, hdr));
+            addPartIntern(mime_data, getPartHeader(name, NOTHING, NOTHING, hdr));
         }
 
         #! adds a message part to the end of the list
-        /** @param data the data for the part
+        /** @param mime_data the data for the part
             @param name the unique name for the part
             @param filename the filename for the part
             @param content_type the content_type for the part
@@ -1486,9 +1486,9 @@ hash: (2 members)
 
             @throw MULTIPART-FORMDATA-ERROR the name parameter is empty or conflicts with an existing part name; empty filename or content_type arguments
          */
-        addPart(data data, string name, string filename, string content_type, *hash hdr) {
+        addPart(data mime_data, string name, string filename, string content_type, *hash hdr) {
             checkPartName(name);
-            addPartIntern(data, getPartHeader(name, filename, content_type, hdr));
+            addPartIntern(mime_data, getPartHeader(name, filename, content_type, hdr));
         }
 
         #! adds a message part to the end of the list
