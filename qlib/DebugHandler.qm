@@ -182,7 +182,7 @@ public namespace DebugHandler {
         }
 
         public sendDataImpl(hash cx, any data) {
-             handler.sendOne(cx.id, make_json(data));
+            handler.sendOne(cx.id, make_json(data));
         }
 
         public broadcastDataImpl(any data) {

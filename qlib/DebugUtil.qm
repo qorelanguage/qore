@@ -133,12 +133,13 @@ public namespace DebugUtil {
     }
 
 
+    public const DUV_NONE = 0;
     public const DUV_INFO = 1;
     public const DUV_DEBUG = 2;
 
     public class DebugLogger {
         public {
-            int verbose = DUV_INFO;
+            int verbose = DUV_NONE;
         }
         constructor() {}
 
@@ -1605,6 +1606,7 @@ Linenoise::history_add('history load filename');
                         sd.tid = tid;
                         sd.stamp = now_us();
                         sd.cmd = rd.cmd;
+                        sd.uid = rd.uid;
                         sd.result = result;
                         try {
                             sendDataImpl(cx, sd);

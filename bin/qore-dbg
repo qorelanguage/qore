@@ -34,8 +34,11 @@ class DebugCommandLineLocal inherits DebugCommandLine {
 			while (counter.getCount() > 0) {
 				counter.dec();
 			}
-			counter.waitForZero(200);
-			return threadData;
+			if (counter.waitForZero(200)) {
+				return NOTHING;
+			} else {
+				return threadData;
+			}
 		} else {
 			return ret;
 		}
@@ -72,7 +75,6 @@ class DebugWrapper {
     		'help': 'h,help',
 	    	'verbose': 'v,verbose:+',
 			'run': 'r,run',
-            'listen': 'l,listen=s@',
 			"parse_option": "p,set-parse-option=s@",
 			#"charset": "c,charset=s",
 			"define": "D,define=s@",
@@ -141,8 +143,6 @@ class DebugWrapper {
             "  where <file> is program being debugged, use \"--\" to get code from stdin\n"
             "  -v     verbose\n"
             "  -h     help\n"
-            "  -l <addr:port>               listener address, multiple listeners is supported, default: %s\n"
-			"  -l /<sock>                   if begins with a \"/\" character then it is assumed to be a UNIX socket\n"
 			#"  -c, --charset=arg            sets default character set encoding\n"
 			"  -D, --define=arg             sets the value of a parse define\n"
 		    "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"

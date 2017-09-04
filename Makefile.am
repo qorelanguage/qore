@@ -203,6 +203,7 @@ include_HEADERS = \
 	include/qore/qore_thread.h \
 	include/qore/AbstractThreadResource.h \
 	include/qore/QoreProgram.h \
+	include/qore/QoreDebugProgram.h \
 	include/qore/QoreReferenceCounter.h \
 	include/qore/AbstractPrivateData.h \
 	include/qore/QoreIteratorBase.h \
