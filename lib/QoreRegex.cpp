@@ -158,8 +158,8 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
       std::vector<int> ovc(vsize, 0);
       int* ovector = &ovc[0];
 #endif
-      int rc = pcre_exec(p, 0, t->getBuffer(), t->strlen(), offset, 0, ovector, vsize);
-      //printd(5, "QoreRegex::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->getBuffer() + offset, rc, global);
+      int rc = pcre_exec(p, 0, t->c_str(), t->size(), offset, 0, ovector, vsize);
+      //printd(5, "QoreRegex::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->c_str() + offset, rc, global);
 
       if (!rc) {
          // rc == 0 means not enough space was available in ovector
@@ -175,7 +175,9 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
       if (rc < 1)
          break;
 
-      if (rc > 1) {
+      // issue #2083: pcre can return a match with a zero length, in which case we must ignore it
+      // otherwise there will be an infinite loop
+      if (rc > 1 && (rc != 2 || ovector[2] != ovector[3])) {
          int x = 0;
          while (++x < rc) {
             int pos = x * 2;
@@ -186,10 +188,10 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
                continue;
             }
             QoreStringNode* tstr = new QoreStringNode;
-            //printd(5, "substring %d: %d - %d (len %d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos]);
             tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
             if (!l)
                l = new QoreListNode(stringOrNothingTypeInfo);
+            //printd(5, "substring %d: %d - %d (len %d) tstr: '%s' (%d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos], tstr->c_str(), (int)tstr->size());
             l->push(tstr);
          }
 
