@@ -389,9 +389,10 @@ ws.clearStats();
                 }
 
                 try {
-                    if (!hc.isDataAvailable(50ms))
+                    if (!hc.isDataAvailable(50ms)) {
+                        usleep(10000);  # give the chance to send data in another thread
                         continue;
-
+                    }
                     hash h = ws_read_message(hc, timeout_ms);
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
@@ -516,12 +517,25 @@ ws.clearStats();
             return rh;
         }
 
+        #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+        @param str Sends the string data over the socket
+
+        @see Socket::send()
+        */
         send(string str) {
-            logDebug("sending: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
+            logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
         }
 
+        #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+        @param bin Sends the binary data over the socket
+
+        @see Socket::send()
+        */
         send(binary bin) {
+            logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
         }
     }
