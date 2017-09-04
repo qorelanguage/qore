@@ -190,7 +190,11 @@ public namespace RestSchemaValidator {
 
             @return an @ref HttpServer::HttpResponseInfo hash for the response
 
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
         hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
             return processResponseImpl(method, path, code, response_body, headers, content_types);
@@ -255,6 +259,20 @@ public namespace RestSchemaValidator {
             return getExampleResponseImpl(method, path, code, content_types);
         }
 
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        string getBasePath() {
+            return getBasePathImpl();
+        }
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        setBasePath(string basePath) {
+            setBasePathImpl(basePath);
+        }
+
         #! returns the target URL for the schema
         /** @return the target URL for the schema
 
@@ -297,7 +315,11 @@ public namespace RestSchemaValidator {
 
             @return an HttpResponseInfo hash for the response
 
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
         private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types);
 
@@ -311,6 +333,16 @@ public namespace RestSchemaValidator {
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
         private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        private abstract string getBasePathImpl();
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        private abstract setBasePathImpl(string basePath);
 
         #! returns a hash of example Qore code for the given request
         /** @param method the HTTP method (case insensitive)
@@ -513,7 +545,11 @@ public namespace RestSchemaValidator {
 
             @return an HttpResponseInfo hash for the response
 
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
         private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
             if (exists response_body) {
@@ -530,7 +566,7 @@ public namespace RestSchemaValidator {
                 }
 
                 if (!ct)
-                    return AbstractHttpRequestHandler::makeResponse(406, "cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body);
+                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
                 headers."Content-Type" = ct;
                 response_body = DataSerializationSupport{ct}(response_body);
             }
@@ -574,6 +610,20 @@ public namespace RestSchemaValidator {
             }
 
             return rv;
+        }
+
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        private string getBasePathImpl() {
+            return "";
+        }
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        setBasePathImpl(string basePath) {
+            throw "UNSUPPORT-OPERATION", sprintf("the basePath cannot be overridden in the NullRestSchemaValidator class");
         }
 
         #! returns a hash of example Qore code for the given request

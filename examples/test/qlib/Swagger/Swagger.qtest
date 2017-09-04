@@ -1818,12 +1818,14 @@ public class SwaggerTest inherits QUnit::Test {
             hash<RestRequestClientInfo> req = so.processRequest("POST", "/pet", body, hdr);
             assertEq(MimeTypeJson, req.content);
             assertEq(Type::String, req.body.type());
-            assertEq("/pet", req.uri_path);
+            assertEq("/v2/pet", req.uri_path);
             assertEq("UTF-8", req.body.encoding());
             #printf("req: %N\n", req);
 
             {
                 hdr = ("content-type": req.content);
+                # strip base path for request
+                req.uri_path =~ s/^\/v2//;
                 hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
                 assertEq("Scooby", sh.body.name);
                 assertEq(("str1",), sh.body.photoUrls);
@@ -1842,11 +1844,13 @@ public class SwaggerTest inherits QUnit::Test {
             req = so.processRequest("POST", "/pet", body, hdr);
             assertEq(MimeTypeJson, req.content);
             assertEq(Type::String, req.body.type());
-            assertEq("/pet", req.uri_path);
+            assertEq("/v2/pet", req.uri_path);
             assertEq("UTF-8", req.body.encoding());
 
             {
                 hdr = ("content-type": req.content);
+                # strip base path for request
+                req.uri_path =~ s/^\/v2//;
                 hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
                 assertEq(100, sh.body.id);
                 assertEq("Scooby", sh.body.name);

@@ -362,7 +362,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             # set validator
             if (opts.validator) {
                 if (!(opts.validator instanceof AbstractRestSchemaValidator))
-                    throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of AbstractRestSchemaValidatorl got %y instead", opts.validator.type());
+                    throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of AbstractRestSchemaValidator; got %y instead", opts.validator.type());
                 validator = opts.validator;
             }
             else {
@@ -681,6 +681,15 @@ hash ans = rest.del("/orders/1");
          */
         hash del(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("DELETE", path, body, \info, NOTHING, hdr);
+        }
+
+        #! returns the current validator object
+        /** @return the current validator object
+
+            @since %RestClient 1.4
+        */
+        RestSchemaValidator::AbstractRestSchemaValidator getValidator() {
+            return validator;
         }
 
         #! sets up the Content-Type header and encodes any body for sending
