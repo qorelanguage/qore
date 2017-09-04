@@ -33,6 +33,8 @@
 class ASTClassDeclaration;
 class ASTConstantDeclaration;
 class ASTFunctionDeclaration;
+class ASTHashDeclaration;
+class ASTHashMemberDeclaration;
 class ASTVariableDeclaration;
 
 class ASTAssignmentExpression;
@@ -50,6 +52,8 @@ public:
     static void printClassSignature(std::ostream& os, ASTClassDeclaration* d);
     static void printConstantSignature(std::ostream& os, ASTConstantDeclaration* d);
     static void printFunctionSignature(std::ostream& os, ASTFunctionDeclaration* d);
+    static void printHashDeclSignature(std::ostream& os, ASTHashDeclaration* d);
+    static void printHashMemberSignature(std::ostream& os, ASTHashMemberDeclaration* d);
     static void printVariableSignature(std::ostream& os, ASTVariableDeclaration* d);
 };
 

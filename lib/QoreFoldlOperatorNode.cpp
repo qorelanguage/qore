@@ -53,13 +53,20 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
-
    // check iterator expression
    const QoreTypeInfo* iteratorTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+
+   // check iterated expression
+   const QoreTypeInfo* expTypeInfo = 0;
+   {
+      // set implicit argv arg type
+      // FIXME: only works if the result of the fold operation results in the exact same type as the argument type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+
+      left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
@@ -77,8 +84,8 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = expTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }

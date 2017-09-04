@@ -87,7 +87,6 @@ class UnresolvedProgramCallReferenceNode;
 class Var;
 class LVList;
 class UserFunctionVariant;
-class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreZoneInfo;
@@ -643,6 +642,13 @@ public:
        @since %Qore 0.8.13
     */
    DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
+
+   //! returns a list of threads active in this Program object
+   /** @return a list of threads active in this Program object
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreListNode* getThreadList() const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 

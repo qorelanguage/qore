@@ -27,19 +27,51 @@
 
 #include "AstPrinter.h"
 
+#include <sstream>
+#include <string>
+
 #include "AstTreePrinter.h"
 #include "ast/AST.h"
+
+static std::string escapeString(const std::string& str) {
+    std::ostringstream newstr;
+    for (size_t i = 0, count = str.size(); i < count; i++) {
+        char c = str[i];
+        if (c == '\b')
+            newstr << "\\b";
+        else if (c == '\f')
+            newstr << "\\f";
+        else if (c == '\n')
+            newstr << "\\n";
+        else if (c == '\r')
+            newstr << "\\r";
+        else if (c == '\t')
+            newstr << "\\t";
+        else
+            newstr << c;
+    }
+    return newstr.str();
+}
 
 void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpression* ae) {
     if (!ae)
         return;
+    if (!ae->left || !ae->right)
+        return;
     if (ae->left->getKind() == ASTExpression::Kind::AEK_Decl) {
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
-    os << " = ";
+    if (ae->weak)
+        os << " := ";
+    else
+        os << " = ";
     if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
         printLiteralExpression(os, le);
+    }
+    else if (ae->right->getKind() == ASTExpression::Kind::AEK_Name) {
+        ASTNameExpression* ne = static_cast<ASTNameExpression*>(ae->right.get());
+        os << ne->name.name;
     }
     // TODO
 }
@@ -63,6 +95,8 @@ void AstPrinter::printListExpression(std::ostream& os, ASTListExpression* le) {
         if (i > 0)
             os << ", ";
         ASTExpression* expr = le->elements[i];
+        if (!expr)
+            continue;
         if (expr->getKind() == ASTExpression::Kind::AEK_Decl)
             printDeclExpression(os, static_cast<ASTDeclExpression*>(expr));
         else if (expr->getKind() == ASTExpression::Kind::AEK_List)
@@ -91,9 +125,11 @@ void AstPrinter::printLiteralExpression(std::ostream& os, ASTLiteralExpression* 
         case ALEK_Number:
             os << le->value.str;
             break;
-        case ALEK_String:
-            os << "\"" << le->value.stdstr << "\"";
+        case ALEK_String: {
+            std::string str(std::move(escapeString(*le->value.stdstr)));
+            os << "\"" << str << "\"";
             break;
+        }
         default:
             break;
     }
@@ -104,6 +140,20 @@ void AstPrinter::printClassSignature(std::ostream& os, ASTClassDeclaration* d) {
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "class " << d->name.name;
+    size_t i = 0, count = d->inherits.size();
+    if (count)
+        os << " inherits";
+    for (; i < count; i++) {
+        ASTSuperclassDeclaration* sd = d->inherits[i];
+        if (sd) {
+            if (i == 0)
+                os << " ";
+            else
+                os << ", ";
+            AstTreePrinter::printModifiers(os, sd->modifiers, 0, true);
+            os << " " << sd->name.name;
+        }
+    }
 }
 
 void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration* d) {
@@ -111,7 +161,7 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "const " << d->name.name;
-    if (d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
+    if (d->value && d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
         os << " = ";
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(d->value.get());
         printLiteralExpression(os, le);
@@ -139,6 +189,21 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
             printListExpression(os, static_cast<ASTListExpression*>(d->params.get()));
     }
     os << ")";
+}
+
+void AstPrinter::printHashDeclSignature(std::ostream& os, ASTHashDeclaration* d) {
+    if (!d)
+        return;
+    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    os << "hashdecl " << d->name.name;
+}
+
+void AstPrinter::printHashMemberSignature(std::ostream& os, ASTHashMemberDeclaration* d) {
+    if (!d)
+        return;
+    if (!d->typeName.name.empty())
+        os << d->typeName.name << " ";
+    os << d->name.name;
 }
 
 void AstPrinter::printVariableSignature(std::ostream& os, ASTVariableDeclaration* d) {

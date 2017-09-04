@@ -19,6 +19,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake)
 ### end of hacks
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # source files
 set(ASTPARSER_QPP_SRC
@@ -42,12 +43,13 @@ set(ASTPARSER_CPP_SRC
     src/queries/FindSymbolInfoQuery.cpp
     src/queries/FindSymbolsQuery.cpp
     src/queries/GetNodesInfoQuery.cpp
+    src/queries/SymbolInfoFixes.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_parser.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp
 )
 
 set(QORE_DOX_TMPL_SRC
-  docs/mainpage.dox.tmpl
+    docs/mainpage.dox.tmpl
 )
 
 # prepare ast_scanner and ast_parser targets
@@ -55,13 +57,19 @@ bison_target(ast_parser src/ast_parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/ast_parse
 flex_target(ast_scanner src/ast_scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/ast_scanner.cpp)
 add_flex_bison_dependency(ast_scanner ast_parser)
 
-qore_wrap_qpp(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
+qore_wrap_qpp_value(ASTPARSER_QPP_SOURCES ${ASTPARSER_QPP_SRC})
 add_custom_target(ASTPARSER_QPP_GENERATED_FILES DEPENDS qpp ${ASTPARSER_QPP_SOURCES})
 add_custom_target(ASTPARSER_BISON_GENERATED_FILES DEPENDS ${BISON_ast_parser_OUTPUTS})
 add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_ast_scanner_OUTPUTS})
 
 # prepare astparser module target
 set(astparser_module_name "astparser")
-add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
+
+if (SINGLE_COMPILATION_UNIT)
+    add_library(${astparser_module_name} SHARED src/astparser_scu.cpp)
+else (SINGLE_COMPILATION_UNIT)
+    add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
+endif (SINGLE_COMPILATION_UNIT)
+
 add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
 qore_binary_module(${astparser_module_name} "${VERSION}")

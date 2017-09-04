@@ -169,9 +169,9 @@ class OracleTest inherits SqlTestBase {
                 "value": 400.95n,
             ),
             "date": 2016-01-11,
-            "timestamp": 2016-01-11T09:26:14.502134,
-            "timestamp with time zone": 2016-01-11T09:26:14.502134,
-            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            "timestamp": 2016-02-11T09:26:14.502134,
+            "timestamp with time zone": 2016-02-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-02-11T09:26:14.502134,
             #"interval year to month": 2Y + 6M,
             #"interval day to second": 2D + 3h + 4m + 1s,
             "clob": "test",
@@ -219,15 +219,15 @@ class OracleTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
-
-            addTestCase("sequence operators", \testSequenceOperators());
-            addTestCase("pseudo-columns", \testPseudoColumns());
-            addTestCase("character semantics", \testCharacterSemantics());
-            addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
-            addTestCase("default values", \testDefaultValues());
-            addTestCase("named types to align", \testNTYAlignment());
-            addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
         }
+
+        addTestCase("sequence operators", \testSequenceOperators());
+        addTestCase("pseudo-columns", \testPseudoColumns());
+        addTestCase("character semantics", \testCharacterSemantics());
+        addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
+        addTestCase("default values", \testDefaultValues());
+        addTestCase("named types to align", \testNTYAlignment());
+        addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
 
         set_return_value(main());
     }

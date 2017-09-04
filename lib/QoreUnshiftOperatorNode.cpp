@@ -74,9 +74,9 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
    // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
    if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(listTypeInfo)))
+      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(listTypeInfo)))
          return QoreValue();
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultValue(softListTypeInfo)))
+      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(softListTypeInfo)))
          return QoreValue();
    }
 

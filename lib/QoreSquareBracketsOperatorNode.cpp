@@ -40,7 +40,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
    assert(!typeInfo);
    assert(!returnTypeInfo);
 
-   const QoreTypeInfo* lti = 0, *rti = 0;
+   const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
    left = left->parseInit(oflag, pflag, lvids, lti);
    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
@@ -73,9 +73,17 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             returnTypeInfo = nothingTypeInfo;
          }
       }
+      if (!returnTypeInfo) {
+         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
+         if (ti) {
+            // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
+            returnTypeInfo = get_or_nothing_type_check(ti);
+         }
+      }
    }
 
    // see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
+/*
    if (QoreTypeInfo::hasType(rti)
        && !QoreTypeInfo::parseAccepts(bigIntTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(floatTypeInfo, rti)
@@ -83,6 +91,8 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
        && !QoreTypeInfo::parseAccepts(boolTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(stringTypeInfo, rti)
        && !QoreTypeInfo::parseAccepts(dateTypeInfo, rti)) {
+         */
+    if (!QoreTypeInfo::canConvertToScalar(rti)) {
 	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");

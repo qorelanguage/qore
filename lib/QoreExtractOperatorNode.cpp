@@ -71,15 +71,15 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    // check offset expression
    expTypeInfo = 0;
    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-   if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-      QoreTypeInfo::doNonNumericWarning(expTypeInfo, loc, "the offset expression (2nd position) with the 'extract' operator is ");
+   if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
+      expTypeInfo->doNonNumericWarning(loc, "the offset expression (2nd position) with the 'extract' operator is ");
 
    // check length expression, if any
    if (length_exp) {
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-      if (QoreTypeInfo::nonNumericValue(expTypeInfo))
-         QoreTypeInfo::doNonNumericWarning(expTypeInfo, loc, "the length expression (3nd position) with the 'extract' operator is ");
+      if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
+         expTypeInfo->doNonNumericWarning(loc, "the length expression (3nd position) with the 'extract' operator is ");
    }
 
    // check new value expression, if any
@@ -123,7 +123,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
-         if (val.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
+         if (val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
             return QoreValue();
          vt = val.getType();
       }

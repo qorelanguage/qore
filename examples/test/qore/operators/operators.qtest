@@ -218,6 +218,12 @@ class Test inherits QUnit::Test {
             assertEq(False, x instanceof File);
         }
 
+        {
+            hash<string, int> x = new hash<string, softint>();
+            assertEq("hash<string, int>", x.fullType());
+            assertEq(True, x instanceof hash<string, int>);
+        }
+
         Program p(PO_NEW_STYLE);
         testAssertion("trim operator parse-time return value", \p.parse(), ("string sub test() {string str = \"a string \\n\"; string astr = trim str; return astr;}", "trim operator test"), new TestResultValue(NOTHING));
         testAssertionValue("trim operator", p.callFunction("test"), "a string");

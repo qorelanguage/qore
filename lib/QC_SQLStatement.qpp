@@ -749,7 +749,7 @@ while (stmt.next()) {
 
     @since %Qore 0.8.6
  */
-any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
+auto SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<QoreHashNode> h(stmt->fetchRow(xsink), xsink);
    if (*xsink)
       return QoreValue();

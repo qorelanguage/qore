@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -303,7 +303,7 @@ if (exists o."_ERRORS_") {
 
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
-hash GetOpt::parse(reference pgm_args) {
+hash GetOpt::parse(reference<list> pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();
@@ -363,7 +363,7 @@ catch (ex) {
 
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
-hash GetOpt::parse2(reference pgm_args) {
+hash GetOpt::parse2(reference<list> pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();
@@ -420,7 +420,7 @@ hash o = getopt.parse3(\ARGV);
     - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
-hash GetOpt::parse3(reference pgm_args) [dom=PROCESS] {
+hash GetOpt::parse3(reference<list> pgm_args) [dom=PROCESS] {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();

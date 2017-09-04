@@ -147,7 +147,7 @@ while (i.next())
     When used with multi-type definitions, the @ref CsvUtil::AbstractCsvIterator::getValue() method returns
     records in an extended form.  In this case, the return value of @ref CsvUtil::AbstractCsvIterator::getValue()
     is a hash with the following keys:
-    - \c "type": the resolve record type name
+    - \c "type": the resolved record type name
     - \c "record": a hash of record values
 
     As this is not backwards compatible, this mode is enabled using the \c "extended_record" option.
@@ -543,7 +543,6 @@ public namespace CsvUtil {
     #! Record type when multi-type is disabled
     public const CSV_TYPE_SINGLE = "<single>";
 
-
     #! the AbstractCsvIterator class is an abstract base class that allows abstract CSV data to be iterated
     /**
         @section abstractcsviterator_options AbstractCsvIterator Constructor Option Hash Overview
@@ -792,7 +791,7 @@ public namespace CsvUtil {
                         try {
                             headerLines = i.value;
                         }
-                        catch (hash ex) {
+                        catch (hash<ExceptionInfo> ex) {
                             throw errname, sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         }
                         break;
@@ -946,7 +945,7 @@ public namespace CsvUtil {
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
             @throw ABSTRACTCSVITERATOR-FIELD-ERROR invalid or unknown field name given
          */
-        any memberGate(string name) {
+        auto memberGate(string name) {
             hash h = getRecord(True);
             if (!h.record.hasKey(name))
                 throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, keys m_specs{h.type} );
@@ -1022,7 +1021,7 @@ list l = i.getRecordList();
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
          */
-        any getRecordList() {
+        auto getRecordList() {
             hash h = parseLine();
             if (extendedRecord) {
                 return ("type": h.type, "record": h.all_fields);
@@ -1111,8 +1110,8 @@ while (i.next()) {
             return lineIterator.index();
         }
 
-        private any handleType(hash fh, *string val) {
-            any rv;
+        private auto handleType(hash fh, *string val) {
+            auto rv;
             string type = fh.type;
             # if it's an "or nothing" type and there is no value, then return nothing
             if (type =~ /^\*/) { #/){
@@ -1335,7 +1334,7 @@ while (i.next()) {
         constructor(Qore::InputStream input, string encoding = "UTF-8", hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(input, encoding, opts.eol), spec, opts) {
         }
 
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
     }
@@ -1374,7 +1373,7 @@ while (i.next()) {
         }
 
         #! calls AbstractCsvIterator::memberGate()
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
 
@@ -1388,8 +1387,8 @@ while (i.next()) {
             return m_file_path;
         }
 
-        #! Returns a @ref stat_hash "stat hash" of the underlying file
-        hash hstat() {
+        #! Returns a @ref Qore::StatInfo "StatInfo" hash of the underlying file
+        hash<Qore::StatInfo> hstat() {
             return Qore::hstat(m_file_path);
         }
 
@@ -1426,7 +1425,7 @@ while (i.next()) {
         constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), spec, opts) {
         }
 
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
 
@@ -1855,7 +1854,7 @@ while (i.next()) {
          */
         write(Qore::AbstractIterator iterator) {
             while (iterator.next()) {
-                any row = iterator.getValue();
+                auto row = iterator.getValue();
                 switch (row.typeCode()) {
                     case NT_HASH:
                         writeLine(row);
@@ -1925,7 +1924,7 @@ while (i.next()) {
             }
 
             list l = ();
-            foreach any v in (values) {
+            foreach auto v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {
                         v = replace(v, quote, m_quoteEscapeChar + quote);

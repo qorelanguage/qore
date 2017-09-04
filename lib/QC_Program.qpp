@@ -35,6 +35,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/ParseOptionMap.h"
 
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
@@ -56,6 +57,20 @@ const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
     @since %Qore 0.8.12
  */
 const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
+//! Maps from parse option code values (as string keys) to parse option names. Names are in form used in script or on command line, e.g. new-style
+/** @see ParseOptionCmdStringMap for the reverse mapping
+
+    @since %Qore 0.8.13
+ */
+const ParseOptionCmdCodeMap = qore(ParseOptionMap::getCodeToStringMap());
+
+//! Maps from parse option strings to parse option integer codes. Names are in form used in script or on command line, e.g. new-style.
+/** @see ParseOptionCmdCodeMap for the reverse mapping
+
+    @since %Qore 0.8.13
+ */
+const ParseOptionCmdStringMap = qore(ParseOptionMap::getStringToCodeMap());
 
 //! Prohibits the use of the '$' character in variable names, method calls, and object member references
 /** This option should probably be named \c "PO_REQUIRE_BARE_REFS" as it is an error to use the \c "$" character when this option is set
@@ -467,6 +482,24 @@ const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
     @since %Qore 0.8.13
 */
 const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
+
+//! Prohibits user hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_USER_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+
+//! Prohibits system hashdecls from being imported into the new Program object
+/** @since %Qore 0.8.13
+ */
+const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+
+//! Allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
+/** @see @ref weak_assignment_operator
+
+    @since %Qore 0.8.13
+ */
+const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
+
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -678,7 +711,7 @@ Program::destructor() {
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}
@@ -730,7 +763,7 @@ while (wh) {
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref exception_hash "exception hash" with warning information, otherwise @ref nothing is returned
+    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}
@@ -853,7 +886,7 @@ nothing Program::parseRollback() {
 
     @par Example:
     @code{.py}
-any result = pgm.callFunction("func_name", arg1, arg2);
+auto result = pgm.callFunction("func_name", arg1, arg2);
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
@@ -862,7 +895,7 @@ any result = pgm.callFunction("func_name", arg1, arg2);
 
     @note The function called could also cause other exceptions to be thrown
  */
-any Program::callFunction(string name, ...) {
+auto Program::callFunction(string name, ...) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
@@ -884,7 +917,7 @@ any Program::callFunction(string name, ...) {
 
     @par Example:
     @code{.py}
-any result = pgm.callFunctionArgs("func_name", (arg1, arg2));
+auto result = pgm.callFunctionArgs("func_name", (arg1, arg2));
     @endcode
 
     @throw INVALID-FUNCTION-ACCESS @ref parse_options "Parse options" do not allow this builtin function to be called
@@ -893,7 +926,7 @@ any result = pgm.callFunctionArgs("func_name", (arg1, arg2));
 
     @note The function called could also cause other exceptions to be thrown
  */
-any Program::callFunctionArgs(string name, *softlist vargs) {
+auto Program::callFunctionArgs(string name, *softlist vargs) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
@@ -928,7 +961,7 @@ bool Program::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 pgm.run();
     @endcode
  */
-any Program::run() {
+auto Program::run() {
    return p->run(xsink);
 }
 
@@ -1014,7 +1047,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 
     @param cls the name of the class to import into the Program object
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code{.py}
@@ -1213,10 +1246,10 @@ nothing Program::lockOptions() {
     @par Example:
     @code{.py}
 bool existsv;
-any val = pgm.getGlobalVariable("error_count", \existsv);
+auto val = pgm.getGlobalVariable("error_count", \existsv);
     @endcode
  */
-any Program::getGlobalVariable(string varname, *reference rexists) {
+auto Program::getGlobalVariable(string varname, *reference<bool> rexists) {
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
    if (!t)
       return QoreValue();
@@ -1313,7 +1346,7 @@ TimeZone Program::getTimeZone() {
 pgm.define("PRODUCTION", True);
     @endcode
  */
-nothing Program::define(string def, any val) {
+nothing Program::define(string def, auto val) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    if (t)
       qore_program_private::runTimeDefine(p, t->getBuffer(), val.getReferencedValue(), xsink);
@@ -1353,14 +1386,30 @@ bool Program::isDefined(string def) {
 
     @par Example:
     @code{.py}
-any val = pgm.getDefine("PRODUCTION");
+auto val = pgm.getDefine("PRODUCTION");
     @endcode
 
     @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
  */
-any Program::getDefine(string def) {
+auto Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
+
+//! Retrieves all @ref conditional_parsing "parse defines" in the current Program
+/** @return the hash of values of all @ref conditional_parsing "parse defines" in the current Program
+
+    @par Example:
+    @code{.py}
+*hash val = pgm.getAllDefines();
+    @endcode
+
+    @note A parse define may be defined with no value then values may have nothing values
+
+    @since %Qore 0.8.13
+ */
+*hash Program::getAllDefines() {
+   return qore_program_private::runTimeGetAllDefines(p);
 }
 
 //! Loads a %Qore module into the Program object at run-time
@@ -1502,6 +1551,22 @@ Program::importSystemClasses() {
    qore_program_private::runtimeImportSystemClasses(*p, xsink);
 }
 
+//! imports system hashdecls into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS
+/** @par Example:
+    @code{.py}
+pgm.importSystemHashDecls();
+    @endcode
+
+    @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
+
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS from the parse option mask after a successful completion
+
+    @since %Qore 0.8.13
+*/
+Program::importSystemHashDecls() {
+   qore_program_private::runtimeImportSystemHashDecls(*p, xsink);
+}
+
 //! imports system constants into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS
 /** @par Example:
     @code{.py}
@@ -1534,7 +1599,7 @@ Program::importSystemFunctions() {
    qore_program_private::runtimeImportSystemFunctions(*p, xsink);
 }
 
-//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
+//! imports system classes and functions into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
 /** @par Example:
     @code{.py}
 pgm.importSystemApi();
@@ -1542,7 +1607,7 @@ pgm.importSystemApi();
 
     @throw IMPORT-SYSTEM-API-ERROR objects already imported; parse options are locked on the Program object; conflicting object found; system API incorrectly imported; in case this exception is raised, the Program object will not contain the full system API and is most likely unusable
 
-    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
+    @note removes @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES, @ref Qore::PO_NO_INHERIT_SYSTEM_HASHDECLS, @ref Qore::PO_NO_INHERIT_SYSTEM_CONSTANTS, and @ref Qore::PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS from the parse option mask after a successful completion
 
     @since %Qore 0.8.12
 */
@@ -1605,6 +1670,20 @@ pgm.setGlobalVarValue("a", 1);
 
     @since %Qore 0.8.13
  */
-nothing Program::setGlobalVarValue(string name, any value) {
+nothing Program::setGlobalVarValue(string name, auto value) {
    p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
+
+//! returns a list of thread IDs active in this Program
+/** @par Example:
+    @code
+list<int> l = pgm.getThreadList();
+    @endcode
+
+    @return a list of thread IDs active in this Program
+
+    @since %Qore 0.8.13
+*/
+list<int> Program::getThreadList() [flags=CONSTANT] {
+    return p->getThreadList();
 }

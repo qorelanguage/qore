@@ -253,8 +253,8 @@ public:
       return tmap.find(gettid()) != tmap.end();
    }
 
-   DLLLOCAL QoreHashNode* getConfigHash() const;
-   DLLLOCAL QoreStringNode* getConfigString() const;
+   DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
+   DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);
 
    DLLLOCAL void clearWarningCallback(ExceptionSink* xsink);
    DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink);

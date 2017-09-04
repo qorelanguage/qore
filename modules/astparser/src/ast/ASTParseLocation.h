@@ -40,6 +40,10 @@ struct ASTParseLocation {
     ast_loc_t lastLine;
     ast_loc_t lastCol;
 
+    // Needed for correct string and regex locations.
+    ast_loc_t savedFirstLine = 0;
+    ast_loc_t savedFirstCol = 0;
+
     ASTParseLocation() :
         firstLine(0),
         firstCol(0),
@@ -58,6 +62,7 @@ struct ASTParseLocation {
         lastLine(lline),
         lastCol(lcol) {}
 
+    //! Set first line and column with first argument and last line and column with second argument.
     void set(const ASTParseLocation& first, const ASTParseLocation& last) {
         firstLine = first.firstLine;
         firstCol  = first.firstCol;
@@ -65,16 +70,45 @@ struct ASTParseLocation {
         lastCol   = last.lastCol;
     }
 
+    //! Set first line and column.
     void setFirst(const ASTParseLocation& first) {
         firstLine = first.firstLine;
         firstCol  = first.firstCol;
     }
 
+    //! Set last line and column.
     void setLast(const ASTParseLocation& last) {
         lastLine  = last.lastLine;
         lastCol   = last.lastCol;
     }
 
+    //! Save first line and column to helper vars.
+    void saveFirst() {
+        savedFirstLine = firstLine;
+        savedFirstCol = firstCol;
+    }
+
+    //! Restore first line and column from helper vars.
+    void restoreFirst() {
+        firstLine = savedFirstLine;
+        firstCol = savedFirstCol;
+    }
+
+    //! Update according to flex parameters.
+    void update(int lineno, int leng, const char* text) {
+        firstLine = lastLine;
+        firstCol = lastCol;
+        if (firstLine == lineno)
+            lastCol += leng;
+        else {
+            int col = 1;
+            for (; (col <= leng) && (text[leng - col] != '\n'); ++col) {}
+            lastCol = col;
+            lastLine = lineno;
+        }
+    }
+
+    //! Check whether the passed line and column are inside this location.
     bool inside(ast_loc_t line, ast_loc_t col) {
         if (line < firstLine) return false;
         if (line > lastLine) return false;

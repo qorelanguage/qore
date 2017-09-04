@@ -46,10 +46,12 @@ public:
     //! Find all symbols in the given tree.
     /**
         @param tree tree to search
+        @param fixSymbols whether to fix symbol infos
         @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+
         @return new list of matching symbols
-    */
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, bool bareNames = false);
+     */
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, bool fixSymbols = true, bool bareNames = false);
 
 private:
     static void inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclaration* decl);
@@ -61,6 +63,8 @@ private:
     static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
     static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
     static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
+    static void fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
     static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
     static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>* vec, bool bareNames);
 };

@@ -31,6 +31,7 @@
 #include <memory>
 
 #include "queries/FindSymbolsQuery.h"
+#include "queries/SymbolInfoFixes.h"
 
 static void copyLwr(const char* src, char* dest, size_t n) {
     size_t i = 0;
@@ -81,18 +82,24 @@ void FindMatchingSymbolsQuery::filterByQuery(std::vector<ASTSymbolInfo>* vec, co
     }
 }
 
-std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const std::string& query, bool exactMatch) {
+std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(ASTTree* tree, const std::string& query, bool exactMatch, bool fixSymbols, bool bareNames) {
     if (!tree)
         return nullptr;
 
-    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(FindSymbolsQuery::find(tree, true));
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(FindSymbolsQuery::find(tree, false));
+    if (!vec)
+        return nullptr;
     filterByQuery(vec.get(), query, exactMatch);
 
+    if (fixSymbols)
+        SymbolInfoFixes::fixSymbolInfos(tree, *vec.get(), bareNames);
     return vec.release();
 }
 
 std::vector<ASTSymbolInfo>* FindMatchingSymbolsQuery::find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch) {
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(new std::vector<ASTSymbolInfo>(*symbols));
+    if (!vec)
+        return nullptr;
     filterByQuery(vec.get(), query, exactMatch);
 
     return vec.release();

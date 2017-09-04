@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // a read-write lock is used in an inverted fashion to provide thread-safe
 // access to call stacks: writing to each call stack is performed within
@@ -45,32 +46,34 @@ CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private
 }
 
 QoreHashNode* CallNode::getInfo() const {
-   QoreHashNode* h = new QoreHashNode;
-   QoreStringNode *str = new QoreStringNode;
+   QoreHashNode* h = new QoreHashNode(hashdeclCallStackInfo, nullptr);
+   QoreStringNode* str = new QoreStringNode;
    if (cls) {
       str->concat(cls->name.c_str());
       str->concat("::");
    }
    str->concat(func);
 
-   h->setKeyValue("function", str, 0);
-   h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
-   h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
-   h->setKeyValue("file",     new QoreStringNode(loc.file), 0);
-   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : 0, 0);
-   h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
-   h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+
+   ph->setKeyValueIntern("function", str);
+   ph->setKeyValueIntern("line",     new QoreBigIntNode(loc.start_line));
+   ph->setKeyValueIntern("endline",  new QoreBigIntNode(loc.end_line));
+   ph->setKeyValueIntern("file",     new QoreStringNode(loc.file));
+   ph->setKeyValueIntern("source",   loc.source ? new QoreStringNode(loc.source) : 0);
+   ph->setKeyValueIntern("offset",   new QoreBigIntNode(loc.offset));
+   ph->setKeyValueIntern("typecode", new QoreBigIntNode(type));
    // CT_RETHROW is only aded manually
    switch (type) {
       case CT_USER:
-	 h->setKeyValue("type",  new QoreStringNode("user"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("user"));
+         break;
       case CT_BUILTIN:
-	 h->setKeyValue("type",  new QoreStringNode("builtin"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("builtin"));
+         break;
       case CT_NEWTHREAD:
-	 h->setKeyValue("type",  new QoreStringNode("new-thread"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("new-thread"));
+         break;
    }
    return h;
 }
@@ -105,9 +108,9 @@ void CallStack::pop(ExceptionSink *xsink) {
       tail->next = 0;
 }
 
-QoreListNode *CallStack::getCallStack() const {
-   QoreListNode *l = new QoreListNode;
-   CallNode *c = tail;
+QoreListNode* CallStack::getCallStack() const {
+   QoreListNode* l = new QoreListNode(hashdeclCallStackInfo->getTypeInfo());
+   CallNode* c = tail;
    while (c) {
       l->push(c->getInfo());
       c = c->prev;

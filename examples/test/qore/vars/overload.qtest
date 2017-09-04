@@ -11,6 +11,10 @@
 
 %exec-class OverloadTest
 
+hashdecl MyHash {
+    int x = 1;
+}
+
 string sub f1_test(string x) {
     return type(x);
 }
@@ -73,6 +77,46 @@ int sub f6(int i, *string s1) {
 }
 
 int sub f6(int i) {
+    return 1;
+}
+
+int sub f7(hash h) {
+    return 1;
+}
+
+int sub f7(hash<string, int> h) {
+    return 2;
+}
+
+int sub f7(hash<MyHash> h) {
+    return 3;
+}
+
+int sub f8(any i) {
+    return 0;
+}
+
+int sub f8(hash h) {
+    return 1;
+}
+
+int sub f8(hash<string, int> h) {
+    return 2;
+}
+
+int sub f9(any x) {
+    return 0;
+}
+
+int sub f9(softint i) {
+    return 1;
+}
+
+int sub f10(auto x) {
+    return 0;
+}
+
+int sub f10(softint i) {
     return 1;
 }
 
@@ -158,6 +202,20 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(4, f6(1, a, a, {}));
         assertEq(4, f6(1, NOTHING, NOTHING, NOTHING));
         assertEq(4, f6(1, a, a, a));
+        # check overload resolution with complex types
+        assertEq(1, f7({}));
+        assertEq(2, f7(("a": 1)));
+        assertEq(2, f7(cast<hash<string, int>>(("a": 1))));
+        assertEq(3, f7(new hash<MyHash>()));
+        assertEq(0, f8());
+        assertEq(1, f8({}));
+        assertEq(2, f8(("a": 1)));
+        assertEq(1, f8(("a": "1")));
+        # check overload resolution against "any" and "auto"
+        assertEq(0, f9());
+        assertEq(1, f9("string"));
+        assertEq(0, f10());
+        assertEq(1, f10("string"));
 
         # test runtime matching
         assertEq(0, call_function(\f2_test()));
@@ -177,5 +235,17 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(4, call_function(\f6(), 1, a, a, {}));
         assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, NOTHING));
         assertEq(4, call_function(\f6(), 1, a, a, a));
+        assertEq(1, call_function(\f7(), {}));
+        assertEq(2, call_function(\f7(), ("a": 1)));
+        assertEq(2, call_function(\f7(), cast<hash<string, int>>(("a": 1))));
+        assertEq(3, call_function(\f7(), new hash<MyHash>()));
+        assertEq(0, call_function(\f8()));
+        assertEq(1, call_function(\f8(), {}));
+        assertEq(2, call_function(\f8(), ("a": 1)));
+        assertEq(1, call_function(\f8(), ("a": "1")));
+        assertEq(0, call_function(\f9()));
+        assertEq(1, call_function(\f9(), "string"));
+        assertEq(0, call_function(\f10()));
+        assertEq(1, call_function(\f10(), "string"));
     }
 }

@@ -81,23 +81,31 @@ protected:
 
    DLLLOCAL ~QoreSingleExpressionOperatorNode() {
       if (exp)
-         exp->deref(0);
+         exp->deref(nullptr);
    }
 
 public:
    DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
    }
+
    DLLLOCAL AbstractQoreNode* getExp() {
       return exp;
    }
+
    DLLLOCAL const AbstractQoreNode* getExp() const {
       return exp;
+   }
+
+   DLLLOCAL AbstractQoreNode* takeExp() {
+      AbstractQoreNode* rv = exp;
+      exp = nullptr;
+      return rv;
    }
 
    template <class O>
    DLLLOCAL QoreSingleExpressionOperatorNode* makeSpecialization() {
       AbstractQoreNode* e = exp;
-      exp = 0;
+      exp = nullptr;
       SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
       O* rv = new O(this->loc, e);
       if (!this->ref_rv)

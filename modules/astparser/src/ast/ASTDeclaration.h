@@ -47,6 +47,8 @@ public:
         ADK_Closure,            //!< Identifies instances of \ref ASTClosureDeclaration.
         ADK_Constant,           //!< Identifies instances of \ref ASTConstantDeclaration.
         ADK_Function,           //!< Identifies instances of \ref ASTFunctionDeclaration.
+        ADK_Hash,               //!< Identifies instances of \ref ASTHashDeclaration.
+        ADK_HashMember,         //!< Identifies instances of \ref ASTHashMemberDeclaration.
         ADK_MemberGroup,        //!< Identifies instances of \ref ASTMemberGroupDeclaration.
         ADK_Namespace,          //!< Identifies instances of \ref ASTNamespaceDeclaration.
         ADK_Superclass,         //!< Identifies instances of \ref ASTSuperclassDeclaration.

@@ -42,11 +42,15 @@ public:
     //! Right-side expression.
     ASTExpression::Ptr right;
 
+    //! Whether this is weak reference assignment.
+    bool weak;
+
 public:
-    ASTAssignmentExpression(ASTExpression* l, ASTExpression* r) :
+    ASTAssignmentExpression(ASTExpression* l, ASTExpression* r, bool isWeak = false) :
         ASTExpression(),
         left(l),
-        right(r)
+        right(r),
+        weak(isWeak)
     {
         loc.firstLine = left->loc.firstLine;
         loc.firstCol = left->loc.firstCol;

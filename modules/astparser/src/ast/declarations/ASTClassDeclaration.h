@@ -69,11 +69,11 @@ public:
     }
 
     virtual ~ASTClassDeclaration() {
-        for (unsigned int i = 0, count = inherits.size(); i < count; i++)
+        for (size_t i = 0, count = inherits.size(); i < count; i++)
             delete inherits[i];
         inherits.clear();
 
-        for (unsigned int i = 0, count = declarations.size(); i < count; i++)
+        for (size_t i = 0, count = declarations.size(); i < count; i++)
             delete declarations[i];
         declarations.clear();
     }

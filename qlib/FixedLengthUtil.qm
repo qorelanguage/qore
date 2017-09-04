@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 %requires Util
 %require-types
 %enable-all-warnings
@@ -372,7 +372,7 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits Qore::Abstrac
         @note that empty lines are ignored if "ignore_empty" option is in effect
      */
     bool next() {
-        any status = lineIterator.next();
+        auto status = lineIterator.next();
         if (m_opts.ignore_empty) {
             while (status && lineIterator.getValue() == "") { # skip empty lines
                 status = lineIterator.next();
@@ -426,7 +426,7 @@ my hash $h = $i.getValue();
     }
 
     #! parses the input value based on global configuration and the current field definition
-    any transform(any value, hash type) {
+    auto transform(auto value, hash type) {
         switch (type.type) {
             case "int": {
                 return int(value);
@@ -484,7 +484,7 @@ my hash $h = $i.getValue();
                     try {
                         return tz ? tz.date(value, fmt) : date(value, fmt);
                     }
-                    catch (hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         throw ex.err, ex.desc, ("value": value, "fmt": fmt);
                     }
                 }
@@ -493,7 +493,7 @@ my hash $h = $i.getValue();
                         value = date(value);
                     return tz ? tz.date(value) : date(value);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     throw ex.err, ex.desc, ("value": value);
                 }
             }
@@ -770,8 +770,8 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         return m_file_path;
     }
 
-    #! Returns a @ref stat_hash "stat hash" of the underlying file
-    hash hstat() {
+    #! Returns a @ref Qore::StatHash "StatInfo" hash of the underlying file
+    hash<Qore::StatInfo> hstat() {
         return Qore::hstat(m_file_path);
     }
 
@@ -941,7 +941,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             # field description
             hash fh = m_specs{type}{field};
 
-            any value = line.record{field} ?? fh.default;  # default value from specification
+            auto value = line.record{field} ?? fh.default;  # default value from specification
             # format output
             switch (fh.type) {
                 case "float":

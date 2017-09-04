@@ -54,7 +54,7 @@ public:
     }
 
     virtual ~ASTConstrInitExpression() {
-        for (unsigned int i = 0, count = inits.size(); i < count; i++)
+        for (size_t i = 0, count = inits.size(); i < count; i++)
             delete inits[i];
         inits.clear();
     }

@@ -208,7 +208,7 @@ public:
    }
 
    DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
-      return num < parseTypeList.size() ? parseTypeList[num] : 0;
+      return num < parseTypeList.size() ? parseTypeList[num] : nullptr;
    }
 
    // resolves all parse types to the final types

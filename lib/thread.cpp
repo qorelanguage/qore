@@ -39,6 +39,7 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -277,6 +278,9 @@ public:
    // current program context
    QoreProgram* current_pgm = nullptr;
 
+   // current program context helper
+   ProgramThreadCountContextHelper* current_pgm_ctx = nullptr;
+
    // current namespace context for parsing
    qore_ns_private* current_ns = nullptr;
 
@@ -313,6 +317,9 @@ public:
    // parse-time block return type
    const QoreTypeInfo* parse_return_type_info = nullptr;
 
+   // parse-time implicit argument type
+   const QoreTypeInfo* implicit_arg_type_info = nullptr;
+
    // current implicit element offset
    int element = 0;
 
@@ -339,7 +346,7 @@ public:
    const char* user_module_context_name = nullptr;
 
    // AbstractQoreModule* with boolean ptr in bit 0
-   uintptr_t qmi;
+   uintptr_t qmi = 0;
 
    bool
       foreign : 1, // true if the thread is a foreign thread
@@ -825,8 +832,8 @@ LocalVarValue* thread_find_lvar(const char* id) {
    return td->tlpd->lvstack.find(id);
 }
 
-ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
+ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
+   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval, assign);
 }
 
 void thread_instantiate_closure_var(ClosureVarValue* cvar) {
@@ -850,6 +857,17 @@ const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* cur
 
 cvv_vec_t* thread_get_all_closure_vars() {
    return thread_data.get()->tlpd->cvstack.getAll();
+}
+
+const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti) {
+   ThreadData* td = thread_data.get();
+   const QoreTypeInfo* rv = td->implicit_arg_type_info;
+   td->implicit_arg_type_info = ti;
+   return rv;
+}
+
+const QoreTypeInfo* parse_get_implicit_arg_type_info() {
+   return thread_data.get()->implicit_arg_type_info;
 }
 
 void parse_set_try_reexport(bool tr) {
@@ -886,12 +904,27 @@ void thread_pop_frame_boundary() {
 
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   ThreadData* td = thread_data.get();
    if (frame >= 0) {
-      td->tlpd->lvstack.getLocalVars(**rv, frame, xsink);
+      ThreadData* td = thread_data.get();
+      ThreadLocalProgramData* tlpd = td->tlpd;
+      ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+      QoreProgram* pgm = td->current_pgm;
+      //printd(5, "thread_get_local_vars() tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      while (frame > tlpd->lvstack.getFrameCount()) {
+         frame -= (tlpd->lvstack.getFrameCount() + 1);
+         if (ch->getNextContext(tlpd, ch))
+            return rv.release();
+         pgm = ch->getProgram();
+         //printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      }
+
+      if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
+         return rv.release();
+
+      tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
-      td->tlpd->cvstack.getLocalVars(**rv, frame, xsink);
+      tlpd->cvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
    }
@@ -1502,8 +1535,7 @@ QoreProgramBlockParseOptionHelper::~QoreProgramBlockParseOptionHelper() {
    }
 }
 
-ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) :
-      old_pgm(0), old_tlpd(0), restore(false) {
+ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) {
    if (!pgm)
       return;
 
@@ -1523,8 +1555,10 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       restore = true;
       old_pgm = td->current_pgm;
       old_tlpd = td->tlpd;
+      old_ctx = td->current_pgm_ctx;
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime, xsink);
+      td->current_pgm_ctx = this;
    }
 }
 
@@ -1539,6 +1573,7 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
    td->tlpd = old_tlpd;
+   td->current_pgm_ctx = old_ctx;
 
    qore_program_private::decThreadCount(*pgm, td->tid);
 }
@@ -2251,7 +2286,7 @@ QoreHashNode* getAllCallStacks() {
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo()));
    QoreString str;
 
    // grab the call stack write lock
@@ -2261,6 +2296,8 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
    if (exiting)
       return h;
 
+   auto ph = qore_hash_private::get(*h);
+
    while (i.next()) {
       // get call stack
       if (entry[*i].callStack) {
@@ -2269,10 +2306,10 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
             // make hash entry
             str.clear();
             str.sprintf("%d", *i);
-            h->setKeyValue(str.getBuffer(), l, 0);
+            ph->setKeyValueIntern(str.getBuffer(), l);
          }
          else
-            l->deref(0);
+            l->deref(nullptr);
       }
    }
 

@@ -464,9 +464,9 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
       // ensure that parse flags are set before initializing
       ParseWarnHelper pwh(pwo);
 
-      for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
+      for (auto& i : *bcal) {
          assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-         (*i)->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
+         i->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
       }
    }
 

@@ -35,6 +35,7 @@
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreException.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <errno.h>
 #include <string.h>
@@ -1371,11 +1372,12 @@ QoreHashNode* ModuleManager::getModuleHash() {
 
 QoreHashNode* QoreModuleManager::getModuleHash() {
    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(hashTypeInfo);
+   qore_hash_private* ph = qore_hash_private::get(*h);
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())
-         h->setKeyValue(i->second->getName(), i->second->getHash(with_filename), 0);
+         ph->setKeyValueIntern(i->second->getName(), i->second->getHash(with_filename));
    }
    return h;
 }
@@ -1386,7 +1388,7 @@ QoreListNode* ModuleManager::getModuleList() {
 
 QoreListNode* QoreModuleManager::getModuleList() {
    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
-   QoreListNode* l = new QoreListNode;
+   QoreListNode* l = new QoreListNode(hashTypeInfo);
    AutoLocker al(mutex);
    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
       if (!i->second->isPrivate())

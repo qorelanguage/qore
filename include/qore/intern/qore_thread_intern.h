@@ -249,6 +249,9 @@ DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 
+DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
+DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
+
 DLLLOCAL int64 parse_get_parse_options();
 DLLLOCAL int64 runtime_get_parse_options();
 
@@ -392,9 +395,9 @@ public:
 
 class QoreProgramLocationHelper {
 protected:
-   QoreProgramLocation loc;
+   const QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper(QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
+   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
@@ -408,7 +411,7 @@ protected:
    bool restore;
 
 public:
-   DLLLOCAL QoreProgramOptionalLocationHelper(QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+   DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
       if (n_loc)
          loc = update_get_runtime_location(*n_loc);
    }
@@ -431,6 +434,20 @@ private:
    // not implemented
    CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
    void* operator new(size_t) = delete;
+};
+
+// allows for implicit argument types to be set at parse time
+class ParseImplicitArgTypeHelper {
+public:
+   DLLLOCAL ParseImplicitArgTypeHelper(const QoreTypeInfo* ti) : ati(parse_set_implicit_arg_type_info(ti)) {
+   }
+
+   DLLLOCAL ~ParseImplicitArgTypeHelper() {
+      parse_set_implicit_arg_type_info(ati);
+   }
+
+private:
+   const QoreTypeInfo* ati;
 };
 
 // acquires a TID and thread entry, returns -1 if not successful
@@ -460,7 +477,7 @@ DLLLOCAL void thread_uninstantiate_self();
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign);
 DLLLOCAL void thread_instantiate_closure_var(ClosureVarValue* cvar);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
 DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
@@ -609,14 +626,32 @@ public:
 };
 
 class ProgramThreadCountContextHelper {
-protected:
-   QoreProgram* old_pgm;
-   ThreadLocalProgramData* old_tlpd;
-   bool restore;
-
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
+
+   DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
+      if (!nextOk())
+         return -1;
+      tlpd = old_tlpd;
+      ch = old_ctx;
+      return 0;
+   }
+
+   DLLLOCAL QoreProgram* getProgram() const {
+      return old_pgm;
+   }
+
+protected:
+   QoreProgram* old_pgm = nullptr;
+   ThreadLocalProgramData* old_tlpd = nullptr;
+   ProgramThreadCountContextHelper* old_ctx = nullptr;
+   bool restore = false;
+
+   // returns true if the next program allows debugging
+   DLLLOCAL bool nextOk() const {
+      return old_pgm;
+   }
 };
 
 class ProgramRuntimeParseContextHelper {
@@ -663,7 +698,7 @@ public:
       : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
       //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
       if (thread_ref_set(&r)) {
-         ref = 0;
+         ref = nullptr;
          n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
          valid = false;
       }

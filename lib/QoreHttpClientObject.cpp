@@ -41,6 +41,7 @@
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QoreHttpClientObjectIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include "qore/intern/qore_socket_private.h"
 
@@ -61,8 +62,7 @@ struct qore_httpclient_priv {
 
    con_info connection, proxy_connection;
 
-   bool connected,
-      nodelay,
+   bool nodelay,
       proxy_connected, // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
       persistent;      // turns off implicit connections for the current connection only
    int default_port, max_redirects;
@@ -76,7 +76,7 @@ struct qore_httpclient_priv {
 
    DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
       msock(ms), http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
-      connected(false), nodelay(false), proxy_connected(false),
+      nodelay(false), proxy_connected(false),
       persistent(false),
       default_port(HTTPCLIENT_DEFAULT_PORT),
       max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
@@ -123,6 +123,7 @@ struct qore_httpclient_priv {
 
    // returns -1 if an exception was thrown, 0 for OK
    DLLLOCAL int connect_unlocked(ExceptionSink* xsink) {
+      assert(!msock->socket->isOpen());
       bool connect_ssl = proxy_connection.has_url() ? proxy_connection.ssl : connection.ssl;
 
       int rc;
@@ -132,7 +133,6 @@ struct qore_httpclient_priv {
          rc = msock->socket->connect(socketpath.c_str(), connect_timeout_ms, xsink);
 
       if (!rc) {
-         connected = true;
          if (nodelay) {
             if (msock->socket->setNoDelay(1))
                nodelay = false;
@@ -142,9 +142,8 @@ struct qore_httpclient_priv {
    }
 
    DLLLOCAL void disconnect_unlocked() {
-      if (connected) {
+      if (msock->socket->isOpen()) {
          msock->socket->close();
-         connected = false;
          proxy_connected = false;
          persistent = false;
       }
@@ -153,7 +152,7 @@ struct qore_httpclient_priv {
    DLLLOCAL int setNoDelay(bool nd) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (!msock->socket->isOpen()) {
          nodelay = true;
          return 0;
       }
@@ -175,7 +174,7 @@ struct qore_httpclient_priv {
    DLLLOCAL void setPersistent(ExceptionSink* xsink) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (!msock->socket->isOpen()) {
          xsink->raiseException("PERSISTENCE-ERROR", "HTTPClient::setPersistent() can only be called once an initial connection has been established; currently there is no connection to the server");
          return;
       }
@@ -443,10 +442,10 @@ const QoreEncoding *QoreHttpClientObject::getEncoding() const {
 
 int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
    // process new protocols
-   const AbstractQoreNode* n = opts->getKeyValue("protocols");
+   QoreValue n = opts->getValueKeyValue("protocols");
 
-   if (n && n->getType() == NT_HASH) {
-      const QoreHashNode* h = reinterpret_cast<const QoreHashNode* >(n);
+   if (n.getType() == NT_HASH) {
+      const QoreHashNode* h = n.get<const QoreHashNode>();
       ConstHashIterator hi(h);
       while (hi.next()) {
          const AbstractQoreNode* v = hi.getValue();
@@ -458,67 +457,63 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
          bool need_ssl = false;
          int need_port;
          if (vtype == NT_INT)
-            need_port = (int)((reinterpret_cast<const QoreBigIntNode* >(v))->val);
+            need_port = (int)((reinterpret_cast<const QoreBigIntNode*>(v))->val);
          else {
-            const QoreHashNode* vh = reinterpret_cast<const QoreHashNode* >(v);
-            const AbstractQoreNode* p = vh->getKeyValue("port");
-            need_port = p ? p->getAsInt() : 0;
+            const QoreHashNode* vh = static_cast<const QoreHashNode*>(v);
+            need_port = (int)vh->getValueKeyValue("port").getAsBigInt();
             if (!need_port) {
                xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
                return -1;
             }
-            p = vh->getKeyValue("ssl");
-            need_ssl = p ? p->getAsBool() : false;
+            need_ssl = vh->getValueKeyValue("ssl").getAsBool();
          }
          http_priv->prot_map[hi.getKey()] = make_protocol(need_port, need_ssl);
       }
    }
 
-   n = opts->getKeyValue("max_redirects");
-   if (n)
-      http_priv->max_redirects = n->getAsInt();
+   n = opts->getValueKeyValue("max_redirects");
+   if (!n.isNothing())
+      http_priv->max_redirects = (int)n.getAsBigInt();
 
-   n = opts->getKeyValue("default_port");
-   if (n)
-      http_priv->default_port = n->getAsInt();
+   n = opts->getValueKeyValue("default_port");
+   if (!n.isNothing())
+      http_priv->default_port = (int)n.getAsBigInt();
    else
       http_priv->default_port = HTTPCLIENT_DEFAULT_PORT;
 
    // check if proxy is true
-   n = opts->getKeyValue("proxy");
-   if (n && n->getType() == NT_STRING)
-      if (http_priv->set_proxy_url_unlocked((reinterpret_cast<const QoreStringNode* >(n))->getBuffer(), xsink))
-         return -1;
+   n = opts->getValueKeyValue("proxy");
+   if (n.getType() == NT_STRING && http_priv->set_proxy_url_unlocked((n.get<const QoreStringNode>())->c_str(), xsink))
+      return -1;
 
    // parse url option if present
-   n = opts->getKeyValue("url");
-   if (n && n->getType() == NT_STRING)
-      if (http_priv->set_url_unlocked((reinterpret_cast<const QoreStringNode* >(n))->getBuffer(), xsink))
-         return -1;
+   n = opts->getValueKeyValue("url");
+   if (n.getType() == NT_STRING && http_priv->set_url_unlocked((n.get<const QoreStringNode>())->c_str(), xsink))
+      return -1;
 
-   n = opts->getKeyValue("default_path");
-   if (n && n->getType() == NT_STRING)
-      http_priv->default_path = (reinterpret_cast<const QoreStringNode* >(n))->getBuffer();
+   n = opts->getValueKeyValue("default_path");
+   if (n.getType() == NT_STRING)
+      http_priv->default_path = (n.get<const QoreStringNode>())->c_str();
 
    // set default timeout if given in option hash - accept relative date/time values as well as integers
-   n = opts->getKeyValue("timeout");
-   if (n)
-      http_priv->timeout = getMsZeroInt(n);
+   n = opts->getValueKeyValue("timeout");
+   if (!n.isNothing())
+      http_priv->timeout = get_ms_zero(n);
 
-   n = opts->getKeyValue("http_version");
-   if (n) {
-      if (n->getType() != NT_STRING) {
+   n = opts->getValueKeyValue("http_version");
+   if (!n.isNothing()) {
+      if (n.getType() != NT_STRING) {
          xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string version ('1.0', '1.1') as value for the \"http_version\" key in the options hash");
          return -1;
       }
-      if (setHTTPVersion((reinterpret_cast<const QoreStringNode* >(n))->getBuffer(), xsink))
+      if (setHTTPVersion((n.get<const QoreStringNode>())->c_str(), xsink))
          return -1;
    }
 
-   n = opts->getKeyValue("event_queue");
-   if (n) {
-       const QoreObject *o = n->getType() == NT_OBJECT ? reinterpret_cast<const QoreObject *>(n) : 0;
-       Queue *q = o ? (Queue *)o->getReferencedPrivateData(CID_QUEUE, xsink) : 0;
+   n = opts->getValueKeyValue("event_queue");
+   if (n.getType() == NT_OBJECT) {
+       const QoreObject* o = n.get<const QoreObject>();
+       Queue* q = static_cast<Queue*>(o->getReferencedPrivateData(CID_QUEUE, xsink));
        if (*xsink)
            return -1;
 
@@ -527,32 +522,33 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
        }
    }
 
-   http_priv->connect_timeout_ms = getMsMinusOneInt(opts->getKeyValue("connect_timeout"));
+   http_priv->connect_timeout_ms = (int)get_ms_zero(opts->getValueKeyValue("connect_timeout"));
 
    if (http_priv->connection.path.empty())
       http_priv->connection.path = http_priv->default_path.empty() ? "/" : http_priv->default_path;
 
    // additional HTTP methods for customized extensions like WebDAV
-   n = opts->getKeyValue("additional_methods");
-   if (n) {
-       const QoreHashNode *h = n->getType() == NT_HASH ? reinterpret_cast<const QoreHashNode*>(n) : 0;
-       if (!h) {
-           xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "Option \"additional_methods\" requires a hash as a value; got: %s", n->getTypeName());
+   n = opts->getValueKeyValue("additional_methods");
+   if (!n.isNothing()) {
+       if (n.getType() != NT_HASH) {
+           xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "Option \"additional_methods\" requires a hash as a value; got: %s", n.getTypeName());
            return -1;
        }
-       ConstHashIterator hi(h);
+       ConstHashIterator hi(n.get<const QoreHashNode>());
        while (hi.next()) {
            http_priv->addHttpMethod(hi.getKey(), hi.getValue()->getAsBool());
        }
    }
 
-   n = opts->getKeyValue("ssl_cert_path");
-   if (n) {
-      if (n->getType() != NT_STRING) {
-         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_cert_path\" key in the options hash; got type \"%s\" instead", get_type_name(n));
+   n = opts->getValueKeyValue("ssl_cert_path");
+   if (*xsink)
+      return -1;
+   if (!n.isNothing()) {
+      if (n.getType() != NT_STRING) {
+         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_cert_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
          return -1;
       }
-      const QoreStringNode* path = static_cast<const QoreStringNode*>(n);
+      const QoreStringNode* path = n.get<const QoreStringNode>();
       if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
          xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_cert_path\" option = \"%s\" when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
          return -1;
@@ -576,22 +572,22 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
    }
 
    const char* key_password = nullptr;
-   n = opts->getKeyValue("ssl_key_password");
-   if (n) {
-      if (n->getType() != NT_STRING) {
-         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_password\" key in the options hash; got type \"%s\" instead", get_type_name(n));
+   n = opts->getValueKeyValue("ssl_key_password");
+   if (!n.isNothing()) {
+      if (n.getType() != NT_STRING) {
+         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_password\" key in the options hash; got type \"%s\" instead", n.getTypeName());
          return -1;
       }
-      key_password = static_cast<const QoreStringNode*>(n)->c_str();
+      key_password = n.get<const QoreStringNode>()->c_str();
    }
 
-   n = opts->getKeyValue("ssl_key_path");
-   if (n) {
-      if (n->getType() != NT_STRING) {
-         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_key_path\" key in the options hash; got type \"%s\" instead", get_type_name(n));
+   n = opts->getValueKeyValue("ssl_key_path");
+   if (!n.isNothing()) {
+      if (n.getType() != NT_STRING) {
+         xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_key_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
          return -1;
       }
-      const QoreStringNode* path = static_cast<const QoreStringNode*>(n);
+      const QoreStringNode* path = n.get<const QoreStringNode>();
       if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
          xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_key_path\" option = \"%s\" when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
          return -1;
@@ -614,8 +610,8 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
       priv->pk = pk.release();
    }
 
-   n = opts->getKeyValue("ssl_verify_cert");
-   if (n && n->getAsBool()) {
+   n = opts->getValueKeyValue("ssl_verify_cert");
+   if (!n.isNothing() && n.getAsBool()) {
        priv->socket->setSslVerifyMode(SSL_VERIFY_PEER);
    }
 
@@ -721,6 +717,7 @@ bool QoreHttpClientObject::isProxySecure() const {
 
 int QoreHttpClientObject::connect(ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
+   http_priv->disconnect_unlocked();
    return http_priv->connect_unlocked(xsink);
 }
 
@@ -733,7 +730,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
    QoreString pathstr(msock->socket->getEncoding());
    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
-   if (!connected) {
+   if (!msock->socket->isOpen()) {
       if (persistent) {
          xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as persistent, but has been disconnected");
          return 0;
@@ -791,6 +788,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
       assert(aborted);
       xsink->clear();
    }
+
    return ah;
 }
 
@@ -927,7 +925,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (!strcasecmp(hi.getKey(), "transfer-encoding"))
                transfer_encoding = true;
 
-            nh->setKeyValue(hi.getKey(), n->refSelf(), xsink);
+            nh->setValueKeyValue(hi.getKey(), n->refSelf(), xsink);
 
             if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
                const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);
@@ -1044,6 +1042,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
          ans = sendMessageAndGetResponse(mname, meth, proxy_path, *(*proxy_headers), nullptr, 0, nullptr, nullptr, 0, nullptr, info, true, timeout_ms, code, send_aborted, xsink);
       else
          ans = sendMessageAndGetResponse(mname, meth, mpath, *(*nh), data, size, send_callback, is, max_chunk_size, trailer_callback, info, false, timeout_ms, code, send_aborted, xsink);
+
       if (!ans)
          return 0;
 
@@ -1497,7 +1496,7 @@ bool QoreHttpClientObject::getNoDelay() const {
 }
 
 bool QoreHttpClientObject::isConnected() const {
-   return http_priv->connected;
+   return http_priv->msock->socket->isOpen();
 }
 
 void QoreHttpClientObject::setUserPassword(const char* user, const char* pass) {

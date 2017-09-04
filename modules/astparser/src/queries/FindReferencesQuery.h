@@ -53,6 +53,8 @@ private:
     static void inName(std::vector<ASTNode*>* vec, ASTName& n, const std::string& name);
     static void inName(std::vector<ASTNode*>* vec, ASTName* n, const std::string& name);
     static void inStatement(std::vector<ASTNode*>* vec, ASTStatement* stmt, const std::string& name);
+
+    static void findIntern(ASTTree* tree, std::vector<ASTNode*>* vec, const std::string& name);
 };
 
 #endif // _QLS_QUERIES_FINDREFERENCESQUERY_H

@@ -92,37 +92,15 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
    int lvids = 0;
 
    // number of arguments in call
-   unsigned num_args = args ? args->size() : 0;
+   unsigned num_args = parse_args ? parse_args->size() : 0;
 
    // argument type list
    type_vec_t argTypeInfo;
-   argTypeInfo.reserve(num_args);
 
-   bool have_arg_type_info = num_args ? false : true;
    // initialize arguments and setup argument type list (argTypeInfo)
    if (num_args) {
-      // do arguments need to be evaluated?
-      bool needs_eval = args->needs_eval();
-
-      // turn off reference ok and retval ignored flags
-      int n_pflag = pflag & ~(PF_RETURN_VALUE_IGNORED);
-
-      update_parse_location(loc);
-      // loop through all args
-      for (unsigned i = 0; i < num_args; ++i) {
-         //QoreValue& n = args->getEntryReference(i);
-         AbstractQoreNode** n = args->get_entry_ptr(i);
-         assert(*n);
-         argTypeInfo.push_back(0);
-         //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s) oflag: %p pflag: %d func: %p i: %d/%d arg: %p (%d %s)\n", this, func ? func->getName() : "n/a", oflag, pflag, func, i, num_args, *n, (*n)->getType(), (*n)->getTypeName());
-         (*n) = (*n)->parseInit(oflag, n_pflag, lvids, argTypeInfo[i]);
-         if (!have_arg_type_info && argTypeInfo[i])
-            have_arg_type_info = true;
-         if (!needs_eval && (*n) && (*n)->needs_eval()) {
-            args->setNeedsEval();
-            needs_eval = true;
-         }
-      }
+      lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
+      parse_args = nullptr;
    }
 
    // resolves pending signatures unconditionally
@@ -145,7 +123,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
       QoreProgram* pgm = getProgram();
 
-      //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p have_arg_type_info: %d variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, have_arg_type_info, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+      //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
 
       if (variant) {
          //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
@@ -336,7 +314,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       LocalVar* id = find_local_var(c_str, in_closure);
       if (id) {
          VarRefNode* vrn = new VarRefNode(loc, takeName(), id, in_closure);
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, vrn, takeArgs());
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, vrn, takeParseArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -367,7 +345,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       }
 
       if (n) {
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
       }
@@ -384,7 +362,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
          else {
             const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
             if (m)
-               sfcn = new SelfFunctionCallNode(loc, takeName(), takeArgs(), m, parse_get_class());
+               sfcn = new SelfFunctionCallNode(loc, takeName(), takeParseArgs(), m, parse_get_class());
          }
          if (sfcn) {
             deref();
@@ -421,7 +399,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    }
 
    if (n) {
-      CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
+      CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
       deref();
       return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
    }
@@ -565,7 +543,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          // see if this is a function call to a function defined in a namespace
          const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
          if (f) {
-            FunctionCallNode* fcn = new FunctionCallNode(loc, f, takeArgs(), 0);
+            FunctionCallNode* fcn = new FunctionCallNode(loc, f, takeParseArgs());
             deref();
             fcn->parseInitFinalizedCall(oflag, pflag, lvids, typeInfo);
             return fcn;
@@ -584,7 +562,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, false);
 
       if (n) {
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeArgs());
+         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
          deref();
          return crcn->parseInit(oflag, pflag, lvids, typeInfo);
       }
@@ -600,7 +578,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
    }
 
    if (!method->isStatic()) {
-      SelfFunctionCallNode* sfcn = new SelfFunctionCallNode(loc, scope->takeName(), takeArgs(), method, qc);
+      SelfFunctionCallNode* sfcn = new SelfFunctionCallNode(loc, scope->takeName(), takeParseArgs(), method, qc);
       deref();
       sfcn->parseInit(oflag, pflag, lvids, typeInfo);
       return sfcn;

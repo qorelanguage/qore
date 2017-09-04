@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassList.h"
+#include "qore/intern/HashDeclList.h"
 #include "qore/intern/QoreNamespaceList.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QoreNamespaceIntern.h"
@@ -190,7 +191,15 @@ void QoreClassList::assimilate(QoreClassList& n) {
 void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
    hm_qc_t::iterator i = n.hm.begin();
    while (i != n.hm.end()) {
-      if (ns.classList.find(i->first)) {
+      if (ns.hashDeclList.find(i->first)) {
+         parse_error(qore_class_private::get(*i->second)->loc, "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
+         n.remove(i);
+      }
+      else if (ns.pendHashDeclList.find(i->first)) {
+         parse_error(qore_class_private::get(*i->second)->loc, "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+         n.remove(i);
+      }
+      else if (ns.classList.find(i->first)) {
          parse_error(qore_class_private::get(*i->second)->loc, "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
          n.remove(i);
       }
@@ -234,24 +243,6 @@ AbstractQoreNode *QoreClassList::findConstant(const char *cname, const QoreTypeI
 
    return 0;
 }
-
-/*
-AbstractQoreNode *QoreClassList::parseResolveBareword(const QoreProgramLocation& loc, const char *name, const QoreTypeInfo *&typeInfo) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second, name, typeInfo);
-      if (rv)
-         return rv->refSelf();
-
-      QoreVarInfo *vi = qore_class_private::parseFindLocalStaticVar(i->second, name);
-      if (vi) {
-         typeInfo = vi->getTypeInfo();
-         return new StaticClassVarRefNode(loc, name, *(i->second), *vi);
-      }
-   }
-
-   return 0;
-}
-*/
 
 void QoreClassList::clearConstants(QoreListNode& l) {
    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {

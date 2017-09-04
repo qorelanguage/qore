@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
+%allow-debugging
 
 %requires QUnit
 
@@ -31,7 +32,7 @@ class Test inherits Socket {
         data = (a, b, c);
     }
     any getData(int elem) {
-	return data[elem];
+        return data[elem];
     }
     string methodGate(string m) {
         return m;
@@ -59,15 +60,15 @@ class ProgramTest inherits QUnit::Test {
     }
 
     private {
-	const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
+        const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
 
         # global variables provided by the Qore language
         const QoreGlobalVars = ("Qore::ENV", "Qore::QORE_ARGV", "Qore::ARGV");
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
-	addTestCase("Program test", \programTest());
-	addTestCase("Combine test", \combineTest());
+        addTestCase("Program test", \programTest());
+        addTestCase("Combine test", \combineTest());
         addTestCase("Int assignments test", \intAssignmentsTest());
         addTestCase("constant exp test", \constantExpressionTest());
         addTestCase("type error test", \typeErrorTest());
@@ -75,90 +76,115 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("class test", \classTest());
         addTestCase("setThreadInit test", \setThreadInitTest());
         addTestCase("var test", \varTest());
-	set_return_value(main());
+        set_return_value(main());
     }
 
     programTest() {
-	our Test to();
-	our Test ro();
+        our Test to();
+        our Test ro();
 
-	string func = "namespace ITest { const val = 1.0; class X; } our int gv2 = 123; int sub t2(int a) { return a + 2; } int sub et(int a) { return t(a); } string sub tot() { return get_class_name(to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { ro.getData(0); delete ro; } bool sub check_ro() { return exists ro; }";
+        string func = "namespace ITest { const val = 1.0; class X; } our int gv2 = 123; int sub t2(int a) { return a + 2; } int sub et(int a) { return t(a); } string sub tot() { return get_class_name(to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { ro.getData(0); delete ro; } bool sub check_ro() { return exists ro; }";
 
-	string pf = "newfunc();";
-	string nf = "bool sub newfunc() { return True; }";
+        string pf = "newfunc();";
+        string nf = "bool sub newfunc() { return True; }";
 
-	Program a(PO_NEW_STYLE);
-	a.parsePending(pf, "pending test part1", 0);
-	a.parsePending(nf, "pending test part2", 0);
-	a.parseCommit();
-	a.importFunction("t");
-	a.importGlobalVariable("to");
-	a.importGlobalVariable("ro", True);
-	a.parse(func, "test");
+        Program a(PO_NEW_STYLE);
+        a.parsePending(pf, "pending test part1", 0);
+        a.parsePending(nf, "pending test part2", 0);
+        a.parseCommit();
+        a.importFunction("t");
+        a.importGlobalVariable("to");
+        a.importGlobalVariable("ro", True);
+        a.parse(func, "test");
 
-	assertEq(True, a.callFunction("newfunc"));
-	assertEq(3, a.callFunction("t2", 1));
-	assertEq(4, a.callFunctionArgs("t2", list(int(2))));
-	assertEq(2, a.callFunction("et", 1));
-	assertEq("Test", a.callFunction("tot"));
-	assertEq("memberGate-member", to.member);
-	assertEq("method", to.method());
+        assertEq(True, a.callFunction("newfunc"));
+        assertEq(3, a.callFunction("t2", 1));
+        assertEq(4, a.callFunctionArgs("t2", list(int(2))));
+        assertEq(2, a.callFunction("et", 1));
+        assertEq("Test", a.callFunction("tot"));
+        assertEq("memberGate-member", to.member);
+        assertEq("method", to.method());
 
-	try {
-	    a.callFunction("deleteException");
-	}
-	catch (hash ex) {
-	    assertEq("ACCESS-ERROR", ex.err);
-	}
+        a.define("MY_TEST_EMPTY");
+        a.define("MY_TEST_STR", "a");
+        assertEq(True, a.isDefined("MY_TEST_EMPTY"));
+        assertEq(True, a.isDefined("MY_TEST_STR"));
+        assertEq(False, a.isDefined("MY_TEST_NONE"));
 
-	assertEq(True, a.callFunction("check_ro"));
+        assertEq(False, exists a.getDefine("MY_TEST_EMPTY"));
+        assertEq("a", a.getDefine("MY_TEST_STR"));
 
-	Queue o = a.callFunction("getObject");
-	object ox = a.callFunction("get_x");
-	delete a;
-	assertEq("Queue", get_class_name(o));
-	assertEq("X", get_class_name(ox));
+        a.undefine("MY_TEST_STR");
+        assertEq(False, a.isDefined("MY_TEST_STR"));
 
-	# test for incorrect parse location when processing constants after a commit
-	a = new Program(PO_NEW_STYLE);
-	a.parse("sub x() {}", "lib");
-	*hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
-	assertEq("<run-time-loaded: warn>", h.file);
+        *hash defs = a.getAllDefines();
+        assertEq(True, defs.PO_NEW_STYLE);
+        assertEq(True, exists defs.QorePlatformCPU);
+        assertEq(True, inlist("MY_TEST_EMPTY", keys defs));
+        assertEq(False, inlist("MY_TEST_STR", keys defs));
 
-	# make sure recursive constant definitions are handled
-	try {
-	    a.parse("const A = B; const B = A;", "rec");
-	}
-	catch (hash ex) {
-	    assertEq("PARSE-EXCEPTION", ex.err);
-	}
+        try {
+            a.callFunction("deleteException");
+        }
+        catch (hash ex) {
+            assertEq("ACCESS-ERROR", ex.err);
+        }
 
-	string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
+        assertEq(True, a.callFunction("check_ro"));
 
-	Program p1(PO_NEW_STYLE);
-	Program p2(PO_NEW_STYLE);
+        Queue o = a.callFunction("getObject");
+        object ox = a.callFunction("get_x");
+        delete a;
+        assertEq("Queue", get_class_name(o));
+        assertEq("X", get_class_name(ox));
 
-	p1.parse(pstr, "p");
-	p2.parse(pstr, "p");
+        # test for incorrect parse location when processing constants after a commit
+        a = new Program(PO_NEW_STYLE);
+        a.parse("sub x() {}", "lib");
+        *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+        assertEq("<run-time-loaded: warn>", h.file);
 
-	object o2 = p1.callFunction("getT");
-	assertEq(1, p1.callFunction("checkT", o2));
-	assertEq(1, p2.callFunction("checkT", o2));
+        # make sure recursive constant definitions are handled
+        try {
+            a.parse("const A = B; const B = A;", "rec");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-EXCEPTION", ex.err);
+        }
 
-	Program p4(PO_NEW_STYLE);
-	try {
-	    p4.parse("error", "error", 0, "source", 10);
-	    assertEq(True, False);
-	}
-	catch (hash ex) {
-	    assertEq("source", ex.source);
-	    assertEq(10, ex.offset);
-	}
+        string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); } list<int> sub get_thread_list0(Program p) { return p.getThreadList(); } list<int> sub get_thread_list1(Program p) { Counter c0(1); Counter c1(1); background waiter(c0, c1); c0.waitForZero(); on_exit c1.dec(); return p.getThreadList(); } sub waiter(Counter c0, Counter c1) { c0.dec(); c1.waitForZero(); }";
+
+        Program p1(PO_NEW_STYLE);
+        Program p2(PO_NEW_STYLE);
+
+        p1.parse(pstr, "p");
+        p2.parse(pstr, "p");
+
+        object o2 = p1.callFunction("getT");
+        assertEq(1, p1.callFunction("checkT", o2));
+        assertEq(1, p2.callFunction("checkT", o2));
+
+        list<int> l = p1.callFunction("get_thread_list0", p1);
+        assertEq(1, l.size());
+        assertEq(gettid(), l[0]);
+        l = p1.callFunction("get_thread_list1", p1);
+        assertEq(2, l.size());
+        assertEq(gettid(), l[0]);
+
+        Program p4(PO_NEW_STYLE);
+        try {
+            p4.parse("error", "error", 0, "source", 10);
+            assertEq(True, False);
+        }
+        catch (hash ex) {
+            assertEq("source", ex.source);
+            assertEq(10, ex.offset);
+        }
     }
 
     combineTest() {
-	Program p(PO_NEW_STYLE);
-	testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
+        Program p(PO_NEW_STYLE);
+        testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
     }
 
     intAssignmentsTest() {
@@ -386,7 +412,7 @@ class ProgramTest inherits QUnit::Test {
                 );
 
             assertEq(vh, p.callFunction("test", 0));
-            assertEq({}, p.callFunction("test", 1));
+            assertEq(p, p.callFunction("test", 1).p.value);
         }
 
         {
@@ -401,7 +427,7 @@ class ProgramTest inherits QUnit::Test {
                 );
 
             assertEq(vh, p.callFunction("test", 0));
-            assertEq({}, p.callFunction("test", 1));
+            assertEq(p, p.callFunction("test", 1).p.value);
         }
 
         {
@@ -445,7 +471,7 @@ class ProgramTest inherits QUnit::Test {
             pvh.c.value = NOTHING;
             assertEq(vh, pvh);
             assertEq({}, p.callFunction("test2", -1));
-            assertEq({}, p.callFunction("test2", 2));
+            assertEq(p, p.callFunction("test2", 2).p.value);
         }
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);

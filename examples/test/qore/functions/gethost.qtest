@@ -22,6 +22,7 @@ public class GetHostTest inherits QUnit::Test {
     gethostbynameTest() {
         assertTrue(gethostbyname("8.8.8.8") =~ /8.8.8.8/);
         *hash result = gethostbyname_long("8.8.8.8");
+        printf("r: %y\n", result);
         assertTrue(result.name =~ /8.8.8.8/);
         assertTrue(result.hasKey("aliases"));
         assertEq("ipv4", result.typename);

@@ -87,7 +87,9 @@ class SQLStatementTest inherits QUnit::Test {
             testSkip("no DB connection");
 
         {
-            SQLStatement stmt(dsp);
+            # check parse and runtime type resolution with AbstractDatasource
+            AbstractDatasource ds = dsp;
+            SQLStatement stmt(ds);
             on_error dsp.rollback();
 
             stmt.prepare("insert into test (string) values (%v)");

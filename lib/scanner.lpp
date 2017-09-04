@@ -57,18 +57,7 @@
 #include <limits.h>
 #include <cmath>
 
-#define YY_USER_ACTION {                                                     \
-      yylloc->first_line = yylloc->last_line;                                \
-      yylloc->first_col = yylloc->last_col;                                  \
-      if (yylloc->first_line == yylineno)                                    \
-         yylloc->last_col += yyleng;                                         \
-      else {                                                                 \
-         unsigned int col = 1;                                               \
-         for (; (col <= yyleng) && (yytext[yyleng - col] != '\n'); ++col) {} \
-         yylloc->last_col = col;                                             \
-         yylloc->last_line = yylineno;                                       \
-      }                                                                      \
-   }
+#define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
 
 int yyparse(yyscan_t yyscanner);
 
@@ -603,8 +592,9 @@ static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
 
 static char* make_cast(const char* s) {
    QoreString str(s + 5);
-   str.trim_trailing('>');
+   str.terminate(str.size() - 1);
    str.trim();
+   //printd(5, "make_cast() '%s'\n", str.c_str());
    return str.giveBuffer();
 }
 
@@ -674,6 +664,22 @@ static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
    qore_program_private::get(*getProgram())->parseDisableParseOptions(get_loc(yylloc), po);
 }
 
+static bool angle_balanced(const char* p) {
+   //printd(5, "angle_balanced() '%s'\n", p);
+   int ob = 0;
+   int cb = 0;
+   while (*p) {
+      switch (*p) {
+         case '<': ++ob; break;
+         case '>': ++cb; break;
+      }
+      ++p;
+   }
+   //printd(5, "angle_balanced() %d == %d\n", ob, cb);
+
+   return ob == cb;
+}
+
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
@@ -691,7 +697,7 @@ static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -757,6 +763,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strong-encapsulation{WS}*$            parse_set_parse_options(yylloc, PO_STRONG_ENCAPSULATION);
 ^%no-uncontrolled-apis{WS}*$            parse_set_parse_options(yylloc, PO_NO_UNCONTROLLED_APIS);
 ^%allow-debugging{WS}*$                 parse_set_parse_options(yylloc, PO_ALLOW_DEBUGGING);
+^%allow-weak-references{WS}*$           parse_set_parse_options(yylloc, PO_ALLOW_WEAK_REFERENCES);
 ^%broken-list-parsing{WS}*$             parse_set_parse_options(yylloc, PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         parse_set_parse_options(yylloc, PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-loop-statement{WS}*$           parse_set_parse_options(yylloc, PO_BROKEN_LOOP_STATEMENT);
@@ -1188,23 +1195,23 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <<EOF>>                                 {
                                            QORE_FLEX_DO_EOF
                                         }
-\"                                      yylval->String = new QoreStringNode; BEGIN(str_state); return QUOTED_WORD_BEGIN;
+\"                                      yylval->String = new QoreStringNode; yylloc->saveFirst(); BEGIN(str_state);
 <str_state>{
-      \"                                BEGIN(INITIAL); return QUOTED_WORD;
+      \"                                yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
       \n                                yylval->String->concat('\n');
       {OCTAL_CONST}                     {
-                                           int token_lenght = strlen(yytext);
+                                           int token_length = strlen(yytext);
                                            int val;
-                                           if (token_lenght == 4) {
+                                           if (token_length == 4) {
                                               val = ascii_to_octal(*(yytext + 3))
                                                  + (8 * ascii_to_octal(*(yytext + 2)))
                                                  + (64 * ascii_to_octal(*(yytext + 1)));
                                            }
-                                           else if (token_lenght == 3) {
+                                           else if (token_length == 3) {
                                               val = ascii_to_octal(*(yytext + 2))
                                                  + (8 * ascii_to_octal(*(yytext + 1)));
                                            }
-                                           else { // here token_lenght == 2
+                                           else { // here token_length == 2
                                               val = ascii_to_octal(*(yytext + 1));
                                            }
                                            if (val >= 0400)
@@ -1233,6 +1240,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               c = yyinput(yyscanner);
                                            } while (isRegexSubstModifier(yylval->RegexSubst, c));
                                            unput(c);
+                                           yylloc->restoreFirst();
                                            BEGIN(INITIAL);
                                            yylval->RegexSubst->parse();
                                            return REGEX_SUBST;
@@ -1263,6 +1271,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 <regex_trans2>{
       -                                 yylval->Trans->setTargetRange();
       \/                                {
+                                           yylloc->restoreFirst();
                                            BEGIN(INITIAL);
                                            yylval->Trans->finishTarget();
                                            return REGEX_TRANS;
@@ -1308,6 +1317,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               c = yyinput(yyscanner);
                                            } while (isRegexModifier(yylval->Regex, c));
                                            unput(c);
+                                           yylloc->restoreFirst();
                                            BEGIN(INITIAL);
                                            yylval->Regex->parse();
                                            return REGEX;
@@ -1329,6 +1339,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                               c = yyinput(yyscanner);
                                            } while (isRegexExtractModifier(yylval->Regex, c));
                                            unput(c);
+                                           yylloc->restoreFirst();
                                            BEGIN(INITIAL);
                                            yylval->Regex->parse();
                                            return REGEX_EXTRACT;
@@ -1402,7 +1413,7 @@ by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   yylval->Regex = new QoreRegex(); BEGIN(regex_state); return REGEX_BEGIN;
+   \/                                   yylval->Regex = new QoreRegex(); yylloc->saveFirst(); BEGIN(regex_state);
    {WS}+                                /* ignore */
    [^\/]                                yyless(0); BEGIN(INITIAL);
 }
@@ -1418,6 +1429,7 @@ trim                                    return TOK_TRIM;
 on_exit                                 return TOK_ON_EXIT;
 on_success                              return TOK_ON_SUCCESS;
 on_error                                return TOK_ON_ERROR;
+hashdecl                                return TOK_HASHDECL;
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
@@ -1528,8 +1540,7 @@ P{D2}:{D2}(:{D2}(\.{US})?)?             yylval->datetime = makeRelativeTime(yyte
 (::{WORD})+                             yylval->string = strdup(yytext); return SCOPED_REF;
 ({WORD}::)+\${WORD}                     yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
 (::{WORD})?::\${WORD}                   yylval->string = make_scoped_vref(yytext); return SCOPED_VREF;
-cast\<{WS}*({WORD}::)+{WORD}{WS}*\>     yylval->string = make_cast(yytext); return QORE_CAST;
-cast\<{WS}*{WORD}{WS}*\>                yylval->string = make_cast(yytext); return QORE_CAST;
+cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  yylval->string = make_cast(yytext); return QORE_CAST;
 ({WORD}::)+\$\.{WORD}                   yylval->nscope = new NamedScope(strdup(yytext)); yylval->nscope->fixBCCall(); return BASE_CLASS_CALL;
 @[Nn][Aa][Nn]@                          {
 #ifdef NAN
@@ -1576,6 +1587,30 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); par
 namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
 {WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
+{WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
+                                           if (angle_balanced(yytext)) {
+                                               yylval->string = strdup(yytext);
+                                               return ANGLE_IDENTIFIER;
+                                           }
+
+                                           yylval->String = new QoreStringNode(yytext);
+                                           yylloc->saveFirst();
+                                           BEGIN(angle_state);
+}
+<angle_state>{
+      >                                 {
+                                           yylval->String->concat('>');
+                                           if (angle_balanced(yylval->String->c_str())) {
+                                              char* str = yylval->String->giveBuffer();
+                                              yylval->String->deref();
+                                              yylval->string = str;
+                                              yylloc->restoreFirst();
+                                              BEGIN(INITIAL);
+                                              return ANGLE_IDENTIFIER;
+                                           }
+                                        }
+      [^>]                              yylval->String->concat(yytext);
+}
 \%{WORD}                                yylval->string = strdup(yytext + 1); return CONTEXT_REF;
 \%{WORD}\:{WORD}                        yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF;
 \%\%                                    return TOK_CONTEXT_ROW;
@@ -1593,6 +1628,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 ===                                     return ABSOLUTE_EQ;
 \!==                                    return ABSOLUTE_NE;
 ==                                      return LOGICAL_EQ;
+:=                                      return WEAK_ASSIGNMENT;
 \<=\>                                   return LOGICAL_CMP;
 &&                                      return LOGICAL_AND;
 \|\|                                    return (getProgram()->getParseOptions64() & PO_BROKEN_LOGIC_PRECEDENCE) ? BROKEN_LOGICAL_OR : LOGICAL_OR;
@@ -1662,17 +1698,17 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
                                            }
                                         }
 <regex_googleplex>{
-   s\/                                  yylval->RegexSubst = new QoreRegexSubst; BEGIN(regex_subst1); return REGEX_SUBST_BEGIN;
-   x\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_extract_state); return REGEX_EXTRACT_BEGIN;
-   tr\/                                 yylval->Trans = new QoreTransliteration(get_loc(yylloc)); BEGIN(regex_trans1); return REGEX_TRANS_BEGIN;
-   m\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
-   \/                                   yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   s\/                                  yylval->RegexSubst = new QoreRegexSubst; yylloc->saveFirst(); BEGIN(regex_subst1);
+   x\/                                  yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_extract_state);
+   tr\/                                 yylval->Trans = new QoreTransliteration(get_loc(yylloc)); yylloc->saveFirst(); BEGIN(regex_trans1);
+   m\/                                  yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^sxmt\/]                            parse_error(get_loc(yylloc), "missing regular expression after =~"); BEGIN(INITIAL);
 }
 <regex_negative_universe>{
-   m\/                                  yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
-   \/                                   yylval->Regex = new QoreRegex; BEGIN(regex_state); return REGEX_BEGIN;
+   m\/                                  yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
+   \/                                   yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_state);
    {WSNL}+                              /* ignore whitespace */
    [^m\/]                               parse_error(get_loc(yylloc), "missing regular expression after !~"); BEGIN(INITIAL);
 }

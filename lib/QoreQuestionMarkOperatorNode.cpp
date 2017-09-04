@@ -36,8 +36,8 @@ AbstractQoreNode* QoreQuestionMarkOperatorNode::parseInitImpl(LocalVar* oflag, i
    const QoreTypeInfo* leftTypeInfo = 0;
    e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
-   if (QoreTypeInfo::nonNumericValue(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      QoreTypeInfo::doNonBooleanWarning(leftTypeInfo, loc, "the initial expression with the '?:' operator is ");
+   if (!QoreTypeInfo::canConvertToScalar(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
+      leftTypeInfo->doNonBooleanWarning(loc, "the initial expression with the '?:' operator is ");
 
    leftTypeInfo = 0;
    e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);

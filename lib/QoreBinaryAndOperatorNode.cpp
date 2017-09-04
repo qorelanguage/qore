@@ -54,10 +54,10 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
    right = right->parseInit(oflag, pflag, lvids, rti);
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
-   if (QoreTypeInfo::nonNumericValue(lti))
-      QoreTypeInfo::doNonNumericWarning(lti, loc, "the left hand expression of the 'binary and' operator (&) expression is ");
-   if (QoreTypeInfo::nonNumericValue(rti))
-      QoreTypeInfo::doNonNumericWarning(rti, loc, "the right hand expression of the 'binary and' operator (&) expression is ");
+   if (!QoreTypeInfo::canConvertToScalar(lti))
+      lti->doNonNumericWarning(loc, "the left hand expression of the 'binary and' operator (&) expression is ");
+   if (!QoreTypeInfo::canConvertToScalar(rti))
+      rti->doNonNumericWarning(loc, "the right hand expression of the 'binary and' operator (&) expression is ");
 
    // see if both arguments are constant values, then eval immediately and substitute this node with the result
    if (left && left->is_value() && right && right->is_value()) {

@@ -33,6 +33,8 @@
 
 #define _QORE_PARSENODE_H
 
+#include "qore/intern/WeakReferenceNode.h"
+
 class ParseNode : public SimpleQoreNode {
 public:
    QoreProgramLocation loc;
@@ -129,7 +131,18 @@ public:
    // FIXME: move to AbstractQoreNode
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
       needs_deref = true;
-      return evalValueImpl(needs_deref, xsink);
+      //return evalValueImpl(needs_deref, xsink);
+      QoreValue rv = evalValueImpl(needs_deref, xsink);
+      if (rv.getType() == NT_WEAKREF) {
+         QoreObject* o = rv.get<WeakReferenceNode>()->get();
+         if (needs_deref) {
+            o->ref();
+            rv.discard(xsink);
+         }
+         rv = o;
+      }
+
+      return rv;
    }
 };
 

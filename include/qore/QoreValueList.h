@@ -407,6 +407,16 @@ public:
 
    //! takes the value at the given position and replaces with NULL, only if the list position exists
    DLLEXPORT QoreValue takeExists(ptrdiff_t offset);
+
+   //! returns the value type declaration (if set)
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getValueTypeInfo() const;
+
+   //! returns the type info structure for the current value; also works for lists with a specific value type
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 };
 
 #include <qore/ReferenceHolder.h>

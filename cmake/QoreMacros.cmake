@@ -26,10 +26,11 @@ MACRO (QORE_WRAP_QPP _cpp_files)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS --output=${_cppfile} --dox-output=${_doxfile} ${_infile}
+                           ARGS --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
                            MAIN_DEPENDENCY ${_infile}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                            VERBATIM
@@ -50,26 +51,30 @@ ENDMACRO (QORE_WRAP_QPP)
 #
 MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
     set(options)
-    set(oneValueArgs)
+    set(oneValueArgs DOXLIST)
     set(multiValueArgs OPTIONS)
 
     cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
-
         GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
+        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS -V --output=${_cppfile} --dox-output=${_doxfile} ${_infile}
+                           ARGS -V --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
                            MAIN_DEPENDENCY ${_infile}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                            VERBATIM
                         )
         SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
+        IF(_WRAP_QPP_DOXLIST)
+           SET(${_WRAP_QPP_DOXLIST} ${${_WRAP_QPP_DOXLIST}} ${_doxfile})
+        ENDIF(_WRAP_QPP_DOXLIST)
+        #MESSAGE(STATUS "DEBUG D: " _WRAP_QPP_DOXLIST " ${D}:" ${_WRAP_QPP_DOXLIST} " ${${D}}:" ${${_WRAP_QPP_DOXLIST}})
     ENDFOREACH (it)
 
 ENDMACRO (QORE_WRAP_QPP_VALUE)
@@ -247,21 +252,40 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             add_custom_target(docs-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
-                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
-                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib $${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+            add_custom_target(docs-fast-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
                 COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
             )
         else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
-                COMMAND ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
+                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+            )
+            add_custom_target(docs-fast-${f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
                 COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
             )
         endif (WIN32 AND (NOT MINGW) AND (NOT MSYS))

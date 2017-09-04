@@ -48,12 +48,12 @@ public:
     static std::vector<ASTNode*>* find(ASTTree* tree, ast_loc_t line, ast_loc_t col);
 
 private:
-    static std::vector<ASTNode*>* inDecl(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* inExpr(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inExpression(ASTExpression* expr, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* inName(ASTName& name, ast_loc_t line, ast_loc_t col);
     static std::vector<ASTNode*>* inName(ASTName* name, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* inPO(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
-    static std::vector<ASTNode*>* inStmt(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inParseOption(ASTParseOption* po, ast_loc_t line, ast_loc_t col);
+    static std::vector<ASTNode*>* inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_t col);
 };
 
 #endif // _QLS_QUERIES_FINDNODEANDPARENTSQUERY_H

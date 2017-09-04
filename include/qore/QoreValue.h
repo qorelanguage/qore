@@ -288,11 +288,19 @@ public:
    //! returns a referenced AbstractQoreNode pointer only if the contained value is an AbstractQoreNode pointer, in which case "this" is left empty (the value is taken from "this"); returns 0 if the object does not contain an AbstractQoreNode pointer (type != QV_Node)
    DLLEXPORT AbstractQoreNode* takeIfNode();
 
+   //! returns the type of the value
+   /** @since %Qore 0.8.13
+   */
+   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
    //! returns the type of value contained
    DLLEXPORT qore_type_t getType() const;
 
-   //! returns a string type description of the value contained (ex: "nothing" for a null AbstractQoreNode pointer)
+   //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
    DLLEXPORT const char* getTypeName() const;
+
+   //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
+   DLLEXPORT const char* getFullTypeName() const;
 
    //! returns true if the object contains a non-null AbstractQoreNode pointer (ie type == QV_Node && v.n is not 0)
    DLLEXPORT bool hasNode() const;
@@ -348,7 +356,7 @@ public:
    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
    DLLEXPORT AbstractQoreNode* getReferencedValue();
 
-   //! returns a QoreValue object and leaves the current object empty; the caller owns any referenced contained in the return value
+   //! returns a QoreValue object and leaves the current object empty; the caller owns any reference contained in the return value
    DLLEXPORT QoreValue release();
 
    //! assigns the object, any currently-held value is dereferenced before the assignment

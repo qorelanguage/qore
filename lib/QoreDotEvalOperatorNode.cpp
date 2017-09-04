@@ -47,24 +47,35 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    if (*xsink)
       return QoreValue();
 
-   if (op->getType() == NT_HASH) {
-      const AbstractQoreNode* ref = check_call_ref(op->getInternalNode(), m->getName());
-      if (ref)
-         return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
+   switch (op->getType()) {
+      case NT_WEAKREF: {
+         // FIXME: inefficient
+         return m->exec(op->get<WeakReferenceNode>()->get(), xsink);
+      }
+
+      case NT_OBJECT: {
+         QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(op->getInternalNode()));
+         // FIXME: inefficient
+         return m->exec(o, xsink);
+      }
+
+      case NT_HASH: {
+         const AbstractQoreNode* ref = check_call_ref(op->getInternalNode(), m->getName());
+         if (ref)
+            return reinterpret_cast<const ResolvedCallReferenceNode*>(ref)->execValue(m->getArgs(), xsink);
+         // drop down to default
+      }
+
+      default:
+         break;
    }
 
-   if (op->getType() != NT_OBJECT) {
-      // FIXME: inefficient
-      ReferenceHolder<> nop(op.getReferencedValue(), xsink);
-      if (m->isPseudo())
-         return m->execPseudo(*nop, xsink);
-
-      return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
-   }
-
-   QoreObject* o = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(op->getInternalNode()));
    // FIXME: inefficient
-   return m->exec(o, xsink);
+   ReferenceHolder<> nop(op.getReferencedValue(), xsink);
+   if (m->isPseudo())
+      return m->execPseudo(*nop, xsink);
+
+   return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
 }
 
 AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {
@@ -87,7 +98,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          meth = pseudo_classes_find_method(typeInfo, mname, qc, possible_match);
 
          if (meth) {
-            m->setPseudo();
+            m->setPseudo(typeInfo);
             // save method for optimizing calls later
             m->parseSetClassAndMethod(qc, meth);
 
@@ -151,7 +162,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
          // check if it could be a pseudo-method call
          meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
          if (meth)
-            m->setPseudo();
+            m->setPseudo(qc->getTypeInfo());
          else
             raise_nonexistent_method_call_warning(loc, qc, mname);
       }
@@ -197,11 +208,12 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    AbstractQoreNode *exp = left;
    left = 0;
    char *meth = m->takeName();
+   QoreProgramLocation nloc = loc;
    this->deref();
 
    //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);
 
-   return new ParseObjectMethodReferenceNode(loc, exp, meth);
+   return new ParseObjectMethodReferenceNode(nloc, exp, meth);
 }
 
 QoreOperatorNode *QoreDotEvalOperatorNode::copyBackground(ExceptionSink *xsink) const {

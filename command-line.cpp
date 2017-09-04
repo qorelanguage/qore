@@ -509,7 +509,7 @@ static void show_build_options(const char* arg) {
 }
 
 static void do_version(const char* arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2016 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2017 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
    printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();

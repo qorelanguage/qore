@@ -89,11 +89,11 @@
     }
 }*/
 
-bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
+static bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
     return expr && expr->loc.inside(line, col) && expr->getKind() == ASTExpression::Kind::AEK_Name;
 }
 
-ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsageKind suk) {
+static ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsageKind suk) {
     ASTNameExpression* name = static_cast<ASTNameExpression*>(expr);
     return ASTSymbolInfo(sk, suk, name->loc, name->name.name);
 }
@@ -144,6 +144,20 @@ ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, a
                     return ASTSymbolInfo(ASYK_Class, ASUK_FuncReturnType, d->returnType->loc, name->name.name);
                 }
             }
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_Hash: {
+            ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
+            if (d->name.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Interface, ASUK_HashDeclName, d->name.loc, d->name.name);
+            break;
+        }
+        case ASTDeclaration::Kind::ADK_HashMember: {
+            ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
+            if (d->typeName.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Class, ASUK_VarDeclTypeName, d->typeName.loc, d->typeName.name);
+            if (d->name.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Field, ASUK_HashMemberName, d->name.loc, d->name.name);
             break;
         }
         case ASTDeclaration::Kind::ADK_MemberGroup:

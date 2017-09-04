@@ -73,6 +73,14 @@ class ExceptionTest inherits QUnit::Test {
     miscTests() {
         Program p(PO_NEW_STYLE);
         assertThrows("PARSE-EXCEPTION", \p.parse(), ("try {} catch (Exception e) {}", ""));
+
+        int a = 1;
+        try {
+            throw a;
+        }
+        catch (hash<ExceptionInfo> ex) {
+            assertEq(1, ex.err);
+        }
     }
 
     /*testComplexHierarchy() {
@@ -91,7 +99,7 @@ class ExceptionTest inherits QUnit::Test {
                         }
                         catch (ex1) {
                             desc = shift argv;
-                            printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+                            printf("QORE %s Exception in line %d of file %s: %s: %s\n",
                                 ex1.type, ex1.line, ex1.file, ex1.err, ex1.desc);
                             throw snope.blah();
                         }
@@ -108,7 +116,7 @@ class ExceptionTest inherits QUnit::Test {
             }
         }
         catch (ex) {
-            printf("QORE %s Exception in line %d of file %s: %s: %s\n", 
+            printf("QORE %s Exception in line %d of file %s: %s: %s\n",
                 ex.type, ex.line, ex.file, ex.err, ex.desc);
             context (gee) where (%whiz == "wdsf")
                 printf("%s\n", %dsfdf);

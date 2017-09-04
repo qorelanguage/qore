@@ -33,17 +33,26 @@
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
-AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
    checkLValue(left, pflag);
 
-   const QoreTypeInfo *rightTypeInfo = 0;
+   const QoreTypeInfo* rightTypeInfo = nullptr;
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!QoreTypeInfo::isType(ti, NT_LIST)
+   if (QoreTypeInfo::isType(ti, NT_LIST)) {
+      if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
+         const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
+         if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
+            parseException(loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
+               QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+         }
+      }
+   }
+   else if (!QoreTypeInfo::isType(ti, NT_LIST)
        && !QoreTypeInfo::isType(ti, NT_HASH)
        && !QoreTypeInfo::isType(ti, NT_OBJECT)
        && !QoreTypeInfo::isType(ti, NT_STRING)
@@ -93,7 +102,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
       if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
-         if (v.assign(QoreTypeInfo::getDefaultValue(typeInfo)))
+         if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
             return QoreValue();
          vtype = v.getType();
       }
@@ -111,11 +120,11 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    if (vtype == NT_LIST) {
       v.ensureUnique(); // no exception possible here
-      QoreListNode *l = reinterpret_cast<QoreListNode*>(v.getValue());
+      QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
       if (new_right->getType() == NT_LIST)
-         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
+         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
       else
-         l->push(new_right.getReferencedValue());
+         l->push(new_right.getReferencedValue(), xsink);
    } // do hash plus-equals if left side is a hash
    else if (vtype == NT_HASH) {
       if (new_right->getType() == NT_HASH) {

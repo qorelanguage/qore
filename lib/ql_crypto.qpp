@@ -471,7 +471,7 @@ const CRYPTO_ALG_CAST5_CFB = "cast5-cfb";
  */
 const CRYPTO_ALG_CAST5_OFB = "cast5-ofb";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 128-bit (16 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case
 
     @note
@@ -481,7 +481,7 @@ const CRYPTO_ALG_CAST5_OFB = "cast5-ofb";
  */
 const CRYPTO_ALG_AES_128 = "aes128";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 192-bit (24 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case.
 
     @note
@@ -491,7 +491,7 @@ const CRYPTO_ALG_AES_128 = "aes128";
  */
 const CRYPTO_ALG_AES_192 = "aes192";
 
-//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm<a/> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
+//! Identifies the <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES cryptographic algorithm</a> in <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode">Galois Counter Mode (GCM)</a> with a 256-bit (32 byte) key
 /** The initialization vector is recommended to be 12 bytes in this case
 
     @note
@@ -2711,7 +2711,7 @@ Qore::TransformOutputStream ts(of, get_encryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
 
     @since %Qore 0.8.13
  */
-Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *reference mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
+Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
    const char* keystr;
    size_t key_len;
    q_get_data(key, keystr, key_len);
@@ -2809,7 +2809,7 @@ binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
 
     @since %Qore 0.8.13
  */
-binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *reference mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
+binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
    const char* datastr;
    size_t data_len;
    q_get_data(data, datastr, data_len);

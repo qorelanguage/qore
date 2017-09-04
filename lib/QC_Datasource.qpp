@@ -30,10 +30,11 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_Datasource.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 extern QoreClass* QC_ABSTRACTDATASOURCE;
 
-static const char *DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
+static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
 static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
    ConstHashIterator hi(opts);
@@ -51,7 +52,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
 static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
    ReferenceHolder<Queue> q(queue, xsink);
 
-   const char *str = check_hash_key(opts, "type", DSC_ERR, xsink);
+   const char* str = check_hash_key(opts, "type", DSC_ERR, xsink);
    if (*xsink) return;
 
    if (!str) {
@@ -59,7 +60,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
       return;
    }
 
-   DBIDriver *db_driver = DBI.find(str, xsink);
+   DBIDriver* db_driver = DBI.find(str, xsink);
    if (!db_driver) {
       if (!*xsink)
          xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
@@ -88,27 +89,24 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
-   bool found;
-   int port = (int)opts->getKeyAsBigInt("port", found);
+   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
          return;
       }
-
       ds->setPendingPort(port);
    }
 
    {
-      const AbstractQoreNode* p = opts->getKeyValue("options");
-
-      if (!is_nothing(p)) {
-         if (get_node_type(p) != NT_HASH) {
-            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", get_type_name(p));
+      QoreValue p = opts->getValueKeyValue("options", xsink);
+      if (!p.isNothing()) {
+         if (p.getType() != NT_HASH) {
+            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
             return;
          }
-         const QoreHashNode *oh = reinterpret_cast<const QoreHashNode*>(p);
-         if (ds_set_options(*ds, oh, xsink))
+         const QoreHashNode* opt_hash = p.get<const QoreHashNode>();
+         if (ds_set_options(*ds, opt_hash, xsink))
             return;
       }
    }
@@ -312,7 +310,7 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (!port && driver->find('@') != -1) {
@@ -389,7 +387,7 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
 
     @since %Qore 0.8.6
  */
-Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
@@ -433,7 +431,7 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, any arg) {
+Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
@@ -563,7 +561,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::exec(string sql, ...) {
+auto Datasource::exec(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
@@ -587,7 +585,7 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::vexec(string sql, *softlist vargs) {
+auto Datasource::vexec(string sql, *softlist vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
@@ -610,7 +608,7 @@ db.execRaw("create table my_tab (id number, some_text varchar2(30))");
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::execRaw(string sql) {
+auto Datasource::execRaw(string sql) {
    return ds->execRaw(sql, xsink);
 }
 
@@ -648,7 +646,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any Datasource::select(string sql, ...) {
+auto Datasource::select(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
@@ -707,7 +705,7 @@ any Datasource::select(string sql, ...) {
 
     @see Datasource::select()
  */
-any Datasource::selectRows(string sql, ...) {
+auto Datasource::selectRows(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
@@ -743,7 +741,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-any Datasource::vselect(string sql, *softlist vargs) {
+auto Datasource::vselect(string sql, *softlist vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
@@ -803,7 +801,7 @@ any Datasource::vselect(string sql, *softlist vargs) {
 
     @see Datasource::selectRows()
  */
-any Datasource::vselectRows(string sql, *softlist vargs) {
+auto Datasource::vselectRows(string sql, *softlist vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
@@ -1158,14 +1156,14 @@ string Datasource::getDriverName() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any ver = db.getServerVersion();
+auto ver = db.getServerVersion();
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-any Datasource::getServerVersion() {
+auto Datasource::getServerVersion() {
    return ds->getServerVersion(xsink);
 }
 
@@ -1174,12 +1172,12 @@ any Datasource::getServerVersion() {
 
     @par Example:
     @code{.py}
-any ver = db.getClientVersion();
+auto ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
  */
-any Datasource::getClientVersion() {
+auto Datasource::getClientVersion() {
    return ds->getClientVersion(xsink);
 }
 
@@ -1257,7 +1255,7 @@ hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
 
     @since %Qore 0.8.6
  */
-Datasource::setOption(string opt, any val) {
+Datasource::setOption(string opt, auto val) {
    ds->setOption(opt->getBuffer(), val, xsink);
 }
 
@@ -1271,7 +1269,7 @@ Datasource::setOption(string opt, any val) {
 
     @since %Qore 0.8.6
  */
-any Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
+auto Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
    return ds->getOption(opt->getBuffer(), xsink);
 }
 
@@ -1286,7 +1284,7 @@ hash h = ds.getConfigHash();
     @since %Qore 0.8.8
  */
 hash Datasource::getConfigHash() [flags=CONSTANT] {
-   return ds->getConfigHash();
+   return ds->getConfigHash(xsink);
 }
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -1300,7 +1298,7 @@ string str = ds.getConfigString();
     @since %Qore 0.8.8
  */
 string Datasource::getConfigString() [flags=CONSTANT] {
-   return ds->getConfigString();
+   return ds->getConfigString(xsink);
 }
 
 //! Sets a queue object for DBI events on the datasource
@@ -1312,7 +1310,7 @@ string Datasource::getConfigString() [flags=CONSTANT] {
 
     @since %Qore 0.8.9
  */
-nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, any arg) {
+nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (queue->getMax() != -1)

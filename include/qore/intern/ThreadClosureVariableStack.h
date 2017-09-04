@@ -69,8 +69,8 @@ public:
          uninstantiate(xsink);
    }
 
-   DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-      ClosureVarValue* cvar = new ClosureVarValue(id, typeInfo, nval);
+   DLLLOCAL ClosureVarValue* instantiate(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
+      ClosureVarValue* cvar = new ClosureVarValue(id, typeInfo, nval, assign);
       instantiateIntern(cvar);
       return cvar;
    }
@@ -158,11 +158,14 @@ public:
    }
 
    DLLLOCAL void pushFrameBoundary() {
+      ++frame_count;
       //printd(5, "ThreadClosureVariableStack::pushFrameBoundary()\n");
       instantiateIntern(nullptr);
    }
 
    DLLLOCAL void popFrameBoundary() {
+      assert(frame_count >= 0);
+      --frame_count;
       //printd(5, "ThreadClosureVariableStack::popFrameBoundary()\n");
       uninstantiateIntern();
       assert(!curr->var[curr->pos]);

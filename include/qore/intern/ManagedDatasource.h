@@ -132,6 +132,9 @@ public:
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
 
+   DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
+   DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);
+
    DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
 
    DLLLOCAL int transactionTid() const {

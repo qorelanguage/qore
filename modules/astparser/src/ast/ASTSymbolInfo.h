@@ -71,6 +71,8 @@ enum ASTSymbolUsageKind {
     ASUK_SuperclassDeclName = 105,
     ASUK_VarDeclName = 106,
     ASUK_VarDeclTypeName = 107,
+    ASUK_HashDeclName = 108,
+    ASUK_HashMemberName = 109,
 
     // Expressions.
     ASUK_AccessVariable = 200,

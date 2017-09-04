@@ -34,22 +34,15 @@
 #define _QORE_QOREINSTANCEOFOPERATORNODE_H
 
 class QoreInstanceOfOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
-protected:
-   ClassRefNode* r;
-
-   DLLLOCAL static QoreString InstanceOf_str;
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
-
 public:
-   DLLLOCAL QoreInstanceOfOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, ClassRefNode* ref) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), r(ref) {
+   DLLLOCAL QoreInstanceOfOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreParseTypeInfo* ref) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), r(ref) {
+   }
+
+   DLLLOCAL QoreInstanceOfOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* ti) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp), ti(ti) {
    }
 
    DLLLOCAL virtual ~QoreInstanceOfOperatorNode() {
-      if (r)
-         r->deref();
+      delete r;
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -57,7 +50,7 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return InstanceOf_str.getBuffer();
+      return InstanceOf_str.c_str();
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -68,10 +61,19 @@ public:
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
          return nullptr;
-      assert(r);
-      r->ref();
-      return new QoreInstanceOfOperatorNode(loc, n_exp.release(), r);
+      assert(ti);
+      return new QoreInstanceOfOperatorNode(loc, n_exp.release(), ti);
    }
+
+protected:
+   QoreParseTypeInfo* r = nullptr;
+   const QoreTypeInfo* ti = nullptr;
+
+   DLLLOCAL static QoreString InstanceOf_str;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
 };
 
 #endif

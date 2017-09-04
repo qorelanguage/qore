@@ -45,16 +45,20 @@ public:
         @param tree tree to search
         @param query search query
         @param exactMatch whether to only find exact matches
+        @param fixSymbols whether to fix symbol infos
+        @param bareNames whether to return bare symbol names (without namespace and class prefixes)
+
         @return new list of matching symbols
-    */
-    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query, bool exactMatch);
+     */
+    static std::vector<ASTSymbolInfo>* find(ASTTree* tree, const std::string& query, bool exactMatch, bool fixSymbols = true, bool bareNames = false);
 
     //! Find matching symbols in the given symbol list.
     /**
         @param symbols symbol list to search
         @param query search query
+
         @return new list of matching symbols
-    */
+     */
     static std::vector<ASTSymbolInfo>* find(const std::vector<ASTSymbolInfo>* symbols, const std::string& query, bool exactMatch);
 
 private:
