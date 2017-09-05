@@ -537,6 +537,62 @@ public string sub shorten (string text, int width, *hash opts) {
 
 # -- Loosely related functionality -------------------------------------
 
+const c_whitespace_only_re = '^[ \t]+$';
+const c_leading_whitespace_re = '(^[ \t]*)(?:[^ \t\n])';
+
+#! Remove any common leading whitespace from every line in 'text'.
+/**
+    This can be used to make triple-quoted strings line up with the left
+    edge of the display, while still presenting them in the source code
+    in indented form.
+
+    Note that tabs and spaces are both treated as whitespace, but they
+    are not equal: the lines "  hello" and "\\thello" are considered
+    to have no common leading whitespace.
+*/
+public string sub dedent (string text) {
+    # Look for the longest leading string of spaces and tabs common to all lines.
+    string margin;
+    text = regex_subst (text, c_whitespace_only_re, '', Qore::RE_MultiLine + Qore::RE_Global);
+    *list indents = regex_extract (text, c_leading_whitespace_re, Qore::RE_MultiLine + Qore::RE_Global);
+
+    foreach string indent in (indents) {
+        if (!exists margin) {
+            margin = indent;
+        }
+        # Current line more deeply indented than previous winner:
+        # no change (previous winner is still on top).
+        else if (indent.substr(0, margin.length()) == margin) {
+        }
+        # Current line consistent with and no deeper than previous winner:
+        # it's the new winner.
+        else if (margin.substr(0, indent.length()) == indent) {
+            margin = indent;
+        }
+        # Find the largest common whitespace between current line and previous winner.
+        else {
+            int w;
+            foreach list c in (zip (margin, indent)) {
+                if (c[0] != c[1]) {
+                    w = $#;
+                    break;
+                }
+            }
+            splice margin, w ?? indent.length();
+        }
+    }
+
+    # sanity check (testing/debugging only)
+    # if (0 && margin)
+    #     foreach string line in (text.split("\n"))
+    #         if (!(!line || line.substr(0, margin.length()) == margin))
+    #             throw "ASSERT", sprintf ("line = %n, margin = %n", line, margin);
+
+    if (margin)
+        text = regex_subst (text, '(?m)^' + margin, '', Qore::RE_Global);
+    return text;
+}
+
 #! Adds 'prefix' to the beginning of selected lines in 'text'.
 /**
     If 'predicate' is provided, 'prefix' will only be added to the lines
