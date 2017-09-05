@@ -37,7 +37,7 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
 
         const T_PgsqlTest = (
             "columns": (
-                "id": c_number(14, True),
+                "id": c_number(14, True, "an example comment with 'quotes'"),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
             ),
