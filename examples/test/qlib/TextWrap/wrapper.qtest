@@ -33,6 +33,13 @@ public class WrapTest inherits BaseTest {
         addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
         addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
         addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
+        addTestCase ("TextWrap - WrapTest - test_split", \test_split());
+        addTestCase ("TextWrap - WrapTest - test_break_on_hyphens", \test_break_on_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_bad_width", \test_bad_width());
+        # addTestCase ("TextWrap - WrapTest - test_no_split_at_umlaut", \test_no_split_at_umlaut());
+        # addTestCase ("TextWrap - WrapTest - test_umlaut_followed_by_dash", \test_umlaut_followed_by_dash());
+        # addTestCase ("TextWrap - WrapTest - test_non_breaking_space", \test_non_breaking_space());
+        # addTestCase ("TextWrap - WrapTest - test_narrow_non_breaking_space", \test_narrow_non_breaking_space());
         set_return_value(main());
     }
 
@@ -415,4 +422,77 @@ What a mess!
         self.check_wrap("abcd efgh", 6, ("  abcd", "  efgh"),
                         ('initial_indent': "  ", 'subsequent_indent': "  "));
     }
+
+    test_split () {
+        # Ensure that the standard _split() method works as advertised in the comments.
+        text = "Hello there -- you goof-ball, use the -b option!";
+
+        list result = self.wrapper._split(text);
+        self.check(result,
+             ("Hello", " ", "there", " ", "--", " ", "you", " ", "goof-",
+              "ball,", " ", "use", " ", "the", " ", "-b", " ",  "option!"));
+    }
+
+    test_break_on_hyphens () {
+        # Ensure that the break_on_hyphens attributes work.
+        text = "yaba daba-doo";
+        self.check_wrap(text, 10, ("yaba daba-", "doo"),
+                        ('break_on_hyphens': True));
+        self.check_wrap(text, 10, ("yaba", "daba-doo"),
+                        ('break_on_hyphens': False));
+    }
+
+    test_bad_width () {
+        # Ensure that width <= 0 is caught.
+        text = "Whatever, it doesn't matter.";
+        code kod = sub () { call_function_args ('wrap', argv); };
+        assertThrows ("VALUE-ERROR", kod, (text, 0));
+        assertThrows ("VALUE-ERROR", kod, (text, -1));
+    }
+
+    test_no_split_at_umlaut () {
+        text = force_encoding ("Die Empf\344nger-Auswahl", "iso-8859-1");
+        self.check_wrap(text, 13,
+                ("Die", force_encoding ("Empf\344nger-", "iso-8859-1"), "Auswahl"));
+    }
+
+    test_umlaut_followed_by_dash () {
+        text = force_encoding ("aa \344\344-\344\344", "iso-8859-1");
+        self.check_wrap(text, 7,
+                (force_encoding ("aa \344\344-", "iso-8859-1"),
+                 force_encoding ("\344\344", "iso-8859-1")));
+    }
+
+    # test_non_breaking_space () {
+    #     text = 'This is a sentence with non-breaking\N{NO-BREAK SPACE}space.';
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with non-',
+    #                      'breaking\N{NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': True));
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with',
+    #                      'non-breaking\N{NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': False));
+    # }
+
+    # test_narrow_non_breaking_space () {
+    #     text = ('This is a sentence with non-breaking'
+    #             '\N{NARROW NO-BREAK SPACE}space.');
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with non-',
+    #                      'breaking\N{NARROW NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': True));
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with',
+    #                      'non-breaking\N{NARROW NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': False));
+    # }
 }
