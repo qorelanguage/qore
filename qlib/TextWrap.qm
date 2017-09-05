@@ -252,7 +252,7 @@ public class TextWrapper {
         #   "Hello there -- you goof-ball, use the -b option!"
         # splits into
         #   Hello/ /there/ /--/ /you/ /goof-ball,/ /use/ /the/ /-b/ /option!/
-        wordsep_simple_re = sprintf ('(%s+)', whitespace);
+        wordsep_simple_re = sprintf ('(%s+|%s+)', whitespace, nowhitespace);
 
         # XXX this is not locale- or charset-aware -- string.lowercase
         # is US-ASCII only (and therefore English-only)
@@ -581,11 +581,11 @@ public string sub dedent (string text) {
         }
         # Current line more deeply indented than previous winner:
         # no change (previous winner is still on top).
-        else if (indent.substr(0, margin.length()) == margin) {
+        else if (indent.equalPartial(margin)) {
         }
         # Current line consistent with and no deeper than previous winner:
         # it's the new winner.
-        else if (margin.substr(0, indent.length()) == indent) {
+        else if (margin.equalPartial(indent)) {
             margin = indent;
         }
         # Find the largest common whitespace between current line and previous winner.
@@ -604,7 +604,7 @@ public string sub dedent (string text) {
     # sanity check (testing/debugging only)
     # if (0 && margin)
     #     foreach string line in (text.split("\n"))
-    #         if (!(!line || line.substr(0, margin.length()) == margin))
+    #         if (!(!line || line.equalPartial(margin)))
     #             throw "ASSERT", sprintf ("line = %n, margin = %n", line, margin);
 
     if (margin)
