@@ -334,8 +334,7 @@ class SchemaBase {
             any rv = enum.firstKey();
             switch (type) {
                 case "integer": rv = rv.toInt(); break;
-                case "float": rv = rv.toFloat(); break;
-                case "number": rv = rv.toNumber(); break;
+                case "number": rv = (format && ValidNumberFormatsHash{format} ? rv.toFloat() : rv.toNumber()); break;
                 case "boolean": rv = rv.toBool(); break;
             }
             return rv;
@@ -358,13 +357,17 @@ class SchemaBase {
                     return exclusiveMax ? maximum - 1 : maximum;
                 return 1;
             }
-            case "float":
             case "number": {
+                number rv;
                 if (exists minimum)
-                    return exclusiveMin ? minimum + 0.1 : minimum;
-                if (exists maximum)
-                    return exclusiveMax ? maximum - 0.1 : maximum;
-                return 1.1;
+                    rv = exclusiveMin ? minimum + 0.1 : minimum;
+                else if (exists maximum)
+                    rv = exclusiveMax ? maximum - 0.1 : maximum;
+                else
+                    rv = 1.1n;
+                if (format && ValidNumberFormatsHash{format})
+                    return rv.toFloat();
+                return rv;
             }
             case "boolean":
                 return True;
@@ -3645,8 +3648,7 @@ namespace Priv {
             case "array": return sprintf("list<%s>", get_qore_type(name, items.type, items.format, items.items));
             case "integer": return "int";
             case "boolean": return "bool";
-            case "number":
-            case "float": return type;
+            case "number": return format && ValidNumberFormatsHash{format} ? "float" : "number";
             case "string": {
                 switch (format) {
                     case "byte":
