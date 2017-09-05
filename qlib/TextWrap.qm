@@ -55,7 +55,17 @@ const c_whitespace = "\t\n\013\014\r ";
 # -- Private helpers ---------------------------------------------------
 
 string sub expandtabs (string text, int tabsize = 8) {
-    return replace (text, "\t", strmul(' ', tabsize));
+    string r = '';
+    int i = 0;
+    int s = text.length();
+    while (i < s && (int f = text.find ("\t", i)) >= 0) {
+        r += text.substr(i, f-i);
+        r += strmul(' ', r.length() % tabsize);
+        i = f + 1;
+    }
+    if (i < s)
+        r += text.substr(i);
+    return r;
 }
 
 any sub sum (list la, *any start) {
