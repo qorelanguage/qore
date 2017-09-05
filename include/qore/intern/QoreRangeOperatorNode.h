@@ -30,23 +30,52 @@
 */
 
 #ifndef _QORE_QORERANGEOPERATORNODE_H
-
 #define _QORE_QORERANGEOPERATORNODE_H
 
-class QoreRangeOperatorNode : public QoreIntBinaryOperatorNode {
+#include "qore/intern/RangeIterator.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
+
+
+class QoreRangeOperatorNode : public QoreIntBinaryOperatorNode, public FunctionalOperator {
 OP_COMMON
 protected:
+    const QoreTypeInfo* typeInfo;
+
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return typeInfo;
+    }
+
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreIntBinaryOperatorNode(loc, n_left, n_right) {
+    DLLLOCAL QoreRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right)
+        : QoreIntBinaryOperatorNode(loc, n_left, n_right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreRangeOperatorNode>(xsink);
     }
+};
+
+
+class QoreFunctionalRangeOperator : public FunctionalOperatorInterface, public RangeIterator {
+protected:
+    ExceptionSink* xsink;
+
+public:
+    DLLLOCAL QoreFunctionalRangeOperator(int64 start, int64 stop, ExceptionSink* xs)
+        : RangeIterator(start, stop, 1, &Nothing, xs), xsink(xs) {
+    }
+
+    DLLLOCAL virtual ~QoreFunctionalRangeOperator() {
+    }
+
+    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif

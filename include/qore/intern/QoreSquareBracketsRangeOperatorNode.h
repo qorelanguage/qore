@@ -32,7 +32,12 @@
 #ifndef _QORE_QORESQUAREBRACKETSRANGEOPERATORNODE_H
 #define _QORE_QORESQUAREBRACKETSRANGEOPERATORNODE_H
 
-class QoreSquareBracketsRangeOperatorNode : public QoreNOperatorNodeBase<3> {
+#include "qore/intern/RangeIterator.h"
+#include "qore/intern/FunctionalOperator.h"
+#include "qore/intern/FunctionalOperatorInterface.h"
+
+
+class QoreSquareBracketsRangeOperatorNode : public QoreNOperatorNodeBase<3>, public FunctionalOperator {
 protected:
     const QoreTypeInfo* typeInfo;
 
@@ -44,9 +49,14 @@ protected:
 
     DLLLOCAL static QoreValue doSquareBrackets(QoreValue v0, QoreValue v1, QoreValue v2, ExceptionSink* xsink);
 
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
+private:
+    bool getEffectiveRange(int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
+
 public:
-    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
-        QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : nothing(), p2 ? p2 : nothing()), typeInfo(0) {
+    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2)
+        : QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : &Nothing, p2 ? p2 : &Nothing), typeInfo(0) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -74,4 +84,21 @@ public:
     }
 };
 
-#endif // QORESQUAREBRACKETSRANGEOPERATORNODE_H
+
+class QoreFunctionalSquareBracketsRangeOperator : public FunctionalOperatorInterface, public RangeIterator {
+protected:
+    const AbstractQoreNode* node;
+    ExceptionSink* xsink;
+    int64 start;
+    int64 stop;
+
+public:
+    DLLLOCAL QoreFunctionalSquareBracketsRangeOperator(const AbstractQoreNode* n, int64 begin, int64 end, ExceptionSink* xs)
+        : RangeIterator(begin, end, 1, &Nothing, xs), node(n), xsink(xs), start(begin), stop(end) {}
+
+    DLLLOCAL virtual ~QoreFunctionalSquareBracketsRangeOperator() {}
+
+    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+};
+
+#endif  // _QORE_QORESQUAREBRACKETSRANGEOPERATORNODE_H

@@ -31,27 +31,15 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
+
 QoreString QoreRangeOperatorNode::op_str(".. (range) operator expression");
 
-QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    int64 start = left->bigIntEval(xsink);
-    if (*xsink)
-        return QoreValue();
-    int64 stop = right->bigIntEval(xsink);
-    if (*xsink)
-        return QoreValue();
-
-    QoreListNode* l = new QoreListNode();
-    for (int64 i = start; i <= stop; i++)
-        l->push(new QoreBigIntNode(i));
-    return l;
-}
-
-AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = listTypeInfo;
+    returnTypeInfo = listTypeInfo;
+    typeInfo = returnTypeInfo;
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
@@ -60,9 +48,9 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
 
     // see if any of the arguments cannot be converted to an integer, if so generate a warning
     if (QoreTypeInfo::nonNumericValue(lti))
-        QoreTypeInfo::doNonNumericWarning(lti, loc, "the left hand expression of the 'range' operator (.. or ...) expression is ");
+        QoreTypeInfo::doNonNumericWarning(lti, loc, "the left hand expression of the 'range' operator (..) expression is ");
     if (QoreTypeInfo::nonNumericValue(rti)) {
-        QoreStringNode* desc = new QoreStringNode("the right hand side of the 'range' (.. or ...) expression is ");
+        QoreStringNode* desc = new QoreStringNode("the right hand side of the 'range' operator (..) expression is ");
         QoreTypeInfo::getThisType(rti, *desc);
         desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
@@ -78,4 +66,46 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     }
 
     return this;
+}
+
+QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    FunctionalValueType value_type;
+    std::unique_ptr<FunctionalOperatorInterface> fit(getFunctionalIterator(value_type, xsink));
+    if (*xsink || value_type != list)
+        return QoreValue();
+
+    ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
+
+    while (true) {
+        ValueOptionalRefHolder val(xsink);
+        if (fit->getNext(val, xsink))
+            break;
+
+        if (xsink && *xsink)
+            return QoreValue();
+
+        rv->push(val.getReferencedValue());
+    }
+
+    return rv.release();
+}
+
+FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+    int64 start = left->bigIntEval(xsink);
+    if (*xsink)
+        return 0;
+    int64 stop = right->bigIntEval(xsink);
+    if (*xsink)
+        return 0;
+
+    value_type = list;
+    return new QoreFunctionalRangeOperator(start, stop, xsink);
+}
+
+bool QoreFunctionalRangeOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+    if (!next())
+        return true;
+
+    val.setValue(getValue(xsink), true);
+    return false;
 }

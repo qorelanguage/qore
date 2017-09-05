@@ -31,7 +31,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
-QoreString QoreSquareBracketsRangeOperatorNode::op_str("[m..n] operator expression");
+
+QoreString QoreSquareBracketsRangeOperatorNode::op_str("x[m..n] operator expression");
 
 QoreString *QoreSquareBracketsRangeOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
     del = false;
@@ -67,71 +68,155 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
 }
 
 QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder h0(e[0], xsink);
-    if (*xsink)
-        return QoreValue();
-    ValueEvalRefHolder h1(e[1], xsink);
-    if (*xsink)
-        return QoreValue();
-    ValueEvalRefHolder h2(e[2], xsink);
+    ValueEvalRefHolder seq(e[0], xsink);
     if (*xsink)
         return QoreValue();
 
-    return doSquareBrackets(*h0, *h1, *h2, xsink);
-}
-
-QoreValue QoreSquareBracketsRangeOperatorNode::doSquareBrackets(QoreValue seq, QoreValue start_index, QoreValue stop_index, ExceptionSink* xsink) {
-    qore_type_t seq_type = seq.getType();
-    if (seq_type != NT_LIST && seq_type != NT_STRING && seq_type != NT_BINARY)
+    qore_type_t seq_type = seq->getType();
+    int64 start, stop, seq_size;
+    bool empty = !getEffectiveRange(start, stop, seq_size, xsink);
+    if (*xsink)
         return QoreValue();
-
-    int64 start = (start_index.getType() == NT_NOTHING) ? 0 : start_index.getAsBigInt();
-    int64 stop;
-    int64 seq_size;
-    switch (seq_type) {
-        case NT_LIST:   seq_size = seq.get<const QoreListNode>()->size(); break;
-        case NT_STRING: seq_size = seq.get<const QoreStringNode>()->size(); break;
-        case NT_BINARY: seq_size = seq.get<const BinaryNode>()->size(); break;
-    }
-
-    if (stop_index.getType() == NT_NOTHING)
-        stop = seq_size - 1;
-    else
-        stop = stop_index.getAsBigInt();
-
-    bool empty = (start > seq_size - 1) || (stop < 0);
-    if (!empty) {
-        if (start < 0)
-            start = 0;
-        if (stop > seq_size - 1)
-            stop = seq_size - 1;
-        if (start > stop)
-            empty = true;
-    }
 
     switch (seq_type) {
         case NT_LIST: {
-            QoreListNode* ret = new QoreListNode();
-            if (!empty) {
+            if (empty)
+                return new QoreListNode();
+
+            ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+            if (start < stop) {
                 for (int64 i = start; i <= stop; i++) {
-                    QoreValue entry = seq.get<const QoreListNode>()->get_referenced_entry(i);
-                    ret->push(entry.getReferencedValue());
+                    QoreValue entry = seq->get<const QoreListNode>()->get_referenced_entry(i);
+                    rv->push(entry.getReferencedValue());
                 }
             }
-            return ret;
+            else {
+                for (int64 i = start; i >= stop; i--) {
+                    QoreValue entry = seq->get<const QoreListNode>()->get_referenced_entry(i);
+                    rv->push(entry.getReferencedValue());
+                }
+            }
+            return rv.release();
         }
         case NT_STRING:
-            return empty ? new QoreStringNode() : seq.get<const QoreStringNode>() -> substr(start, stop - start + 1, xsink);
-        case NT_BINARY: {
-           if (empty)
-               return new BinaryNode();
+            if (empty)
+                return new QoreStringNode();
 
-           int64 length = stop - start + 1;
-           void* ptr = malloc(length);
-           memcpy((unsigned char*)ptr, (unsigned char*)seq.get<const BinaryNode>()->getPtr() + start, length);
-           return new BinaryNode(ptr, length);
+            if (start < stop)
+                return seq->get<const QoreStringNode>() -> substr(start, stop - start + 1, xsink);
+
+            return seq->get<const QoreStringNode>() -> reverse() -> substr(seq_size - start - 1, start - stop + 1, xsink);
+
+        case NT_BINARY: {
+            if (empty)
+                return new BinaryNode();
+
+            int64 length = start < stop ? stop - start + 1 : start - stop + 1;
+            void* ptr = malloc(length);
+            if (start < stop)
+                memcpy((unsigned char*)ptr, (unsigned char*)seq->get<const BinaryNode>()->getPtr() + start, length);
+            else {
+                for (int64 i = start; i >= stop; i--)
+                    memcpy((unsigned char*)ptr + start - i, (unsigned char*)seq->get<const BinaryNode>()->getPtr() + i, 1);
+            }
+            return new BinaryNode(ptr, length);
         }
     }
 
     return QoreValue();
+}
+
+FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+    value_type = list;
+
+    int64 start, stop, seq_size;
+    if (getEffectiveRange(start, stop, seq_size, xsink))
+        return new QoreFunctionalSquareBracketsRangeOperator(e[0], start, stop, xsink);
+    else
+        return 0;
+}
+
+bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+    if (!next())
+        return true;
+
+    ValueEvalRefHolder seq(node, xsink);
+    if (*xsink)
+        return false;
+
+    int64 i = getValue(xsink)->getAsBigInt();
+    if (*xsink)
+        return false;
+
+    switch (seq->getType()) {
+        case NT_LIST:
+            val.setValue(seq->get<const QoreListNode>()->get_referenced_entry(i), true);
+            break;
+        case NT_STRING:
+            val.setValue(seq->get<const QoreStringNode>()->substr(i, 1, xsink), true);
+            break;
+        case NT_BINARY: {
+            const BinaryNode* b = seq->get<const BinaryNode>();
+            if (i < 0 || (size_t)i >= b->size())
+                val.setValue(new BinaryNode(), true);
+
+            void* ptr = malloc(1);
+            memcpy((unsigned char*)ptr, (unsigned char*)b->getPtr() + i, 1);
+            val.setValue(new BinaryNode(ptr, 1), true);
+        }
+    }
+    return false;
+}
+
+// returns true iff the range is nonempty
+bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const {
+    ValueEvalRefHolder seq(e[0], xsink);
+    if (*xsink)
+        return false;
+    ValueEvalRefHolder start_index(e[1], xsink);
+    if (*xsink)
+        return false;
+    ValueEvalRefHolder stop_index(e[2], xsink);
+    if (*xsink)
+        return false;
+
+    qore_type_t seq_type = seq->getType();
+    if (seq_type != NT_LIST && seq_type != NT_STRING && seq_type != NT_BINARY) {
+        xsink->raiseException("ILLEGAL-EXPRESSION", "Index range can be applied only to lists, strings and binaries");
+        return false;
+    }
+
+    switch (seq_type) {
+        case NT_LIST:   seq_size = seq->get<const QoreListNode>()->size(); break;
+        case NT_STRING: seq_size = seq->get<const QoreStringNode>()->size(); break;
+        case NT_BINARY: seq_size = seq->get<const BinaryNode>()->size(); break;
+    }
+
+    bool no_start = start_index->getType() == NT_NOTHING,
+         no_stop = stop_index->getType() == NT_NOTHING;
+    start = no_start ? 0 : start_index->getAsBigInt();
+    stop = no_stop ? seq_size - 1 : stop_index->getAsBigInt();
+
+    if ((no_start && stop < 0) || (no_stop && start > seq_size - 1))
+        return false;
+
+    if (start < stop) {
+        if (start > seq_size - 1 || stop < 0)
+            return false;
+
+        if (start < 0)
+            start = 0;
+        if (stop > seq_size - 1)
+            stop = seq_size - 1;
+    }
+    else {
+        if (stop > seq_size - 1 || start < 0)
+            return false;
+
+        if (stop < 0)
+            stop = 0;
+        if (start > seq_size - 1)
+            start = seq_size - 1;
+    }
+    return true;
 }
