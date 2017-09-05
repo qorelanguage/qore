@@ -14,6 +14,8 @@ public class WrapTest inherits BaseTest {
         addTestCase ("TextWrap - WrapTest - test_simple", \test_simple());
         addTestCase ("TextWrap - WrapTest - test_empty_string", \test_empty_string());
         addTestCase ("TextWrap - WrapTest - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
+        addTestCase ("TextWrap - WrapTest - test_whitespace", \test_whitespace());
+        addTestCase ("TextWrap - WrapTest - test_fix_sentence_endings", \test_fix_sentence_endings());
         addTestCase ("TextWrap - WrapTest - test_wrap_short", \test_wrap_short());
         addTestCase ("TextWrap - WrapTest - test_wrap_short_1line", \test_wrap_short_1line());
         addTestCase ("TextWrap - WrapTest - test_hyphenated", \test_hyphenated());
@@ -70,6 +72,79 @@ public class WrapTest inherits BaseTest {
         # Check that the empty string is not indented.
         self.check_wrap("", 6, (), ('initial_indent': "++"));
         self.check_wrap("", 6, (), ('initial_indent': "++", 'drop_whitespace': False));
+    }
+
+    test_whitespace () {
+        # Whitespace munging and end-of-sentence detection
+        TextWrapper wrapper (('width': 45, 'fix_sentence_endings': True));
+
+        text = "This is a paragraph that already has
+line breaks.  But some of its lines are much longer than the others,
+so it needs to be wrapped.
+Some lines are \ttabbed too.
+What a mess!
+";
+
+        expect = ("This is a paragraph that already has line",
+                  "breaks.  But some of its lines are much",
+                  "longer than the others, so it needs to be",
+                  "wrapped.  Some lines are  tabbed too.  What a",
+                  "mess!");
+
+        self.check(wrapper.wrap(text), expect);
+
+        self.check(wrapper.fill(text), expect.join("\n"));
+
+        text = "\tTest\tdefault\t\ttabsize.";
+        expect = ("        Test    default         tabsize.",);
+        self.check_wrap(text, 80, expect);
+
+        text = "\tTest\tcustom\t\ttabsize.";
+        expect = ("    Test    custom      tabsize.",);
+        self.check_wrap(text, 80, expect, ('tabsize': 4));
+    }
+
+    test_fix_sentence_endings () {
+        TextWrapper wrapper (('width': 60, 'fix_sentence_endings': True));
+
+        # SF #847346: ensure that fix_sentence_endings=True does the
+        # right thing even on input short enough that it doesn't need to
+        # be wrapped.
+        text = "A short line. Note the single space.";
+        expect = ("A short line.  Note the single space.",);
+        self.check(wrapper.wrap(text), expect);
+
+        # Test some of the hairy end cases that _fix_sentence_endings()
+        # is supposed to handle (the easy stuff is tested in
+        # test_whitespace() above).
+        text = "Well, Doctor? What do you think?";
+        expect = ("Well, Doctor?  What do you think?",);
+        self.check(wrapper.wrap(text), expect);
+
+        text = "Well, Doctor?\nWhat do you think?";
+        self.check(wrapper.wrap(text), expect);
+
+        text = "I say, chaps! Anyone for \"tennis?\"\nHmmph!";
+        expect = ('I say, chaps!  Anyone for "tennis?"  Hmmph!',);
+        self.check(wrapper.wrap(text), expect);
+
+        wrapper.width = 20;
+        expect = ('I say, chaps!', 'Anyone for "tennis?"', 'Hmmph!');
+        self.check(wrapper.wrap(text), expect);
+
+        text = "And she said, \"Go to hell!\"\nCan you believe that?";
+        expect = ('And she said, "Go to',
+                  'hell!"  Can you',
+                  'believe that?');
+        self.check(wrapper.wrap(text), expect);
+
+        wrapper.width = 60;
+        expect = ('And she said, "Go to hell!"  Can you believe that?',);
+        self.check(wrapper.wrap(text), expect);
+
+        text = 'File stdio.h is nice.';
+        expect = ('File stdio.h is nice.',);
+        self.check(wrapper.wrap(text), expect);
     }
 
     test_wrap_short () {
