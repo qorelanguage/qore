@@ -295,6 +295,9 @@ class SchemaBase {
         *bool uniqueItems;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.1.
+        /** @note Swagger enums can be of any type, but we only support enums of simple types that can be converted
+            to a string for fast lookups in a hash
+        */
         hash<string, bool> enum;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.1.1.
@@ -336,6 +339,15 @@ class SchemaBase {
                 case "integer": rv = rv.toInt(); break;
                 case "number": rv = (format && ValidNumberFormatsHash{format} ? rv.toFloat() : rv.toNumber()); break;
                 case "boolean": rv = rv.toBool(); break;
+                case "string": {
+                    switch (format) {
+                        case "byte": return parse_base64_string(rv);
+                        case "binary": return parse_hex_string(rv);
+                        case "date":
+                        case "date-time":
+                            return date(rv);
+                    }
+                }
             }
             return rv;
         }
@@ -796,8 +808,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         - \c def_path: the default path to use when retrieving external schema references
         - \c try_import: a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
 
-        @throws INVALID-FIELD-FORMAT field has invalid format
-        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws SWAGGER-OPTION-ERROR unsuported options in constructor
+        @throws INVALID-SWAGGER-VERSION invalid or missing Swagger schema version
+        @throws INVALID-FIELD-FORMAT field has an invalid format
+        @throws INVALID-FIELD-TYPE field has an invalid type
+        @throws INVALID-FIELD-VALUE field has an invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
      */
