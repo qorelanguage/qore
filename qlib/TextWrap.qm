@@ -32,7 +32,7 @@
 %requires Util
 
 module TextWrap {
-    version = "0.1";
+    version = "1.0";
     desc    = "Text wrapping and filling";
     author  = "Martin Otto <martin@qore.org>";
     url     = "https://qore.org";
