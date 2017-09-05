@@ -55,17 +55,26 @@ const c_whitespace = "\t\n\013\014\r ";
 # -- Private helpers ---------------------------------------------------
 
 string sub expandtabs (string text, int tabsize = 8) {
-    string r = '';
-    int i = 0;
-    int s = text.length();
-    while (i < s && (int f = text.find ("\t", i)) >= 0) {
-        r += text.substr(i, f-i);
-        r += strmul(' ', r.length() % tabsize);
-        i = f + 1;
+    list res = ();
+    int col = 0;
+    foreach string chunk in (regex_extract (text, '([\t\r\n]{1}|[^\t\r\n]+)', Qore::RE_Global)) {
+        switch (chunk) {
+            case "\t":
+                string pad = strmul(' ', tabsize - col % tabsize);
+                res += pad;
+                col += pad.length();
+                break;
+            case "\r":
+            case "\n":
+                res += chunk;
+                col = 0;
+                break;
+            default:
+                res += chunk;
+                col += chunk.length();
+        }
     }
-    if (i < s)
-        r += text.substr(i);
-    return r;
+    return res.join('');
 }
 
 any sub sum (list la, *any start) {
