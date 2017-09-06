@@ -1736,14 +1736,15 @@ public class PathItemObject inherits ObjectBase {
                         sprintf("Path Item Object: 'parameters' list value has invalid type %y",
                             param.type());
                 AbstractParameterObject p = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, params.lsize()), param, swagger);
-                if (p.inLoc == "body")
+                if (p.inLoc == "body") {
+                    if (body)
+                        throw "INVALID-FIELD-VALUE", sprintf("path %y: more than one \"body\" parameter provided", path);
                     body = p;
+                }
                 else
                     parameters{p.name} = p;
             }
         }
-
-        # TODO check parameter duplication; check that there's only one "body" parameter
     }
 
     #! returns the operation object for the given method
@@ -2333,12 +2334,6 @@ public class AbstractParameterObject inherits ObjectBase {
             Otherwise, the property MAY be included and its default value is \c false.
          */
         bool required = False;
-
-        #! Additional properties used when @ref AbstractParameterObject::inLoc "inLoc" is \c "body".
-        *BodyParameter bodyParam;
-
-        #! Additional properties used when @ref AbstractParameterObject::inLoc "inLoc" is not \c "body".
-        *OtherParameter otherParam;
     }
 
     private {
@@ -2532,16 +2527,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
-                (defaultVal.typeCode() == NT_INT && type != "integer") ||
-                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
-                (defaultVal.typeCode() == NT_STRING && type != "string") ||
-                (defaultVal.typeCode() == NT_LIST && type != "array"))
-                throw "INVALID-FIELD-TYPE",
-                    sprintf("Parameter Object: 'default' value has invalid type %y (should be %y)",
-                        defaultVal.type(), type);
-            # TODO array
-            # TODO file type default value
+            checkValueType(defaultVal, type, items);
         }
     }
 
@@ -2648,11 +2634,27 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                     throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
             }
         }
-        # already-serialized dataa must be a string
+        # already-serialized data must be a string
         else
             throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
 
         checkStringIntern(path, method, name, value);
+    }
+
+    #! validates default values
+    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+        int vt = value.typeCode();
+        if (type == "array") {
+            if (vt != NT_LIST)
+                throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            OtherParameter::checkValueType(value[0], items.type, items.items, loc + "[0]");
+        }
+        if ((value.typeCode() == NT_BOOLEAN && type != "boolean") ||
+            (value.typeCode() == NT_INT && type != "integer") ||
+            (value.typeCode() == NT_FLOAT && type != "number") ||
+            (value.typeCode() == NT_STRING && (type != "string" && type != "file")) ||
+            (value.typeCode() == NT_LIST && type != "array"))
+            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
     }
 }
 
