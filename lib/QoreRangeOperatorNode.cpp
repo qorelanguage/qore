@@ -49,7 +49,7 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     // see if any of the arguments cannot be converted to an integer, if so generate a warning
     if (!QoreTypeInfo::canConvertToScalar(lti))
         lti->doNonNumericWarning(loc, "the left hand expression of the 'range' operator (..) expression is ");
-    if (QoreTypeInfo::canConvertToScalar(rti)) {
+    if (!QoreTypeInfo::canConvertToScalar(rti)) {
         QoreStringNode* desc = new QoreStringNode("the right hand side of the 'range' operator (..) expression is ");
         QoreTypeInfo::getThisType(rti, *desc);
         desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
