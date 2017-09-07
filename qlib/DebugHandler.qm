@@ -24,7 +24,9 @@
 
 # this module requires Qore 0.8.12 or better
 %requires qore >= 0.8.13
-%requires WebSocketHandler >= 1.2
+#%requires WebSocketHandler >= 1.2
+%requires ./WebSocketUtil.qm
+%requires ./WebSocketHandler.qm
 %requires json >= 1.5
 /*
 %try-module json >= 1.5
@@ -39,8 +41,8 @@
 %enable-all-warnings
 
 %requires HttpServerUtil >= 0.3.11
-%requires WebSocketUtil >= 1.0
-%requires ./DebugUtil.qm 
+#%requires WebSocketUtil >= 1.0
+%requires ./DebugUtil.qm
 #>= 1.0
 
 %new-style
@@ -124,7 +126,9 @@ public namespace DebugHandler {
         gotMessage(string msg) {
             try {
                 any receiveData = parse_json(msg);
-                dhandler.debugProgram.processCommand(cx, receiveData);
+                *hash sendData = dhandler.debugProgram.processCommand(cx, receiveData);
+                if (exists sendData)
+                    dhandler.debugProgram.sendDataImpl(cx, sendData);
             } catch (hash ex) {
             }
         }
@@ -157,6 +161,7 @@ public namespace DebugHandler {
             WebSocketDebugProgramControl debugProgram;
             # default socket send timeout
             #const DefaultSocketSendTimeout = 30s;
+            DebugLogger logger;
         }
 
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
@@ -169,6 +174,17 @@ public namespace DebugHandler {
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
         WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
             return new WebSocketDebugConnection(self, cx);
+        }
+        logInfo(string fmt) {
+            logger.log(DUV_INFO, vprintf(fmt, argv));
+        }
+
+        logDebug(string fmt) {
+            logger.log(DUV_DEBUG, vprintf(fmt, argv));
+        }
+
+        logError(string fmt) {
+            stderr.vprintf(fmt+"\n", argv);
         }
     }
 

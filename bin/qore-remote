@@ -51,6 +51,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
 	}
 
 	public wscEvent(*data msg) {
+		logger.log(DUV_DEBUG, "received: %y", msg);
 		if (!exists msg) 
 			return;
 		try {
@@ -104,12 +105,9 @@ class DebugWrapper {
 			GetOpt g(opts);
 			list a = ARGV;
 			opt = g.parse2(\a);
-			if (!a) {
+			if (!exists opt.url) {
 				throw "GETOPT-ERROR", "Missing URL";
-			} else if (a.size() > 1) {
-				throw "GETOPT-ERROR", "More URL provided";
 			}
-			opt.url = pop a;
 			switch (opt.url) {
 			case /^ws:\/\//:
 				break;
@@ -157,7 +155,7 @@ class DebugWrapper {
 			"  -P,--proxy=<url>       the proxy URL for connecting through a proxy\n"
 			"  -t,--timeout=<ms>      the timeout\n"
 			"  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
-			"  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n", 
+			"  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n" 
 
 			"\n"
             "Example:\n"

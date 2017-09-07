@@ -235,6 +235,15 @@ public namespace WebSocketHandler {
                 );
         }
 
+        #! get list of socket connection ids
+        /**
+        */
+        *list getConnectionIds() {
+            rwl.readLock();
+            on_exit rwl.readUnlock();
+            return keys ch;
+        }
+
         #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
         /** This method should not return until the connection is closed or the stop() method is called
 
@@ -266,6 +275,7 @@ public namespace WebSocketHandler {
             }
 
             on_exit {
+                #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
                 deregisterConnectionImpl(wsc);
                 wsc.connectionClosed();
                 rwl.writeLock();
@@ -366,13 +376,13 @@ public namespace WebSocketHandler {
 
             Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
         */
-        sendOne(string id, data d) {
+        sendOne(softstring id, data d) {
             rwl.readLock();
             on_exit rwl.readUnlock();
 
             if (!ch{id})
                 throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
-
+            #logDebug("sending data to connection: %y", id);
             ch{id}.send(d);
         }
 

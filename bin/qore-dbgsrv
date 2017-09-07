@@ -74,7 +74,8 @@ printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 			dpc = new WebSocketDebugProgramControlHost(NOTHING, self);
 			dpc.logger = logger;
 			logger.log(DUV_INFO, "create WebSocketDebugHandler");
-			wsHandler = new WebSocketDebugHandler(NOTHING, dpc);
+			wsHandler = dpc.getHandler();
+			wsHandler.logger = logger;
 
 			logger.log(DUV_INFO, "create HttpServer");
 			mServer = new HttpServer(\httplog(), \httperr(), logger.verbose>=DUV_DEBUG);
