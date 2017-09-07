@@ -202,6 +202,8 @@
       - @ref Qore::set_local_var_value()
     - updated functions/methods:
       - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
+      - @ref Qore::Thread::thread_yield()
+    - updated functions:
       - @ref Qore::ceil() "ceil()": now allows the precision to be specified
       - @ref Qore::floor() "floor()": now allows the precision to be specified
       - @ref Qore::hash() "hash()": now returns an untyped hash stripped of any key type information
@@ -272,6 +274,8 @@
       - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module fixes:
       - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
+    - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module fixes:
+      - fixed a thread lock starvation race condition (<a href="https://github.com/qorelanguage/qore/issues/2130">issue 2130</a>)
     - \c UTF-16 fixes:
       - fixed a bug comparing strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1579">issue 1579</a>)
       - fixed @ref Qore::substr() and <string>::substr() with strings in \c UTF-16 encodings (<a href="https://github.com/qorelanguage/qore/issues/1586">issue 1586</a>)
