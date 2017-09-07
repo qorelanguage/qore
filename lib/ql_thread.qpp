@@ -767,7 +767,7 @@ thread_yield();
 
     @since %Qore 0.8.13
 */
-nothing thread_yield() [flags=CONSTANT;dom=PROCESS] {
+nothing thread_yield() [dom=PROCESS] {
     std::this_thread::yield();
 }
 //@}
