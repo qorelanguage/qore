@@ -8,8 +8,11 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
-%requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServer.qm
 
 %try-module yaml >= 0.5
@@ -41,8 +44,8 @@ const VALUE_XMLRPC = (
         "output" : ("foo": 1),
     );
 const VALUE_YAML = (
-        "input" : "foo:\n bar: 1",
-        "output" : ("foo" : ("bar" : 1)),
+        "input": "foo:\n bar: 1\n other: '2017-01-01 00:00:00Z'",
+        "output": ("foo": ("bar": 1, "other": 2017-01-01Z)),
     );
 const VALUE_JSON = (
         "input" : "{\"foo\":{\"bar\":1}}",
