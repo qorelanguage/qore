@@ -609,9 +609,9 @@ class ProgramTest inherits QUnit::Test {
     }
 
     programInfoTest() {
-	    Program a(PO_NEW_STYLE);
+        Program a(PO_NEW_STYLE);
         list pp = Program::getAllPrograms();
-        assertEq("0x", a.getProgramId().substr(0, 2), "getAllPrograms()");
+        assertEq(True, a.getProgramId() > 0, "getProgramId()");
         assertEq(True, pp.size()>=2, "getAllPrograms()");
         assertEq(True, Program::getProgram().getProgramId() == pp[0].getProgramId(), "getProgramId(0)");
         assertEq(True, a.getProgramId() == pp[pp.size()-1].getProgramId(), "getProgramId(1)");

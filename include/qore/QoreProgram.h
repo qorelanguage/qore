@@ -778,17 +778,17 @@ public:
 
    //! get the program id
    /**
-      @return the program id which consists of pointer of QoreProgram instance
+      @return the program id
     */
-   DLLEXPORT QoreStringNode* getProgramId() const;
+   DLLEXPORT unsigned getProgramId() const;
 
    //! get the program from program id
    /**
-      @param programId created by @ref Program::getProgramId
+      @param programId provided by @ref Program::getProgramId
 
       @return the original program or null if program cannot be resolved
     */
-   DLLEXPORT static QoreProgram* resolveProgramId(const char *programId);
+   DLLEXPORT static QoreProgram* resolveProgramId(unsigned programId);
 
    //! register link to Qore script object
    DLLEXPORT void registerQoreObject(QoreObject *o, ExceptionSink* xsink) const;

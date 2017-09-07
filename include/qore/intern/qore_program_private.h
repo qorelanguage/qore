@@ -517,17 +517,11 @@ private:
    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
    static qore_program_to_object_map_t qore_program_to_object_map;
    static QoreRWLock lck_programMap; // to protect program list manipulation
+   static unsigned programIdCounter;   // to generate programId
+   unsigned programId;
 
 public:
-   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm=0) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
-      printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
-      QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
-      assert(i == qore_program_private::qore_program_to_object_map.end());
-      if (i == qore_program_private::qore_program_to_object_map.end()) {
-         qore_program_private::qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, 0));
-      }
-   }
+   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm=0);
 
    DLLLOCAL ~qore_program_private();
 
@@ -2077,28 +2071,18 @@ public:
       return s;
    }
 
-   DLLLOCAL QoreStringNode* getProgramId() const {
-      char buff[2*sizeof(pgm)+5 +1+1];  // printf %p is implementation specific
-      snprintf(buff, sizeof(buff), "%p", pgm);
-      return new QoreStringNode(buff);
+   DLLLOCAL unsigned getProgramId() const {
+      return programId;
    }
 
-   DLLLOCAL static QoreProgram* resolveProgramId(const char *programId) {
-      QoreProgram *p;
-      // we cannot use dynamic_cast to change if it is correct object as it required non general void* pointer
-      int n;
-      if ((n = sscanf(programId, "%p", &p) != 1)) {
-         printd(5, "qore_program_private::resolveProgramId(%s), n:%d\n", programId, n);
-         return 0;
-      }
-      printd(5, "qore_program_private::resolveProgramId(%s), pgm:%p, n:%d\n", programId, p, n);
+   DLLLOCAL static QoreProgram* resolveProgramId(unsigned programId) {
+      printd(5, "qore_program_private::resolveProgramId(%x)\n", programId);
       QoreAutoRWReadLocker al(&lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(p);
-      if (i == qore_program_to_object_map.end()) {
-         return 0;
-      } else {
-         return p;
+      for (qore_program_to_object_map_t::iterator i = qore_program_to_object_map.begin(); i != qore_program_to_object_map.end(); i++) {
+         if (i->first->priv->programId == programId)
+            return i->first;
       }
+      return 0;
    }
 
    DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs) {

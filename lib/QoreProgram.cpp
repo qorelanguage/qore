@@ -163,7 +163,19 @@ const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 qore_program_private::qore_program_to_object_map_t qore_program_private::qore_program_to_object_map;
 QoreRWLock qore_program_private::lck_programMap;
+unsigned qore_program_private::programIdCounter = 1;
 
+
+qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
+   printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
+   QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
+   qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
+   assert(i == qore_program_private::qore_program_to_object_map.end());
+   if (i == qore_program_private::qore_program_to_object_map.end()) {
+      programId = programIdCounter++;
+      qore_program_private::qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, 0));
+   }
+}
 
 qore_program_private::~qore_program_private() {
    printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
@@ -1782,11 +1794,11 @@ AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) cons
    return priv->resolveStatementId(statementId);
 }
 
-QoreStringNode* QoreProgram::getProgramId() const {
+unsigned QoreProgram::getProgramId() const {
    return priv->getProgramId();
 }
 
-QoreProgram* QoreProgram::resolveProgramId(const char *programId) {
+QoreProgram* QoreProgram::resolveProgramId(unsigned programId) {
    return qore_program_private::resolveProgramId(programId);
 }
 

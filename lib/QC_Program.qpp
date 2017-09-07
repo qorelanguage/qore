@@ -1807,7 +1807,7 @@ list Program::findFunctionVariants(string function) {
 
    @since %Qore 0.8.13
  */
-string Program::getProgramId() [flags=RET_VALUE_ONLY;] {
+int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
    return p->getProgramId();
 }
 
@@ -1820,10 +1820,10 @@ string Program::getProgramId() [flags=RET_VALUE_ONLY;] {
 
    @since %Qore 0.8.13
  */
-static Program Program::resolveProgramId(string programId) {
-   QoreProgram* pgm = QoreProgram::resolveProgramId(programId->c_str());
+static Program Program::resolveProgramId(int programId) {
+   QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
    if (!pgm)
-      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId \"%s\"", programId->c_str());
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
    return QoreProgram::getQoreObject(pgm);
 }
 

@@ -665,9 +665,9 @@ class DebugTest inherits QUnit::Test {
         string name = "Program::";
         list l = Program::getAllPrograms();
         testAssertionValue(name+'getAllPrograms', l.size(), 3);
-        testAssertionValue(name+'getProgramId', thisProgram.getProgramId().substr(0,2), "0x");
+        testAssertionValue(name+'getProgramId', thisProgram.getProgramId() > 0, True);
         testAssertionValue(name+'getProgramId 2', l[0].getProgramId(), thisProgram.getProgramId());
-        assertThrows('PROGRAM-ERROR', \Program::resolveProgramId(), ("0x000000"), name+'.resolveProgramId() no program');
+        assertThrows('PROGRAM-ERROR', \Program::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
         testAssertionValue(name+'resolveProgramId', Program::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
     }
 }
