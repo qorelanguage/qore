@@ -37,9 +37,10 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QC_TimeZone.h"
 
 #include <pthread.h>
-#include "qore/intern/QC_TimeZone.h"
+#include <thread>
 
 extern QoreClass* QC_TIMEZONE;
 
@@ -756,5 +757,17 @@ remove_thread_resource(\func());
  */
 bool remove_thread_resource(code resource) [dom=THREAD_CONTROL] {
    return remove_thread_resource(resource, xsink) ? false : true;
+}
+
+//! yields the current thread so other threads can be scheduled and run
+/** @par Example:
+    @code{.py}
+thread_yield();
+    @endcode
+
+    @since %Qore 0.8.13
+*/
+nothing thread_yield() [flags=CONSTANT;dom=PROCESS] {
+    std::this_thread::yield();
 }
 //@}
