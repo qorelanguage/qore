@@ -1634,27 +1634,6 @@ public class PathItemObject inherits ObjectBase {
          */
         *string ref;
 
-        #! A definition of a GET operation on this path.
-        *OperationObject get;
-
-        #! A definition of a PUT operation on this path.
-        *OperationObject put;
-
-        #! A definition of a POST operation on this path.
-        *OperationObject post;
-
-        #! A definition of a DELETE operation on this path.
-        *OperationObject del;
-
-        #! A definition of a OPTIONS operation on this path.
-        *OperationObject options;
-
-        #! A definition of a HEAD operation on this path.
-        *OperationObject head;
-
-        #! A definition of a PATCH operation on this path.
-        *OperationObject patch;
-
         #! A hash of parameters that are applicable for all the operations described under this path.
         /**
             Hash values are @ref AbstractParameterObject "AbstractParameterObjects"
@@ -2527,7 +2506,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            checkValueType(defaultVal, type, items);
+            OtherParameter::checkValueType(defaultVal, type, items);
         }
     }
 
@@ -2649,11 +2628,11 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                 throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
             OtherParameter::checkValueType(value[0], items.type, items.items, loc + "[0]");
         }
-        if ((value.typeCode() == NT_BOOLEAN && type != "boolean") ||
-            (value.typeCode() == NT_INT && type != "integer") ||
-            (value.typeCode() == NT_FLOAT && type != "number") ||
-            (value.typeCode() == NT_STRING && (type != "string" && type != "file")) ||
-            (value.typeCode() == NT_LIST && type != "array"))
+        if ((vt == NT_BOOLEAN && type != "boolean") ||
+            (vt == NT_INT && type != "integer") ||
+            (vt == NT_FLOAT && type != "number") ||
+            (vt == NT_STRING && (type != "string" && type != "file")) ||
+            (vt == NT_LIST && type != "array"))
             throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
     }
 }
@@ -2857,18 +2836,24 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
-                (defaultVal.typeCode() == NT_INT && type != "integer") ||
-                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
-                (defaultVal.typeCode() == NT_STRING && type != "string") ||
-                (defaultVal.typeCode() == NT_LIST && type != "array"))
-                throw "INVALID-FIELD-TYPE",
-                    sprintf("Header Object: 'default' value has invalid type %y (should be %y)",
-                        defaultVal.type(), type);
-            # TODO array
+            HeaderObject::checkValueType(defaultVal, type, items);
         }
+    }
 
-        # TODO default value type
+    #! validates default values
+    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+        int vt = value.typeCode();
+        if (type == "array") {
+            if (vt != NT_LIST)
+                throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            HeaderObject::checkValueType(value[0], items.type, items.items, loc + "[0]");
+        }
+        if ((vt == NT_BOOLEAN && type != "boolean") ||
+            (vt == NT_INT && type != "integer") ||
+            (vt == NT_FLOAT && type != "number") ||
+            (vt == NT_STRING && (type != "string" && type != "file")) ||
+            (vt == NT_LIST && type != "array"))
+            throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
     }
 }
 
@@ -3054,17 +3039,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            if ((defaultVal.typeCode() == NT_BOOLEAN && type != "boolean") ||
-                (defaultVal.typeCode() == NT_INT && type != "integer") ||
-                (defaultVal.typeCode() == NT_FLOAT && type != "number") ||
-                (defaultVal.typeCode() == NT_STRING && type != "string") ||
-                (defaultVal.typeCode() == NT_LIST && type != "array"))
-                throw "INVALID-FIELD-TYPE",
-                    sprintf("Schema Object %y: 'default' value has invalid type %y (should be %y)", name,
-                        defaultVal.type(), type);
-            # TODO array
-            # TODO file
-            # TODO other possibilities?
+            SchemaObject::checkValueType(defaultVal, type, items);
         }
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
@@ -3256,6 +3231,22 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 throw "MISSING-PROPERTY", sprintf("object %y: missing required property %y", name, prop);
         }
         #printf("SchemaObject::checkIntern() %y type: %y val: %y self: %N\n", name, type, value, self);
+    }
+
+    #! validates default values
+    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+        int vt = value.typeCode();
+        if (type == "array") {
+            if (vt != NT_LIST)
+                throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            SchemaObject::checkValueType(value[0], items.type, items.items, loc + "[0]");
+        }
+        if ((vt == NT_BOOLEAN && type != "boolean") ||
+            (vt == NT_INT && type != "integer") ||
+            (vt == NT_FLOAT && type != "number") ||
+            (vt == NT_STRING && (type != "string" && type != "file")) ||
+            (vt == NT_LIST && type != "array"))
+            throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
