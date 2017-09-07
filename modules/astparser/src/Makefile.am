@@ -1,22 +1,22 @@
 MNAME=astparser
 
 if COND_MINGWCC
-QPP=qpp_native
+ASTPARSER_QPP=$(top_srcdir)/lib/qpp_native
 else
-QPP=qpp
+ASTPARSER_QPP=$(top_srcdir)/lib/qpp
 endif
 
 dummy:
 	echo "Build started!"
 
 QC_AstParser.cpp: QC_AstParser.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 QC_AstTree.cpp: QC_AstTree.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 QC_AstTreeSearcher.cpp: QC_AstTreeSearcher.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 GENERATED_SOURCES = QC_AstParser.cpp QC_AstTree.cpp QC_AstTreeSearcher.cpp
 CLEANFILES = $(GENERATED_SOURCES)
