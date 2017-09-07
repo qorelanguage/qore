@@ -67,11 +67,13 @@ module Util {
     - @ref Util::is_float()
     - @ref Util::is_number()
     - @ref Util::lpad()
+    - @ref Util::make_uri_query()
     - @ref Util::normalize_dir()
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
     - @ref Util::parse_to_qore_value()
+    - @ref Util::parse_uri_query()
     - @ref Util::plural()
     - @ref Util::regex_escape()
     - @ref Util::rpad()
@@ -84,6 +86,9 @@ module Util {
 
     @subsection util_1_3 Util 1.3
     - updated for complex types
+    - added the @ref Util::make_uri_query() "make_uri_query()" function
+    - added the @ref Util::parse_uri_query() "parse_uri_query()" function
+    - added the @ref Util::UriQueryInfo "UriQueryInfo" hashdecl
 
     @subsection util_1_2 Util 1.2
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
@@ -127,6 +132,17 @@ namespace Init {
 
 #! the Util namespace contains all the objects in the Util module
 public namespace Util {
+    #! the return value of the @ref Util::parse_uri_query() "parse_uri_query()" function
+    /** @since Util 1.3
+    */
+    public hashdecl UriQueryInfo {
+        #! the part of the URI path before the first \c "?" character or the entire path if no \c "?" character is present in the path
+        string method;
+
+        #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref Qore::True "True"
+        *hash params;
+    }
+
     #! compares complex versions by breaking down strings into component parts
     /** @par Example:
         @code{.py}
@@ -705,6 +721,73 @@ hash: (1 member)
         }
 
         return v;
+    }
+
+    #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
+    /** @param path the URI path to parse
+
+        @return a @ref UriQueryInfo hash
+
+        @note the \a params output key value is always returned as a hash
+
+        @since Util 1.3
+    */
+    public hash<UriQueryInfo> sub parse_uri_query(string path) {
+        int i = path.find("?");
+        if (i == -1)
+            return new hash<UriQueryInfo>(("method": path));
+
+        # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
+        hash<UriQueryInfo> h((
+            "method": path.substr(0, i),
+            "params": {},
+            ));
+
+        # remove method and "?" char; leave only args in path
+        splice path, 0, i + 1;
+
+        # iterate through args
+        # w3c recommends ";" instead of "&" to separate arguments
+        # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
+        # however we support both
+        string sep = path.find(";") == -1 ? "&" : ";";
+        foreach any arg in (split(sep, path)) {
+            if (arg.val()) {
+                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
+                if (exists key) {
+                    reference kv = \h.params{key};
+                    if (exists kv) {
+                        if (kv.typeCode() != NT_LIST)
+                            kv = (kv, value);
+                        else
+                            kv += value;
+                    }
+                    else
+                        kv = value;
+                }
+                else
+                    h.params{arg} = True;
+            }
+        }
+        return h;
+    }
+
+    #! returns a serialized string for a UriQueryInfo hash
+    /** @param h the UriQueryInfo hash to serialize
+        @param arg_separator the character to use to separate URI query arguments
+
+        @since Util 1.3
+    */
+    public string sub make_uri_query(hash<UriQueryInfo> h, string arg_separator = ";") {
+        if (!h.params)
+            return h.method ?? "";
+        string str;
+        foreach hash ph in (h.params.pairIterator()) {
+            if (exists str)
+                str += arg_separator;
+            str += foldl $1 + arg_separator + $2, (map sprintf("%s=%s", ph.key, $1), ph.value);
+        }
+        return h.method + "?" + str;
     }
 
     #! function that returns a random string
