@@ -43,13 +43,6 @@
 // default initialization vector
 static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-static const EVP_MD* qore_get_digest(const char* name, ExceptionSink* xsink) {
-    const EVP_MD* md = EVP_get_digestbyname(name);
-    if (!md)
-       missing_openssl_feature(name, xsink);
-    return md;
-}
-
 /*
 */
 class CryptoHelper : public BaseHelper {
@@ -1305,17 +1298,18 @@ string str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @see DSS_bin()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doDigest(DSS_ERR, md, xsink))
+   if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
@@ -1333,17 +1327,18 @@ string str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @see DSS1_bin()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS1", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doDigest(DSS1_ERR, md, xsink))
+   if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
@@ -1662,17 +1657,18 @@ binary bin = DSS_bin("hello");
 
     @see DSS()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doDigest(DSS_ERR, md, xsink))
+   if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return QoreValue();
 
    return dh.getBinary();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
@@ -1690,17 +1686,18 @@ binary bin = DSS1_bin("hello");
 
     @see DSS1()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS1", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doDigest(DSS1_ERR, md, xsink))
+   if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return QoreValue();
 
    return dh.getBinary();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
@@ -2055,19 +2052,20 @@ string str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
-    @note this algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string DSS_hmac(data[doc] data, string key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    HMACHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doHMAC(DSS_ERR, md, key, xsink))
+   if (dh.doHMAC(DSS_ERR, EVP_dss(), key, xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 (SHA-1 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
@@ -2083,19 +2081,20 @@ string str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
-    @note this algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS1-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string DSS1_hmac(data[doc] data, string key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    HMACHelper dh(args);
-   const EVP_MD* md = qore_get_digest("DSS1", xsink);
-   if (!md)
-      return QoreValue();
-   if (dh.doHMAC(DSS1_ERR, md, key, xsink))
+   if (dh.doHMAC(DSS1_ERR, EVP_dss1(), key, xsink))
       return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2</a> based HMAC of the supplied argument as a hex string

@@ -121,6 +121,9 @@
 #cmakedefine HAVE_OPENSSL_CONST
 #cmakedefine NEED_SSL_CTX_NEW_CONST
 #cmakedefine HAVE_OPENSSL_HMAC_RV
+#cmakedefine HAVE_X509_GET_SIGNATURE_NID
+#cmakedefine HAVE_OPENSSL_INIT_CRYPTO
+
 
 /* mpfr */
 #cmakedefine HAVE_MPFR_DIVBY0
