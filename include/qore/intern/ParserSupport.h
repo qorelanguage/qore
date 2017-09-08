@@ -76,7 +76,7 @@ public:
          last_col += leng;
       else {
          unsigned int col = 1;
-         for (; (col <= leng) && (text[leng - col] != '\n'); ++col) {}
+         for (; ((int)col <= leng) && (text[leng - col] != '\n'); ++col) {}
          last_col = col;
          last_line = lineno;
       }

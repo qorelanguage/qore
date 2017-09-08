@@ -205,23 +205,43 @@ public:
 class QoreHmacHelper {
 public:
     DLLLOCAL QoreHmacHelper() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
         ctx = HMAC_CTX_new();
+#else
+        HMAC_CTX_init(&ctx);
+#endif
     }
 
     DLLLOCAL ~QoreHmacHelper() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
         HMAC_CTX_free(ctx);
-    }
+#else
+        HMAC_CTX_cleanup(&ctx);
+#endif
+}
 
     DLLLOCAL HMAC_CTX* operator*() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
         return ctx;
+#else
+        return &ctx;
+#endif
     }
 
     DLLLOCAL const HMAC_CTX* operator*() const {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
         return ctx;
+#else
+        return &ctx;
+#endif
     }
 
 private:
-   HMAC_CTX* ctx;
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+    HMAC_CTX* ctx;
+#else
+    HMAC_CTX ctx;
+#endif
 };
 
 class HMACHelper : public BaseHelper {

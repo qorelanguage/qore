@@ -44,8 +44,13 @@ QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n) {
 
       OBJ_obj2txt(key, OBJ_BUF_LEN, ko, 0);
       ASN1_STRING *val = X509_NAME_ENTRY_get_data(e);
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
       //printd(5, "do_X509_name() %s=%s\n", key, ASN1_STRING_get0_data(val));
       h->setKeyValue(key, new QoreStringNode((const char *)ASN1_STRING_get0_data(val)), 0);
+#else
+      //printd(5, "do_X509_name() %s=%s\n", key, ASN1_STRING_data(val));
+      h->setKeyValue(key, new QoreStringNode((const char *)ASN1_STRING_data(val)), 0);
+#endif
    }
    return h;
 }
@@ -54,7 +59,11 @@ QoreHashNode *QoreSSLBase::X509_NAME_to_hash(X509_NAME *n) {
 DateTimeNode *QoreSSLBase::ASN1_TIME_to_DateTime(ASN1_STRING *t) {
    // FIXME: check ASN1_TIME format if this algorithm is always correct
    QoreString str("20");
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
    str.concat((char*)ASN1_STRING_get0_data(t));
+#else
+   str.concat((char*)ASN1_STRING_data(t));
+#endif
    str.terminate(14);
    return new DateTimeNode(str.getBuffer());
 }

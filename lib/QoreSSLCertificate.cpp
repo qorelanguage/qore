@@ -62,13 +62,13 @@ struct qore_sslcert_private {
       rv->append(sig->data, sig->length);
       return rv;
 #else
-      int len = priv->cert->signature->length;
+      int len = cert->signature->length;
       char* buf = (char*)malloc(len);
       // FIXME: should throw an out of memory exception here
       if (!buf)
          return new BinaryNode;
 
-      memcpy(buf, priv->cert->signature->data, len);
+      memcpy(buf, cert->signature->data, len);
       return new BinaryNode(buf, len);
 #endif
    }
@@ -89,7 +89,7 @@ struct qore_sslcert_private {
          return new QoreStringNode("unknown");
       return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(OBJ_nid2obj(nid));
 #else
-      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
+      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(cert->cert_info->key->algor->algorithm);
 #endif
    }
 };
