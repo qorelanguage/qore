@@ -295,7 +295,16 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_FUNC_ROUND,
+   { QORE_OPT_DSS,
+    "HAVE_DSS",
+    QO_ALGORITHM,
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    true
+#else
+    false
+#endif
+  },
+  { QORE_OPT_FUNC_ROUND,
      "HAVE_ROUND",
      QO_FUNCTION,
 #ifdef HAVE_ROUND

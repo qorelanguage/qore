@@ -1820,7 +1820,10 @@ static void qore_thread_cleanup(void* n = 0) {
    if (mpfr_buildopt_tls_p())
       mpfr_free_cache();
 #endif
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+   // issue #2135: ERR_remove_state() is deprecated and a noop in openssl 1.0.0+
    ERR_remove_state(0);
+#endif
 }
 
 int q_register_foreign_thread() {

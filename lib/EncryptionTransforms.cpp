@@ -35,6 +35,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/EncryptionTransforms.h"
+#include "qore/intern/ql_crypto.h"
 
 #include <map>
 #include <string>
@@ -115,13 +116,13 @@ public:
       if (ce.key_len && ce.key_len != key_len)
          key_len = ce.key_len;
 
-      EVP_CIPHER_CTX_init(&ctx);
+      EVP_CIPHER_CTX_init(*ctx);
       state = STATE_OK;
 
-      EVP_CipherInit_ex(&ctx, ce.cipher_type, nullptr, nullptr, nullptr, do_crypt);
+      EVP_CipherInit_ex(*ctx, ce.cipher_type, nullptr, nullptr, nullptr, do_crypt);
 
       if (iv && ce.gcm) {
-         if (!EVP_CIPHER_CTX_ctrl(&ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr)) {
+         if (!EVP_CIPHER_CTX_ctrl(*ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr)) {
             xsink->raiseException(err, "error setting %s initialization vector length: %d", cipher, iv_len);
             state = STATE_ERROR;
             return;
@@ -132,7 +133,7 @@ public:
          if (key_len > EVP_MAX_KEY_LENGTH)
             key_len = EVP_MAX_KEY_LENGTH;
 
-         if (!EVP_CIPHER_CTX_set_key_length(&ctx, key_len) || !EVP_CipherInit_ex(&ctx, nullptr, nullptr, (const unsigned char*)key, (const unsigned char*)iv, -1)) {
+         if (!EVP_CIPHER_CTX_set_key_length(*ctx, key_len) || !EVP_CipherInit_ex(*ctx, nullptr, nullptr, (const unsigned char*)key, (const unsigned char*)iv, -1)) {
             // should not happen
             xsink->raiseException(err, "error setting %s key length: %d", cipher, key_len);
             state = STATE_ERROR;
@@ -144,7 +145,7 @@ public:
       if (ce.gcm) {
          if (aad) {
             int outlen;
-            if (!EVP_CipherUpdate(&ctx, nullptr, &outlen, (unsigned char*)aad, aad_len)) {
+            if (!EVP_CipherUpdate(*ctx, nullptr, &outlen, (unsigned char*)aad, aad_len)) {
                xsink->raiseException(err, "error setting %s AAD length: %d", cipher, aad_len);
                state = STATE_ERROR;
                return;
@@ -153,7 +154,7 @@ public:
 
          // set the MAC
          if (!do_crypt && mac) {
-            if (!EVP_CIPHER_CTX_ctrl(&ctx, EVP_CTRL_GCM_SET_TAG, mac_len, (void*)mac)) {
+            if (!EVP_CIPHER_CTX_ctrl(*ctx, EVP_CTRL_GCM_SET_TAG, mac_len, (void*)mac)) {
                xsink->raiseException(err, "error setting %s tag (MAC) length: %d", cipher, mac_len);
                state = STATE_ERROR;
                return;
@@ -163,9 +164,6 @@ public:
    }
 
    DLLLOCAL ~CryptoTransform() {
-      if (state != STATE_NOT_INIT) {
-         EVP_CIPHER_CTX_cleanup(&ctx);
-      }
       if (mac_ref) {
          ExceptionSink xsink;
          mac_ref->deref(&xsink);
@@ -185,7 +183,7 @@ public:
       if (!src) {
          // if the input is done
          int tmplen;
-         if (!EVP_CipherFinal_ex(&ctx, (unsigned char*)dst, &tmplen)) {
+         if (!EVP_CipherFinal_ex(*ctx, (unsigned char*)dst, &tmplen)) {
             xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
             state = STATE_ERROR;
             return std::make_pair(0, 0);
@@ -196,7 +194,7 @@ public:
          if (ce.gcm && do_crypt && mac_ref && tag_length) {
             SimpleRefHolder<BinaryNode> mac(new BinaryNode);
             mac->preallocate(tag_length);
-            if (!EVP_CIPHER_CTX_ctrl(&ctx, EVP_CTRL_GCM_GET_TAG, tag_length, const_cast<void*>(mac->getPtr()))) {
+            if (!EVP_CIPHER_CTX_ctrl(*ctx, EVP_CTRL_GCM_GET_TAG, tag_length, const_cast<void*>(mac->getPtr()))) {
                xsink->raiseException(err, "error getting %s tag (MAC) length: %d", cipher, tag_length);
                state = STATE_ERROR;
                return std::make_pair(0, 0);
@@ -218,7 +216,7 @@ public:
       assert(srcLen);
 
       int outlen = dstLen;
-      if (!EVP_CipherUpdate(&ctx, (unsigned char*)dst, &outlen, (unsigned char*)src, srcLen)) {
+      if (!EVP_CipherUpdate(*ctx, (unsigned char*)dst, &outlen, (unsigned char*)src, srcLen)) {
          xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
          state = STATE_ERROR;
          return std::make_pair(0, 0);
@@ -240,7 +238,7 @@ private:
 
    const char* cipher;
    CryptoEntry ce;
-   EVP_CIPHER_CTX ctx;
+   QoreEvpCipherCtxHelper ctx;
    const char* err;
    enum State {
       STATE_OK, STATE_DONE, STATE_ERROR, STATE_NOT_INIT
