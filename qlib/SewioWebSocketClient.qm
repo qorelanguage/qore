@@ -1,0 +1,288 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file SewioWebSocketClient.qm SewioWebSocketClient implementation
+
+/*  SewioWebSocketClient.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) WebSocketClient >= 1.0
+%requires Util >= 1.0
+%requires(reexport) ConnectionProvider >= 1.0
+
+%new-style
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+module SewioWebSocketClient {
+    version = "1.0";
+    desc = "user module for providing client support for the WebSocket protocol for Sewio.net RTLS Studio servers";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage SewioWebSocketClient Module
+
+    @tableofcontents
+
+    @section sewiowebsocketclientintro Introduction to the SewioWebSocketClient Module
+
+    The %SewioWebSocketClient module provides client support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio servers.
+
+    To use this module, use \c "%requires SewioWebSocketClient" in your code.
+
+    This module automatically uses the <a href="../../WebSocketClient/html/index.html">WebSocketClient</a> module for encoding and decoding web socket messages.
+
+    All the public symbols in the module are defined in the SewioWebSocketClient namespace.
+
+    Currently the module provides the following classes:
+    - @ref SewioWebSocketClient::SewioWebSocketClient "SewioWebSocketClient": the Sewio RTLS Studio web socket client class
+    - @ref SewioWebSocketClient::SewioWebSocketConnection "SewioWebSocketConnection": the Sewio RTLS Studio web socket connection class (based on the @ref connectionproviderintro "ConnectionProvider" module)
+
+    <b>Example</b>
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+
+%requires SewioWebSocketClient
+
+*string url = shift ARGV;
+*string apikey = shift ARGV;
+if (!url || !apikey) {
+    stderr.printf("usage: %s <URL> <APIKEY>\n", get_script_name());
+    exit(1);
+}
+
+SewioWebSocketClient ws();
+ws.connect(("url": url, "callback": sub (*data d) {if (d) printf("%s\n", d);}));
+# wait forever (or until ctrl-c)
+Counter c(1);
+c.waitForZero();
+    @endcode
+
+    @section sewiowebsocketclient_relnotes SewioWebSocketClient Module Release History
+
+    @subsection wsc_v1_0 v1.0
+    - the initial version of the SewioWebSocketClient module
+*/
+
+#! the SewioWebSocketClient namespace contains all the definitions in the SewioWebSocketClient module
+public namespace SewioWebSocketClient {
+    #! known websocket schemes
+    public const WsSchemes = (
+        "sewiows": (
+            "ssl": False,
+        ),
+        "sewiowss": (
+            "ssl": True,
+        ),
+        );
+
+    #! the main Sewio websocket client class
+    /** To use this class, create a @ref SewioWebSocketClient::SewioWebSocketClient "SewioWebSocketClient" object and the call @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
+
+        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref SewioWebSocketClient::SewioWebSocketClient::constructor() "SewioWebSocketClient::constructor()" method call.
+
+        To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+
+        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::send() method; this method will serialize the data
+        to JSON and send the JSON string to the server.
+
+        When websocket messages are received from the server, they are deserialized and the resulting data is used as the argument to the
+        callback closure mentioned above.
+     */
+    public class SewioWebSocketClient inherits WebSocketClient::WebSocketClient {
+        public {
+            #! required options
+            const RequiredOptions = (
+                # the Sewio "API key"
+                "apikey",
+            );
+
+            #! module version
+            const Version = "1.0";
+
+            #! default user agent string for HTTP requests
+            const DefaultUserAgent = sprintf("Qore-SewioWebSocketClient/%s", SewioWebSocketClient::Version);
+        }
+
+        private:internal {
+            # Sewio API key
+            string apikey;
+        }
+
+        #! creates the object and optionally sets logging targets
+        /** @par Example:
+            @code{.py}
+sub event(*data msg) {
+    if (!msg)
+        printf("connection closed\n");
+    else
+        printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), msg);
+}
+SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
+            @endcode
+
+            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
+            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
+            - \c apikey: (required) a string giving the Sewio RTLS Studio API key
+            - \c log: (optional) @ref closure "closure" or @ref call_reference "call reference" for informational logging
+            - \c errlog: (optional) @ref closure "closure" or @ref call_reference "call reference" for error logging
+            - \c debuglog: (optional) @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection
+
+            @throw SEWIOWEBSOCKETCLIENT-ERROR unknown scheme, missing or invalid 'url' or 'apikey' key in option hash
+        */
+        constructor(code cb, hash opts) : WebSocketClient(SewioWebSocketClient::getCallback(cb), opts) {
+            # check required options
+            foreach string key in (RequiredOptions) {
+                any v = opts{key};
+                if (!exists v || v == "")
+                    throw "SEWIOWEBSOCKETCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
+                if (v.typeCode() != NT_STRING)
+                    throw "SEWIOWEBSOCKETCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+
+                self{key} = v;
+            }
+%ifdef NoJson
+            throw "SEWIOWEBSOCKETCLIENT-ERROR", "the json module cannot be loaded; ensure the json module is installed and try again";
+%endif
+        }
+
+        #! sends data to the server
+        sendData(string method, string resource, *hash h) {
+%ifndef NoJson
+            send(make_json(("headers": ("X-ApiKey": apikey), "method": method, "resource": resource) + h));
+%endif
+        }
+
+        #! returns a hash of URL scheme information for URL schemes supported by this object
+        hash getSchemes() {
+            return WsSchemes;
+        }
+
+        #! connects to the target server and starts the event listener thread
+        private hash connectUnlocked(*hash hdr, *reference<hash> info) {
+            if (!hdr."User-Agent")
+                hdr."User-Agent" = DefaultUserAgent;
+            hdr += (
+                "Sec-WebSocket-Version": 13,
+            );
+
+            return WebSocketClient::connectUnlocked(hdr, \info);
+        }
+
+        #! our callback wrapper to parse the JSON and call the user's callback with the deserialized data
+        private static code getCallback(code cb) {
+            return sub (*string json) {
+%ifndef NoJson
+                cb(json.val() ? parse_json(json) : NOTHING);
+%endif
+            };
+        }
+    }
+
+    #! class for Sewio RTLS Studio websocket connections; returns an object of class @ref SewioWebSocketClient for receiving websocket events from a Sewio RTLS Studio websocket server
+    /** supports the following options:
+        - \c "apikey": (requried) the Sewio RTLS Studio API key to use for the connection
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        also supports the following runtime options in getImpl() for connection logging:
+        - \c "callback": (required) a callback to receive websocket events
+        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+        - \c "errlog": a closure accepting a single string for error logging
+        - \c "log": a closure accepting a single string for logging
+    */
+    public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnectionObject {
+        #! creates the SewioWebSocketConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @throws SEWIOWEBSOCKETCONNECTION-ERROR missing apikey option
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : WebSocketConnectionObject(name, desc, url, monitor, opts, urlh) {
+            if (!opts.apikey.val())
+                throw "SEWIOWEBSOCKETCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
+        }
+
+        #! returns \c "sewiowebsocket"
+        string getType() {
+            return "sewiowebsocket";
+        }
+
+        #! returns a @ref SewioWebSocketClient object
+        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
+            @param rtopts supports the following runtime options in getImpl() for connection logging:
+            - \c "log": a closure accepting a single string for logging
+            - \c "errlog": a closure accepting a single string for error logging
+            - \c "dbglog": a closure taking a single string for detailed technical connection logging
+
+            @return a @ref SewioWebSocketClient object
+        */
+        private SewioWebSocketClient getImpl(bool connect = True, *hash rtopts) {
+            if (!rtopts.callback)
+                rtopts.callback = sub (*data msg) {};
+            # rename "dbglog" to "debuglog" for SewioWebSocketClient object
+            if (rtopts.dbglog)
+                rtopts.debuglog = remove rtopts.dbglog;
+            SewioWebSocketClient ws(rtopts.callback, ("url": url) + rtopts.("log", "errlog", "debuglog") + opts);
+            if (connect)
+                ws.connect();
+            return ws;
+        }
+
+        #! gets options
+        hash getOptions() {
+            return WebSocketConnectionObject::getOptions() + (
+                "apikey": True,
+            );
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return WebSocketConnectionObject::getDefaultOptions();
+        }
+
+        #! static constructor
+        static SewioWebSocketConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new SewioWebSocketConnection(name, desc, url, monitor, opts, urlh);
+        }
+    }
+}

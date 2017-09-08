@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreListHashIterator.h>
+#include "qore/intern/QoreListHashIterator.h"
 
 extern QoreClass* QC_LISTHASHITERATOR;
 
@@ -195,7 +195,7 @@ while (i.next()) {
 
     @note equivalent to ListHashIterator::getKeyValue() when called explicitly
  */
-any ListHashReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
+auto ListHashReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
 

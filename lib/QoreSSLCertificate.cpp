@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QoreSSLIntern.h>
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QoreSSLIntern.h"
 
 #include <openssl/err.h>
 

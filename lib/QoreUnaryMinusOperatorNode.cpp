@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,9 +29,10 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_number_private.h>
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/qore_program_private.h"
 
-QoreString QoreUnaryMinusOperatorNode::unaryminus_str("unary minus operator expression");
+QoreString QoreUnaryMinusOperatorNode::unaryminus_str("unary minus (-) operator expression");
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreUnaryMinusOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
@@ -56,100 +57,69 @@ QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, Exception
       }
 
       case NT_FLOAT: {
-	 return -(v->getAsFloat());
+         return -(v->getAsFloat());
       }
 
       case NT_DATE: {
-	 return v->get<const DateTimeNode>()->unaryMinus();
+         return v->get<const DateTimeNode>()->unaryMinus();
       }
 
       case NT_INT: {
-	 return -(v->getAsBigInt());
+         return -(v->getAsBigInt());
       }
    }
 
    return QoreValue(0ll);
 }
 
-AbstractQoreNode *QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+   assert(!typeInfo);
+
    if (exp) {
-      exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
+      const QoreTypeInfo* eti = nullptr;
+      exp = exp->parseInit(oflag, pflag, lvids, eti);
 
-      // evaluate immediately if possible
-      if (exp->is_value()) {
-	 SimpleRefHolder<QoreUnaryMinusOperatorNode> th(this);
-
-	 qore_type_t t = exp->getType();
-	 if (t == NT_INT) {
-	    typeInfo = bigIntTypeInfo;
-	    return new QoreBigIntNode(-reinterpret_cast<const QoreBigIntNode*>(exp)->val);
-	 }
-         if (t == NT_NUMBER) {
-            typeInfo = numberTypeInfo;
-            return reinterpret_cast<const QoreNumberNode*>(exp)->negate();
+      if (QoreTypeInfo::hasType(eti)) {
+         qore_type_t t = QoreTypeInfo::getSingleReturnType(eti);
+         switch (t) {
+            case NT_NUMBER:
+               typeInfo = numberTypeInfo;
+               break;
+            case NT_FLOAT:
+               typeInfo = floatTypeInfo;
+               break;
+            case NT_INT:
+               typeInfo = bigIntTypeInfo;
+               break;
+            case NT_DATE:
+               typeInfo = dateTypeInfo;
+               break;
+            default:
+               if (!QoreTypeInfo::parseReturns(eti, NT_NUMBER)
+                   && !QoreTypeInfo::parseReturns(eti, NT_FLOAT)
+                   && !QoreTypeInfo::parseReturns(eti, NT_INT)
+                   && !QoreTypeInfo::parseReturns(eti, NT_DATE)) {
+                  typeInfo = bigIntTypeInfo;
+                  QoreStringNode* edesc = new QoreStringNode("the expression with the unary minus '-' operator is ");
+                  QoreTypeInfo::getThisType(eti, *edesc);
+                  edesc->concat(" and so this expression will always return 0; the unary minus '-' operator only returns a value with integers, floats, numbers, and relative date/time values");
+                  qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+               }
+               break;
          }
-	 if (t == NT_FLOAT) {
-	    typeInfo = floatTypeInfo;
-	    return new QoreFloatNode(-reinterpret_cast<const QoreFloatNode*>(exp)->f);
-	 }
-	 if (t == NT_DATE) {
-	    typeInfo = dateTypeInfo;
-	    return reinterpret_cast<const DateTimeNode*>(exp)->unaryMinus();
-	 }
-
-	 th.release();
-      }
-
-      if (QoreTypeInfo::hasType(typeInfo)) {
-	 if (QoreTypeInfo::isType(typeInfo, NT_FLOAT))
-	    typeInfo = floatTypeInfo;
-	 else if (QoreTypeInfo::isType(typeInfo, NT_NUMBER))
-            typeInfo = numberTypeInfo;
-	 else if (QoreTypeInfo::isType(typeInfo, NT_DATE))
-	    typeInfo = dateTypeInfo;
-	 else if (QoreTypeInfo::isType(typeInfo, NT_INT))
-	    typeInfo = bigIntTypeInfo;
-	 else {
-	    if (QoreTypeInfo::returnsSingle(typeInfo))
-	       typeInfo = bigIntTypeInfo;
-	    else
-	       typeInfo = 0;
-	 }
-	 // FIXME: add invalid operation warning for types that can't convert to int
       }
    }
-   else
-      typeInfo = 0;
+
+   // see if the argument is a constant value, then eval immediately and substitute this node with the result
+   if (exp && exp->is_value()) {
+      SimpleRefHolder<QoreUnaryMinusOperatorNode> del(this);
+      ParseExceptionSink xsink;
+      ValueEvalRefHolder v(this, *xsink);
+      assert(!**xsink);
+      //printd(5, "QoreUnaryMinusOperatorNode::parseInitImpl() parse type: '%s' runtype: '%s'\n", QoreTypeInfo::getName(typeInfo), v->getTypeName());
+      return v.getReferencedValue();
+   }
 
    returnTypeInfo = typeInfo;
    return this;
-}
-
-// static function
-AbstractQoreNode* QoreUnaryMinusOperatorNode::makeNode(AbstractQoreNode *v) {
-   if (v) {
-      assert(v->is_unique());
-      if (v->getType() == NT_NUMBER) {
-         qore_number_private::negateInPlace(*reinterpret_cast<QoreNumberNode*>(v));
-	 return v;
-      }
-
-      if (v->getType() == NT_FLOAT) {
-	 QoreFloatNode* f = reinterpret_cast<QoreFloatNode*>(v);
-	 f->f = -f->f;
-	 return v;
-      }
-
-      if (v->getType() == NT_DATE) {
-	 reinterpret_cast<DateTimeNode*>(v)->unaryMinusInPlace();
-	 return v;
-      }
-
-      if (v->getType() == NT_INT) {
-	 QoreBigIntNode* i = reinterpret_cast<QoreBigIntNode*>(v);
-	 i->val = -i->val;
-	 return v;
-      }
-   }
-   return new QoreUnaryMinusOperatorNode(v);
 }

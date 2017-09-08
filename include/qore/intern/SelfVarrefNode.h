@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   SelfVarrefNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -35,7 +35,6 @@
 
 class SelfVarrefNode : public ParseNode  {
 protected:
-   QoreProgramLocation loc;
    const QoreTypeInfo *returnTypeInfo;
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
@@ -49,10 +48,7 @@ protected:
 public:
    char* str;
 
-   DLLLOCAL SelfVarrefNode(char *c_str, int sline, int eline) : ParseNode(NT_SELF_VARREF), loc(sline, eline), returnTypeInfo(0), str(c_str) {
-   }
-
-   DLLLOCAL SelfVarrefNode(char *c_str, const QoreProgramLocation& l) : ParseNode(NT_SELF_VARREF), loc(l), returnTypeInfo(0), str(c_str) {
+   DLLLOCAL SelfVarrefNode(const QoreProgramLocation& loc, char *c_str) : ParseNode(loc, NT_SELF_VARREF), returnTypeInfo(nullptr), str(c_str) {
    }
 
    DLLLOCAL virtual ~SelfVarrefNode() {

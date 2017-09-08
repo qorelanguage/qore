@@ -9,7 +9,6 @@
 %requires ../../../../../qlib/QUnit.qm
 
 %requires ./ReExportTest.qm
-#/;
 
 %exec-class ReExportTest
 
@@ -21,7 +20,11 @@ class ReExportTest inherits QUnit::Test {
     }
 
     test() {
-        testAssertion("ReExport Test-A", bool sub() { return AV.typeCode() == NT_INT; });
-        #testAssertion("ReExport Test-B", bool sub() { return BV.typeCode() == NT_INT; });
+        assertEq(Type::Int, AV.type());
+        assertEq(Type::Int, BV.type());
+
+        if (Xml) {
+            assertEq("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>1</a>", call_function("make_xml", ("a": 1)));
+        }
     }
 }
