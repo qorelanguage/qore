@@ -1733,10 +1733,10 @@ list Program::getBreakpoints() {
 
    @since %Qore 0.8.13
 */
-hash Program::getStatementIdInfo(string id) {
-   AbstractStatement* s = p->resolveStatementId(id->c_str());
+hash Program::getStatementIdInfo(int statementId) {
+   AbstractStatement* s = p->resolveStatementId(statementId);
    if (!s) {
-      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from \"%s\"", id->c_str());
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
    }
    QoreHashNode* h = new QoreHashNode;
    h->setKeyValue("file", new QoreStringNode(s->loc.file), 0);
@@ -1758,7 +1758,7 @@ hash Program::getStatementIdInfo(string id) {
 
    @since %Qore 0.8.13
 */
-string Program::findStatementId(string file, int line) {
+int Program::findStatementId(string file, int line) {
    AbstractStatement* s = p->findStatement(file->c_str(), line);
    if (!s) {
       return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
@@ -1766,7 +1766,7 @@ string Program::findStatementId(string file, int line) {
    return p->getStatementId(s);
 }
 
-//! Find the first statement if function
+//! Find the first statement for function entry point
 /**
    @param function name
    @param params param types to resolve particular variant
@@ -1776,7 +1776,7 @@ string Program::findStatementId(string file, int line) {
 
    @since %Qore 0.8.13
 */
-string Program::findFunctionStatementId(string function, *list params) {
+int Program::findFunctionStatementId(string function, *list params) {
    ReferenceHolder<QoreValueList> vl(new QoreValueList(params), xsink);
    AbstractStatement* s = p->findFunctionStatement(function->c_str(), *vl, xsink);
    if (!s)

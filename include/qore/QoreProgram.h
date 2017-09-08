@@ -766,7 +766,7 @@ public:
       @param statement MUST be statement of this Program instance!
       @return the statement id which consist of pointer to both program and statement instances
     */
-   DLLEXPORT QoreStringNode* getStatementId(const AbstractStatement* statement) const;
+   DLLEXPORT unsigned long getStatementId(const AbstractStatement* statement) const;
 
    //! get the statement from statement id
    /**
@@ -774,7 +774,7 @@ public:
 
       @return the original statement or null if statement cannot be resolved
     */
-   DLLEXPORT AbstractStatement* resolveStatementId(const char *statementId) const;
+   DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId) const;
 
    //! get the program id
    /**
@@ -917,6 +917,8 @@ private:
    typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
    static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
    static QoreBreakpointList_t breakpointList;
+   static volatile unsigned breakpointIdCounter;   // to generate breakpointId
+   unsigned breakpointId;
 
    DLLLOCAL void unassignAllStatements();
    DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
@@ -968,7 +970,7 @@ public:
    /** Resolve statement from statement id
     *
     */
-   DLLEXPORT AbstractStatement* resolveStatementId(const char *statementId, ExceptionSink* xsink) const;
+   DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const;
    /** Get list of the thread IDs
     *
     */
@@ -996,17 +998,17 @@ public:
 
    //! get the breakpoint id
    /**
-      @return the breakpoint id which consists of pointer of QoreBreakpoint instance
+      @return the breakpoint id which is unique number
     */
-   DLLEXPORT QoreStringNode* getBreakpointId() const;
+   DLLEXPORT unsigned getBreakpointId() const;
 
    //! get the breakpoint from breakpoint id
    /**
-      @param breakpointId created by @ref Program::getBreakpointId
+      @param breakpointId provided by @ref Program::getBreakpointId
 
       @return the original breakpoint or null if object cannot be resolved
     */
-   DLLEXPORT static QoreBreakpoint* resolveBreakpointId(const char *breakpointId);
+   DLLEXPORT static QoreBreakpoint* resolveBreakpointId(unsigned breakpointId);
 
    DLLEXPORT void setQoreObject(QoreObject *n_qo) {
       qo = n_qo;

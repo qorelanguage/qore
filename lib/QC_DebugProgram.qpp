@@ -98,8 +98,8 @@ const DebugBlockContinue = RC_CONTINUE;
 
     class MyDebugProgram dbg() inherits DebugProgram {
     private(local):
-       int onAttach(Program pgm, string statement) {
-          return DebugStep;
+       onAttach(Program pgm, reference sb) {
+          sb = DebugStep;
        }
 
     }
@@ -184,7 +184,7 @@ DebugProgram::onDetach(Program[QoreProgram] pgm, reference sb) {
 /**
  *
  */
-DebugProgram::onStep(Program[QoreProgram] pgm, string blockStatement, *string statement, reference retCode, reference sb) {
+DebugProgram::onStep(Program[QoreProgram] pgm, int blockStatement, *int statement, reference retCode, reference sb) {
 }
 
 //! Executed when a function is entered.
@@ -192,7 +192,7 @@ DebugProgram::onStep(Program[QoreProgram] pgm, string blockStatement, *string st
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, string statement, reference sb) {
+DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference sb) {
 }
 
 //! Executed when a function is exited.
@@ -200,7 +200,7 @@ DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, string statement, refere
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onFunctionExit(Program[QoreProgram] pgm, string statement, reference returnValue, reference sb) {
+DebugProgram::onFunctionExit(Program[QoreProgram] pgm, int statement, reference returnValue, reference sb) {
 }
 
 //! Executed when an exception is raised.
@@ -208,7 +208,7 @@ DebugProgram::onFunctionExit(Program[QoreProgram] pgm, string statement, referen
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onException(Program[QoreProgram] pgm, string statement, hash ex, reference dismiss, reference sb) {
+DebugProgram::onException(Program[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference sb) {
 }
 
 //! Break particular program thread

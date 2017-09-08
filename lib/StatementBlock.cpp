@@ -163,6 +163,15 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
+StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+}
+
+StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+   addStatement(s);
+}
+
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
    QoreValue return_value;
    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
@@ -182,7 +191,7 @@ void StatementBlock::addStatement(AbstractStatement* s) {
          on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
       loc.end_line = s->loc.end_line;
-
+      qore_program_private::registerStatement(getProgram(), s);
       qore_program_private::addStatementToIndex(getProgram(), s);
    }
 }

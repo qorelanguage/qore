@@ -51,7 +51,7 @@ class MyDebugProgram inherits DebugProgram {
         return actions[0];
     }
   }
-  handle(int func, Program pgm, reference sb, *string statementId, *hash extra) {
+  handle(int func, Program pgm, reference sb, *int statementId, *hash extra) {
     *hash location;
     if (statementId)
       location = pgm.getStatementIdInfo(statementId);
@@ -98,7 +98,7 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_DETACH, pgm, \sb);
   }
 
-  onStep(Program pgm, string blockStatementId, *string statementId, reference retCode, reference sb) {
+  onStep(Program pgm, int blockStatementId, *int statementId, reference retCode, reference sb) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.retCode) {
@@ -108,11 +108,11 @@ class MyDebugProgram inherits DebugProgram {
     handle(st, pgm, \sb, statementId ?? blockStatementId);
   }
 
-  onFunctionEnter(Program pgm, string statementId, reference sb) {
+  onFunctionEnter(Program pgm, int statementId, reference sb) {
     handle(ST_FUNC_ENTER, pgm, \sb, statementId);
   }
 
-  onFunctionExit(Program pgm, string statementId, reference returnValue, reference sb) {
+  onFunctionExit(Program pgm, int statementId, reference returnValue, reference sb) {
     any act = getAction(ST_FUNC_EXIT);
     if (exists act.retVal) {
         returnValue = act.retVal;
@@ -120,7 +120,7 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_FUNC_EXIT, pgm, \sb, statementId, ("retVal": returnValue));
   }
 
-  onException(Program pgm, string statementId, hash ex, reference dismiss, reference sb) {
+  onException(Program pgm, int statementId, hash ex, reference dismiss, reference sb) {
     any act = getAction(ST_EXCEPTION);
     if (exists act.dismiss) {
         dismiss = act.dismiss;
@@ -484,9 +484,9 @@ class DebugTest inherits QUnit::Test {
         b2.setEnabled(False);
         checkProgram("breakpoint b1(enable), b2(disable,group)", action3, traceLog3, "DIVISION-BY-ZERO");
 
-        testAssertionValue('getBreakpointId', b1.getBreakpointId().substr(0,2), "0x");
-        testAssertionValue('getBreakpointId compare', b1.getBreakpointId() == b2.getBreakpointId(), False);
-        assertThrows('BREAKPOINT-ERROR', \Breakpoint::resolveBreakpointId(), ("0x000000"), '.resolveBreakpointId() no breakpoint');
+        testAssertionValue('getBreakpointId', b1.getBreakpointId() > 0, True);
+        testAssertionValue('getBreakpointId compare', b1.getBreakpointId()+1 == b2.getBreakpointId(), True);
+        assertThrows('BREAKPOINT-ERROR', \Breakpoint::resolveBreakpointId(), list(0), '.resolveBreakpointId() no breakpoint');
         testAssertionValue('resolveBreakpointId', Breakpoint::resolveBreakpointId(b1.getBreakpointId()).getBreakpointId(), b1.getBreakpointId());
     }
 
@@ -568,8 +568,8 @@ class DebugTest inherits QUnit::Test {
 
         testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list());
 
-        string sid1 = thisProgram.findStatementId('', line.tstFunction2+1);
-        string sid2 = thisProgram.findStatementId('', line.tstFunction+1);
+        int sid1 = thisProgram.findStatementId('', line.tstFunction2+1);
+        int sid2 = thisProgram.findStatementId('', line.tstFunction+1);
         b.assignStatement(sid1);
         testAssertionValue(name+'getStatementIds(())', b.getStatementIds(), list(sid1));
         b.unassignStatement(sid1);
@@ -627,16 +627,16 @@ class DebugTest inherits QUnit::Test {
         assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
         assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
 
-        string sid;
+        int sid;
         sid = p.findStatementId("main.q", 1);
-        testAssertionValue(name+'findStatementId("main.q", 1)', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("main.q", 1)', sid > 0, True);
 
         hash info;
         info = p.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1) );
 
         sid = p.findStatementId("label-f1", 2);
-        testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid > 0, True);
 
         testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 12) full file', p.findStatementId("/usr/lib/my-source.q", 12), sid);
         testAssertionValue(name+'findStatementId("/lib/my-source.q", 12) suffix', p.findStatementId("/lib/my-source.q", 12), sid);
@@ -649,13 +649,13 @@ class DebugTest inherits QUnit::Test {
 
 
         sid = p.findStatementId("label-f1", 8);
-        testAssertionValue(name+'findStatementId("label-f1", 8)', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("label-f1", 8)', sid > 0, True);
         testAssertionValue(name+'findStatementId("label-f1", 11) multiline', p.findStatementId("label-f1", 11), sid);
         info = p.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-f1", 11)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 8, 'end_line': 12) );
 
         sid = p.findStatementId("label-sleep", 2);
-        testAssertionValue(name+'findStatementId("label-sleep", 2)', sid.size() > 0, True);
+        testAssertionValue(name+'findStatementId("label-sleep", 2)', sid > 0, True);
         testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 102) full file', p.findStatementId("/usr/lib/my-source.q", 102), sid);
         info = p.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-sleep", 2)', info, ('file': 'label-sleep', 'source': '/usr/lib/my-source.q', 'offset': 100, 'start_line': 2, 'end_line': 2) );

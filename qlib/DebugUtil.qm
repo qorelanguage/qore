@@ -912,8 +912,13 @@ Linenoise::history_add('history load filename');
                     }
                     break;
                 case 'event':
-                    if (data.cmd == 'interrupt' && !exists getContextValue('threadId')) {
-                        setContextValue('threadId', data.tid);
+                    if (data.cmd == 'interrupt') {
+                        if (!exists getContextValue('programId')) {
+                            setContextValue('programId', data.pgmid);
+                        }
+                        if (!exists getContextValue('threadId')) {
+                            setContextValue('threadId', data.tid);
+                        }
                     }
                     break;
                 }
@@ -932,8 +937,8 @@ Linenoise::history_add('history load filename');
             }
         }
 
-        public string checkProgramId() {
-            *string pgmId = getContextValue('programId');
+        public int checkProgramId() {
+            *int pgmId = getContextValue('programId');
             if (!exists pgmId) {
                 throw "DEBUG-COMMAND", "Program is not set";
             }
@@ -1098,7 +1103,7 @@ Linenoise::history_add('history load filename');
                     case 'create':
                         break;
                     default:
-                        pgm = Program::resolveProgramId(pgmName);
+                        pgm = Program::resolveProgramId(int(pgmName));
                     }
                     logger.log(DUV_DEBUG, "program / %y", cmd);
                     switch (shift cmd) {
@@ -1120,7 +1125,7 @@ Linenoise::history_add('history load filename');
 
                     case 'list':
                         foreach my Program p in (Program::getAllPrograms()) {
-                            string pgmId = p.getProgramId();
+                            string pgmId = string(p.getProgramId());
                             if (pgmName.size() == 0 || bindex(pgmId, pgmName) == 0) {
                                 result{pgmId}.scriptPath = p.getScriptPath();
                             }
@@ -1221,7 +1226,7 @@ Linenoise::history_add('history load filename');
                             b = new Breakpoint();
                             break;
                         default:
-                            b = Breakpoint::resolveBreakpointId(bkptName);
+                            b = Breakpoint::resolveBreakpointId(int(bkptName));
                             break;
                         }
                         switch (shift cmd) {
@@ -1235,7 +1240,7 @@ Linenoise::history_add('history load filename');
                                     binfo.threads = b2.getThreadIds();
                                     binfo.policy = encodeValue('policy', b2.getPolicy(), policyStrings);
                                     binfo.statements = ();
-                                    foreach my string sid in (b2.getStatementIds()) {
+                                    foreach int sid in (b2.getStatementIds()) {
                                         push binfo.statements, ('id': sid) + pgm.getStatementIdInfo(sid);
                                     }
                                     if (!binfo.threads)
@@ -1258,7 +1263,7 @@ Linenoise::history_add('history load filename');
                             b.unassignProgram();
                             b.clearThreadIds();
                             list sl = b.getStatementIds();
-                            foreach string s in (sl) {
+                            foreach int s in (sl) {
                                 b.unassignStatement(s);
                             }
                             # delete b;   ??
@@ -1279,7 +1284,7 @@ Linenoise::history_add('history load filename');
                             switch (shift cmd) {
                             case 'list':
                                 result = hash();
-                                foreach my string sid in (b.getStatementIds()) {
+                                foreach int sid in (b.getStatementIds()) {
                                     result{sid} = pgm.getStatementIdInfo(sid);
                                 }
                                 break;
@@ -1402,7 +1407,7 @@ Linenoise::history_add('history load filename');
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot encode %y value %y", name, val);
         }
 
-        private string resolveStatement(Program pgm, *hash value) {
+        private int resolveStatement(Program pgm, *hash value) {
             if (exists value.id) {
                 return value.id;
             }
@@ -1415,7 +1420,7 @@ Linenoise::history_add('history load filename');
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
         }
 
-        private *hash handleInterrupt(string func, Program pgm, reference runState, *string statementId, *string refName, *reference refValue, *hash except) {
+        private *hash handleInterrupt(string func, Program pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx.queue = new Thread::Queue();
@@ -1429,6 +1434,7 @@ Linenoise::history_add('history load filename');
             hash sendData1 = (
               'type': 'event',
               'cmd': 'interrupt',
+              'pgmid': ctx.pgmId,
               'tid': tid,
               'stamp': now_us(),
               'func': func,
@@ -1624,6 +1630,7 @@ Linenoise::history_add('history load filename');
             hash sd = (
               'type': 'event',
               'cmd': 'run',
+              'pgmid': ctx.pgmId,
               'tid': tid,
               'stamp': now_us(),
               'runstate': encodeValue('runState', runState, runStateStrings),
@@ -1639,19 +1646,19 @@ Linenoise::history_add('history load filename');
             handleInterrupt("detach", pgm, \rs);
         }
 
-        onStep(Program pgm, string blockStatementId, *string statementId, reference retCode, reference rs) {
+        onStep(Program pgm, int blockStatementId, *int statementId, reference retCode, reference rs) {
             handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "loop", \retCode);
         }
 
-        onFunctionEnter(Program pgm, string statementId, reference rs) {
+        onFunctionEnter(Program pgm, int statementId, reference rs) {
             handleInterrupt('funcEnter', pgm, \rs, statementId);
         }
 
-        onFunctionExit(Program pgm, string statementId, reference result, reference rs) {
+        onFunctionExit(Program pgm, int statementId, reference result, reference rs) {
             handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
         }
 
-        onException(Program pgm, string statementId, hash ex, reference dismiss, reference rs) {
+        onException(Program pgm, int statementId, hash ex, reference dismiss, reference rs) {
             handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
         }
     }

@@ -642,8 +642,8 @@ class ProgramTest inherits QUnit::Test {
     testVS(string name, list val) {
         Program p = Program::getProgram();
         foreach hash v in (val) {
-            string st = p.findFunctionStatementId(name, v.params);
-            testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st.substr(0, 2), "0x");
+            int st = p.findFunctionStatementId(name, v.params);
+            testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
         }
     }
 

@@ -491,6 +491,13 @@ private:
    name_sline_statement_map_t statementByFileIndex;
    name_sline_statement_map_t statementByLabelIndex;
 
+   // statementId to AbstractStatement resolving
+   typedef std::vector<AbstractStatement*> StatementVector_t;
+   StatementVector_t statementIds;
+
+   // to get statementId
+   typedef std::map<AbstractStatement*, unsigned long> ReverseStatementIdMap_t;
+   ReverseStatementIdMap_t reverseStatementIds;
 
    /**
     * get safely debug program pointer. The debug program instance itself must exists. It's not matter of lock as the flow goes to QoreDebugProgram
@@ -517,7 +524,7 @@ private:
    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
    static qore_program_to_object_map_t qore_program_to_object_map;
    static QoreRWLock lck_programMap; // to protect program list manipulation
-   static unsigned programIdCounter;   // to generate programId
+   static volatile unsigned programIdCounter;   // to generate programId
    unsigned programId;
 
 public:
@@ -2022,7 +2029,7 @@ public:
 
    DLLLOCAL void deleteAllBreakpoints() {
       QoreAutoRWWriteLocker al(&lck_breakpoint);
-      for (std::list<QoreBreakpoint*>::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
+      for (QoreBreakpointList_t::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
          (*it)->unassignAllStatements();
          (*it)->pgm = 0;
          (*it)->deref();
@@ -2044,31 +2051,21 @@ public:
       return statement->getBreakpoint() != 0;
    }
 
-   DLLLOCAL QoreStringNode* getStatementId(const AbstractStatement* statement) const {
+   DLLLOCAL unsigned long getStatementId(const AbstractStatement* statement) const {
       AutoLocker al(&plock);
       if (!statement)
          return 0;
-      char buff[2*(sizeof(this))+5+ 2*sizeof(statement)+5 +1+1];  // printf %p is implementation specific
-      snprintf(buff, sizeof(buff), "%p-%p", this, statement);
-      return new QoreStringNode(buff);
+      ReverseStatementIdMap_t::const_iterator i = reverseStatementIds.find((AbstractStatement*) statement);
+      if (i == reverseStatementIds.end())
+         return 0;
+      return i->second;
    }
 
-   DLLLOCAL AbstractStatement* resolveStatementId(const char *statementId) const {
+   DLLLOCAL AbstractStatement* resolveStatementId(unsigned long statementId) const {
       AutoLocker al(&plock);
-      if (!statementId)
+      if (statementId == 0 || statementId > statementIds.size())
          return 0;
-      qore_program_private *p;
-      AbstractStatement *s;
-      // we cannot use dynamic_cast to change if it is correct object as it required non general void* pointer
-      int n;
-      if ((n = sscanf(statementId, "%p-%p", &p, &s) != 2)) {
-         printd(5, "qore_program_private::resolveStatementId(%s), n:%d\n", statementId, n);
-         return 0;
-      }
-      printd(5, "qore_program_private::resolveStatementId(%s), pgm:%p, st:%p, n:%d\n", statementId, p, s, n);
-      if (p != this)
-         return 0;
-      return s;
+      return statementIds[statementId-1];
    }
 
    DLLLOCAL unsigned getProgramId() const {
@@ -2115,6 +2112,7 @@ public:
       // index is being built when parsing
       if (!statement)
          return;
+      AutoLocker al(&pgm->priv->plock);
       if (statement->loc.source) {
          printd(5, "qore_program_private::addStatementToIndex(file+source), this: %p, statement: %p\n", pgm->priv, statement);
          pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset);
@@ -2122,6 +2120,14 @@ public:
       } else {
          printd(5, "qore_program_private::addStatementToIndex(file), this: %p, statement: %p\n", pgm->priv, statement);
          pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/);
+      }
+   }
+   DLLLOCAL static void registerStatement(QoreProgram* pgm, AbstractStatement *statement) {
+      // allocate unique id for statement
+      ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
+      if (i == pgm->priv->reverseStatementIds.end()) {
+         pgm->priv->statementIds.push_back(statement);
+         pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
       }
    }
 

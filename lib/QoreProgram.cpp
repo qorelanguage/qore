@@ -1786,11 +1786,11 @@ AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, 
    return uvb->getStatementBlock();
 }
 
-QoreStringNode* QoreProgram::getStatementId(const AbstractStatement* statement) const {
+unsigned long QoreProgram::getStatementId(const AbstractStatement* statement) const {
    return priv->getStatementId(statement);
 }
 
-AbstractStatement* QoreProgram::resolveStatementId(const char* statementId) const {
+AbstractStatement* QoreProgram::resolveStatementId(unsigned long statementId) const {
    return priv->resolveStatementId(statementId);
 }
 
@@ -1832,6 +1832,7 @@ QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionS
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;
 QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
+unsigned QoreBreakpoint::breakpointIdCounter = 1;
 
 void QoreBreakpoint::unassignAllStatements() {
    for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
@@ -1855,6 +1856,7 @@ QoreBreakpoint& QoreBreakpoint::operator=(const QoreBreakpoint& other) {
 QoreBreakpoint::QoreBreakpoint(): pgm(0), qo(0), enabled(false), policy(BKP_PO_NONE) {
    QoreAutoRWWriteLocker al(&QoreBreakpoint::lck_breakpoint);
    QoreBreakpoint::breakpointList.push_back(this);
+   breakpointId = breakpointIdCounter++;
 }
 
 QoreBreakpoint::~QoreBreakpoint() {
@@ -1954,18 +1956,18 @@ QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
    QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
    QoreListNode* l = new QoreListNode;
    for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
-      l->push(pgm->getStatementId(*it));
+      l->push(new QoreBigIntNode(pgm->getStatementId(*it)));
    }
    return l;
 }
 
-AbstractStatement* QoreBreakpoint::resolveStatementId(const char *statementId, ExceptionSink* xsink) const {
+AbstractStatement* QoreBreakpoint::resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const {
    AbstractStatement *s = 0;
    if (checkPgm(xsink)) {
       s = pgm->resolveStatementId(statementId);
       if (!s) {
          if (xsink) {
-            xsink->raiseException("BREAKPOINT-ERROR", "Cannot resolve statement \"%s\"", statementId);
+            xsink->raiseException("BREAKPOINT-ERROR", "Cannot resolve statement (%lu)", statementId);
          }
       }
    }
@@ -2074,27 +2076,17 @@ void QoreBreakpoint::clearThreadIds(ExceptionSink* xsink) {
    tidMap.clear();
 }
 
-QoreStringNode* QoreBreakpoint::getBreakpointId() const {
-   char buff[2*sizeof(this)+5 +1+1];  // printf %p is implementation specific
-   snprintf(buff, sizeof(buff), "%p", this);
-   return new QoreStringNode(buff);
+unsigned QoreBreakpoint::getBreakpointId() const {
+   return breakpointId;
 }
 
-QoreBreakpoint* QoreBreakpoint::resolveBreakpointId(const char *breakpointId) {
-   if (!breakpointId)
-      return 0;
+QoreBreakpoint* QoreBreakpoint::resolveBreakpointId(unsigned breakpointId) {
    QoreAutoRWReadLocker al(&QoreBreakpoint::lck_breakpoint);
-   QoreBreakpoint* b;
-   int n;
-   if ((n = sscanf(breakpointId, "%p", &b) != 1)) {
-      printd(5, "qore_program_private::resolveBreakpointId(%s), n:%d\n", breakpointId, n);
-      return 0;
+   for (QoreBreakpointList_t::const_iterator i = QoreBreakpoint::breakpointList.begin(); i != QoreBreakpoint::breakpointList.end(); i++) {
+      if ((*i)->breakpointId == breakpointId)
+         return *i;
    }
-   if (std::find(QoreBreakpoint::breakpointList.begin(), QoreBreakpoint::breakpointList.end(), b) == QoreBreakpoint::breakpointList.end()) {
-      printd(5, "qore_program_private::resolveBreakpointId(%s), unknown pointer\n", breakpointId);
-      return 0;
-   }
-   return b;
+   return 0;
 }
 
 QoreObject* QoreBreakpoint::getQoreObject() {

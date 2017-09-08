@@ -166,8 +166,8 @@ nothing Breakpoint::unassignProgram() {
 /**
  *
  */
-nothing Breakpoint::assignStatement(string statementId) {
-   AbstractStatement *s = bkpt->resolveStatementId(statementId->c_str(), xsink);
+nothing Breakpoint::assignStatement(int statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId, xsink);
    if (!xsink->isEvent()) {
       bkpt->assignStatement(s, xsink);
    }
@@ -177,8 +177,8 @@ nothing Breakpoint::assignStatement(string statementId) {
 /**
  *
  */
-nothing Breakpoint::unassignStatement(string statementId) {
-   AbstractStatement *s = bkpt->resolveStatementId(statementId->c_str(), xsink);
+nothing Breakpoint::unassignStatement(int statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId, xsink);
    if (!xsink->isEvent()) {
       bkpt->unassignStatement(s, xsink);
    }
@@ -256,7 +256,7 @@ nothing Breakpoint::clearThreadIds() {
 //! Get breakpoint id
 /**
  */
-string Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
+int Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
    return bkpt->getBreakpointId();
 }
 
@@ -265,10 +265,10 @@ string Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
    @throw BREAKPOINT-ERROR if the breakpointId cannot identify @ref Breakpoint instance
 
  */
-static Breakpoint Breakpoint::resolveBreakpointId(string breakpointId) {
-   QoreBreakpoint* b = QoreBreakpoint::resolveBreakpointId(breakpointId->c_str());
+static Breakpoint Breakpoint::resolveBreakpointId(int breakpointId) {
+   QoreBreakpoint* b = QoreBreakpoint::resolveBreakpointId(breakpointId);
    if (!b)
-      return xsink->raiseException("BREAKPOINT-ERROR", "wrong breakpointId \"%s\"", breakpointId->c_str());
+      return xsink->raiseException("BREAKPOINT-ERROR", "wrong breakpointId (%d)", breakpointId);
    return b->getQoreObject();
 }
 

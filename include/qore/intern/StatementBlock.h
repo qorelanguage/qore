@@ -121,13 +121,10 @@ protected:
    }
 
 public:
-   DLLLOCAL StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
-   }
+   DLLLOCAL StatementBlock(int sline, int eline);
 
    // line numbers on statement blocks are set later
-   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
-      addStatement(s);
-   }
+   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s);
 
    DLLLOCAL virtual ~StatementBlock() {
       del();
