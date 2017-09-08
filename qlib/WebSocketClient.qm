@@ -542,9 +542,9 @@ ws.clearStats();
 
         #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
         /**
-        @param str Sends the string data over the socket
+            @param str Sends the string data over the socket
 
-        @see Socket::send()
+            @see Socket::send()
         */
         send(string str) {
             logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
@@ -553,9 +553,9 @@ ws.clearStats();
 
         #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
         /**
-        @param bin Sends the binary data over the socket
+            @param bin Sends the binary data over the socket
 
-        @see Socket::send()
+            @see Socket::send()
         */
         send(binary bin) {
             logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
