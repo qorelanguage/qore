@@ -1080,6 +1080,24 @@ else
         AC_DEFINE([HAVE_X509_GET_SIGNATURE_NID], 1, [Define if X509_get_signature_nid() is present])],
        [AC_MSG_RESULT([no X509_get_signature_nid() present])])
 
+    # check for X509_get0_signature() const correctness
+    AC_MSG_CHECKING([X509_get0_signature() const correctness in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[const ASN1_BIT_STRING* sig; const X509_ALGOR* alg; X509_get0_signature(&sig, &alg, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_SIGNATURE_CONST], 1, [Define if X509_get0_signature() is present and accepts const args])],
+       [AC_MSG_RESULT([no X509_get0_signature() present or does not accept const args])])
+
+    # check for X509_get0_pubkey()
+    AC_MSG_CHECKING([X509_get0_pubkey() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[X509_get0_pubkey(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_PUBKEY], 1, [Define if X509_get0_pubkey() is present])],
+       [AC_MSG_RESULT([no X509_get0_pubkey() present])])
+
     # check for OPENSSL_init_crypto()
     AC_MSG_CHECKING([OPENSSL_init_crypto() in openssl])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
