@@ -93,6 +93,7 @@ c.waitForZero();
     - fixed a bug where the event loop thread would immediately terminate after a reconnection (<a href="https://github.com/qorelanguage/qore/issues/2061">issue 2061</a>)
     - improved client logging
     - fixed a bug where the @ref WebSocketClient::WebSocketClient class did not validate the \c Sec-WebSocket-Accept response header according to RFC6455 (<a href="https://github.com/qorelanguage/qore/issues/2062">issue 2062</a>)
+    - added support for the \c yield option in the constructor
 
     @subsection wsc_v1_5 v1.5
     - added timeout values to @ref Qore::Socket "Socket" and @ref Qore::HTTPClient "HTTPClient" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
@@ -134,6 +135,9 @@ public namespace WebSocketClient {
         The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()".
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+
+        The @ref WeSocketClient::WeSocketClient "WeSocketClient" class includes support for running in sandboxed Program objects with the following parse options set:
+        - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in @ref WeSocketClient::WeSocketClient::constructor() "WeSocketClient::constructor()"
      */
     public class WebSocketClient {
         private {
@@ -148,6 +152,8 @@ public namespace WebSocketClient {
             timeout timeout_ms = DefaultTimeout;
             #! unique websocket connection ID; -1 when not connected
             int cid = -1;
+            #! callable object to yield the current thread's execution
+            *code yield;
 
             static Sequence seq();
         }
@@ -180,12 +186,25 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational logging
             - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
             - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection
+            - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield()); required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
 
-            @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash
+            @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
+
+            @since WebSocketClient 1.6 added the \c yield option
         */
         constructor(code cb, hash opts) {
             if (opts.url.typeCode() != NT_STRING)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key giving the connection target");
+
+            if (opts.hasKey("yield")) {
+                if (!opts.yield.callp())
+                    throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid 'yield' key with type %y; must be a callable value", opts.yield.type());
+                yield = opts.yield;
+            }
+%ifdef PO_NO_PROCESS_CONTROL
+            else
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'yield' key giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is in effect");
+%endif
 
             hash uh = parse_url(opts.url);
             if (uh.protocol) {
@@ -389,9 +408,14 @@ ws.clearStats();
                 }
 
                 try {
-                    if (!hc.isDataAvailable(50ms))
+                    if (!hc.isDataAvailable(50ms)) {
+%ifdef PO_NO_PROCESS_CONTROL
+                        call_function(yield);
+%else
+                        yield ? call_function(yield) : Qore::thread_yield();
+%endif
                         continue;
-
+                    }
                     hash h = ws_read_message(hc, timeout_ms);
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
@@ -516,12 +540,25 @@ ws.clearStats();
             return rh;
         }
 
+        #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+            @param str Sends the string data over the socket
+
+            @see Socket::send()
+        */
         send(string str) {
-            logDebug("sending: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
+            logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
         }
 
+        #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+            @param bin Sends the binary data over the socket
+
+            @see Socket::send()
+        */
         send(binary bin) {
+            logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
         }
     }
@@ -534,11 +571,12 @@ ws.clearStats();
         - \c "proxy": proxy URL to use
         - \c "timeout": transfer timeout to use in milliseconds
 
-        also supports the following runtime options in getImpl() for connection logging:
+        also supports the following runtime options in getImpl():
         - \c "callback": (required) a callback to receive websocket events
         - \c "dbglog": a closure taking a single string for detailed technical connection logging
         - \c "errlog": a closure accepting a single string for error logging
         - \c "log": a closure accepting a single string for logging
+        - \c "yield": a closure to yield current thread execution
     */
     public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
         #! creates the WebSocketConnectionObject object
@@ -558,11 +596,12 @@ ws.clearStats();
         }
 
         #! returns runtime options
-        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
+        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
             - \c "callback": (required) a callback to receive websocket events
-            - \c "log": a closure accepting a single string for logging
-            - \c "errlog": a closure accepting a single string for error logging
             - \c "dbglog": a closure taking a single string for detailed technical connection logging
+            - \c "errlog": a closure accepting a single string for error logging
+            - \c "log": a closure accepting a single string for logging
+            - \c "yield": a closure to yield current thread execution
             */
         *hash getRuntimeOptions() {
             return (
@@ -570,15 +609,18 @@ ws.clearStats();
                 "log": True,
                 "errlog": True,
                 "dbglog": True,
+                "yield": True,
                 );
         }
 
         #! returns a @ref WebSocketClient object
         /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
-            @param rtopts supports the following runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "errlog": a closure accepting a single string for error logging
+            @param rtopts supports the following runtime options in getImpl():
+            - \c "callback": (required) a callback to receive websocket events
             - \c "dbglog": a closure taking a single string for detailed technical connection logging
+            - \c "errlog": a closure accepting a single string for error logging
+            - \c "log": a closure accepting a single string for logging
+            - \c "yield": a closure to yield current thread execution
 
             @return a @ref WebSocketClient object
         */
