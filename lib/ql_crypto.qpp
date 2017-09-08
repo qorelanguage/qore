@@ -2064,7 +2064,8 @@ string DSS_hmac(data[doc] data, string key) {
 
    return dh.getString();
 #else
-    missing_openssl_feature("DSS", xsink);
+   (void)key;
+   missing_openssl_feature("DSS", xsink);
 #endif
 }
 
@@ -2091,9 +2092,10 @@ string DSS1_hmac(data[doc] data, string key) {
    if (dh.doHMAC(DSS1_ERR, EVP_dss1(), key, xsink))
       return QoreValue();
 
-    return dh.getString();
+   return dh.getString();
 #else
-    missing_openssl_feature("DSS", xsink);
+   (void)key;
+   missing_openssl_feature("DSS", xsink);
 #endif
 }
 
