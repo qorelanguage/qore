@@ -273,6 +273,12 @@ static inline long long atoll(const char* str) {
 #define OPENSSL_CONST
 #endif
 
+#ifdef HAVE_X509_GET0_SIGNATURE_CONST
+#define OPENSSL_X509_GET0_SIGNATURE_CONST const
+#else
+#define OPENSSL_X509_GET0_SIGNATURE_CONST
+#endif
+
 typedef std::set<const AbstractQoreNode*> const_node_set_t;
 typedef std::set<LocalVar*> lvar_set_t;
 
