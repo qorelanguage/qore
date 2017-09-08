@@ -1062,6 +1062,24 @@ else
         AC_DEFINE([HAVE_OPENSSL_HMAC_RV], 1, [Define if HMAC_Update() and friends support a return value])],
        [AC_MSG_RESULT([no return values are supported])])
 
+    # check for X509_get_signature_nid()
+    AC_MSG_CHECKING([X509_get_signature_nid() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[int rc = X509_get_signature_nid(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET_SIGNATURE_NID], 1, [Define if X509_get_signature_nid() is present])],
+       [AC_MSG_RESULT([no X509_get_signature_nid() present])])
+
+    # check for OPENSSL_init_crypto()
+    AC_MSG_CHECKING([OPENSSL_init_crypto() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/crypto.h>]],
+    [[int rc = OPENSSL_init_crypto(0, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_INIT_CRYPTO], 1, [Define if OPENSSL_init_crypto() is present])],
+       [AC_MSG_RESULT([no OPENSSL_init_crypto() present])])
+
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
 fi
