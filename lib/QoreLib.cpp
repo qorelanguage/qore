@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -289,7 +289,16 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_FUNC_ROUND,
+   { QORE_OPT_DSS,
+    "HAVE_DSS",
+    QO_ALGORITHM,
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    true
+#else
+    false
+#endif
+  },
+  { QORE_OPT_FUNC_ROUND,
      "HAVE_ROUND",
      QO_FUNCTION,
 #ifdef HAVE_ROUND
@@ -1628,7 +1637,7 @@ bool q_path_is_readable(const char* path) {
 
    if ((rc = stat(path, &sbuf)))
       return false;
-   
+
    if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
       DIR* dp = opendir(path);
       if (dp != NULL) {

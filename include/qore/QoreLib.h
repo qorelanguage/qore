@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -405,6 +405,8 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_RC5                     "openssl rc5"
 //! option: md2 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_MD2                     "openssl md2"
+//! option: dss & dss1 algorithms supported (depends on openssl used to compile qore)
+#define QORE_OPT_DSS                     "openssl dss"
 //! option: TermIOS class available
 #define QORE_OPT_TERMIOS                 "termios"
 //! option: file locking
