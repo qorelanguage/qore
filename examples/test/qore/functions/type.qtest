@@ -12,22 +12,53 @@
 
 public class TypeTest inherits QUnit::Test {
     constructor() : Test("TypeTest", "1.1") {
-        addTestCase("Test type() function", \typeTestMethod(), NOTHING);
+        addTestCase("Test type() function", \typeTestMethod());
+        addTestCase("conversions", \conversions());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
     typeTestMethod() {
-        testAssertion("type() bool", \type(), (True,), "bool");
-        testAssertion("type() integer", \type(), (1,), "integer");
-        testAssertion("type() float", \type(), (3.14,), "float");
-        testAssertion("type() number", \type(), (13.37n,), "number");
-        testAssertion("type() date", \type(), (2012-02-17T19:05:54+01:00,), "date");
-        testAssertion("type() NULL", \type(), (NULL,), "NULL");
-        testAssertion("type() call-ref", \type(), (\type(),), "call reference");
-        testAssertion("type() closure", \type(), (sub(){my int x = 5;x++;},), "closure");
-        testAssertion("type() hash", \type(), ({},), "hash");
-        testAssertion("type() string", \type(), ("str",), "string");
+        assertEq("bool", type(True));
+        assertEq("integer", type(1));
+        assertEq("float", type(3.14));
+        assertEq("number", type(13.37n));
+        assertEq("date", type(2012-02-17T19:05:54+01:00));
+        assertEq("NULL", type(NULL));
+        assertEq("call reference", type(\type()));
+        assertEq("closure", type(sub(){int x = 5; ++x;}));
+        assertEq("hash", type({}));
+        assertEq("string", type("str"));
+
+        assertEq("bool", True.type());
+        assertEq("integer", 1.type());
+        assertEq("float", 3.14.type());
+        assertEq("number", 13.37n.type());
+        assertEq("date", 2012-02-17T19:05:54+01:00.type());
+        assertEq("NULL", NULL.type());
+        assertEq("call reference", (\type()).type());
+        assertEq("closure", (sub(){int x = 5; ++x;}).type());
+        assertEq("hash", {}.type());
+        assertEq("string", "str".type());
+
+        assertEq(NT_BOOLEAN, True.typeCode());
+        assertEq(NT_INT, 1.typeCode());
+        assertEq(NT_FLOAT, 3.14.typeCode());
+        assertEq(NT_NUMBER, 13.37n.typeCode());
+        assertEq(NT_DATE, 2012-02-17T19:05:54+01:00.typeCode());
+        assertEq(NT_NULL, NULL.typeCode());
+        assertEq(NT_CALLREF, (\type()).typeCode());
+        assertEq(NT_CLOSURE, (sub(){int x = 5; ++x;}).typeCode());
+        assertEq(NT_HASH, {}.typeCode());
+        assertEq(NT_STRING, "str".typeCode());
+    }
+
+    conversions() {
+        assertEq(2016-08-11, date("2016-08-11"));
+        assertEq(2016-08-11, date("20160811"));
+        assertEq(1s, date(1));
+        assertEq(PT1S100000u, date(1.1));
+        assertEq(PT1S100000u, date(1.1n));
     }
 }

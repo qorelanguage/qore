@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreListIterator.h>
+#include "qore/intern/QoreListIterator.h"
 
 //! This class an iterator class for lists
 /** Call ListIterator::next() to iterate through the list; do not use the iterator if ListIterator::next() returns @ref False.
@@ -180,7 +180,7 @@ while (i.next()) {
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
-any ListIterator::getValue() [flags=RET_VALUE_ONLY] {
+auto ListIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
    return i->getReferencedValue(xsink);

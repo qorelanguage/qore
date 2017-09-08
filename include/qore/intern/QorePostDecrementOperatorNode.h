@@ -37,11 +37,10 @@ OP_COMMON
 protected:
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-   
+
 public:
-   DLLLOCAL QorePostDecrementOperatorNode(AbstractQoreNode *n_exp) : QorePostIncrementOperatorNode(n_exp) {
+   DLLLOCAL QorePostDecrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QorePostIncrementOperatorNode(loc, n_exp) {
    }
 };
 
 #endif
-
