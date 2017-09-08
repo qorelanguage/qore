@@ -7,10 +7,15 @@
     @par Release Summary
     Bugfix release; see details below
 
+    @subsection qore_081212_new_features New Features in Qore
+
+    - aded the @ref Qore::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
+
     @subsection qore_081212_bug_fixes Bug Fixes in Qore
 
     - fixed a bug handling \c argv in base class constructor execution (<a href="https://github.com/qorelanguage/qore/issues/2030">issue 2030</a>)
     - fixed a bug handling the connection status in the @ref Qore::HTTPClient "HTTPClient" class (<a href="https://github.com/qorelanguage/qore/issues/2058">issue 2058</a>)
+    - fixed building with openssl 1.1+ (<a href="https://github.com/qorelanguage/qore/issues/2135">issue 2135</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
@@ -440,7 +445,7 @@
       - extended multi-type support, record type rules and default value in field specification
       - implemented multi-type record support in \c AbstractCsvWriter and \c AbstractCsvIterator using \c resolve_type and \c headers options
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
-      - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
+      - implemented the \c "constant" field tag, allowing a constant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
       - implemented the global \c "date_format" mapper option
       - implemented support for structured output fields with dot notation in the output field name

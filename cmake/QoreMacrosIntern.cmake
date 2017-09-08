@@ -34,8 +34,6 @@ macro(qore_check_headers_cxx)
 #    unset(file_output)
 endmacro()
 
-
-
 macro(qore_check_funcs)
     set(options)
     set(oneValueArgs)
@@ -100,7 +98,7 @@ int main(void) {
 const unsigned char *p;
 d2i_X509(0, &p, 0l);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_CONST)
 
 # check for const required with SSL_CTX_new
@@ -110,7 +108,7 @@ int main(void) {
 const SSL_METHOD *meth;
 SSL_CTX_new(meth);
 return 0;
-}" 
+}"
 NEED_SSL_CTX_NEW_CONST)
 
 # check for return value with HMAC_Update and friends
@@ -119,15 +117,31 @@ check_cxx_source_compiles("
 int main(void) {
 int rc = HMAC_Update(0, 0, 0);
 return 0;
-}" 
+}"
 HAVE_OPENSSL_HMAC_RV)
+
+# check for X509_get_signature_nid()
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+int nid = X509_get_signature_nid(0);
+return 0;
+}"
+HAVE_X509_GET_SIGNATURE_NID)
+
+# check for OPENSSL_init_crypto()
+check_cxx_source_compiles("
+#include <openssl/crypto.h>
+int main(void) {
+int nid = OPENSSL_init_crypto(0, 0);
+return 0;
+}"
+HAVE_OPENSSL_INIT_CRYPTO)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 endmacro()
-
-
 
 macro(qore_mpfr_checks)
 
@@ -282,7 +296,7 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")
    endif()
-   
+
 endif()
 
 endmacro()
@@ -300,7 +314,7 @@ check_cxx_source_compiles("
 int main(void){
 unordered_map<int, int> t;
 const unordered_map<int, int> &tr = t;
-tr.find(1); 
+tr.find(1);
 return 0;
 }" UNORDERED_MAP_FOUND)
 
@@ -340,7 +354,7 @@ check_cxx_source_compiles("
 #include <tr1/unordered_map>
 int main(void){
 std::tr1::unordered_map<int, int> t;
-const std::tr1::unordered_map<int, int> &tr = t; 
+const std::tr1::unordered_map<int, int> &tr = t;
 tr.find(1);
 return 0;
 }" TR1_UNORDERED_MAP_FOUND)
@@ -446,7 +460,7 @@ message(WARNING "Couldn't find an STL unordered_map")
 endif()
 
 #write the file.
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_hash_map.in
                ${CMAKE_BINARY_DIR}/${_hash_map_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
@@ -545,7 +559,7 @@ else()
 message(WARNING "couldn't find an STL slist")
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in 
+configure_file(${CMAKE_SOURCE_DIR}/cmake/stl_slist.in
                ${CMAKE_BINARY_DIR}/${_stl_slist_output_file})
 
 unset(CMAKE_REQUIRED_QUIET)
