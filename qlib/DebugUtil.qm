@@ -373,6 +373,13 @@ public namespace DebugUtil {
                                     dcl.doCommand(data);
                                 },
                             ),
+                            'info': (
+                                'desc': 'get info about current program and list threads',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
                         ),
                         'desc': 'program related commands',
                     ),
@@ -1101,6 +1108,7 @@ Linenoise::history_add('history load filename');
                     *string pgmName = shift cmd;
                     switch (cmd[0]) {
                     case 'list':
+                        break;
                     case 'create':
                         break;
                     default:
@@ -1129,6 +1137,7 @@ Linenoise::history_add('history load filename');
                             string pgmId = string(p.getProgramId());
                             if (pgmName.size() == 0 || bindex(pgmId, pgmName) == 0) {
                                 result{pgmId}.scriptPath = p.getScriptPath();
+                                result{pgmId}.threads = p.getThreadList();
                             }
                         }
 #                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), Program::getAllPrograms();
@@ -1142,6 +1151,9 @@ Linenoise::history_add('history load filename');
                                 }
                             }
                         }
+                        if (exists pgmName && pgmName != "") {
+                            result = result{pgmName};
+                        }
                         break;
                     case 'create':
                         pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
@@ -1152,7 +1164,7 @@ Linenoise::history_add('history load filename');
                         break;
 
                     case 'remove':
-                         removeProgram(pgm);
+                        removeProgram(pgm);
                         result = 'ok';
                         break;
 
