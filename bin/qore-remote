@@ -3,7 +3,7 @@
 
 %enable-all-warnings
 %new-style
-%allow-debugging
+#%allow-debugging
 
 %requires linenoise
 %requires qore >= 0.8.13

@@ -51,11 +51,11 @@ class MyDebugProgram inherits DebugProgram {
         return actions[0];
     }
   }
-  handle(int func, Program pgm, reference sb, *int statementId, *hash extra) {
+  handle(int func, Program pgm, reference runState, *int statementId, *hash extra) {
     *hash location;
     if (statementId)
       location = pgm.getStatementIdInfo(statementId);
-    #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, sb, location, extra);
+    #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, runState, location, extra);
     hash it = (
       'func': stResolve{func},
       'file': location.file,
@@ -76,56 +76,56 @@ class MyDebugProgram inherits DebugProgram {
     if (exists act) {
       shift actions;
       if (act.typeCode() == NT_HASH) {
-        if (exists act.sb)
-          sb = act.sb;
+        if (exists act.runState)
+          runState = act.runState;
       } else {
-        sb = act;
+        runState = act;
       }
     }
-    #printf("it:%y, sb:%d, act:%y\n", it, sb, act);
+    #printf("it:%y, runState:%d, act:%y\n", it, runState, act);
   }
 
-  onAttach(Program pgm, reference sb) {
+  onAttach(Program pgm, reference runState) {
     if (attach_only_tids && !attach_only_tids.contains(gettid())) {
         #printf("Avoid attach %d\n", gettid());
-        sb = DebugDetach;
+        runState = DebugDetach;
     } else {
-        handle(ST_ATTACH, pgm, \sb);
+        handle(ST_ATTACH, pgm, \runState);
     }
   }
 
-  onDetach(Program pgm, reference sb) {
-    handle(ST_DETACH, pgm, \sb);
+  onDetach(Program pgm, reference runState) {
+    handle(ST_DETACH, pgm, \runState);
   }
 
-  onStep(Program pgm, int blockStatementId, *int statementId, reference retCode, reference sb) {
+  onStep(Program pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
-    if (exists act.retCode) {
-        #printf("loc:%y, retCode: %y\n", statementId, act.retCode);
-        retCode = act.retCode;
+    if (exists act.flow) {
+        #printf("loc:%y, flow: %y\n", statementId, act.flow);
+        flow = act.flow;
     }
-    handle(st, pgm, \sb, statementId ?? blockStatementId);
+    handle(st, pgm, \runState, statementId ?? blockStatementId);
   }
 
-  onFunctionEnter(Program pgm, int statementId, reference sb) {
-    handle(ST_FUNC_ENTER, pgm, \sb, statementId);
+  onFunctionEnter(Program pgm, int statementId, reference runState) {
+    handle(ST_FUNC_ENTER, pgm, \runState, statementId);
   }
 
-  onFunctionExit(Program pgm, int statementId, reference returnValue, reference sb) {
+  onFunctionExit(Program pgm, int statementId, reference returnValue, reference runState) {
     any act = getAction(ST_FUNC_EXIT);
     if (exists act.retVal) {
         returnValue = act.retVal;
     }
-    handle(ST_FUNC_EXIT, pgm, \sb, statementId, ("retVal": returnValue));
+    handle(ST_FUNC_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
   }
 
-  onException(Program pgm, int statementId, hash ex, reference dismiss, reference sb) {
+  onException(Program pgm, int statementId, hash ex, reference dismiss, reference runState) {
     any act = getAction(ST_EXCEPTION);
     if (exists act.dismiss) {
         dismiss = act.dismiss;
     }
-    handle(ST_EXCEPTION, pgm, \sb, statementId, ("ex": ex));
+    handle(ST_EXCEPTION, pgm, \runState, statementId, ("ex": ex));
   }
 
 }
@@ -311,7 +311,7 @@ class DebugTest inherits QUnit::Test {
 
     checkBreakProgram(string name, int tid, bool breakRes) {
         printf("checkBreakProgram(%d)\n", tid);
-        debugProgram.setActions(list(DebugRun, ("retCode": DebugBlockBreak, "sb": DebugDetach)), main_tid);
+        debugProgram.setActions(list(DebugRun, ("flow": DebugFlowBreak, "runState": DebugDetach)), main_tid);
         semaphore.lock();
         background debugBreakThread(tid);
         testAssertionValue(sprintf(name+':program finished'), tstBreakProgram(), breakRes);
@@ -402,34 +402,34 @@ class DebugTest inherits QUnit::Test {
         list l;
         checkProgram("full trace", list(DebugStep), traceLog, "DIVISION-BY-ZERO");
         checkProgram("full trace dismiss exception", list(DebugStep, ("func": ST_EXCEPTION, "dismiss": True) ), splice(traceLog, 67, 2), "DONE");
-        checkProgram("until return", list(DebugStep, ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER, "sb": DebugUntilReturn), DebugStep), splice(traceLog, 24, 33), "DIVISION-BY-ZERO");
+        checkProgram("until return", list(DebugStep, ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER, "runState": DebugUntilReturn), DebugStep), splice(traceLog, 24, 33), "DIVISION-BY-ZERO");
         l = splice(traceLog, 0, 66); # remove remove till exception
         l = splice(l, 1, 3);  # till func exit
         l = splice(l, 2);
-        checkProgram("run till exception modify retVal", list(DebugRun, ("func": ST_EXCEPTION, "sb": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "sb": DebugRun)), l, "MODIFIED");
+        checkProgram("run till exception modify retVal", list(DebugRun, ("func": ST_EXCEPTION, "runState": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "runState": DebugRun)), l, "MODIFIED");
         l = splice(traceLog, 4, 16); # remove tstLoop
         l = splice(l, 7, 35); # remove tstFunction
         l = splice(l, 8, 3);  # remove tstNoRetVal
-        checkProgram("stepover", list(DebugStep, ("func": ST_FUNC_ENTER, "sb": DebugStepOver)), l, "DIVISION-BY-ZERO");
+        checkProgram("stepover", list(DebugStep, ("func": ST_FUNC_ENTER, "runState": DebugStepOver)), l, "DIVISION-BY-ZERO");
         l = splice(traceLog, 4, 16); # remove tstLoop
         l = splice(l, 7, 47);
-        checkProgram("return", list(DebugStep, ("func": ST_FUNC_ENTER), DebugStep, DebugStepOver, DebugStep, DebugStep, ("func": ST_STEP, "retCode": DebugBlockReturn, "sb": DebugStep)), l, NOTHING);
+        checkProgram("return", list(DebugStep, ("func": ST_FUNC_ENTER), DebugStep, DebugStepOver, DebugStep, DebugStep, ("func": ST_STEP, "flow": DebugFlowReturn, "runState": DebugStep)), l, NOTHING);
         l = splice(traceLog, 20);
         l = splice(l, 15, 4);
         checkProgram("loop continue", list(DebugStep, ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER),
             ("func": ST_BLOCK), # in loop now i = 3  ... add two steps via continue
-            ("func": ST_BLOCK), DebugStep, ("retCode": DebugBlockContinue),  # res+3, skip i--
-            ("func": ST_BLOCK), DebugStep, ("retCode": DebugBlockContinue, "sb": DebugUntilReturn),  # res+3, skip i--, # res+3+2+1
-            ("func": ST_FUNC_EXIT, "retVal": 15, "sb": DebugDetach)),
+            ("func": ST_BLOCK), DebugStep, ("flow": DebugFlowContinue),  # res+3, skip i--
+            ("func": ST_BLOCK), DebugStep, ("flow": DebugFlowContinue, "runState": DebugUntilReturn),  # res+3, skip i--, # res+3+2+1
+            ("func": ST_FUNC_EXIT, "retVal": 15, "runState": DebugDetach)),
             l, "DIVISION-BY-ZERO");
         l = splice(traceLog, 20);
         l = splice(l, 12, 7);
         checkProgram("loop break", list(DebugStep, ("func": ST_FUNC_ENTER), ("func": ST_FUNC_ENTER),
             ("func": ST_BLOCK), # in loop now i = 3
-            ("func": ST_BLOCK), DebugStep, ("retCode": DebugBlockBreak, "sb": DebugUntilReturn),  # res+3, skip i--
-            ("func": ST_FUNC_EXIT, "retVal": 3, "sb": DebugDetach)),
+            ("func": ST_BLOCK), DebugStep, ("flow": DebugFlowBreak, "runState": DebugUntilReturn),  # res+3, skip i--
+            ("func": ST_FUNC_EXIT, "retVal": 3, "runState": DebugDetach)),
             l, "DIVISION-BY-ZERO");
-        checkProgram("detach", list(DebugStep, ("func": ST_FUNC_ENTER, "sb": DebugDetach)), splice(traceLog, 2), "DIVISION-BY-ZERO");
+        checkProgram("detach", list(DebugStep, ("func": ST_FUNC_ENTER, "runState": DebugDetach)), splice(traceLog, 2), "DIVISION-BY-ZERO");
         /*l = ();
         for (my int i=0; i<traceLog.size()-2; i++) {  # why -2 ... exception has no checkAttach
             push l, ("func": ST_ATTACH);
@@ -443,7 +443,7 @@ class DebugTest inherits QUnit::Test {
             ("func": ST_FUNC_EXIT, "line": line.tstFunction+1),
             ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
         );
-        list action2 = list(DebugRun, ("sb": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "sb": DebugRun), ("localVars": ("tid", "s", "ret"), "sb": DebugDetach) );
+        list action2 = list(DebugRun, ("runState": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "runState": DebugRun), ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
 
         Breakpoint b1 = new Breakpoint();
         b1.setEnabled(True);
@@ -460,9 +460,9 @@ class DebugTest inherits QUnit::Test {
         checkProgram("breakpoint b1(enable), b2(enable)", action2, traceLog2, "DIVISION-BY-ZERO");
         # disable breakpoint 1
         list traceLog3 = (
-            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "DONE"), "sb": DebugDetach),
+            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "DONE"), "runState": DebugDetach),
         );
-        list action3 = list(DebugRun, ("localVars": ("tid", "s", "ret"), "sb": DebugDetach) );
+        list action3 = list(DebugRun, ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
         b2.setEnabled(False);
         checkProgram("breakpoint b1(enable), b2(dísable)", action3, traceLog3, "DIVISION-BY-ZERO");
         b2.setEnabled(True);

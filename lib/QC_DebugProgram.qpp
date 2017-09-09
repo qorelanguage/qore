@@ -36,7 +36,7 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/AbstractStatement.h"
 
-/** @defgroup debug_step_options Debug Step Constants
+/** @defgroup debug_rs_options Debug Run State Constants
 
     These are the possible values that can be passed back to program as result to control next debugging process
 
@@ -44,35 +44,35 @@
 */
 //@{
 //! Detach program from debugging, it is not normally used from script
-const DebugDetach = DBG_SB_DETACH;
+const DebugDetach = DBG_RS_DETACH;
 
 //! Run program, avoid stepping
-const DebugRun = DBG_SB_RUN;
+const DebugRun = DBG_RS_RUN;
 
 //! Run one step in program, in case of function call stepping goes on in function
-const DebugStep = DBG_SB_STEP;
+const DebugStep = DBG_RS_STEP;
 
 //! Run one step in program, in case of function call stepping does not go to function
-const DebugStepOver = DBG_SB_STEP_OVER;
+const DebugStepOver = DBG_RS_STEP_OVER;
 
 //! Run program till function is exited
-const DebugUntilReturn = DBG_SB_UNTIL_RETURN;
+const DebugUntilReturn = DBG_RS_UNTIL_RETURN;
 
-//  const DebugStopped = DBG_SB_STOPPED = 5,    // not needed
+//  const DebugStopped = DBG_RS_STOPPED = 5,    // not needed
 //@}
 
-/** @defgroup debug_rc_options Debug Block Constants
-    These are the possible values that are passed back to program to support exit loops or function from debugger
+/** @defgroup debug_flow_options Debug Flow Constants
+    These are the possible values that are passed back to program to change flow, i.e. exit loops or function from debugger
 
     @since %Qore 0.8.13
  */
 //@{
 //! force @ref return command
-const DebugBlockReturn = RC_RETURN;
+const DebugFlowReturn = RC_RETURN;
 //! force @ref break command
-const DebugBlockBreak = RC_BREAK;
+const DebugFlowBreak = RC_BREAK;
 //! force @ref continue command
-const DebugBlockContinue = RC_CONTINUE;
+const DebugFlowContinue = RC_CONTINUE;
 //@}
 
 //! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging.
@@ -80,7 +80,7 @@ const DebugBlockContinue = RC_CONTINUE;
     @ref Qore::Program "Program" is added into debugging list, next the program being debugged notifies debugger when next qore script
     event occurs. Calling of notification method is performed always in program thread. When the program flow is to be interrupted
     then it happens in notification method of this class. Then debugger decides to continue then returns from notification function
-    and passes @ref debug_step_options value "step option" code back.
+    and passes @ref debug_rs_options value "step option" code back.
 
     The debugger should probably handle control in separate thread.
 
@@ -98,8 +98,8 @@ const DebugBlockContinue = RC_CONTINUE;
 
     class MyDebugProgram dbg() inherits DebugProgram {
     private(local):
-       onAttach(Program pgm, reference sb) {
-          sb = DebugStep;
+       onAttach(Program pgm, reference rs) {
+          rs = DebugStep;
        }
 
     }
@@ -170,21 +170,21 @@ list DebugProgram::getAllPrograms() {
 /**
  *
  */
-DebugProgram::onAttach(Program[QoreProgram] pgm, reference sb) {
+DebugProgram::onAttach(Program[QoreProgram] pgm, reference rs) {
 }
 
 //! Executed when thread is datached from program being debugged
 /**
  *
  */
-DebugProgram::onDetach(Program[QoreProgram] pgm, reference sb) {
+DebugProgram::onDetach(Program[QoreProgram] pgm, reference rs) {
 }
 
 //! Executed when step is performed
 /**
  *
  */
-DebugProgram::onStep(Program[QoreProgram] pgm, int blockStatement, *int statement, reference retCode, reference sb) {
+DebugProgram::onStep(Program[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs) {
 }
 
 //! Executed when a function is entered.
@@ -192,7 +192,7 @@ DebugProgram::onStep(Program[QoreProgram] pgm, int blockStatement, *int statemen
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference sb) {
+DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference rs) {
 }
 
 //! Executed when a function is exited.
@@ -200,7 +200,7 @@ DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onFunctionExit(Program[QoreProgram] pgm, int statement, reference returnValue, reference sb) {
+DebugProgram::onFunctionExit(Program[QoreProgram] pgm, int statement, reference returnValue, reference rs) {
 }
 
 //! Executed when an exception is raised.
@@ -208,7 +208,7 @@ DebugProgram::onFunctionExit(Program[QoreProgram] pgm, int statement, reference 
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onException(Program[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference sb) {
+DebugProgram::onException(Program[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs) {
 }
 
 //! Break particular program thread

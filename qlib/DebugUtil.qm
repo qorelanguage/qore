@@ -29,6 +29,7 @@
 %require-types
 %enable-all-warnings
 %new-style
+%allow-debugging
 
 module DebugUtil {
     version = "1.0";
@@ -992,7 +993,7 @@ Linenoise::history_add('history load filename');
         }
         public {
             const runStateStrings = ('detach': DebugDetach, 'run': DebugRun, 'step': DebugStep, 'stepover': DebugStepOver, 'untilreturn': DebugUntilReturn);
-            const retCodeStrings = ('none': 0, 'return': DebugBlockReturn, 'break': DebugBlockBreak, 'continue': DebugBlockContinue);
+            const flowStrings = ('none': 0, 'return': DebugFlowReturn, 'break': DebugFlowBreak, 'continue': DebugFlowContinue);
             const boolStrings = ('false': False, 'true': True);
             const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
             DebugLogger logger;
@@ -1524,8 +1525,8 @@ Linenoise::history_add('history load filename');
                             case 'get':
                                 if (varName == refName) {
                                     switch (varName) {
-                                    case 'loop':
-                                        result = encodeValue(varName, ctxCT{varName}, retCodeStrings);
+                                    case 'flow':
+                                        result = encodeValue(varName, ctxCT{varName}, flowStrings);
                                         break;
 
                                     case 'dismiss':
@@ -1550,8 +1551,8 @@ Linenoise::history_add('history load filename');
                             case 'set':
                                 if (varName == refName) {
                                     switch (varName) {
-                                    case 'loop':
-                                        ctxCT{varName} = resolveValue(varName, rd.value, retCodeStrings, ctxCT{rd.name});
+                                    case 'flow':
+                                        ctxCT{varName} = resolveValue(varName, rd.value, flowStrings, ctxCT{rd.name});
                                         break;
 
                                     case 'dismiss':
@@ -1646,8 +1647,8 @@ Linenoise::history_add('history load filename');
             handleInterrupt("detach", pgm, \rs);
         }
 
-        onStep(Program pgm, int blockStatementId, *int statementId, reference retCode, reference rs) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "loop", \retCode);
+        onStep(Program pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
         }
 
         onFunctionEnter(Program pgm, int statementId, reference rs) {

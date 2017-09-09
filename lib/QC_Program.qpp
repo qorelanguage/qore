@@ -1820,7 +1820,7 @@ int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
 
    @since %Qore 0.8.13
  */
-static Program Program::resolveProgramId(int programId) {
+static Program Program::resolveProgramId(int programId) [dom=DEBUG_INSECURE] {
    QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
    if (!pgm)
       return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
@@ -1831,7 +1831,7 @@ static Program Program::resolveProgramId(int programId) {
 /**
    @since %Qore 0.8.13
  */
-static Program Program::getProgram() [flags=RET_VALUE_ONLY;] {
+static Program Program::getProgram() [flags=RET_VALUE_ONLY;dom=DEBUG_INSECURE] {
    return QoreProgram::getQoreObject(getProgram());
 }
 
@@ -1839,6 +1839,6 @@ static Program Program::getProgram() [flags=RET_VALUE_ONLY;] {
 /**
    @since %Qore 0.8.13
  */
-static list Program::getAllPrograms() [flags=RET_VALUE_ONLY;] {
+static list Program::getAllPrograms() [flags=RET_VALUE_ONLY;dom=DEBUG_INSECURE] {
    return QoreProgram::getAllQoreObjects();
 }

@@ -163,7 +163,7 @@ const char** qore_warnings = qore_warnings_l;
 unsigned qore_num_warnings = NUM_WARNINGS;
 qore_program_private::qore_program_to_object_map_t qore_program_private::qore_program_to_object_map;
 QoreRWLock qore_program_private::lck_programMap;
-unsigned qore_program_private::programIdCounter = 1;
+volatile unsigned qore_program_private::programIdCounter = 1;
 
 
 qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
@@ -936,62 +936,62 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
    return ti;
 }
 
-void qore_program_private::onAttach(ThreadDebugEnum &sb, ExceptionSink* xsink) {
+void qore_program_private::onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    printd(5, "qore_program_private::onAttach() this: %p, dp: %p\n", this, p);
    if (p) {
-      p->onAttach(pgm, sb, xsink);
+      p->onAttach(pgm, rs, xsink);
    } else {
-      sb = DBG_SB_DETACH;
+      rs = DBG_RS_DETACH;
    }
 }
-void qore_program_private::onDetach(ThreadDebugEnum &sb, ExceptionSink* xsink) {
+void qore_program_private::onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    if (p) {
-      p->onDetach(pgm, sb, xsink);
+      p->onDetach(pgm, rs, xsink);
    } else {
-      sb = DBG_SB_DETACH;
-   }
-}
-
-void qore_program_private::onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &retCode, ThreadDebugEnum &sb, ExceptionSink* xsink) {
-   AutoQoreCounterDec ad(&debug_program_counter, false);
-   qore_debug_program_private* p = getDebugProgram(ad);
-   if (p) {
-      p->onStep(pgm, blockStatement, statement, retCode, sb, xsink);
-   } else {
-      sb = DBG_SB_DETACH;
-   }
-}
-void qore_program_private::onFunctionEnter(const StatementBlock *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
-   AutoQoreCounterDec ad(&debug_program_counter, false);
-   qore_debug_program_private* p = getDebugProgram(ad);
-   if (p) {
-      p->onFunctionEnter(pgm, statement, sb, xsink);
-   } else {
-      sb = DBG_SB_DETACH;
+      rs = DBG_RS_DETACH;
    }
 }
 
-void qore_program_private::onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+void qore_program_private::onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    if (p) {
-      p->onFunctionExit(pgm, statement, returnValue, sb, xsink);
+      p->onStep(pgm, blockStatement, statement, flow, rs, xsink);
    } else {
-      sb = DBG_SB_DETACH;
+      rs = DBG_RS_DETACH;
+   }
+}
+void qore_program_private::onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      p->onFunctionEnter(pgm, statement, rs, xsink);
+   } else {
+      rs = DBG_RS_DETACH;
    }
 }
 
-void qore_program_private::onException(const AbstractStatement *statement, ThreadDebugEnum &sb, ExceptionSink* xsink) {
+void qore_program_private::onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    if (p) {
-      p->onException(pgm, statement, sb, xsink);
+      p->onFunctionExit(pgm, statement, returnValue, rs, xsink);
    } else {
-      sb = DBG_SB_DETACH;
+      rs = DBG_RS_DETACH;
+   }
+}
+
+void qore_program_private::onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      p->onException(pgm, statement, rs, xsink);
+   } else {
+      rs = DBG_RS_DETACH;
    }
 }
 
@@ -1010,25 +1010,25 @@ QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, E
 }
 
 void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
-   if (stepBreakpoint != DBG_SB_STOPPED) {
+   if (runState != DBG_RS_STOPPED) {
       if (attachFlag > 0) {
-         ThreadDebugEnum sb = stepBreakpoint;
+         DebugRunStateEnum rs = runState;
          functionCallLevel = 0;
-         printd(5, "ThreadLocalProgramData::checkAttach(attach) this: %p, sb:%d, tid: %d\n", this, stepBreakpoint, gettid());
-         stepBreakpoint = DBG_SB_STOPPED;
+         printd(5, "ThreadLocalProgramData::checkAttach(attach) this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+         runState = DBG_RS_STOPPED;
 
-         getProgram()->priv->onAttach(sb, xsink);
-         //if (sb != DBG_SB_DETACH) {   // TODO: why this exception ?
+         getProgram()->priv->onAttach(rs, xsink);
+         //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
              attachFlag = 0;
          //}
-         printd(5, "ThreadLocalProgramData::checkAttach(attach): setBreakpoint(%d)\n", sb);
-         setStepBreakpoint(sb);
+         printd(5, "ThreadLocalProgramData::checkAttach(attach): setBreakpoint(%d)\n", rs);
+         setRunState(rs);
       } else if (attachFlag < 0) {
-         ThreadDebugEnum sb = stepBreakpoint;
+         DebugRunStateEnum rs = runState;
          attachFlag = 0;
-         printd(5, "ThreadLocalProgramData::checkAttach(detach) this: %p, sb:%d, tid: %d\n", this, stepBreakpoint, gettid());
-         getProgram()->priv->onDetach(sb, xsink);
-         setStepBreakpoint(sb);
+         printd(5, "ThreadLocalProgramData::checkAttach(detach) this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+         getProgram()->priv->onDetach(rs, xsink);
+         setRunState(rs);
       }
    }
 }
@@ -1037,22 +1037,22 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
    checkAttach(xsink);
    checkBreakFlag();
    int rc = 0;
-   bool cond = stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0);
-   if (!cond && stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH) {
+   bool cond = runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0);
+   if (!cond && runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
       const AbstractStatement *st = statement ? statement : blockStatement;
       if (st->getBreakpointFlag()) {   // fast breakpoint check
-         printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d, breakpoint phase-1\n", this, stepBreakpoint, gettid());
+         printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d, breakpoint phase-1\n", this, runState, gettid());
          cond = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
       }
    }
    if (cond) {
-      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
       functionCallLevel = 0;
-      ThreadDebugEnum sb = stepBreakpoint;
-      stepBreakpoint = DBG_SB_STOPPED;
-      getProgram()->priv->onStep(blockStatement, statement, rc, sb, xsink);
-      setStepBreakpoint(sb);
-      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rc: %d, xsink:%d\n", this, rc,xsink->isEvent());
+      DebugRunStateEnum rs = runState;
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onStep(blockStatement, statement, rc, rs, xsink);
+      setRunState(rs);
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rc: %d, xsink:%d\n", this, rc, xsink->isEvent());
    }
    return rc;
 }
@@ -1060,34 +1060,34 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
 void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink) {
    checkAttach(xsink);
    checkBreakFlag();
-   if (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0) {
+   if (runState == DBG_RS_STEP_OVER && functionCallLevel == 0) {
       functionCallLevel = 1;
-      printd(5, "ThreadLocalProgramData::dbgFunctionEnter(), stepping over, this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
-   } else if (stepBreakpoint == DBG_SB_STEP) {
-      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter(), stepping over, this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+   } else if (runState == DBG_RS_STEP) {
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
       functionCallLevel = 0;
-      ThreadDebugEnum sb = stepBreakpoint;
-      stepBreakpoint = DBG_SB_STOPPED;
-      getProgram()->priv->onFunctionEnter(statement, sb, xsink);
-      setStepBreakpoint(sb);
+      DebugRunStateEnum rs = runState;
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onFunctionEnter(statement, rs, xsink);
+      setRunState(rs);
       printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, xsink: %d\n", this, xsink->isEvent());
-   } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && functionCallLevel > 0) {
+   } else if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH && functionCallLevel > 0) {
       functionCallLevel++;
    }
 }
 
 void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
-   if ((stepBreakpoint == DBG_SB_UNTIL_RETURN && functionCallLevel == 1) || stepBreakpoint == DBG_SB_STEP || (stepBreakpoint == DBG_SB_STEP_OVER && functionCallLevel == 0)) {
-      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
-      ThreadDebugEnum sb = stepBreakpoint;
+   if ((runState == DBG_RS_UNTIL_RETURN && functionCallLevel == 1) || runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0)) {
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+      DebugRunStateEnum rs = runState;
       functionCallLevel = 0;
-      stepBreakpoint = DBG_SB_STOPPED;
-      getProgram()->priv->onFunctionExit(statement, returnValue, sb, xsink);
-      setStepBreakpoint(sb);
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onFunctionExit(statement, returnValue, rs, xsink);
+      setRunState(rs);
       printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, xsink: %d\n", this, xsink->isEvent());
-   } else if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH && functionCallLevel > 0) {
+   } else if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH && functionCallLevel > 0) {
       functionCallLevel--;
-      printd(5, "ThreadLocalProgramData::dbgFunctionExit() exit, this: %p, sb: %d, level: %d, tid: %d\n", this, stepBreakpoint, functionCallLevel, gettid());
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() exit, this: %p, rs: %d, level: %d, tid: %d\n", this, runState, functionCallLevel, gettid());
    } else {
       checkAttach(xsink);
       checkBreakFlag();
@@ -1095,14 +1095,14 @@ void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, Qo
 }
 
 void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, ExceptionSink* xsink) {
-   if (stepBreakpoint != DBG_SB_STOPPED && stepBreakpoint != DBG_SB_DETACH) {
-      printd(5, "ThreadLocalProgramData::dbgException() this: %p, sb: %d, tid: %d\n", this, stepBreakpoint, gettid());
+   if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
+      printd(5, "ThreadLocalProgramData::dbgException() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
       checkAttach(xsink);
       functionCallLevel = 0;
-      ThreadDebugEnum sb = stepBreakpoint;
-      stepBreakpoint = DBG_SB_STOPPED;
-      getProgram()->priv->onException(statement, sb, xsink);
-      setStepBreakpoint(sb);
+      DebugRunStateEnum rs = runState;
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onException(statement, rs, xsink);
+      setRunState(rs);
       printd(5, "ThreadLocalProgramData::dbgException() this: %p, xsink: %d\n", this, xsink->isEvent());
    }
 }
@@ -1832,7 +1832,7 @@ QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionS
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;
 QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
-unsigned QoreBreakpoint::breakpointIdCounter = 1;
+volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;
 
 void QoreBreakpoint::unassignAllStatements() {
    for (std::list<AbstractStatement*>::iterator it = statementList.begin(); it != statementList.end(); ++it) {
