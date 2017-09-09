@@ -32,7 +32,7 @@
 %allow-debugging
 
 module DebugUtil {
-    version = "1.0";
+    version = "0.1";
     desc = "user module providing common debug stuff";
     author = "Tomas Mandys <tomas.mandys@qore.org>";
     url = "http://qore.org";
@@ -47,7 +47,7 @@ module DebugUtil {
 
     The %DebugUtil module provides common functionality for implementing debugger utilities (client, server, ...)
 
-    @subsection du_v10 v1.0
+    @subsection du_v0_1 v0.1
     - the initial version of the DebugUtil module
 */
 
