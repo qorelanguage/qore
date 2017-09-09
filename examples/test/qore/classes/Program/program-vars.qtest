@@ -1,0 +1,72 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires QUnit
+
+%exec-class ProgramVarsTest
+
+class ProgramVarsTest inherits QUnit::Test {
+    public {
+    }
+
+    constructor() : QUnit::Test("ProgramVarsTest", "1.0", \ARGV) {
+        addTestCase("var test", \varTest());
+        set_return_value(main());
+    }
+
+    varTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); } hash sub test3() { try { throw 1; } catch (hash<ExceptionInfo> ex) { return get_local_vars(0); }}", "");
+
+            hash vh = (
+                "str": ("type": "local", "value": "hi"),
+                "i": ("type": "local", "value": 1),
+                "argv": ("type": "local", "value": NOTHING),
+                "frame": ("type": "local", "value": 1),
+                );
+
+            assertEq(vh, p.callFunction("test2", 1));
+
+            vh = (
+                "c": ("type": "local", "value": NOTHING),
+                "frame": ("type": "closure", "value": 0),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            hash pvh = p.callFunction("test2", 0);
+            pvh.c.value = NOTHING;
+            assertEq(vh, pvh);
+            assertEq({}, p.callFunction("test2", -1));
+            # cannot retrieve local vars in parent because %allow-debugging is not set
+            assertEq({}, p.callFunction("test2", 2));
+
+            vh = (
+                "ex": (
+                    "type": "local",
+                    "value": new hash<ExceptionInfo>((
+                        "type": "User",
+                        "file": "<run-time-loaded: >",
+                        "line": 1,
+                        "endline": 1,
+                        "source": "",
+                        "offset": 0,
+                        "callstack": new list<hash<CallStackInfo>>(),
+                        "err": 1,
+                    )),
+                ),
+                "argv": (
+                    "type": "local",
+                    "value": NOTHING,
+                ),
+            );
+            assertEq(vh, p.callFunction("test3"));
+        }
+    }
+}

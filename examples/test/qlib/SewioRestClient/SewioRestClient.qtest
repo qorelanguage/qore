@@ -1,0 +1,117 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/SewioRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class Main
+
+class FakeSewioRestHandler inherits AbstractHttpRequestHandler {
+    private {
+        string m_data;
+        string m_mime;
+    }
+
+    constructor (string mime, string str) {
+        m_mime = mime;
+        m_data = str;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        if (!hdr."x-apikey")
+            return makeResponse(400, "missing api key");
+        if (hdr.method == "GET") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
+        }
+        else if (hdr.method == "PUT") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
+        }
+    }
+}
+
+sub log(string str) {
+    delete argv;
+}
+
+const VALUE_JSON = (
+    "input": "{\"foo\":{\"bar\":1}}",
+    "output": ("foo": ("bar": 1)),
+);
+
+public class Main inherits QUnit::Test {
+    private {
+        HttpServer m_http;
+        int port;
+    }
+
+    constructor() : Test("SewioRestClientTest", "1.0") {
+        addTestCase("GET tests", \methodGetTest());
+        addTestCase("PUT tests", \methodPutTest());
+        addTestCase("neg tests", \negTest());
+        addTestCase("connection tests", \connectionTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    setUp() {
+        m_http = new HttpServer(\log(), \log());
+        m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new FakeSewioRestHandler(MimeTypeJson, VALUE_JSON.input));
+        port = m_http.addListener(0).port;
+    }
+
+    tearDown() {
+        delete m_http;
+    }
+
+    methodGetTest() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+        SewioRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
+        any ret;
+
+        ret = rest.get("/api_json");
+        testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
+    }
+
+    methodPutTest() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+        SewioRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
+        any ret;
+
+        rest.setSerialization("json");
+        ret = rest.put("/api_json", VALUE_JSON.output);
+        testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
+    }
+
+    negTest() {
+        assertThrows("SEWIORESTCLIENT-ERROR", sub () {new SewioRestClient(("url": "http://localhost:" + port));});
+        RestClient rest(("url": "http://localhost:" + port, "apikey": ""));
+        assertThrows("REST-RESPONSE-ERROR", \rest.get(), "/api_json");
+    }
+
+    connectionTest() {
+        string url = "sewiorest://localhost:8080";
+        SewioRestConnection swsc("test", "test", url, True, ("apikey": "x"), parse_url(url));
+        assertEq(True, swsc instanceof SewioRestConnection);
+
+        assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url, True, NOTHING, parse_url(url)); });
+    }
+} # class Main

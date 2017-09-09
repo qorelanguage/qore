@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_AbstractThreadResource.h>
+#include "qore/intern/QC_AbstractThreadResource.h"
 
 //! This class defines an abstract interface for thread resources
 /** @par Overview

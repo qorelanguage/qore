@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ScopedRefNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,7 +44,7 @@ public:
    NamedScope *scoped_ref;
 
    // object takes over ownership of NamedScope
-   DLLLOCAL ScopedRefNode(char *ref);
+   DLLLOCAL ScopedRefNode(const QoreProgramLocation& loc, char *ref);
    DLLLOCAL virtual ~ScopedRefNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

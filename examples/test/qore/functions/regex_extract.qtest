@@ -34,7 +34,7 @@ class RegexExtractTest inherits QUnit::Test {
                     result = regex_extract(str, regex);
                 }
                 catch(hash ex) {
-                    assertTrue(i >= SUBPATTERNS_AT_LEAST, i + " subpatterns of the length " + capture_length + " available");
+                    assertTrue(i >= SUBPATTERNS_AT_LEAST, i + " subpatterns of length " + capture_length + " available");
                     break;
                 }
 
@@ -43,6 +43,9 @@ class RegexExtractTest inherits QUnit::Test {
                 }
             }
         }
+
+        *list<string> l = regex_extract("qaz\n\twsx\n\t edc", "(^[ \t]*)", Qore::RE_MultiLine + Qore::RE_Global);
+        assertEq(NOTHING, l);
     }
 }
 

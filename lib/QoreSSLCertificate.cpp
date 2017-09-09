@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QoreSSLIntern.h>
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QoreSSLIntern.h"
 
 #include <openssl/err.h>
 
@@ -55,8 +55,8 @@ struct qore_sslcert_private {
 
    DLLLOCAL BinaryNode* getBinary() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
-      const ASN1_BIT_STRING* sig;
-      const X509_ALGOR* alg;
+      OPENSSL_X509_GET0_SIGNATURE_CONST ASN1_BIT_STRING* sig;
+      OPENSSL_X509_GET0_SIGNATURE_CONST X509_ALGOR* alg;
       X509_get0_signature(&sig, &alg, cert);
       BinaryNode* rv = new BinaryNode;
       rv->append(sig->data, sig->length);
@@ -75,7 +75,11 @@ struct qore_sslcert_private {
 
    DLLLOCAL EVP_PKEY* getPublicKey() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
+#ifdef HAVE_X509_GET0_PUBKEY
       return X509_get0_pubkey(cert);
+#else
+      return X509_get_pubkey(cert);
+#endif
 #else
       return X509_PUBKEY_get(cert->cert_info->key);
 #endif

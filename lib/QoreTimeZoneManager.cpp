@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreTimeZoneManager.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/QoreTimeZoneManager.h"
+#include "qore/intern/qore_date_private.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -39,7 +39,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include <qore/intern/glob.h>
+#include "qore/intern/glob.h"
 #endif
 
 #include <string.h>
@@ -287,7 +287,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, boo
    if (q_absolute_path_windows(fn)) {
       //printd(5, "QoreTimeZoneManager::processFile() %s: loading absolute path\n", fn);
       std::string name = fn;
-      std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(*NullString, name, xsink));
+      std::unique_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(*NullString, name, xsink));
       if (!*(tzi.get())) {
          //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
          return 0;
@@ -296,7 +296,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, boo
    }
    else {
       //printd(5, "QoreTimeZoneManager::processFile() %s: loading from registry\n", fn);
-      std::auto_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
+      std::unique_ptr<QoreWindowsZoneInfo> tzi(new QoreWindowsZoneInfo(fn, xsink));
       if (!*(tzi.get()))
          return 0;
 
@@ -313,7 +313,7 @@ const AbstractQoreZoneInfo *QoreTimeZoneManager::processFile(const char *fn, boo
    if (i != tzmap.end())
       return i->second;
 
-   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(use_path ? *NullString : root, name, xsink));
+   std::unique_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(use_path ? *NullString : root, name, xsink));
    if (!*(tzi.get())) {
       //printd(1, "skipping %s/%s\n", root.getBuffer(), name.c_str());
       return 0;
@@ -550,7 +550,7 @@ int QoreTimeZoneManager::setLocalTZ(std::string fname) {
       dummy = root;
    }
 
-   std::auto_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(dummy, fname, &xsink));
+   std::unique_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(dummy, fname, &xsink));
    if (!*(tzi.get())) {
       //xsink.handleExceptions();
       xsink.clear();
@@ -1421,7 +1421,7 @@ void QoreTimeZoneManager::init() {
       ExceptionSink xsink;
 
       if (!SysEnv.get("TZ", TZ)) {
-         std::auto_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(TZ.getBuffer(), &xsink));
+         std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(TZ.getBuffer(), &xsink));
          if (!*(twzi.get())) {
             xsink.clear();
             printd(1, "error reading windows registry while setting local time zone: %s\n", TZ.getBuffer());
@@ -1435,7 +1435,7 @@ void QoreTimeZoneManager::init() {
       wchar2utf8(tzi.StandardName, sn);
 
       // try to set the local time zone from the standard zone name
-      std::auto_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
+      std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
       if (!*(twzi.get())) {
          //xsink.handleExceptions();
          xsink.clear();

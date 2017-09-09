@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreListIterator.h>
-#include <qore/intern/RangeIterator.h>
+#include "qore/intern/QoreListIterator.h"
+#include "qore/intern/RangeIterator.h"
+#include "qore/intern/qore_list_private.h"
 
 extern QoreClass* QC_LISTITERATOR;
 extern QoreClass* QC_RANGEITERATOR;
@@ -56,6 +57,24 @@ switch (l.typeCode()) {
 */
 int <list>::typeCode() [flags=CONSTANT] {
    return NT_LIST;
+}
+
+//! returns @ref True if the list has a @ref hash_complex_type, @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = n.complexType();
+    @endcode
+
+    @return @ref True if the list has a @ref hash_complex_type, @ref False if not
+
+    @see
+    - <value>::fullType()
+
+    @since %Qore 0.8.13
+*/
+bool <list>::complexType() [flags=CONSTANT] {
+   const qore_list_private* lp = qore_list_private::get(*l);
+   return lp->complexTypeInfo ? true : false;
 }
 
 //! Returns the number of elements in the list
@@ -110,14 +129,14 @@ bool <list>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any e = l.first();
+auto e = l.first();
     @endcode
 
     @see <list>::last()
 
     @since %Qore 0.8.5
  */
-any <list>::first() [flags=CONSTANT] {
+auto <list>::first() [flags=CONSTANT] {
    return l->get_referenced_entry(0);
 }
 
@@ -126,14 +145,14 @@ any <list>::first() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any e = l.last();
+auto e = l.last();
     @endcode
 
     @see <list>::first()
 
     @since %Qore 0.8.5
  */
-any <list>::last() [flags=CONSTANT] {
+auto <list>::last() [flags=CONSTANT] {
    return l->get_referenced_entry((qore_size_t)(l->size() - 1));
 }
 
@@ -167,7 +186,7 @@ string <list>::join(string str) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 printf("iterating %d element%s\n", val.lsize(), val.lsize() == 1 ? "" : "s");
-foreach any element in (val) {
+foreach auto element in (val) {
     do_something(element);
 }
     @endcode
