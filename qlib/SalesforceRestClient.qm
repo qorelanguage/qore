@@ -396,7 +396,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
 
             # check required options
             foreach string key in (RequiredOptions) {
-                any v = opts{key};
+                auto v = opts{key};
                 if (!exists v || v == "")
                     throw "SALESFORCERESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
                 if (v.typeCode() != NT_STRING)
@@ -444,7 +444,7 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
         */
-        hash patch(string path, any body, *reference<hash> info, *hash hdr) {
+        hash patch(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("PATCH", path, body, \info, NOTHING, hdr);
         }
 
@@ -486,7 +486,7 @@ hash ans = rest.doRequest("GET", "sobjects");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -537,7 +537,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doBulkRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash doBulkRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -611,7 +611,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkGet(string path, any body, *reference<hash> info, *hash hdr) {
+        hash bulkGet(string path, auto body, *reference<hash> info, *hash hdr) {
             return doBulkRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -652,7 +652,7 @@ hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkPost(string path, any body, *reference<hash> info, *hash hdr) {
+        hash bulkPost(string path, auto body, *reference<hash> info, *hash hdr) {
             return doBulkRequest("POST", path, body, \info, NOTHING, hdr);
         }
 

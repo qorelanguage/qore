@@ -38,6 +38,8 @@
 
 %requires Mime >= 1.3
 %requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) RestSchemaValidator >= 1.0
+%requires Swagger >= 0.1
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -96,6 +98,8 @@ module RestClient {
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
 
+    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in @ref RestClient::RestClient::constructor() "RestClient::constructor()".
+
     For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other encoding method
     is chosen and the \c "json" module is available.
 
@@ -123,6 +127,7 @@ printf("%N\n", ans.body);
     - added support for the \c text/plain Content-Type
     - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
+    - added support for REST API validation with a REST schema through the @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
 
     @subsection restclientv1_3_1 RestClient v1.3.1
     - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
@@ -165,45 +170,17 @@ public namespace RestClient {
             #! Data serialization support mapping codes to MIME types and de/serialization functions
             const DataSerializationSupport = {
 %ifndef NoJson
-                "json": (
-                    "ct": MimeTypeJson,
-                    "out": \make_json(),
-                ),
+                "json": MimeTypeJson,
 %endif
 %ifndef NoYaml
-                "yaml": (
-                    "ct": MimeTypeYaml,
-                    "out": \make_yaml(),
-                ),
+                "yaml": MimeTypeYaml,
 %endif
 %ifndef NoXml
-                "xml": (
-                    "ct": MimeTypeXml,
-                    "out": \make_xmlrpc_value(),
-                ),
-                "rawxml": (
-                    "ct": MimeTypeXmlApp,
-                    "out": string sub (any v) {
-                        switch (v.typeCode()) {
-                            case NT_LIST: return make_xml(("list": ("element": v)));
-                            case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
-                        }
-                        return make_xml(("value": v));
-                    },
-                ),
+                "xml": MimeTypeXml,
+                "rawxml": MimeTypeXmlApp,
 %endif
-                "url": (
-                    "ct": MimeTypeFormUrlEncoded,
-                    "out": string sub (any v) {
-                        if (v.typeCode() == NT_HASH)
-                            return mime_get_form_urlencoded_string(v);
-                        throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
-                    },
-                ),
-                "text": (
-                    "ct": MimeTypeText,
-                    "out": string sub (any s) { return sprintf("%s", s); },
-                ),
+                "url": MimeTypeFormUrlEncoded,
+                "text": MimeTypeText,
                 };
 
 %ifndef NoYaml
@@ -234,33 +211,6 @@ public namespace RestClient {
                 );
 %endif
 
-            #! Data deserialization support MIME types to codes and de/serialization functions
-            const DataDeserializationSupport = {
-                MimeTypeFormUrlEncoded: (
-                    "code": "url",
-                    "in": \mime_parse_form_urlencoded_string(),
-                ),
-%ifndef NoJson
-                MimeTypeJson: (
-                    "code": "json",
-                    "in": \parse_json(),
-                ),
-%endif
-%ifndef NoYaml
-                MimeTypeYamlRpc: DeserializeYaml,
-                MimeTypeYaml: DeserializeYaml,
-%endif
-%ifndef NoXml
-                MimeTypeXml: DeserializeXml,
-                MimeTypeXmlApp: DeserializeXml,
-%endif
-                MimeTypeText: (
-                    "code": "text",
-                    "in": string sub (string s) { return s; },
-                ),
-
-            };
-
             #! Accept header list
             const AcceptList = (
 %ifndef NoYaml
@@ -280,7 +230,7 @@ public namespace RestClient {
             const Accept = AcceptList.join(",");
 
             #! RestClient Version
-            const Version = "1.3.1";
+            const Version = "1.4";
 
             #! RestClient Version String
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -351,10 +301,12 @@ public namespace RestClient {
             hash headers;
             # data serialization code
             string ds;
-            # serialization info hash
-            hash sih;
+            # serialization content type
+            string sct;
             # send content encoding hash
             *hash seh;
+            # REST schema validator
+            RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -379,15 +331,19 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-            - \c url: A string giving the URL to connect to
+            - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
-            @since %RestClient 1.2 the \a send_encoding option was added
+            @since
+            - %RestClient 1.2 the \a send_encoding option was added
+            - %RestClient 1.4 the \a validator and \a swagger options were added
         */
-        constructor(*hash opts, *softbool do_not_connect) : HTTPClient(opts) {
+        constructor(*hash opts, *softbool do_not_connect) : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : ("url": opts.validator.getTargetUrl()))) {
             setSerialization(opts.data);
             if (opts.send_encoding)
                 setSendEncoding(opts.send_encoding);
@@ -402,6 +358,19 @@ RestClient rest(("url": "http://localhost:8001/rest"));
 
             # unconditionally set the encoding to utf-8
             setEncoding("utf-8");
+
+            # set validator
+            if (opts.validator) {
+                if (!(opts.validator instanceof AbstractRestSchemaValidator))
+                    throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of AbstractRestSchemaValidator; got %y instead", opts.validator.type());
+                validator = opts.validator;
+            }
+            else {
+                if (opts.swagger)
+                    validator = SwaggerLoader::fromFile(opts.swagger);
+                else
+                    validator = new NullRestSchemaValidator();
+            }
 
             if (!do_not_connect)
                 connect();
@@ -425,13 +394,16 @@ rest.setSerialization("yaml");
             if (!DataSerializationOptions{data})
                 throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is unknown; valid options: %y", data, DataSerializationOptions.keys());
 
-            if (data == "auto" && DataSerializationSupport)
-                data = DataSerializationSupport.firstKey();
-            else if (!DataSerializationSupport{data})
-                throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is not supported because the required module could not be loaded; currently supported options: %y", data, DataSerializationSupport.keys());
+            if (data == "auto" && DataSerializationSupport) {
+                delete sct;
+            }
+            else {
+                if (!DataSerializationSupport{data})
+                    throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is not supported because the required module could not be loaded; currently supported options: %y", data, DataSerializationSupport.keys());
+                sct = DataSerializationSupport{data};
+            }
 
             ds = data;
-            sih = DataSerializationSupport{data};
         }
 
         #! change the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
@@ -570,9 +542,9 @@ hash ans = rest.get("/orders/1?info=verbose");
             - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
-            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             - \c request-body: the raw message body in the request (before any content encoding)
-            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
@@ -590,7 +562,7 @@ hash ans = rest.get("/orders/1?info=verbose");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash get(string path, any body, *reference<hash> info, *hash hdr) {
+        hash get(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -610,9 +582,9 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
-            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             - \c request-body: the raw message body in the request (before any content encoding)
-            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
@@ -629,7 +601,7 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash put(string path, any body, *reference<hash> info, *hash hdr) {
+        hash put(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("PUT", path, body, \info, NOTHING, hdr);
         }
 
@@ -649,9 +621,9 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
-            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             - \c request-body: the raw message body in the request (before any content encoding)
-            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
@@ -668,7 +640,7 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash post(string path, any body, *reference<hash> info, *hash hdr) {
+        hash post(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
@@ -688,9 +660,9 @@ hash ans = rest.del("/orders/1");
             - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
-            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             - \c request-body: the raw message body in the request (before any content encoding)
-            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
             @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
@@ -707,22 +679,31 @@ hash ans = rest.del("/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash del(string path, any body, *reference<hash> info, *hash hdr) {
+        hash del(string path, auto body, *reference<hash> info, *hash hdr) {
             return doRequest("DELETE", path, body, \info, NOTHING, hdr);
         }
 
+        #! returns the current validator object
+        /** @return the current validator object
+
+            @since %RestClient 1.4
+        */
+        RestSchemaValidator::AbstractRestSchemaValidator getValidator() {
+            return validator;
+        }
+
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(reference body, reference<hash> hdr, string ct = "Content-Type") {
+        private nothing prepareMsg(string method, string path, reference body, reference<hash> hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
-            # serialize body if necessary
+            hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
+
             if (exists body) {
-                body = sih.out(body);
+                body = req.body;
                 if (!hdr{ct})
-                    hdr{ct} = sih.ct;
+                    hdr{ct} = req.content;
                 if (body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/)
                     hdr{ct} += ";charset=" + body.encoding();
-
                 if (seh.ce && body.size() > CompressionThreshold) {
                     hdr."Content-Encoding" = seh.ce;
                     body = seh.func(body);
@@ -765,9 +746,9 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
-            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
+            - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             - \c request-body: the raw message body in the request (before any content encoding)
-            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values
+            - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
             @param decode_errors decode the message body with HTTP error responses and throw an exception based on the message body
             @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
 
@@ -787,8 +768,8 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash doRequest(string m, string path, any body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
-            prepareMsg(\body, \hdr);
+        hash doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+            prepareMsg(m, path, \body, \hdr);
 
             on_exit if (exists body) {
                 info += (
@@ -820,17 +801,23 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 rethrow;
             }
 
-            # decode any response body
-            if (exists h.body && !h.body.empty())
-                decodeResponse(\h, \info);
+            hash<RestResponseClientInfo> sh = validator.parseResponse(m, path, h.status_code, h.body, h);
+
+            if (exists h.body) {
+                h.body = sh.body;
+                info += (
+                    "response-serialization": sh.info.code ?? NullRestSchemaValidator::DataDeserializationSupport.(h."content-type").code ?? "unknown",
+                    "response-body": h.body,
+                );
+            }
 
             return h;
         }
 
         #! decode any REST errors returned if possible
-        private decodeError(hash h, *reference<hash> info) {
+        static private decodeError(hash h, *reference<hash> info) {
             try {
-                decodeResponse(\h, \info);
+                RestClient::tryDecodeErrorResponse(\h, \info);
                 info."response-body" = h.body;
             }
             catch () {
@@ -847,13 +834,12 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             }
         }
 
-        #! decodes the response
-        decodeResponse(reference<hash> h, *reference<hash> info) {
-            info."response-body" = h.body;
-
-            *hash dh = DataDeserializationSupport.(h."content-type");
+        #! tries to decode an error response
+        static private:internal tryDecodeErrorResponse(reference<hash> h, *reference<hash> info) {
+            #info."response-body" = h.body;
+            *hash dh = NullRestSchemaValidator::DataDeserializationSupport.(h."content-type");
             if (!dh)
-                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", h."content-type", DataDeserializationSupport.keys(), h.body);
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", h."content-type", NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
 
             if (h.body.typeCode() != NT_STRING)
                 throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
@@ -872,12 +858,16 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
     /** supports the following options:
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
         - \c "timeout": transfer timeout to use in milliseconds
+
+        @note additionally supports the following runtime option in getImpl():
+        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
 
         @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
 
@@ -893,6 +883,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 "data": True,
                 "send_encoding": True,
                 "content_encoding": True,
+                "swagger": True,
                 );
 
             const OptionList = Options.keys();
@@ -912,23 +903,25 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
 
         #! returns a @ref RestClient::RestClient object
         /** @param connect if @ref Qore::True "True", then the connection is returned already connected
-            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+            @param rtopts supports the following runtime option in getImpl():
+            - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
 
             @return a @ref RestClient::RestClient "RestClient" object
         */
         private RestClient getImpl(bool connect = True, *hash rtopts) {
-            return new RestClient(real_opts, !connect);
+            return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
         }
 
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values when used with the null REST schema validator; the default is \c "auto"
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options

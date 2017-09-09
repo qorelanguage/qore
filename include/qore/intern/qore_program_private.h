@@ -665,6 +665,16 @@ public:
          pcond.broadcast();
    }
 
+   // gets a list of all thread IDs using this Program
+   DLLLOCAL void getThreadList(QoreListNode& l) {
+      // grab program-level lock
+      AutoLocker al(plock);
+
+      for (auto& i : tidmap) {
+         l.push(new QoreBigIntNode(i.first));
+      }
+   }
+
    DLLLOCAL int lockParsing(ExceptionSink* xsink) {
       // grab program-level lock
       AutoLocker al(plock);

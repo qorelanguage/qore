@@ -1711,7 +1711,7 @@ int QoreFunction::parseCheckDuplicateSignatureCommitted(UserSignature* sig) {
    if (rc == QTI_NOT_EQUAL)
       return 0;
 
-   if (rc == QTI_AMBIGUOUS)
+   if (rc == QTI_AMBIGUOUS || rc == QTI_WILDCARD)
       ambiguousDuplicateSignatureException(className(), getName(), vs, sig);
    else
       duplicateSignatureException(className(), getName(), sig);

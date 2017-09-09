@@ -64,7 +64,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
             argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
         }
 
-        argTypeInfo = 0;
+        argTypeInfo = nullptr;
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
         if (!i) {
@@ -110,7 +110,12 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(vtype), xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+    // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
+    const QoreTypeInfo* vtype = nullptr;
+    // try to find a common value type, if any
+    bool vcommon = false;
 
     for (size_t i = 0; i < keys.size(); ++i) {
         QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
@@ -122,10 +127,21 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             return QoreValue();
 
         QoreStringValueHelper key(*k);
-        h->setKeyValue(key->c_str(), v.getReferencedValue(), xsink);
+        AbstractQoreNode* val = v.getReferencedValue();
+        h->setKeyValue(key->c_str(), val, xsink);
         if (xsink && *xsink)
             return QoreValue();
+
+        if (!i) {
+            vtype = getTypeInfoForValue(val);
+            vcommon = true;
+        }
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+            vcommon = false;
     }
+
+    if (vcommon && QoreTypeInfo::hasType(vtype))
+       qore_hash_private::get(**h)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
 
     return h.release();
 }

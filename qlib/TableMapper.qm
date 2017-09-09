@@ -958,7 +958,7 @@ on_error table_mapper.rollback();
          *         of records represented (may also be 0)
          */
         private *int getRecListSize(hash rec) {
-            foreach any v in (rec.iterator()) {
+            foreach auto v in (rec.iterator()) {
                 if (v.typeCode() == NT_LIST) {
                     return v.size();
                 }
@@ -1500,7 +1500,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        setRuntime(string key, any value) {
+        setRuntime(string key, auto value) {
             mapc.setRuntime(key, value);
         }
 
@@ -1546,7 +1546,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        any getRuntime(string key) {
+        auto getRuntime(string key) {
             return mapc.getRuntime(key);
         }
     }
@@ -1668,7 +1668,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        setRuntime(string key, any value) {
+        setRuntime(string key, auto value) {
             m_mapper.setRuntime(key, value);
         }
 
@@ -1714,7 +1714,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        any getRuntime(string key) {
+        auto getRuntime(string key) {
             return m_mapper.getRuntime(key);
         }
     } # class SqlStatementMapperIterator

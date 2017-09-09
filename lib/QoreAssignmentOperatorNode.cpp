@@ -64,11 +64,19 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
        && !strcmp(static_cast<VarRefNode*>(left)->getName(), static_cast<VarRefNode*>(right)->getName()))
       qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
-   bool may_not_match = false;
-   bool may_need_filter = false;
-   qore_type_result_e res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
-
-   ident = QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && ((res == QTI_IDENT || (res == QTI_AMBIGUOUS && !may_not_match)) && !may_need_filter);
+   qore_type_result_e res;
+   if (ti == autoTypeInfo) {
+      ident = true;
+      res = QTI_IDENT;
+   }
+   else if (QoreTypeInfo::hasType(ti)) {
+      bool may_not_match = false;
+      bool may_need_filter = false;
+      res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
+      // issue #2106 do not set the ident flag for any other type in case runtime types are more speficic (complex) than parse types and require filtering
+   }
+   else
+      res = QTI_AMBIGUOUS;
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
 

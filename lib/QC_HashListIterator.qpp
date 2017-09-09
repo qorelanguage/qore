@@ -298,7 +298,7 @@ while (i.next()) {
 
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
-any HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
+auto HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
 
@@ -323,7 +323,7 @@ while (i.next()) {
 
     @note HashListIterator::memberGate() allows for the iterator to act as if it is a hash with members equal to the current row being iterated
  */
-any HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
+auto HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
 

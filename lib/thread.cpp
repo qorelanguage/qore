@@ -840,8 +840,8 @@ LocalVarValue* thread_find_lvar(const char* id) {
    return td->tlpd->lvstack.find(id);
 }
 
-ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval) {
-   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval);
+ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
+   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval, assign);
 }
 
 void thread_instantiate_closure_var(ClosureVarValue* cvar) {
@@ -1837,7 +1837,10 @@ static void qore_thread_cleanup(void* n = 0) {
    if (mpfr_buildopt_tls_p())
       mpfr_free_cache();
 #endif
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+   // issue #2135: ERR_remove_state() is deprecated and a noop in openssl 1.0.0+
    ERR_remove_state(0);
+#endif
 }
 
 int q_register_foreign_thread() {

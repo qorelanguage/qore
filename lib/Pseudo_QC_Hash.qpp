@@ -143,14 +143,14 @@ list <hash>::values() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any v = h.firstValue();
+auto v = h.firstValue();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::lastValue()
  */
-any <hash>::firstValue() [flags=CONSTANT] {
+auto <hash>::firstValue() [flags=CONSTANT] {
    AbstractQoreNode* rv = qore_hash_private::getFirstKeyValue(h);
    return rv ? rv->refSelf() : 0;
 }
@@ -179,14 +179,14 @@ any <hash>::firstValue() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any v = h.lastValue();
+auto v = h.lastValue();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
 
     @see <hash>::firstValue()
  */
-any <hash>::lastValue() [flags=CONSTANT] {
+auto <hash>::lastValue() [flags=CONSTANT] {
    AbstractQoreNode* rv = qore_hash_private::getLastKeyValue(h);
    return rv ? rv->refSelf() : 0;
 }

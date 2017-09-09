@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_SSLPrivateKey.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 class QoreSSLPrivateKey : public AbstractPrivateData {
 private:
    // the private implementation of the class
-   struct qore_sslpk_private *priv; 
+   struct qore_sslpk_private *priv;
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreSSLPrivateKey(const QoreSSLPrivateKey&);
@@ -93,7 +93,7 @@ public:
 
    //! caller owns reference returned
    DLLEXPORT QoreSSLPrivateKey* pkRefSelf() const;
-   
+
    //! private constructor; not exported
    DLLLOCAL QoreSSLPrivateKey(EVP_PKEY* p);
 };

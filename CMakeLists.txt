@@ -240,7 +240,7 @@ set(QORE_DOX_TMPL_SRC
 
 # qore interpreter
 set(QORE_CPP_SRC command-line.cpp qore-main.cpp)
-set(QR_CPP_SRC command-line.cpp qr-main.cpp)
+#set(QR_CPP_SRC command-line.cpp qr-main.cpp)
 
 # find needed libraries
 qore_find_pthreads()
@@ -624,13 +624,14 @@ else (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 5)
 endif (APPLE)
 
-# prepare qore and qr targets
+# prepare qore target
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
-add_executable(qr ${QR_CPP_SRC})
-target_link_libraries(qr libqore)
+#add_executable(qr ${QR_CPP_SRC})
+#target_link_libraries(qr libqore)
 
-set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+#set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
 message(STATUS "Generating unix-config.h")
@@ -656,9 +657,12 @@ qore_dist(${VERSION})
 install(PROGRAMS ${QORE_BIN_FILES}
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
-install(TARGETS qore qpp qr libqore
+install(TARGETS qore qpp libqore
         RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+#install(TARGETS qore qpp qr libqore
+#        RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+#        LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
         DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/Qore)
 install(FILES ${CMAKE_BINARY_DIR}/qore.pc
@@ -767,11 +771,19 @@ qore_user_module("qlib/SqlUtil.qm" "Util")
 # base 3 modules
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
-qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
+
+# base 5 modules
+qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
+
+# base 6 modules
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
+
+# base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
@@ -779,7 +791,7 @@ qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")

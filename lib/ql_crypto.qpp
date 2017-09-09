@@ -72,10 +72,10 @@ private:
       assert(n > 0 && n <= 3);
       const QoreValue pt = get_param_value(args, n);
       if (pt.getType() == NT_STRING) {
-	 const QoreStringNode* str = pt.get<const QoreStringNode>();
-	 key[n - 1] = (unsigned char*)str->getBuffer();
-	 keylen[n - 1] = str->strlen();
-	 return;
+         const QoreStringNode* str = pt.get<const QoreStringNode>();
+         key[n - 1] = (unsigned char*)str->getBuffer();
+         keylen[n - 1] = str->strlen();
+         return;
       }
 
       const BinaryNode* b = pt.get<const BinaryNode>();
@@ -92,20 +92,20 @@ private:
    DLLLOCAL int setIV(const char *err, const QoreValue pt, ExceptionSink *xsink) {
       assert(!pt.isNothing());
       if (pt.getType() == NT_STRING) {
-	 const QoreStringNode* str = pt.get<const QoreStringNode>();
-	 if (str->strlen() < 8) {
-	    xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", str->strlen());
-	    return -1;
-	 }
-	 iv = (unsigned char*)str->getBuffer();
-	 return 0;
+         const QoreStringNode* str = pt.get<const QoreStringNode>();
+         if (str->strlen() < 8) {
+            xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", str->strlen());
+            return -1;
+         }
+         iv = (unsigned char*)str->getBuffer();
+         return 0;
       }
 
       assert(pt.getType() == NT_BINARY);
       const BinaryNode* b = pt.get<const BinaryNode>();
       if (b->size() < 8) {
-	 xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
-	 return -1;
+         xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
+         return -1;
       }
       iv = (unsigned char*)b->getPtr();
       return 0;
@@ -120,7 +120,7 @@ public:
 
    DLLLOCAL ~CryptoHelper() {
       if (output)
-	 free(output);
+         free(output);
    }
 
    DLLLOCAL BinaryNode *getBinary() {
@@ -141,50 +141,46 @@ public:
 
    DLLLOCAL int setSingleKey(const char *err, const QoreValueList *params, ExceptionSink *xsink, bool has_encoding = false) {
       if (setIV(err, get_param_value(params, 2), xsink))
-	 return -1;
+         return -1;
 
       setInput(get_param_value(params, 0));
       setKey(params, 1);
       if (has_encoding)
-	 setEncoding(params, 2);
+         setEncoding(params, 2);
       return 0;
    }
 
    DLLLOCAL int doCipher(const EVP_CIPHER *type, const char *cipher, int do_crypt, ExceptionSink *xsink) {
       const char *err = (do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
 
-      EVP_CIPHER_CTX ctx;
-      EVP_CIPHER_CTX_init(&ctx);
-      EVP_CipherInit_ex(&ctx, type, 0, 0, 0, do_crypt);
+      QoreEvpCipherCtxHelper ctx;
+      EVP_CIPHER_CTX_init(*ctx);
+      EVP_CipherInit_ex(*ctx, type, 0, 0, 0, do_crypt);
       if (key[0]) {
-	 if (keylen[0] > EVP_MAX_KEY_LENGTH)
-	    keylen[0] = EVP_MAX_KEY_LENGTH;
+         if (keylen[0] > EVP_MAX_KEY_LENGTH)
+            keylen[0] = EVP_MAX_KEY_LENGTH;
 
-	 if (!EVP_CIPHER_CTX_set_key_length(&ctx, keylen[0]) || !EVP_CipherInit_ex(&ctx, 0, 0, key[0], iv, -1)) {
-	    xsink->raiseException(err, "error setting %s key length=%d", cipher, keylen[0]);
-	    EVP_CIPHER_CTX_cleanup(&ctx);
-	    return -1;
-	 }
+         if (!EVP_CIPHER_CTX_set_key_length(*ctx, keylen[0]) || !EVP_CipherInit_ex(*ctx, 0, 0, key[0], iv, -1)) {
+            xsink->raiseException(err, "error setting %s key length=%d", cipher, keylen[0]);
+            return -1;
+         }
       }
 
       // we allocate 1 byte more than we need in case we return as a string so we can terminate it
       output = (unsigned char *)malloc(sizeof(char) * (input_len + (EVP_MAX_BLOCK_LENGTH * 2)));
 
-      if (!EVP_CipherUpdate(&ctx, output, &output_len, input, input_len)) {
-	 xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
-	 EVP_CIPHER_CTX_cleanup(&ctx);
-	 return -1;
+      if (!EVP_CipherUpdate(*ctx, output, &output_len, input, input_len)) {
+         xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
+         return -1;
       }
 
       int tmplen;
       // Buffer passed to EVP_EncryptFinal() must be after data just encrypted to avoid overwriting it.
-      if (!EVP_CipherFinal_ex(&ctx, output + output_len, &tmplen)) {
-	 xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
-	 EVP_CIPHER_CTX_cleanup(&ctx);
-	 return -1;
+      if (!EVP_CipherFinal_ex(*ctx, output + output_len, &tmplen)) {
+         xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
+         return -1;
       }
 
-      EVP_CIPHER_CTX_cleanup(&ctx);
       output_len += tmplen;
       //printd(5, "cipher_intern() %s: in=%p (%d) out=%p (%d)\n", cipher, buf, len, cbuf, *size);
       return 0;
@@ -192,8 +188,8 @@ public:
 
    DLLLOCAL int checkKeyLen(const char *err, int n, int len, ExceptionSink *xsink) {
       if (keylen[n] < len) {
-	 xsink->raiseException(err, "key length is not %d bytes long (%d bytes)", len, keylen[n]);
-	 return -1;
+         xsink->raiseException(err, "key length is not %d bytes long (%d bytes)", len, keylen[n]);
+         return -1;
       }
       keylen[n] = len;
       return 0;
@@ -699,7 +695,7 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
    if (ch.setSingleKey("DES-ENCRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_ENCRYPT, xsink))
-	    return QoreValue();
+            return QoreValue();
 
    return ch.getBinary();
 }
@@ -735,7 +731,7 @@ binary des_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::Def
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return QoreValue();
+            return QoreValue();
 
    return ch.getBinary();
 }
@@ -774,7 +770,7 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
    if (ch.setSingleKey("DES-DECRYPT-PARAM-ERROR", args, xsink, true)
        || ch.checkKeyLen("DES-KEY-ERROR", 0, 8, xsink)
        || ch.doCipher(EVP_des_cbc(), "DES", QCRYPTO_DECRYPT, xsink))
-	    return QoreValue();
+            return QoreValue();
 
    return ch.getString();
 }
@@ -1857,14 +1853,18 @@ string str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @see DSS_bin()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a hex string
@@ -1882,14 +1882,18 @@ string str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @see DSS1_bin()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 string DSS1(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a hex string
@@ -2208,14 +2212,18 @@ binary bin = DSS_bin("hello");
 
     @see DSS()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
    if (dh.doDigest(DSS_ERR, EVP_dss(), xsink))
       return QoreValue();
 
    return dh.getBinary();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
@@ -2233,14 +2241,18 @@ binary bin = DSS1_bin("hello");
 
     @see DSS1()
 
-    @note this digest algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
 binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
    if (dh.doDigest(DSS1_ERR, EVP_dss1(), xsink))
       return QoreValue();
 
    return dh.getBinary();
+#else
+    missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
@@ -2595,16 +2607,21 @@ string str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
-    @note this algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string DSS_hmac(data[doc] data, string key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    HMACHelper dh(args);
-   if (dh.doHMAC("DSS-HMAC-ERROR", EVP_dss(), key, xsink))
+   if (dh.doHMAC(DSS_ERR, EVP_dss(), key, xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the DSS1 (SHA-1 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) based HMAC of the supplied argument as a hex string
@@ -2620,16 +2637,21 @@ string str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "37a3cc73159aa129b0eb22bbdf4b9309d389f629"
     @endcode
 
-    @note this algorithm is considered outdated and is included for backwards-compatibility
+    @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS1-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string DSS1_hmac(data[doc] data, string key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
    HMACHelper dh(args);
-   if (dh.doHMAC("DSS1-HMAC-ERROR", EVP_dss1(), key, xsink))
+   if (dh.doHMAC(DSS1_ERR, EVP_dss1(), key, xsink))
       return QoreValue();
 
    return dh.getString();
+#else
+   (void)key;
+   missing_openssl_feature("DSS", xsink);
+#endif
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2</a> based HMAC of the supplied argument as a hex string

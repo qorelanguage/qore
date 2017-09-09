@@ -25,7 +25,7 @@
 %requires qore >= 0.8.13
 # need mime definitions
 %requires Mime >= 1.0
-%requires Util >= 1.0
+%requires(reexport) Util >= 1.0
 
 %new-style
 
@@ -74,6 +74,7 @@ module HttpServerUtil {
     - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
+    - moved @ref HttpServer::parse_uri_query() to the @ref utilintro "Util" module
 
     @subsection httputil03112 HttpServerUtil 0.3.11.2
     - eliminated excess logging of each HTTP chunk sent or received
@@ -221,15 +222,6 @@ public namespace HttpServer {
     public const LP_LEVELMASK = LP_LOGPARAMS - 1;
     #@}
 
-    #! the return value of the @ref HttpServerUtil::parse_uri_query() "parse_uri_query()" function
-    public hashdecl UriQueryInfo {
-        #! the part of the URI path before the first \c "?" character or the entire path if no \c "?" character is present in the path
-        string method;
-
-        #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref Qore::True "True"
-        *hash params;
-    }
-
     #! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
     public hashdecl HttpResponseInfo {
         #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
@@ -260,7 +252,7 @@ public namespace HttpServer {
         int code;
 
         #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
-        any body;
+        auto body;
 
         #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         softbool close = False;
@@ -319,37 +311,14 @@ public namespace HttpServer {
 
         @return a @ref UriQueryInfo hash
 
-        @since 0.3.11 the \a params key value is always returned as a hash
+        @since
+        - 0.3.11 the \a params key value is always returned as a hash
+        - 0.3.12 the actual implementation is in @ref Util::parse_uri_query()
+
+        @note provided by @ref Util::parse_uri_query()
     */
-    public hash<UriQueryInfo> sub parse_uri_query(string path) {
-        int i = path.find("?");
-        if (i == -1)
-            return new hash<UriQueryInfo>(("method": path));
-
-        # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
-        hash<UriQueryInfo> h((
-            "method": path.substr(0, i),
-            "params": {},
-            ));
-
-        # remove method and "?" char; leave only args in path
-        splice path, 0, i + 1;
-
-        # iterate through args
-        # w3c recommends ";" instead of "&" to separate arguments
-        # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
-        # however we support both
-        string sep = path.find(";") == -1 ? "&" : ";";
-        foreach any arg in (split(sep, path)) {
-            if (arg.val()) {
-                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
-                if (key)
-                    h.params{key} = value;
-                else
-                    h.params{arg} = True;
-            }
-        }
-        return h;
+    public hash<Util::UriQueryInfo> sub parse_uri_query(string path) {
+        return Util::parse_uri_query(path);
     }
 
     #! helper function for setting HTTP response headers
@@ -444,7 +413,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
     #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
     /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
     */
-    abstract any removeUserThreadContext(*string k);
+    abstract auto removeUserThreadContext(*string k);
 }
 
 #! abstract base class for external authentication
@@ -614,7 +583,7 @@ public class HttpServer::AbstractStreamRequest {
         #! a hash of request headers
         hash hdr;
         #! any message body given in a non-chunked request; could already be deserialized
-        any body;
+        auto body;
         #! send and receive timeout
         timeout timeout_ms = HttpServer::DefaultTimeout;
     }
@@ -630,7 +599,7 @@ public class HttpServer::AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param n_body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, any n_body) {
+    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, auto n_body) {
         listener = n_listener;
         handler = n_handler;
         s = n_s;
@@ -712,8 +681,8 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
-    private any send() {
-        any v = sendImpl();
+    private auto send() {
+        auto v = sendImpl();
         switch (v.typeCode()) {
             case NT_STRING:
             case NT_BINARY: {
@@ -774,7 +743,7 @@ private logChunk(bool send, int size) {
     /**
         @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
         */
-    private any sendImpl() {
+    private auto sendImpl() {
     }
 }
 
@@ -923,7 +892,7 @@ public class HttpServer::AbstractHttpRequestHandler {
     hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         # classic, non-streaming interface
         if (!stream) {
-            any rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
+            auto rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
             switch (rv.typeCode()) {
                 case NT_HASH: return cast<hash<HttpResponseInfo>>(rv);
                 case NT_STRING:
@@ -1028,7 +997,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             hash amh;
             if (api.maskargs)
                 map amh.$1 = True, api.maskargs;
-            foreach any arg in (params) {
+            foreach auto arg in (params) {
                 if (amh.(i++))
                     args += "<masked>, ";
                 else if (arg.typeCode() == NT_HASH && arg) {

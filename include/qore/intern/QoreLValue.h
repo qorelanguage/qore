@@ -755,7 +755,7 @@ public:
       //printd(5, "QoreLValue::assignAssumeInitial() this: %p n: %s sa: %d\n", this, n.getTypeName(), is_static_assignment);
       if (is_static_assignment)
          static_assignment = true;
-      return n.isNothing() ? 0 : assignAssume(n);
+      return assignAssume(n);
    }
 
    DLLLOCAL void assignInitial(bool n) {

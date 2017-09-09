@@ -67,6 +67,7 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 // returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
+DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
 DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valueTypeInfo);
 DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
@@ -175,7 +176,7 @@ public:
       else if (typespec == QTS_COMPLEXREF)
          return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
       if (u.t == NT_ALL)
-         return QTI_AMBIGUOUS;
+         return QTI_WILDCARD;
       return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
    }
 
@@ -302,7 +303,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_WILDCARD;
    }
 
    // static version of method, checking for null pointer
@@ -327,7 +328,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
-      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_AMBIGUOUS;
+      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_WILDCARD;
    }
 
    // static version of method, checking for null pointer
@@ -345,10 +346,13 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
+      if (first == autoTypeInfo) {
+         return QTI_WILDCARD;
+      }
       if (!hasType(first)) {
          if (!may_need_filter && isComplex(second))
             may_need_filter = true;
-         return QTI_AMBIGUOUS;
+         return QTI_WILDCARD;
       }
       if (!hasType(second)) {
          if (!may_need_filter) {
@@ -454,7 +458,7 @@ public:
    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, param_num, param_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -462,7 +466,7 @@ public:
    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, true, -1, member_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -470,7 +474,7 @@ public:
    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, member_name, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -479,7 +483,7 @@ public:
       assert(text && text[0] == '<');
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, text, n);
-      else
+      else if (ti != autoTypeInfo)
          stripTypeInfo(n, xsink);
    }
 
@@ -495,7 +499,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
-      if (!hasType(ti)) {
+      if (!hasType(ti) && ti != autoTypeInfo) {
          return isComplex(n.getTypeInfo());
       }
       assert(ti);
@@ -504,28 +508,34 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool equal(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return (a == b) ? true : accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
+         return accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
       return hta || htb ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return (a == b) ? true : accept_vec_compare(a->accept_vec, b->accept_vec);
+         return accept_vec_compare(a->accept_vec, b->accept_vec);
       return hta || htb ? false : true;
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+      if (a == b)
+         return true;
       bool hta = hasType(a);
       bool htb = hasType(b);
       if (hta && htb)
-         return a == b ? true : return_vec_compare(a->return_vec, b->return_vec);
+         return return_vec_compare(a->return_vec, b->return_vec);
       return hta || htb ? false : true;
    }
 
@@ -583,7 +593,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
-      if (ti && hasType(ti))
+      if (ti && (hasType(ti) || ti == autoTypeInfo))
          str.append(ti->tname.c_str());
       else
          str.append(NO_TYPE_INFO);
@@ -825,7 +835,7 @@ protected:
             qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
             if (res == QTI_IDENT)
                return res;
-            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR) {
+            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
                assert(ok);
                if (may_not_match)
                   return res;
@@ -880,6 +890,7 @@ protected:
          // fall down to next case
          case QTI_NEAR:
          case QTI_AMBIGUOUS:
+         case QTI_WILDCARD:
             if (at.map && !may_need_filter)
                may_need_filter = true;
             if (t_no_match) {
@@ -1105,6 +1116,22 @@ private:
 class QoreAnyTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreAnyTypeInfo() : QoreTypeInfo("any", q_accept_vec_t {{NT_ALL, nullptr}}, q_return_vec_t {{NT_ALL}}) {
+   }
+
+protected:
+   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+      str.concat("no value");
+   }
+
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+};
+
+class QoreAutoTypeInfo : public QoreTypeInfo {
+public:
+   DLLLOCAL QoreAutoTypeInfo() : QoreTypeInfo("auto", q_accept_vec_t {{NT_ALL, nullptr}}, q_return_vec_t {{NT_ALL}}) {
    }
 
 protected:

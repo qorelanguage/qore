@@ -12,6 +12,7 @@
     - fixed broken @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions which had no effect prior to this release; to get the old behavior, use @ref broken-references "%broken-references" in your source code
     - the random number generator is always seeded with a random number when the Qore library is initialized; to get a predictable sequence from @ref Qore::rand() "rand()", you must explicitly seed the random number generator by calling @ref Qore::srand() "srand()" with a predefined seed number
     - the @ref synchronized "synchronized" keyword now operates differently depending on the context; <tt><b>synchronized</b></tt> functions have a global reentrant lock associated with the function (as in previous versions of %Qore), whereas now <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.  This aligns %Qore's @ref synchronized "synchronized" behavior with that of Java and <tt>[MethodImpl(MethodImplOptions.Synchronized)]</tt> .NET/CLR (<a href="https://github.com/qorelanguage/qore/issues/894">issue 894</a>).
+    - classes may not have the name \c "auto" due to the introduction of this identifier as a special type name
 
     @subsection qore_0813_new_features New Features in Qore
     - complex type support
@@ -27,6 +28,7 @@
       - @ref hash_complex_type "hash with type-safe values"; ex: @code{.py} hash<string, int> h = ("str": 1); @endcode
       - @ref list_complex_type "list with type-safe values"; ex: @code{.py} list<int> l = (1); @endcode
       - @ref reference_complex_type "reference with type-safe lvalues"; ex: @code{.py} int i = 1; reference<int> r = \i; @endcode
+      - @ref auto_type "auto" (allows any value including complex types to be assigned without losing complex type information); ex: @code{.py} auto l = (1, 2); @endcode
       - improved @ref new "new", @ref cast "cast<>", and @ref instanceof "instanceof" operators
       - the @ref instanceof "instanceof" operator now works with any type; ex: @code{.py} bool b = v instanceof hash<string, int>; @endcode
       - note that complex type information is lost when assigning to an lvalue with a compatible but more generic type or by assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without breaking backwards compatibility.
@@ -121,6 +123,7 @@
       - <a href="../../modules/Qdx/html/index.html">Qdx</a>
       - <a href="../../modules/SewioRestClient/html/index.html">SewioRestClient</a>
       - <a href="../../modules/SewioWebSocketClient/html/index.html">SewioWebSocketClient</a>
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a>
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
       - @ref allow-debugging "%allow-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
@@ -152,22 +155,25 @@
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - implemented the @ref weak_assignment_operator "weak assignment operator (:=)" (only available with @ref allow-weak-references "%allow-weak-references")
     - new methods:
+      - @ref Qore::Program::getAllDefines()
       - @ref Qore::Program::getGlobalVars()
       - @ref Qore::Program::importSystemHashDecls()
       - @ref Qore::Program::setGlobalVarValue()
       - @ref Qore::Program::setThreadInit()
-      - @ref Qore::Program::getAllDefines()
+      - @ref Qore::Program::setThreadList()
       - @ref Qore::Socket::acceptAllCertificates()
       - @ref Qore::Socket::getAcceptAllCertificates()
       - @ref Qore::Socket::getSslVerifyMode()
       - @ref Qore::Socket::setSslVerifyMode()
     - updated methods:
-      - @ref Qore::TreeMap::get() new parameter to return also unmatched part suffix
+      - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
       - @ref Qore::HTTPClient::constructor() added support for the following options:
         - \c ssl_cert_path: allows an X.509 client certificate to be set in the constructor
         - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
         - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
         - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+      - @ref Qore::RangeIterator::constructor(int) was updated; the second argument was removed to avoid ambiguity with the other overloaded constructor
+      - @ref Qore::TreeMap::get() "TreeMap::get()": added a new optional argument to return the unmatched part of the search string
       - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
         - @ref Qore::ReadOnlyFile::hstat() "ReadOnlyFile::hstat()"
         - @ref Qore::ReadOnlyFile::hlstat() "ReadOnlyFile::hlstat()"
@@ -210,9 +216,8 @@
       - @ref Qore::mkdir() "mkdir()": now allows parent directories to be created in the same call
       - @ref Qore::round() "round()": now allows the precision to be specified
       - @ref Qore::set_thread_init() "set_thread_init()": now allows for thread init code to be removed
+      - @ref Qore::xrange(int) was updated; the second argument was removed to avoid ambiguity with the other overloaded variant
     - module updates:
-      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
-        - added a minimal substring of string bodies received to the log message when logging HTTP requests
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - added support for streams
       - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
@@ -220,6 +225,21 @@
         - added \c FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
         - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
         - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module updates:
+        - added a minimal substring of string bodies received to the log message when logging HTTP requests
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module updates:
+        - the \c parse_uri_query() function was moved to the <a href="../../modules/Util/html/index.html">Util</a> module
+      - <a href="../../modules/Mime/html/index.html">Mime</a> module updates:
+        - added complex type support
+        - added the following constants:
+          - \c MimeTypeMultipartFormData
+          - \c MimeTypeMultipartRelated
+          - \c MimeTypeMultipartMixed
+        - added the following methods:
+          - \c MultipartMessage::getBoundary()
+          - \c MultipartMessage::serializeBody()
+          - \c MultipartMessage::size()
+        - fixed a bug parsing multipart messages where unnecessary characters were searched (<a href="https://github.com/qorelanguage/qore/issues/2099">issue 2099</a>)
       - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module updates:
         - added the \c Pop3Connection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - <a href="../../modules/Qorize/html/index.html">Qorize</a> module updates:
@@ -227,8 +247,14 @@
       - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
         - added the \c RestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - support for the \c text/plain \c Content-Type
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
+        - added support for runtime REST API validation against a REST schema using the <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+        - added support for Swagger 2.0 REST API validation and \c "swagger" options using the <a href="../../modules/Swagger/html/index.html">Swagger</a> module in the \c RestClient and \c RestConnection classes
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module updates:
         - added an API to allow REST calls to be made internally (<a href="https://github.com/qorelanguage/qore/issues/1899">issue 1899</a>)
+        - added support for runtime REST API validation against a REST schema using the <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module:
+        - added this new module providing a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> schema validation API
       - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a> module updates:
         - added the \c SalesforcRestConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
@@ -241,6 +267,8 @@
         - added the \c SmtpConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
         - implemented the \c cop_trunc_date() function (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a> module added:
+        - added this new module providing a <a href="https://swagger.io/">Swagger 2.0 REST API validation API</a> to %Qore
       - <a href="../../modules/TableMapper/html/index.html">TableMapper</a> module updates:
         - added support for upserts in \c InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
         - added \c InboundTableMapper::queueData(list)
@@ -248,6 +276,9 @@
         - added the \c TelnetConnection class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - added support for URLs in the constructor()
         - added the \c TelnetClient::getTarget() method
+      - <a href="../../modules/Util/html/index.html">Util</a> module updates:
+        - the \c parse_uri_query() function was moved here from the <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module
+        - \c parse_uri_query() now handles repeated query arguments as a list
       - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
         - added the \c WebSocketConnectionObject class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - updated for complex types
@@ -307,20 +338,29 @@
     - fixed a bug in overloaded call variant matching where missing arguments were counted towards the match (<a href="https://github.com/qorelanguage/qore/issues/1897">issue 1897</a>)
     - fixed many bugs where parse-time errors could be reported at an incorrect source location; parse-time error location reporting has been completely overhauled and reimplemented for correctness (<a href="https://github.com/qorelanguage/qore/issues/1930">issue 1930</a>)
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
+    - fixed memory leaks in the scanner related to EOF conditions (<a href="https://github.com/qorelanguage/qore/issues/1976">issue 1976</a>)
     - rewrote %Qore functions @ref gethostbyname(), @ref gethostbyname_long() and @ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
     - fixed cmake builds on Darwin (<a href="https://github.com/qorelanguage/qore/issues/1980">issue 1980</a>)
     - fixed a bug where immediate date-time values were not marked with their type at parse time (<a href="https://github.com/qorelanguage/qore/issues/2001">issue 2001</a>)
     - fixed a bug where the @ref data_or_nothing_type "*data" type restriction would allow all types to be assigned at runtime (<a href="https://github.com/qorelanguage/qore/issues/2002">issue 2002</a>)
+    - @ref Qore::RangeIterator::constructor(int) and @ref Qore::xrange(int) were updated; the second arguments were removed to avoid ambiguity with the other overloaded variants (<a href="https://github.com/qorelanguage/qore/issues/2016">issue 2016</a>)
+    - fixed a bug where @ref Qore::replace() could get in an infinite loop with arguments with embededed nulls (<a href="https://github.com/qorelanguage/qore/issues/2098">issue 2098</a>)
+    - fixed a bug in regular expression extraction where an infinite loop could occur (<a href="https://github.com/qorelanguage/qore/issues/2083">issue 2083</a>)
 
     @section qore_081212 Qore 0.8.12.12
 
     @par Release Summary
     Bugfix release; see details below
 
+    @subsection qore_081212_new_features New Features in Qore
+
+    - aded the @ref Qore::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
+
     @subsection qore_081212_bug_fixes Bug Fixes in Qore
 
     - fixed a bug handling \c argv in base class constructor execution (<a href="https://github.com/qorelanguage/qore/issues/2030">issue 2030</a>)
     - fixed a bug handling the connection status in the @ref Qore::HTTPClient "HTTPClient" class (<a href="https://github.com/qorelanguage/qore/issues/2058">issue 2058</a>)
+    - fixed building with openssl 1.1+ (<a href="https://github.com/qorelanguage/qore/issues/2135">issue 2135</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
@@ -748,7 +788,7 @@
       - extended multi-type support, record type rules and default value in field specification
       - implemented multi-type record support in \c AbstractCsvWriter and \c AbstractCsvIterator using \c resolve_type and \c headers options
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
-      - implemented the \c "constant" field tag, allowing a contant value for an output field to be specified directly in the mapper hash
+      - implemented the \c "constant" field tag, allowing a constant value for an output field to be specified directly in the mapper hash
       - implemented the \c "default" field tag, giving a default value if no input value is specified
       - implemented the global \c "date_format" mapper option
       - implemented support for structured output fields with dot notation in the output field name

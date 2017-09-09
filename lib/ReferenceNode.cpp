@@ -52,14 +52,14 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
       if (v->getType() == VT_CLOSURE) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
-         assert(cvv->typeInfo == v->ref.id->getTypeInfo());
+         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
          return cvv->getReference(loc, name, lvalue_id);
       }
 
       if (v->getType() == VT_LOCAL_TS) {
          const char* name = v->ref.id->getName();
          ClosureVarValue* cvv = thread_find_closure_var(name);
-         assert(cvv->typeInfo == v->ref.id->getTypeInfo());
+         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
          return cvv->getReference(loc, name, lvalue_id);
       }
    }
@@ -162,6 +162,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
    if (QoreTypeInfo::hasType(argTypeInfo)) {
       returnTypeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexReferenceType(argTypeInfo);
    }
+   //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
    return this;
 }
 
