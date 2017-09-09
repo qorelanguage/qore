@@ -232,7 +232,7 @@ public:
    // reference count; access serialized with rlck from RObject
    mutable std::atomic_int references;
 
-   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval, bool assign) : VarValueBase(n_id, varTypeInfo), typeInfo(varTypeInfo), refTypeInfo(QoreTypeInfo::getReferenceTarget(varTypeInfo)), RObject(references), references(1) {
+   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval, bool assign) : VarValueBase(n_id, varTypeInfo), RObject(references), typeInfo(varTypeInfo), refTypeInfo(QoreTypeInfo::getReferenceTarget(varTypeInfo)), references(1) {
       //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
       val.setClosure();
 
