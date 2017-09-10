@@ -30,6 +30,8 @@
 %enable-all-warnings
 %new-style
 %allow-debugging
+# for deugging of debug library to see where exception is raised
+%define SHOW_FULL_EXCEPTION
 
 module DebugUtil {
     version = "0.1";
@@ -149,12 +151,13 @@ public namespace DebugUtil {
           @param verbosity use DPC_xxx constants
         */
 	    public log(int verbosity, string fmt) {
-            if (verbose >= verbosity)
+            if (verbose >= verbosity) {
                 if (argv) {
                     stdout.vprintf(fmt+"\n", argv);
                 } else {
         	        stdout.print(fmt+"\n");
                 }
+            }
         }
     }
 
@@ -176,9 +179,7 @@ public namespace DebugUtil {
                             'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 shift path;
                                 if (path[0] == 'help') return ();
-#                            printf("--152>%y, %y\r\n", path, args);
                                 *hash cmd = dcl.findCmd(path + args, True);
-#            printf("%N\r\n", cmd);
                                 if (!cmd.variants) return ();
                                 return keys cmd.variants;
                             },
@@ -222,7 +223,6 @@ public namespace DebugUtil {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dcl.logger.log(DUV_INFO, "load history: %y", fn);
                                         Linenoise::history_load(fn);
                                     }
                                 },
@@ -232,7 +232,6 @@ public namespace DebugUtil {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *string fn = shift args;
                                     if (exists fn) {
-                                        dcl.logger.log(DUV_INFO, "save history: %y", fn);
                                         Linenoise::history_save(fn);
                                     }
                                 },
@@ -248,14 +247,13 @@ public namespace DebugUtil {
                         },
                     ),
 
-                    'state': (
-                        'desc': 'get list of stopped threads and programs',
+                    'session': (
+                        'desc': 'get list of debugged programs and stopped threads',
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                            hash data.cmd = 'state';
+                            hash data.cmd = 'session';
                             dcl.doCommand(data);
                         },
                     ),
-
                     'pgm': (
                         '>': (
                             'load': (
@@ -266,7 +264,6 @@ public namespace DebugUtil {
                                     if (!exists data.filename)
                                         throw "DEBUG-COMMAND", "Missing file name";
                                     data.args = args;
-                                    dcl.logger.log(DUV_INFO, "load: %y", data);
                                     dcl.doCommand(data);
                                 },
                             ),
@@ -274,7 +271,6 @@ public namespace DebugUtil {
                                 'desc': 'list programs',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program//list';
-                                    dcl.logger.log(DUV_INFO, "list: %y", data);
                                     dcl.doCommand(data);
                                 },
                             ),
@@ -376,7 +372,7 @@ public namespace DebugUtil {
                             'info': (
                                 'desc': 'get info about current program and list threads',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/list';
+                                    hash data.cmd = 'program/='+dcl.checkProgramId()+'/list';
                                     dcl.doCommand(data);
                                 },
                             ),
@@ -780,7 +776,6 @@ public namespace DebugUtil {
         public *hash findCmd(list args, bool findHelp = False) {  /* public because it is needed from closure */
             hash result;
             result.path = ();
-#printf("findcmd(%N)\n", args);
             hash c = commands;
             while (args.size() > 0) {
                 if (findHelp && exists c."*") {
@@ -796,7 +791,6 @@ public namespace DebugUtil {
                         }
                     }
                     if (exists c.">"{args[0]}) {
-#printf("args[0]:%y, c.>:%y\n", args[0], c.">"{args[0]});
                         #remove result.cmd.">";
                         c = c.">"{args[0]};
                         result.cmd = c;
@@ -827,7 +821,6 @@ public namespace DebugUtil {
                     break;
             }
             result.args = args;
-#printf("findcmd()->%N\n", result);
             return result;
         }
 
@@ -842,7 +835,6 @@ public namespace DebugUtil {
                 }
             }
             *hash cmd = findCmd(args);
-#printf(" cmd-362:%y\n", cmd);
 
             if (cmd.variants) {
                 *list v;
@@ -857,7 +849,9 @@ public namespace DebugUtil {
                 default:
                     v = keys cmd.variants;
                 }
-                return map line+$1, sort(v);
+                list res = ();
+                map (push res, line+$1), sort(v);
+                return res;
             } else {
                 return ();
             }
@@ -867,12 +861,11 @@ public namespace DebugUtil {
             # Linenoise::history_load('history.txt');
             # Linenoise::history_set_max_len(256);
             Linenoise::set_callback(\ln_callback());
-Linenoise::history_add('history load filename');
             string lastLine = '';
             while (True) {
                 my *string line = Linenoise::line(ln_prompt);
                 if (!exists line) {
-                    printf("^C signal caught. Exiting.\n");
+                    printf("\n^C signal caught. Exiting.\n");
                         break;
                 }
                 if (line != '') {
@@ -893,7 +886,11 @@ Linenoise::history_add('history load filename');
                             any rc = cmd.cmd.action(self, cmd.path, cmd.args);
                             if (rc) break;
                         } catch (hash ex) {
+%ifdef SHOW_FULL_EXCEPTION
+                            printf("%y\n", ex);
+%else
                             printf("%s: %s\n", ex.err, ex.desc);
+%endif
                         }
                     }
 #                    printf("%y\n", cmd);
@@ -946,7 +943,7 @@ Linenoise::history_add('history load filename');
         }
 
         public int checkProgramId() {
-            *int pgmId = getContextValue('programId');
+            *softint pgmId = getContextValue('programId');
             if (!exists pgmId) {
                 throw "DEBUG-COMMAND", "Program is not set";
             }
@@ -954,7 +951,7 @@ Linenoise::history_add('history load filename');
         }
 
         public int checkThreadId() {
-            *int threadId = getContextValue('threadId');
+            *softint threadId = getContextValue('threadId');
             if (!exists threadId) {
                 throw "DEBUG-COMMAND", "Thread context is not set";
             }
@@ -978,8 +975,19 @@ Linenoise::history_add('history load filename');
                 return items;
             }
             list res = ();
-            map (push res, $1), items, bindex($1, path) == 0;
+            map (push res, $1), items, DebugCommandLine::evalCondition($1, path);
             return res;
+        }
+
+        static public bool evalCondition(softstring value, *string cond) {
+            if (!exists cond | cond == "")
+                return True;
+            if (cond =~ /^=/) {
+                return substr(cond, 1) == value;
+            } else {
+                # default is matching prefix
+                return bindex(value, cond) == 0;
+            }
         }
 
     }
@@ -1033,7 +1041,9 @@ Linenoise::history_add('history load filename');
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
             logger.log(DUV_DEBUG, "create program: %y", fileName);
-			Program pgm = new Program(PO_ALLOW_DEBUGGING); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
+            # TODO: seems I can use in program any DOMAIN_UNSECURE command regardless PO_ALLOW_DEBUGGING is set or not. Seems it has no effect of p.getParseOptions and defines
+			Program pgm = new Program(/*PO_ALLOW_DEBUGGING*/); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
+#			pgm.disableParseOptions(PO_ALLOW_DEBUGGING);
 			# restore default options
 			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
             if (exists opts.parse_option) {
@@ -1063,7 +1073,7 @@ Linenoise::history_add('history load filename');
             }
 			# update arguments without debug options
 			pgm.setGlobalVarValue('ARGV', args);
-			pgm.define('Q_DEBUGGING', 1);
+			pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
             logger.log(DUV_DEBUG, "add program");
 			addProgram(pgm);
 
@@ -1103,6 +1113,21 @@ Linenoise::history_add('history load filename');
                 case 'version':
                     result = ('class': self.className());
                     break;
+                case 'session':
+                    foreach Program p in (getAllPrograms()) {
+                        int pgmId = p.getProgramId();
+                        result{pgmId}.scriptPath = p.getScriptPath();
+                        {
+                            rwlThread.readLock();
+                            on_exit rwlThread.readUnlock();
+                            foreach softint tid in (keys ctxThread) {
+                                if (ctxThread{tid}.pgmId == pgmId) {
+                                    result{pgmId}.interrupted += list(tid);
+                                }
+                            }
+                        }
+                    }
+                    break;
                 case 'program':
                     Program pgm;
                     *string pgmName = shift cmd;
@@ -1114,7 +1139,6 @@ Linenoise::history_add('history load filename');
                     default:
                         pgm = Program::resolveProgramId(int(pgmName));
                     }
-                    logger.log(DUV_DEBUG, "program / %y", cmd);
                     switch (shift cmd) {
                     case 'stop':
                         # no locking
@@ -1133,9 +1157,9 @@ Linenoise::history_add('history load filename');
                         break;
 
                     case 'list':
-                        foreach my Program p in (Program::getAllPrograms()) {
+                        foreach Program p in (Program::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
-                            if (pgmName.size() == 0 || bindex(pgmId, pgmName) == 0) {
+                            if (DebugCommandLine::evalCondition(pgmId, pgmName)) {
                                 result{pgmId}.scriptPath = p.getScriptPath();
                                 result{pgmId}.threads = p.getThreadList();
                             }
@@ -1150,9 +1174,6 @@ Linenoise::history_add('history load filename');
                                     result{ctxThread{tid}.pgmId}.interrupted += list(tid);
                                 }
                             }
-                        }
-                        if (exists pgmName && pgmName != "") {
-                            result = result{pgmName};
                         }
                         break;
                     case 'create':
@@ -1247,7 +1268,7 @@ Linenoise::history_add('history load filename');
                             list bkpts = pgm.getBreakpoints();
                             result = ();
                             foreach Breakpoint b2 in (bkpts) {
-                                if (bkptName.size() == 0 || bindex(b2.getBreakpointId(), bkptName)==0) {
+                                if (DebugCommandLine::evalCondition(b2.getBreakpointId(), bkptName)) {
                                     hash binfo.id = b2.getBreakpointId();
                                     binfo.enabled = encodeValue('enabled', b2.getEnabled(), boolStrings);
                                     binfo.threads = b2.getThreadIds();
@@ -1351,20 +1372,6 @@ Linenoise::history_add('history load filename');
                     }
                     break;
 
-                case 'state':
-                    {
-                        rwlThread.readLock();
-                        on_exit rwlThread.readUnlock();
-                        result = ();
-                        foreach my string tid in (keys ctxThread) {
-                            push result, (
-                                'tid': tid,
-                                'pgmId': ctxThread{tid}{'pgmId'},
-                            );
-                        }
-                    }
-                    break;
-
                 case 'thread':
 
                 default:
@@ -1390,6 +1397,9 @@ Linenoise::history_add('history load filename');
                 sendData.type = 'error';
                 result.err = ex.err;
                 result.desc = ex.desc;
+%ifdef SHOW_FULL_EXCEPTION
+                result.ex = ex;
+%endif
             }
             if (sendData) {
                 sendData.uid = receiveData.uid;
@@ -1461,9 +1471,6 @@ Linenoise::history_add('history load filename');
 'localvars5': keys get_local_vars(5),
 'localvars6': keys get_local_vars(6),
 'localvars7': keys get_local_vars(7),
-'localvars8': keys get_local_vars(8),
-'localvars9': keys get_local_vars(9),
-'localvars10': keys get_local_vars(10),
             );
             if (exists statementId) {
                 hash location = pgm.getStatementIdInfo(statementId);
@@ -1516,7 +1523,7 @@ Linenoise::history_add('history load filename');
                             string varName = shift cmd;
                             switch (shift cmd) {
                             case 'get':
-                                hash lv = get_local_vars(ctxCT.frameId + frameOffset);
+                                *hash lv = get_local_vars(ctxCT.frameId + frameOffset);
                                 if (exists lv{varName}) {
                                     result = lv{varName};
                                 }
@@ -1620,6 +1627,9 @@ Linenoise::history_add('history load filename');
                         sd.type = 'error';
                         result.err = ex.err;
                         result.desc = ex.desc;
+%ifdef SHOW_FULL_EXCEPTION
+                        result.ex = ex;
+%endif
                     }
                     if (exists result) {
                         sd.tid = tid;
