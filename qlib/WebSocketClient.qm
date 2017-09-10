@@ -473,12 +473,12 @@ ws.clearStats();
 
         private logError(string fmt) {
             if (errlog)
-                call_function(log, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
+                call_function(errlog, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
         }
 
         private logDebug(string fmt) {
             if (debuglog)
-                call_function(log, sprintf("WebSocketClient %s DEBUG: ", cid) + vsprintf(fmt, argv));
+                call_function(debuglog, sprintf("WebSocketClient %s DEBUG:", cid) + vsprintf(fmt, argv));
         }
 
         private sendClose(int code, *string txtmsg) {
