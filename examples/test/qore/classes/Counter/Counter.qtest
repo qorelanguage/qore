@@ -1,0 +1,26 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class CounterTest
+
+class CounterTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Counter", "1.0") {
+        addTestCase("CounterTest", \CounterTest());
+        set_return_value(main());
+    }
+
+    CounterTest() {
+        Counter c();
+        assertEq(NOTHING, c.inc());
+        assertEq(0, c.dec());
+        assertThrows("COUNTER-ERROR", \c.dec());
+    }
+}

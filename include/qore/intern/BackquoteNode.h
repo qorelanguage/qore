@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   BackquoteNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -39,21 +39,21 @@ protected:
    /** return value requires a deref(xsink) if needs_deref is true
        @see AbstractQoreNode::eval()
    */
-   DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
       typeInfo = stringTypeInfo;
       return this;
    }
 
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return stringTypeInfo;
    }
 
 public:
    char *str;
 
-   DLLLOCAL BackquoteNode(char *c_str);
+   DLLLOCAL BackquoteNode(const QoreProgramLocation& loc, char *c_str);
 
    DLLLOCAL virtual ~BackquoteNode();
 
