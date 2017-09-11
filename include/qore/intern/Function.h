@@ -193,7 +193,7 @@ public:
 
    DLLLOCAL virtual ~UserSignature() {
       for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
-	 delete* i;
+         delete* i;
       delete parseReturnTypeInfo;
    }
 
@@ -266,10 +266,10 @@ protected:
 
 public:
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = 0, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
    // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = 0, const qore_class_private* n_qc = 0, qore_call_t n_ct = CT_UNUSED, bool is_copy = false);
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -486,7 +486,7 @@ public:
    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
       assert(xsink);
       if (*xsink || uvb->setupCall(ceh, argv, xsink))
-	 uvb = 0;
+         uvb = nullptr;
    }
 
    DLLLOCAL ~UserVariantExecHelper();
@@ -546,7 +546,7 @@ public:
    DLLLOCAL void del() {
       // dereference all variants
       for (vlist_t::iterator i = begin(), e = end(); i != e; ++i)
-	 (*i)->deref();
+         (*i)->deref();
       clear();
    }
 };
@@ -658,7 +658,7 @@ protected:
    DLLLOCAL void addVariant(AbstractQoreFunctionVariant* variant) {
       const QoreTypeInfo* rti = variant->getReturnTypeInfo();
       if (same_return_type && !vlist.empty() && !QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo()))
-	 same_return_type = false;
+         same_return_type = false;
 
       int64 vf = variant->getFunctionality();
       int64 vflags = variant->getFlags();
@@ -666,7 +666,7 @@ protected:
       bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
 
       if (vlist.empty()) {
-	 unique_functionality = vf;
+         unique_functionality = vf;
          unique_flags = vflags;
       }
       else {
@@ -824,7 +824,7 @@ public:
 
    DLLLOCAL void deref() {
       if (ROdereference())
-	 delete this;
+         delete this;
    }
 
    DLLLOCAL const char* className() const {

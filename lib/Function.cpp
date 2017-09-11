@@ -135,8 +135,8 @@ static void add_args(QoreStringNode &desc, const QoreValueList* args) {
    }
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
-   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
    if (self && !self->isValid()) {
       assert(n_qc);
       xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
@@ -144,9 +144,11 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    }
 
    tmp.assignEval(args);
-
    if (*xsink)
       return;
+
+   // issue #2145: set the call reference class context only after arguments are evaluted
+   OptionalClassObjSubstitutionHelper osh(cctx);
 
    bool check_args = variant;
    if (!variant) {
@@ -178,7 +180,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    setReturnTypeInfo(variant->getReturnTypeInfo());
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
    if (self && !self->isValid()) {
       assert(n_qc);
@@ -187,9 +189,11 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    }
 
    tmp.assignEval(args);
-
    if (*xsink)
       return;
+
+   // issue #2145: set the call reference class context only after arguments are evaluted
+   OptionalClassObjSubstitutionHelper osh(cctx);
 
    bool check_args = variant;
    if (!variant) {
@@ -1504,10 +1508,7 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, Qor
 
    assert(!self || (ceh ? ceh->getClass() : qc));
 
-   // if pgm is 0 or == the current pgm, then ProgramThreadCountContextHelper does nothing
-   ProgramThreadCountContextHelper tch(xsink, pgm, true);
-   if (*xsink) return QoreValue();
-
+   // UserVariantExecHelper sets the Program thread context
    UserVariantExecHelper uveh(this, ceh, xsink);
    if (!uveh)
       return QoreValue();
