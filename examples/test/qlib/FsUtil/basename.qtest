@@ -1,0 +1,22 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class BasenameTest
+
+public class BasenameTest inherits QUnit::Test {
+    constructor() : Test ("BasenameTest", "1.0") {
+        addTestCase ("Basename test", \testBasename());
+        set_return_value(main());
+    }
+
+    testBasename() {
+        assertEq("file.txt", basename("/path/to/file.txt"));
+    }
+
+}

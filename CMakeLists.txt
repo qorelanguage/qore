@@ -775,6 +775,7 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # base modules
 qore_user_module("qlib/DatasourceProvider.qm" "")
 qore_user_module("qlib/DebugUtil.qm" "")
+qore_user_module("qlib/FsUtil.qm" "")
 qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
