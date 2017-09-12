@@ -401,6 +401,7 @@ const PO_NO_USER_API = PO_NO_USER_API;
     - @ref PO_NO_INHERIT_SYSTEM_CLASSES
     - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
     - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
+    - @ref PO_NO_INHERIT_SYSTEM_HASHDECLS
 
     @since %Qore 0.8.12
  */
@@ -411,10 +412,12 @@ const PO_NO_SYSTEM_API = PO_NO_SYSTEM_API;
     - @ref PO_NO_INHERIT_SYSTEM_CLASSES
     - @ref PO_NO_INHERIT_SYSTEM_CONSTANTS
     - @ref PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_SYSTEM_HASHDECLS
     - @ref PO_NO_INHERIT_GLOBAL_VARS
     - @ref PO_NO_INHERIT_USER_CLASSES
     - @ref PO_NO_INHERIT_USER_CONSTANTS
     - @ref PO_NO_INHERIT_USER_FUNC_VARIANTS
+    - @ref PO_NO_INHERIT_USER_HASHDECLS
 
     @since %Qore 0.8.12
  */
@@ -491,7 +494,7 @@ const PO_NO_INHERIT_USER_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
 //! Prohibits system hashdecls from being imported into the new Program object
 /** @since %Qore 0.8.13
  */
-const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
+const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_SYSTEM_HASHDECLS;
 
 //! Allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
 /** @see @ref weak_assignment_operator
@@ -499,7 +502,6 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_USER_HASHDECLS;
     @since %Qore 0.8.13
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
-
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1077,9 +1079,46 @@ nothing Program::importClass(string cls, *string new_name, *softbool inject) {
       }
 
       if (nn->empty())
-         return xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", cls);
+         return xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", tmp->c_str());
    }
-   qore_program_private::importClass(xsink, *p, *(getProgram()), tmp->getBuffer(), new_name ? nn->getBuffer() : 0, inject);
+   qore_program_private::get(*p)->importClass(xsink, *qore_program_private::get(*getProgram()), tmp->c_str(), new_name ? nn->c_str() : nullptr, inject);
+}
+
+//! Imports a @ref hashdecl "typed hash declaration" into the program object's space
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+
+    @param name the name of the @ref hashdecl "typed hash declaration" to import into the Program object
+    @param new_name the name of the @ref hashdecl "typed hash declaration" in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
+
+    @par Example:
+    @code{.py}
+pgm.importHashDecl("MyNamespace::MyHash");
+    @endcode
+
+    @throw HASHDECL-IMPORT-ERROR Cannot import a hashdecl into the same Program object; conflict with an existing definition
+    @throw ENCODING-CONVERSION-ERROR the hashdecl name could not be converted to the @ref default_encoding "default character encoding"
+
+    @since %Qore 0.8.13
+ */
+nothing Program::importHashDecl(string name, *string new_name) {
+    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+    if (!tmp) {
+       assert(*xsink);
+       return QoreValue();
+    }
+
+    TempEncodingHelper nn;
+    if (new_name) {
+       nn.set(new_name, QCS_DEFAULT, xsink);
+       if (!nn) {
+          assert(*xsink);
+          return QoreValue();
+       }
+
+       if (nn->empty())
+          return xsink->raiseException("HASHDECL-IMPORT-ERROR", "the new hashdecl name while importing hashdecl '%s' may not be empty", tmp->c_str());
+    }
+    qore_program_private::get(*p)->importHashDecl(xsink, *qore_program_private::get(*getProgram()), tmp->c_str(), new_name ? nn->c_str() : nullptr);
 }
 
 //! Returns a list of strings of all user functions defined in the program object

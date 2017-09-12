@@ -1438,7 +1438,9 @@ public:
          parse_error(s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
    }
 
-   DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = 0, bool inject = false);
+   DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr, bool inject = false);
+
+   DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr);
 
    DLLLOCAL void addFile(char* f) {
       fileList.push_back(f);
@@ -1558,10 +1560,6 @@ public:
 
    DLLLOCAL static void addFile(QoreProgram& pgm, char* f) {
       pgm.priv->addFile(f);
-   }
-
-   DLLLOCAL static void importClass(ExceptionSink* xsink, QoreProgram& pgm, QoreProgram& from_pgm, const char* path, const char* new_name = 0, bool inject = false) {
-      pgm.priv->importClass(xsink, *(from_pgm.priv), path, new_name, inject);
    }
 
    DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {
