@@ -1045,7 +1045,7 @@ protected:
 
       if (i != thdmap.end()) {
          ns = i->second.ns;
-         //printd(5, "qore_root_ns_private::runtimeFindClassIntern() this: %p %s found in ns: '%s' depth: %d\n", this, name, ns->name.c_str(), ns->depth);
+         //printd(5, "qore_root_ns_private::runtimeFindHashDeclIntern() this: %p %s found in ns: '%s' depth: %d\n", this, name, ns->name.c_str(), ns->depth);
          return i->second.obj;
       }
 
