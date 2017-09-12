@@ -30,7 +30,9 @@
 %enable-all-warnings
 %new-style
 %allow-debugging
-# for deugging of debug library to see where exception is raised
+# child program won't inherit parent program options (including %allow-debugging)
+%no-child-restrictions
+# for debugging of debug library to see where exception is raised
 %define SHOW_FULL_EXCEPTION
 
 module DebugUtil {
@@ -150,12 +152,12 @@ public namespace DebugUtil {
         /**
           @param verbosity use DPC_xxx constants
         */
-	    public log(int verbosity, string fmt) {
+        public log(int verbosity, string fmt) {
             if (verbose >= verbosity) {
                 if (argv) {
                     stdout.vprintf(fmt+"\n", argv);
                 } else {
-        	        stdout.print(fmt+"\n");
+                    stdout.print(fmt+"\n");
                 }
             }
         }
@@ -1193,13 +1195,13 @@ public namespace DebugUtil {
                         string varName = shift cmd;
                         switch (shift cmd) {
                         case 'set':
-                            pgm.setGlobalVarValue(varName, receiveData.value);
+                            pgm.setGlobalVarValue(varName, unserialize(receiveData.value));
                             result = 'ok';
                             break;
 
                         case 'get':
                             bool existF;
-                            any v = pgm.getGlobalVariable(varName, \existF);
+                            any v = serialize(pgm.getGlobalVariable(varName, \existF));
                             if (existF) {
                                 result = v;
                             }
@@ -1235,6 +1237,7 @@ public namespace DebugUtil {
                             list dd = DebugCommandLine::enumFilter(keys defs, defName);
                             result = hash();
                             map result{$1} = defs{$1}, dd;
+                result{'programId'} = pgm.getProgramId();
                             break;
                         }
                         break;
@@ -1443,6 +1446,81 @@ public namespace DebugUtil {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
         }
 
+        # make_json does not support object code etc. so we need somehow process values
+        private hash serialize(any val) {
+            any v;
+            switch (val.typeCode()) {
+            case NT_NOTHING:
+            case NT_NULL:
+                break;
+            case NT_INT:
+            case NT_FLOAT:
+            case NT_STRING:
+            case NT_DATE:
+            case NT_BOOLEAN:
+            case NT_BINARY:
+            case NT_NUMBER:
+                v = val;
+                break;
+            case NT_LIST:
+                v = ();
+                foreach any i in (val) {
+                    push v, serialize(i);
+                }
+                break;
+            case NT_HASH:
+            case NT_OBJECT:
+                v = hash();
+                if (val.typeCode() == NT_OBJECT) {
+                    v.class = val.className();
+                }
+                foreach string k in (keys val) {
+                    v{k} = serialize(val{k});
+                }
+                break;
+            default:
+                # unsupported types, no value passed
+            }
+            hash sv.type = val.type();
+            if (exists v) {
+                sv.value = v;
+            }
+            return sv;
+        }
+        private any unserialize(any sv) {
+            if (sv.typeCode() == NT_HASH) {
+                switch (TypeNameMap{sv.type}) {
+                case NT_NOTHING:
+                    return NOTHING;
+                case NT_NULL:
+                    return NULL;
+                case NT_LIST:
+                    list ret;
+                    foreach any i in (sv.value) {
+                        push ret, unserialize(i);
+                    }
+                    return ret;
+                case NT_HASH:
+                    hash ret;
+                    foreach string k in (keys sv.value) {
+                        ret{k} = unserialize(sv.value{k});
+                    }
+                    return ret;
+                case NT_INT:
+                case NT_FLOAT:
+                case NT_STRING:
+                case NT_DATE:
+                case NT_BOOLEAN:
+                case NT_BINARY:
+                case NT_NUMBER:
+                    return sv.value;
+                default:
+                    throw "DEBUG-HANDLER-ERROR", sprintf("Cannot assing value of type: %y", sv.type);
+                }
+            } else {
+                return sv;
+            }
+        }
         private *hash handleInterrupt(string func, Program pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
@@ -1465,14 +1543,15 @@ public namespace DebugUtil {
               'frame': 0,
 #'localvars0': keys get_local_vars(0),
 #'localvars1': keys get_local_vars(1),
-'localvars2': get_local_vars(2),
-'localvars3': get_local_vars(3),
-'localvars4': get_local_vars(4),
+'localvars2': serialize(get_local_vars(2)),
+'localvars3': serialize(get_local_vars(3)),
+'localvars4': serialize(get_local_vars(4)),
 'localvars5': keys get_local_vars(5),
 'localvars6': keys get_local_vars(6),
 'localvars7': keys get_local_vars(7),
+'dbgpgmid': Program::getProgram().getProgramId(),
             );
-            if (exists statementId) {
+            if (exists statementId && statementId > 0) {
                 hash location = pgm.getStatementIdInfo(statementId);
                 sendData1.file = location.file;
                 sendData1.line = location.start_line;
@@ -1525,11 +1604,11 @@ public namespace DebugUtil {
                             case 'get':
                                 *hash lv = get_local_vars(ctxCT.frameId + frameOffset);
                                 if (exists lv{varName}) {
-                                    result = lv{varName};
+                                    result = serialize(lv{varName});
                                 }
                                 break;
                             case 'set':
-                                set_local_var_value(varName, rd.value);
+                                set_local_var_value(varName, unserialize(rd.value));
                                 break;
                             case 'list':
                                 softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
