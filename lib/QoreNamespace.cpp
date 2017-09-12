@@ -1554,6 +1554,20 @@ const QoreClass* qore_root_ns_private::runtimeFindClassIntern(const NamedScope& 
    return nullptr;
 }
 
+const TypedHashDecl* qore_root_ns_private::runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns) {
+   assert(name.size() > 1);
+
+   // iterate all namespaces with the initial name and look for the match
+   const TypedHashDecl* c = nullptr;
+   NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   while (nmi.next()) {
+      if ((c = nmi.get()->runtimeMatchHashDecl(name, ns)))
+         return c;
+   }
+
+   return nullptr;
+}
+
 const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
    assert(name.size() > 1);
 
@@ -2354,6 +2368,20 @@ const qore_ns_private* qore_ns_private::runtimeMatchAddClass(const NamedScope& n
    }
    fnd = true;
    return fns->priv->classList.find(nscope.getIdentifier()) || fns->priv->pendClassList.find(nscope.getIdentifier()) ? 0 : fns->priv;
+}
+
+const TypedHashDecl* qore_ns_private::runtimeMatchHashDecl(const NamedScope& nscope, const qore_ns_private*& rns) const {
+   assert(name == nscope[0]);
+
+   const QoreNamespace* fns = ns;
+   // check for a match of the structure in this namespace
+   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
+      fns = fns->priv->nsl.find(nscope[i]);
+      if (!fns)
+         return nullptr;
+   }
+   rns = fns->priv;
+   return rns->hashDeclList.find(nscope.getIdentifier());
 }
 
 const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const {

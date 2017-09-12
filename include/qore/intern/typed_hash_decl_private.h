@@ -217,6 +217,10 @@ public:
         members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(QoreProgramLocation(RunTimeLocation), memberTypeInfo, nullptr, init_val.takeNode())));
     }
 
+    DLLLOCAL void setName(const char* n) {
+        name = n;
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
