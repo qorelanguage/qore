@@ -2171,7 +2171,6 @@ public namespace SqlUtil {
      */
     public const COP_TRUNC_DATE = "truncate_date";
 
-
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2179,7 +2178,7 @@ public namespace SqlUtil {
             "withalias": True,
             "code": string sub (string cve, string arg, reference<hash> psch) {
                 psch{arg} = cve;
-                return sprintf("%s as %s", cve, arg);
+                return sprintf("%s as %y", cve, arg);
             },
         ),
         COP_PREPEND: (
@@ -2369,7 +2368,7 @@ public namespace SqlUtil {
         @see SqlUtil::cop_value for SQL literals handling
     */
     public hash<ColumnOperatorInfo> sub cop_as(auto column, string arg) {
-        return make_cop(COP_AS, column, '"' + arg + '"');
+        return make_cop(COP_AS, column, arg);
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
