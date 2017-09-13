@@ -75,7 +75,7 @@ namespace Init {
         else if (Platform.Unix)
             path_delim = PathDelimUnix;
         else
-            throw "UnknownPlatform",
+            throw "UNKNOWN-PLATFORM-ERROR",
                   sprintf("Unknown platform: %s.\n", PlatformOS);
     }
 }
