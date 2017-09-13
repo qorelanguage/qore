@@ -132,7 +132,7 @@ public class SqlTestBase inherits QUnit::Test {
         # select a single column and then asterisk
         string col = table.describe().firstKey();
         hash sh = (
-            "columns": (cop_as(col, "col"), "*"),
+            "columns": (cop_as(col, "table"), "*"),
             "limit": 1,
             );
 
@@ -752,6 +752,7 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
 
         soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
+printf("%y\n", table.getSelectSql(soh));
         rows = table.selectRows (soh, \sql);
         assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
     }
