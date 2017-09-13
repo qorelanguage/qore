@@ -64,6 +64,7 @@ public class HttpServerTest inherits QUnit::Test {
         addTestCase("Test routing", \routingTest());
         addTestCase("Test status codes", \testStatusCodes());
         addTestCase("misc", \misc());
+        addTestCase("2nd wilcard listener", \secondWildcardListener());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -95,6 +96,14 @@ public class HttpServerTest inherits QUnit::Test {
     tearDown() {
         mClient.disconnect();
         delete mClient;
+    }
+
+    secondWildcardListener() {
+        hash h = mServer.addListener("localhost:0");
+        assertEq(Type::String, h.bind.type());
+        # issue #2155 this call will fail without the fix
+        h = mServer.addListener("localhost:0");
+        assertEq(Type::String, h.bind.type());
     }
 
     basicTest() {
