@@ -37,9 +37,9 @@
 #include <qore/Qore.h>
 #include <qore/QoreURL.h>
 #include <qore/QoreHTTPClient.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/QC_Queue.h>
-#include <qore/intern/QoreHttpClientObjectIntern.h>
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/QC_Queue.h"
+#include "qore/intern/QoreHttpClientObjectIntern.h"
 
 #include <qore/minitest.hpp>
 

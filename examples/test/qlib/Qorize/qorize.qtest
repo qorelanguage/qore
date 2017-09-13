@@ -11,15 +11,29 @@
 
 %exec-class QorizeTest
 
+class MyClass {
+    private {
+        int m1;
+        int m2;
+    }
+
+    public {
+        int m3;
+        string s1;
+        any a;
+        string s2;
+        list l;
+        hash h;
+    }
+
+    constructor(int n_m1, int n_m2, int n_m3) {m1=n_m1; m2=n_m2; m3=n_m3;}
+}
+
+
 public class QorizeTest inherits QUnit::Test {
     private {
         const OLDSTYLE = False;
         const NEWSTYLE = True;
-
-        hash h1 = (
-            "key1" : "some string",
-            "key2" : 123,
-        );
     }
 
     constructor() : Test("QorizeTest", "1.0") {
@@ -65,40 +79,164 @@ public class QorizeTest inherits QUnit::Test {
     }
 
     qorizeStructures() {
-        hash h = (
-                "foo" : 1,
-                "bar" : (1,2,3,4,),
+        hash h1 = (
+                "foo": 1,
+                "bar": (1, 2, 3, 4),
             );
-        string h_ok = "
-        (
-        \"foo\" : 1,
-        \"bar\" : 
-            (1,2,3,4,),
-        )";
+        string h1_ok = "{
+  \"foo\": 1,
+  \"bar\": (1, 2, 3, 4),
+}";
+        hash h2 = hash();
+        string h2_ok = "{}";
+        string h2_old_ok = "hash()";
 
-        list l = ( 1, 2, 3, ("foo" : "bar"), );
-        string l_ok = "
-        (1,2,3,
-            (
-            \"foo\" : \"bar\",
-            ),)";
+        list l1 = (1, 2, 3, {"foo" : "bar"}, (1, 2, 3),(4, 5));
+        string l1_ok = "(
+  1, 2, 3, {
+    \"foo\": \"bar\",
+  }, (1, 2, 3), (4, 5)
+)";
+        list l2 = ();
+        string l2_ok = "()";
 
-        testAssertion("hash test val", \qorize_val(), (h,), new TestResultValue(h_ok));
-        testAssertion("list test val", \qorize_val(), (l,), new TestResultValue(l_ok));
+        hash h3 = (
+            "A": 1,
+            "B": 2,
+            "C": (1, "xyz", (), 2, {}, 3, (7, 6, 5), (4, 3, 2), {"Q": "A", "W": "S", "E": {"R": "F"}}, {"T": "T"}),
+            "D": (11, 22, 33),
+        );
+        string h3_ok = "{
+  \"A\": 1,
+  \"B\": 2,
+  \"C\": (
+    1, \"xyz\", (), 2, {}, 3, (7, 6, 5), (4, 3, 2), {
+      \"Q\": \"A\",
+      \"W\": \"S\",
+      \"E\": {
+        \"R\": \"F\",
+      },
+    }, {
+      \"T\": \"T\",
+    }
+  ),
+  \"D\": (11, 22, 33),
+}";
+        string l1_old_4_ok = "(
+    1, 2, 3, (
+        \"foo\": \"bar\",
+    ), (1, 2, 3), (4, 5)
+)";
+
+        testAssertion("hash test val", \qorize_val(), (h1,), new TestResultValue(h1_ok));
+        testAssertion("list test val", \qorize_val(), (l1,), new TestResultValue(l1_ok));
+        testAssertion("list test val old indent", \qorize_val(), (l1, 4, False), new TestResultValue(l1_old_4_ok));
+        testAssertion("empty hash test val", \qorize_val(), (h2,), new TestResultValue(h2_ok));
+        testAssertion("empty old hash test val", \qorize_val(), (h2, 4, False), new TestResultValue(h2_old_ok));
+        testAssertion("empty list test val", \qorize_val(), (l2,), new TestResultValue(l2_ok));
+        testAssertion("hash test val", \qorize_val(), (h3,), new TestResultValue(h3_ok));
     }
 
     namedTest() {
+
+        hash h1 = (
+            "key1" : "some string",
+            "key2" : 123,
+        );
+        list l1 = (1, 2, 3, {"foo" : "bar"}, (1, 2, 3),(4, 5), ());
+
         string testResultString;
         testResultString = 'my hash $name;
 $name."key1" = "some string";
 $name."key2" = 123;
 ';
-        testAssertion("oldstyle", \qorize_named(), (h1, "name", OLDSTYLE), new TestResultValue(testResultString));
+        testAssertion("oldstyle hash", \qorize_named(), (h1, "name", OLDSTYLE), new TestResultValue(testResultString));
 
         testResultString = 'hash name;
 name."key1" = "some string";
 name."key2" = 123;
 ';
-        testAssertion("newstyle", \qorize_named(), (h1, "name", NEWSTYLE), new TestResultValue(testResultString));
+        testAssertion("newstyle hash", \qorize_named(), (h1, "name", NEWSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'list name;
+';
+        testAssertion("empty list", \qorize_named(), ( (), "name", NEWSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'hash name;
+';
+        testAssertion("empty hash", \qorize_named(), ( {}, "name", NEWSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'list name;
+name[0] = 1;
+name[1] = 2;
+name[2] = 3;
+name[3]."foo" = "bar";
+name[4][0] = 1;
+name[4][1] = 2;
+name[4][2] = 3;
+name[5][0] = 4;
+name[5][1] = 5;
+name[6] = ();
+';
+        testAssertion("list", \qorize_named(), ( l1, "name", NEWSTYLE), new TestResultValue(testResultString));
+
+
+        testResultString = 'MyClass name;
+name = new MyClass();
+name."m3" = 3;
+name."s1" = "xyz";
+name."a" = NOTHING;
+name."s2" = NOTHING;
+name."l" = NOTHING;
+name."h" = NOTHING;
+';
+        MyClass c1(1,2,3);
+        c1.s1 = "xyz";
+        testAssertion("object", \qorize_named(), (c1, "name", NEWSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'MyClass name;
+name = new MyClass();
+name."m3" = 3;
+name."s1" = "xyz";
+name."a" = new MyClass();
+name."a"."m3" = 7;
+name."a"."s1" = NOTHING;
+name."a"."a" = NOTHING;
+name."a"."s2" = NOTHING;
+name."a"."l" = NOTHING;
+name."a"."h" = NOTHING;
+name."s2" = NOTHING;
+name."l"[0] = name."a";
+name."h"."self" = name."a";
+';
+        MyClass c2(9,8,7);
+        c1.a = c2;
+        c1.l[0] = c2;
+        c1.h.self = c2;
+        testAssertion("object link", \qorize_named(), (c1, "name", NEWSTYLE), new TestResultValue(testResultString));
+
+        testResultString = 'MyClass name;
+name = new MyClass();
+name."m3" = 3;
+name."s1" = "xyz";
+name."a" = new MyClass();
+name."a"."m3" = 7;
+name."a"."s1" = NOTHING;
+name."a"."a" = name;
+name."a"."s2" = NOTHING;
+name."a"."l"[0] = name."a";
+name."a"."h" = NOTHING;
+name."s2" = NOTHING;
+name."l"[0] = name."a";
+name."l"[1] = name."a";
+name."h"."self" = name."a";
+';
+        c2.a = c1;
+        c2.l[0] = c2;
+        c1.l[0] = c2;
+        c1.l[1] = \c2;
+        testAssertion("circular", \qorize_named(), (c1, "name", NEWSTYLE), new TestResultValue(testResultString));
     }
+
+
 }

@@ -30,11 +30,12 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
-QoreString QoreAssignmentOperatorNode::op_str("assignment operator expression");
+QoreString QoreAssignmentOperatorNode::op_str("assignment (=) operator expression");
+QoreString QoreWeakAssignmentOperatorNode::op_str("weak assignment (:=) operator expression");
 
-AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo, bool weak_assignment) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -45,38 +46,50 @@ AbstractQoreNode* QoreAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
 
-   // if "broken-int-assignments" is set, then cle if applicable
+   // if "broken-int-assignments" is set, then set flag if applicable
    if ((ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
        && (getProgram()->getParseOptions64() & PO_BROKEN_INT_ASSIGNMENTS))
       broken_int = true;
 
-   const QoreTypeInfo* r = 0;
+   const QoreTypeInfo* r = nullptr;
    right = right->parseInit(oflag, pflag, lvids, r);
 
    // check for illegal assignment to $self
    if (oflag)
-      check_self_assignment(left, oflag);
+      check_self_assignment(loc, left, oflag);
 
    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, QoreTypeInfo::getName(ti), get_type_name(right), QoreTypeInfo::getName(r));
 
    if (left->getType() == NT_VARREF && right->getType() == NT_VARREF
-       && !strcmp(static_cast<VarRefNode *>(left)->getName(), static_cast<VarRefNode *>(right)->getName()))
-      qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode *>(left)->getName()));
+       && !strcmp(static_cast<VarRefNode*>(left)->getName(), static_cast<VarRefNode*>(right)->getName()))
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
-   if (QoreTypeInfo::hasType(ti) && QoreTypeInfo::hasType(r) && !QoreTypeInfo::parseAccepts(ti, r)) {
-      if (getProgram()->getParseExceptionSink()) {
-         QoreStringNode *edesc = new QoreStringNode("lvalue for assignment operator (=) expects ");
-         QoreTypeInfo::getThisType(ti, *edesc);
-         edesc->concat(", but right-hand side is ");
-         QoreTypeInfo::getThisType(r, *edesc);
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-      }
+   qore_type_result_e res;
+   if (ti == autoTypeInfo) {
+      ident = true;
+      res = QTI_IDENT;
    }
+   else if (QoreTypeInfo::hasType(ti)) {
+      bool may_not_match = false;
+      bool may_need_filter = false;
+      res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
+      // issue #2106 do not set the ident flag for any other type in case runtime types are more speficic (complex) than parse types and require filtering
+   }
+   else
+      res = QTI_AMBIGUOUS;
 
-   return this;
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
+
+   if (getProgram()->getParseExceptionSink() && !res) {
+      QoreStringNode* edesc = new QoreStringNodeMaker("lvalue for %sassignment operator '%s' expects ", weak_assignment ? "weak " : "", weak_assignment ? ":=" : "=");
+      QoreTypeInfo::getThisType(ti, *edesc);
+      edesc->concat(", but right-hand side is ");
+      QoreTypeInfo::getThisType(r, *edesc);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+   }
 }
 
-QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreAssignmentOperatorNode::evalValueIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const {
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
       for the variable assignment - however it does need to be
@@ -88,7 +101,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    if (broken_int) {
       // convert the value to an int unconditionally
-      new_value.setTemp(new_value->getAsBigInt());
+      new_value.setValue(new_value->getAsBigInt());
       if (*xsink)
          return QoreValue();
    }
@@ -106,7 +119,7 @@ QoreValue QoreAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Exception
    assert(!*xsink);
 
    // assign new value
-   if (v.assign(new_value.takeReferencedValue()))
+   if (v.assign(new_value.takeReferencedValue(), "<lvalue>", !ident, weak_assignment))
       return QoreValue();
 
    // reference return value if necessary

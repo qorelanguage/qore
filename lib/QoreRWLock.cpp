@@ -33,7 +33,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/qore_var_rwlock_priv.h"
 
 QoreVarRWLock::QoreVarRWLock(qore_var_rwlock_priv* p) : priv(p) {
 }
