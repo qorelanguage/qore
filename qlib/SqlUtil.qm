@@ -2369,7 +2369,7 @@ public namespace SqlUtil {
         @see SqlUtil::cop_value for SQL literals handling
     */
     public hash<ColumnOperatorInfo> sub cop_as(auto column, string arg) {
-        return make_cop(COP_AS, column, arg);
+        return make_cop(COP_AS, column, '"' + arg + '"');
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
