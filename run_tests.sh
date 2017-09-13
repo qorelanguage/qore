@@ -27,7 +27,7 @@ TEST_OUTPUT_FORMAT=""
 while getopts ":d:jvt" opt; do
     case $opt in
         d)
-	    TEST_DIRS="$TEST_DIRS \"$BASE_TEST_PATH/$OPTARG\""
+            TEST_DIRS="$TEST_DIRS \"$BASE_TEST_PATH/$OPTARG\""
             ;;
         j)
             if [ -n "$TEST_OUTPUT_FORMAT" ]; then
@@ -45,7 +45,7 @@ while getopts ":d:jvt" opt; do
             fi
             ;;
         t)
-	    MEASURE_TIME=1
+            MEASURE_TIME=1
             ;;
         \?)
             echo "Unknown option: -$OPTARG" >&2
