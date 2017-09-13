@@ -163,6 +163,10 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
+StatementBlock::StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+}
+
 StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
    qore_program_private::registerStatement(getProgram(), this);
 }

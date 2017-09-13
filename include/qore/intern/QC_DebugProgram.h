@@ -90,6 +90,11 @@ public:
       AbstractQoreNode* params[3];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       params[1] = statement ? new QoreBigIntNode(pgm->getStatementId(statement)) : 0;
+      if (!params[0]->getAsInt())
+         printd(5, "QoreDebugProgramWithCoreObject::onStep::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+      if (statement && !params[1]->getAsInt()) {
+         printd(5, "QoreDebugProgramWithCoreObject::onStep::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
+      }
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
       //ReferenceHolder<QoreBigIntNode> flowN(new QoreBigIntNode(flow), &xsink2);
       ReferenceArgumentHelper rah(flow, &xsink2);
@@ -105,12 +110,16 @@ public:
       ExceptionSink xsink2;
       AbstractQoreNode* params[1];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
+      if (!params[0]->getAsInt())
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionEnter::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       callMethod("onFunctionEnter", pgm, 1, params, rs, xsink, xsink2);
    }
    DLLLOCAL virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[2];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
+      if (!params[0]->getAsInt())
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       //returnValue.assign(returnValue.takeNode());  // "nodize", create node when is simple type
       printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       if (returnValue.getInternalNode()) {
@@ -135,6 +144,8 @@ public:
       ExceptionSink xsink2;
       AbstractQoreNode* params[3];
       params[0] = new QoreBigIntNode(pgm->getStatementId(statement));
+      if (!params[0]->getAsInt())
+         printd(5, "QoreDebugProgramWithCoreObject::onException::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
       QoreException* except = xsink->getException();
       params[1] = except->makeExceptionObject();
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder

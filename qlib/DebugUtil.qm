@@ -1551,6 +1551,9 @@ public namespace DebugUtil {
 'localvars7': keys get_local_vars(7),
 'dbgpgmid': Program::getProgram().getProgramId(),
             );
+            if (exists statementId) {
+              sendData1.statementid = statementId;
+            }
             if (exists statementId && statementId > 0) {
                 hash location = pgm.getStatementIdInfo(statementId);
                 sendData1.file = location.file;

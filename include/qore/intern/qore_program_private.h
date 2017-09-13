@@ -2133,11 +2133,13 @@ public:
       }
    }
    DLLLOCAL static void registerStatement(QoreProgram* pgm, AbstractStatement *statement) {
-      // allocate unique id for statement
-      ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
-      if (i == pgm->priv->reverseStatementIds.end()) {
-         pgm->priv->statementIds.push_back(statement);
-         pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
+      if (pgm) {
+         // allocate unique id for statement
+         ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
+         if (i == pgm->priv->reverseStatementIds.end()) {
+            pgm->priv->statementIds.push_back(statement);
+            pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
+         }
       }
    }
 

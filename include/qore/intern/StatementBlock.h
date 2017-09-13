@@ -117,8 +117,7 @@ protected:
 
    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
 
-   DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
-   }
+   DLLLOCAL StatementBlock();
 
 public:
    DLLLOCAL StatementBlock(int sline, int eline);
