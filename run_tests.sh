@@ -132,12 +132,15 @@ if [ $MEASURE_TIME -eq 1 ]; then
 fi
 
 # Print info about used variables etc.
-echo "Using qore: $QORE, libqore: $LIBQORE"
+echo "Using qore: $QORE"
+echo "Using libqore: $LIBQORE"
+echo "QORE_INCLUDE_DIR=$QORE_INCLUDE_DIR"
 echo "QORE_MODULE_DIR=$QORE_MODULE_DIR"
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 if [ $MEASURE_TIME -eq 1 ]; then
-    printf "TIME_CMD: %s\n" "$TIME_CMD";echo
+    printf "TIME_CMD: %s\n" "$TIME_CMD"
 fi
+echo
 
 # Search for tests in the test directory.
 TESTS=`eval find "$TEST_DIRS" -name "*.qtest"`
@@ -162,7 +165,7 @@ for test in $TESTS; do
     if [ $MEASURE_TIME -eq 1 ]; then
         eval LD_PRELOAD=$LIBQORE $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
     else
-        eval LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT
+        LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT
     fi
 
     if [ $? -eq 0 ]; then
