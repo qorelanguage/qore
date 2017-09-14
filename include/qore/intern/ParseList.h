@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,14 +38,14 @@ typedef std::vector<QoreValue> val_vec_t;
 class ParseList : public ParseNode {
    friend class ParseListIterator;
 private:
-   bool finalized;
+   bool finalized = false;
 
 protected:
    // vector of values
    val_vec_t vvec;
 
 public:
-   DLLLOCAL ParseList(bool needs_eval = true) : ParseNode(NT_PARSE_LIST, needs_eval), finalized(false) {
+   DLLLOCAL ParseList(const QoreProgramLocation& loc, bool needs_eval = true) : ParseNode(loc, NT_PARSE_LIST, needs_eval) {
    }
 
    DLLLOCAL ~QorParseList() {
@@ -77,6 +77,7 @@ public:
    }
 
    DLLLOCAL void setFinalized() {
+      assert(!finalized);
       finalized = true;
    }
 };

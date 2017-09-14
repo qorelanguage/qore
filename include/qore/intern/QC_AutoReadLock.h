@@ -34,7 +34,7 @@
 #define _QORE_QC_AUTOREADLOCK_H
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_RWLock.h>
+#include "qore/intern/QC_RWLock.h"
 
 DLLEXPORT extern qore_classid_t CID_AUTOREADLOCK;
 DLLLOCAL extern QoreClass* QC_AUTOREADLOCK;

@@ -1,0 +1,250 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+# @file SewioRestClient.qm Qore user module for calling Sewio.net REST services
+
+/*  SewioRestClient.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.0
+
+module SewioRestClient {
+    version = "1.0";
+    desc = "user module for calling Sewio.net RTLS Studio REST services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage SewioRestClient Module
+
+    @tableofcontents
+
+    @section sewiorestclientintro SewioRestClient Introduction
+
+    The %SewioRestClient module provides an API for calling REST services with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio servers.
+
+    To use this module, use \c "%requires SewioRestClient" in your code.
+
+    All the public symbols in the module are defined in the SewioRestClient namespace.
+
+    The main classes are:
+    - @ref SewioRestClient::SewioRestClient "SewioRestClient": this class provides the REST client API for communuication with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST API; it also automates authentication and authorization to the target Connected App
+    - @ref SewioRestClient::SewioRestConnection "SewioRestConnection": provides a REST connection object to a <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires SewioRestClient
+
+hash opts = (
+    "apikey": ENV.SEWIO_API_KEY,
+);
+
+SewioRestClient rest(opts);
+hash ans = rest.get("api/anchors");
+printf("%N\n", ans.body);
+    @endcode
+
+    @section Sewiorestclientrelnotes Release Notes
+
+    @subsection Sewiorestclientv1_0 SewioRestClient v1.0
+    - the initial version of the %SewioRestClient module
+*/
+
+#! the SewioRestClient namespace contains all the objects in the SewioRestClient module
+public namespace SewioRestClient {
+    #! this class provides the REST client API for communication with <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio servers
+    /** This class requires the following options for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio authentication and authorization to the target server:
+        - \c apikey: the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio API key
+     */
+    public class SewioRestClient inherits RestClient::RestClient {
+        public {
+            #! default send encoding
+            const DefaultSendEncoding = "gzip";
+
+            #! required options
+            const RequiredOptions = (
+                # the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio api key
+                "apikey",
+            );
+        }
+
+        private:internal {
+            string apikey;
+        }
+
+        #! creates the object with the given options (which include the mandatory \c apikey option for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio server authentication)
+        /**
+            @par Example:
+            @code{.py}
+SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": apikey));
+            @endcode
+
+            @param opts valid options are:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
+                @code{.py}
+# add new HTTP methods for WebDAV. Both of them require body posting to the server
+("additional_methods": ("PROPFIND": True, "MKCOL": True ));
+                @endcode
+            - \c apikey: (required) the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio api key for the target server
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
+            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c default_port: The default port number to connect to if none is given in the URL
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in outgoing message headers
+            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+            - \c proxy: The proxy URL for connecting through a proxy
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
+            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
+
+            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+            @throw SEWIORESTCLIENT-ERROR missing or invalid required option for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST authentication or communication
+        */
+        constructor(hash opts, *softbool do_not_connect) : RestClient(SewioRestClient::getOptions(opts), do_not_connect) {
+            # check required options
+            foreach string key in (RequiredOptions) {
+                any v = opts{key};
+                if (!exists v || v == "")
+                    throw "SEWIORESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
+                if (v.typeCode() != NT_STRING)
+                    throw "SEWIORESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+
+                self{key} = v;
+            }
+        }
+
+        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        static hash getOptions(hash opts) {
+            return opts + (
+                "data": "json",
+                "headers": ("X-ApiKey": opts.apikey) + opts.headers,
+                );
+        }
+    }
+
+    #! class for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST connections; returns @ref SewioRestClient::SewioRestClient objects
+    /** supports the following options:
+        - \c "apikey": (required) the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio api key
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values; the default is \c "json"
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        @see @ref SewioRestClient::SewioRestClient::constructor() "SewioRestClient::constructor()" for more information on the above options
+    */
+    public class SewioRestConnection inherits RestClient::RestConnection {
+        public {
+            #! SewioRestConnection object connection options
+            const Options = RestConnection::Options + (
+                "apikey": True,
+                );
+
+            const OptionList = Options.keys();
+        }
+
+        #! creates the SewioRestConnection object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL (potentially with password info)
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @throws SEWIORESTCONNECTION-ERROR missing apikey option
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
+            if (!opts.apikey.val())
+                throw "SEWIORESTCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
+            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+        }
+
+        #! returns a @ref SewioRestClient::SewioRestClient object
+        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+            @return a @ref SewioRestClient::SewioRestClient "SewioRestClient" object
+        */
+        private SewioRestClient getImpl(bool connect = True, *hash rtopts) {
+            return new SewioRestClient(real_opts, !connect);
+        }
+
+        #! gets options
+        /** @return returns a hash with the following supported options:
+            - \c "apikey": the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio API key in use
+            - \c "connect_timeout": connection timeout to use in milliseconds
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
+            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+            - \c "max_redirects": maximum redirects to support
+            - \c "proxy": proxy URL to use
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "timeout": transfer timeout to use in milliseconds
+
+            @see @ref SewioRestClient::SewioRestClient::constructor() "SewioRestClient::constructor()" for more information on the above options
+        */
+        hash getOptions() {
+            return Options;
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return HttpConnection::DefaultOptions;
+        }
+
+        #! returns \c "sewiorest"
+        string getType() {
+            return "sewiorest";
+        }
+
+        #! static constructor
+        static SewioRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new SewioRestConnection(name, desc, url, monitor, opts, urlh);
+        }
+    }
+}

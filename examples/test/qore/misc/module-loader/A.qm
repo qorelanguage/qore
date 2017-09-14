@@ -2,6 +2,10 @@
 
 %new-style
 
+%try-reexport-module xml
+%define NoXml
+%endtry
+
 module A {
     version = "1.0";
     desc = "Test Module A";
@@ -15,4 +19,10 @@ public namespace Common {
     public our int AV;
     public const AC = 1;
     public class A;
+
+%ifdef NoXml
+    public const Xml = False;
+%else
+    public const Xml = True;
+%endif
 }

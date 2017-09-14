@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_BREAKSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class BreakStatement : public AbstractStatement {
 private:
@@ -41,14 +41,21 @@ private:
       return RC_BREAK;
    }
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
+      if (!(pflag & PF_BREAK_OK)) {
+         if (!(getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT)) {
+            parseException(loc, "BREAK-NOT-ALLOWED", "break statements are only allowed in switch and loop statements");
+         }
+      }
       return 0;
    }
 
 public:
    DLLLOCAL BreakStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
    }
+
    DLLLOCAL virtual ~BreakStatement() {
    }
+
    DLLLOCAL virtual bool endsBlock() const {
       return true;
    }

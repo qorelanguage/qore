@@ -1,9 +1,9 @@
 /*
   ScopedRefNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,10 +30,10 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of NamedScope
-ScopedRefNode::ScopedRefNode(char *ref) : ParseNoEvalNode(NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
+ScopedRefNode::ScopedRefNode(const QoreProgramLocation& loc, char *ref) : ParseNoEvalNode(loc, NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
 }
 
 ScopedRefNode::~ScopedRefNode() {
@@ -78,7 +78,7 @@ AbstractQoreNode* ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &
    assert(!typeInfo);
    printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
 
-   AbstractQoreNode* rv = qore_root_ns_private::parseResolveReferencedScopedReference(*scoped_ref, typeInfo);
+   AbstractQoreNode* rv = qore_root_ns_private::parseResolveReferencedScopedReference(loc, *scoped_ref, typeInfo);
    if (!rv)
       return this;
 

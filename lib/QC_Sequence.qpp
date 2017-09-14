@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Sequence.h>
+#include "qore/intern/QC_Sequence.h"
 
 //! The Sequence class implements a thread-safe increment-only object
 /** This class does not block therefore is not tagged with @ref Qore::PO_NO_THREAD_CLASSES

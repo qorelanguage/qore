@@ -1,0 +1,1963 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+# try importing JSON and YAML modules
+%try-module json
+%define NoJson
+%endtry
+%try-module yaml
+%define NoYaml
+%endtry
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
+
+%exec-class SwaggerTest
+
+class HttpTestServer {
+    public {
+        int port;
+        string body;
+    }
+
+    private {
+        Counter end(1);
+        string resp;
+    }
+
+    constructor(string r) {
+        resp = r;
+        # start a fake server
+        Socket s();
+        if (s.bind(0, True))
+            throw "BIND-ERROR", strerror();
+
+        if (s.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        port = s.getSocketInfo().port;
+
+        background startListener(s);
+    }
+
+    done() {
+        end.dec();
+    }
+
+    private startListener(Socket s) {
+        Socket s1 = s.accept();
+        hash h = s1.readHTTPHeader();
+        if (h."content-length")
+            body = s1.recv(h."content-length");
+        else if (h."transfer-encoding" == "chunked")
+            body = s1.readHTTPChunkedBody().body;
+        s1.send(resp);
+        end.waitForZero();
+        s.close();
+        s.shutdown();
+    }
+
+    string getBody() {
+        return body;
+    }
+}
+
+public class SwaggerTest inherits QUnit::Test {
+    private:internal {
+        const ValidInfoObject = {
+            "title": "t",
+            "version": "5"
+        };
+        const ValidPathsObject = {
+            "/api/smtg": {
+                "parameters": ( {"$ref": "#/parameters/a"}, )
+            }
+        };
+        const ValidSwaggerSchema = {
+            "swagger": "2.0",
+            "info": ValidInfoObject,
+            "paths": ValidPathsObject,
+            "parameters": (
+                "a": (
+                    "name": "test",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                ),
+            ),
+        };
+
+%ifndef NoJson
+        const ValidInfoObjectJSON = make_json(ValidInfoObject);
+        #const ValidPathsObjectJSON = make_json(ValidPathsObject);
+        const ValidSwaggerSchemaJSON = make_json(ValidSwaggerSchema);
+%endif
+
+%ifndef NoYaml
+        const ValidInfoObjectYAML = make_yaml(ValidInfoObject);
+        #const ValidPathsObjectYAML = make_yaml(ValidPathsObject);
+        const ValidSwaggerSchemaYAML = make_yaml(ValidSwaggerSchema);
+%endif
+
+        code loadjson = bool sub (string str) {
+            return Swagger::SwaggerLoader::fromString(str, True).val();
+        };
+        code loadyaml = bool sub (string str) {
+            return Swagger::SwaggerLoader::fromString(str, False).val();
+        };
+
+        const OtherJsonErr = '{"type": "object", "properties": {"name": {"type": "string"}}}';
+        const OtherJsonOk = '{"info": {"type": "object", "properties": {"name": {"type": "string"}}}}';
+
+        const OtherYamlErr = '{type: object, properties: {name: {type: string}}}';
+        const OtherYamlOk = '{info: {type: object, properties: {name: {type: string}}}}';
+
+        const JsonRequestMessages = (
+            "/pet": (
+                "post": '{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "name": "doggie",
+  "photoUrls": [
+    "string"
+  ],
+  "tags": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "status": "available"
+}',
+                "put": '{
+  "id": 0,
+  "category": {
+    "id": 0,
+    "name": "string"
+  },
+  "name": "doggie",
+  "photoUrls": [
+    "string"
+  ],
+  "tags": [
+    {
+      "id": 0,
+      "name": "string"
+    }
+  ],
+  "status": "available"
+}',
+            ),
+            "/pet/findByStatus?status=available": (
+                "get": NOTHING,
+            ),
+            "/store/order": (
+                "post": '{
+  "id": 0,
+  "petId": 0,
+  "quantity": 0,
+  "shipDate": "2017-09-03T14:16:20.924Z",
+  "status": "placed",
+  "complete": false
+}',
+            ),
+        );
+
+        const JsonResponseMessages = (
+            "/store/inventory": (
+                "get": (
+                    200: "{
+  \"1\": 1,
+  \"3\": 1,
+  \"111\": 1,
+  \"11111\": 1,
+  \"12312\": 1,
+  \"21212\": 1,
+  \"32432fsfdsfesfsaffwr3432432fdsfsfsff324324323242qafwfwsfwsfefew4324324324sdfdsafsfsafsfsfw324324324123dfsafdsf\": 1,
+  \"unavailable\": 9,
+  \"pending123\": 2,
+  \"bbbbbb\": 1,
+  \"werewrw\": 1,
+  \"олл\": 1,
+  \"xxxxxxxx\": 2,
+  \"рор\": 1,
+  \"ewrwerwe\": 1,
+  \"availableeeeeeee\": 1,
+  \"рот\": 1,
+  \"Available\": 3323,
+  \"цукуцк\": 1,
+  \"мдфв\": 1,
+  \"Vicious\": 1,
+  \"Gð©A\\\u0011.\": 1,
+  \"pata\": 10,
+  \"completed\": 4,
+  \"одб\": 1,
+  \"bzdbznzdn\": 1,
+  \"йуйц\": 1,
+  \"ghthg\": 1,
+  \"dfdgdfh\": 1,
+  \"qweqwe\": 2,
+  \"ertewer\": 1,
+  \"уйцуйц\": 1,
+  \"уцкцу\": 1,
+  \"status\": 21,
+  \"rr\": 1,
+  \"рото\": 1,
+  \"dead\": 1,
+  \"stringgg\": 23,
+  \"cute\": 1,
+  \"sover\": 1,
+  \"notavailable\": 2,
+  \"пот\": 1,
+  \"werwer\": 2,
+  \"taken\": 1,
+  \"fth\": 1,
+  \"available333\": 3,
+  \"available2222\": 3,
+  \"укаука\": 1,
+  \"wrwerw\": 1,
+  \"salt\": 4,
+  \"available2\": 1,
+  \"born\": 1,
+  \"qweq\": 1,
+  \"available1\": 2,
+  \"hhh\": 1,
+  \"aaaaaa\": 1,
+  \"уцкцук\": 2,
+  \"ronaldo\": 1,
+  \"vbsdbsdbsdbsd\": 2,
+  \"vlad\": 3,
+  \"rwetert\": 1,
+  \"retrete\": 1,
+  \"s\": 1,
+  \"|\u001cf\bgOS@D\": 1,
+  \"енн\": 2,
+  \"available\": 13335,
+  \"new avlbl\": 1,
+  \"werwe\": 1,
+  \"addedascanine\": 28,
+  \"ывыаыв\": 1,
+  \"available \": 1,
+  \"мдывапа\": 1,
+  \"йцуйцу\": 3,
+  \"проо\": 2,
+  \"цукцу\": 2,
+  \"jhjhjhj\": 1,
+  \"test\": 5,
+  \"йцу\": 3,
+  \"xxxxx\": 2,
+  \"done\": 3,
+  \"nnn\": 1,
+  \"escaped\": 1,
+  \"еукеу\": 1,
+  \"\u0000\u0001\u00104~\u0012Ý\u0006\u0019\u000fN\": 1,
+  \"vvv\": 1,
+  \"true\": 1,
+  \"retertrey\": 1,
+  \"werr\": 1,
+  \"/¤<\\4uBRµÁÄ\": 1,
+  \"updated\": 1,
+  \"erwerwe\": 1,
+  \"UNavailable\": 1,
+  \"string\": 67283,
+  \"sail\": 1,
+  \"eee\": 2,
+  \"avai12lable\": 2,
+  \"foo\": 1,
+  \"pending\": 324,
+  \"available;pending;sold\": 4,
+  \"avale\": 1,
+  \"Sold\": 4,
+  \"not available\": 1,
+  \"7g5C\f`l\": 1,
+  \"passed\": 1,
+  \"msvc\": 1,
+  \"gogo\": 1,
+  \"sold\": 356,
+  \"false\": 2,
+  \"\\\"Qw\": 1,
+  \"now available\": 1,
+  \"rtyr\": 1,
+  \"ffhh\": 2,
+  \"availableaaa\": 2,
+  \"SOLD\": 1,
+  \"Single\": 1,
+  \"3333available\": 1,
+  \"wrew\": 1,
+  \"\u0019!\b¬í\u001cY'\": 1,
+  \"availble\": 2,
+  \"verybig\": 1
+}",
+                ),
+            ),
+        );
+    }
+
+    constructor() : Test("SwaggerTest", "1.0") {
+        addTestCase("Test loading from files", \testFiles());
+        addTestCase("Test SwaggerSchema", \testSwaggerSchema());
+        addTestCase("Test InfoObject", \testInfoObject());
+        addTestCase("Test ContactObject", \testContactObject());
+        addTestCase("Test LicenseObject", \testLicenseObject());
+        addTestCase("Test PathsObject", \testPathsObject());
+        addTestCase("Test PathItemObject", \testPathItemObject());
+        addTestCase("Test OperationObject", \testOperationObject());
+        addTestCase("Test ExternalDocumentationObject", \testExternalDocumentationObject());
+        addTestCase("Test ParameterObject", \testParameterObject());
+        addTestCase("Test ItemsObject", \testItemsObject());
+        addTestCase("Test ResponsesObject", \testResponsesObject());
+        addTestCase("Test ResponseObject", \testResponseObject());
+        addTestCase("Test HeaderObject", \testHeaderObject());
+        addTestCase("Test TagObject", \testTagObject());
+        addTestCase("Test SchemaObject", \testSchemaObject());
+        addTestCase("Test XmlObject", \testXmlObject());
+        addTestCase("Test SecuritySchemeObject", \testSecuritySchemeObject());
+        addTestCase("Test ScopesObject", \testScopesObject());
+        addTestCase("Test validation", \testValidation());
+        addTestCase("Test examples", \testExamples());
+        addTestCase("Test real msgs", \testRealMessages());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    checkModules() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+%ifdef NoYaml
+        testSkip("no yaml module");
+%endif
+    }
+
+    testFiles() {
+        checkModules();
+
+        {
+            Swagger::SwaggerSchema so;
+            string basePath = getcwd() + DirSep + dirname(get_script_path()) + DirSep;
+
+            # Should not throw.
+            so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.json");
+            assertTrue(exists so);
+            delete so;
+            so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.yaml");
+            assertTrue(exists so);
+
+            assertThrows("EMPTY-SCHEMA-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.yaml");});
+            assertThrows("EMPTY-SCHEMA-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.json");});
+        }
+
+        {
+            hash soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "parameters": ((
+                                "in": "body",
+                                "name": "ignored",
+                                "required": True,
+                                "schema": (
+                                    "$ref": "other.json#/info",
+                                ),
+                            ),),
+                        ),
+                    ),
+                ),
+            );
+            assertThrows("FILE-OPEN2-ERROR", "other.json", sub () {SwaggerSchema so(soh);});
+
+            code try_import = string sub (string fn) { return OtherJsonErr; };
+            assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
+            try_import = string sub (string fn) { return OtherJsonOk; };
+            {
+                SwaggerSchema so(soh, ("try_import": try_import));
+            }
+
+            soh.paths."/test".get.parameters[0].schema."$ref" = "other.yaml#/info";
+            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerSchema so(soh);});
+
+            try_import = string sub (string fn) { return OtherYamlErr; };
+            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
+            try_import = string sub (string fn) { return OtherYamlOk; };
+            SwaggerSchema so(soh, ("try_import": try_import));
+        }
+    }
+
+    testSwaggerSchema() {
+        checkModules();
+
+        assertThrows("INVALID-FIELD-TYPE", loadjson, '{"swagger": true}');
+        assertThrows("REQUIRED-FIELD-MISSING", loadjson, '{}', "missing swagger field");
+        assertThrows("REQUIRED-FIELD-MISSING", loadjson, '{"swagger": 2.0}', "missing info field");
+        assertThrows("INVALID-FIELD-TYPE", loadjson, '{"swagger": 2.0, "info": []}', "invalid info field type");
+        assertThrows("REQUIRED-FIELD-MISSING", loadjson, '{"swagger": 2.0, "info": {"title":"", "version":""}}', "missing paths field");
+
+        assertTrue(loadjson(ValidSwaggerSchemaJSON));
+        assertTrue(loadyaml(ValidSwaggerSchemaYAML));
+
+        # Used for following tests.
+        hash base = ValidSwaggerSchema;
+
+        assertTrue(loadyaml(make_yaml(base + {"host": "localhost"})));
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"host": 2.0}), "invalid host field type");
+
+        assertTrue(loadyaml(make_yaml(base + {"basePath": "/test"})));
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"basePath": "gfhgf"}), "invalid basePath format");
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"basePath": 2.0}), "invalid basePath field type");
+
+        assertTrue(loadyaml(make_yaml(base + {"schemes": ("http",)})));
+        assertTrue(loadyaml(make_yaml(base + {"schemes": ("https",)})));
+        assertTrue(loadyaml(make_yaml(base + {"schemes": ("ws",)})));
+        assertTrue(loadyaml(make_yaml(base + {"schemes": ("wss",)})));
+        assertThrows("INVALID-FIELD-TYPE", "schemes", loadyaml, make_yaml(base + {"schemes": 5}));
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"schemes": ("a",)}));
+
+        assertTrue(loadyaml(make_yaml(base + {"consumes": ("test", "lalala")})));
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"consumes": "2.0"}), "invalid consumes field type");
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"consumes": (2, 5)}), "invalid consumes value type");
+
+        assertTrue(loadyaml(make_yaml(base + {"produces": ("test", "lalala")})));
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"produces": "2.0"}), "invalid produces field type");
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"produces": (2, 5)}), "invalid produces value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"definitions": 2}), "invalid definitions field type");
+        assertThrows("INVALID-FIELD-TYPE", "invalid definition datatype", loadyaml,
+            make_yaml(base + {"definitions": {"a": 5}}), "invalid definitions field value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"parameters": 2}), "invalid parameters field type");
+        assertThrows("INVALID-FIELD-TYPE", "invalid parameter datatype", loadyaml,
+            make_yaml(base + {"parameters": {"a": 5}}), "invalid parameters field value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"responses": 2}), "invalid responses field type");
+        assertThrows("INVALID-FIELD-TYPE", "invalid response datatype", loadyaml,
+            make_yaml(base + {"responses": {"a": 5}}), "invalid responses field value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"securityDefinitions": 2}), "invalid securityDefinitions field type");
+        assertThrows("INVALID-FIELD-TYPE", "invalid security definition datatype", loadyaml,
+            make_yaml(base + {"securityDefinitions": {"a": 5}}), "invalid securityDefinitions field value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"security": 2}), "invalid security field type");
+        assertTrue(loadyaml(make_yaml(base + {"security": list()})));
+        assertThrows("INVALID-FIELD-TYPE", "\"security\".*type \"integer\"", loadyaml,
+            make_yaml(base + {"security": (2, 5)}), "invalid security field value type");
+        assertThrows("INVALID-FIELD-TYPE", "\"security\".*\"integer\"", loadyaml,
+            make_yaml(base + {"security": ({"a": "b"}, {"b": 2})}), "invalid security field value type");
+        assertThrows("SECURITY-ERROR", "security schemes.*not defined", loadyaml,
+            make_yaml(base + {"security": ({"a": "b"}, {"b": "a"})}), "invalid security values");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"tags": 2}), "invalid tags field type");
+        assertTrue(loadyaml(make_yaml(base + {"tags": list()})));
+        assertThrows("INVALID-FIELD-TYPE", "invalid tag datatype", loadyaml,
+            make_yaml(base + {"tags": (5, {})}), "invalid tags field value type");
+
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"externalDocs": 2}), "invalid externalDocs field type");
+
+        {
+            hash soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "parameters": ((
+                                "in": "header",
+                                "name": "Test-Header",
+                                "type": "string",
+                                "required": True,
+                                "default": "Test",
+                            ),),
+                        ),
+                    ),
+                ),
+            );
+            SwaggerSchema so(soh);
+
+            {
+                string uri_path = "/test";
+                hash hdr = ("Test-Header": "Test");
+                assertEq(Type::Hash, so.processRequest("get", uri_path, NOTHING, hdr).type());
+                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path));
+            }
+
+            {
+                string uri_path = "/test";
+                hash hdr = ("Test-Header": 1);
+                assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, NOTHING, hdr));
+            }
+        }
+
+        {
+            hash soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "parameters": ((
+                                "in": "query",
+                                "name": "bin",
+                                "type": "string",
+                                "format": "byte",
+                            ),),
+                            "consumes": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                            "produces": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                        ),
+                    ),
+                ),
+            );
+
+            {
+                SwaggerSchema so(soh);
+
+                string uri_path = "/test?bin=abc";
+                hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
+                assertEq(Type::Hash, h.type());
+                assertEq("/test?bin=YWJj", h.uri_path);
+
+                hash<HttpResponseInfo> res = so.processResponse("get", "/test", 200, "OK", NOTHING, MimeTypeJson);
+                assertEq(200, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"OK\"", res.body);
+
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(200, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("OK", cres.body);
+                #printf("cres: %N\n", cres);
+
+                res = so.processResponse("get", "/test", 400, "ERR", NOTHING, MimeTypeJson);
+                assertEq(400, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"ERR\"", res.body);
+                #printf("res: %N\n", res);
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(400, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("ERR", cres.body);
+            }
+
+            soh.definitions = (
+                "robj": (
+                    "type": "object",
+                    "properties": (
+                        "a": (
+                            "type": "string",
+                        ),
+                        "b": (
+                            "type": "integer",
+                        ),
+                    ),
+                ),
+            );
+            soh.paths."/test".get.responses."200".schema = (
+                "$ref": "#/definitions/robj",
+            );
+
+            {
+                SwaggerSchema so(soh);
+
+                assertThrows("INVALID-PARAMETER-TYPE", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
+
+                hash body = (
+                    "a": "hi",
+                    "b": 2,
+                );
+                hash<HttpResponseInfo> res = so.processResponse("get", "/test", 200, body, NOTHING, MimeTypeJson);
+                assertEq(200, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq(Type::String, res.body.type());
+%ifndef NoJson
+                assertEq(body, parse_json(res.body));
+%endif
+
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(200, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq(body, cres.body);
+                #printf("cres: %N\n", cres);
+
+                res = so.processResponse("get", "/test", 400, "ERR", NOTHING, MimeTypeJson);
+                assertEq(400, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq("\"ERR\"", res.body);
+
+                assertThrows("INVALID-PROPERTY", \so.processResponse(), ("get", "/test", 200, ("x": 2), NOTHING, MimeTypeJson));
+                #printf("res: %N\n", res);
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                assertEq(400, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq("ERR", cres.body);
+                #printf("cres: %N\n", cres);
+            }
+        }
+    }
+
+    testInfoObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash info;
+
+        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"info": {}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"version\".*missing", loadyaml, make_yaml(base + {"info": {"title": "a"}}));
+        assertThrows("REQUIRED-FIELD-MISSING", "\"title\".*missing", loadyaml, make_yaml(base + {"info": {"version": "a"}}));
+        assertThrows("INVALID-FIELD-TYPE", "title", loadyaml, make_yaml(base + {"info": {"title": 5, "version": "a"}}));
+        assertThrows("INVALID-FIELD-TYPE", "version", loadyaml, make_yaml(base + {"info": {"title": "a", "version": 5}}));
+
+        info = ValidInfoObject + {"description": 5};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"description": "lorem ipsum"};
+        assertTrue(loadyaml(make_yaml(base + {"info": info})));
+
+        info = ValidInfoObject + {"termsOfService": 5};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"termsOfService": "lorem ipsum"};
+        assertTrue(loadyaml(make_yaml(base + {"info": info})));
+
+        info = ValidInfoObject + {"contact": 5};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"license": 5};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"info": info}));
+    }
+
+    testContactObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash info;
+
+        info = ValidInfoObject + {"contact": {}};
+        assertTrue(loadyaml(make_yaml(base + {"info": info})));
+        info = ValidInfoObject + {"contact": {"name": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"contact": {"url": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "url", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"contact": {"email": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "email", loadyaml, make_yaml(base + {"info": info}));
+    }
+
+    testLicenseObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash info;
+
+        info = ValidInfoObject + {"license": {"name": "name"}};
+        assertTrue(loadyaml(make_yaml(base + {"info": info})));
+        info = ValidInfoObject + {"license": {"url": "a"}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"license": {"name": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"info": info}));
+        info = ValidInfoObject + {"license": {"name": "name", "url": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"info": info})));
+        info = ValidInfoObject + {"license": {"name": "a", "url": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "url", loadyaml, make_yaml(base + {"info": info}));
+    }
+
+    testPathsObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash p;
+
+        p = {};
+        assertTrue(loadyaml(make_yaml(base + {"paths": p})));
+        p = {"a": {}};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"paths": p}));
+    }
+
+    testPathItemObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash p;
+
+        p = {"/a": {}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": p})));
+
+        # reference checks
+        p = {"/a": {"$ref": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": p})));
+        p = {"/a": {"$ref": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "ref", loadyaml, make_yaml(base + {"paths": p}));
+
+        # operations checks
+        p = {"/a": {"get": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "get", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"put": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "put", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"post": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "post", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"delete": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "delete", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"options": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "options", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"head": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "head", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"patch": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "patch", loadyaml, make_yaml(base + {"paths": p}));
+        p = {"/a": {"get": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "get", loadyaml, make_yaml(base + {"paths": p}));
+
+        # parameters checks
+        p = {"/a": {"parameters": list()}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": p})));
+        p = {"/a": {"parameters": ({"$ref": "#/parameters/a"}, {"name": "a", "in": "query", "type": "string"})}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": p})));
+        p = {"/a": {"parameters": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, make_yaml(base + {"paths": p}));
+    }
+
+    testOperationObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash r = {"200": {"description": "a"}};
+        hash p;
+
+        p = {"get": {"responses": r}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+
+        # tags checks
+        p = {"get": {"responses": r, "tags": ("a", {"name": "a"})}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "tags": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "tags", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # summary checks
+        p = {"get": {"responses": r, "summary": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "summary": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "summary", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # description checks
+        p = {"get": {"responses": r, "description": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "description": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # deprecated checks
+        p = {"get": {"responses": r, "deprecated": True}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "deprecated": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "deprecated", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # externalDocs checks
+        p = {"get": {"responses": r, "externalDocs": {"url": "a"}}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "externalDocs": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "externalDocs", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # operationId checks
+        p = {"get": {"responses": r, "operationId": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "operationId": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "operationId", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # consumes checks
+        p = {"get": {"responses": r, "consumes": ("a",)}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "consumes": (5, 3)}};
+        assertThrows("INVALID-FIELD-TYPE", "consumes.*list value", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "consumes": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "consumes", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # produces checks
+        p = {"get": {"responses": r, "produces": ("a",)}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "produces": (5, 3)}};
+        assertThrows("INVALID-FIELD-TYPE", "produces.*list value", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "produces": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "produces", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # parameters checks
+        p = {"get": {"responses": r, "parameters": ({"$ref": "#/parameters/a"},)}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "parameters": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "parameters", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # responses checks
+        p = {"get": {"responses": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "responses", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # schemes checks
+        p = {"get": {"responses": r, "schemes": ("http", "https", "ws", "wss")}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "schemes": ("a",)}};
+        assertThrows("INVALID-FIELD-VALUE", "invalid.*transfer protocol", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "schemes": (5, 2)}};
+        assertThrows("INVALID-FIELD-TYPE", "schemes.*list value", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "schemes": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "schemes", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+
+        # security checks
+        p = {"get": {"responses": r, "security": ({"a":("b",)},)}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": r, "security": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "security", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "security": (5,)}};
+        assertThrows("INVALID-FIELD-TYPE", "security.*list value", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "security": ({"a":5},)}};
+        assertThrows("INVALID-FIELD-TYPE", "value type", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": r, "security": ({"a":(5,)},)}};
+        assertThrows("INVALID-FIELD-TYPE", "value type", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+    }
+
+    testExternalDocumentationObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash extDocs;
+
+        extDocs = {"externalDocs": {"url": "a"}};
+        assertTrue(loadyaml(make_yaml(base + extDocs)));
+        extDocs = {"externalDocs": {"description": "a"}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"url\".*missing", loadyaml, make_yaml(base + extDocs));
+        extDocs = {"externalDocs": {"url": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "url", loadyaml, make_yaml(base + extDocs));
+        extDocs = {"externalDocs": {"url": "a", "description": "b"}};
+        assertTrue(loadyaml(make_yaml(base + extDocs)));
+        extDocs = {"externalDocs": {"url": "a", "description": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + extDocs));
+    }
+
+    testParameterObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash p;
+
+        # name and in checks
+        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"in": "query", "type": "string"}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "type": "string"}};
+        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": 5, "in": "query", "type": "string"}};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": 5, "type": "string"}};
+        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "a", "type": "string"}};
+        assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # description checks
+        p = {"a": {"name": "a", "in": "query", "type": "string", "description": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # TODO - body location parameter - have to do SchemaObject first
+
+        # in (location) checks
+        p = {"a": {"name": "a", "in": "formData", "type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "header", "type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+
+        # "required" checks
+        p = {"a": {"name": "a", "in": "path", "type": "string", "required": False}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "path", "type": "string"}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"required\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "path", "type": "string", "required": "a"}};
+        assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # type checks
+        p = {"a": {"name": "a", "in": "query"}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "query", "type": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "query", "type": "a"}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "boolean"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "integer"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "number"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+
+        # format checks
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": 5}};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "int32"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "int64"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "a"}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "double"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "float"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "a"}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "binary"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "byte"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "date"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "date-time"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "password"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "a"}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # allowEmptyValue checks
+        p = {"a": {"name": "a", "in": "query", "type": "string", "allowEmptyValue": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "allowEmptyValue", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # collectionFormat checks
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": 5, "items": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "a", "items": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": {"name": "a", "in": "header", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # default checks
+
+        # TODO
+        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));*/
+
+        p = {"a": {"name": "a", "in": "query", "type": "boolean", "default": True}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "boolean", "default": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # TODO
+        /*p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));*/
+
+        p = {"a": {"name": "a", "in": "query", "type": "integer", "default": 5}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "integer", "default": "a"}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "number", "default": 2.0}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "number", "default": "a"}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": {"name": "a", "in": "query", "type": "string", "default": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "string", "default": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+    }
+
+    testItemsObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash paramBase = {"name": "a", "in": "query", "type": "array"};
+        hash p;
+
+        # type checks
+        p = {"a": paramBase + {"items": {}}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": paramBase + {"items": {"type": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": paramBase + {"items": {"type": "a"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # TODO array of array
+        /*p = {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));*/
+        p = {"a": paramBase + {"items": {"type": "boolean"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "integer"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "number"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+
+        # format checks
+        p = {"a": paramBase + {"items": {"type": "string", "format": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "integer", "format": "int32"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "integer", "format": "int64"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "integer", "format": "a"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "number", "format": "double"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "number", "format": "float"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "number", "format": "a"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "string", "format": "binary"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "format": "byte"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "format": "date"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "format": "date-time"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "format": "password"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "format": "a"}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # collectionFormat checks
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": 5, "items": {"type": "string"}}}};
+        assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, make_yaml(base + {"parameters": p}));
+        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "a", "items": {"type": "string"}}}};
+        assertThrows("INVALID-FIELD-VALUE", "collectionFormat", loadyaml, make_yaml(base + {"parameters": p}));
+
+        # default checks
+
+        # TODO array of array
+        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));*/
+
+        p = {"a": paramBase + {"items": {"type": "boolean", "default": True}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "boolean", "default": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "integer", "default": 5}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "integer", "default": "a"}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "number", "default": 2.0}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "number", "default": "a"}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+
+        p = {"a": paramBase + {"items": {"type": "string", "default": "a"}}};
+        assertTrue(loadyaml(make_yaml(base + {"parameters": p})));
+        p = {"a": paramBase + {"items": {"type": "string", "default": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"parameters": p}));
+    }
+
+    testResponsesObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash p;
+
+        p = {"get": {"responses": {"200": {"description": "a"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+        p = {"get": {"responses": {"default": {"description": "a"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"paths": {"/a": p}})));
+
+        p = {"get": {"responses": {"200": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "response.*invalid type", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+        p = {"get": {"responses": {"default": 5}}};
+        assertThrows("INVALID-FIELD-TYPE", "default.*invalid type", loadyaml, make_yaml(base + {"paths": {"/a": p}}));
+    }
+
+    testResponseObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash r;
+
+        r = {"a": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"description\".*missing", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "schema": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "schema", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a", "headers": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "headers", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a", "examples": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "examples", loadyaml, make_yaml(base + {"responses": r}));
+    }
+
+    testHeaderObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash r;
+
+        r = {"a": {"description": "a", "headers": {}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+
+        # type checks
+        r = {"a": {"description": "a", "headers": {"a": {}}}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "boolean"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "items": {"type": "string"}}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": 5}}}};
+        assertThrows("INVALID-FIELD-TYPE", "type", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "a"}}}};
+        assertThrows("INVALID-FIELD-VALUE", "type", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "items": 5}}}};
+        assertThrows("INVALID-FIELD-TYPE", "items", loadyaml, make_yaml(base + {"responses": r}));
+
+        # TODO array type
+
+        # format checks
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": 5}}}};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "format": "int32"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "format": "int64"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "format": "a"}}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "double"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "float"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number", "format": "a"}}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "binary"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "byte"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "date"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "date-time"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "password"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "a"}}}};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"responses": r}));
+
+        # collectionFormat checks
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": 5, "items": {"type": "string"}}}}};
+        assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, make_yaml(base + {"responses": r}));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "a", "items": {"type": "string"}}}}};
+        assertThrows("INVALID-FIELD-VALUE", "collectionFormat", loadyaml, make_yaml(base + {"responses": r}));
+
+        # default checks
+
+        # TODO array of array
+        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"responses": r}));*/
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "boolean", "default": True}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "boolean", "default": 5}}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "default": 5}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "integer", "default": "a"}}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number", "default": 2.0}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "number", "default": "a"}}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"responses": r}));
+
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "default": "a"}}}};
+        assertTrue(loadyaml(make_yaml(base + {"responses": r})));
+        r = {"a": {"description": "a", "headers": {"a": {"type": "string", "default": 5}}}};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"responses": r}));
+    }
+
+    testTagObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash tag;
+
+        tag = {"name": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"tags": (tag,)})));
+        tag = {};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"tags": (tag,)}));
+        tag = {"name": 5};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"tags": (tag,)}));
+
+        tag = {"name": "a", "description": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"tags": (tag,)})));
+        tag = {"name": "a", "description": 5};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"tags": (tag,)}));
+
+        tag = {"name": "a", "externalDocs": 5};
+        assertThrows("INVALID-FIELD-TYPE", "externalDocs", loadyaml, make_yaml(base + {"tags": (tag,)}));
+    }
+
+    testSchemaObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash s;
+
+        # ref checks
+        s = {"$ref": "#/definitions/x"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
+        s = {"$ref": 5};
+        assertThrows("INVALID-FIELD-TYPE", "ref.*invalid type", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"$ref": "#/definitions/y"};
+        assertThrows("INVALID-REFERENCE", "cannot resolve", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+        s = {"$ref": "#/definitions/x", "a": 1};
+        assertThrows("INVALID-REFERENCE", "Invalid attribute", loadyaml, make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+
+        # type checks
+        s = {};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": 5};
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "a"};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # TODO array of array
+        /*p = {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));*/
+        s = {"type": "boolean"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "integer"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "number"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+
+        # format checks
+        s = {"type": "string", "format": 5};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "integer", "format": "int32"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "integer", "format": "int64"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "integer", "format": "a"};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "number", "format": "double"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "number", "format": "float"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "number", "format": "a"};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "format": "binary"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "format": "byte"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "format": "date"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "format": "date-time"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "format": "password"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "format": "a"};
+        assertThrows("INVALID-FIELD-VALUE", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # title checks
+        s = {"type": "string", "title": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "title": 5};
+        assertThrows("INVALID-FIELD-TYPE", "title", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # description checks
+        s = {"type": "string", "description": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "description": 5};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # items checks
+
+        # default checks
+        # TODO arrays
+        /*p = {"type": "array", "items": {"type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        p = {"type": "array", "items": {"type": "string"}, "default": 5};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));*/
+
+        s = {"type": "boolean", "default": True};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "boolean", "default": 5};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # TODO files
+        /*p = {"type": "file"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        p = {"type": "file"};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));*/
+
+        s = {"type": "integer", "default": 5};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "integer", "default": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "number", "default": 2.0};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "number", "default": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "default": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "default": 5};
+        assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # maxProperties checks
+        s = {"type": "object", "maxProperties": 0};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "maxProperties": 5};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "maxProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "maxProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "maxProperties": 0};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "maxProperties": 5};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "maxProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "maxProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "maxProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # minProperties checks
+        s = {"type": "object", "minProperties": 0};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "minProperties": 5};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "minProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "minProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "minProperties": 0};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "minProperties": 5};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "minProperties": -2};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "minProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "minProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # properties checks
+        s = {"type": "object", "properties": {}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "properties": {"a": {"type": "string"}}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "properties": {"a": 5}};
+        assertThrows("INVALID-FIELD-FORMAT", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "object", "properties": 5};
+        assertThrows("INVALID-FIELD-TYPE", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "properties": {}};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "properties": {"a": {"type": "string"}}};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "properties": {"a": 5}};
+        assertThrows("INVALID-FIELD-FORMAT", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "properties": 5};
+        assertThrows("INVALID-FIELD-TYPE", "properties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # additionalProperties checks
+        s = {"type": "object", "additionalProperties": True};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "additionalProperties": {"type": "string"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "object", "additionalProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "additionalProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        s = {"type": "string", "additionalProperties": True};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "additionalProperties": {"type": "string"}};
+        assertThrows("INVALID-FIELD-FORMAT", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "additionalProperties": "a"};
+        assertThrows("INVALID-FIELD-TYPE", "additionalProperties", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # "required" checks
+        s = {"type": "string", "required": ("a",)};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "required": list()};
+        assertThrows("INVALID-FIELD-FORMAT", "required", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "required": (5, 3)};
+        assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "required": 5};
+        assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # discriminator checks
+        s = {"type": "string", "discriminator": "a", "required": ("a", "b")};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "discriminator": "x", "required": ("a", "b")};
+        assertThrows("INVALID-FIELD-VALUE", "discriminator", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "discriminator": 5};
+        assertThrows("INVALID-FIELD-TYPE", "discriminator", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # readOnly checks
+        s = {"type": "string", "readOnly": False};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "readOnly": True};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "readOnly": 5};
+        assertThrows("INVALID-FIELD-TYPE", "readOnly", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # allOf Checks
+        s = {"type": "string", "allOf": ({"$ref": "#/definitions/x"}, {"type": "string"})};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
+        s = {"type": "string", "allOf": list()};
+        assertThrows("INVALID-FIELD-FORMAT", "allOf", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "allOf": (5, 3)};
+        assertThrows("INVALID-FIELD-TYPE", "allOf", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+        s = {"type": "string", "allOf": 5};
+        assertThrows("INVALID-FIELD-TYPE", "allOf", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # xml checks
+        s = {"type": "string", "xml": {"name": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": 5};
+        assertThrows("INVALID-FIELD-TYPE", "xml", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # externalDocs checks
+        s = {"type": "string", "externalDocs": {"url": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "externalDocs": 5};
+        assertThrows("INVALID-FIELD-TYPE", "externalDocs", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+    }
+
+    testXmlObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash s;
+
+        s = {"type": "string", "xml": {}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+
+        # name checks
+        s = {"type": "string", "xml": {"name": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"name": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # namespace checks
+        s = {"type": "string", "xml": {"namespace": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"namespace": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "namespace", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # prefix checks
+        s = {"type": "string", "xml": {"prefix": "a"}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"prefix": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "prefix", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # attribute checks
+        s = {"type": "string", "xml": {"attribute": False}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"attribute": True}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"attribute": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "attribute", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+
+        # wrapped checks
+        s = {"type": "string", "xml": {"wrapped": False}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"wrapped": True}};
+        assertTrue(loadyaml(make_yaml(base + {"definitions": {"a": s}})));
+        s = {"type": "string", "xml": {"wrapped": 5}};
+        assertThrows("INVALID-FIELD-TYPE", "wrapped", loadyaml, make_yaml(base + {"definitions": {"a": s}}));
+    }
+
+    testSecuritySchemeObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash sd;
+
+        # type checks
+        sd = {"type": "basic"};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "a"};
+        assertThrows("INVALID-SCHEME-TYPE", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": 5};
+        assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # description checks
+        sd = {"type": "basic", "description": "a"};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "basic", "description": 5};
+        assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # type=apiKey checks
+        sd = {"type": "apiKey"};
+        assertThrows("REQUIRED-FIELD-MISSING", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "apiKey", "name": "a"};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"in\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "apiKey", "in": "query"};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "apiKey", "name": "a", "in": "query"};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "apiKey", "name": "a", "in": "header"};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "apiKey", "name": "a", "in": "a"};
+        assertThrows("INVALID-APIKEY-LOCATION", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "apiKey", "name": 5, "in": "query"};
+        assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "apiKey", "name": "a", "in": 5};
+        assertThrows("INVALID-FIELD-TYPE", "in", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # type=oauth2 checks
+        sd = {"type": "oauth2"};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"flow\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        sd = {"type": "oauth2", "flow": 5, "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "flow", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "abc", "scopes": {}};
+        assertThrows("INVALID-FLOW", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "application", "scopes": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "password", "scopes": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "implicit", "scopes": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"authorizationUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "accessCode", "authorizationUrl": "a", "scopes": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"tokenUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "accessCode", "tokenUrl": "a", "scopes": {}};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"authorizationUrl\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "password", "tokenUrl": "a"};
+        assertThrows("REQUIRED-FIELD-MISSING", "\"scopes\".*missing", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # application and password flow
+        sd = {"type": "oauth2", "flow": "application", "tokenUrl": "a", "scopes": {}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "oauth2", "flow": "application", "tokenUrl": 5, "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "tokenUrl", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "password", "tokenUrl": "a", "scopes": {}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "oauth2", "flow": "password", "tokenUrl": 5, "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "tokenUrl", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "password", "tokenUrl": "a", "scopes": 5};
+        assertThrows("INVALID-FIELD-TYPE", "scopes", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # implicit flow
+        sd = {"type": "oauth2", "flow": "implicit", "authorizationUrl": "a", "scopes": {}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "oauth2", "flow": "implicit", "authorizationUrl": 5, "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "authorizationUrl", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+
+        # accessCode flow
+        sd = {"type": "oauth2", "flow": "accessCode", "authorizationUrl": "a", "tokenUrl": "a", "scopes": {}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = {"type": "oauth2", "flow": "accessCode", "authorizationUrl": 5, "tokenUrl": "a", "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "authorizationUrl", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+        sd = {"type": "oauth2", "flow": "accessCode", "authorizationUrl": "a", "tokenUrl": 5, "scopes": {}};
+        assertThrows("INVALID-FIELD-TYPE", "tokenUrl", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+    }
+
+    testScopesObject() {
+        checkModules();
+
+        hash base = ValidSwaggerSchema;
+        hash sdbase = {"type": "oauth2", "flow": "password", "tokenUrl": "a"};
+        hash sd;
+
+        sd = sdbase + {"scopes": {}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = sdbase + {"scopes": {"a": "b"}};
+        assertTrue(loadyaml(make_yaml(base + {"securityDefinitions": {"a": sd}})));
+        sd = sdbase + {"scopes": {"a": 5}};
+        assertThrows("INVALID-FIELD-TYPE", loadyaml, make_yaml(base + {"securityDefinitions": {"a": sd}}));
+    }
+
+    testValidation() {
+        checkModules();
+
+        testValidation(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testValidation(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
+
+        {
+            hash b = ValidSwaggerSchema + {
+                "definitions": {
+                    "a": {
+                        "type": "object",
+                        "properties": {
+                            "a": {
+                                "type": "string",
+                                "readOnly": True,
+                            },
+                        },
+                    },
+                },
+            };
+            b.parameters.a += (
+                "in": "body",
+                "name": "body",
+                "schema": (
+                    "$ref": "#/definitions/a",
+                ),
+            );
+            b.paths."/api/smtg" += (
+                "get": (
+                    "parameters": ((
+                        "$ref": "#/parameters/a",
+                    ),),
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                        MimeTypeFormUrlEncoded,
+                        MimeTypeMultipartFormData,
+                    ),
+                    "produces": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                    ),
+                ),
+            );
+            remove b.parameters.a.type;
+
+            SwaggerSchema so(b);
+
+            assertThrows("READONLY-PROPERTY-ERROR", \so.processRequest(), ("get", "/api/smtg", ("a": "a")));
+
+            b.definitions.a.properties.a.readOnly = False;
+            so = new SwaggerSchema(b);
+            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
+            assertEq("/api/smtg", h.uri_path);
+            assertEq("a=a", h.body);
+            assertEq(MimeTypeFormUrlEncoded, h.content);
+            #printf("h: %y\n", h);
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("get", h.uri_path, h.body, \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq("a", sh.body.a);
+                #printf("sh: %N\n", sh);
+            }
+
+            {
+                hash hdr = ("content-type": h.content);
+                h.body = "b=a";
+                assertThrows("INVALID-PROPERTY", \so.parseRequest(), ("get", h.uri_path, h.body, \hdr));
+            }
+
+            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
+
+            h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
+            assertEq("/api/smtg", h.uri_path);
+            assertEq(True, h.content =~ /^multipart\/form-data;boundary=/);
+            assertEq(Type::Binary, h.body.type());
+            #printf("h: %y\n", h + ("body": h.body.toString()));
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("get", h.uri_path, h.body, \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq("a", sh.body.a);
+            }
+        }
+
+        {
+            string rep = makeBody("OK");
+
+            HttpTestServer serv(rep);
+            on_exit serv.done();
+
+            string url = sprintf("http://localhost:%d", serv.port);
+            hash opts = (
+                "url": url,
+                "swagger": dirname(get_script_path()) + DirSep + "PetStore.swagger.yaml",
+            );
+
+            RestClient rc(opts);
+            #printf("url: %y\n", url);
+            hash h = rc.get("/user/login?username=user;password=pass");
+            assertEq("OK", h.body);
+
+            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
+            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
+        }
+    }
+
+    private testValidation(SwaggerSchema so) {
+        so.processRequest("get", "/user/login?username=user;password=pass");
+        assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
+        assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
+        assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", "/user/login?username;password=pass"));
+
+        so.parseResponse("get", "/user/login", 200, "\"string\"", ("content-type": MimeTypeJson));
+
+        so.processRequest("get", "/pet/findByStatus?status=available");
+        assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
+
+        # test arrays in parameters
+        {
+            string uri = "/pet/findByTags?tags=tag1;tags=tag2";
+            hash<RestRequestClientInfo> req = so.processRequest("GET", uri);
+            assertEq(uri, req.uri_path);
+        }
+
+        {
+            string uri = "/pet/findByTags?tags=tag1&tags=tag2";
+            hash<RestRequestClientInfo> req = so.processRequest("GET", uri);
+            assertEq(uri, req.uri_path);
+        }
+
+        {
+            hash tag1 = (
+                "id": 1,
+                "name": "n1",
+            );
+            hash tag2 = (
+                "id": 2,
+                "name": "n2",
+            );
+            hash hdr = {};
+            hash body = (
+                "name": "Scooby",
+                "photoUrls": ("str1",),
+                "tags": (tag1, tag2),
+            );
+            hash<RestRequestClientInfo> req = so.processRequest("POST", "/pet", body, hdr);
+            assertEq(MimeTypeJson, req.content);
+            assertEq(Type::String, req.body.type());
+            assertEq("/v2/pet", req.uri_path);
+            assertEq("UTF-8", req.body.encoding());
+            #printf("req: %N\n", req);
+
+            {
+                hdr = ("content-type": req.content);
+                # strip base path for request
+                req.uri_path =~ s/^\/v2//;
+                hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
+                assertEq("Scooby", sh.body.name);
+                assertEq(("str1",), sh.body.photoUrls);
+                assertEq((tag1, tag2), sh.body.tags);
+                #printf("sh: %N\n", sh);
+            }
+
+            body += (
+                "id": 100,
+                "category": (
+                    "id": 200,
+                    "name": "Super",
+                ),
+                "status": "available",
+            );
+            req = so.processRequest("POST", "/pet", body, hdr);
+            assertEq(MimeTypeJson, req.content);
+            assertEq(Type::String, req.body.type());
+            assertEq("/v2/pet", req.uri_path);
+            assertEq("UTF-8", req.body.encoding());
+
+            {
+                hdr = ("content-type": req.content);
+                # strip base path for request
+                req.uri_path =~ s/^\/v2//;
+                hash<RestRequestServerInfo> sh = so.parseRequest("POST", req.uri_path, req.body, \hdr);
+                assertEq(100, sh.body.id);
+                assertEq("Scooby", sh.body.name);
+                assertEq(("str1",), sh.body.photoUrls);
+                assertEq((tag1, tag2), sh.body.tags);
+                assertEq("available", sh.body.status);
+            }
+
+            assertThrows("SERIALIZATION-ERROR", MimeTypeOctetStream, \so.processRequest(), ("POST", "/pet", body, hdr, MimeTypeOctetStream));
+
+            delete body.body.photoUrls;
+            assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
+        }
+
+        {
+            string rep = makeBody("OK");
+
+            HttpTestServer serv(rep);
+            on_exit serv.done();
+
+            string url = sprintf("http://localhost:%d", serv.port);
+            hash opts = (
+                "url": url,
+                "validator": so,
+            );
+
+            RestClient rc(opts);
+            #printf("url: %y\n", url);
+            hash h = rc.get("/user/login?username=user;password=pass");
+            assertEq("OK", h.body);
+
+            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
+            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
+        }
+    }
+
+    testExamples() {
+        checkModules();
+
+        testExamples(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testExamples(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
+    }
+
+    private testExamples(SwaggerSchema so) {
+        hash<RestQoreExampleCodeInfo> qex = so.getQoreExampleRequest("GET", "/user/login");
+        assertEq(True, qex.example =~ /\/user\/login\?username=[a-z]+;password=[a-z]+/m);
+        hash<RestExampleRequestInfo> rex = so.getExampleRequest("GET", "/user/login");
+        assertEq(True, rex.request_uri =~ /\/user\/login\?username=[a-z]+;password=[a-z]+/m);
+
+        qex = so.getQoreExampleRequest("POST", "/pet");
+        assertEq(Type::String, qex.example.type());
+        #printf("qex: %N\n", qex);
+
+        rex = so.getExampleRequest("POST", "/pet");
+        assertEq("POST /pet HTTP/1.1", rex.request_uri);
+        assertEq(MimeTypeJson, rex.hdr."Content-Type");
+
+        qex = so.getQoreExampleResponse("GET", "/user/login", 200);
+        assertEq(True, qex.example =~ /makeResponse.200/);
+        hash<RestExampleResponseInfo> res = so.getExampleResponse("GET", "/user/login", 200);
+        assertEq(200, res.code);
+        assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+        qex = so.getQoreExampleResponse("get", "/pet/{pet}", 200);
+        assertEq(True, qex.example =~ /makeResponse.200/);
+        res =  so.getExampleResponse("GET", "/pet/{pet}", 200);
+        assertEq(200, res.code);
+        assertEq(MimeTypeJson, res.hdr."Content-Type");
+        assertEq(True, res.body =~ /id/);
+        #printf("res: %N\n", res);
+        #printf("qex: %N\n", qex);
+        #printf("rex: %N\n", rex);
+    }
+
+    testRealMessages() {
+        checkModules();
+
+        testRealMessages(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.yaml"));
+        testRealMessages(Swagger::SwaggerLoader::fromFile(get_script_dir() + DirSep + "PetStore.swagger.json"));
+    }
+
+    testRealMessages(SwaggerSchema so) {
+        foreach hash h in (JsonRequestMessages.pairIterator()) {
+            foreach hash mh in (h.value.pairIterator()) {
+                hash hdr."content-type" = MimeTypeJson;
+                hash<RestRequestServerInfo> sh = so.parseRequest(mh.key, h.key, mh.value, \hdr);
+                assertEq(Type::Hash, sh.type());
+            }
+        }
+
+        foreach hash h in (JsonResponseMessages.pairIterator()) {
+            foreach hash mh in (h.value.pairIterator()) {
+                foreach hash ch in (mh.value.pairIterator()) {
+                    hash hdr."content-type" = MimeTypeJson;
+                    hash<RestResponseClientInfo> sh = so.parseResponse(mh.key, h.key, ch.key.toInt(), ch.value, hdr);
+                    assertEq(Type::Hash, sh.type());
+                }
+            }
+        }
+    }
+
+    static string makeBody(any b) {
+        string json;
+%ifndef NoJson
+        json = make_json(b);
+%endif
+
+        return sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: application/json\r\nContent-Length: %d\r\nDate: %s GMT\r\n\r\n%s", json.size(), gmtime().format("Dy, DD Mon YYYY HH:mm:SS"), json);
+    }
+}
