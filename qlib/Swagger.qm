@@ -1106,6 +1106,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
     */
     private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
+
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1278,6 +1282,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, any body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
         hash<string, bool> mime_types;
+
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
 
         hash<UriQueryInfo> h = parse_uri_query(path);
         method = method.lwr();

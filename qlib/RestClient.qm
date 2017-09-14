@@ -696,6 +696,10 @@ hash ans = rest.del("/orders/1");
         private nothing prepareMsg(string method, string path, reference body, reference<hash> hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
+            # must get the path from the HTTPClient object if not given in the request
+            if (!path.val() && (*string p = getConnectionPath()))
+                path = p;
+
             hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
 
             if (exists body) {
