@@ -19,7 +19,6 @@ public class DigestTest inherits QUnit::Test {
         addTestCase("Test MD2 Digest", \md2Test());
         addTestCase("Test MD4 Digest", \md4Test());
         addTestCase("Test MD5 Digest", \md5Test());
-        addTestCase("Test SHA Digest", \shaTest());
         addTestCase("Test SHA1 Digest", \sha1Test());
         addTestCase("Test RIPEMD160 Digest", \ripemd160Test());
 
@@ -40,10 +39,6 @@ public class DigestTest inherits QUnit::Test {
 
     md5Test() {
         testAssertion("MD5 digest", \MD5(), (str,), new TestResultValue("bcbece19c1fe41d8c9e2e6134665ba5b"));
-    }
-
-    shaTest() {
-        testAssertion("SHA digest", \SHA(), (str,), new TestResultValue("99910d63f10286e8dda3c4a57801996f48f25b4b"));
     }
 
     sha1Test() {

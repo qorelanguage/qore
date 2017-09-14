@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,10 +39,28 @@ public:
    DLLLOCAL DatasourceStatementHelper() {}
    DLLLOCAL virtual ~DatasourceStatementHelper() {}
 
+   DLLLOCAL Datasource* helperStartAction(ExceptionSink* xsink, bool& new_transaction) {
+      return helperStartActionImpl(xsink, new_transaction);
+   }
+
+   DLLLOCAL void helperDestructor(QoreSQLStatement* s, ExceptionSink* xsink) {
+      helperDestructorImpl(s, xsink);
+   }
+
+   DLLLOCAL Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
+      return helperEndActionImpl(cmd, new_transaction, xsink);
+   }
+
+   DLLLOCAL DatasourceStatementHelper* helperRefSelf() {
+      return helperRefSelfImpl();
+   }
+
    // must dereference the datasource-providing object
-   virtual void helperDestructor(QoreSQLStatement* s, ExceptionSink* xsink) = 0;
-   virtual Datasource* helperStartAction(ExceptionSink* xsink, bool& new_transaction) = 0;
-   virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) = 0;
+   virtual void helperDestructorImpl(QoreSQLStatement* s, ExceptionSink* xsink) = 0;
+   virtual Datasource* helperStartActionImpl(ExceptionSink* xsink, bool& new_transaction) = 0;
+   virtual Datasource* helperEndActionImpl(char cmd, bool new_transaction, ExceptionSink* xsink) = 0;
+   virtual DatasourceStatementHelper* helperRefSelfImpl() = 0;
+
 };
 
 #endif

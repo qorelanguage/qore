@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QoreHashIterator.h>
+#include "qore/intern/QoreHashIterator.h"
 
 //! This class an iterator class for hashes
 /** Call HashIterator::next() to iterate through the hash; do not use the iterator if HashIterator::next() returns @ref False.
@@ -191,7 +191,7 @@ while (i.next()) {
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
-any HashIterator::getValue() [flags=RET_VALUE_ONLY] {
+auto HashIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
    return i->getReferencedValue(xsink);
@@ -212,7 +212,7 @@ while (i.next()) {
 
     @since %Qore 0.8.6
  */
-any HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
+auto HashIterator::getKeyValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
       return QoreValue();
    return i->getReferencedKeyValue(xsink);

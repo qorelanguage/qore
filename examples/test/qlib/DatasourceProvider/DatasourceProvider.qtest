@@ -1,0 +1,46 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DatasourceProviderTest
+
+public class DatasourceProviderTest inherits QUnit::Test {
+    constructor() : Test("DatasourceProvider Test", "1.0") {
+        addTestCase("dsp test", \datasourceProviderTest());
+        addTestCase("dsp neg test", \datasourceProviderNegativeTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    datasourceProviderTest() {
+        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        mp.parse("sub doenv() { ENV.QORE_DATASOURCE_PROVIDERS = '" + get_script_dir() + "./TestDatasourceProvider.qm'; }", "");
+        mp.callFunction("doenv");
+        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/DatasourceProvider.qm", True);
+
+        Program p();
+        p.loadModule("DatasourceProvider");
+        p.parse("string sub test(string str) { return get_ds_string(str); }", "");
+        assertEq("TEST", p.callFunction("test", "X"));
+        assertThrows("DATASOURCE-ERROR", \p.callFunction(), ("test", "Y"));
+    }
+
+    datasourceProviderNegativeTest() {
+        Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
+        mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/DatasourceProvider.qm", True);
+
+        Program p();
+        p.loadModule("DatasourceProvider");
+        p.parse("string sub test(string str) { return get_ds_string(str); }", "");
+        assertThrows("DATASOURCE-ERROR", \p.callFunction(), ("test", "X"));
+        assertEq("X:", p.callFunction("test", "X:"));
+    }
+}

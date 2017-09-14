@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,13 +44,13 @@ public:
    DLLLOCAL BuiltinSignature(bool extra_args, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
       for (unsigned i = 0; i < typeList.size(); ++i) {
          bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
-	 if (typeList[i]) {
-	    ++num_param_types;
+         if (typeList[i]) {
+            ++num_param_types;
             if (!hasDefaultArg)
                ++min_param_types;
          }
 
-	 QoreTypeInfo::concatName(typeList[i], str);
+         QoreTypeInfo::concatName(typeList[i], str);
          if (names.size() > i && !names[i].empty()) {
             str.append(" ");
             str.append(names[i]);
@@ -59,9 +59,9 @@ public:
          if (hasDefaultArg)
             addDefaultArgument(defaultArgList[i]);
 
-	 // add a comma to the signature string if it's not the last parameter
-	 if (i != (typeList.size() - 1))
-	    str.append(", ");
+         // add a comma to the signature string if it's not the last parameter
+         if (i != (typeList.size() - 1))
+            str.append(", ");
       }
       if (extra_args) {
          if (!typeList.empty())
@@ -113,11 +113,7 @@ public:
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
+      CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
       const QoreValueList* l = ceh.getArgs();
       ReferenceHolder<QoreListNode> arg_holder(l ? l->getOldList() : 0, xsink);
@@ -143,11 +139,7 @@ public:
    COMMON_BUILTIN_VARIANT_FUNCTIONS
 
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      CodeContextHelper cch(name, 0, xsink);
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-      // push call on call stack in debugging mode
-      CallStackHelper csh(name, CT_BUILTIN, 0, xsink);
-#endif
+      CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
       return func(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
    }
