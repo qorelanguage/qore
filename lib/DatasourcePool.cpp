@@ -665,7 +665,7 @@ QoreStringNode* DatasourcePool::getConfigString(ExceptionSink* xsink) {
    // add min and max options
    QoreStringMaker mm(",min=%d,max=%d", min, max);
    if ((*str)[str->size() - 1] == '}')
-      str->splice(str->size() - 1, 0, mm, 0);
+      str->splice(str->size() - 1, 0, mm, xsink);
    else
       str->sprintf("{%s}", mm.getBuffer() + 1);
 
