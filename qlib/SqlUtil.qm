@@ -2106,7 +2106,7 @@ public namespace SqlUtil {
             "withalias": True,
             "code": string sub (string cve, string arg, reference psch) {
                 psch{arg} = cve;
-                return sprintf("%s as %s", cve, arg);
+                return sprintf("%s as %y", cve, arg);
             },
         ),
         COP_PREPEND: (
