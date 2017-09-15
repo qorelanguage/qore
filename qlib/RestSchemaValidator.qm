@@ -123,6 +123,8 @@ public namespace RestSchemaValidator {
 
     #! a hash giving example info for example HTTP response messages
     public hashdecl RestExampleResponseInfo {
+        #! the HTTP response URI
+        string response_uri;
         #! the HTTP status code
         int code;
         #! the HTTP response header hash
@@ -256,7 +258,10 @@ public namespace RestSchemaValidator {
             @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
         hash<RestExampleResponseInfo> getExampleResponse(string method, string path, int code, *softlist<string> content_types) {
-            return getExampleResponseImpl(method, path, code, content_types);
+            hash<RestExampleResponseInfo> rv = getExampleResponseImpl(method, path, code, content_types);
+            if (!rv.response_uri)
+                rv.response_uri = sprintf("HTTP/1.1 %d %s", code, HttpCodes{code} ?? "Unknown");
+            return rv;
         }
 
         #! returns the base path prefix for all requests in this schema

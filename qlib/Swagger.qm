@@ -1167,6 +1167,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
     */
     private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
+
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1182,6 +1186,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
     */
     private hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
+
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1206,6 +1214,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
     */
     private hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code) {
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
+
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1222,6 +1234,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
     */
     private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+        # remove basePath if present
+        if (basePath.val() && regex(path, "^" + basePath))
+            splice path, 0, basePath.length();
+
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -3150,7 +3166,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (!rv.hashdecls{name}) {
             string str = sprintf("hashdecl %s {\n", self.name);
             foreach hash h in (properties.pairIterator()) {
-                str += sprintf("    %s %s", get_qore_type(h.key, h.value.type, h.value.format, h.value.items), h.key);
+                str += sprintf("    %s %s", get_qore_type(h.value.name, h.value.type, h.value.format, h.value.items), h.key);
                 if (exists h.value.defaultVal)
                     str += sprintf(" = %y", h.value.defaultVal);
                 str += ";\n";
@@ -3661,7 +3677,7 @@ namespace Priv {
     #! returns the Qore type for the given schema type
     string sub get_qore_type(string name, string type, *string format, *SchemaObject items) {
         switch (type) {
-            case "array": return sprintf("list<%s>", get_qore_type(name, items.type, items.format, items.items));
+            case "array": return sprintf("list<%s>", get_qore_type(items.name, items.type, items.format, items.items));
             case "integer": return "int";
             case "boolean": return "bool";
             case "number": return format && ValidNumberFormatsHash{format} ? "float" : "number";

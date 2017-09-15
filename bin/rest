@@ -111,12 +111,64 @@ class RestCmd {
             if (url !~ /^[a-z]+:\/\//)
                 url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
         }
+        else if (opt.example)
+            error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
 
         {
             string orig_url = url;
             url = get_connection_url(url);
             if (url != orig_url)
                 printf("using connection: %y url: %y\n", orig_url, url);
+        }
+
+        if (opt.example) {
+            bool msg = True;
+            bool request = True;
+            int code = 200;
+            for (int i = 0; i < opt.example.size(); ++i) {
+                switch (opt.example[i]) {
+                    case "q": msg = False; break;
+                    case "r": request = False; if (opt.example.size() > i + 1) code = opt.example.substr(i + 1).toInt(); i = opt.example.size(); break;
+                    default: error("unknown character %y found in example string %y; expected \"qr\"", opt.example[i]);
+                }
+            }
+            # get URI path
+            hash h = parse_url(url);
+
+            # generate example and exit
+            if (msg) {
+                if (request) {
+                    hash<RestExampleRequestInfo> rex = opts.validator.getExampleRequest(meth, h.path);
+                    #printf("rex: %y\n", rex);
+                    printf("%s\n", rex.request_uri);
+                    map printf("%s: %s\n", $1.key, $1.value), rex.hdr.pairIterator();
+                    if (rex.body) {
+                        if (rex.hdr)
+                            print("\n");
+                        print(rex.body + "\n");
+                    }
+                }
+                else {
+                    hash<RestExampleResponseInfo> res = opts.validator.getExampleResponse(meth, h.path, code);
+                    #printf("res: %y\n", res);
+                    printf("%s\n", res.response_uri);
+                    map printf("%s: %s\n", $1.key, $1.value), res.hdr.pairIterator();
+                    if (res.body) {
+                        if (res.hdr)
+                            print("\n");
+                        print(res.body + "\n");
+                    }
+                }
+            }
+            else {
+                hash<RestQoreExampleCodeInfo> qex = request
+                    ? opts.validator.getQoreExampleRequest(meth, h.path)
+                    : opts.validator.getQoreExampleResponse(meth, h.path, code);
+                #printf("qex: %y\n", qex);
+                map printf("%s\n", $1), qex.hashdecls.iterator();
+                printf("%s\n", qex.example);
+            }
+            thread_exit;
         }
 
         opts.url = url;
@@ -298,7 +350,9 @@ class RestCmd {
                            auto, json, yaml, xml, rawxml, url
  -s,--swagger=ARG          use the given Swagger 2.0 schema for validation
  -t,--timeout=ARG          set HTTP timeout in seconds
- -x,--example[=ARG]        generate an example message (ARG=q: generate Qore example)
+ -x,--example[=ARG]        generate an example message; ARG=
+                             q: generate Qore example (default data)
+                             r<code>: generate response (default request)
  -h,--help                 this help text
 ", get_script_name());
         exit(1);
