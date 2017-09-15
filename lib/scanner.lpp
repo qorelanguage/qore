@@ -1759,7 +1759,6 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \>{WS}*\>{WS}+=                         check_broken_op(yylloc, yytext, ">>="); return SHIFT_RIGHT_EQUALS;
 \<{WS}+\<{WS}*=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
 \<{WS}*\<{WS}+=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
-\.{WS}+\.                               check_broken_op(yylloc, yytext, ".."); return RANGE;
 
 \/\*                                    {
                                            int c;
