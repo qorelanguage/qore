@@ -38,33 +38,22 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-    returnTypeInfo = listTypeInfo;
+    returnTypeInfo = qore_get_complex_list_type(bigIntTypeInfo);
     typeInfo = returnTypeInfo;
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
+    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
 
     left = left->parseInit(oflag, pflag, lvids, lti);
     right = right->parseInit(oflag, pflag, lvids, rti);
 
-    // see if any of the arguments cannot be converted to an integer, if so generate a warning
+    // see if any of the arguments cannot be converted to an integer, if so raise a parse exception
     if (!QoreTypeInfo::canConvertToScalar(lti))
-        lti->doNonNumericWarning(loc, "the left hand expression of the 'range' operator (..) expression is ");
-    if (!QoreTypeInfo::canConvertToScalar(rti)) {
-        QoreStringNode* desc = new QoreStringNode("the right hand side of the 'range' operator (..) expression is ");
-        QoreTypeInfo::getThisType(rti, *desc);
-        desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
-        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-    }
+        parseException(loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(lti));
+    if (!QoreTypeInfo::canConvertToScalar(rti))
+        parseException(loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(rti));
 
-    // see if both arguments are constant values, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value()) {
-        SimpleRefHolder<QoreRangeOperatorNode> del(this);
-        ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
-        assert(!**xsink);
-        return v.getReferencedValue();
-    }
-
+    // do not evaluate at parse time, even if the arguments are both constant values, so we can support lazy evaluation
+    // with functional operators
     return this;
 }
 
@@ -93,10 +82,10 @@ QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
     int64 start = left->bigIntEval(xsink);
     if (*xsink)
-        return 0;
+        return nullptr;
     int64 stop = right->bigIntEval(xsink);
     if (*xsink)
-        return 0;
+        return nullptr;
 
     value_type = list;
     return new QoreFunctionalRangeOperator(start, stop, xsink);

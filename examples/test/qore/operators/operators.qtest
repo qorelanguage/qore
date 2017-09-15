@@ -948,5 +948,10 @@ class Test inherits QUnit::Test {
         assertEq(<bbd473>, foldl $1 + $2, b[5..]);       # lazy evaluation
         assertEq(<bbd473>, b[5..]);                      # 'standard' evaluation
         assertEq(<bbd473>, foldl $1 + $2, b[(5..7)]);    # 'standard' evaluation
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list l = (()..()); delete l; }", ""));
+        }
     }
 }

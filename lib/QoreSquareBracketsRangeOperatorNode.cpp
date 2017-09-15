@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, sro
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,19 +49,34 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     assert(!typeInfo);
     assert(!returnTypeInfo);
 
-    const QoreTypeInfo *typeInfo0 = 0, *typeInfo1 = 0, *typeInfo2 = 0;
+    const QoreTypeInfo *typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
     e[0] = e[0]->parseInit(oflag, pflag, lvids, typeInfo0);
     e[1] = e[1]->parseInit(oflag, pflag, lvids, typeInfo1);
     e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
 
     if (QoreTypeInfo::hasType(typeInfo0)) {
-         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
+        if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
              returnTypeInfo = listTypeInfo;
-         else if (QoreTypeInfo::isType(typeInfo0, NT_STRING))
+        else if (QoreTypeInfo::isType(typeInfo0, NT_STRING))
              returnTypeInfo = stringTypeInfo;
-         else if (QoreTypeInfo::isType(typeInfo0, NT_BINARY))
+        else if (QoreTypeInfo::isType(typeInfo0, NT_BINARY))
              returnTypeInfo = binaryTypeInfo;
+        else if (QoreTypeInfo::parseReturns(typeInfo0, NT_LIST))
+             returnTypeInfo = listOrNothingTypeInfo;
+        else if (QoreTypeInfo::parseReturns(typeInfo0, NT_STRING))
+             returnTypeInfo = stringOrNothingTypeInfo;
+        else if (QoreTypeInfo::parseReturns(typeInfo0, NT_BINARY))
+             returnTypeInfo = binaryOrNothingTypeInfo;
+        else {
+             // raise an exception due to the invalid operand type
+             parseException(loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
+         }
     }
+    // ensure that the range operands can be converted to an integer
+    if (!QoreTypeInfo::isType(typeInfo1, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo1))
+        parseException(loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo1));
+    if (!QoreTypeInfo::isType(typeInfo2, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo2))
+        parseException(loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo2));
 
     typeInfo = returnTypeInfo;
     return this;
@@ -81,45 +96,47 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
     switch (seq_type) {
         case NT_LIST: {
             if (empty)
-                return new QoreListNode();
+                return new QoreListNode;
 
-            ReferenceHolder<QoreListNode> rv(new QoreListNode(), xsink);
+            ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
             if (start < stop) {
-                for (int64 i = start; i <= stop; i++) {
-                    QoreValue entry = seq->get<const QoreListNode>()->get_referenced_entry(i);
-                    rv->push(entry.getReferencedValue());
+                for (int64 i = start; i <= stop; ++i) {
+                    rv->push(seq->get<const QoreListNode>()->get_referenced_entry(i));
                 }
             }
             else {
-                for (int64 i = start; i >= stop; i--) {
-                    QoreValue entry = seq->get<const QoreListNode>()->get_referenced_entry(i);
-                    rv->push(entry.getReferencedValue());
+                for (int64 i = start; i >= stop; --i) {
+                    rv->push(seq->get<const QoreListNode>()->get_referenced_entry(i));
                 }
             }
             return rv.release();
         }
-        case NT_STRING:
+        case NT_STRING: {
             if (empty)
-                return new QoreStringNode();
+                return new QoreStringNode;
 
             if (start < stop)
                 return seq->get<const QoreStringNode>() -> substr(start, stop - start + 1, xsink);
 
-            return seq->get<const QoreStringNode>() -> reverse() -> substr(seq_size - start - 1, start - stop + 1, xsink);
-
+            SimpleRefHolder<QoreStringNode> tmp(seq->get<const QoreStringNode>()->reverse());
+            return tmp->substr(seq_size - start - 1, start - stop + 1, xsink);
+        }
         case NT_BINARY: {
             if (empty)
-                return new BinaryNode();
+                return new BinaryNode;
 
             int64 length = start < stop ? stop - start + 1 : start - stop + 1;
-            void* ptr = malloc(length);
+            SimpleRefHolder<BinaryNode> bin(new BinaryNode);
             if (start < stop)
-                memcpy((unsigned char*)ptr, (unsigned char*)seq->get<const BinaryNode>()->getPtr() + start, length);
+                bin->append(((char*)seq->get<const BinaryNode>()->getPtr()) + start, length);
             else {
-                for (int64 i = start; i >= stop; i--)
-                    memcpy((unsigned char*)ptr + start - i, (unsigned char*)seq->get<const BinaryNode>()->getPtr() + i, 1);
+                bin->preallocate(length);
+                for (int64 i = start; i >= stop; --i) {
+                    char* p = (char*)bin->getPtr() + start - i;
+                    *p = ((char*)seq->get<const BinaryNode>()->getPtr())[i];
+                }
             }
-            return new BinaryNode(ptr, length);
+            return bin.release();
         }
     }
 
@@ -144,9 +161,13 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
     if (*xsink)
         return false;
 
-    int64 i = getValue(xsink)->getAsBigInt();
-    if (*xsink)
-        return false;
+    int64 i;
+    {
+        ValueHolder val(getValue(xsink), xsink);
+        if (*xsink)
+            return false;
+        i = val->getAsBigInt();
+    }
 
     switch (seq->getType()) {
         case NT_LIST:
@@ -158,11 +179,12 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
         case NT_BINARY: {
             const BinaryNode* b = seq->get<const BinaryNode>();
             if (i < 0 || (size_t)i >= b->size())
-                val.setValue(new BinaryNode(), true);
-
-            void* ptr = malloc(1);
-            memcpy((unsigned char*)ptr, (unsigned char*)b->getPtr() + i, 1);
-            val.setValue(new BinaryNode(ptr, 1), true);
+                val.setValue(new BinaryNode, true);
+            else {
+                BinaryNode* bin = new BinaryNode;
+                val.setValue(bin, true);
+                bin->append((unsigned char*)b->getPtr() + i, 1);
+            }
         }
     }
     return false;
