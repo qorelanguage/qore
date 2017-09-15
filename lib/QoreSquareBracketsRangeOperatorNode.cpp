@@ -56,13 +56,13 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
 
     if (QoreTypeInfo::hasType(typeInfo0)) {
         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
-             returnTypeInfo = listTypeInfo;
+             returnTypeInfo = typeInfo0;
         else if (QoreTypeInfo::isType(typeInfo0, NT_STRING))
              returnTypeInfo = stringTypeInfo;
         else if (QoreTypeInfo::isType(typeInfo0, NT_BINARY))
              returnTypeInfo = binaryTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_LIST))
-             returnTypeInfo = listOrNothingTypeInfo;
+             returnTypeInfo = get_or_nothing_type_check(typeInfo0);
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_STRING))
              returnTypeInfo = stringOrNothingTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_BINARY))
@@ -98,15 +98,16 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
             if (empty)
                 return new QoreListNode;
 
-            ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
+            const QoreListNode* l = seq->get<const QoreListNode>();
+            ReferenceHolder<QoreListNode> rv(new QoreListNode(l->getValueTypeInfo()), xsink);
             if (start < stop) {
                 for (int64 i = start; i <= stop; ++i) {
-                    rv->push(seq->get<const QoreListNode>()->get_referenced_entry(i));
+                    rv->push(l->get_referenced_entry(i));
                 }
             }
             else {
                 for (int64 i = start; i >= stop; --i) {
-                    rv->push(seq->get<const QoreListNode>()->get_referenced_entry(i));
+                    rv->push(l->get_referenced_entry(i));
                 }
             }
             return rv.release();
@@ -116,7 +117,7 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
                 return new QoreStringNode;
 
             if (start < stop)
-                return seq->get<const QoreStringNode>() -> substr(start, stop - start + 1, xsink);
+                return seq->get<const QoreStringNode>()->substr(start, stop - start + 1, xsink);
 
             SimpleRefHolder<QoreStringNode> tmp(seq->get<const QoreStringNode>()->reverse());
             return tmp->substr(seq_size - start - 1, start - stop + 1, xsink);
