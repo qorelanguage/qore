@@ -94,7 +94,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 	    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 
-   // see if both arguments are constants , then eval immediately and substitute this node with the result
+   // see if both arguments are constants, then eval immediately and substitute this node with the result
    if (right && right->is_value()) {
       if (left && left->is_value()) {
          SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
