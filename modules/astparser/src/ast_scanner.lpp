@@ -195,6 +195,8 @@ static bool angle_balanced(const char* p) {
 
 #define AST_DOT_KW_IDENTIFIER(kw) { yylval->String = new std::string(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
+#define AST_FLEX_DO_EOF yyterminate();
+
 // Global parse options.
 bool PO_BROKEN_LOGIC_PRECEDENCE = false;
 bool PO_BROKEN_OPERATORS = false;
@@ -296,6 +298,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<append_path_state><<EOF>>              {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%append-module-path{WS}*$              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); return PARSE_OPTION; }
 ^%append-module-path{WS}+               { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); BEGIN(append_module_state); return PARSE_OPTION; }
 <append_module_state>[^\n\r]+           {
@@ -304,6 +309,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<append_module_state><<EOF>>            {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%set-time-zone{WS}*$                   { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); return PARSE_OPTION; }
 ^%set-time-zone{WS}+                    { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); BEGIN(set_zone); return PARSE_OPTION; }
 <set_zone>[^\n\r]+                      {
@@ -311,6 +319,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             po->str = yytext;
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
+                                        }
+<set_zone><<EOF>>                       {
+                                            AST_FLEX_DO_EOF
                                         }
 ^%enable-all-warnings{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_ENABLE_ALL_WARNINGS); return PARSE_OPTION; }
 ^%disable-all-warnings{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_DISABLE_ALL_WARNINGS); return PARSE_OPTION; }
@@ -324,6 +335,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<disable_warning><<EOF>>                {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%enable-warning{WS}*$                  { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); return PARSE_OPTION; }
 ^%enable-warning{WS}+                   { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); BEGIN(enable_warning); return PARSE_OPTION; }
 <enable_warning>[^\n\r]+                {
@@ -334,16 +348,22 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<enable_warning><<EOF>>                 {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%exec-class{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); return PARSE_OPTION; }
 ^%exec-class{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); BEGIN(exec_class_state); return PARSE_OPTION; }
 <exec_class_state>{
-   [^\n\r]+                             {
+    [^\n\r]+                            {
                                             ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
                                             const char* trimmed = trim_inplace(yytext);
                                             if (trimmed)
                                                 po->str = trimmed;
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
+                                        }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
                                         }
 }
 ^%try-reexport-module{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_TRY_REEXPORT_MODULE); return PARSE_OPTION; }
@@ -356,6 +376,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<try_module><<EOF>>                     {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%endtry{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_ENDTRY); return PARSE_OPTION; }
 ^%requires{WS}*$                        { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); return PARSE_OPTION; }
 ^%requires                              { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); BEGIN(requires); return PARSE_OPTION; }
@@ -367,6 +390,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
+<requires><<EOF>>                       {
+                                            AST_FLEX_DO_EOF
+                                        }
 ^%module-cmd{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); return PARSE_OPTION; }
 ^%module-cmd                            { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); BEGIN(module_cmd); return PARSE_OPTION; }
 <module_cmd>{WS}*                       /* ignore white space */
@@ -375,6 +401,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             po->str = yytext;
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
+                                        }
+<module_cmd><<EOF>>                     {
+                                            AST_FLEX_DO_EOF
                                         }
 ^%define{WS}*$                          { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); return PARSE_OPTION; }
 ^%define{WS}+                           { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); BEGIN(p_def); return PARSE_OPTION; }
@@ -388,7 +417,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%ifdef{WS}*$                           { /*parse_error("missing argument to %%ifdef");*/ }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
 <p_ifdef>{
-   [^\n\r]+$                            {
+    [^\n\r]+$                           {
                                             /*parse_cond_push(true);
                                             if (parse_is_defined(yytext)) {
                                                 //printd(5, "ifdef: '%s' is defined\n", yytext);
@@ -401,11 +430,14 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             }*/
                                             BEGIN(INITIAL);
                                         }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 ^%ifndef{WS}*$                          { /*parse_error("missing argument to %%ifndef");*/ }
 ^%ifndef{WS}+                           BEGIN(p_ifndef);
 <p_ifndef>{
-   [^\n\r]+$                            {
+    [^\n\r]+$                           {
                                             /*parse_cond_push(true);
                                             if (!parse_is_defined(yytext)) {
                                                 //printd(5, "ifndef: '%s' is not defined\n", yytext);
@@ -418,6 +450,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             }*/
                                             BEGIN(INITIAL);
                                         }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 ^%else{WS}*$                            {
                                             /*if (!parse_cond_else()) {
@@ -429,7 +464,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                         }
 <p_skip_to_endif>{
-   ^%endif{WS}*$                        {
+    ^%endif{WS}*$                       {
                                             /*if (parse_cond_pop()) {
                                                 printd(5, "p_skip_to_endif: found %%endif (%s) (final)\n", yytext);
                                                 BEGIN(INITIAL);
@@ -440,7 +475,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             //printd(5, "p_skip_to_endif: found %%endif (%s) (not final)\n", yytext);*/
 #endif
                                         }
-   ^.*                                  {
+    ^.*                                 {
                                             /*if (!strncmp("%ifdef", yytext, 6)) {
                                                 //printd(5, "p_skip_to_endif: found %%ifdef (%s); skipping\n", yytext);
                                                 parse_cond_push();
@@ -451,17 +486,20 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             //printd(5, "p_skip_to_endif: %s\n", yytext);*/
 #endif
                                         }
-   \n                                   /* ignore */
+    \n                                  /* ignore */
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <p_skip_to_endif_or_else>{
-   ^%else{WS}*$                         {
+    ^%else{WS}*$                        {
                                             //printd(5, "p_skip_to_endif_or_else: found %else\n");
                                             /*if (parse_cond_test()) {
                                                 BEGIN(INITIAL);
                                             }*/
                                             BEGIN(INITIAL);
                                         }
-   ^%endif{WS}*$                        {
+    ^%endif{WS}*$                       {
                                             /*if (parse_cond_pop()) {
                                                 //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
                                                 BEGIN(INITIAL);
@@ -472,7 +510,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
 #endif
                                         }
-   ^.*                                  {
+    ^.*                                 {
                                             /*if (!strncmp("%ifdef", yytext, 6)) {
                                                 //printd(5, "p_skip_to_endif_or_else: found %%ifdef (%s); skipping\n", yytext);
                                                 parse_cond_push();
@@ -483,7 +521,10 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             //printd(5, "p_skip_to_endif_or_else: %s\n", yytext);*/
 #endif
                                         }
-   \n                                   /* ignore */
+    \n                                  /* ignore */
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 ^%endif{WS}*$                           {} /* parse_cond_pop(); */
 ^%include{WS}*$                         { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); return PARSE_OPTION; }
@@ -495,12 +536,17 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return PARSE_OPT_STR;
                                         }
-<<EOF>>                                 { yyterminate(); }
+<incl><<EOF>>                           {
+                                            AST_FLEX_DO_EOF
+                                        }
+<INITIAL><<EOF>>                        {
+                                            AST_FLEX_DO_EOF
+                                        }
 \"                                      { yylval->String = new std::string; yylloc->saveFirst(); BEGIN(str_state); }
 <str_state>{
-      \"                                yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
-      \n                                yylval->String->push_back('\n');
-      {OCTAL_CONST}                     {
+    \"                                  yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
+    \n                                  yylval->String->push_back('\n');
+    {OCTAL_CONST}                       {
                                             int token_length = strlen(yytext);
                                             int val;
                                             if (token_length == 4) {
@@ -517,22 +563,27 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             }
                                             yylval->String->push_back((char)val);
                                         }
-      \\n                               yylval->String->push_back('\n');
-      \\t                               yylval->String->push_back('\t');
-      \\r                               yylval->String->push_back('\r');
-      \\b                               yylval->String->push_back('\b');
-      \\f                               yylval->String->push_back('\f');
-      \\v                               yylval->String->push_back('\v');
-      \\.                               yylval->String->push_back(yytext[1]);
-      \\\n                              yylval->String->push_back('\n');
-      [^\\\n\"]+                        {
+    \\n                                 yylval->String->push_back('\n');
+    \\t                                 yylval->String->push_back('\t');
+    \\r                                 yylval->String->push_back('\r');
+    \\b                                 yylval->String->push_back('\b');
+    \\f                                 yylval->String->push_back('\f');
+    \\v                                 yylval->String->push_back('\v');
+    \\.                                 yylval->String->push_back(yytext[1]);
+    \\\n                                yylval->String->push_back('\n');
+    [^\\\n\"]+                          {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->String->push_back(*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->String;
+                                            yylval->String = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_subst2>{
-      \/                                {
+    \/                                  {
                                             /* get regex modifiers */
                                             int c;
                                             do {
@@ -544,65 +595,85 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return REGEX_SUBST;
                                         }
-      \n                                yylval->regexsubst->target += '\n';
-      \\\/                              yylval->regexsubst->target += '/';
-      \\\.                              yylval->regexsubst->target += '.';
-      \\.                               { yylval->regexsubst->target += '\\'; yylval->regexsubst->target += yytext[1]; }
-      [^\n\\/]+                         {
+    \n                                  yylval->regexsubst->target += '\n';
+    \\\/                                yylval->regexsubst->target += '/';
+    \\\.                                yylval->regexsubst->target += '.';
+    \\.                                 { yylval->regexsubst->target += '\\'; yylval->regexsubst->target += yytext[1]; }
+    [^\n\\/]+                           {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regexsubst->target += (*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->regexsubst;
+                                            yylval->regexsubst = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_subst1>{
-      \/                                BEGIN(regex_subst2);
-      \n                                yylval->regexsubst->source += '\n';
-      \\\/                              yylval->regexsubst->source += '/';
-      \\.                               { yylval->regexsubst->source += '\\'; yylval->regexsubst->source += yytext[1]; }
-      [^\n\\/]+                         {
+    \/                                  BEGIN(regex_subst2);
+    \n                                  yylval->regexsubst->source += '\n';
+    \\\/                                yylval->regexsubst->source += '/';
+    \\.                                 { yylval->regexsubst->source += '\\'; yylval->regexsubst->source += yytext[1]; }
+    [^\n\\/]+                           {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regexsubst->source += (*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->regexsubst;
+                                            yylval->regexsubst = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_trans2>{
-      -                                 yylval->regextrans->target += '-';
-      \/                                { yylloc->restoreFirst(); yylval->regextrans->loc = *yylloc; BEGIN(INITIAL); return REGEX_TRANS; }
-      \n                                yylval->regextrans->target += '\n';
-      \\n                               yylval->regextrans->target += '\n';
-      \\t                               yylval->regextrans->target += '\t';
-      \\r                               yylval->regextrans->target += '\r';
-      \\b                               yylval->regextrans->target += '\b';
-      \\f                               yylval->regextrans->target += '\f';
-      \\\n                              yylval->regextrans->target += '\n';
-      \\\/                              yylval->regextrans->target += '/';
-      \\.                               yylval->regextrans->target += yytext[1];
-      [^\n\\/\-]+                       {
+    -                                   yylval->regextrans->target += '-';
+    \/                                  { yylloc->restoreFirst(); yylval->regextrans->loc = *yylloc; BEGIN(INITIAL); return REGEX_TRANS; }
+    \n                                  yylval->regextrans->target += '\n';
+    \\n                                 yylval->regextrans->target += '\n';
+    \\t                                 yylval->regextrans->target += '\t';
+    \\r                                 yylval->regextrans->target += '\r';
+    \\b                                 yylval->regextrans->target += '\b';
+    \\f                                 yylval->regextrans->target += '\f';
+    \\\n                                yylval->regextrans->target += '\n';
+    \\\/                                yylval->regextrans->target += '/';
+    \\.                                 yylval->regextrans->target += yytext[1];
+    [^\n\\/\-]+                         {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regextrans->target += (*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->regextrans;
+                                            yylval->regextrans = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_trans1>{
-      -                                 yylval->regextrans->source += '-';
-      \/                                BEGIN(regex_trans2);
-      \n                                yylval->regextrans->source += '\n';
-      \\n                               yylval->regextrans->source += '\n';
-      \\t                               yylval->regextrans->source += '\t';
-      \\r                               yylval->regextrans->source += '\r';
-      \\b                               yylval->regextrans->source += '\b';
-      \\f                               yylval->regextrans->source += '\f';
-      \\\n                              yylval->regextrans->source += '\n';
-      \\\/                              yylval->regextrans->source += '/';
-      \\.                               yylval->regextrans->source += yytext[1];
-      [^\n\\/\-]+                       {
+    -                                   yylval->regextrans->source += '-';
+    \/                                  BEGIN(regex_trans2);
+    \n                                  yylval->regextrans->source += '\n';
+    \\n                                 yylval->regextrans->source += '\n';
+    \\t                                 yylval->regextrans->source += '\t';
+    \\r                                 yylval->regextrans->source += '\r';
+    \\b                                 yylval->regextrans->source += '\b';
+    \\f                                 yylval->regextrans->source += '\f';
+    \\\n                                yylval->regextrans->source += '\n';
+    \\\/                                yylval->regextrans->source += '/';
+    \\.                                 yylval->regextrans->source += yytext[1];
+    [^\n\\/\-]+                         {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regextrans->source += (*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->regextrans;
+                                            yylval->regextrans = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_state>{
-      \/                                {
+    \/                                  {
                                             /* get regex modifiers */
                                             int c;
                                             do {
@@ -614,17 +685,22 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return REGEX;
                                         }
-      \n                                yylval->regex->str += '\n';
-      \\\/                              yylval->regex->str += '/';
-      \\.                               { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
-      [^\n\\/]+                         {
+    \n                                  yylval->regex->str += '\n';
+    \\\/                                yylval->regex->str += '/';
+    \\.                                 { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
+    [^\n\\/]+                           {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regex->str += (*(yptr++));
                                         }
+    <<EOF>>                             {
+                                            delete yylval->regex;
+                                            yylval->regex = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_extract_state>{
-      \/                                {
+    \/                                  {
                                             /* get regex modifiers */
                                             int c;
                                             do {
@@ -636,13 +712,18 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             BEGIN(INITIAL);
                                             return REGEX_EXTRACT;
                                         }
-      \n                                yylval->regex->str += '\n';
-      \\\/                              yylval->regex->str += '/';
-      \\.                               { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
-      [^\n\\/]+                         {
+    \n                                  yylval->regex->str += '\n';
+    \\\/                                yylval->regex->str += '/';
+    \\.                                 { yylval->regex->str += '\\'; yylval->regex->str += yytext[1]; }
+    [^\n\\/]+                           {
                                             char* yptr = yytext;
                                             while (*yptr)
                                                 yylval->regex->str += (*(yptr++));
+                                        }
+    <<EOF>>                             {
+                                            delete yylval->regex;
+                                            yylval->regex = nullptr;
+                                            AST_FLEX_DO_EOF
                                         }
 }
 \#                                      {
@@ -651,7 +732,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                                 if (c == '\n')
                                                     break;
                                                 else if (c == EOF) {
-                                                    yyterminate();
+                                                    AST_FLEX_DO_EOF
                                                     break;
                                                 }
                                             }
@@ -705,9 +786,12 @@ by                                      return TOK_BY;
 switch                                  return TOK_SWITCH;
 case                                    BEGIN(case_state); return TOK_CASE;
 <case_state>{
-   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
-   {WS}+                                /* ignore */
-   [^\/]                                { yyless(0); BEGIN(INITIAL); }
+    \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+    {WS}+                               /* ignore */
+    [^\/]                               { yyless(0); BEGIN(INITIAL); }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 default                                 return TOK_DEFAULT;
 inherits                                return TOK_INHERITS;
@@ -895,7 +979,7 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
                                             BEGIN(angle_state);
 }
 <angle_state>{
-        >                               {
+    >                                   {
                                             yylval->String->push_back('>');
                                             if (angle_balanced(yylval->String->c_str())) {
                                                 char* str = strdup(yylval->String->c_str());
@@ -906,7 +990,12 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
                                                 return ANGLE_IDENTIFIER;
                                             }
                                         }
-        [^>]                            yylval->String->append(yytext);
+    [^>]                                yylval->String->append(yytext);
+    <<EOF>>                             {
+                                            delete yylval->String;
+                                            yylval->String = nullptr;
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 \%{WORD}                                { yylval->string = strdup(yytext + 1); return CONTEXT_REF; }
 \%{WORD}\:{WORD}                        { yylval->string = strdup(yytext + 1); return COMPLEX_CONTEXT_REF; }
@@ -999,19 +1088,25 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
                                             }
                                         }
 <regex_googleplex>{
-   s\/                                  { yylval->regexsubst = new ASTRegexSubstExpression; yylloc->saveFirst(); BEGIN(regex_subst1); }
-   x\/                                  { yylval->regex = new ASTRegexExpression(true); yylloc->saveFirst(); BEGIN(regex_extract_state); }
-   tr\/                                 { yylval->regextrans = new ASTRegexTransExpression; yylloc->saveFirst(); BEGIN(regex_trans1); }
-   m\/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
-   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
-   {WSNL}+                              /* ignore whitespace */
-   [^sxmt\/]                            { BEGIN(INITIAL); return NO_REGEX_AFTER_MATCH_ERROR; }
+    s\/                                 { yylval->regexsubst = new ASTRegexSubstExpression; yylloc->saveFirst(); BEGIN(regex_subst1); }
+    x\/                                 { yylval->regex = new ASTRegexExpression(true); yylloc->saveFirst(); BEGIN(regex_extract_state); }
+    tr\/                                { yylval->regextrans = new ASTRegexTransExpression; yylloc->saveFirst(); BEGIN(regex_trans1); }
+    m\/                                 { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+    \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+    {WSNL}+                             /* ignore whitespace */
+    [^sxmt\/]                           { BEGIN(INITIAL); return NO_REGEX_AFTER_MATCH_ERROR; }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 <regex_negative_universe>{
-   m\/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
-   \/                                   { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
-   {WSNL}+                              /* ignore whitespace */
-   [^m\/]                               { BEGIN(INITIAL); return NO_REGEX_AFTER_NOTMATCH_ERROR; }
+    m\/                                 { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+    \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
+    {WSNL}+                             /* ignore whitespace */
+    [^m\/]                              { BEGIN(INITIAL); return NO_REGEX_AFTER_NOTMATCH_ERROR; }
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
 }
 =\~                                     { BEGIN(regex_googleplex); return REGEX_MATCH; }
 \!\~                                    { BEGIN(regex_negative_universe); return REGEX_NMATCH; }
