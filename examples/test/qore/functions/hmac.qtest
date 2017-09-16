@@ -20,7 +20,6 @@ public class HmacTest inherits QUnit::Test {
         addTestCase("Basic MD2 test", \md2Test());
         addTestCase("Basic MD4 test", \md4Test());
         addTestCase("Basic MD5 test", \md5Test());
-        addTestCase("Basic SHA test", \shaTest());
         addTestCase("Basic SHA1 test", \sha1Test());
         addTestCase("Basic RIPEMD160 test", \ripemd160Test());
         addTestCase("Basic MDC2 test", \mdc2Test());
@@ -46,10 +45,6 @@ public class HmacTest inherits QUnit::Test {
 
     md5Test() {
         testAssertion("MD5 hmac", \MD5_hmac(), (str, key), new TestResultValue("87505c6164aaf6ca6315233902a01ef4"));
-    }
-
-    shaTest() {
-        testAssertion("SHA hmac", \SHA_hmac(), (str, key), new TestResultValue("0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"));
     }
 
     sha1Test() {

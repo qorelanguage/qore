@@ -1317,7 +1317,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         if (!errorlogger && errlogfunc)
             errorlogger = errlogfunc;
 
-        string sock = (exists service ? sprintf("%s:%s", node ? node : "*", service) : node);
+        string sock = (exists service ? sprintf("%s:%s", node ?? "*", service) : node);
 
         lm.enter();
         on_exit lm.exit();
@@ -1341,6 +1341,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         listeners{id} = l;
         smap{sock} = id;
         nmap{name} = id;
+
+        # rename listener if a wildcard service was provided
+        if (service == "0") {
+            int port = l.getInfo().port;
+            string nsock = sprintf("%s:%s", node ?? "*", port);
+            smap{nsock} = remove smap{sock};
+        }
         return l;
     }
 

@@ -54,6 +54,11 @@ public class DatasourceTest inherits QUnit::Test {
 
         ds.open();
         assertEq(ds.getConfigHash(), h);
+
+        # issue #2153
+        DatasourcePool dsp(ds.getConfigString());
+        # this call will crash with Qore in debug mode without the fix
+        assertEq(Type::String, dsp.getConfigString().type());
     }
 
     Datasource getOracleDatasource() {
