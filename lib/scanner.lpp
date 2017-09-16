@@ -697,7 +697,7 @@ static bool angle_balanced(const char* p) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -1426,17 +1426,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                            QORE_FLEX_DO_EOF
                                         }
 }
-\#                                      {
-                                           int c;
-                                           while ((c = yyinput(yyscanner))) {
-                                              if (c == '\n')
-                                                 break;
-                                              else if (c == EOF) {
-                                                 QORE_FLEX_DO_EOF
-                                                 break;
-                                              }
-                                           }
-                                        }
+\#                                      BEGIN(line_comment);
+<line_comment>{
+      [\n\r]                            BEGIN(INITIAL);
+      <<EOF>>                           QORE_FLEX_DO_EOF
+      [^\n\r]                           // ignore any other character until EOL
+}
 where                                   return TOK_WHERE;
 private                                 return TOK_PRIVATE;
 private:internal                        return TOK_PRIVATEINTERNAL;
@@ -1759,24 +1754,24 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \<{WS}+\<{WS}*=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
 \<{WS}*\<{WS}+=                         check_broken_op(yylloc, yytext, "<<="); return SHIFT_LEFT_EQUALS;
 
-\/\*                                    {
-                                           int c;
-                                           while ((c = yyinput(yyscanner))) {
-                                              if (c == '*') {
-                                                 do {
-                                                    c = yyinput(yyscanner);
-                                                 }
-                                                 while (c == '*');
-                                                 if (c == '/')
-                                                    break;
-                                              }
-                                              if (c == EOF) {
-                                                 parse_error(get_loc(yylloc), "open block comment at EOF");
-                                                 QORE_FLEX_DO_EOF;
-                                                 break;
-                                              }
-                                           }
+\/\*                                    BEGIN(block_comment1);
+<block_comment1>{
+      \*                                BEGIN(block_comment2);
+      <<EOF>>                           {
+                                           // do not throw an extra exception here; "unexpected $end" raised due to premature EOF
+                                           QORE_FLEX_DO_EOF;
                                         }
+      [^\*]                             // ignore other input
+}
+<block_comment2>{
+      \/                                BEGIN(INITIAL);
+      \*                                // ignore
+      <<EOF>>                           {
+                                           // do not throw an extra exception here; "unexpected $end" raised due to premature EOF
+                                           QORE_FLEX_DO_EOF;
+                                        }
+      [^\/\*]                           BEGIN(block_comment1);
+}
 <regex_googleplex>{
    s\/                                  yylval->RegexSubst = new QoreRegexSubst; yylloc->saveFirst(); BEGIN(regex_subst1);
    x\/                                  yylval->Regex = new QoreRegex; yylloc->saveFirst(); BEGIN(regex_extract_state);
