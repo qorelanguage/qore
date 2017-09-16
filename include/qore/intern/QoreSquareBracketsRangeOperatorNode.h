@@ -39,7 +39,7 @@
 
 class QoreSquareBracketsRangeOperatorNode : public QoreNOperatorNodeBase<3>, public FunctionalOperator {
 protected:
-    const QoreTypeInfo* typeInfo;
+    const QoreTypeInfo* typeInfo = nullptr;
 
     DLLLOCAL static QoreString op_str;
 
@@ -52,11 +52,11 @@ protected:
     DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 private:
-    bool getEffectiveRange(int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
+    bool getEffectiveRange(ValueEvalRefHolder& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2)
-        : QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : &Nothing, p2 ? p2 : &Nothing), typeInfo(0) {
+        : QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : &Nothing, p2 ? p2 : &Nothing) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -87,14 +87,15 @@ public:
 
 class QoreFunctionalSquareBracketsRangeOperator : public FunctionalOperatorInterface, public RangeIterator {
 protected:
-    const AbstractQoreNode* node;
-    ExceptionSink* xsink;
+    ValueOptionalRefHolder seq;
     int64 start;
     int64 stop;
 
 public:
-    DLLLOCAL QoreFunctionalSquareBracketsRangeOperator(const AbstractQoreNode* n, int64 begin, int64 end, ExceptionSink* xs)
-        : RangeIterator(begin, end, 1, &Nothing, xs), node(n), xsink(xs), start(begin), stop(end) {}
+    DLLLOCAL QoreFunctionalSquareBracketsRangeOperator(ValueEvalRefHolder& old_seq, int64 begin, int64 end, ExceptionSink* xsink)
+        : RangeIterator(begin, end, 1, &Nothing, xsink), seq(*old_seq, old_seq.isTemp(), xsink), start(begin), stop(end) {
+            old_seq.clearTemp();
+        }
 
     DLLLOCAL virtual ~QoreFunctionalSquareBracketsRangeOperator() {}
 

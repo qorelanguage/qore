@@ -34,89 +34,101 @@
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
 AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   // turn off "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   assert(!typeInfo);
-   assert(!returnTypeInfo);
+    assert(!typeInfo);
+    assert(!returnTypeInfo);
 
-   const QoreTypeInfo *lti = 0, *rti = 0;
+    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
 
-   left = left->parseInit(oflag, pflag, lvids, lti);
-   right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
+    left = left->parseInit(oflag, pflag, lvids, lti);
+    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
 
-   if (QoreTypeInfo::hasType(lti)) {
-      // if we are trying to convert to a list
-      if (pflag & PF_FOR_ASSIGNMENT) {
-         // only throw a parse exception if parse exceptions are enabled
-         if (!QoreTypeInfo::parseAcceptsReturns(lti, NT_LIST) && getProgram()->getParseExceptionSink()) {
-            QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-            QoreTypeInfo::getThisType(lti, *edesc);
-            edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
-         }
-      }
-      else {
-         if (QoreTypeInfo::isType(lti, NT_STRING)) {
-            returnTypeInfo = stringOrNothingTypeInfo;
-         }
-         else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
-             if (QoreTypeInfo::hasType(rti) && QoreTypeInfo::isType(rti, NT_LIST))
-                 returnTypeInfo = binaryOrNothingTypeInfo;
-             else
-                 returnTypeInfo = bigIntOrNothingTypeInfo;
-         }
-         else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
-            && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
-            && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)) {
-            QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
-            QoreTypeInfo::getThisType(lti, *edesc);
-            edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-            qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-            returnTypeInfo = nothingTypeInfo;
-         }
-      }
-      if (!returnTypeInfo) {
-         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
-         if (ti) {
-            // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
-            returnTypeInfo = get_or_nothing_type_check(ti);
-         }
-      }
-   }
+    bool rti_is_list = QoreTypeInfo::isType(rti, NT_LIST);
+    bool rti_can_be_list = rti_is_list ? true : QoreTypeInfo::parseReturns(rti, NT_LIST);
 
-   // see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
-   if (!QoreTypeInfo::canConvertToScalar(rti)
-       && !QoreTypeInfo::parseReturns(rti, NT_LIST)) {
-	    QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
+    if (QoreTypeInfo::hasType(lti)) {
+        // if we are trying to convert to a list
+        if (pflag & PF_FOR_ASSIGNMENT) {
+            // only throw a parse exception if parse exceptions are enabled
+            if (!QoreTypeInfo::parseAcceptsReturns(lti, NT_LIST) && getProgram()->getParseExceptionSink()) {
+                QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
+                QoreTypeInfo::getThisType(lti, *edesc);
+                edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
+                qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+            }
+        }
+        else {
+            if (QoreTypeInfo::isType(lti, NT_STRING)) {
+                returnTypeInfo = rti_is_list ? stringTypeInfo : stringOrNothingTypeInfo;
+            }
+            else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
+                if (rti_is_list)
+                    returnTypeInfo = binaryTypeInfo;
+                else if (!rti_can_be_list)
+                    returnTypeInfo = stringOrNothingTypeInfo;
+                // in case of a binary offset, if we have a list rhs, then we get a binary object return value,
+                // if not, then we get either NOTHING or a binary, so we cannot determine the return value at parse time
+            }
+            else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
+                     && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
+                     && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)) {
+                QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
+                QoreTypeInfo::getThisType(lti, *edesc);
+                edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
+                qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+                returnTypeInfo = nothingTypeInfo;
+            }
+        }
+        if (!returnTypeInfo) {
+            if (rti_can_be_list) {
+                if (rti_is_list)
+                    // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
+                    returnTypeInfo = get_or_nothing_type_check(lti);
+                // if we can be a list but also can be something else (ex NOTHING),
+                // then we cannot predict the return type at parse time
+            }
+            else {
+                const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
+                if (ti) {
+                    // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
+                    returnTypeInfo = get_or_nothing_type_check(ti);
+                }
+            }
+        }
+    }
+
+    // if the rhs cannot be a list, see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
+    if (!rti_can_be_list && !QoreTypeInfo::canConvertToScalar(rti)) {
+        QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
 	    QoreTypeInfo::getThisType(rti, *edesc);
 	    edesc->concat(" and so will always evaluate to zero");
-	    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-   }
+        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+    }
 
-   // see if both arguments are constants, then eval immediately and substitute this node with the result
-   if (right && right->is_value()) {
-      if (left && left->is_value()) {
-         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
-         ParseExceptionSink xsink;
-         AbstractQoreNode* rv = QoreSquareBracketsOperatorNode::evalImpl(*xsink);
-         return rv ? rv : &Nothing;
-      }
-   }
+    // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute this node with the result
+    // if the right side can be a list then we need to leave it unevaluated so we can support lazy evaluation with functional operators
+    if (!rti_can_be_list && right && right->is_value() && left && left->is_value()) {
+        SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        AbstractQoreNode* rv = QoreSquareBracketsOperatorNode::evalImpl(*xsink);
+        return rv ? rv : &Nothing;
+    }
 
-   typeInfo = returnTypeInfo;
-   return this;
+    typeInfo = returnTypeInfo;
+    return this;
 }
 
 QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder lh(left, xsink);
-   if (*xsink)
-      return QoreValue();
-   ValueEvalRefHolder rh(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder lh(left, xsink);
+    if (*xsink)
+        return QoreValue();
+    ValueEvalRefHolder rh(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return doSquareBrackets(*lh, *rh, xsink);
+    return doSquareBrackets(*lh, *rh, xsink);
 }
 
 QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink) {
@@ -127,13 +139,13 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
         ConstListIterator it(r.get<const QoreListNode>());
         switch (left_type) {
             case NT_LIST: {
-                ReferenceHolder<QoreListNode> ret(new QoreListNode, xsink);
+                const QoreListNode* ll = l.get<const QoreListNode>();
+                ReferenceHolder<QoreListNode> ret(new QoreListNode(ll->getValueTypeInfo()), xsink);
                 while (it.next()) {
                     ValueHolder entry(doSquareBrackets(l, it.getValue(), xsink), xsink);
                     if (*xsink)
                         return QoreValue();
-                    if (!entry->isNothing())
-                        ret->push(entry->takeNode());
+                    ret->push(entry->takeNode());
                 }
                 return ret.release();
             }
@@ -165,8 +177,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
                 return QoreValue();
         }
     }
-    // rhs not a list, handled as an integer offset
 
+    // rhs not a list, handled as an integer offset
     int64 offset = r.getAsBigInt();
     switch (left_type) {
         case NT_LIST:
@@ -182,4 +194,42 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
     }
 
     return QoreValue();
+}
+
+FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+    ValueEvalRefHolder lhs(left, xsink);
+    if (*xsink)
+        return nullptr;
+    ValueEvalRefHolder rhs(right, xsink);
+    if (*xsink)
+        return nullptr;
+
+    // we only support functional iteration when the lhd is a list and the rhs is a list
+    if (lhs->getType() == NT_LIST && rhs->getType() == NT_LIST) {
+        value_type = list;
+        return new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink);
+    }
+
+    ValueHolder res(doSquareBrackets(*lhs, *rhs, xsink), xsink);
+    if (*xsink)
+        return nullptr;
+    if (res->isNothing()) {
+        value_type = nothing;
+        return nullptr;
+    }
+    else if (res->getType() == NT_LIST) {
+        value_type = list;
+        return new QoreFunctionalListOperator(true, res.release().get<QoreListNode>(), xsink);
+    }
+    value_type = single;
+    return new QoreFunctionalSingleValueOperator(res.release(), xsink);
+}
+
+bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+    if (++offset == rl->size())
+        return true;
+
+//printd(0, "QoreFunctionalSquareBracketsOperator::getNextImpl() offset: %d n: %p '%s'\n", (int)offset, rl->retrieve_entry(offset), get_type_name(rl->retrieve_entry(offset)));
+    val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*left, rl->retrieve_entry(offset), xsink), true);
+    return false;
 }
