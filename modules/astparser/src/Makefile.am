@@ -39,7 +39,7 @@ ASTPARSER_SOURCES = astparser-module.cpp AstParser.cpp AstParserHolder.cpp \
 nodist_astparser_la_SOURCES = $(GENERATED_SOURCES)
 endif
 
-lib_LTLIBRARIES = astparser.la
+modexeclib_LTLIBRARIES = astparser.la
 astparser_la_SOURCES = $(ASTPARSER_SOURCES)
 astparser_la_LDFLAGS = -module -avoid-version ${ASTPARSER_LIBS} ${MODULE_LDFLAGS}
 
@@ -56,13 +56,12 @@ endif
 endif
 
 if COND_MINGWCC
-RM_OTHER=$(DESTDIR)$(libdir)/$(MNAME).dll.a
+RM_OTHER=$(DESTDIR)$(modexeclibdir)/$(MNAME).dll.a
 endif
 
 install-exec-hook:
-	test -d $(DESTDIR)$(libdir) || mkdir -p $(DESTDIR)$(libdir)
-	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
-	$(RM) $(DESTDIR)$(libdir)/$(MNAME).la $(DESTDIR)$(libdir)/$(MNAME).a $(RM_OTHER)
+	mv $(DESTDIR)$(modexeclibdir)/$(MNAME).$(MODULE_SUFFIX) $(DESTDIR)$(modexeclibdir)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(DESTDIR)$(modexeclibdir)/$(MNAME).la $(DESTDIR)$(modexeclibdir)/$(MNAME).a $(RM_OTHER)
 
 clean-local:
 	$(RM) -r $(GENERATED_SOURCES)
@@ -70,4 +69,4 @@ clean-local:
 	$(RM) *.qtest
 
 uninstall-local:
-	$(RM) $(DESTDIR)$(libdir)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(DESTDIR)$(modexeclibdir)/$(MNAME)-api-$(MODULE_API).qmod
