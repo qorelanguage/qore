@@ -29,10 +29,10 @@
 %require-types
 %enable-all-warnings
 %new-style
+%no-debugging
 %debugger
-#%allow-debugging
 # child program won't inherit parent program options (including %debugger)
-#%no-child-restrictions
+%no-child-restrictions
 
 module DebugControl {
     version = "0.1";
@@ -99,11 +99,9 @@ public namespace DebugControl {
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
             logger.log(DUV_DEBUG, "create program: %y", fileName);
-            # TODO: seems I can use in program any DOMAIN_UNSECURE command regardless PO_ALLOW_DEBUGGING is set or not. Seems it has no effect of p.getParseOptions and defines
-			Program pgm = new Program(/*PO_NO_CHILD_PO_RESTRICTIONS/*PO_ALLOW_DEBUGGING*/); # PO_NO_INHERIT_USER_CLASSES to avoid importing DebugWrapper, but what about classes from modules ?
-#			pgm.disableParseOptions(PO_ALLOW_DEBUGGING);
-			# restore default options
-			pgm.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE);
+			Program pgm = new Program(PO_DEFAULT);
+			# restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
+			# note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
 			#pgm.replaceParseOptions(PO_DEFAULT);
             if (exists opts.parse_option) {
                 hash poops = Qore::ParseOptionCmdStringMap;
@@ -196,7 +194,10 @@ public namespace DebugControl {
                     case 'create':
                         break;
                     default:
-                        pgm = ProgramBase::resolveProgramId(int(pgmName));
+                        ProgramBase pgmb = ProgramBase::resolveProgramId(int(pgmName));
+                        if (pgmb.className() == 'ProgramBase')  # TODO: how to test if
+                            throw "DEBUG-HANDLER-ERROR", sprintf("Program (%y) is not allowed to debug", pgmName); # TODO: allow safe functions ? how to easily cope with Program vs. ProgramBase
+                        pgm = pgmb;
                     }
                     switch (shift cmd) {
                     case 'stop':
@@ -216,7 +217,7 @@ public namespace DebugControl {
                         break;
 
                     case 'list':
-                        foreach Program p in (ProgramBase::getAllPrograms()) {
+                        foreach ProgramBase p in (ProgramBase::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
                             if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
                                 result{pgmId}.scriptPath = p.getScriptPath();
