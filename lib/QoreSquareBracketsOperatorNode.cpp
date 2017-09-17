@@ -40,7 +40,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
     assert(!typeInfo);
     assert(!returnTypeInfo);
 
-    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
+    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
     left = left->parseInit(oflag, pflag, lvids, lti);
     right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
@@ -65,11 +65,11 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             }
             else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
                 if (rti_is_list)
-                    returnTypeInfo = binaryTypeInfo;
+                   returnTypeInfo = binaryTypeInfo;
                 else if (!rti_can_be_list)
-                    returnTypeInfo = stringOrNothingTypeInfo;
-                // in case of a binary offset, if we have a list rhs, then we get a binary object return value,
-                // if not, then we get either NOTHING or a binary, so we cannot determine the return value at parse time
+                    returnTypeInfo = bigIntOrNothingTypeInfo;
+                // if the rhs may or may not be a list, then we can't determine the return type;
+                // it could be int, binary, or NOTHING
             }
             else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
                      && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
@@ -82,15 +82,54 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             }
         }
         if (!returnTypeInfo) {
+            assert(QoreTypeInfo::parseAccepts(listTypeInfo, lti));
+            const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
             if (rti_can_be_list) {
-                if (rti_is_list)
-                    // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
-                    returnTypeInfo = get_or_nothing_type_check(lti);
+                if (rti_is_list) {
+                    if (ti) {
+                        // if the rhs is a list where each element is a non-list, then the return type is list<*type>
+                        bool all_int = true;
+                        switch (get_node_type(right)) {
+                            case NT_LIST: {
+                                ConstListIterator i(reinterpret_cast<const QoreListNode*>(right));
+                                while (i.next()) {
+                                    if (get_node_type(i.getValue()) == NT_LIST) {
+                                        all_int = false;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            case NT_PARSE_LIST: {
+                                const QoreParseListNode* pln = reinterpret_cast<const QoreParseListNode*>(right);
+                                const type_vec_t& vtypes = pln->getValueTypes();
+                                for (unsigned i = 0; i < pln->size(); ++i) {
+                                    const QoreTypeInfo* vti2 = vtypes[i];
+                                    if (QoreTypeInfo::parseReturns(vti2, NT_LIST)) {
+                                        all_int = false;
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            default:
+                                all_int = false;
+                                break;
+                        }
+                        if (all_int) {
+                            // if we have all integers in the list on th rhs, the return type is list<*type>
+                            returnTypeInfo = qore_get_complex_list_type(get_or_nothing_type_check(ti));
+                        }
+                    }
+                    // otherwise we always get a list when making a slice of a list, but the element type is unknown
+                    // if the lhs is not a list, then we get NOTHING
+                    if (!returnTypeInfo)
+                        returnTypeInfo = QoreTypeInfo::isType(lti, NT_LIST) ? listTypeInfo : listOrNothingTypeInfo;
+                }
                 // if we can be a list but also can be something else (ex NOTHING),
                 // then we cannot predict the return type at parse time
             }
             else {
-                const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
                 if (ti) {
                     // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
                     returnTypeInfo = get_or_nothing_type_check(ti);
@@ -140,13 +179,31 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
         switch (left_type) {
             case NT_LIST: {
                 const QoreListNode* ll = l.get<const QoreListNode>();
-                ReferenceHolder<QoreListNode> ret(new QoreListNode(ll->getValueTypeInfo()), xsink);
+                // calculate the runtime element type if possible
+                const QoreTypeInfo* vtype = nullptr;
+                // try to find a common value type, if any
+                bool vcommon = false;
+                ReferenceHolder<QoreListNode> ret(new QoreListNode, xsink);
                 while (it.next()) {
                     ValueHolder entry(doSquareBrackets(l, it.getValue(), xsink), xsink);
                     if (*xsink)
                         return QoreValue();
+
+                    if (!it.index()) {
+                        vtype = entry->getTypeInfo();
+                        vcommon = true;
+                    }
+                    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
+                        vcommon = false;
+
+                    //printd(5, "%d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
+
                     ret->push(entry->takeNode());
                 }
+
+                if (QoreTypeInfo::hasType(vtype))
+                    qore_list_private::get(**ret)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+
                 return ret.release();
             }
             case NT_STRING: {

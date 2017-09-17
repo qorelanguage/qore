@@ -610,11 +610,16 @@ public:
       }
 
       // ctype |* NOTHING -> *type
-      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::parseAcceptsReturns(ntype, NT_NOTHING)) {
+      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::isType(ntype, NT_NOTHING)) {
          const QoreTypeInfo* ti = get_or_nothing_type(ctype);
          ctype = ti;
-         if (!ti)
-            return false;
+         return ctype ? true : false;
+      }
+
+      // ctype==NOTHING | type -> *type
+      if (QoreTypeInfo::isType(ctype, NT_NOTHING)) {
+         ctype = get_or_nothing_type_check(ntype);
+         return ctype ? true : false;
       }
 
       // ctype |* *ctype -> *ctype

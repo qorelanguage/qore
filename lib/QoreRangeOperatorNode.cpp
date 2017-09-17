@@ -41,7 +41,7 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     returnTypeInfo = qore_get_complex_list_type(bigIntTypeInfo);
     typeInfo = returnTypeInfo;
 
-    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
+    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
     left = left->parseInit(oflag, pflag, lvids, lti);
     right = right->parseInit(oflag, pflag, lvids, rti);

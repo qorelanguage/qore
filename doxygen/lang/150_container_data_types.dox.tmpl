@@ -76,6 +76,39 @@ list<auto> l1 = (2, 3);
 printf("%y\n", l1.fullType());
     @endcode
 
+    @anchor list_slicing
+    @par List slicing:
+    Lists can be "sliced" by dereferencing them using dereferencing them using the @ref list_element_operator "[] operator" with a range or a list, as in the following examples:\n
+    @code{.py}
+list<int> l = (1, 2, 3, 4);
+
+# Creates a new list with the first two elements of the original list
+list l1a = l[0..1];
+list l1b = l[0,1];
+list l1c = l[..1];
+printf("slice 1a: %y\n", l1a);
+printf("slice 1b: %y\n", l1b);
+printf("slice 1c: %y\n", l1c);
+
+# Creates a new list with the last two elements of the original list in reverse order
+list l2a = l[3..2];
+list l2b = l[3,2];
+printf("slice 2a: %y\n", l2a);
+printf("slice 2b: %y\n", l2b);
+
+# -------------------------
+# the output is as follows:
+
+slice 1a: [1, 2]
+slice 1b: [1, 2]
+slice 1c: [1, 2]
+slice 2a: [4, 3]
+slice 2b: [4, 3]
+    @endcode \n
+
+    When making a slice of a list with a list of elements and referring to an element index that does not exist,
+    @ref nothing is returned for that list element in the resulting list.
+
     @see
     - @ref list_type, @ref softlist_type
     - @ref list_functions

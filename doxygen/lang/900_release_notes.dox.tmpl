@@ -81,6 +81,12 @@
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
       - @ref range_operator ".. (range operator)": supports lazy evaluation of itself
       - @ref list_element_operator "[..] (dereference operator with a range expression)": supports lazy evaluation of itself
+    - support for list, string, and binary slices with offsets and ranges:
+      - @ref list_slicing "list slices"
+      - @ref string_slicing "string slices"
+      - @ref binary_slicing "binary slices"
+      - new @ref range_operator ".. range operator"
+      - updated @ref list_element_operator "[] operator"
     - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
       - @ref Qore::decrypt_to_binary()
       - @ref Qore::decrypt_to_string()

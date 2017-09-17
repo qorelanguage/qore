@@ -49,7 +49,7 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     assert(!typeInfo);
     assert(!returnTypeInfo);
 
-    const QoreTypeInfo *typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
+    const QoreTypeInfo* typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
     e[0] = e[0]->parseInit(oflag, pflag, lvids, typeInfo0);
     e[1] = e[1]->parseInit(oflag, pflag, lvids, typeInfo1);
     e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
