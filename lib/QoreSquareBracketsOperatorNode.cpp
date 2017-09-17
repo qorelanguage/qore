@@ -81,8 +81,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
                 returnTypeInfo = nothingTypeInfo;
             }
         }
-        if (!returnTypeInfo) {
-            assert(QoreTypeInfo::parseAccepts(listTypeInfo, lti));
+        if (!returnTypeInfo && QoreTypeInfo::parseAccepts(listTypeInfo, lti)) {
             const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
             if (rti_can_be_list) {
                 if (rti_is_list) {
