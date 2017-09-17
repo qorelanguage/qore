@@ -35,8 +35,7 @@ ASTPARSER_SOURCES = astparser-module.cpp AstParser.cpp AstParserHolder.cpp \
 	queries/FindMatchingSymbolsQuery.cpp queries/FindNodeQuery.cpp \
 	queries/FindNodeAndParentsQuery.cpp queries/FindReferencesQuery.cpp \
 	queries/FindSymbolInfoQuery.cpp queries/FindSymbolsQuery.cpp \
-	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp \
-	ast_parser.cpp ast_scanner.cpp
+	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp
 nodist_astparser_la_SOURCES = $(GENERATED_SOURCES)
 endif
 
@@ -61,7 +60,7 @@ RM_OTHER=$(DESTDIR)$(libdir)/$(MNAME).dll.a
 endif
 
 install-exec-hook:
-	test -d $(MODULE_DIR) || mkdir -p $(MODULE_DIR)
+	test -d $(DESTDIR)$(libdir) || mkdir -p $(DESTDIR)$(libdir)
 	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
 	$(RM) $(DESTDIR)$(libdir)/$(MNAME).la $(DESTDIR)$(libdir)/$(MNAME).a $(RM_OTHER)
 
@@ -71,4 +70,4 @@ clean-local:
 	$(RM) *.qtest
 
 uninstall-local:
-	$(RM) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(DESTDIR)$(libdir)/$(MNAME)-api-$(MODULE_API).qmod
