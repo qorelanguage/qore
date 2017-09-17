@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
+%no-debugging 
 
 %requires QUnit
 
@@ -22,7 +23,7 @@ class ProgramVarsTest inherits QUnit::Test {
 
     varTest() {
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_DEBUGGER);
             p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); } hash sub test3() { try { throw 1; } catch (hash<ExceptionInfo> ex) { return get_local_vars(0); }}", "");
 
             hash vh = (
@@ -44,8 +45,8 @@ class ProgramVarsTest inherits QUnit::Test {
             pvh.c.value = NOTHING;
             assertEq(vh, pvh);
             assertEq({}, p.callFunction("test2", -1));
-            # cannot retrieve local vars in parent because %allow-debugging is not set
-            assertEq({}, p.callFunction("test2", 2));
+            # cannot retrieve local vars in parent because %no-debugging is set
+            assertThrows('DEBUGGING', \p.callFunction(), ("test2", 2));
 
             vh = (
                 "ex": (

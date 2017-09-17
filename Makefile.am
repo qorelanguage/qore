@@ -30,6 +30,10 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
 	qlib/DatasourceProvider.qm \
+	qlib/DebugCmdLine.qm \
+	qlib/DebugControl.qm \
+	qlib/DebugHandler.qm \
+	qlib/DebugUtil.qm \
 	qlib/Diff.qm \
 	qlib/FilePoller.qm \
 	qlib/FixedLengthUtil.qm \
@@ -128,6 +132,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_GetOpt.qpp \
 	lib/QC_HTTPClient.qpp \
 	lib/QC_Mutex.qpp \
+	lib/QC_ProgramBase.qpp \
 	lib/QC_Program.qpp \
 	lib/QC_DebugProgram.qpp \
 	lib/QC_Breakpoint.qpp \
@@ -554,6 +559,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Socket.h \
 	include/qore/intern/QC_Sequence.h \
 	include/qore/intern/QC_RWLock.h \
+	include/qore/intern/QC_ProgramBase.h \
 	include/qore/intern/QC_Program.h \
 	include/qore/intern/QC_DebugProgram.h \
 	include/qore/intern/QC_Breakpoint.h \
@@ -859,7 +865,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/sfrest bin/sqlutil bin/schema-reverse
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/sfrest bin/sqlutil bin/schema-reverse bin/qore-dbg bin/qore-dbgsrv bin/qore-remote 
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp

@@ -2,7 +2,6 @@
 
 # program being debugged
 %new-style
-#%allow-debugging
 
 class TestClass {
     public {
@@ -40,8 +39,8 @@ nothing sub main() {
     list localList;
     int i = 0;
     int zero = 0;
-    # this commands should raise parsing error as they are DOMAIN_UNSECURE and allow-debugging should be disabled
-    #Program pgm = Program::getProgram();
+    # this commands should raise parsing error as they are DOMAIN_DEBUGGER
+    #Program pgm = ProgramBase::getProgram();
     #printf("Pgm: %N\n%N\n", pgm, get_local_vars(0));
     TestClass tc();
     tc.log("TestClass::log() %s\n", "ABC");

@@ -3,13 +3,13 @@
 
 %enable-all-warnings
 %new-style
-#%allow-debugging
 
 %requires linenoise
 %requires qore >= 0.8.13
 %requires ../qlib/WebSocketClient.qm
 %requires json >= 1.5
 %requires ../qlib/DebugUtil.qm
+%requires ../qlib/DebugCmdLine.qm
 
 %exec-class DebugWrapper
 

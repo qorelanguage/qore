@@ -133,6 +133,8 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
       doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
       doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
+      doMap(PO_NO_DEBUGGING, "PO_NO_DEBUGGING");
+      doMap(PO_DEBUGGER, "PO_DEBUGGER");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -1766,9 +1768,9 @@ QoreDebugProgram::~QoreDebugProgram() {
    delete priv;
 }
 
-void QoreDebugProgram::addProgram(QoreProgram *pgm) {
+void QoreDebugProgram::addProgram(QoreProgram *pgm, ExceptionSink* xsink) {
    printd(5, "QoreDebugProgram::addProgram(), this: %p, pgm: %p\n", this, pgm);
-   priv->addProgram(pgm);
+   priv->addProgram(pgm, xsink);
 }
 
 void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
@@ -1796,8 +1798,8 @@ void QoreDebugProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {
    deref(xsink);
 }
 
-void QoreProgram::assignBreakpoint(QoreBreakpoint *bkpt) {
-   priv->assignBreakpoint(bkpt);
+void QoreProgram::assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink) {
+   priv->assignBreakpoint(bkpt, xsink);
 }
 
 void QoreProgram::deleteAllBreakpoints() {
@@ -1867,6 +1869,10 @@ QoreObject* QoreProgram::getQoreObject(QoreProgram* pgm) {
 
 QoreListNode* QoreProgram::getAllQoreObjects() {
    return qore_program_private::getAllQoreObjects();
+}
+
+bool QoreProgram::checkAllowDebugging(ExceptionSink* xsink) {
+   return priv->checkAllowDebugging(xsink);
 }
 
 const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
@@ -1951,7 +1957,7 @@ bool QoreBreakpoint::checkPgm(ExceptionSink* xsink) const {
 
 void QoreBreakpoint::assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink) {
    if (new_pgm) {
-      new_pgm->assignBreakpoint(this);
+      new_pgm->assignBreakpoint(this, xsink);
    } else {
       if (pgm) {
          QoreAutoRWWriteLocker al(&pgm->lck_breakpoint);
@@ -2141,7 +2147,7 @@ QoreObject* QoreBreakpoint::getQoreObject() {
    if (qo) {
       qo->ref();
    } else {
-      qo = new QoreObject(QC_BREAKPOINT, getProgram(), this);
+      qo = new QoreObject(QC_BREAKPOINT, ::getProgram(), this);
       this->ref();
    }
    return qo;

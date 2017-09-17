@@ -741,7 +741,7 @@ public:
 
    /** Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
     */
-   DLLEXPORT void assignBreakpoint(QoreBreakpoint *bkpt);
+   DLLEXPORT void assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink);
 
    /** delete all breakpoints from instance
     *
@@ -811,6 +811,10 @@ public:
 
    //! list all programs as QoreObject list
    DLLEXPORT static QoreListNode* getAllQoreObjects();
+
+   //! check if program can provide debugging stuff
+   DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);
+
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates

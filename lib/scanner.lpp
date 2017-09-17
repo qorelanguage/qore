@@ -762,8 +762,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                parse_set_parse_options(yylloc, PO_STRICT_BOOLEAN_EVAL);
 ^%strong-encapsulation{WS}*$            parse_set_parse_options(yylloc, PO_STRONG_ENCAPSULATION);
 ^%no-uncontrolled-apis{WS}*$            parse_set_parse_options(yylloc, PO_NO_UNCONTROLLED_APIS);
-^%allow-debugging{WS}*$                 parse_set_parse_options(yylloc, PO_ALLOW_DEBUGGING);
+^%no-debugging{WS}*$                    parse_set_parse_options(yylloc, PO_NO_DEBUGGING);
 ^%allow-weak-references{WS}*$           parse_set_parse_options(yylloc, PO_ALLOW_WEAK_REFERENCES);
+^%debugger{WS}*$                        parse_set_parse_options(yylloc, PO_DEBUGGER);
 ^%broken-list-parsing{WS}*$             parse_set_parse_options(yylloc, PO_BROKEN_LIST_PARSING);
 ^%broken-logic-precedence{WS}*$         parse_set_parse_options(yylloc, PO_BROKEN_LOGIC_PRECEDENCE);
 ^%broken-loop-statement{WS}*$           parse_set_parse_options(yylloc, PO_BROKEN_LOOP_STATEMENT);

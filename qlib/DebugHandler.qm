@@ -38,7 +38,7 @@
 %requires HttpServerUtil >= 0.3.11
 #%requires WebSocketUtil >= 1.0
 %requires ./DebugUtil.qm
-#>= 1.0
+%requires ./DebugControl.qm
 
 %new-style
 
@@ -61,7 +61,7 @@ module DebugHandler {
     dimultaneously.
 
     @see
-    - @ref DebugUtil
+    - @ref DebugControl
 
     @subsection websockethandler_v0_1 Version 0.1
     - the initial version of the WebSocketHandler module

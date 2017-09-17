@@ -3,12 +3,13 @@
 
 %enable-all-warnings
 %new-style
-%allow-debugging
+%debugger
 
 %requires qore >= 0.8.13
 %requires HttpServer
 #%requires ../qlib/HttpServer.qm
 %requires ../qlib/DebugUtil.qm
+%requires ../qlib/DebugControl.qm
 %requires ../qlib/DebugHandler.qm
 
 %exec-class DebugWrapper

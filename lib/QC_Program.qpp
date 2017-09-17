@@ -30,6 +30,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QC_ProgramBase.h"
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_Breakpoint.h"
@@ -481,12 +482,12 @@ const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
 */
 const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
 
-//! allows debugging actions that could be insecure such as reading the thread local variable stack
-/** @see @ref allow-debugging "%allow-debugging"
+//! Disallows debugging actions that could be insecure such as reading the thread local variable stack
+/** @see @ref no-debugging "%no-debugging"
 
     @since %Qore 0.8.13
 */
-const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
+const PO_NO_DEBUGGING = PO_NO_DEBUGGING;
 
 //! Prohibits user hashdecls from being imported into the new Program object
 /** @since %Qore 0.8.13
@@ -504,6 +505,12 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_SYSTEM_HASHDECLS;
     @since %Qore 0.8.13
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
+
+//! Allows the use of the debugger related stuff mainly via @ref DebugProgram
+/**
+    @since %Qore 0.8.13
+ */
+const PO_DEBUGGER = PO_DEBUGGER;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -656,7 +663,7 @@ const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
     Symbols can also be imported into Program objects singly using methods such as Program::importClass() and
     Program::importGlobalVariable(), etc.
  */
-qclass Program [arg=QoreProgram* p];
+qclass Program [arg=QoreProgram* p; vparent=ProgramBase];
 
 //! Creates the program object and optionally sets program capabilities (@ref parse_options "parse options")
 /** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is created, then
@@ -668,7 +675,7 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    Use @ref Qore::Program::getProgram "Program::getProgram" function to attach currently running program
+    Use @ref Qore::ProgramBase::getProgram "ProgramBase::getProgram" function to attach currently running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -1148,18 +1155,6 @@ softlist Program::getUserFunctionList() {
    return p->getUserFunctionList();
 }
 
-//! Returns the current binary-or'ed parse option mask for the Program object
-/** @return the current binary-or'ed parse option mask for the Program object
-
-    @par Example:
-    @code{.py}
-int mask = pgm.getParseOptions();
-    @endcode
- */
-int Program::getParseOptions() {
-   return p->getParseOptions64();
-}
-
 //! Sets parse options in the parse option mask for the Program object
 /** An \c OPTIONS-LOCKED exception is thrown if parse options have been locked (for example with Program::lockOptions())
 
@@ -1235,48 +1230,6 @@ pgm.setScriptPath("/users/test/test.q");
  */
 nothing Program::setScriptPath(*string path) {
    p->setScriptPath(path ? path->getBuffer() : 0);
-}
-
-//! Returns the current script directory as a string or @ref nothing if not set
-/** Gets the script directory set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_dir() function if called from within the Program.
-
-    @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
-
-    @par Example:
-    @code{.py}
-*string dir = pgm.getScriptDir();
-    @endcode
- */
-*string Program::getScriptDir() {
-   return p->getScriptDir();
-}
-
-//! Returns the current script name as a string or @ref nothing if not set
-/** Gets the script filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_name() function if called from within the Program.
-
-    @return the current script name as a string or @ref nothing if not set
-
-    @par Example:
-    @code{.py}
-*string name = pgm.getScriptName();
-    @endcode
- */
-*string Program::getScriptName() {
-   return p->getScriptName();
-}
-
-//! Returns the current script directory and filename if known, otherwise returns @ref nothing
-/** Gets the script directory and filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_path() function if called from within the Program.
-
-    @return the current script directory and filename if known, otherwise returns @ref nothing
-
-    @par Example:
-    @code{.py}
-*string path = pgm.getScriptPath();
-    @endcode
- */
-*string Program::getScriptPath() {
-   return p->getScriptPath();
 }
 
 //! Locks parse options so that they cannot be changed
@@ -1379,18 +1332,6 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
    p->setTZ(zone->get());
 }
 
-//! Returns the default local time zone for the object
-/** @return the default local time zone for the object
-
-    @par Example:
-    @code{.py}
-TimeZone tz = pgm.getTimeZone();
-    @endcode
- */
-TimeZone Program::getTimeZone() {
-   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
-}
-
 //! Sets a @ref conditional_parsing "parse define" for the current Program
 /** @param def The parse define to assign
     @param val The value to assign to the define
@@ -1418,52 +1359,6 @@ nothing Program::undefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    if (t)
       qore_program_private::runTimeUnDefine(p, t->getBuffer(), xsink);
-}
-
-//! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
-/** @param def The name of the define to check
-
-    @return @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
-
-    @par Example:
-    @code{.py}
-bool b = pgm.isDefined("PRODUCTION");
-    @endcode
- */
-bool Program::isDefined(string def) {
-   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
-}
-
-//! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
-/** @return the value of the given @ref conditional_parsing "parse define" in the current Program
-
-    @par Example:
-    @code{.py}
-auto val = pgm.getDefine("PRODUCTION");
-    @endcode
-
-    @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
- */
-auto Program::getDefine(string def) {
-   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
-}
-
-//! Retrieves all @ref conditional_parsing "parse defines" in the current Program
-/** @return the hash of values of all @ref conditional_parsing "parse defines" in the current Program
-
-    @par Example:
-    @code{.py}
-*hash val = pgm.getAllDefines();
-    @endcode
-
-    @note A parse define may be defined with no value then values may have nothing values
-
-    @since %Qore 0.8.13
- */
-*hash Program::getAllDefines() {
-   return qore_program_private::runTimeGetAllDefines(p);
 }
 
 //! Loads a %Qore module into the Program object at run-time
@@ -1733,7 +1628,7 @@ nothing Program::setGlobalVarValue(string name, auto value) {
    @since %Qore 0.8.13
  */
 nothing Program::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
-   p->assignBreakpoint(bkpt);
+   p->assignBreakpoint(bkpt, xsink);
 }
 
 //! delete all breakpoints from instance
@@ -1836,60 +1731,4 @@ list Program::findFunctionVariants(string function) {
    if (!vl)
       return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
    return vl->getOldList();
-}
-
-//! Get program id
-/**
-   @see
-      @ref Qore::Program::getProgramId "Program::getProgramId"
-
-   @since %Qore 0.8.13
- */
-int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
-   return p->getProgramId();
-}
-
-//! Get instance of program id
-/**
-   @see
-      @ref Qore::Program::resolveProgramId "Program::resolveProgramId"
-
-   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::Program "Program" instance
-
-   @since %Qore 0.8.13
- */
-static Program Program::resolveProgramId(int programId) [dom=DEBUG_INSECURE] {
-   QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
-   if (!pgm)
-      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
-   return QoreProgram::getQoreObject(pgm);
-}
-
-//! Get instance of current program
-/**
-   @since %Qore 0.8.13
- */
-static Program Program::getProgram() [flags=RET_VALUE_ONLY;dom=DEBUG_INSECURE] {
-   return QoreProgram::getQoreObject(getProgram());
-}
-
-//! Get instance of all programs
-/**
-   @since %Qore 0.8.13
- */
-static list Program::getAllPrograms() [flags=RET_VALUE_ONLY;dom=DEBUG_INSECURE] {
-   return QoreProgram::getAllQoreObjects();
-}
-//! returns a list of thread IDs active in this Program
-/** @par Example:
-    @code
-list<int> l = pgm.getThreadList();
-    @endcode
-
-    @return a list of thread IDs active in this Program
-
-    @since %Qore 0.8.13
-*/
-list<int> Program::getThreadList() [flags=CONSTANT] {
-    return p->getThreadList();
 }

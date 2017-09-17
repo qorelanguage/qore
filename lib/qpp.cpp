@@ -4419,7 +4419,7 @@ void init() {
     dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
     dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
-    dnmap["DEBUG_INSECURE"] = "PO_ALLOW_DEBUGGING";
+    dnmap["DEBUGGER"] = "PO_DEBUGGER";
 
     // initialize code flag set
     fset.insert("NO_FLAGS");

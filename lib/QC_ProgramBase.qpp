@@ -1,0 +1,241 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_ProgramBase.qpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/QC_ProgramBase.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+
+//! ProgramBase object provides safe information about a Qore program
+/** The object is never instantiated in script but returned by a API function.
+    The class provides only safe data non breaking security model.
+
+    @see
+        @ref Qore::Program "Program"
+ */
+qclass ProgramBase [arg=QoreProgram* p; dom=DEBUGGER];
+
+//! Throws an exception to prevent objects of this class being created from script
+/**
+    @throw PROGRAM-CREATE-ERROR copying ProgramBase objects is currently unsupported
+ */
+ProgramBase::constructor() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "creating ProgramBase objects is currently unsupported");
+}
+
+//! Throws an exception to prevent objects of this class from being copied
+/**
+    @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
+ */
+ProgramBase::copy() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "copying ProgramBase objects is currently unsupported");
+}
+
+//! Dereferences the internal Program object and deletes the %Qore object
+/**
+ */
+ProgramBase::destructor() {
+   p->unregisterQoreObject(self, xsink);
+   // the underlying object is created from C++ then it has reference and cannot be terminated
+   p->deref();
+}
+
+//! Returns the current binary-or'ed parse option mask for the Program object
+/** @return the current binary-or'ed parse option mask for the Program object
+
+    @par Example:
+    @code{.py}
+int mask = pgm.getParseOptions();
+    @endcode
+ */
+int ProgramBase::getParseOptions() {
+   return p->getParseOptions64();
+}
+
+//! Returns the current script directory as a string or @ref nothing if not set
+/** Gets the script directory set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_dir() function if called from within the Program.
+
+    @return Returns the current script directory as a string or @ref nothing if not set; if a string is returned, it should normally include the trailing directory separator character (\c "/" on UNIX, \c "\\" on Windows)
+
+    @par Example:
+    @code{.py}
+*string dir = pgm.getScriptDir();
+    @endcode
+ */
+*string ProgramBase::getScriptDir() {
+   return p->getScriptDir();
+}
+
+//! Returns the current script name as a string or @ref nothing if not set
+/** Gets the script filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_name() function if called from within the Program.
+
+    @return the current script name as a string or @ref nothing if not set
+
+    @par Example:
+    @code{.py}
+*string name = pgm.getScriptName();
+    @endcode
+ */
+*string ProgramBase::getScriptName() {
+   return p->getScriptName();
+}
+
+//! Returns the current script directory and filename if known, otherwise returns @ref nothing
+/** Gets the script directory and filename set with Program::setScriptPath(). This is the same value that will be returned in the %Qore program code with the get_script_path() function if called from within the Program.
+
+    @return the current script directory and filename if known, otherwise returns @ref nothing
+
+    @par Example:
+    @code{.py}
+*string path = pgm.getScriptPath();
+    @endcode
+ */
+*string ProgramBase::getScriptPath() {
+   return p->getScriptPath();
+}
+
+//! Returns the default local time zone for the object
+/** @return the default local time zone for the object
+
+    @par Example:
+    @code{.py}
+TimeZone tz = pgm.getTimeZone();
+    @endcode
+ */
+TimeZone ProgramBase::getTimeZone() {
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
+}
+
+//! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
+/** @param def The name of the define to check
+
+    @return @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
+
+    @par Example:
+    @code{.py}
+bool b = pgm.isDefined("PRODUCTION");
+    @endcode
+ */
+bool ProgramBase::isDefined(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
+}
+
+//! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
+/** @return the value of the given @ref conditional_parsing "parse define" in the current Program
+
+    @par Example:
+    @code{.py}
+auto val = pgm.getDefine("PRODUCTION");
+    @endcode
+
+    @note A parse define may be defined with no value; use ProgramBase::isDefined to check if a parse define is actually defined or not
+ */
+auto ProgramBase::getDefine(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
+
+//! Retrieves all @ref conditional_parsing "parse defines" in the current Program
+/** @return the hash of values of all @ref conditional_parsing "parse defines" in the current Program
+
+    @par Example:
+    @code{.py}
+*hash val = pgm.getAllDefines();
+    @endcode
+
+    @note A parse define may be defined with no value then values may have nothing values
+
+    @since %Qore 0.8.13
+ */
+*hash ProgramBase::getAllDefines() {
+   return qore_program_private::runTimeGetAllDefines(p);
+}
+
+//! Get program id
+/**
+   @see
+      @ref Qore::ProgramBase::getProgramId "ProgramBase::getProgramId"
+
+   @since %Qore 0.8.13
+ */
+int ProgramBase::getProgramId() [flags=RET_VALUE_ONLY;] {
+   return p->getProgramId();
+}
+
+//! Get instance of program id
+/**
+   @see
+      @ref Qore::ProgramBase::resolveProgramId "ProgramBase::resolveProgramId"
+
+   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramBase "ProgramBase" instance
+
+   @since %Qore 0.8.13
+ */
+static ProgramBase ProgramBase::resolveProgramId(int programId) [dom=DEBUGGER] {
+   QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
+   if (!pgm) {
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
+   }
+   return QoreProgram::getQoreObject(pgm);
+}
+
+//! Get instance of current program
+/**
+   @since %Qore 0.8.13
+ */
+static ProgramBase ProgramBase::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   QoreProgram* pgm = getProgram();
+   return QoreProgram::getQoreObject(pgm);
+}
+
+//! Get instance of all programs. 
+/**
+   Use @ref Qore::ProgramBase::resolveProgramId "ProgramBase::resolveProgramId" to get instance
+   @since %Qore 0.8.13
+ */
+static list ProgramBase::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   return QoreProgram::getAllQoreObjects();
+}
+//! returns a list of thread IDs active in this Program
+/** @par Example:
+    @code
+list<int> l = pgm.getThreadList();
+    @endcode
+
+    @return a list of thread IDs active in this Program
+
+    @since %Qore 0.8.13
+*/
+list<int> ProgramBase::getThreadList() [flags=CONSTANT] {
+    return p->getThreadList();
+}

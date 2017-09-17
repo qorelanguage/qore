@@ -1,0 +1,969 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugCmdLine.qm Debug common code
+
+/*  DebugCmdLine.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires ./DebugUtil.qm
+%requires linenoise
+
+%require-types
+%enable-all-warnings
+%new-style
+
+module DebugCmdLine {
+    version = "0.1";
+    desc = "user module providing common command line debug stuff";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugCmdLine Module
+
+    @tableofcontents
+
+    @section debugcmdlineintro Introduction to the DebugCmdLine Module
+
+    The %DebugCmdLine module provides common functionality for implementing debugger client utilities
+
+    @subsection dcl_v0_1 v0.1
+    - the initial version of the DebugCommandLine module
+*/
+
+#! the DebugCmdLine namespace contains all the definitions in the DebugCmdLine module
+public namespace DebugCmdLine {
+
+    /**
+        When implementing a wrapper which executes program whose name is passed at command line then we can divide
+        arguments usually into 3 groups, internal wrapper arguments, target program filename and program arguments.
+        The class support argument parsing for such a case.
+
+		Examples:
+            (   # GetOpt options
+    		    'help': 'h,help',
+    	    	'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+		    wrapper-prog -v -l xxx xxx -v -l    #the second xxx is target program name
+		    wrapper-prog -v -h xxx xxx          #the first xxx is target program name
+		    wrapper-prog -v --listen=xxx xxx    #the second xxx is target program name
+		    wrapper-prog -v --listen xxx xxx    #the second xxx is target program name
+        **/
+    public class WrapperGetOpt inherits GetOpt {
+        public constructor(hash options): GetOpt(options) {
+        }
+        /**
+            Parses input arguments till a standalone argument is found.
+
+            @param args @ref list of arguments passed to wrapper, typically ARGV
+            @param wrp_args returns list of wrapper arguments
+            @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
+            @param pgm_args return @list of target program arguments
+
+            @code{.py}
+            hash opts = (
+    		    'help': 'h,help',
+    	    	'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+    		WrapperGetOpt g(opts);
+		    list dargs;
+    		hash opt;
+            *string fileName;
+		    g.split(ARGV, \dargs, \fileName, \ARGV);
+
+            try {
+                opt = g.parse2(\dargs);
+            } catch (hash ex) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                help(-1);
+            }
+
+            if (exists fileName) {
+                stderr.print("No input file\n");
+                exit(-1);
+            }
+
+            @endcode
+        **/
+        public split(list args, reference wrp_args, reference pgm_name, reference pgm_args) {
+            pgm_name = NOTHING;
+            wrp_args = ();
+            pgm_args = ();
+            while (args) {
+                string s = shift args;
+                push wrp_args, s;
+                if (s !~ /^\-/ ) {
+                    list a = wrp_args;
+                    parse(\a);
+                    if (a) {
+                        # last arg is filename
+                        pgm_name = s;
+                        pop wrp_args;
+                        break;
+                    }
+                } else if (s == '--') {
+                    pgm_name = '';
+                    pop wrp_args;
+                    break;
+                }
+            }
+            pgm_args = args;
+        }
+    }
+
+
+    public const DUV_NONE = 0;
+    public const DUV_INFO = 1;
+    public const DUV_DEBUG = 2;
+
+    public class DebugLogger {
+        public {
+            int verbose = DUV_NONE;
+        }
+        constructor() {}
+
+        #! implement logging
+        /**
+          @param verbosity use DPC_xxx constants
+        */
+        public log(int verbosity, string fmt) {
+            if (verbose >= verbosity) {
+                if (argv) {
+                    stdout.vprintf(fmt+"\n", argv);
+                } else {
+                    stdout.print(fmt+"\n");
+                }
+            }
+        }
+    }
+
+    public class DebugCommandLine inherits AbstractDebugControl {
+        public {
+            string ln_prompt = 'qdbg> ';
+            hash cx;
+        }
+
+        private {
+            Qore::Thread::RWLock rwlContext();
+
+            hash commands = (
+                '>': (
+                    'help': (
+                        '**': (
+                            'desc': 'help/*',
+                            'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                shift path;
+                                if (path[0] == 'help') return ();
+                                *hash cmd = dcl.findCmd(path + args, True);
+                                if (!cmd.variants) return ();
+                                return keys cmd.variants;
+                            },
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                shift path; # remove help arg
+                                *hash cmd = dcl.findCmd(path + args, True);
+                                if (cmd.cmd) {
+                                    printf("%s: %s\n", (path+args).join(' '), cmd.cmd.desc);
+                                }
+                                cmd = dcl.findCmd(path + args + (''), True);
+                                if (cmd.variants.typeCode()==NT_HASH) {
+                                    printf("\nSubcommand list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                                }
+                            },
+                        ),
+                        'desc': 'get help about command',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            shift path; # remove help arg
+                            *hash cmd = dcl.findCmd(list('') , True);
+                            printf("Command root list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                        },
+                    ),
+                    'version': (
+                        'desc': 'get version info',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash res.client = (
+                                'class': dcl.className(),
+                            );
+                            try {
+                                hash data.cmd = 'version';
+                                res.host = dcl.doCommandImpl(data).result;
+                            } catch (hash ex) {
+                            }
+                            dcl.printData(res);
+                        },
+                    ),
+                    'history': (
+                        '>': (
+                            'load': (
+                                'desc': 'load history from file',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        Linenoise::history_load(fn);
+                                    }
+                                },
+                            ),
+                            'save': (
+                                'desc': 'save history to file',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        Linenoise::history_save(fn);
+                                    }
+                                },
+                            ),
+
+                        ),
+                        'desc': 'load or save history to file',
+                    ),
+                    'quit': (
+                        'desc': 'quit debugger',
+                        'action': bool sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            return True;
+                        },
+                    ),
+
+                    'session': (
+                        'desc': 'get list of debugged programs and stopped threads',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'session';
+                            dcl.doCommand(data);
+                        },
+                    ),
+                    'pgm': (
+                        '>': (
+                            'load': (
+                                'desc': 'load and run script, filename [args..]',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program//create';
+                                    data.filename = shift args;
+                                    if (!exists data.filename)
+                                        throw "DEBUG-COMMAND", "Missing file name";
+                                    data.args = args;
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'list': (
+                                'desc': 'list programs',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program//list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'current': (
+                                '*': (
+                                    'desc': 'set current program, arg: programId',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        if (sd.result) {
+                                            return keys sd.result;
+                                        } else {
+                                            return ();
+                                        }
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        dcl.setContextValue('programId', pop path);
+                                    },
+                                ),
+                                'desc': 'get current program',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    dcl.printData(dcl.getContextValue('programId'));
+                                },
+                            ),
+                            'add': (
+                                'desc': 'add current program for debugging',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/add';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'remove': (
+                                'desc': 'remove current program from debugging',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/remove';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'stop': (
+                                'desc': 'stop current program, args: [threadId] to stop particular thread',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId();
+                                    if (exists args[0]) {
+                                        data.cmd += '/thread/'+args[0];
+                                    }
+                                    data.cmd += '/stop';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'global': (
+
+                                '*': (
+                                    'desc': 'get/set global variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/';
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = dcl.parseValue(args);
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get/set global variable',
+                            ),
+                            'define': (
+
+                                '*': (
+                                    'desc': 'get defines',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return keys sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/get';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/define//list';
+                                    dcl.doCommand(data);
+                                },
+                                'desc': 'get defines',
+                            ),
+                            'options': (
+                                'desc': 'list parse options',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/options';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'info': (
+                                'desc': 'get info about current program and list threads',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/='+dcl.checkProgramId()+'/list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                        ),
+                        'desc': 'program related commands',
+                    ),
+                    'bkpt': (
+                        '>': (
+                            'list': (
+                                'desc': 'list breakpoints',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'create': (
+                                'desc': 'create breakpoint',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//create';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'delete': (
+                                '*': (
+                                    'desc': 'delete breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/delete';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get breakpoint',
+                            ),
+                            'enable': (
+                                '*': (
+                                    'desc': 'enable breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/enable';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'enable breakpoint',
+                            ),
+                            'disable': (
+                                '*': (
+                                    'desc': 'disable breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/disable';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'disable breakpoint',
+                            ),
+                            'policy': (
+                                '*': (
+                                    'desc': 'get breakpoint policy',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    '*': (
+                                        'desc': 'set breakpoint policy',
+                                        'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            return DebugCommandLine::enumFilter(keys policyStrings, pop path);
+                                        },
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+path[path.size()-2]+'/policy/set';
+                                            data.value = pop path;
+                                            dcl.doCommand(data);
+                                        },
+                                    ),
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/policy/get';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'breakpoint policy',
+                            ),
+                            'thread': (
+                                '*': (
+                                    'desc': 'get/set threads assigned to breakpoint, args: "+"/"-" threadId | threadId ..',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/';
+
+                                        if (args) {
+                                            string a = shift args;
+                                            if (a == '+') {
+                                                data.cmd += 'add';
+                                                data.value = int(shift args);
+                                            } else if (a == '-') {
+                                                data.cmd += 'remove';
+                                                data.value = int(shift args);
+                                            } else {
+                                                data.value = ();
+                                                push data.value, int(a);
+                                                map (push data.value, int($1)), args;
+                                                data.cmd += 'set';
+                                            }
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get thread handled by breakpoint',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/get';
+                                        dcl.doCommand(data);
+                                },
+                            ),
+                            'statement': (
+                                '*': (
+                                    'desc': 'get statement list assigned to breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'statement stuff',
+                            ),
+                        ),
+                        'desc': 'breakpoint related commands',
+                    ),
+                    'statement': (
+                        '>': (
+                            'list': (
+                                'desc': 'list statements', # duplicate to breakpoint/statement
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'assign': (
+                                '*': (
+                                    'desc': 'assign statement to breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/assign';
+                                        data.value = dcl.getStatementValue(args);
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'assign statement to breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                            ),
+                            'unassign': (
+                                '*': (
+                                    'desc': 'unassign statement from breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/unassign';
+                                        data.value = dcl.getStatementValue(args);
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'unassign statement from breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                            ),
+                        ),
+                        'desc': 'statement related commands',
+                    ),
+
+                    'thread': (
+                        '>': (
+                            'current': (
+                                '*': (
+                                    'desc': 'set current thread, arg: threadId',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'status';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        if (sd.result) {
+                                            list tids;
+                                            map (push tids, $1.tid), sd.result;
+                                            return tids;
+                                        } else {
+                                            return ();
+                                        }
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        dcl.setContextValue('threadId', int(pop path));
+                                    },
+                                ),
+                                'desc': 'get current thread',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    dcl.printData(dcl.getContextValue('threadId'));
+                                },
+                            ),
+                            'local': (
+                                '*': (
+                                    'desc': 'get/set local variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/local/'+pop path+'/list';
+                                        data.tid = dcl.checkThreadId();
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/local/'+pop path+'/';
+                                        data.tid = dcl.checkThreadId();
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = dcl.parseValue(args);
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get/set global variable',
+                            ),
+                            'debug': (
+                                '*': (
+                                    'desc': 'get/set special debug variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/debug/'+pop path+'/list';
+                                        data.tid = dcl.checkThreadId();
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/debug/'+pop path+'/';
+                                        data.tid = dcl.checkThreadId();
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = dcl.parseValue(args);
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get/set special debug variable',
+                            ),
+                        ),
+                        'desc': 'thread related commands',
+                    ),
+                    'stack': (
+                        'desc': 'get stack for current thread',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'thread/stack';
+                            data.tid = dcl.checkThreadId();
+                            dcl.doCommand(data);
+                        },
+                    ),
+                    'go': (
+                        '*': (
+                            'desc': 'go thread with specified runstate, arg: runstate',
+                            'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                return DebugCommandLine::enumFilter(keys runStateStrings, pop path);
+                            },
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                hash data.cmd = 'thread/go/'+pop path;
+                                data.tid = dcl.checkThreadId();
+                                dcl.doCommand(data);
+                            },
+                        ),
+                        'desc': 'go thread with default runstate',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'thread/go';
+                            data.tid = dcl.checkThreadId();
+                            dcl.doCommand(data);
+                        },
+                    ),
+                ),
+            );
+
+        }
+
+        constructor() {
+        }
+
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugControlProgram)
+        abstract public *hash doCommandImpl(hash data);
+
+        public doCommand(hash data) {
+            *hash ret = doCommandImpl(data);
+            if (ret) {
+                printData(ret);
+            }
+        }
+
+        public any parseValue(softlist args) {
+            # TODO parse as qore type
+            return shift args;
+        }
+
+        public any getContextValue(string key) {
+            rwlContext.readLock();
+            on_exit rwlContext.readUnlock();
+            return cx{key};
+        }
+
+        public setContextValue(string key, any value) {
+            rwlContext.writeLock();
+            on_exit rwlContext.writeUnlock();
+            cx{key} = value;
+        }
+
+        public hash getStatementValue(list args) {
+            if (!args)
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Statement prescription is missing");
+            string s;
+            s = trim(shift args);
+            if (s =~ /^[0-9]+$/) {
+                return ('file': '', 'lineno': int(s));
+            }
+            *list l = s =~ x/^(.+)\((.*)\)$/;
+            if (l) {
+                l[1] =~ tr/ //;
+                return ('function': l[0], 'args': split(',', l[1]));
+            }
+            if (args[0] =~ /^[0-9]+$/) {
+                return ('file': s, 'lineno': int(args[0]));
+            }
+            return ('id': s);
+        }
+
+        private list splitCmd(string line) {
+            list ret = ();
+            int i = 0;
+            int q = 0;
+            string s = '';
+            while (i < line.size()) {
+                switch (line[i]) {
+                case ' ':
+                    if (q == 0) {
+                        if (s != '') {
+                            push ret, s;
+                            s = '';
+                        }
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case "'":
+                    if (q == 0) {
+                        q = 1;
+                    } else if (q == 1) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '"':
+                    if (q == 0) {
+                        q = 2;
+                    } else if (q == 2) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '\':
+                    i++;
+                    switch (line[i]) {
+                    case 'n':
+                        s += "\n";
+                        break;
+                    case 'r':
+                        s += "\r";
+                        break;
+                    case 't':
+                        s += "\t";
+                        break;
+                    case '0':
+                        s += "\0";
+                        break;
+                    default:
+                        s += line[i];
+                    }
+                    break;
+                default:
+                    s += line[i];
+                }
+                i++;
+            }
+            if (q != 0)
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
+            if (s != '') {
+                push ret, s;
+            }
+            return ret;
+        }
+
+        public *hash findCmd(list args, bool findHelp = False) {  /* public because it is needed from closure */
+            hash result;
+            result.path = ();
+            hash c = commands;
+            while (args.size() > 0) {
+                if (findHelp && exists c."*") {
+                    # skip
+                    c = c."*";
+                } else if (exists c.">") {
+                    # static enum
+                    if (args.size() == 1) {
+                        foreach string k in (keys c.">") {
+                            if (k.substr(0, args[0].size()) == args[0]) {
+                                result.variants{k} = c.">"{k};
+                            }
+                        }
+                    }
+                    if (exists c.">"{args[0]}) {
+                        #remove result.cmd.">";
+                        c = c.">"{args[0]};
+                        result.cmd = c;
+                        push result.path, shift args;
+                    } else {
+                        if (exists result.variants) {
+                            push result.path, shift args;
+                        }
+                        break;
+                    }
+                } else if (exists c."*") {
+                    # dynamically enumerated
+                    c = c."*";
+                    if (args.size() == 1 && exists c.enum) {
+                        result.variants = c.enum;
+                    }
+                    push result.path, shift args;
+                    result.cmd = c;
+                } else if (exists c."**") {
+                    c = c."**";
+                    if (exists c.enum) {
+                        result.variants = c.enum;
+                    }
+                    push result.path, shift args;
+                    result.cmd = c;
+                    break;
+                } else
+                    break;
+            }
+            result.args = args;
+            return result;
+        }
+
+        private list ln_callback(string line) {
+            list args = splitCmd(line);
+            if (line =~ / $/ || line == '') {
+                args += '';
+            } else {
+                # strip last args
+                while (line != '' && line[line.size()-1] != ' ') {
+                    line = splice(line, -1);
+                }
+            }
+            *hash cmd = findCmd(args);
+
+            if (cmd.variants) {
+                *list v;
+                switch (cmd.variants.typeCode()) {
+                case NT_CLOSURE:
+                case NT_CALLREF:
+                    try {
+                        v = cmd.variants(self, cmd.path, cmd.args);
+                    } catch (hash ex) {
+                    }
+                    break;
+                default:
+                    v = keys cmd.variants;
+                }
+                list res = ();
+                map (push res, line+$1), sort(v);
+                return res;
+            } else {
+                return ();
+            }
+        }
+
+        public runCmdLine() {
+            # Linenoise::history_load('history.txt');
+            # Linenoise::history_set_max_len(256);
+            Linenoise::set_callback(\ln_callback());
+            string lastLine = '';
+            while (True) {
+                my *string line = Linenoise::line(ln_prompt);
+                if (!exists line) {
+                    printf("\n^C signal caught. Exiting.\n");
+                        break;
+                }
+                if (line != '') {
+                    if (line !~ /^ /) {
+                        Linenoise::history_add(line);
+                    }
+                    lastLine = line;
+                } else {
+                    line = lastLine;
+                }
+                *hash cmd = findCmd(splitCmd(line));
+                if (cmd.cmd) {
+#                    printf("line:%y\n", line);
+
+                    if (cmd.cmd.action) {
+#                    printf("exec:%y\n", cmd);
+                        try {
+                            any rc = cmd.cmd.action(self, cmd.path, cmd.args);
+                            if (rc) break;
+                        } catch (hash ex) {
+                            showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
+                        }
+                    }
+#                    printf("%y\n", cmd);
+                } else {
+                    printf("Unknown command\n");
+                }
+            }
+            # Linenoise::history_save('history.txt');
+
+        }
+
+        public printData(any data) {
+            string outs;
+            if (data.typeCode() == NT_HASH) {
+                switch (data.type) {
+                case 'response':
+                    switch (data.result.typeCode()) {
+                    case NT_HASH:
+                    case NT_LIST:
+                        outs = sprintf("%N", data.result);
+                        break;
+                    default:
+                        outs = sprintf("%y", data.result);
+                    }
+                    break;
+                case 'event':
+                    if (data.cmd == 'interrupt') {
+                        if (!exists getContextValue('programId')) {
+                            setContextValue('programId', data.pgmid);
+                        }
+                        if (!exists getContextValue('threadId')) {
+                            setContextValue('threadId', data.tid);
+                        }
+                    }
+                    break;
+                }
+                if (!exists outs)
+                    outs = sprintf("%N", data);
+            } else {
+                outs = sprintf("%y", data);
+            }
+            if (exists outs) {
+                # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
+                list l = outs.split("\n");
+                foreach my string line in (l) {
+                    stdout.print(line+"\r\n");
+                }
+                # TODO: how refresh linenoise command line ?
+            }
+        }
+
+        public int checkProgramId() {
+            *softint pgmId = getContextValue('programId');
+            if (!exists pgmId) {
+                throw "DEBUG-COMMAND", "Program is not set";
+            }
+            return pgmId;
+        }
+
+        public int checkThreadId() {
+            *softint threadId = getContextValue('threadId');
+            if (!exists threadId) {
+                throw "DEBUG-COMMAND", "Thread context is not set";
+            }
+            return threadId;
+        }
+
+        static public list enumBreakpointId(DebugCommandLine dcl, softlist path, softlist args) {
+            hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/list';
+            *hash sd = dcl.doCommandImpl(data);
+            if (sd.result) {
+                list res;
+                map (push res, $1.id), sd.result;
+                return res;
+            } else {
+                return ();
+            }
+        }
+
+    }
+
+}
+

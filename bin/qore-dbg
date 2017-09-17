@@ -3,11 +3,13 @@
 
 %enable-all-warnings
 %new-style
-%allow-debugging
 
 %requires linenoise
 %requires qore >= 0.8.13
 %requires ../qlib/DebugUtil.qm
+%requires ../qlib/DebugCmdLine.qm
+%requires ../qlib/DebugControl.qm
+%debugger
 
 %exec-class DebugWrapper
 
@@ -18,7 +20,7 @@ class DebugCommandLineLocal inherits DebugCommandLine {
 		any threadData;
 	}
 	constructor (DebugProgramControlLocal n_dpc): DebugCommandLine() {
-	    dpc = n_dpc;
+		dpc = n_dpc;
 		dpc.dcl = self;
 	}
 	public *hash doCommandImpl(hash data) {
@@ -72,8 +74,8 @@ class DebugProgramControlLocal inherits DebugProgramControl {
 class DebugWrapper {
 	private {
         hash opts = (
-    		'help': 'h,help',
-	    	'verbose': 'v,verbose:+',
+			'help': 'h,help',
+			'verbose': 'v,verbose:+',
 			'run': 'r,run',
 			"parse_option": "p,set-parse-option=s@",
 			#"charset": "c,charset=s",

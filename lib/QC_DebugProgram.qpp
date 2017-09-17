@@ -115,7 +115,7 @@ const DebugFlowContinue = RC_CONTINUE;
 
     @since %Qore 0.8.13
 */
-qclass DebugProgram [arg=QoreDebugProgramWithQoreObject* dpgm; ns=DebugProgram];
+qclass DebugProgram [dom=DEBUGGER; arg=QoreDebugProgramWithQoreObject* dpgm; ns=DebugProgram];
 
 //! Creates the debug program object with notification functions without any functionality
 /**
@@ -147,7 +147,7 @@ DebugProgram::destructor() {
  */
 nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
-   dpgm->addProgram(pgm);
+   dpgm->addProgram(pgm, xsink);
 }
 
 //! Remove program from debugging

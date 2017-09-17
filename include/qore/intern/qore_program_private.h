@@ -42,6 +42,7 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_AutoReadLock.h"
 #include "qore/intern/QC_AutoWriteLock.h"
 #include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_ProgramBase.h"
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 
@@ -2024,8 +2025,10 @@ public:
       }
    }
 
-   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt) {
+   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink) {
       if (!bkpt || this == bkpt->pgm) return;
+      if (!checkAllowDebugging(xsink))
+            return;
       if (bkpt->pgm) {
          bkpt->assignProgram(0, 0);
       }
@@ -2088,6 +2091,16 @@ public:
             return i->first;
       }
       return 0;
+   }
+
+   DLLLOCAL bool checkAllowDebugging(ExceptionSink *xsink) {
+      if (pwo.parse_options & PO_NO_DEBUGGING) {
+         if (xsink) {
+               xsink->raiseException("DEBUGGING", "program does not provide internal data for debugging");
+         }
+         return false;
+      } else
+         return true;
    }
 
    DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs) {
@@ -2269,7 +2282,7 @@ public:
       if (i->second) {
          i->second->ref();
       } else {
-         i->second = new QoreObject(QC_PROGRAM, getProgram(), pgm);
+         i->second = new QoreObject(pgm->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), pgm);
          pgm->ref();
       }
       return i->second;
@@ -2284,7 +2297,7 @@ public:
          if (i->second) {
             i->second->ref();
          } else {
-            i->second = new QoreObject(QC_PROGRAM, getProgram(), i->first);
+            i->second = new QoreObject(i->first->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), i->first);
             i->first->ref();
          }
          l->push(i->second);
@@ -2292,6 +2305,7 @@ public:
       }
       return l;
    }
+
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
@@ -2324,7 +2338,9 @@ public:
       assert(qore_program_map.empty());
    }
 
-   DLLLOCAL void addProgram(QoreProgram *pgm) {
+   DLLLOCAL void addProgram(QoreProgram *pgm, ExceptionSink *xsink) {
+      if (!pgm->priv->checkAllowDebugging(xsink))
+         return;
       QoreAutoRWWriteLocker al(&tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
       printd(5, "qore_debug_program_private::addProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());

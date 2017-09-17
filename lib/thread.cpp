@@ -928,8 +928,8 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
          pgm = ch->getProgram();
       }
 
-      printd(5, "thread_get_local_vars() pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), (pgm->getParseOptions64() & PO_ALLOW_DEBUGGING) != 0);
-      if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
+      printd(5, "thread_get_local_vars() pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
+      if (!pgm->checkAllowDebugging(xsink))
          return rv.release();
 
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);

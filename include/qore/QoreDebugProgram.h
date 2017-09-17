@@ -78,7 +78,7 @@ public:
    DLLEXPORT QoreDebugProgram();
 
 
-   DLLEXPORT void addProgram(QoreProgram *pgm);
+   DLLEXPORT void addProgram(QoreProgram *pgm, ExceptionSink* xsink);
    DLLEXPORT void removeProgram(QoreProgram *pgm);
    DLLEXPORT QoreListNode* getAllProgramObjects();
 
