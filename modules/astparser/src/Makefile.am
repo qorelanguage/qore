@@ -35,9 +35,8 @@ ASTPARSER_SOURCES = astparser-module.cpp AstParser.cpp AstParserHolder.cpp \
 	queries/FindMatchingSymbolsQuery.cpp queries/FindNodeQuery.cpp \
 	queries/FindNodeAndParentsQuery.cpp queries/FindReferencesQuery.cpp \
 	queries/FindSymbolInfoQuery.cpp queries/FindSymbolsQuery.cpp \
-	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp \
-	ast_parser.cpp ast_scanner.cpp
-nodist_astparser_la_SOURCES = $(GENERATED_SOURCES)
+	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp
+nodist_astparser_la_SOURCES = $(GENERATED_SOURCES) ast_parser.cpp ast_scanner.cpp
 endif
 
 modexeclib_LTLIBRARIES = astparser.la
