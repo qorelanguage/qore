@@ -363,5 +363,7 @@ public:
 #include "qore/intern/QoreMinusOperatorNode.h"
 #include "qore/intern/QoreMultiplicationOperatorNode.h"
 #include "qore/intern/QoreBackgroundOperatorNode.h"
+#include "qore/intern/QoreRangeOperatorNode.h"
+#include "qore/intern/QoreSquareBracketsRangeOperatorNode.h"
 
 #endif
