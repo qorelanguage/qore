@@ -910,28 +910,36 @@ void thread_pop_frame_boundary() {
    td->tlpd->cvstack.popFrameBoundary();
 }
 
+static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
+   if (frame < 0)
+      return nullptr;
+
+   ThreadData* td = thread_data.get();
+   ThreadLocalProgramData* tlpd = td->tlpd;
+   ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+   QoreProgram* pgm = td->current_pgm;
+
+   while (frame > tlpd->lvstack.getFrameCount()) {
+      frame -= (tlpd->lvstack.getFrameCount() + 1);
+      if (ch->getNextContext(tlpd, ch))
+         return nullptr;
+      if (!ch)
+         return nullptr;
+      pgm = ch->getProgram();
+      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+   }
+
+   printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
+   if (!pgm->checkAllowDebugging(xsink))
+      return nullptr;
+
+   return tlpd;
+}
+
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   if (frame >= 0) {
-      ThreadData* td = thread_data.get();
-      ThreadLocalProgramData* tlpd = td->tlpd;
-      ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
-      QoreProgram* pgm = td->current_pgm;
-      printd(5, "thread_get_local_vars() tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
-      while (frame > tlpd->lvstack.getFrameCount()) {
-         frame -= (tlpd->lvstack.getFrameCount() + 1);
-         if (ch->getNextContext(tlpd, ch))
-            return rv.release();
-         printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
-         if (!ch)
-            return nullptr;
-         pgm = ch->getProgram();
-      }
-
-      printd(5, "thread_get_local_vars() pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
-      if (!pgm->checkAllowDebugging(xsink))
-         return rv.release();
-
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
+   if (tlpd) {
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
@@ -942,12 +950,16 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    return rv.release();
 }
 
-int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->lvstack.setVarValue(name, val, xsink);
+// returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
+int thread_set_local_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
+   return tlpd ? tlpd->lvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
-int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->cvstack.setVarValue(name, val, xsink);
+// returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
+int thread_set_closure_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
+   return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
 void parse_push_name(const char* name) {

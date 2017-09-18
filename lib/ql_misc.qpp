@@ -2632,9 +2632,10 @@ hash get_local_vars(int frame) [dom=DEBUGGER;flags=RET_VALUE_ONLY] {
 //! sets the value of the given local variable; if the variable cannot be found an exception is raised
 /** @par Example:
     @code
-set_local_var_value("var", 1);
+set_local_var_value(0, "var", 1);
     @endcode
 
+    @param frame the stack frame where 0 is the current or highest stack frame
     @param var the name of the local variable
     @param value the value to assign
 
@@ -2646,9 +2647,9 @@ set_local_var_value("var", 1);
 
     @since %Qore 0.8.13
 */
-nothing set_local_var_value(string var, auto value) [dom=DEBUGGER] {
-   if (thread_set_local_var_value(var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(var->c_str(), value, xsink) == 1)
-      xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", var->c_str());
+nothing set_local_var_value(int frame, string var, auto value) [dom=DEBUGGER] {
+   if (thread_set_local_var_value(frame, var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(frame, var->c_str(), value, xsink) == 1 && !xsink->isEvent())
+      xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in stack frame %d", var->c_str(), (int)frame);
 }
 
 //! returns a hash of global variables

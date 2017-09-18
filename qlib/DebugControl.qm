@@ -671,7 +671,7 @@ public namespace DebugControl {
                                 }
                                 break;
                             case 'set':
-                                set_local_var_value(varName, unserialize(rd.value));
+                                set_local_var_value(ctxCT.frameId + frameOffset, varName, unserialize(rd.value));
                                 break;
                             case 'list':
                                 softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
