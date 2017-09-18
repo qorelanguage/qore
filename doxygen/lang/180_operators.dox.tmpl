@@ -212,7 +212,7 @@ string str = foldl $1 + ", " + $2, (map $1.desc, get_iterator(), $1.type == Exte
     Retrieves given list element(s), given character(s) of a string, or the integer value of given byte for a binary object or the binary object composed of given bytes of a binary object.
     If the index value is neither a list nor an integer it is converted to an integer. If the index is an integer and out of range, @ref nothing is returned.
     If the index is a list and completely out of range, empty list/string/binary is returned.
-    Note that this operator is not supported with multiple values and/or ranges between the square brackets on the left-hand side of lvalue expressions.
+    Note that this operator is not supported with multiple values and/or ranges between the square brackets on the left-hand side of an assignment expression.
 
     @par Syntax
     <em>@ref expressions "list_expression"</em><tt>[</tt><em>@ref expressions "index_expression"</em><tt>]</tt>\n

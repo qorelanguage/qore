@@ -1880,6 +1880,9 @@ fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
+modexeclibdir="${MODULE_VER_DIR}"
+AC_SUBST([modexeclibdir])
+
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
 CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
 CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"

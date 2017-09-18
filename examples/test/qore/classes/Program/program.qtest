@@ -180,6 +180,14 @@ class ProgramTest inherits QUnit::Test {
             assertEq("source", ex.source);
             assertEq(10, ex.offset);
         }
+
+        {
+            Program p5(PO_NEW_STYLE);
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("#", ""));
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("/*", ""));
+        }
     }
 
     combineTest() {
