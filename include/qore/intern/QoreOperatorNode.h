@@ -271,7 +271,12 @@ public:
    DLLLOCAL AbstractQoreNode* get(unsigned i) {
        assert(i < N);
        return e[i];
-    }
+   }
+
+   DLLLOCAL const AbstractQoreNode* get(unsigned i) const {
+       assert(i < N);
+       return e[i];
+   }
 
    DLLLOCAL virtual bool hasEffect() const {
       for (unsigned int i = 0; i < N; ++i)

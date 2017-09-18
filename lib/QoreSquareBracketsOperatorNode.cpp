@@ -146,7 +146,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
     }
 
     if (rti_is_list && pflag & PF_FOR_ASSIGNMENT) {
-        parse_error(loc, "cannot assign an lvalue slice");
+        parse_error(loc, "a slice cannot be used on the left-hand side of an assignment expression");
     }
 
     // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute this node with the result

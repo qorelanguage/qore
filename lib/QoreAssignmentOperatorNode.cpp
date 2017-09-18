@@ -40,11 +40,11 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, QoreTypeInfo::getName(ti));
-   checkLValue(left, pflag);
-
    // return type info is the same as the lvalue's typeinfo
    typeInfo = ti;
+
+   //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %p '%s' nt: %d ti: %p '%s'\n", this, left, get_type_name(left), get_node_type(left), ti, QoreTypeInfo::getName(ti));
+   checkLValue(left, pflag);
 
    // if "broken-int-assignments" is set, then set flag if applicable
    if ((ti == bigIntTypeInfo || ti == softBigIntTypeInfo)
@@ -73,7 +73,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
       bool may_not_match = false;
       bool may_need_filter = false;
       res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
-      // issue #2106 do not set the ident flag for any other type in case runtime types are more speficic (complex) than parse types and require filtering
+      // issue #2106 do not set the ident flag for any other type in case runtime types are more specific (complex) than parse types and require filtering
    }
    else
       res = QTI_AMBIGUOUS;

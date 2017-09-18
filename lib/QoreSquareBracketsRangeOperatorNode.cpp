@@ -54,6 +54,9 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     e[1] = e[1]->parseInit(oflag, pflag, lvids, typeInfo1);
     e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
 
+    if (pflag & PF_FOR_ASSIGNMENT)
+        parse_error(loc, "the range operator cannot be used in the left-hand side of an assignment expression");
+
     if (QoreTypeInfo::hasType(typeInfo0)) {
         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
              returnTypeInfo = typeInfo0;
@@ -89,7 +92,7 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
 
     qore_type_t seq_type = seq->getType();
     int64 start, stop, seq_size;
-    bool empty = !getEffectiveRange(seq, start, stop, seq_size, xsink);
+    bool empty = !getEffectiveRange(*seq, start, stop, seq_size, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -152,7 +155,7 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
         return nullptr;
 
     int64 start, stop, seq_size;
-    if (getEffectiveRange(seq, start, stop, seq_size, xsink))
+    if (getEffectiveRange(*seq, start, stop, seq_size, xsink))
         return new QoreFunctionalSquareBracketsRangeOperator(seq, start, stop, xsink);
     else
         return nullptr;
@@ -192,7 +195,7 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
 }
 
 // returns true iff the range is nonempty
-bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(ValueEvalRefHolder& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const {
+bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const {
     ValueEvalRefHolder start_index(e[1], xsink);
     if (*xsink)
         return false;
@@ -200,22 +203,26 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(ValueEvalRefHolder& 
     if (*xsink)
         return false;
 
-    qore_type_t seq_type = seq->getType();
+    return getEffectiveRange(seq, start, stop, seq_size, *start_index, *stop_index, xsink);
+}
+
+bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, const QoreValue& start_index, const QoreValue& stop_index, ExceptionSink* xsink) {
+    qore_type_t seq_type = seq.getType();
     if (seq_type != NT_LIST && seq_type != NT_STRING && seq_type != NT_BINARY) {
         xsink->raiseException("ILLEGAL-EXPRESSION", "Index range can be applied only to lists, strings and binaries");
         return false;
     }
 
     switch (seq_type) {
-        case NT_LIST:   seq_size = seq->get<const QoreListNode>()->size(); break;
-        case NT_STRING: seq_size = seq->get<const QoreStringNode>()->size(); break;
-        case NT_BINARY: seq_size = seq->get<const BinaryNode>()->size(); break;
+        case NT_LIST:   seq_size = seq.get<const QoreListNode>()->size(); break;
+        case NT_STRING: seq_size = seq.get<const QoreStringNode>()->size(); break;
+        case NT_BINARY: seq_size = seq.get<const BinaryNode>()->size(); break;
     }
 
-    bool no_start = start_index->getType() == NT_NOTHING,
-         no_stop = stop_index->getType() == NT_NOTHING;
-    start = no_start ? 0 : start_index->getAsBigInt();
-    stop = no_stop ? seq_size - 1 : stop_index->getAsBigInt();
+    bool no_start = start_index.getType() == NT_NOTHING,
+         no_stop = stop_index.getType() == NT_NOTHING;
+    start = no_start ? 0 : start_index.getAsBigInt();
+    stop = no_stop ? seq_size - 1 : stop_index.getAsBigInt();
 
     if ((no_start && stop < 0) || (no_stop && start > seq_size - 1))
         return false;
