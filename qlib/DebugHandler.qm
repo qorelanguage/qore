@@ -37,6 +37,7 @@
 # enable all warnings
 %enable-all-warnings
 %new-style
+%debugger
 
 module DebugHandler {
     version = "0.1";
