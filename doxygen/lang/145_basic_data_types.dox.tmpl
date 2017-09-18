@@ -86,6 +86,10 @@ string str2b = str[4,3];
 printf("string 2a: %y\n", str2a);
 printf("string 2b: %y\n", str2b);
 
+# Creates a substring from different characters in the string
+string str3 = str[4,3..1,0];
+printf("string 3: %y\n", str3);
+
 # -------------------------
 # the output is as follows:
 
@@ -94,6 +98,7 @@ string 1b: "he"
 string 1c: "he"
 string 2a: "ol"
 string 2b: "ol"
+string 3: "olleh"
     @endcode \n
 
     When making a substring with a list of character offsets and referring to a character offset that does not exist,
@@ -372,6 +377,10 @@ binary bin2b = bin[3,2];
 printf("binary 2a: %y\n", bin2a);
 printf("binary 2b: %y\n", bin2b);
 
+# Creates a binary slice with different bytes of the original binary object
+binary bin3 = bin[3,2..1,0];
+printf("binary 3: %y\n", bin3);
+
 # -------------------------
 # the output is as follows:
 
@@ -380,6 +389,7 @@ binary 1b: !!binary vq0=
 binary 1c: !!binary vq0=
 binary 2a: !!binary zvo=
 binary 2b: !!binary zvo=
+binary 3: !!binary zvqtvg==
     @endcode \n
 
     When making a substring with a list of character offsets and referring to a character offset that does not exist,

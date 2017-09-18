@@ -145,6 +145,10 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
     }
 
+    if (rti_is_list && pflag & PF_FOR_ASSIGNMENT) {
+        parse_error(loc, "cannot assign an lvalue slice");
+    }
+
     // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute this node with the result
     // if the right side can be a list then we need to leave it unevaluated so we can support lazy evaluation with functional operators
     if (!rti_can_be_list && right && right->is_value() && left && left->is_value()) {
@@ -197,7 +201,15 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
 
                     //printd(5, "%d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
 
-                    ret->push(entry->takeNode());
+                    // concatenate list indexes to the list
+                    if ((get_node_type(it.getValue()) == NT_LIST) && entry->getType() == NT_LIST) {
+                        ConstListIterator it2(entry->get<const QoreListNode>());
+                        while (it2.next()) {
+                            ret->push(it2.getReferencedValue());
+                        }
+                    }
+                    else
+                        ret->push(entry->takeNode());
                 }
 
                 if (QoreTypeInfo::hasType(vtype))
@@ -222,9 +234,19 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
                     ValueHolder entry(doSquareBrackets(l, it.getValue(), xsink), xsink);
                     if (*xsink)
                         return QoreValue();
-                    if (!entry->isNothing()) {
-                        unsigned char c = (unsigned char)entry->getAsBigInt();
-                        bin->append(&c, 1);
+                    switch (entry->getType()) {
+                        case NT_INT: {
+                            unsigned char c = (unsigned char)entry->getAsBigInt();
+                            bin->append(&c, 1);
+                            break;
+                        }
+                        case NT_BINARY: {
+                            bin->append(entry->get<BinaryNode>());
+                            break;
+                        }
+                        default:
+                            assert(entry->getType() == NT_NOTHING);
+                            break;
                     }
                 }
                 return bin.release();

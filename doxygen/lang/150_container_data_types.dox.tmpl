@@ -96,6 +96,10 @@ list l2b = l[3,2];
 printf("slice 2a: %y\n", l2a);
 printf("slice 2b: %y\n", l2b);
 
+# Takes a slice of different parts of the list
+list l3 = l[3,2..1,0];
+printf("slice 3: %y\n", l3);
+
 # -------------------------
 # the output is as follows:
 
@@ -104,6 +108,7 @@ slice 1b: [1, 2]
 slice 1c: [1, 2]
 slice 2a: [4, 3]
 slice 2b: [4, 3]
+slice 3: [4, 3, 2, 1];
     @endcode \n
 
     When making a slice of a list with a list of elements and referring to an element index that does not exist,
