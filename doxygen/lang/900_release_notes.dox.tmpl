@@ -350,6 +350,7 @@
     - fixed a bug where @ref Qore::replace() could get in an infinite loop with arguments with embededed nulls (<a href="https://github.com/qorelanguage/qore/issues/2098">issue 2098</a>)
     - fixed a bug in regular expression extraction where an infinite loop could occur (<a href="https://github.com/qorelanguage/qore/issues/2083">issue 2083</a>)
     - fixed a bug where a call reference to an object method that crosses @ref Qore::Program "Program" boundaries could result in a core dump when called due to an error managing thread-local data (<a href="https://github.com/qorelanguage/qore/issues/2145">issue 2145</a>)
+    - fixed crashes in scanner due to EOF in comments (<a href="https://github.com/qorelanguage/qore/issues/2175">issue 2175</a>)
 
     @section qore_081212 Qore 0.8.12.12
 
