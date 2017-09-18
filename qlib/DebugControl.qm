@@ -154,6 +154,11 @@ public namespace DebugControl {
             return pgm;
         }
 
+        private Program getPgm(ProgramBase pgmb) {
+            if (!(pgmb instanceof Program))
+                throw "DEBUG-HANDLER-ERROR", sprintf("Program %y uses PO_NO_DEBUGGING options", pgmb.getProgramId());
+            return pgmb;
+        }
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
             logger.log(DUV_INFO, "processCommand: %y", receiveData);
@@ -186,7 +191,7 @@ public namespace DebugControl {
                     }
                     break;
                 case 'program':
-                    Program pgm;
+                    ProgramBase pgmb;
                     *string pgmName = shift cmd;
                     switch (cmd[0]) {
                     case 'list':
@@ -194,15 +199,12 @@ public namespace DebugControl {
                     case 'create':
                         break;
                     default:
-                        ProgramBase pgmb = ProgramBase::resolveProgramId(int(pgmName));
-                        if (pgmb.className() == 'ProgramBase')  # TODO: how to test if
-                            throw "DEBUG-HANDLER-ERROR", sprintf("Program (%y) is not allowed to debug", pgmName); # TODO: allow safe functions ? how to easily cope with Program vs. ProgramBase
-                        pgm = pgmb;
+                        pgmb = ProgramBase::resolveProgramId(int(pgmName));
                     }
                     switch (shift cmd) {
                     case 'stop':
                         # no locking
-                        breakProgram(pgm);
+                        breakProgram(getPgm(pgmb));
                         result = 'ok';
                         break;
 
@@ -210,7 +212,7 @@ public namespace DebugControl {
                         softint tid = shift cmd;
                         switch (shift cmd) {
                         case 'stop':
-                            breakProgramThread(pgm, tid);
+                            breakProgramThread(getPgm(pgmb), tid);
                             result = 'ok';
                             break;
                         }
@@ -222,11 +224,11 @@ public namespace DebugControl {
                             if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
                                 result{pgmId}.scriptPath = p.getScriptPath();
                                 result{pgmId}.threads = p.getThreadList();
-                                result{pgmId}.debugging = p.className() != 'ProgramBase';  # TODO: how to test if inherited from ?
+                                result{pgmId}.debugging = p instanceof Program;
                             }
                         }
 #                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramBase::getAllPrograms();
-                        map result{$1.getProgramId()}.debug = True, getAllPrograms(), exists result{$1.getProgramId()};
+                        map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
                         {
                             rwlThread.readLock();
                             on_exit rwlThread.readUnlock();
@@ -238,15 +240,15 @@ public namespace DebugControl {
                         }
                         break;
                     case 'create':
-                        pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
+                        createProgram(receiveData.filename, NOTHING, receiveData.args);
                         break;
                     case 'add':
-                        addProgram(pgm);
+                        addProgram(getPgm(pgmb));
                         result = 'ok';
                         break;
 
                     case 'remove':
-                        removeProgram(pgm);
+                        removeProgram(getPgm(pgmb));
                         result = 'ok';
                         break;
 
@@ -254,20 +256,20 @@ public namespace DebugControl {
                         string varName = shift cmd;
                         switch (shift cmd) {
                         case 'set':
-                            pgm.setGlobalVarValue(varName, unserialize(receiveData.value));
+                            getPgm(pgmb).setGlobalVarValue(varName, unserialize(receiveData.value));
                             result = 'ok';
                             break;
 
                         case 'get':
                             bool existF;
-                            any v = serialize(pgm.getGlobalVariable(varName, \existF));
+                            any v = serialize(getPgm(pgmb).getGlobalVariable(varName, \existF));
                             if (existF) {
                                 result = v;
                             }
                             break;
 
                         case 'list':
-                            softlist l  = keys pgm.getGlobalVars();
+                            softlist l  = keys getPgm(pgmb).getGlobalVars();
                             foreach my string s in (\l) {
                                 s =~ s/^Qore:://;
                             }
@@ -281,28 +283,29 @@ public namespace DebugControl {
                         switch (shift cmd) {
 
                         case 'get':
-                            if (pgm.isDefined(defName)) {
-                                result = pgm.getDefine(defName);
+                            if (pgmb.isDefined(defName)) {
+                                result = pgmb.getDefine(defName);
                             }
-                            bool existF;
-                            any v = pgm.getGlobalVariable(defName, \existF);
-                            if (existF) {
-                                result = v;
+                            if (pgmb instanceof Program) {
+                                bool existF;
+                                any v = getPgm(pgmb).getGlobalVariable(defName, \existF);
+                                if (existF) {
+                                    result = v;
+                                }
                             }
                             break;
 
                         case 'list':
-                            *hash defs = pgm.getAllDefines();
+                            *hash defs = pgmb.getAllDefines();
                             list dd = AbstractDebugControl::enumFilter(keys defs, defName);
                             result = hash();
                             map result{$1} = defs{$1}, dd;
-                result{'programId'} = pgm.getProgramId();
                             break;
                         }
                         break;
 
                     case 'options':
-                        int opts = pgm.getParseOptions();
+                        int opts = pgmb.getParseOptions();
                         result = ();
                         foreach string o in (keys ParseOptionCodeMap) {
                             softint oo = o;
@@ -327,7 +330,7 @@ public namespace DebugControl {
                         }
                         switch (shift cmd) {
                         case 'list':
-                            list bkpts = pgm.getBreakpoints();
+                            list bkpts = getPgm(pgmb).getBreakpoints();
                             result = ();
                             foreach Breakpoint b2 in (bkpts) {
                                 if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
@@ -337,7 +340,7 @@ public namespace DebugControl {
                                     binfo.policy = encodeValue('policy', b2.getPolicy(), policyStrings);
                                     binfo.statements = ();
                                     foreach int sid in (b2.getStatementIds()) {
-                                        push binfo.statements, ('id': sid) + pgm.getStatementIdInfo(sid);
+                                        push binfo.statements, ('id': sid) + getPgm(pgmb).getStatementIdInfo(sid);
                                     }
                                     if (!binfo.threads)
                                         remove binfo.threads;
@@ -349,12 +352,12 @@ public namespace DebugControl {
                             break;
 
                         case 'create':
-                            b.assignProgram(pgm);
+                            b.assignProgram(getPgm(pgmb));
                             result = b.getBreakpointId();
                             break;
 
                         case 'delete':
-                            # TODO: if (b.getProgram().getProgramId() != pgm.getProgramId()
+                            # TODO: if (b.getProgram().getProgramId() != pgmb.getProgramId()
                             #  throw DEBUG-HANDLER-ERROR, "Program mismatch";
                             b.unassignProgram();
                             b.clearThreadIds();
@@ -381,17 +384,17 @@ public namespace DebugControl {
                             case 'list':
                                 result = hash();
                                 foreach int sid in (b.getStatementIds()) {
-                                    result{sid} = pgm.getStatementIdInfo(sid);
+                                    result{sid} = getPgm(pgmb).getStatementIdInfo(sid);
                                 }
                                 break;
 
                             case 'assign':
-                                b.assignStatement(resolveStatement(pgm, receiveData.value));
+                                b.assignStatement(resolveStatement(getPgm(pgmb), receiveData.value));
                                 result = 'ok';
                                 break;
 
                             case 'unassign':
-                                b.unassignStatement(resolveStatement(pgm, receiveData.value));
+                                b.unassignStatement(resolveStatement(getPgm(pgmb), receiveData.value));
                                 result = 'ok';
                                 break;
                             }

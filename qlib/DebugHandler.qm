@@ -39,6 +39,7 @@
 #%requires WebSocketUtil >= 1.0
 %requires ./DebugUtil.qm
 %requires ./DebugControl.qm
+%requires Mime
 
 %new-style
 
@@ -182,6 +183,10 @@ public namespace DebugHandler {
 
         public WebSocketHandler getHandler() {
             return handler;
+        }
+
+        public *string getContentType() {
+            return MimeTypeJsonRpc;
         }
     }
 

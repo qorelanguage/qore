@@ -80,7 +80,7 @@ printf("opts:%N\n%y\n%N\n", opt, fileName, ARGV);
 
 			logger.log(DUV_INFO, "create HttpServer");
 			mServer = new HttpServer(\httplog(), \httperr(), logger.verbose>=DUV_DEBUG);
-			mServer.setHandler("ws-handler", opt.path ?? "", NOTHING, wsHandler);
+			mServer.setHandler("ws-handler", opt.path ?? "", dpc.getContentType(), wsHandler);
 			mServer.setDefaultHandler("ws-handler", wsHandler);
 			if (opt.listen) {
 				foreach string l in (opt.listen) {
