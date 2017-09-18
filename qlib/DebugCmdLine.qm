@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires ./DebugUtil.qm
+%requires DebugUtil
 %requires linenoise
 
 %require-types
@@ -59,16 +59,16 @@ public namespace DebugCmdLine {
         arguments usually into 3 groups, internal wrapper arguments, target program filename and program arguments.
         The class support argument parsing for such a case.
 
-		Examples:
+        Examples:
             (   # GetOpt options
-    		    'help': 'h,help',
-    	    	'verbose': 'v,verbose',
+                'help': 'h,help',
+                'verbose': 'v,verbose',
                 'listen': 'l,listen=s@',
             );
-		    wrapper-prog -v -l xxx xxx -v -l    #the second xxx is target program name
-		    wrapper-prog -v -h xxx xxx          #the first xxx is target program name
-		    wrapper-prog -v --listen=xxx xxx    #the second xxx is target program name
-		    wrapper-prog -v --listen xxx xxx    #the second xxx is target program name
+            wrapper-prog -v -l xxx xxx -v -l    #the second xxx is target program name
+            wrapper-prog -v -h xxx xxx          #the first xxx is target program name
+            wrapper-prog -v --listen=xxx xxx    #the second xxx is target program name
+            wrapper-prog -v --listen xxx xxx    #the second xxx is target program name
         **/
     public class WrapperGetOpt inherits GetOpt {
         public constructor(hash options): GetOpt(options) {
@@ -83,15 +83,15 @@ public namespace DebugCmdLine {
 
             @code{.py}
             hash opts = (
-    		    'help': 'h,help',
-    	    	'verbose': 'v,verbose',
+                'help': 'h,help',
+                'verbose': 'v,verbose',
                 'listen': 'l,listen=s@',
             );
-    		WrapperGetOpt g(opts);
-		    list dargs;
-    		hash opt;
+            WrapperGetOpt g(opts);
+            list dargs;
+            hash opt;
             *string fileName;
-		    g.split(ARGV, \dargs, \fileName, \ARGV);
+            g.split(ARGV, \dargs, \fileName, \ARGV);
 
             try {
                 opt = g.parse2(\dargs);
@@ -966,4 +966,3 @@ public namespace DebugCmdLine {
     }
 
 }
-

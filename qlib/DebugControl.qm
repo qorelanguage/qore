@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires ./DebugUtil.qm
+%requires DebugUtil
 
 %require-types
 %enable-all-warnings
@@ -99,10 +99,10 @@ public namespace DebugControl {
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
             logger.log(DUV_DEBUG, "create program: %y", fileName);
-			Program pgm = new Program(PO_DEFAULT);
-			# restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
-			# note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
-			#pgm.replaceParseOptions(PO_DEFAULT);
+            Program pgm = new Program(PO_DEFAULT);
+            # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
+            # note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
+            #pgm.replaceParseOptions(PO_DEFAULT);
             if (exists opts.parse_option) {
                 hash poops = Qore::ParseOptionCmdStringMap;
                 int oo = 0;
@@ -128,13 +128,12 @@ public namespace DebugControl {
                 # TODO: parse exact shifts
                 pgm.setTimeZoneRegion(opts.time_zone);
             }
-			# update arguments without debug options
-			pgm.setGlobalVarValue('ARGV', args);
-			pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
+            # update arguments without debug options
+            pgm.setGlobalVarValue('ARGV', args);
+            pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
             logger.log(DUV_DEBUG, "add program");
-			addProgram(pgm);
+            addProgram(pgm);
 
-#script = "%new-style\nprintf(\"ARGV-PGM:%N\n\", ARGV);";
             if ((script ?? '') == '') {
                 if (fileName == '/dev/stdin') {  # is exception needed ??
                     logger.log(DUV_DEBUG, "read stdin");
@@ -145,12 +144,12 @@ public namespace DebugControl {
                     script = ReadOnlyFile::readTextFile(fileName);
                 }
             }
-			pgm.setScriptPath(fileName);
-			logger.log(DUV_DEBUG, "parse code");
-			*hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
-			if (wh) {
-				logger.log(DUV_INFO, "warning: %N", wh);
-			}
+            pgm.setScriptPath(fileName);
+            logger.log(DUV_DEBUG, "parse code");
+            *hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
+            if (wh) {
+                logger.log(DUV_INFO, "warning: %N", wh);
+            }
             return pgm;
         }
 

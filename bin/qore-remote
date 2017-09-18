@@ -6,181 +6,179 @@
 
 %requires linenoise
 %requires qore >= 0.8.13
-%requires ../qlib/WebSocketClient.qm
+%requires WebSocketClient
 %requires json >= 1.5
-%requires ../qlib/DebugUtil.qm
-%requires ../qlib/DebugCmdLine.qm
+%requires DebugUtil
+%requires DebugCmdLine
 
 %exec-class DebugWrapper
 
 class DebugCommandLineRemote inherits DebugCommandLine {
-	const WSC_TIMEOUT = 500;
-	public {
-		Counter counter();
-		int pendingUid;
-		any recData;
-		WebSocketClient wsc;
-		int wscTimeout;
-	}
-	constructor (hash opts): DebugCommandLine() {
-		wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
-		opts.log = \wscLog();
-		opts.errlog = \wscErr();
-		opts.debuglog = \wscDebug();
-		wsc = new WebSocketClient(\wscEvent(), opts);
-	}
-	public *hash doCommandImpl(hash data) {
+    const WSC_TIMEOUT = 500;
+    public {
+        Counter counter();
+        int pendingUid;
+        any recData;
+        WebSocketClient wsc;
+        int wscTimeout;
+    }
+    constructor (hash opts): DebugCommandLine() {
+        wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
+        opts.log = \wscLog();
+        opts.errlog = \wscErr();
+        opts.debuglog = \wscDebug();
+        wsc = new WebSocketClient(\wscEvent(), opts);
+    }
+    public *hash doCommandImpl(hash data) {
 
-		#if (!wsc.isOpen()) throw
-		pendingUid = clock_getmicros();
-		data.uid = pendingUid;
-		string d = make_json(data);
-		while (counter.getCount() > 0) {
-			counter.dec();
-		}
-		counter.inc();
-		recData = NOTHING;
-		logger.log(DUV_DEBUG, "send: %y", d);
-		wsc.send(d);
-		if (counter.waitForZero(wscTimeout)) {
-			return NOTHING;
-		} else {
-			return recData;
-		}
-	}
-
-	public wscEvent(*data msg) {
-		logger.log(DUV_DEBUG, "received: %y", msg);
-		if (!exists msg)
-			return;
-		try {
-			any d = parse_json(msg);
-			if (counter.getCount() > 0) {
-				if (d.type == "response" && pendingUid == d.uid) {
-					recData = d;
-					counter.dec();
-					return;
-				}
-			}
-			printData(d);
-		} catch (hash ex) {
-			wscErr(sprintf("wscEvent: %y", ex));
-		}
-	}
-
-	public wscLog(s) {
-		logger.log(DUV_INFO, s);
+        #if (!wsc.isOpen()) throw
+        pendingUid = clock_getmicros();
+        data.uid = pendingUid;
+        string d = make_json(data);
+        while (counter.getCount() > 0) {
+            counter.dec();
+        }
+        counter.inc();
+        recData = NOTHING;
+        logger.log(DUV_DEBUG, "send: %y", d);
+        wsc.send(d);
+        if (counter.waitForZero(wscTimeout)) {
+            return NOTHING;
+        } else {
+            return recData;
+        }
     }
 
-	public wscDebug(s) {
-		logger.log(DUV_DEBUG, s);
+    public wscEvent(*data msg) {
+        logger.log(DUV_DEBUG, "received: %y", msg);
+        if (!exists msg)
+            return;
+        try {
+            any d = parse_json(msg);
+            if (counter.getCount() > 0) {
+                if (d.type == "response" && pendingUid == d.uid) {
+                    recData = d;
+                    counter.dec();
+                    return;
+                }
+            }
+            printData(d);
+        } catch (hash ex) {
+            wscErr(sprintf("wscEvent: %y", ex));
+        }
     }
 
-	public wscErr(s) {
-		stderr.print(s+"\n");
+    public wscLog(s) {
+        logger.log(DUV_INFO, s);
+    }
+
+    public wscDebug(s) {
+        logger.log(DUV_DEBUG, s);
+    }
+
+    public wscErr(s) {
+        stderr.print(s+"\n");
     }
 }
 
 
 class DebugWrapper {
-	private {
+    private {
         hash opts = (
-    		'help': 'h,help',
-	    	'verbose': 'v,verbose:+',
-			'url': 'u,url=s',
-			'max_redirects': 'm,max-redir=i',
-			'proxy': 'P,proxy=s',
-			'timeout': 't,timeout=i',
-			'connect_timeout': 'c,conn-timeout=i',
-			'response_timeout': 'w,resp-timeout=i',
+            'help': 'h,help',
+            'verbose': 'v,verbose:+',
+            'url': 'u,url=s',
+            'max_redirects': 'm,max-redir=i',
+            'proxy': 'P,proxy=s',
+            'timeout': 't,timeout=i',
+            'connect_timeout': 'c,conn-timeout=i',
+            'response_timeout': 'w,resp-timeout=i',
         );
-		DebugCommandLineRemote dcl;
-		DebugLogger logger;
-	}
+        DebugCommandLineRemote dcl;
+        DebugLogger logger;
+    }
 
-	constructor() {
-		hash opt;
-		try {
-			GetOpt g(opts);
-			list a = ARGV;
-			opt = g.parse2(\a);
-			opt.url = shift a;
-			if (a) {
-				throw "GETOPT-ERROR", "Only one URL can be specified";
-			}
-			if (!exists opt.url) {
-				throw "GETOPT-ERROR", "Missing URL";
-			}
-			switch (opt.url) {
-			case /^ws:\/\//:
-				break;
-			case /^[a-zA-Z0-9_]+:\/\//:
-				throw "GETOPT-ERROR", "Url protocol is not ws://";
-			default:
-				opt.url = "ws://"+opt.url;
-			}
-		} catch (hash ex) {
-			stderr.printf("%s: %s\n", ex.err, ex.desc);
-			help(-1);
-		}
+    constructor() {
+        hash opt;
+        try {
+            GetOpt g(opts);
+            list a = ARGV;
+            opt = g.parse2(\a);
+            opt.url = shift a;
+            if (a) {
+                throw "GETOPT-ERROR", "Only one URL can be specified";
+            }
+            if (!exists opt.url) {
+                throw "GETOPT-ERROR", "Missing URL";
+            }
+            switch (opt.url) {
+            case /^ws:\/\//:
+                break;
+            case /^[a-zA-Z0-9_]+:\/\//:
+                throw "GETOPT-ERROR", "Url protocol is not ws://";
+            default:
+                opt.url = "ws://"+opt.url;
+            }
+        } catch (hash ex) {
+            stderr.printf("%s: %s\n", ex.err, ex.desc);
+            help(-1);
+        }
 
-		if (opt.help) {
-			help();
-		}
-		logger = new DebugLogger();
+        if (opt.help) {
+            help();
+        }
+        logger = new DebugLogger();
         if (opt.verbose) {
             logger.verbose = opt.verbose;
         }
-		logger.log(DUV_INFO, "url: %s, verbose: %d\n", opt.url, logger.verbose);
-		dcl = new DebugCommandLineRemote(opt);
-		dcl.logger = logger;
+        logger.log(DUV_INFO, "url: %s, verbose: %d\n", opt.url, logger.verbose);
+        dcl = new DebugCommandLineRemote(opt);
+        dcl.logger = logger;
         try {
-			dcl.wsc.connect();
-			*hash sess = dcl.doCommandImpl(('cmd': 'session'));
-			if (sess.result) {
-				string pgmId = sess.result.firstKey();
-				dcl.setContextValue('programId', pgmId);
-				if (sess.result{pgmId}.interrupted) {
-					dcl.setContextValue('threadId', sess.result{pgmId}.interrupted[0]);
-				}
-			}
-			dcl.runCmdLine();
-			dcl.wsc.disconnect();
+            dcl.wsc.connect();
+            *hash sess = dcl.doCommandImpl(('cmd': 'session'));
+            if (sess.result) {
+                string pgmId = sess.result.firstKey();
+                dcl.setContextValue('programId', pgmId);
+                if (sess.result{pgmId}.interrupted) {
+                    dcl.setContextValue('threadId', sess.result{pgmId}.interrupted[0]);
+                }
+            }
+            dcl.runCmdLine();
+            dcl.wsc.disconnect();
 
         } catch (hash e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
             exit(-1);
         }
-	}
+    }
 
-	private help(int exCode=1) {
+    private help(int exCode=1) {
         printf("usage: %s [options] <url>\n"
-			"  <url> is the URL of debug server in 'ws://socket=<url_encoded_path>/path', where ws:// is optional\n"
+            "  <url> is the URL of debug server in 'ws://socket=<url_encoded_path>/path', where ws:// is optional\n"
             "  where <url> is degug server target\n"
             "  -v     verbose\n"
             "  -h     help\n"
-			"  -m,--max-redir=<num>   the maximum number of redirects before throwing an exception (the default is 5)\n"
-			"  -P,--proxy=<url>       the proxy URL for connecting through a proxy\n"
-			"  -t,--timeout=<ms>      the timeout\n"
-			"  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
-			"  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n" 
+            "  -m,--max-redir=<num>   the maximum number of redirects before throwing an exception (the default is 5)\n"
+            "  -P,--proxy=<url>       the proxy URL for connecting through a proxy\n"
+            "  -t,--timeout=<ms>      the timeout\n"
+            "  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
+            "  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n"
 
-			"\n"
+            "\n"
             "Example:\n"
             "  %s -v -u localhost:1000/debug\n"
             "\n"
             ,
             get_script_name(),
             0,
-			DebugCommandLineRemote::WSC_TIMEOUT,
+            DebugCommandLineRemote::WSC_TIMEOUT,
             get_script_name()
 
         );
         exit(exCode);
     }
 
-	public dummy() {
-	}
+    public dummy() {
+    }
 }
-
-
