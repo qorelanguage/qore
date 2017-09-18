@@ -133,6 +133,7 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore
 %{_includedir}/*
+%{_datarootdir}/qore/Doxyfile.in
 
 %package devel-doc
 Summary:        C++ API documentation for the qore library
@@ -185,6 +186,7 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_bindir}/sqlutil
 %{module_dir}
 %{_mandir}/man1/qore.1.*
+%{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
 %changelog
 * Wed Feb 1 2017 David Nichols <david@qore.org> 0.8.13
