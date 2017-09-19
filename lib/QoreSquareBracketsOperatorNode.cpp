@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/qore_list_private.h"
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
