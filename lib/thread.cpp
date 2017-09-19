@@ -1552,16 +1552,11 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
    if (!pgm)
       return;
 
-   qore_program_private* pp = qore_program_private::get(*pgm);
-
    ThreadData* td = thread_data.get();
    //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
-   // we need to track the Programs in the stack for debugging purposes
-   old_pgm = td->current_pgm;
-   old_tlpd = td->tlpd;
-   old_ctx = td->current_pgm_ctx;
 
    if (pgm != td->current_pgm) {
+      qore_program_private* pp = qore_program_private::get(*pgm);
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
          //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
@@ -1571,6 +1566,9 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
 
       // set up thread stacks
       restore = true;
+      old_pgm = td->current_pgm;
+      old_tlpd = td->tlpd;
+      old_ctx = td->current_pgm_ctx;
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime, xsink);
       td->current_pgm_ctx = this;
