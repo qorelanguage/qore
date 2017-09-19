@@ -249,7 +249,7 @@ while (i.next()) {
       - @ref CsvUtil::CsvIterator "CsvIterator": provides a more generic interface than @ref CsvUtil::CsvDataIterator "CsvDataIterator" and @ref CsvUtil::CsvFileIterator "CsvFileIterator"
       - @ref CsvUtil::CsvWriter "CsvWriter": provides a more generic interface than @ref CsvUtil::CsvStringWriter "CsvStringWriter" and @ref CsvUtil::CsvFileWriter "CsvFileWriter"
     - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
-    - improved \a fields option documentation (<a href="https://github.com/qorelanguage/qore/issues/2179">issue 2179</a>)
+    - improved \a fields option documentation and added an exception when detected headers do not match the \a fields option (<a href="https://github.com/qorelanguage/qore/issues/2179">issue 2179</a>)
 
     @subsection csvutil_v1_5_1 Version 1.5.1
     - fixed a bug in @ref CsvUtil::AbstractCsvIterator::identifyTypeImpl() "AbstractCsvIterator::identifyTypeImpl()" generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
@@ -480,24 +480,36 @@ class CsvHelper {
         return spec;
     }
 
-    /** Process headers and add missing field specification, consider resordering fields in specification
+    /** Process headers and add missing field specification, consider reordering fields in specification
 
-        Return: list of field names in order of Csv record
+        @return a list of field names in order of csv record
     */
-    private list adjustFieldsFromHeaders(string type, *list headers) {
-
-        hash spec = m_specs{type} ?? hash();
+    private list adjustFieldsFromHeaders(string type, *list headers, bool check = False) {
+        hash spec = m_specs{type} ?? {};
+        # issue #2179: ensure that all field specifications match headers set
+        if (check && spec && headers) {
+            #printf("type: %y spec: %y headers: %y\n", type, spec, headers);
+            # get spec with actual header names
+            hash spec_copy = spec;
+            foreach hash h in (spec_copy.pairIterator()) {
+                if (h.value.header)
+                    spec_copy{h.value.header} = remove spec_copy{h.key};
+            }
+            *hash h1 = spec_copy - headers;
+            if (h1)
+                throw errname, sprintf("field specification for record %y refers to the following fields not reflected in the header: %y; known fields: %y", type, keys h1, headers);
+        }
         list csv_order = ();
         if (headers && tolwr)
             headers = (map $1.lwr(), headers);
 
         # look for header name if specified
-        hash fld_by_hdr = hash();
+        hash fld_by_hdr = {};
         hash hdr_idxs = map {$1: $#}, headers;
 
-        m_specs{type} = hash();
+        m_specs{type} = {};
 
-        foreach string f in (spec.keyIterator()) {
+        foreach string f in (keys spec) {
             fld_by_hdr{spec{f}.header} = f;
             if (!headerReorder) {
                 # keep existing spec
@@ -522,6 +534,7 @@ class CsvHelper {
             push csv_order, f;
             remove hdr_idxs{h};
         }
+
         return csv_order;
     }
 
@@ -865,14 +878,14 @@ public namespace CsvUtil {
             }
         }
 
-        #! match headers provided at Csv header or in options, never called for multi-type because header_names is False */
+        #! match headers provided at csv header or in options, never called for multi-type because header_names is False
         private prepareFieldsFromHeaders(*list headers) {
             # add missing m_specs from headers
             string k = m_specs.firstKey();
             if (m_specs{k}) {
                 m_resolve_by_count{m_specs{k}.size()} = select m_resolve_by_count{m_specs{k}.size()}, $1 != k;
             }
-            m_resolve_by_idx{k} = adjustFieldsFromHeaders(k, headers);
+            m_resolve_by_idx{k} = adjustFieldsFromHeaders(k, headers, True);
 
             if (!m_resolve_by_count{headers.size()}) {
                 m_resolve_by_count{headers.size()} = ();
