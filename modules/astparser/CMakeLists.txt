@@ -72,4 +72,4 @@ else (SINGLE_COMPILATION_UNIT)
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
-qore_binary_module(${astparser_module_name} "${VERSION}")
+qore_binary_module_intern(${astparser_module_name} "${VERSION}" "/${VERSION}")

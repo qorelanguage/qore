@@ -113,6 +113,10 @@ MACRO (QORE_WRAP_DOX _dox_files)
 
 ENDMACRO (QORE_WRAP_DOX)
 
+MACRO (QORE_BINARY_MODULE _module_name _version)
+   QORE_BINARY_MODULE_INTERN(${_module_name} ${_version} "" ${ARGN})
+ENDMACRO (QORE_BINARY_MODULE)
+
 # Create qore binary module.
 # Arguments:
 #  _module_name - string name of the module
@@ -126,7 +130,7 @@ ENDMACRO (QORE_WRAP_DOX)
 # additional targets created:
 #  'make docs' - if there is Doxygen found
 #  'make uninstall' - if exists CMAKE_CURRENT_SOURCE_DIR/cmake/cmake_uninstall.cmake.in
-MACRO (QORE_BINARY_MODULE _module_name _version)
+MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
 
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
@@ -162,10 +166,14 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
         endforeach (value)
     endif()
 
+    # set install target dir
+    set(_mod_target_dir ${QORE_MODULES_DIR}${_install_suffix})
+
     set_target_properties(${_module_name} PROPERTIES PREFIX "" SUFFIX "-api-${QORE_API_VERSION}.qmod")
     target_link_libraries(${_module_name} ${QORE_LIBRARY} ${_libs})
     # this line breaks jhbuild "chroot": install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
-    install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
+    #install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
+    install( TARGETS ${_module_name} DESTINATION ${_mod_target_dir})
 
     if (APPLE)
         # TODO/FIXME: @Niclas: please verify if it's correct
@@ -216,7 +224,7 @@ MACRO (QORE_BINARY_MODULE _module_name _version)
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
-ENDMACRO (QORE_BINARY_MODULE)
+ENDMACRO (QORE_BINARY_MODULE_INTERN)
 
 # Install qore native/user module (.qm file) into proper location.
 #
