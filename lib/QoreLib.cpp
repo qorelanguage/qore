@@ -2086,10 +2086,14 @@ int qore_get_ptr_hash(QoreString& str, const void* ptr) {
 }
 
 void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
-   assert(big_len && little_len);
+   assert(big && little);
 #ifdef HAVE_MEMMEM
    return memmem(big, big_len, little, little_len);
 #else
+   if (!big_len)
+      return nullptr;
+   if (!little_len)
+      return big;
    const char* lt = (const char*)little;
    const char* bg = (const char*)big;
    const char* p = bg;
@@ -2097,7 +2101,7 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    while (p < end) {
       const char* f = (const char*)memchr(p, lt[0], end - p);
       if (!f || ((bg - f) < (ptrdiff_t)little_len))
-         return 0;
+         return nullptr;
       p = f;
       bool found = true;
       for (size_t i = 1; i < little_len; ++i) {
@@ -2111,7 +2115,7 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
          return (void*)p;
       ++p;
    }
-   return 0;
+   return nullptr;
 #endif
 }
 

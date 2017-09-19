@@ -333,6 +333,14 @@ UK,1234567893,28052012";
             remove spec{CSV_TYPE_SINGLE}{k}.index;
         }
 
+        # issue #2179 added a negative test
+        {
+            hash nspec = spec;
+            nspec{CSV_TYPE_SINGLE}.xxx = "int";
+            CsvDataIterator i(outstr, nspec, ("header_names": True, "header_lines": 1, "header_reorder": False)+opts);
+            assertThrows("ABSTRACTCSVITERATOR-ERROR", \i.next());
+        }
+
         AbstractCsvIterator i = new CsvDataIterator(outstr, spec, ("header_names": True, "header_lines": 1,)+opts);
         hash r2 = hash();
         # add keys
