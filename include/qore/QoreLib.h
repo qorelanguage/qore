@@ -583,8 +583,10 @@ DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink)
     @return 0 = OK or -1 = a Qore-language exception occurred making the assignment (ex: incompatible types) or 1 = variable not found or inaccessible stack frame (no exception thrown)
 
     @note pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+
+    @since %Qore 0.8.13
  */
-DLLEXPORT int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink);
 
 //! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
 DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);

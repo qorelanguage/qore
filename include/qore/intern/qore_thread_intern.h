@@ -635,7 +635,7 @@ public:
    DLLLOCAL ~ProgramThreadCountContextHelper();
 
    DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
-      if (!nextOk())
+      if (!nextOk() || !old_ctx)
          return -1;
       tlpd = old_tlpd;
       ch = old_ctx;

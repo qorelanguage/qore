@@ -298,7 +298,7 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsi
    if (!priv->charset->isMultiByte()) {
       qore_size_t n_offset = priv->check_offset(offset);
       if (n_offset != priv->len)
-	 splice_simple(n_offset, priv->len - n_offset, str);
+         splice_simple(n_offset, priv->len - n_offset, str);
    }
    else
       splice_complex(offset, xsink, str);
@@ -311,7 +311,7 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num,
       qore_size_t n_offset, n_num;
       priv->check_offset(offset, num, n_offset, n_num);
       if (n_offset != priv->len && n_num)
-	 splice_simple(n_offset, n_num, str);
+         splice_simple(n_offset, n_num, str);
    }
    else
       splice_complex(offset, num, xsink, str);
@@ -332,9 +332,9 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num,
       qore_size_t n_offset, n_num;
       priv->check_offset(offset, num, n_offset, n_num);
       if (n_offset == priv->len) {
-	 if (!tmp->strlen())
-	    return rv;
-	 n_num = 0;
+         if (!tmp->strlen())
+            return rv;
+         n_num = 0;
       }
       splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
    }
@@ -377,48 +377,48 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
    switch (n.type) {
       case QV_Bool:
       case QV_Int:
-	 str = new QoreStringMaker(QLLD, n.getAsBigInt());
-	 del = true;
-	 break;
+         str = new QoreStringMaker(QLLD, n.getAsBigInt());
+         del = true;
+         break;
 
       case QV_Float:
-	 str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
-	 del = true;
-	 break;
+         str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
+         del = true;
+         break;
 
       case QV_Node:
-	 if (n.v.n) {
-	    //optimization to remove the need for a virtual function call in the most common case
-	    if (n.v.n->getType() == NT_STRING) {
-	       del = false;
-	       str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
-	    }
-	    else
-	       str = n.get<AbstractQoreNode>()->getStringRepresentation(del);
-	    if (enc && str->getEncoding() != enc) {
-	       QoreString* t = str->convertEncoding(enc, xsink);
-	       if (!t)
-		  break;
-	       if (del)
-		  delete str;
-	       str = t;
-	       del = true;
-	    }
-	 }
-	 else {
-	    str = NullString;
-	    del = false;
-	 }
-	 break;
+         if (n.v.n) {
+            //optimization to remove the need for a virtual function call in the most common case
+            if (n.v.n->getType() == NT_STRING) {
+               del = false;
+               str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
+            }
+            else
+               str = n.get<AbstractQoreNode>()->getStringRepresentation(del);
+            if (xsink && enc && str->getEncoding() != enc) {
+               QoreString* t = str->convertEncoding(enc, xsink);
+               if (!t)
+                  break;
+               if (del)
+                  delete str;
+               str = t;
+               del = true;
+            }
+         }
+         else {
+            str = NullString;
+            del = false;
+         }
+         break;
 
       default:
-	 assert(false);
-	 // no break
+         assert(false);
+         // no break
    }
 }
 
 QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n) {
-   setup(0, n);
+   setup(nullptr, n);
 }
 
 QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
@@ -426,7 +426,7 @@ QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n, const QoreEncod
 }
 
 QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n) {
-   setup(0, const_cast<AbstractQoreNode*>(n));
+   setup(nullptr, const_cast<AbstractQoreNode*>(n));
 }
 
 QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {
@@ -437,51 +437,51 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
    switch (n.type) {
       case QV_Bool:
       case QV_Int:
-	 str = new QoreStringNodeMaker(QLLD, n.getAsBigInt());
-	 del = true;
-	 break;
+         str = new QoreStringNodeMaker(QLLD, n.getAsBigInt());
+         del = true;
+         break;
 
       case QV_Float:
-	 str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
-	 del = true;
-	 break;
+         str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
+         del = true;
+         break;
 
       case QV_Node:
-	 if (n.v.n) {
-	    //optimization to remove the need for a virtual function call in the most common case
-	    if (n.v.n->getType() == NT_STRING) {
-	       del = false;
-	       str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
-	    }
-	    else {
-	       del = true;
-	       str = new QoreStringNode;
-	       n.get<AbstractQoreNode>()->getStringRepresentation(*str);
-	    }
-	    if (enc && str->getEncoding() != enc) {
-	       QoreStringNode* t = str->convertEncoding(enc, xsink);
-	       if (!t)
-		  break;
-	       if (del)
-		  str->deref();
-	       str = t;
-	       del = true;
-	    }
-	 }
-	 else {
-	    str = NullString;
-	    del = false;
-	 }
-	 break;
+         if (n.v.n) {
+            //optimization to remove the need for a virtual function call in the most common case
+            if (n.v.n->getType() == NT_STRING) {
+               del = false;
+               str = const_cast<QoreStringNode*>(n.get<QoreStringNode>());
+            }
+            else {
+               del = true;
+               str = new QoreStringNode;
+               n.get<AbstractQoreNode>()->getStringRepresentation(*str);
+            }
+            if (xsink && enc && str->getEncoding() != enc) {
+               QoreStringNode* t = str->convertEncoding(enc, xsink);
+               if (!t)
+                  break;
+               if (del)
+                  str->deref();
+               str = t;
+               del = true;
+            }
+         }
+         else {
+            str = NullString;
+            del = false;
+         }
+         break;
 
       default:
-	 assert(false);
-	 // no break
+         assert(false);
+         // no break
    }
 }
 
 QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n) {
-   setup(0, n);
+   setup(nullptr, n);
 }
 
 QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
@@ -489,7 +489,7 @@ QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n, const Q
 }
 
 QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n) {
-   setup(0, const_cast<AbstractQoreNode*>(n));
+   setup(nullptr, const_cast<AbstractQoreNode*>(n));
 }
 
 QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {

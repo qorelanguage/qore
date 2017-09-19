@@ -921,11 +921,12 @@ static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
+      // get previous Program before changing context
+      pgm = ch->getProgram();
       if (ch->getNextContext(tlpd, ch))
          return nullptr;
       if (!ch)
          return nullptr;
-      pgm = ch->getProgram();
       //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
    }
 
@@ -1568,11 +1569,11 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
    if (!pgm)
       return;
 
-   qore_program_private* pp = qore_program_private::get(*pgm);
-
    ThreadData* td = thread_data.get();
-   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+
    if (pgm != td->current_pgm) {
+      qore_program_private* pp = qore_program_private::get(*pgm);
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
          printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
