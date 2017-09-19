@@ -59,21 +59,21 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
 
     if (QoreTypeInfo::hasType(typeInfo0)) {
         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
-             returnTypeInfo = typeInfo0;
+            returnTypeInfo = typeInfo0;
         else if (QoreTypeInfo::isType(typeInfo0, NT_STRING))
-             returnTypeInfo = stringTypeInfo;
+            returnTypeInfo = stringTypeInfo;
         else if (QoreTypeInfo::isType(typeInfo0, NT_BINARY))
-             returnTypeInfo = binaryTypeInfo;
+            returnTypeInfo = binaryTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_LIST))
-             returnTypeInfo = get_or_nothing_type_check(typeInfo0);
+            returnTypeInfo = get_or_nothing_type_check(typeInfo0);
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_STRING))
-             returnTypeInfo = stringOrNothingTypeInfo;
+            returnTypeInfo = stringOrNothingTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_BINARY))
-             returnTypeInfo = binaryOrNothingTypeInfo;
+            returnTypeInfo = binaryOrNothingTypeInfo;
         else {
-             // raise an exception due to the invalid operand type
-             parseException(loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
-         }
+            // raise an exception due to the invalid operand type
+            parseException(loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
+        }
     }
     // ensure that the range operands can be converted to an integer
     if (!QoreTypeInfo::isType(typeInfo1, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo1))
@@ -219,8 +219,8 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
         case NT_BINARY: seq_size = seq.get<const BinaryNode>()->size(); break;
     }
 
-    bool no_start = start_index.getType() == NT_NOTHING,
-         no_stop = stop_index.getType() == NT_NOTHING;
+    bool no_start = start_index.isNothing(),
+         no_stop = stop_index.isNothing();
     start = no_start ? 0 : start_index.getAsBigInt();
     stop = no_stop ? seq_size - 1 : stop_index.getAsBigInt();
 
@@ -233,8 +233,6 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
 
         if (start < 0)
             start = 0;
-        if (stop > seq_size - 1)
-            stop = seq_size - 1;
     }
     else {
         if (stop > seq_size - 1 || start < 0)
@@ -242,8 +240,6 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
 
         if (stop < 0)
             stop = 0;
-        if (start > seq_size - 1)
-            start = seq_size - 1;
     }
     return true;
 }
