@@ -1249,7 +1249,7 @@ public:
       assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
-      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+      if (((po & PO_FREE_OPTIONS) != po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
          xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
          return -1;
       }
@@ -1261,8 +1261,8 @@ public:
    DLLLOCAL int disableParseOptions(int64 po, ExceptionSink* xsink) {
       assert(xsink);
       // only raise the exception if parse options are locked and the option is not a "free option"
-      // also check if options may be made more restrictive and the option also does so
-      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+      // note: disabling PO_POSITIVE_OPTION is more restrictive so let's allow to disable
+      if (((po & PO_FREE_OPTIONS) != po) && po_locked && !po_allow_restrict) {
          xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
          return -1;
       }
@@ -1286,7 +1286,7 @@ public:
    DLLLOCAL int parseSetParseOptions(const QoreProgramLocation& loc, int64 po) {
       // only raise the exception if parse options are locked and the option is not a "free option"
       // also check if options may be made more restrictive and the option also does so
-      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+      if (((po & PO_FREE_OPTIONS) != po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
          parse_error(loc, "parse options have been locked on this program object");
          return -1;
       }
@@ -1297,8 +1297,8 @@ public:
 
    DLLLOCAL int parseDisableParseOptions(const QoreProgramLocation& loc, int64 po) {
       // only raise the exception if parse options are locked and the option is not a "free option"
-      // also check if options may be made more restrictive and the option also does so
-      if (!((po & PO_FREE_OPTIONS) == po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+      // note: disabling PO_POSITIVE_OPTION is more restrictive so let's allow to disable
+      if (((po & PO_FREE_OPTIONS) != po) && po_locked && !po_allow_restrict) {
          parse_error(loc, "parse options have been locked on this program object");
          return -1;
       }
