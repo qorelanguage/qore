@@ -913,9 +913,10 @@ static ThreadLocalProgramData* get_var_frame(int& frame) {
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
+      // get previous Program before changing context
+      pgm = ch->getProgram();
       if (ch->getNextContext(tlpd, ch))
          return nullptr;
-      pgm = ch->getProgram();
       //printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
    }
 
@@ -1555,6 +1556,11 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
 
    ThreadData* td = thread_data.get();
    //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   // we need to track the Programs in the stack for debugging purposes
+   old_pgm = td->current_pgm;
+   old_tlpd = td->tlpd;
+   old_ctx = td->current_pgm_ctx;
+
    if (pgm != td->current_pgm) {
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
@@ -1565,9 +1571,6 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
 
       // set up thread stacks
       restore = true;
-      old_pgm = td->current_pgm;
-      old_tlpd = td->tlpd;
-      old_ctx = td->current_pgm_ctx;
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime, xsink);
       td->current_pgm_ctx = this;

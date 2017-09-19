@@ -2453,7 +2453,7 @@ QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
    return thread_get_local_vars(frame, xsink);
 }
 
-int q_thread_set_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+int q_set_thread_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
    int rc = thread_set_local_var_value(frame, name, val, xsink);
 
    if (rc == 1) {
