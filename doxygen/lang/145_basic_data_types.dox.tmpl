@@ -367,33 +367,32 @@ binary bin = <beadface>;
 binary bin1a = bin[0..1];
 binary bin1b = bin[0,1];
 binary bin1c = bin[..1];
-printf("binary 1a: %y\n", bin1a);
-printf("binary 1b: %y\n", bin1b);
-printf("binary 1c: %y\n", bin1c);
+printf("binary 1a: %s\n", bin1a.toHex());
+printf("binary 1b: %s\n", bin1b.toHex());
+printf("binary 1c: %s\n", bin1c.toHex());
 
 # Creates a binary slice with the last two bytes of the original binary object in reverse order
 binary bin2a = bin[3..2];
 binary bin2b = bin[3,2];
-printf("binary 2a: %y\n", bin2a);
-printf("binary 2b: %y\n", bin2b);
+printf("binary 2a: %s\n", bin2a.toHex());
+printf("binary 2b: %s\n", bin2b.toHex());
 
 # Creates a binary slice with different bytes of the original binary object
 binary bin3 = bin[3,2..1,0];
-printf("binary 3: %y\n", bin3);
+printf("binary 3: %s\n", bin3.toHex());
 
 # -------------------------
 # the output is as follows:
-
-binary 1a: !!binary vq0=
-binary 1b: !!binary vq0=
-binary 1c: !!binary vq0=
-binary 2a: !!binary zvo=
-binary 2b: !!binary zvo=
-binary 3: !!binary zvqtvg==
+binary 1a: bead
+binary 1b: bead
+binary 1c: bead
+binary 2a: cefa
+binary 2b: cefa
+binary 3: cefaadbe
     @endcode \n
 
-    When making a substring with a list of character offsets and referring to a character offset that does not exist,
-    no characters are added to the output string; these references are ignored.
+    When making a binary slice with a list of byte offsets and referring to a byte offset that does not exist,
+    no bytes are added to the output binary slice; these references are ignored.
 
     @see @ref binary_type
 

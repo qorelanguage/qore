@@ -912,7 +912,7 @@ class Test inherits QUnit::Test {
         assertEq((7,3,5,1), l[..3]);
         assertEq(23, foldl $1 + 2*$2, l[..2]);       # lazy evaluation
         assertEq(25, foldl $1 + 2*$2, l[2..0]);      # lazy evaluation
-        assertEq(23, foldl $1 + 2*$2, l[(0..2)]);    # 'standard' evaluation
+        assertEq(23, foldl $1 + 2*$2, l[(0..2)]);    # lazy evaluation
         assertEq(NOTHING, l[8]);
         assertEq((NOTHING,), l[8,]);
         assertEq((), l[8..11]);
