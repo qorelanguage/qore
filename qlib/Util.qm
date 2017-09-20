@@ -1098,6 +1098,19 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
         return '\A' + r + '\Z';
     }
 
+    #! Flattens a nested list (the nesting can be to any depth).
+    public list sub flatten (softlist arg) {
+        list r;
+        foreach any i in (arg) {
+            if (i.typeCode() == NT_LIST)
+                foreach any j in (flatten(i))
+                    r += j;
+            else
+                r += i;
+        }
+        return r ?? ();
+    }
+
     #! Returns a list of lists, where the i-th list contains the i-th element from each of the argument lists.
     /**
         @param  ... lists to 'zip'
