@@ -48,6 +48,10 @@
 
 #include <memory>
 #include <utility>
+#include <set>
+#include <functional>
+
+typedef std::set<int64, std::greater<int64>> ind_set_t;
 
 // global environment hash
 QoreHashNode* ENV;
@@ -267,6 +271,11 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    ValueEvalRefHolder rh(op->getRight(), vl.xsink);
    if (*vl.xsink)
       return -1;
+
+   if (rh->getType() == NT_LIST) {
+      vl.xsink->raiseException("ILLEGAL-SLICE", "slices are not supported in internal lvalue expressions");
+      return -1;
+   }
 
    int64 ind = rh->getAsBigInt();
    if (ind < 0) {
@@ -1067,12 +1076,28 @@ void LValueRemoveHelper::deleteLValue() {
       v.clearTemp();
 
    qore_type_t t = v->getType();
+   if (t == NT_LIST && direct_list) {
+      ListIterator i(static_cast<QoreListNode*>(v->getInternalNode()));
+      while (i.next()) {
+         AbstractQoreNode* n = i.getValue();
+         if (get_node_type(n) == NT_OBJECT) {
+            QoreObject* o = static_cast<QoreObject*>(n);
+            if (o->isSystemObject()) {
+               xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
+               continue;
+            }
+            o->doDelete(xsink);
+         }
+      }
+
+      return;
+   }
    if (t != NT_OBJECT)
       return;
 
    QoreObject* o = reinterpret_cast<QoreObject*>(v->getInternalNode());
    if (o->isSystemObject()) {
-      xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
+      xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
       return;
    }
 
@@ -1118,19 +1143,15 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    {
       const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
       if (op) {
-         LValueHelper lvhb(op, xsink, true);
-         if (!lvhb)
-            return;
+         doRemove(op);
+         return;
+      }
+   }
 
-         bool static_assignment = false;
-         QoreValue tmp = lvhb.remove(static_assignment);
-         if (static_assignment)
-            tmp.ref();
-#ifdef DEBUG
-         assert(!rv.assignAssumeInitial(tmp));
-#else
-         rv.assignAssumeInitial(tmp);
-#endif
+   {
+      const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue);
+      if (op) {
+         doRemove(op);
          return;
       }
    }
@@ -1216,6 +1237,253 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    assert(!rv.assignInitial(v));
 #else
    rv.assignInitial(v);
+#endif
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
+   // get the bracket expression
+   ValueEvalRefHolder rh(op->getRight(), xsink);
+   if (*xsink)
+      return;
+
+   int64 ind = 0;
+   const QoreListNode* rl = nullptr;
+   if (rh->getType() == NT_LIST) {
+      rl = rh->get<const QoreListNode>();
+   }
+   else {
+      ind = rh->getAsBigInt();
+      if (ind < 0) {
+         xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
+         return;
+      }
+   }
+
+   LValueHelper lvh(op->getLeft(), xsink, true);
+   if (!lvh)
+      return;
+
+   switch (lvh.getType()) {
+      case NT_LIST: {
+         lvh.ensureUnique();
+         QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+         ReferenceHolder<> v(xsink);
+         if (!rl) {
+            if (ind < l->size())
+               v = qore_list_private::get(*l)->takeExists(ind);
+         }
+         else {
+            direct_list = true;
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            ConstListIterator li(rl);
+            v = new QoreListNode;
+            while (li.next()) {
+               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+               if (ind >= 0 && ind < l->size()) {
+                  iset.insert(ind);
+                  static_cast<QoreListNode*>(*v)->push(qore_list_private::get(*l)->takeExists(ind));
+               }
+               else
+                  static_cast<QoreListNode*>(*v)->push(nullptr);
+            }
+            // now collapse list by rewriting it without the elements removed
+            for (auto& i : iset) {
+               // removing NOTHING elements here
+               l->splice(i, 1, xsink);
+            }
+         }
+         if (needs_scan(*v)) {
+            if (!qore_list_private::getScanCount(*l))
+                  lvh.setDelta(-1);
+         }
+#ifdef DEBUG
+         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+         assert(!rv.assignInitial(v.release()));
+#else
+         rv.assignInitial(v.release());
+#endif
+         return;
+      }
+
+      case NT_STRING: {
+         lvh.ensureUnique();
+         QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+         SimpleRefHolder<QoreStringNode> v;
+         size_t len = str->length();
+         if (!rl) {
+            if (ind < len)
+               v = str->substr(ind, 1, xsink);
+            else
+               v = new QoreStringNode(str->getEncoding());
+         }
+         else {
+            v = new QoreStringNode(str->getEncoding());
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            ConstListIterator li(rl);
+            while (li.next()) {
+               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+               if (ind >= 0 && ind < len) {
+                  iset.insert(ind);
+                  int cp = str->getUnicodePoint(ind, xsink);
+                  if (*xsink)
+                     break;
+                  v->concatUnicode(cp, xsink);
+                  if (*xsink)
+                     break;
+               }
+            }
+            // now collapse list by rewriting it without the elements removed
+            for (auto& i : iset) {
+               str->splice(i, 1, xsink);
+               if (*xsink)
+                  break;
+            }
+         }
+#ifdef DEBUG
+         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+         assert(!rv.assignInitial(v.release()));
+#else
+         rv.assignInitial(v.release());
+#endif
+         return;
+      }
+
+      case NT_BINARY: {
+         lvh.ensureUnique();
+         BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+         SimpleRefHolder<BinaryNode> v(new BinaryNode);
+         if (!rl) {
+            if (ind < bin->size())
+               bin->substr(**v, ind, 1);
+         }
+         else {
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            ConstListIterator li(rl);
+            while (li.next()) {
+               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+               if (ind >= 0 && ind < bin->size()) {
+                  iset.insert(ind);
+                  bin->substr(**v, ind, 1);
+               }
+            }
+            // now collapse list by rewriting it without the elements removed
+            for (auto& i : iset) {
+               bin->splice(i, 1);
+            }
+         }
+#ifdef DEBUG
+         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+         assert(!rv.assignInitial(v.release()));
+#else
+         rv.assignInitial(v.release());
+#endif
+         return;
+      }
+   }
+
+   bool static_assignment = false;
+   QoreValue tmp = lvh.remove(static_assignment);
+   if (static_assignment)
+      tmp.ref();
+#ifdef DEBUG
+   assert(!rv.assignAssumeInitial(tmp));
+#else
+   rv.assignAssumeInitial(tmp);
+#endif
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op) {
+   // we must evaluate range arguments before acquiring any lvalue locks in LValueHelper
+   ValueEvalRefHolder start_index(op->get(1), xsink);
+   if (*xsink)
+       return;
+   ValueEvalRefHolder stop_index(op->get(2), xsink);
+   if (*xsink)
+       return;
+
+   // find variable ptr, exit if doesn't exist anyway
+   LValueHelper lvh(op->get(0), xsink, true);
+   if (!lvh)
+       return;
+
+   int64 start, stop, seq_size;
+   {
+       QoreValue tmp(lvh.getValue());
+       if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink))
+           return;
+   }
+
+   bool reverse;
+   if (stop < start) {
+       reverse = true;
+       int64 t = stop;
+       stop = start;
+       start = t;
+   }
+   else
+       reverse = false;
+
+   direct_list = true;
+
+   ReferenceHolder<> v(xsink);
+   switch (lvh.getType()) {
+       case NT_LIST: {
+           lvh.ensureUnique();
+           QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+           QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
+           v = nl;
+           if (*xsink)
+               return;
+           if (reverse) {
+               nl = nl->reverse();
+               v = nl;
+           }
+           break;
+       }
+       case NT_STRING: {
+           lvh.ensureUnique();
+           QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+           QoreStringNode* ns = str->extract(start, stop - start + 1, xsink);
+           v = ns;
+           if (*xsink)
+               return;
+           if (reverse) {
+               ns = ns->reverse();
+               v = ns;
+           }
+           break;
+       }
+       case NT_BINARY: {
+           lvh.ensureUnique();
+           BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+           BinaryNode* nb = new BinaryNode;
+           bin->splice(start, stop - start + 1, nullptr, 0, nb);
+           v = nb;
+           if (*xsink)
+               return;
+           // NOTE: it would be more efficient to swap the bytes in place
+           if (reverse) {
+               BinaryNode* rb = new BinaryNode;
+               for (size_t i = 0; i < nb->size(); ++i) {
+                   rb->append(((char*)nb->getPtr()) + nb->size() - i - 1, 1);
+               }
+               v = rb;
+           }
+           break;
+       }
+
+       default:
+           return;
+    }
+
+#ifdef DEBUG
+    // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+    assert(!rv.assignInitial(v.release()));
+#else
+    rv.assignInitial(v.release());
 #endif
 }
 
