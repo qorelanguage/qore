@@ -1146,6 +1146,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return rv;
     }
 
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    private hash<string, list<string>> getPathOperationHashImpl() {
+        return paths.getPathOperationHash();
+    }
+
     #! returns the base path prefix for all requests in this schema
     /** @return the base path prefix for all requests in this schema
     */
@@ -1612,6 +1619,17 @@ public class PathComponent {
             throw "INVALID-PATH", sprintf("path %y is valid but has no API definition", path.join("/"));
         return w.pio;
     }
+
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    getPathOperationHash(reference<hash<string, list<string>>> h) {
+        if (pio)
+            h{pfx} = pio.getMethods();
+        map $1.getPathOperationHash(\h), paths.iterator();
+        if (wildcard)
+            wildcard.getPathOperationHash(\h);
+    }
 }
 
 #! This class stores the path tree for URI path matching
@@ -1639,6 +1657,15 @@ public class PathsObject inherits ObjectBase {
     */
     PathItemObject match(string path) {
         return paths.match(path.split("/"));
+    }
+
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    hash<string, list<string>> getPathOperationHash() {
+        hash<string, list<string>> rv();
+        paths.getPathOperationHash(\rv);
+        return rv;
     }
 }
 
@@ -1678,13 +1705,13 @@ public class PathItemObject inherits ObjectBase {
         #! A hash of @ref OperationObject "OperationObjects" correspoding to different methods.
         /**
             Keys are lowercase method names, with possible values being:
-            - "get"
-            - "put"
-            - "post"
-            - "del"
-            - "options"
-            - "head"
-            - "patch"
+            - \c "get"
+            - \c "put"
+            - \c "post"
+            - \c "delete"
+            - \c "options"
+            - \c "head"
+            - \c "patch"
          */
         hash<string, OperationObject> operations;
     }
@@ -1717,7 +1744,7 @@ public class PathItemObject inherits ObjectBase {
 
         delete opObj;
         if (optional_field(objType, oh, "delete", NT_HASH, \opObj))
-            operations.del = new OperationObject(path, "delete", opObj, swagger);
+            operations."delete" = new OperationObject(path, "delete", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "options", NT_HASH, \opObj))
@@ -1763,6 +1790,13 @@ public class PathItemObject inherits ObjectBase {
         if (!op)
             throw "INVALID-METHOD", sprintf("%s %s: no operation defined for this path; known methods: %y", method.upr(), path, keys operations);
         return op;
+    }
+
+    #! returns a list of HTTP methods supported by this object
+    /** @return a list of HTTP methods supported by this object
+    */
+    softlist getMethods() {
+        return keys operations;
     }
 }
 
