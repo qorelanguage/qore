@@ -271,7 +271,12 @@ public:
    DLLLOCAL AbstractQoreNode* get(unsigned i) {
        assert(i < N);
        return e[i];
-    }
+   }
+
+   DLLLOCAL const AbstractQoreNode* get(unsigned i) const {
+       assert(i < N);
+       return e[i];
+   }
 
    DLLLOCAL virtual bool hasEffect() const {
       for (unsigned int i = 0; i < N; ++i)
@@ -363,5 +368,7 @@ public:
 #include "qore/intern/QoreMinusOperatorNode.h"
 #include "qore/intern/QoreMultiplicationOperatorNode.h"
 #include "qore/intern/QoreBackgroundOperatorNode.h"
+#include "qore/intern/QoreRangeOperatorNode.h"
+#include "qore/intern/QoreSquareBracketsRangeOperatorNode.h"
 
 #endif

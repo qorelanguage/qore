@@ -515,7 +515,7 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation& l
          delete returnTypeInfo;
       }
       if (access > Public)
-	 parse_error(loc, "destructors cannot be private");
+          parse_error(loc, "destructors cannot be private");
       return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
    }
    if (!strcmp(name, "copy")) {
@@ -1627,6 +1627,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
+%token RANGE ".. operator"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -1677,6 +1678,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left '+' '-'                   // arithmetic plus and minus
 %left '%'                       // modulo
 %left '*' '/'                   // arithmetic multiply and divide
+%nonassoc RANGE
 %right TOK_ELEMENTS TOK_KEYS
 %nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG                     // unary minus, defined for precedence
@@ -3461,7 +3463,7 @@ exp_c:
            if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
               parse_error(QoreProgramLocation(@1.first_line, @1.last_line), "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $1);
         }
-        | '-' exp %prec NEG	     {
+        | '-' exp %prec NEG {
            // FIXME: need to expand constant expression checking to determine
            //        if the expression can throw an exception at run-time
            // first check for constant expressions
@@ -3505,7 +3507,7 @@ exp_c:
                  //printd(5, "type=%s\n", $2->getTypeName());
                  $$ = new ParseReferenceNode(QoreProgramLocation(@1.first_line, @2.last_line), $2);
               }
-	   }
+           }
         }
         | TOK_NEW IDENTIFIER '(' myexp ')' {
            $$ = new ScopedObjectCallNode(QoreProgramLocation(@1.first_line, @5.last_line), new NamedScope($2), make_args(QoreProgramLocation(@4.first_line, @4.last_line), $4));
@@ -3679,8 +3681,16 @@ exp:
     | exp '%' exp                       { $$ = new QoreModuloOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '/' exp                       { $$ = new QoreDivisionOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp '[' exp RANGE exp ']'         { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @6.last_line), $1, $3, $5); }
+    | exp '[' exp RANGE ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, nullptr); }
+    | exp '[' RANGE exp ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, nullptr, $4); }
+    | exp '[' RANGE ']'                 {
+                                           parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "illegal range without start or end expressions; at least start or end must be given for a range");
+                                           $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, nullptr, nullptr);
+                                        }
     | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
     | exp DOT_KW_IDENTIFIER             { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1, $2); }
     ;
@@ -3750,8 +3760,16 @@ exp_n:
     | exp_n '%' exp                       { $$ = new QoreModuloOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '/' exp                       { $$ = new QoreDivisionOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n '[' exp RANGE exp ']'         { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @6.last_line), $1, $3, $5); }
+    | exp_n '[' exp RANGE ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, nullptr); }
+    | exp_n '[' RANGE exp ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, nullptr, $4); }
+    | exp_n '[' RANGE ']'                 {
+                                             parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "illegal range without start or end expressions; at least start or end must be given for a range");
+                                             $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, nullptr, nullptr);
+                                          }
     | exp_n '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
     | exp_n DOT_KW_IDENTIFIER             { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @2.last_line), $1, $2); }
     ;

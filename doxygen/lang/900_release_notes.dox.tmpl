@@ -79,6 +79,14 @@
       - @ref foldl "foldl": supports lazy evaluation of the iterator expression
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+      - @ref range_operator ".. (range operator)": supports lazy evaluation of itself
+      - @ref list_element_operator "[n,m,...] (list, string, or binary dereference with multiple indices))": supports lazy evaluation of itself
+    - support for list, string, and binary slices with offsets and ranges:
+      - @ref list_slicing "list slices"
+      - @ref string_slicing "string slices"
+      - @ref binary_slicing "binary slices"
+      - new @ref range_operator ".. range operator"
+      - updated @ref list_element_operator "[] operator"
     - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
       - @ref Qore::decrypt_to_binary()
       - @ref Qore::decrypt_to_string()
@@ -154,6 +162,8 @@
       - see new cryptographic constants listed above
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - implemented the @ref weak_assignment_operator "weak assignment operator (:=)" (only available with @ref allow-weak-references "%allow-weak-references")
+    - implemented the @ref range_operator "range operator (..)"
+    - implemented support for list expressions inside the @ref list_element_operator "dereference operator ([])"
     - new methods:
       - @ref Qore::Program::getAllDefines()
       - @ref Qore::Program::getGlobalVars()
