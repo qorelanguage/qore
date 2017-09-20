@@ -159,7 +159,7 @@ nothing Breakpoint::assignProgram(Program[QoreProgram] pgm) {
  *
  */
 nothing Breakpoint::unassignProgram() {
-   bkpt->assignProgram(0, xsink);
+   bkpt->assignProgram(nullptr, xsink);
 }
 
 //! Assign breakpoint to a statement.
@@ -199,11 +199,11 @@ list Breakpoint::getStatementIds() {
 list Breakpoint::getThreadIds() {
    TidList_t tl;
    bkpt->getThreadIds(tl, xsink);
-   QoreListNode *l = new QoreListNode();
+   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
    for (TidList_t::iterator it = tl.begin(); it != tl.end(); ++it) {
-      l->push(new QoreBigIntNode(*it));
+      (*l)->push(new QoreBigIntNode(*it));
    }
-   return l;
+   return l.release();
 }
 
 //! Set list of the thread IDs

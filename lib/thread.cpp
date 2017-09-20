@@ -911,6 +911,7 @@ void thread_pop_frame_boundary() {
 }
 
 static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
+int saveframe = frame;
    if (frame < 0)
       return nullptr;
 
@@ -922,15 +923,20 @@ static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
       // get previous Program before changing context
+      if (!ch) {
+         printd(5, "get_var_frame() ch is null\n");
+         return nullptr;
+      }
       pgm = ch->getProgram();
-      if (ch->getNextContext(tlpd, ch))
+      if (ch->getNextContext(tlpd, ch)) {
+         printd(5, "get_var_frame() getNextContext() is null\n");
          return nullptr;
-      if (!ch)
-         return nullptr;
-      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      }
+      printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount());
    }
 
-   printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
+   //printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
+   printd(5, "get_var_frame(): tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d, allow-debugging: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount(), pgm->checkAllowDebugging(0));
    if (!pgm->checkAllowDebugging(xsink))
       return nullptr;
 

@@ -2288,9 +2288,9 @@ public:
       return i->second;
    }
 
-   DLLLOCAL static QoreListNode* getAllQoreObjects() {
+   DLLLOCAL static QoreListNode* getAllQoreObjects(ExceptionSink *xsink) {
       QoreAutoRWWriteLocker al(&lck_programMap);
-      QoreListNode* l = new QoreListNode();
+      ReferenceHolder<QoreListNode>l(new QoreListNode(), xsink);
 
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.begin();
       while (i != qore_program_to_object_map.end()) {
@@ -2300,10 +2300,10 @@ public:
             i->second = new QoreObject(i->first->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), i->first);
             i->first->ref();
          }
-         l->push(i->second);
+         (*l)->push(i->second);
          ++i;
       }
-      return l;
+      return l.release();
    }
 
 };
@@ -2375,16 +2375,16 @@ public:
    DLLLOCAL QoreListNode* getAllProgramObjects() {
       QoreAutoRWReadLocker al(&tlock);
       printd(5, "qore_debug_program_private::getAllProgramObjects(), this: %p\n", this);
-      QoreListNode* l = new QoreListNode();
+      ReferenceHolder<QoreListNode> l(new QoreListNode(), nullptr);
       qore_program_map_t::iterator i = qore_program_map.begin();
       while (i != qore_program_map.end()) {
          QoreObject* o = QoreProgram::getQoreObject(i->first);
          if (o) {
-            l->push(o);
+            (*l)->push(o);
          }
          i++;
       }
-      return l;
+      return l.release();
    }
 
    DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {

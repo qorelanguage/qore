@@ -810,7 +810,7 @@ public:
    DLLEXPORT static QoreObject* getQoreObject(QoreProgram* pgm);
 
    //! list all programs as QoreObject list
-   DLLEXPORT static QoreListNode* getAllQoreObjects();
+   DLLEXPORT static QoreListNode* getAllQoreObjects(ExceptionSink* xsink);
 
    //! check if program can provide debugging stuff
    DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);

@@ -1867,8 +1867,8 @@ QoreObject* QoreProgram::getQoreObject(QoreProgram* pgm) {
    return qore_program_private::getQoreObject(pgm);
 }
 
-QoreListNode* QoreProgram::getAllQoreObjects() {
-   return qore_program_private::getAllQoreObjects();
+QoreListNode* QoreProgram::getAllQoreObjects(ExceptionSink* xsink) {
+   return qore_program_private::getAllQoreObjects(xsink);
 }
 
 bool QoreProgram::checkAllowDebugging(ExceptionSink* xsink) {
