@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CallRefTest
+
+class C { m() {print("ERROR!\n");} int get(int x = 0) {return 1 + x;}}
+
+class CallRefTest inherits QUnit::Test {
+    constructor() : QUnit::Test("CallRef Test", "1.0") {
+        addTestCase("Test", \test());
+        addTestCase("issue 2145", \issue2145());
+        set_return_value(main());
+    }
+
+    test() {
+        {
+            C obj();
+            code c = \obj.m();
+            delete obj;
+            assertThrows("OBJECT-ALREADY-DELETED", c);
+        }
+        {
+            object obj = new C();
+            code c = \obj.m();
+            delete obj;
+            assertThrows("OBJECT-ALREADY-DELETED", c);
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class C { m() { print('ERROR!\n'); }} C sub get() { return new C(); }", "");
+            object obj = p.callFunction("get");
+            code c = \obj.m();
+            delete p;
+            assertThrows("PROGRAM-ERROR", c);
+        }
+    }
+
+    issue2145() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("int sub get(code c) { return c(); }", "1");
+
+            C c();
+            int i = p.callFunction("get", \c.get());
+            assertEq(1, i);
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class C1 { private {code c; int x = 1;} constructor(code c) {self.c = c;} int get() {return c(x);}} int sub get(code c) { C1 c1(c); return c1.get(); }", "2");
+
+            C c();
+            int i = p.callFunction("get", \c.get());
+            assertEq(2, i);
+        }
+    }
+}

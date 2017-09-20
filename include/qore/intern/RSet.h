@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,39 +33,52 @@
 
 #define _QORE_INTERN_RSETHELPER_H
 
-#include <qore/intern/RSection.h>
+#include "qore/intern/RSection.h"
 
 #include <set>
+#include <atomic>
 
 class RSet;
 class RSetHelper;
 
 class RObject {
+   friend class robject_dereference_helper;
+
 public:
    // read-write lock with special rsection handling
    mutable RSectionLock rml;
    // weak references
    QoreReferenceCounter tRefs;
 
-   // this lock is needed for the condition variable
+   // ensures atomicity of robject reference counting and notification actions
    mutable QoreThreadLock rlck;
-   QoreCondition rdone; // recursive scan done flag
 
-   int rscan,   // TID flag for starting a recursive scan
-      rcount,   // the number of unique recursive references to this object
-      rwaiting, // the number of threads waiting for a scan of this object
-      rcycle;   // the recursive cycle number to see if the object has been scanned since a transaction restart
+   QoreCondition rcond; // condition variable (used with rlck)
+
+   int rscan,         // TID flag for starting a recursive scan
+      rcount,         // the number of unique recursive references to this object
+      rwaiting,       // the number of threads waiting for a scan of this object
+      rcycle,         // the recursive cycle/transaction number to see if the object has been scanned since a transaction restart
+      ref_inprogress, // the number of dereference actions in progress
+      ref_waiting,    // the number of threads waiting on a dereference action to complete
+      rref_waiting,   // the number of threads waiting on an rset invalidation to complete
+      rrefs;          // the number of "real" refs (i.e. refs not possibly part of a recursive graph)
 
    // set of objects in a cyclic directed graph
    RSet* rset;
 
    // reference count
-   int& references;
+   std::atomic_int& references;
 
-   // do we need to call isValidImpl()
-   bool needs_is_valid;
+   bool deferred_scan : 1, // do we need to make a scan when the object is eligible for it?
+      needs_is_valid : 1,  // do we need to call isValidImpl()
+      rref_wait : 1;       // rset invalidation in progress
 
-   DLLLOCAL RObject(int& n_refs, bool niv = false) : rscan(0), rcount(0), rwaiting(0), rcycle(0), rset(0), references(n_refs), needs_is_valid(niv) {
+   DLLLOCAL RObject(std::atomic_int& n_refs, bool niv = false) :
+      rscan(0), rcount(0), rwaiting(0), rcycle(0), ref_inprogress(0),
+      ref_waiting(0), rref_waiting(0), rrefs(0),
+      rset(0), references(n_refs),
+      deferred_scan(false), needs_is_valid(niv), rref_wait(false) {
    }
 
    DLLLOCAL virtual ~RObject();
@@ -85,17 +98,36 @@ public:
 	 deleteObject();
    }
 
+   // real: decrement rref too
+   // do_scan: is the object eleigible for a scan? (rrefs = 0)
+   // rescan: do we need to force a rescan of the object?
+   // return value: the final reference value after the deref
+   DLLLOCAL int deref(bool real, bool& do_scan, bool& rescan);
+
+   // decrements rref
+   DLLLOCAL void derefRealIntern();
+
+   DLLLOCAL void derefDone(bool del);
+
    DLLLOCAL int refs() const {
       return references;
    }
 
    DLLLOCAL void setRSet(RSet* rs, int rcnt);
 
-   DLLLOCAL void invalidateRSet();
+   // check if we should defer the scan, marks the object for a deferred scan if necessary
+   // returns 0 if the scan can be made now, -1 if deferred
+   DLLLOCAL int checkDeferScan();
 
    DLLLOCAL void removeInvalidateRSet();
+   DLLLOCAL void removeInvalidateRSetIntern();
 
    DLLLOCAL bool scanCheck(RSetHelper& rsh, AbstractQoreNode* n);
+
+   // very fast check if the object might have recursive references
+   DLLLOCAL bool mightHaveRecursiveReferences() const {
+      return rset || rcount;
+   }
 
    // if the object is valid (and can be deleted)
    DLLLOCAL bool isValid() const {
@@ -112,7 +144,9 @@ public:
    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh) = 0;
 
    // returns true if the object needs to be scanned for recursive references (ie could contain an object or closure or a container containing one of those)
-   DLLLOCAL virtual bool needsScan() const = 0;
+   /** @param scan_now scan will be made now
+    */
+   DLLLOCAL virtual bool needsScan(bool scan_now) = 0;
 
    // deletes the object itself
    DLLLOCAL virtual void deleteObject() = 0;
@@ -137,9 +171,10 @@ class RSet {
 protected:
    // we assume set::size() is O(1); this should be a safe assumption
    rset_t set;
-   int acnt;
+   unsigned acnt;
    bool valid;
 
+   // called with the write lock held
    DLLLOCAL void invalidateIntern() {
       assert(valid);
       valid = false;
@@ -158,6 +193,9 @@ public:
 
    DLLLOCAL RSet(RObject* o) : acnt(0), valid(true) {
       set.insert(o);
+   }
+
+   DLLLOCAL RSet(bool n_valid) : acnt(1), valid(n_valid) {
    }
 
    DLLLOCAL ~RSet() {
@@ -185,7 +223,24 @@ public:
          invalidateIntern();
    }
 
+   DLLLOCAL void invalidateDeref() {
+      bool del = false;
+      {
+         QoreAutoRWWriteLocker al(rwl);
+         if (valid) {
+            invalidateIntern();
+            valid = false;
+         }
+         //printd(5, "RSet::invalidateDeref() this: %p %d -> %d\n", this, acnt, acnt - 1);
+         assert(acnt > 0);
+         del = !--acnt;
+      }
+      if (del)
+         delete this;
+   }
+
    DLLLOCAL void ref() {
+      QoreAutoRWWriteLocker al(rwl);
       ++acnt;
    }
 
@@ -203,8 +258,8 @@ public:
 #ifdef DEBUG
    DLLLOCAL void dbg();
 
-   DLLLOCAL bool isValid() const {
-      return qore_check_this(this) ? valid : false;
+   DLLLOCAL static bool isValid(const RSet* rs) {
+      return rs ? rs->valid : false;
    }
 #endif
 
@@ -213,6 +268,7 @@ public:
    }
 
    DLLLOCAL void insert(RObject* o) {
+      assert(set.find(o) == set.end());
       set.insert(o);
    }
 
@@ -236,11 +292,19 @@ public:
       return set.size();
    }
 
+   // called when rolling back an rset transaction
    DLLLOCAL bool pop() {
       assert(!set.empty());
       set.erase(set.begin());
       return set.empty();
    }
+
+#ifdef DEBUG
+   DLLLOCAL unsigned getCount() const {
+      return acnt;
+   }
+#endif
+
 };
 
 typedef std::vector<RObject*> rvec_t;
@@ -265,6 +329,8 @@ struct RSetStat {
       rset = rs;
    }
 };
+
+class QoreClosureBase;
 
 class RSetHelper {
    friend class RSectionScanHelper;
@@ -293,9 +359,6 @@ protected:
 
    // set of scanned closures
    closure_set_t closure_set;
-
-   // fomap size, to detect changes in the scanned set
-   unsigned fomap_size;
 
 #ifdef DEBUG
    int lcnt;
@@ -342,7 +405,7 @@ public:
    }
 
    DLLLOCAL unsigned size() const {
-      return fomap_size;
+      return fomap.size();
    }
 
    DLLLOCAL void add(RObject* ro) {
@@ -351,6 +414,67 @@ public:
       rset_t::iterator i = tr_out.lower_bound(ro);
       if (i == tr_out.end() || *i != ro)
          tr_out.insert(i, ro);
+   }
+
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkNode(AbstractQoreNode* n) {
+      return checkIntern(n);
+   }
+
+   // returns true if a lock error has occurred, false if otherwise
+   DLLLOCAL bool checkNode(RObject& robj) {
+      return checkIntern(robj);
+   }
+};
+
+class qore_object_private;
+
+/** this class ensures that RObjects will not be deleted until all deref() calls are complete
+ */
+class robject_dereference_helper {
+protected:
+   RObject* o;
+   qore_object_private* qo;
+   int refs;
+   bool del,
+      do_scan,
+      deferred_scan;
+
+public:
+   DLLLOCAL robject_dereference_helper(RObject* obj, bool real = false);
+
+   DLLLOCAL ~robject_dereference_helper();
+
+   // return our reference count as captured atomically in the constructor
+   DLLLOCAL int getRefs() const {
+      return refs;
+   }
+
+   // return an indicator if we have a deferred scan or not
+   DLLLOCAL bool deferredScan() {
+      if (deferred_scan) {
+         deferred_scan = false;
+         return true;
+      }
+      return false;
+   }
+
+   // return an indicator if we should do a scan or not
+   DLLLOCAL bool doScan() const {
+      return do_scan;
+   }
+
+   // mark for final dereferencing
+   DLLLOCAL void finalDeref(qore_object_private* obj) {
+      assert(!qo);
+      qo = obj;
+   }
+
+   // mark that we will be deleting the object
+   // (and therefore need to wait for any in progress dereferences to complete before deleting)
+   DLLLOCAL void willDelete() {
+      assert(!del);
+      del = true;
    }
 };
 

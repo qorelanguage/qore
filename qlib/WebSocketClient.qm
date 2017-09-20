@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketClient.qm WebSocket client implementation
 
-/*  WebSocketClient.qm Copyright 2013 - 2015 Qore Technologies, sro
+/*  WebSocketClient.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -33,11 +33,12 @@
 
 %requires WebSocketUtil >= 1.0
 %requires Util >= 1.0
+%requires(reexport) ConnectionProvider >= 1.0
 
 %new-style
-    
+
 module WebSocketClient {
-    version = "1.3";
+    version = "1.6";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -53,19 +54,20 @@ module WebSocketClient {
     The %WebSocketClient module provides client support for <a href="http://tools.ietf.org/html/rfc6455">RFC-6455 based WebSocket protocol</a> implementations in %Qore.
 
     To use this module, use \c "%requires WebSocketClient" in your code.
-    
+
     This module automatically uses the <a href="../../WebSocketUtil/html/index.html">WebSocketUtil</a> module for encoding and decoding web socket messages.
 
     All the public symbols in the module are defined in the WebSocketClient namespace.
 
-    Currently the module provides the following class:
+    Currently the module provides the following classes:
     - @ref WebSocketClient::WebSocketClient "WebSocketClient": the web socket client class
+    - @ref WebSocketClient::WebSocketConnectionObject "WebSocketConnectionObject": the web socket connection class (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     <b>Example</b>
     @code{.py}
 #!/usr/bin/env qore
 
-%require-our
+%new-style
 %enable-all-warnings
 
 %requires WebSocketClient
@@ -85,16 +87,30 @@ c.waitForZero();
 
     @section websocketclient_relnotes WebSocketClient Module Release History
 
-    @subsection wsc_v13 v1.3
+    @subsection wsc_v1_6 v1.6
+    - added the @ref WebSocketClient::WebSocketConnectionObject "WebSocketConnectionObject" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - updated for complex types
+    - fixed a bug where the event loop thread would immediately terminate after a reconnection (<a href="https://github.com/qorelanguage/qore/issues/2061">issue 2061</a>)
+    - improved client logging
+    - fixed a bug where the @ref WebSocketClient::WebSocketClient class did not validate the \c Sec-WebSocket-Accept response header according to RFC6455 (<a href="https://github.com/qorelanguage/qore/issues/2062">issue 2062</a>)
+    - added support for the \c yield option in the constructor
+
+    @subsection wsc_v1_5 v1.5
+    - added timeout values to @ref Qore::Socket "Socket" and @ref Qore::HTTPClient "HTTPClient" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
+
+    @subsection wsc_v1_4 v1.4
+    - fixed a bug parsing and generating the websocket close status code (<a href="https://github.com/qorelanguage/qore/issues/1216">issue 1216</a>)
+
+    @subsection wsc_v1_3 v1.3
     - ignore \c SOCKET-NOT-OPEN errors when closing (server already closed the connection)
 
-    @subsection wsc_v12 v1.2
-    - prepend "WebSocketClient: " to log messages
+    @subsection wsc_v1_2 v1.2
+    - prepend \c "WebSocketClient: " to log messages
 
-    @subsection wsc_v11 v1.1
+    @subsection wsc_v1_1 v1.1
     - added socket instrumention support from Qore 0.8.9
 
-    @subsection wsc_v10 v1.0
+    @subsection wsc_v1_0 v1.0
     - the initial version of the WebSocketClient module
 */
 
@@ -116,14 +132,17 @@ public namespace WebSocketClient {
     #! the main websocket client class
     /** To use this class, create a @ref WebSocketClient::WebSocketClient "WebSocketClient" object and the call @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
 
-        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method call.
+        The @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" method starts a background thread to receive messages, which are then posted to the callback provided in the @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()".
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
+
+        The @ref WeSocketClient::WeSocketClient "WeSocketClient" class includes support for running in sandboxed Program objects with the following parse options set:
+        - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in @ref WeSocketClient::WeSocketClient::constructor() "WeSocketClient::constructor()"
      */
     public class WebSocketClient {
         private {
             Mutex m();
-            HTTPClient hc();
+            HTTPClient hc;
             int stop = 0;
             Counter c();
             code callback;
@@ -131,13 +150,22 @@ public namespace WebSocketClient {
             *code errlog;
             *code debuglog;
             timeout timeout_ms = DefaultTimeout;
+            #! unique websocket connection ID; -1 when not connected
+            int cid = -1;
+            #! callable object to yield the current thread's execution
+            *code yield;
+
+            static Sequence seq();
         }
 
         public {
+            #! default socket I/O operation timeout: 15 seconds
             const DefaultTimeout = 15s;
 
-            const Version = "1.0";
+            #! module version
+            const Version = "1.6";
 
+            #! default user agent string for HTTP requests
             const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
         }
 
@@ -154,30 +182,45 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
             @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
-            @param opts an option hash for the @ref Qore::HTTPClient class plus the following keys:
+            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
             - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational logging
             - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
             - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection
+            - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield()); required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
 
-            @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash
+            @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
+
+            @since WebSocketClient 1.6 added the \c yield option
         */
         constructor(code cb, hash opts) {
             if (opts.url.typeCode() != NT_STRING)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key giving the connection target");
 
+            if (opts.hasKey("yield")) {
+                if (!opts.yield.callp())
+                    throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid 'yield' key with type %y; must be a callable value", opts.yield.type());
+                yield = opts.yield;
+            }
+%ifdef PO_NO_PROCESS_CONTROL
+            else
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'yield' key giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is in effect");
+%endif
+
             hash uh = parse_url(opts.url);
-            bool ssl;
             if (uh.protocol) {
-                *hash ph = WsSchemes.(uh.protocol);
+                hash sh = getSchemes();
+                *hash ph = sh{uh.protocol};
                 if (!ph)
-                    throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol, opts.url, WsSchemes.keys());
-                ssl = ph.ssl;
+                    throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol, opts.url, sh.keys());
+                # replace websocket scheme with an http scheme
+                splice opts.url, 0, uh.protocol.size(), "http" + (ph.ssl ? "s" : "");
             }
 
-            if (ssl)
-                opts.url =~ s/^wss:/https:/i;
+            # ensure that the timeout value is set correctly and consistently
+            if (opts.timeout)
+                timeout_ms = opts.timeout;
             else
-                opts.url =~ s/^ws:/http:/i;
+                opts.timeout = timeout_ms;
 
             hc = new HTTPClient(opts);
             log = opts.log;
@@ -185,6 +228,21 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             debuglog = opts.debuglog;
 
             callback = cb;
+        }
+
+        #! disconnects the connection and stops the event thread if connected
+        destructor() {
+            disconnect();
+        }
+
+        #! returns the unique connection ID
+        int getConnectionId() {
+            return cid;
+        }
+
+        #! returns a hash of URL scheme information for URL schemes supported by this object
+        hash getSchemes() {
+            return WsSchemes;
         }
 
         #! connects to the websocket server
@@ -205,7 +263,7 @@ ws.connect();
             To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
 
             If this method is called while a connection is already in progress, then the existing connection is first implicitly disconnected with close code @ref WebSocketUtil::WSCC_GoingAway "WSCC_GoingAway".
-    
+
             @param opts a hash with the following keys:
             - \c hdr: (optional) a @ref hash_type "hash" giving header values for the connection request to the web socket server
             @param info a @ref reference_type "reference" to a hash which will be set to information about the call setup
@@ -214,7 +272,7 @@ ws.connect();
 
             @throw WEBSOCKET-ERROR the option hash is missing either the 'url' or 'callback' keys or type error in the option hash
          */
-         hash connect(*hash opts, *reference info) {
+         hash connect(*hash opts, *reference<hash> info) {
             if (opts.hdr && opts.hdr.typeCode() != NT_HASH)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type received: %y", opts.hdr.type());
 
@@ -272,8 +330,8 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
             - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
             - \c "us": an integer giving the number of microseconds for the operation
-            - \c "timeout": an integer giving the warning threshold in microseconds 
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "timeout": an integer giving the warning threshold in microseconds
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
             @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
             - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -281,11 +339,11 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "bytes_sec": a float giving the transfer speed in bytes per second
             - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here 
+            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
             @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
             @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
             @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
-            
+
             @throw QUEUE-ERROR the Queue passed has a maximum size set
             @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
 
@@ -293,7 +351,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
 
             @since %WebSocketClient 1.1
         */
-        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
+        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
             hc.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
         }
 
@@ -337,6 +395,7 @@ ws.clearStats();
         private disconnectUnlocked(int cmd = WSCC_GoingAway) {
             stop = cmd;
             c.waitForZero();
+            cid = -1;
         }
 
         private eventLoop(code callback) {
@@ -344,15 +403,20 @@ ws.clearStats();
             while (True) {
                 if (stop) {
                     sendClose(stop);
+                    logDebug("event loop stopping on user request");
                     break;
                 }
-                
+
                 try {
-                    if (!hc.isDataAvailable(50ms))
+                    if (!hc.isDataAvailable(50ms)) {
+%ifdef PO_NO_PROCESS_CONTROL
+                        call_function(yield);
+%else
+                        yield ? call_function(yield) : Qore::thread_yield();
+%endif
                         continue;
-
+                    }
                     hash h = ws_read_message(hc, timeout_ms);
-
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
                             logDebug("server sent OpClose without code; closing immediately");
@@ -363,7 +427,7 @@ ws.clearStats();
                         break;
                     }
 
-                    logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op), h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
+                    logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op) ?? sprintf("unknown opcode %y", h.op), h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
 
                     if (h.masked) {
                         logError("unmasked client frame received");
@@ -372,56 +436,58 @@ ws.clearStats();
                     }
 
                     if (h.op == WSOP_Ping) {
-                        hc.send2(ws_encode_message(h.msg, WSOP_Pong, True));
+                        hc.send2(ws_encode_message(h.msg, WSOP_Pong, True), timeout_ms);
                         continue;
                     }
-                    
+
                     if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                         callback(h.msg);
                         continue;
                     }
+
                     # unrecognized opcode - close the connection
                     sendClose(WSCC_UnsupportedData);
                     break;
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                     logError(err);
                     sendClose(WSCC_InternalServerError, err);
                     break;
                 }
             }
-            
+
             # call the callback with NOTHING to signal that the connection has been closed
             callback();
             if (hc.isOpen()) {
                 hc.shutdown();
                 hc.close();
             }
+            logDebug("disconnected websocket connection");
         }
 
         private logInfo(string fmt) {
             if (log)
-                call_function(log, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
         }
 
         private logError(string fmt) {
             if (errlog)
-                call_function(errlog, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
         }
 
         private logDebug(string fmt) {
             if (debuglog)
-                call_function(debuglog, vsprintf("WebSocketClient: " + fmt, argv));
+                call_function(log, sprintf("WebSocketClient %s DEBUG: ", cid) + vsprintf(fmt, argv));
         }
 
         private sendClose(int code, *string txtmsg) {
-            binary msg = code.encodeMsb(4);
-
             if (!WSCCMap{code}) {
-                logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
+                logError("WebSocketClient::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
                 code = WSCC_InternalServerError;
             }
+
+            binary msg = code.encodeMsb(2);
 
             if (txtmsg) {
                 if (txtmsg.encoding() != "UTF-8")
@@ -433,7 +499,7 @@ ws.clearStats();
             try {
                 hc.send2(ws_encode_message(msg, WSOP_Close, True), timeout_ms);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 # ignore SOCKET-NOT-OPEN errors when closing (server already closed the connection)
                 if (ex.err == "SOCKET-NOT-OPEN")
                     return;
@@ -441,30 +507,159 @@ ws.clearStats();
             }
         }
 
-        private hash connectUnlocked(*hash hdr, *reference info) {
+        private hash connectUnlocked(*hash hdr, *reference<hash> info) {
             if (!hdr."User-Agent")
                 hdr."User-Agent" = DefaultUserAgent;
 
+            string key = get_random_string(16).toBase64();
             hdr += (
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
-                "Sec-WebSocket-Key": get_random_string().toBase64(),
+                # https://tools.ietf.org/html/rfc6455#section-4.1 specifies a 16-byte length for this random nonce
+                "Sec-WebSocket-Key": key,
                 );
 
             hash rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
-            
+
             if (rh.status_code != 101)
                 throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code %d: %s to our request", hc.getURL(), rh.status_code, rh.status_message);
+
+            if (!rh."sec-websocket-accept")
+                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y did not return the Sec-WebSocket-Accept response header (headers returned: %y)", hc.getURL(), rh);
+
+            {
+                string expected_key = ws_get_response_key(key);
+                if (rh."sec-websocket-accept" != expected_key)
+                    throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned an invalid value in the Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept", expected_key);
+            }
+
+            logDebug("connected websocket connection: %y", hc.isOpen());
+            stop = 0;
+            cid = seq.next();
 
             return rh;
         }
 
+        #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+            @param str Sends the string data over the socket
+
+            @see Socket::send()
+        */
         send(string str) {
+            logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
         }
 
+        #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+        /**
+            @param bin Sends the binary data over the socket
+
+            @see Socket::send()
+        */
         send(binary bin) {
+            logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
             hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
+        }
+    }
+
+    #! class for websocket connections; returns an object of class @ref WebSocketClient for receiving websocket events from a websocket server
+    /** supports the following options:
+        - \c "connect_timeout": connection timeout to use in milliseconds
+        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+        - \c "max_redirects": maximum redirects to support
+        - \c "proxy": proxy URL to use
+        - \c "timeout": transfer timeout to use in milliseconds
+
+        also supports the following runtime options in getImpl():
+        - \c "callback": (required) a callback to receive websocket events
+        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+        - \c "errlog": a closure accepting a single string for error logging
+        - \c "log": a closure accepting a single string for logging
+        - \c "yield": a closure to yield current thread execution
+    */
+    public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
+        #! creates the WebSocketConnectionObject object
+        /** @param name the name of the connection
+            @param desc connection description
+            @param url connection URL
+            @param monitor monitoring flag
+            @param opts connection options
+            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        */
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        }
+
+        #! returns \c "websocket"
+        string getType() {
+            return "websocket";
+        }
+
+        #! returns runtime options
+        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
+            - \c "callback": (required) a callback to receive websocket events
+            - \c "dbglog": a closure taking a single string for detailed technical connection logging
+            - \c "errlog": a closure accepting a single string for error logging
+            - \c "log": a closure accepting a single string for logging
+            - \c "yield": a closure to yield current thread execution
+            */
+        *hash getRuntimeOptions() {
+            return (
+                "callback": True,
+                "log": True,
+                "errlog": True,
+                "dbglog": True,
+                "yield": True,
+                );
+        }
+
+        #! returns a @ref WebSocketClient object
+        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
+            @param rtopts supports the following runtime options in getImpl():
+            - \c "callback": (required) a callback to receive websocket events
+            - \c "dbglog": a closure taking a single string for detailed technical connection logging
+            - \c "errlog": a closure accepting a single string for error logging
+            - \c "log": a closure accepting a single string for logging
+            - \c "yield": a closure to yield current thread execution
+
+            @return a @ref WebSocketClient object
+        */
+        private WebSocketClient getImpl(bool connect = True, *hash rtopts) {
+            if (!rtopts.callback)
+                rtopts.callback = sub (*data msg) {};
+            # rename "dbglog" to "debuglog" for WebSocketClient object
+            if (rtopts.dbglog)
+                rtopts.debuglog = remove rtopts.dbglog;
+            WebSocketClient ws(rtopts.callback, ("url": url) + rtopts.("log", "errlog", "debuglog") + opts);
+            if (connect)
+                ws.connect();
+            return ws;
+        }
+
+        #! gets options
+        hash getOptions() {
+            return HttpConnection::Options;
+        }
+
+        #! returns default options
+        *hash getDefaultOptions() {
+            return HttpConnection::DefaultOptions;
+        }
+
+        private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
+            date start = now_us();
+            object o = get();
+            on_exit o.disconnect();
+            return rv += (
+                "ok": True,
+                "time": now_us() - start,
+                "info": "OK",
+                );
+        }
+
+        #! static constructor
+        static WebSocketConnectionObject make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
+            return new WebSocketConnectionObject(name, desc, url, monitor, opts, urlh);
         }
     }
 }

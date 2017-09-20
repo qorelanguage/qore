@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    if (*xsink)
       return QoreValue();
    if (!r) {
-      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero ("QLLD" %% "QLLD" attempted)", l, r);
+      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l, r);
       return QoreValue();
    }
    return l % r;

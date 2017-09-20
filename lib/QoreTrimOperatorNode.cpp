@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreTrimOperatorNode::trim_str("trim operator expression");
 
@@ -60,34 +60,37 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
    if (vtype == NT_STRING) {
       QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(val.getValue());
-      vs->trim();
+      if (vs->trim(xsink))
+         return QoreValue();
    }
    else if (vtype == NT_LIST) {
       QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
       ListIterator li(l);
       while (li.next()) {
-	 AbstractQoreNode** v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    ensure_unique(v, xsink);
-	    assert(!*xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    vs->trim();
-	 }
+         AbstractQoreNode** v = li.getValuePtr();
+         if (*v && (*v)->getType() == NT_STRING) {
+            // note that no exception can happen here
+            ensure_unique(v, xsink);
+            assert(!*xsink);
+            QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
+            if (vs->trim(xsink))
+               return QoreValue();
+         }
       }
    }
    else { // is a hash
       QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
       HashIterator hi(vh);
       while (hi.next()) {
-	 AbstractQoreNode** v = hi.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    assert(!*xsink);
-	    ensure_unique(v, xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    vs->trim();
-	 }
+         AbstractQoreNode** v = hi.getValuePtr();
+         if (*v && (*v)->getType() == NT_STRING) {
+            // note that no exception can happen here
+            assert(!*xsink);
+            ensure_unique(v, xsink);
+            QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
+            if (vs->trim(xsink))
+               return QoreValue();
+         }
       }
    }
 
@@ -102,26 +105,18 @@ AbstractQoreNode* QoreTrimOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
    if (!exp)
       return this;
    exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
-   if (exp && check_lvalue(exp))
-      parse_error("the trim operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
-   else {
-      if (typeInfo->hasType()
-	  && !typeInfo->parseAcceptsReturns(NT_STRING)
-	  && !typeInfo->parseAcceptsReturns(NT_LIST)
-	  && !typeInfo->parseAcceptsReturns(NT_HASH)) {
-	 QoreStringNode* desc = new QoreStringNode("the lvalue expression with the trim operator is ");
-	 typeInfo->getThisType(*desc);
-	 desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-	 qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      }
-      returnTypeInfo = typeInfo;
-   }
-   return this;
-}
+   if (exp)
+      checkLValue(exp, pflag);
 
-QoreTrimOperatorNode* QoreTrimOperatorNode::copyBackground(ExceptionSink* xsink) const {
-   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-   if (*xsink)
-      return 0;
-   return new QoreTrimOperatorNode(n_exp.release());
+   if (QoreTypeInfo::hasType(typeInfo)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
+       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
+      QoreStringNode* desc = new QoreStringNode("the lvalue expression with the trim operator is ");
+      QoreTypeInfo::getThisType(typeInfo, *desc);
+      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   }
+   returnTypeInfo = typeInfo;
+   return this;
 }

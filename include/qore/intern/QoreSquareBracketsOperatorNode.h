@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,10 +33,10 @@
 
 #define _QORE_QORESQUAREBRACKETSOPERATORNODE_H
 
-class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<> {
+class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
 OP_COMMON
 protected:
-   const QoreTypeInfo* typeInfo;
+   const QoreTypeInfo* typeInfo = nullptr;
 
    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
@@ -44,20 +44,41 @@ protected:
 
    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-public:
-   DLLLOCAL QoreSquareBracketsOperatorNode(AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(n_left, n_right), typeInfo(0) {
-   }
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
+public:
+   DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
       return typeInfo;
    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      return copyBackgroundExplicit<QoreSquareBracketsOperatorNode>(xsink);
    }
 
    DLLLOCAL static QoreValue doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink);
+};
+
+class QoreFunctionalSquareBracketsOperator : public FunctionalOperatorInterface {
+protected:
+    ValueOptionalRefHolder left, right;
+    const QoreListNode* rl;
+    qore_offset_t offset = -1;
+
+public:
+    DLLLOCAL QoreFunctionalSquareBracketsOperator(ValueEvalRefHolder& lhs, ValueEvalRefHolder& rhs, ExceptionSink* xsink)
+        : left(*lhs, lhs.isTemp(), xsink),
+          right(*rhs, rhs.isTemp(), xsink),
+          rl(rhs->get<const QoreListNode>()) {
+       lhs.clearTemp();
+       rhs.clearTemp();
+    }
+
+    DLLLOCAL virtual ~QoreFunctionalSquareBracketsOperator() {}
+
+    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif

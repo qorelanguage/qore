@@ -4,7 +4,7 @@
 
  Qore Programming Language
 
- Copyright (C) 2003 - 2015 David Nichols
+ Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,8 @@
 #ifndef _QORE_MANAGEDDATASOURCE_H
 #define _QORE_MANAGEDDATASOURCE_H
 
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/QoreSQLStatement.h"
 
 #include <set>
 
@@ -54,12 +54,13 @@ protected:
    // connection/transaction lock
    mutable QoreThreadLock ds_lock;
 
-   int tid,                        // TID of thread holding the connection/transaction lock
-      waiting,                     // number of threads waiting on the transaction lock
+   int tid = -1,                   // TID of thread holding the connection/transaction lock
+      waiting = 0,                 // number of threads waiting on the transaction lock
       tl_timeout_ms;               // transaction timeout in milliseconds
 
    QoreCondition cond;             // condition when transaction lock is freed
 
+   DLLLOCAL int acquireLock(ExceptionSink *xsink);
    DLLLOCAL int startDBAction(ExceptionSink* xsink, bool& new_transaction);
    // returns true if we have the transaction lock, false if not
    DLLLOCAL bool endDBActionIntern(char cmd = DAH_NOCHANGE, bool new_transaction = false);
@@ -81,10 +82,10 @@ protected:
    }
 
 public:
-   DLLLOCAL ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl), tid(-1), waiting(0), tl_timeout_ms(DEFAULT_TL_TIMEOUT) {
+   DLLLOCAL ManagedDatasource(DBIDriver *ndsl) : Datasource(ndsl, this), tl_timeout_ms(DEFAULT_TL_TIMEOUT) {
    }
 
-   DLLLOCAL ManagedDatasource(const ManagedDatasource& old) : Datasource(old), tid(-1), waiting(0), tl_timeout_ms(old.tl_timeout_ms) {
+   DLLLOCAL ManagedDatasource(const ManagedDatasource& old) : Datasource(old, this), tl_timeout_ms(old.tl_timeout_ms) {
    }
 
    DLLLOCAL virtual void cleanup(ExceptionSink* xsink);
@@ -131,6 +132,9 @@ public:
    DLLLOCAL AbstractQoreNode* getServerVersion(ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getClientVersion(ExceptionSink* xsink) const;
 
+   DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
+   DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);
+
    DLLLOCAL void setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink);
 
    DLLLOCAL int transactionTid() const {
@@ -142,21 +146,23 @@ public:
    }
 
    DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
+   // sets an option in the constructor without locking
+   DLLLOCAL int setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink);
    DLLLOCAL int setOption(const char* opt, const QoreValue val, ExceptionSink* xsink);
    DLLLOCAL AbstractQoreNode* getOption(const char* opt, ExceptionSink* xsink);
 
    // functions supporting DatasourceStatementHelper
-   DLLLOCAL DatasourceStatementHelper *getReferencedHelper(QoreSQLStatement* s) {
+   DLLLOCAL virtual DatasourceStatementHelper* helperRefSelfImpl() {
       ref();
       return this;
    }
 
    // implementing DatasourceStatementHelper virtual functions
-   DLLLOCAL virtual void helperDestructor(QoreSQLStatement* s, ExceptionSink* xsink) {
+   DLLLOCAL virtual void helperDestructorImpl(QoreSQLStatement* s, ExceptionSink* xsink) {
       deref(xsink);
    }
 
-   DLLLOCAL virtual Datasource* helperStartAction(ExceptionSink* xsink, bool& new_transaction) {
+   DLLLOCAL virtual Datasource* helperStartActionImpl(ExceptionSink* xsink, bool& new_transaction) {
       if (!startDBAction(xsink, new_transaction))
          return this;
 
@@ -164,11 +170,12 @@ public:
       return tid == gettid() ? this : 0;
    }
 
-   DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
+   DLLLOCAL virtual Datasource* helperEndActionImpl(char cmd, bool new_transaction, ExceptionSink* xsink) {
       // execute a commit if auto-commit is enabled and the resource is being released
       // and the connection was not aborted
-      if (cmd == DAH_RELEASE)
+      if (cmd == DAH_RELEASE) {
          autoCommit(xsink);
+      }
       return endDBAction(cmd, new_transaction) ? this : 0;
    }
 };
@@ -181,17 +188,12 @@ protected:
 
 public:
    DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) :
-      ds(n_ds), ok(!ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
+      ds(n_ds), ok(n_cmd == DAH_NOCONN ? !ds.acquireLock(xsink) : !ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
+      if (cmd == DAH_NOCONN)
+         new_transaction = false;
    }
-   DLLLOCAL ~DatasourceActionHelper() {
-      if (ok) {
-         // FIXME: check connection aborted handling if exec could have been executed after connection reset
-         if (ds.wasConnectionAborted()
-             || (new_transaction && ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())))
-            cmd = DAH_RELEASE;
-	 ds.endDBAction(cmd, new_transaction);
-      }
-   }
+
+   DLLLOCAL ~DatasourceActionHelper();
 
    DLLLOCAL bool newTransaction() const { return new_transaction; }
 

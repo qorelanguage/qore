@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,8 +47,8 @@
 #include "Pseudo_QC_Callref.cpp"
 #include "Pseudo_QC_Closure.cpp"
 
-#include <qore/intern/QoreClassIntern.h>
-#include <qore/intern/QoreLibIntern.h>
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreLibIntern.h"
 
 // list of pseudo-classes for basic types + 2 entries for closures and call references
 static QoreClass* po_list[NODE_ARRAY_LEN + 2];
@@ -94,9 +94,9 @@ void pseudo_classes_init() {
 void pseudo_classes_del() {
    // delete pseudo-classes
    for (unsigned i = 0; i < NODE_ARRAY_LEN + 2; ++i)
-      delete po_list[i];
+      qore_class_private::get(*po_list[i])->deref();
 
-   delete QC_PSEUDOVALUE;
+   qore_class_private::get(*QC_PSEUDOVALUE)->deref();
 }
 
 // return the pseudo class for the given type
@@ -108,11 +108,16 @@ static QoreClass* pseudo_get_class(qore_type_t t) {
       return po_list[NODE_ARRAY_LEN];
    if (t == NT_RUNTIME_CLOSURE)
       return po_list[NODE_ARRAY_LEN + 1];
+   if (t == NT_WEAKREF)
+      return po_list[NT_OBJECT];
 
    return QC_PSEUDOVALUE;
 }
 
 QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
+   if (n.getType() == NT_WEAKREF)
+      return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT], QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+
    return qore_class_private::evalPseudoMethod(pseudo_get_class(n.getType()), n, name, args, xsink);
 }
 
@@ -125,32 +130,24 @@ const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char *mname, Q
    return m;
 }
 
-const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo *typeInfo, const char *mname, QoreClass* &qc, bool &possible_match) {
-   assert(typeInfo->hasType());
+const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo* typeInfo, const char* mname, QoreClass*& qc, bool& possible_match) {
+   assert(typeInfo && QoreTypeInfo::hasType(typeInfo));
 
    const QoreMethod* m;
-   if (typeInfo->returnsSingle()) {
-      m = pseudo_classes_find_method(typeInfo->getSingleType(), mname, qc);
+   if (typeInfo->return_vec.size() == 1) {
+      m = pseudo_classes_find_method(typeInfo->return_vec[0].spec.getType(), mname, qc);
       possible_match = m ? true : false;
       return m;
    }
 
-   possible_match = false;
-   const type_vec_t &tv = typeInfo->getReturnTypeList();
    QoreClass* nqc;
-   for (type_vec_t::const_iterator i = tv.begin(), e = tv.end(); i != e; ++i) {
-      if (!(*i)->returnsSingle()) {
-	 pseudo_classes_find_method(*i, mname, nqc, possible_match);
-	 if (possible_match)
-	    return 0;
-      }
-      else {
-	 if (pseudo_classes_find_method((*i)->getSingleType(), mname, nqc)) {
-	    possible_match = true;
-	    return 0;
-	 }
+   for (auto& i : typeInfo->return_vec) {
+      if (pseudo_classes_find_method(i.spec.getType(), mname, nqc)) {
+         possible_match = true;
+         return nullptr;
       }
    }
 
-   return 0;
+   possible_match = false;
+   return nullptr;
 }

@@ -41,14 +41,22 @@ public class HtmlEncodeTest inherits QUnit::Test {
         assertEq("text &Theta; ' ř", str1.getDecoded(CE_XML|CE_NONASCII));
         assertEq("text Θ &apos; ř", str1.getDecoded(CE_HTML|CE_NONASCII));
 
-        str1 = "text Θ ' ř";
-        assertEq("text &Theta; &apos; ř", str1.getEncoded(CE_XHTML));
-        assertEq("text &Theta; &apos; ř", str1.getEncoded());
-        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_ALL));
-        assertEq("text &Theta; &apos; ř", str1.getEncoded(CE_XML));
-        assertEq("text &Theta; ' ř", str1.getEncoded(CE_HTML));
-        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_XHTML|CE_NONASCII));
-        assertEq("text &Theta; &apos; &#345;", str1.getEncoded(CE_XML|CE_NONASCII));
-        assertEq("text &Theta; ' &#345;", str1.getEncoded(CE_HTML|CE_NONASCII));
+        str1 = "text Θ ' ř &";
+        doTest(str1, "text &Theta; &apos; ř &amp;", CE_XHTML);
+        doTest(str1, "text &Theta; &apos; ř &amp;");
+        doTest(str1, "text &Theta; &apos; &#345; &amp;", CE_ALL);
+        doTest(str1, "text Θ &apos; ř &amp;", CE_XML);
+        doTest(str1, "text &Theta; ' ř &amp;", CE_HTML);
+        doTest(str1, "text &Theta; &apos; &#345; &amp;", CE_XHTML|CE_NONASCII);
+        doTest(str1, "text &#920; &apos; &#345; &amp;", CE_XML|CE_NONASCII);
+        doTest(str1, "text &Theta; ' &#345; &amp;", CE_HTML|CE_NONASCII);
+        doTest(str1, "text &#920; ' &#345; &", CE_NONASCII);
+    }
+
+    doTest(string str, string eq, *int code) {
+        string estr = str.getEncoded(code);
+        string label = sprintf("encode %y", code);
+        assertEq(eq, estr, label);
+        assertEq(str, estr.getDecoded(code), label);
     }
 }

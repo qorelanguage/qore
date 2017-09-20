@@ -17,19 +17,16 @@ public class HmacTest inherits QUnit::Test {
     }
 
     constructor() : Test("HmacTest", "1.0") {
-        addTestCase("Basic MD2 test", \md2Test(), NOTHING);
-        addTestCase("Basic MD4 test", \md4Test(), NOTHING);
-        addTestCase("Basic MD5 test", \md5Test(), NOTHING);
-        addTestCase("Basic DSS test", \dssTest(), NOTHING);
-        addTestCase("Basic DSS1 test", \dss1Test(), NOTHING);
-        addTestCase("Basic SHA test", \shaTest(), NOTHING);
-        addTestCase("Basic SHA1 test", \sha1Test(), NOTHING);
-        addTestCase("Basic RIPEMD160 test", \ripemd160Test(), NOTHING);
-        addTestCase("Basic MDC2 test", \mdc2Test(), NOTHING);
-        addTestCase("Basic SHA224 test", \sha224Test(), NOTHING);
-        addTestCase("Basic SHA256 test", \sha256Test(), NOTHING);
-        addTestCase("Basic SHA384 test", \sha384Test(), NOTHING);
-        addTestCase("Basic SHA512 test", \sha512Test(), NOTHING);
+        addTestCase("Basic MD2 test", \md2Test());
+        addTestCase("Basic MD4 test", \md4Test());
+        addTestCase("Basic MD5 test", \md5Test());
+        addTestCase("Basic SHA1 test", \sha1Test());
+        addTestCase("Basic RIPEMD160 test", \ripemd160Test());
+        addTestCase("Basic MDC2 test", \mdc2Test());
+        addTestCase("Basic SHA224 test", \sha224Test());
+        addTestCase("Basic SHA256 test", \sha256Test());
+        addTestCase("Basic SHA384 test", \sha384Test());
+        addTestCase("Basic SHA512 test", \sha512Test());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -48,18 +45,6 @@ public class HmacTest inherits QUnit::Test {
 
     md5Test() {
         testAssertion("MD5 hmac", \MD5_hmac(), (str, key), new TestResultValue("87505c6164aaf6ca6315233902a01ef4"));
-    }
-
-    dssTest() {
-        testAssertion("DSS hmac", \DSS_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
-    }
-
-    dss1Test() {
-        testAssertion("DSS1 hmac", \DSS1_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
-    }
-
-    shaTest() {
-        testAssertion("SHA hmac", \SHA_hmac(), (str, key), new TestResultValue("0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"));
     }
 
     sha1Test() {

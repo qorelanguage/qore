@@ -3,7 +3,7 @@
 
 # @file email.q example program using the SmtpClient module
 
-/*  email.q Copyright 2012 - 2015 David Nichols
+/*  email.q Copyright 2012 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 
 %requires SmtpClient >= 1.0
 %requires Mime >= 1.0
+%requires ConnectionProvider
 
 class mail {
     private {
@@ -85,12 +86,19 @@ class mail {
         }
 
         # if we have either user or pass, make sure we have both
-        if (!opt.user.empty() || !opt.pass.empty() && (opt.pass.empty() || opt.user.empty())) {
-            stderr.printf("missing one of the username or password; if one is supplied then both must be supplied\n");
+        if ((!opt.user.empty() || !opt.pass.empty()) && (opt.pass.empty() || opt.user.empty())) {
+            stderr.printf("missing one of the username or password; if one is supplied then both must be supplied opt: %y\n", opt);
             exit(1);
         }
 
         server = shift ARGV;
+
+        {
+            string orig_server = server;
+            server = get_connection_url(server);
+            if (server != orig_server)
+                printf("using connection: %y url: %y\n", orig_server, server);
+        }
 
         try {
             SmtpClient smtp(server, \log(), \log());

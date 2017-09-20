@@ -1,10 +1,10 @@
 /*
   QoreDeleteOperatorNode.cpp
- 
+
   Qore Programming Language
- 
+
   Copyright (C) 2003 - 2015 David Nichols
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -54,16 +54,9 @@ AbstractQoreNode *QoreDeleteOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    assert(!typeInfo);
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
-      if (exp && check_lvalue(exp))
-	 parse_error("the delete operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
+      if (exp)
+	 checkLValue(exp, pflag);
    }
    typeInfo = nothingTypeInfo;
    return this;
-}
-
-QoreDeleteOperatorNode* QoreDeleteOperatorNode::copyBackground(ExceptionSink* xsink) const {
-   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-   if (*xsink)
-      return 0;
-   return new QoreDeleteOperatorNode(n_exp.release());
 }

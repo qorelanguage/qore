@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,9 @@
 #ifndef _QORE_QORESQLSTATEMENT_H
 #define _QORE_QORESQLSTATEMENT_H
 
-#include <qore/intern/sql_statement_private.h>
+#include "qore/intern/sql_statement_private.h"
 
-class DatasourceStatementHelper;
+#include "qore/intern/DatasourceStatementHelper.h"
 
 #define STMT_IDLE      0
 #define STMT_PREPARED  1
@@ -50,19 +50,19 @@ protected:
    DLLLOCAL static const char* stmt_statuses[];
 
    // Datasource used to prepare the statement
-   Datasource* stmtds;
+   Datasource* stmtds = nullptr;
    // helper object for acquiring a Datasource pointer
    DatasourceStatementHelper* dsh;
    // copy of SQL string
    QoreString str;
    // copy of prepare args
-   QoreListNode* prepare_args;
+   QoreListNode* prepare_args = nullptr;
    // status
-   unsigned char status;
+   unsigned char status = STMT_IDLE;
    // raw prepare flag
-   bool raw;
+   bool raw = false;
    // valid flag
-   bool validp;
+   bool validp = false;
 
    DLLLOCAL int checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int stat, const char* action);
 
@@ -73,12 +73,12 @@ protected:
    DLLLOCAL int prepareArgs(bool n_raw, const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink);
 
 public:
-   DLLLOCAL QoreSQLStatement() : stmtds(0), dsh(0), prepare_args(0), status(STMT_IDLE), raw(false), validp(false) {
+   DLLLOCAL QoreSQLStatement(DatasourceStatementHelper* dsh) : dsh(dsh->helperRefSelf()) {
    }
 
-   DLLLOCAL ~QoreSQLStatement();
+   DLLLOCAL QoreSQLStatement(Datasource* ds, void* data, DatasourceStatementHelper* dsh, unsigned char status);
 
-   DLLLOCAL void init(DatasourceStatementHelper* n_dsh);
+   DLLLOCAL ~QoreSQLStatement();
 
    using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink);
@@ -118,6 +118,9 @@ public:
 
    DLLLOCAL bool active() const;
    DLLLOCAL bool currentThreadInTransaction(ExceptionSink* xsink);
+
+   // called by the datasource object if the connection is lost or the transaction has been committed or rolled back
+   DLLLOCAL void transactionDone(bool clear, bool close, ExceptionSink* xsink);
 
    DLLLOCAL QoreStringNode* getSQL(ExceptionSink* xsink);
 };

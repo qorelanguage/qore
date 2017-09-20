@@ -74,20 +74,20 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
 
    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (number) can be assigned if either side is known to have it
    // can be assigned if either side is a float
-   if (lti->isType(NT_NUMBER) || rti->isType(NT_NUMBER)) {
+   if (QoreTypeInfo::isType(lti, NT_NUMBER) || QoreTypeInfo::isType(rti, NT_NUMBER)) {
       typeInfo = numberTypeInfo;
    }
-   else if (lti->hasType() && rti->hasType()) {
-      if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT)) {
-	 pfunc = &QoreDivisionOperatorNode::floatDivision;
-	 typeInfo = floatTypeInfo;
+   else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
+      if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT)) {
+         pfunc = &QoreDivisionOperatorNode::floatDivision;
+         typeInfo = floatTypeInfo;
       }
-      else if (lti->isType(NT_INT) && rti->isType(NT_INT)) {
-	 pfunc = &QoreDivisionOperatorNode::bigIntDivision;
-	 typeInfo = bigIntTypeInfo;
+      else if (QoreTypeInfo::isType(lti, NT_INT) && QoreTypeInfo::isType(rti, NT_INT)) {
+         pfunc = &QoreDivisionOperatorNode::bigIntDivision;
+         typeInfo = bigIntTypeInfo;
       }
       else
-	 typeInfo = floatTypeInfo;
+         typeInfo = floatTypeInfo;
    }
 
    if (typeInfo)

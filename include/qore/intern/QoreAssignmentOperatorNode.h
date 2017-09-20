@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,16 +34,53 @@
 
 class QoreAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
-protected:
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   // to support "broken-int-assignments"
-   bool broken_int;
-
 public:
-   DLLLOCAL QoreAssignmentOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right), broken_int(false) {
-   }
+    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right) {
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+        return copyBackgroundExplicit<QoreAssignmentOperatorNode>(xsink);
+    }
+
+protected:
+    // to support "broken-int-assignments"
+    bool broken_int = false;
+    // flag for identical match with assignment types (lvalue & rvalue)
+    bool ident = false;
+
+    DLLLOCAL void parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo, bool weak_assignment);
+
+    DLLLOCAL QoreValue evalValueIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const;
+
+    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        parseInitIntern(oflag, pflag, lvids, typeInfo, false);
+        return this;
+    }
+
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        return evalValueIntern(xsink, needs_deref, false);
+    }
+};
+
+class QoreWeakAssignmentOperatorNode : public QoreAssignmentOperatorNode {
+OP_COMMON
+public:
+    DLLLOCAL QoreWeakAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreAssignmentOperatorNode(loc, n_left, n_right) {
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+        return copyBackgroundExplicit<QoreWeakAssignmentOperatorNode>(xsink);
+    }
+
+protected:
+    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        parseInitIntern(oflag, pflag, lvids, typeInfo, true);
+        return this;
+    }
+
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        return evalValueIntern(xsink, needs_deref, true);
+    }
 };
 
 #endif

@@ -82,11 +82,19 @@ lib/ql_thread.cpp
 lib/ql_time.cpp
 lib/ql_type.cpp
 
-# Bison
+# Bison & Flex
 lib/parser.cpp
 lib/parser.hpp
 lib/parser.h
 lib/scanner.cpp
+
+# module-astparser
+modules/astparser/config.h
+modules/astparser/stamp-h2
+modules/astparser/src/ast_parser.hpp
+modules/astparser/src/ast_parser.cpp
+modules/astparser/src/ast_scanner.cpp
+modules/astparser/src/QC_*.cpp
 
 # Doxygen generated files
 docs

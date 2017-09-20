@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2016 Qore Technologies, sro
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,11 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SQLStatement.h>
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/sql_statement_private.h>
-#include <qore/intern/qore_ds_private.h>
-#include <qore/intern/qore_dbi_private.h>
+#include "qore/intern/QC_SQLStatement.h"
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/sql_statement_private.h"
+#include "qore/intern/qore_ds_private.h"
+#include "qore/intern/qore_dbi_private.h"
 
 const char* QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
@@ -47,37 +47,46 @@ public:
    bool nt; // new transaction flag
 
    DLLLOCAL DBActionHelper(QoreSQLStatement& n_stmt, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
-      Datasource* oldds = stmt.priv->ds;
-      //printd(5, "DBActionHelper::DBActionHelper() old ds: %p cmd: %s\n", stmt.priv->ds, DAH_TEXT(cmd));
-      stmt.priv->ds = stmt.dsh->helperStartAction(xsink, nt);
+      Datasource* newds = stmt.dsh->helperStartAction(xsink, nt);
+      assert(!newds || !stmt.priv->ds || (newds == stmt.priv->ds));
+      assert(newds || *xsink);
+      if (newds && !stmt.priv->ds)
+         qore_ds_private::get(*newds)->addStatement(&n_stmt);
+      stmt.priv->ds = newds;
 
-      // if we are trying to start a new transaction on a new Datasource connection, but we have
-      // already prepared the statement on another connection, we have to raise an exception
-      // otherwise the statement will actually be executed on the original connection which is
-      // cached in the driver (https://github.com/qorelanguage/qore/issues/465)
-      if (oldds && stmt.priv->ds != oldds && cmd == DAH_ACQUIRE)
-         xsink->raiseException("SQLSTATEMENT-ERROR", "statement was prepared on another Datasource; you must close the statement before executing this action on a new connection");
-
-      //printd(5, "DBActionHelper::DBActionHelper() ds: %p cmd: %s nt: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt);
-      valid = *xsink ? false : true;
+      //printd(5, "DBActionHelper::DBActionHelper() ds: %p new: %p cmd: %s nt: %d xs: %d stmt: %p\n", stmt.priv->ds, newds, DAH_TEXT(cmd), nt, (bool)*xsink, &stmt);
+      valid = (bool)stmt.priv->ds;
    }
 
    DLLLOCAL ~DBActionHelper() {
-      if (!valid)
+      // if no datasource is currently assigned
+      if (!valid || !stmt.priv->ds)
          return;
 
       /* release the Datasource if:
-         1) the connection was lost (exception already raised)
+         1) the transaction was aborted
+         or
          2) the Datasource was acquired for this call, and
               the command was NOCHANGE, meaning, leave the Datasource in the same state it was before the call
        */
-      if (stmt.priv->ds->wasConnectionAborted() || (nt && (cmd == DAH_NOCHANGE)))
+      if (stmt.priv->ds->wasConnectionAborted() || !stmt.priv->ds->isOpen() || (nt && (cmd == DAH_NOCHANGE)))
          cmd = DAH_RELEASE;
 
-      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent());
+      //printd(5, "DBActionHelper::~DBActionHelper() ds: %p cmd: %s nt: %d xsink: %d stmt: %p status: %d data: %p\n", stmt.priv->ds, DAH_TEXT(cmd), nt, xsink->isEvent(), &stmt, stmt.status, stmt.priv->data);
+
+      // remove statement from Datasource if the connection is no longer allocated
+      // must be executed in the Datasource allocation lock
+      if (cmd == DAH_RELEASE) {
+         qore_ds_private* dspriv = qore_ds_private::get(*stmt.priv->ds);
+         //printd(5, "DBActionHelper::~DBActionHelper() old: %p ds: %p removing stmt %p\n", oldds, stmt.priv->ds, &stmt);
+         dspriv->removeStatement(&stmt);
+      }
 
       // call end action with the command
       stmt.priv->ds = stmt.dsh->helperEndAction(cmd, nt, xsink);
+
+      // we have to remove the datasource from the statement immediately if the Datasource is closed or committed
+      assert((cmd == DAH_RELEASE) || stmt.priv->ds);
    }
 
    DLLLOCAL operator bool() const {
@@ -89,12 +98,12 @@ public:
    }
 };
 
-QoreSQLStatement::~QoreSQLStatement() {
-   assert(!priv->data);
+QoreSQLStatement::QoreSQLStatement(Datasource* ds, void* data, DatasourceStatementHelper* dsh, unsigned char status) : SQLStatement(ds, data), dsh(dsh->helperRefSelf()), status(status) {
+   qore_ds_private::get(*ds)->setStatementKeepLock(this);
 }
 
-void QoreSQLStatement::init(DatasourceStatementHelper* n_dsh) {
-   dsh = n_dsh;
+QoreSQLStatement::~QoreSQLStatement() {
+   assert(!priv->data);
 }
 
 int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int stat, const char* action) {
@@ -141,13 +150,12 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
 
 void QoreSQLStatement::deref(ExceptionSink* xsink) {
    if (ROdereference()) {
-      char cmd = DAH_NOCHANGE;
-      //printd(5, "QoreSQLStatement::deref() deleting this=%p cmd=%s\n", this, DAH_TEXT(cmd));
-      {
-         DBActionHelper dba(*this, xsink, cmd);
-         if (dba)
-            closeIntern(xsink);
-      }
+      //char cmd = DAH_NOCHANGE;
+      //printd(5, "QoreSQLStatement::deref() deleting this: %p cmd: %s\n", this, DAH_TEXT(cmd));
+      closeIntern(xsink);
+
+      if (priv->ds)
+         qore_ds_private::get(*priv->ds)->removeStatement(this);
 
       dsh->helperDestructor(this, xsink);
 
@@ -156,6 +164,24 @@ void QoreSQLStatement::deref(ExceptionSink* xsink) {
 
       delete this;
    }
+}
+
+void QoreSQLStatement::transactionDone(bool clear, bool close, ExceptionSink* xsink) {
+   //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
+   if (priv->data) {
+      assert(priv->ds);
+      // if "close" is set, then we delete the statement's local data
+      if (close) {
+         qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+         assert(!priv->data);
+         status = STMT_IDLE;
+      }
+      else // otherwise, any handles are freed but the local data stays in place
+         qore_dbi_private::get(*priv->ds->getDriver())->stmt_free(this, xsink);
+   }
+   // if "clear" is set, then we clear the datasource
+   if (clear && priv->ds)
+      priv->ds = nullptr;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
@@ -177,12 +203,12 @@ int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString& n_str, const Qor
    if (prepare_args) {
       prepare_args->deref(xsink);
       if (*xsink) {
-         prepare_args = 0;
+         prepare_args = nullptr;
          return -1;
       }
    }
 
-   prepare_args = args ? args->listRefSelf() : 0;
+   prepare_args = args ? args->listRefSelf() : nullptr;
    return 0;
 }
 
@@ -191,7 +217,6 @@ int QoreSQLStatement::prepareIntern(ExceptionSink* xsink) {
    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
    if (!rc) {
       status = STMT_PREPARED;
-      //stmtds = ds;
    }
    else
       closeIntern(xsink);
@@ -220,7 +245,7 @@ int QoreSQLStatement::prepareRaw(const QoreString& n_str, ExceptionSink* xsink) 
    if (checkStatus(xsink, dba, STMT_IDLE, "prepareRaw"))
       return -1;
 
-   if (prepareArgs(true, n_str, 0, xsink))
+   if (prepareArgs(true, n_str, nullptr, xsink))
       return -1;
 
    return 0;
@@ -264,6 +289,12 @@ int QoreSQLStatement::exec(const QoreListNode* args, ExceptionSink* xsink) {
    if (!dba)
       return -1;
 
+   // statements from output buffers have no SQL
+   if (str.empty()) {
+       xsink->raiseException("SQLSTATEMENT-ERROR", "the current statement has no SQL to execute");
+       return -1;
+   }
+
    if (checkStatus(xsink, dba, STMT_PREPARED, "exec"))
       return -1;
 
@@ -280,7 +311,7 @@ int QoreSQLStatement::execIntern(DBActionHelper& dba, ExceptionSink* xsink) {
 
    //printd(5, "QoreSQLStatement::execIntern() this: %p ds: %p: %s@%s: %s\n", this, priv->ds, priv->ds->getUsername(), priv->ds->getDBName(), str.getBuffer());
 
-   priv->ds->priv->statementExecuted(rc, xsink);
+   priv->ds->priv->statementExecuted(rc);
    return rc;
 }
 
@@ -298,10 +329,10 @@ int QoreSQLStatement::affectedRows(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::getOutput(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_EXECED, "getOutput"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output(this, xsink);
 }
@@ -309,10 +340,10 @@ QoreHashNode* QoreSQLStatement::getOutput(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::getOutputRows(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_EXECED, "getOutputRows"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output_rows(this, xsink);
 }
@@ -353,10 +384,10 @@ int QoreSQLStatement::defineIntern(ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::fetchRow(ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRow"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_row(this, xsink);
 }
@@ -364,10 +395,10 @@ QoreHashNode* QoreSQLStatement::fetchRow(ExceptionSink* xsink) {
 QoreListNode* QoreSQLStatement::fetchRows(int rows, ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRows"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_rows(this, rows, xsink);
 }
@@ -375,10 +406,10 @@ QoreListNode* QoreSQLStatement::fetchRows(int rows, ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
    if (!dba)
-      return 0;
+      return nullptr;
 
    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchColumns"))
-      return 0;
+      return nullptr;
 
    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
 }
@@ -386,10 +417,10 @@ QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
 QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
     DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
     if (!dba)
-       return 0;
+       return nullptr;
 
     if (checkStatus(xsink, dba, STMT_DEFINED, "describe"))
-       return 0;
+       return nullptr;
 
     return qore_dbi_private::get(*priv->ds->getDriver())->stmt_describe(this, xsink);
 }
@@ -420,7 +451,7 @@ int QoreSQLStatement::commit(ExceptionSink* xsink) {
       return -1;
 
    int rc = closeIntern(xsink);
-   rc = priv->ds->commit(xsink);
+   rc = qore_ds_private::get(*priv->ds)->commitIntern(xsink);
    //printd(5, "QoreSQLStatement::commit() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
@@ -431,7 +462,7 @@ int QoreSQLStatement::rollback(ExceptionSink* xsink) {
       return -1;
 
    int rc = closeIntern(xsink);
-   rc = priv->ds->rollback(xsink);
+   rc = qore_ds_private::get(*priv->ds)->rollbackIntern(xsink);
    //printd(5, "QoreSQLStatement::rollback() this: %p ds: %p rc: %d\n", this, priv->ds, rc);
    return rc;
 }
@@ -448,7 +479,7 @@ QoreStringNode* QoreSQLStatement::getSQL(ExceptionSink* xsink) {
    // we have to acquire the datasource in order to use the thread lock to access the SQL string
    DBActionHelper dba(*this, xsink, DAH_NOCHANGE);
    if (!dba)
-      return 0;
+      return nullptr;
 
-   return str.empty() ? 0 : new QoreStringNode(str);
+   return str.empty() ? nullptr : new QoreStringNode(str);
 }

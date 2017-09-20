@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2016 Qore Technologies, sro
+/*  Mapper.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module Mapper {
-    version = "1.1";
+    version = "1.4";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -186,16 +186,15 @@ list: (2 elements)
 
     @section mapper_runtime_handling Mapper Runtime Options
 
-    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use values provided at runtime
+    Runtime options for @ref Mapper::Mapper "Mapper" objects allow the programmer to use constant values provided at runtime
     in the @ref Mapper::Mapper "Mapper" output.
 
     For example, runtime options can be useful in the following cases:
         - storing one date/time value for all output hashes of the @ref Mapper::Mapper "Mapper"
         - using a value from a database sequence value for the lifetime of the @ref Mapper::Mapper "Mapper" object
-        - grouping of the output data
 
     @par Example:
-    @code{.py}{.py}
+    @code{.py}
 hash mapv = (
     "foo": ("constant": "bar"),
      # ...
@@ -212,12 +211,25 @@ hash opts = (
 );
 Mapper m(mapv, opts);        # runtime options are active now
 m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
-m.setRuntime("group_id", 1); # runtime group_id changed. From now it will use 1
-m.mapData(input2);           # date_begin is still the same as from beginning of processing, but group is 1 now
     @endcode
 
+    The runtime options are basically the same as setting constants in the mapper before providing runtime data to the mapper. As such, the runtime options can be changed only before the first input hash is processed by a @ref Mapper::Mapper "Mapper".
+
+    Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_4 Mapper v1.4
+    - added support for complex types
+
+    @subsection mapperv1_3_1 Mapper v1.3.1
+    - fixed bugs handling mapper fields with no input records in list mode as passed from the \c TableMapper module (<a href="https://github.com/qorelanguage/qore/issues/1736">issue 1736</a>)
+
+    @subsection mapperv1_3 Mapper v1.3
+    - internal updates to allow for TableMapper insert performance improvements (<a href="https://github.com/qorelanguage/qore/issues/1626">issue 1626</a>)
+
+    @subsection mapperv1_2 Mapper v1.2
+    - significantly improved mapper performance with identity (i.e. 1:1) and constant mappings (<a href="https://github.com/qorelanguage/qore/issues/1620">issue 1620</a>)
 
     @subsection mapperv1_1 Mapper v1.1
     - implemented \c "constant" field tag giving a constant value for the output of a field
@@ -232,7 +244,6 @@ m.mapData(input2);           # date_begin is still the same as from beginning of
     - implemented the \c "input" option with input record validation
     - implemented the \c "output" option with output record validation
     - implemented the \c "info_log" option and removed the \c "trunc" option
-    - implemented the @ref Mapper::Mapper::addConstantMapping() "Mapper::addConstantMapping()" methods
     - added runtime option handling (@ref mapper_runtime_handling):
       - \c "runtime" mapper option
       - @ref Mapper::Mapper::getRuntime()
@@ -255,6 +266,8 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = (
+                "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
+                "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
                 "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
                 "encoding": "gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
@@ -311,6 +324,12 @@ public namespace Mapper {
             #! the hash providing output field names and mappings
             hash mapc;
 
+            #! the hash with a subset of the mappings used dynamically
+            hash mapd;
+
+            #! the hash of output records for key order
+            hash mapo;
+
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
             string encoding = "utf-8";
 
@@ -365,11 +384,23 @@ public namespace Mapper {
             /** @since Mapper 1.1
              */
             bool m_empty_strings_to_nothing = False;
+
+            #! map of fields to be mapped 1:1 input -> output
+            hash identh;
+
+            #! list of fields to be mapped 1:1 input -> output
+            *list identl;
+
+            #! map of constant fields
+            hash consth;
+
+            #! map of constant runtime fields
+            hash rconsth;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
         /** @par Example:
-            @code{.py}{.py}
+            @code{.py}
 const DataMap = (
     # output field: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
@@ -435,7 +466,7 @@ Mapper mapv(DataMap);
                     }
                     if (h.value.typeCode() != NT_HASH)
                         error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    foreach string k in (h.value.keyIterator()) {
+                    foreach string k in (keys h.value) {
                         if (!OutputKeys{k})
                             error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
                     }
@@ -450,7 +481,7 @@ Mapper mapv(DataMap);
 
             mapc = mapv;
             hash ck = optionKeys();
-            foreach string k in (opts.keyIterator()) {
+            foreach string k in (keys opts) {
                 if (!ck{k})
                     error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
             }
@@ -491,11 +522,22 @@ Mapper mapv(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map checkMapField($1, \mapc.$1), mapc.keyIterator();
+            map checkMapField($1, \mapc.$1), keys mapc;
+            mapd = mapc;
+            if (identh) {
+                identl = keys identh;
+                mapd -= identl;
+            }
+            if (consth) {
+                mapd -= keys consth;
+            }
+            if (rconsth) {
+                mapd -= keys rconsth;
+            }
         }
 
         #! convert a field definition to a hash if possible
-        private convertToHash(int t, string k, reference fh) {
+        private convertToHash(int t, string k, reference<any> fh) {
             switch (t) {
                 # convert to a hash if the value of the column is a string (giving the source key name)
                 case NT_STRING: fh = ("name": fh); break;
@@ -522,9 +564,9 @@ Mapper mapv(DataMap);
 
         #! perform per-field pre-processing on the passed map in the constructor
         /** @param k the field name
-            @param fh a reference to the field's value in the map
+            @param fh a reference to the field's value in the map; will be converted to a hash
         */
-        private checkMapField(string k, reference fh, *hash th) {
+        private checkMapField(string k, reference<any> fh) {
             *hash outf;
             # check output name
             if (output) {
@@ -545,6 +587,11 @@ Mapper mapv(DataMap);
                     checkInputField(k, fh.name);
                 if (!allow_dot && fh.name =~ /\./)
                     fh.struct = (remove fh.name).split(".");
+                else {
+                    # add to ident list if the input and output fields are identical
+                    if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
+                        identh{k} = True;
+                }
             }
             else if (fh.runtime) {
                 if (!m_runtime.hasKey(fh.runtime))
@@ -553,13 +600,13 @@ Mapper mapv(DataMap);
             else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
                 checkInputField(k, k);
             if (exists fh.constant && exists fh.index) {
-                error("output field %y has a 'constant' and 'index' together. It's a conflict.", getFieldName(k));
+                error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
             }
             if (exists fh.constant || exists fh.index) {
-                *list cl = map $1, fh.keys(){ConstantConflictList};
+                *list cl = keys fh{ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl)
-                    error("output field %y has a \"%s\" key conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
+                    error("output field %y has key %y which conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
             }
 
             switch (fh.struct.typeCode()) {
@@ -604,7 +651,7 @@ Mapper mapv(DataMap);
 
             # check for contradictory definitions and assign values according to the output definition
             if (outf) {
-                foreach string ok in (outf.keyIterator()) {
+                foreach string ok in (keys outf) {
                     # ignore the "desc" key
                     if (ok == "desc")
                         continue;
@@ -623,7 +670,7 @@ Mapper mapv(DataMap);
             hash vk = validKeys();
             hash vt = validTypes();
 
-            foreach string hk in (fh.keyIterator())
+            foreach string hk in (keys fh)
                 if (!vk{hk})
                     error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
 
@@ -634,8 +681,26 @@ Mapper mapv(DataMap);
                 fh.type = "number";
                 delete fh.number;
             }
-            else if (exists fh.type && !vt.(fh.type))
-                error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+            else if (exists fh.type) {
+                if (!vt.(fh.type))
+                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+                switch (fh.type) {
+                    case "date": {
+                        if (!timezone)
+                            fh.typeCode = NT_DATE;
+                        break;
+                    }
+                    case "string": {
+                        fh.typeCode = NT_STRING;
+                        break;
+                    }
+                    case "integer":
+                    case "int": {
+                        fh.typeCode = NT_INT;
+                        break;
+                    }
+                }
+            }
 
             if (exists fh.code && !fh.code.callp())
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
@@ -645,19 +710,30 @@ Mapper mapv(DataMap);
                 try {
                     mapFieldType(k, fh, \rec{k}, rec);
                 }
-                catch (hash ex) {
+                catch (hash<ExceptionInfo> ex) {
                     error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
                 }
             }
 
             # check if the output field should be a hash
-            if (!allow_output_dot && k =~ /\./)
+            if (!allow_output_dot && k =~ /\./) {
                 fh.ostruct = k.split(".");
+                mapo{fh.ostruct[0]} = NOTHING;
+            }
+            else {
+                # add to consth if a constant value is included
+                # refs #1754 if constant is 0, we cannot simply check with if(fh.constant)
+                if (exists fh.constant)
+                    consth{k} = fh.constant;
+                if (exists fh.runtime)
+                    rconsth{k} = fh.runtime;
+                mapo{k} = NOTHING;
+            }
         }
 
         #! verifies a timezone constructor option
         private checkTimezoneOption(hash opts, string rn) {
-            any val = opts{rn};
+            auto val = opts{rn};
             if (!exists val)
                 return;
             if (val instanceof TimeZone) {
@@ -673,9 +749,10 @@ Mapper mapv(DataMap);
         }
 
         #! set the @ref mapper_runtime_handling "runtime option" with \a "key" to value \a "value"
-        /**
-             @param key a string with valid runtime key
-             @param value anything passed to the current runtime \c key
+        /** @param key a string with valid runtime key
+            @param value anything passed to the current runtime \c key
+
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
 
             @see
             - @ref mapper_runtime_handling
@@ -683,8 +760,19 @@ Mapper mapv(DataMap);
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
-        setRuntime(string key, any value) {
+        setRuntime(string key, auto value) {
+            if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", key, m_runtime{key}, value, count);
+            }
             m_runtime{key} = value;
         }
 
@@ -692,14 +780,27 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to add to the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - replaceRuntime()
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
         setRuntime(hash runtime) {
+            if (count > 0 && m_runtime + runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, m_runtime + runtime, count);
+            }
             m_runtime += runtime;
         }
 
@@ -707,14 +808,27 @@ Mapper mapv(DataMap);
         /**
             @param runtime a hash of runtime options to use to replace the current @ref mapper_runtime_handling "runtime option hash"
 
+            @note this method cannot be called once data has been supplied to the Mapper; this method can only be used to initialize the Mapper with constant mappings before the Mapper processes any data
+
             @see
             - @ref mapper_runtime_handling
             - getRuntime()
             - setRuntime()
 
             @since %Mapper 1.1
+
+            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+                        the runtime options.
+
+            @throw RUNTIME-OPTION-CHANGED the option has changed during while already
+                   processing the data.
          */
         replaceRuntime(*hash runtime) {
+            if (count > 0 && runtime != m_runtime) {
+                throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
+                        "has changed %y -> %y while already %y input rows have been "
+                        "processed", m_runtime, runtime, count);
+            }
             m_runtime = runtime;
         }
 
@@ -730,7 +844,7 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
          */
-        any getRuntime(string key) {
+        auto getRuntime(string key) {
             return m_runtime{key};
         }
 
@@ -780,7 +894,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(list recs) {
+        list<hash> mapAll(list recs) {
             return map mapData($1), recs;
         }
 
@@ -794,7 +908,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list mapAll(hash recs) {
+        list<hash> mapAll(hash recs) {
             return map mapData($1), recs.contextIterator();
         }
 
@@ -834,107 +948,228 @@ Mapper mapv(DataMap);
             if (input_log)
                 input_log(rec);
 
-            # hash of mapped data to be added to h
-            hash h;
+            # hash of mapped data to be added to h; mapo provides the output field order
+            hash h = mapo;
 
-            # iterate through target fields
-            foreach string key in (mapc.keyIterator()) {
-                any m = mapc{key};
+            # first copy all 1:1 mappings to the output hash
+            if (identl)
+                h += rec{identl};
 
-                # get source field name
-                string name = m.name ?? key;
+            # copy all constant mappings to the output hash
+            if (consth)
+                h += consth;
 
-                # get source record value
-                any v;
-                if (exists m.constant)
-                    v = m.constant;
-                else if (exists m.index)
-                    v = m.index + count;
-                else if (m.runtime) {
-                    v = m_runtime{m.runtime}; # TODO/FIXME: throw an exception if it does not exist?
-                }
-                else if (m.struct) {
-                    # get the value
-                    v = rec;
-                    map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
-                }
-                else
-                    v = rec{name} ?? NOTHING;
+            # copy all runtime constant mappings to the output hash
+            map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
 
-                # move any XML CDATA into the field value
-                if (v."^cdata^")
-                    v = v."^cdata^";
-
-                # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
-                if (m.subclass)
-                    v = mapSubclass(m, v);
-
-                # execute any field filter if necessary
-                if (m.code) {
-                    try {
-                        v = m.code(v, rec);
-                    }
-                    catch (hash ex) {
-                        ex.desc = sprintf("field %y closure: %s", key, ex.desc);
-                        throw ex.err, ex.desc, ex.arg;
-                    }
-                }
-
-                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
-                    delete v;
-
-                if (m.type)
-                    mapFieldType(key, m, \v, rec);
-
-                if (exists m."default" && !exists v)
-                    v = m."default";
-
-                # check maximum length
-                if (m.maxlen && v.size() > m.maxlen) {
-                    # truncate the string if necessary
-                    if (m.trunc) {
-                        if (info_log)
-                            info_log("field %y = %y input length %d truncating to %d bytes", getFieldName(key), v, v.size(), m.maxlen);
-                        v = trunc_str(v, m.maxlen, encoding);
-                    }
-                    else
-                        error2("STRING-TOO-LONG", "field %y = %y, input length %d exceeds maximum byte length %d for input row: %y", getFieldName(key), v, strlen(v), m.maxlen, rec);
-                }
-
-                if (m.mand && !exists v)
-                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
-
-                # add value to row list
-                if (m.ostruct) {
-                    # recursive closure for generating structured data
-                    code ah = any sub (any ch, int off = 0) {
-                        if (off == m.ostruct.size())
-                            return v;
-                        string k = m.ostruct[off];
-                        any oh = ch{k};
-                        if (exists oh && oh.typeCode() != NT_HASH)
-                            throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
-                        ch{k} = ah(oh, off + 1);
-                        return ch;
-                    };
-                    try {
-                        h = ah(h);
-                    }
-                    catch (hash ex) {
-                        if (ex.err == "INVALID-OUTPUT")
-                            error2(ex.err, ex.desc);
-                        else
-                            rethrow;
-                    }
-                }
-                else
-                    h{key} = v;
-            }
+            # iterate through dynamic target fields
+            map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
 
             # increment record count
             ++count;
 
             return h;
+        }
+
+        #! maps a single field to the target
+        /**
+          * Performs the actual mapping
+          *
+          * @param h the hash to be updated with the mapped key/value pair;
+          *          Depending on the mapper specification and the input, it can
+          *          contain a bulk record (hash of lists) or a hash of both list
+          *          and non-list keys (these are considered a "constants" in the
+          *          output record.
+          * @param key the column name (hash key) to be mapped (target field)
+          * @param rec input record - either single record of hash of lists (batch);
+          *                           to increase performance, the input type
+          *                           (single record vs. batch) is determined by
+          *                           the \a do_list parameter. In case of
+          *                           bulk input, all the lists are supposed to
+          *                           have the same length \a list_size
+          * @param do_list - whether the input record \a rec is single record or
+          *                  bulk format (hash of lists)
+          * @param list_size - size of the lists in case the input is in bulk
+          *                    format (all lists must have the same length,
+          *                    asserted inside the method).
+          *
+          * @note it is assumed that list_size > 0 whenever do_list is Qore::True
+          * @note if do_list == Qore::True, the 'rec' can contain a mix of lists
+          *       and non-list values - the non-list values are used as constants
+          *       in the mapping - as if expanded to lists with all values identical.
+          */
+        private nothing mapFieldIntern(reference<hash> h, string key, hash rec, bool do_list, int list_size) {
+            # FIXME: assert(!do_list || list_size > 0);
+            # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
+            hash m = mapc{key};
+
+            # closure to get the current record hash from a hash of lists;
+            # rec is not bound here for performance reasons (so it will remain unlocked);
+            # NOTE that we still need the NT_LIST check here since even with do_list
+            # we can get constants in 'rec' (aka non-lists).
+            code getrec = hash sub (hash rc, int offset) {
+                return map {$1.key : $1.value.typeCode() == NT_LIST ?
+                                        $1.value[offset] :
+                                        $1.value}, rc.pairIterator();
+            };
+
+            # get source field name
+            string name = m.name ?? key;
+
+            # get source record value
+            auto v;
+            if (exists m.constant)
+                v = m.constant;
+            else if (exists m.index) {
+                v = do_list ?
+                    (map m.index + count + $#, xrange(0, list_size - 1)) :
+                    m.index + count;
+            }
+            else if (exists m.runtime) {
+                # actually runtime should not happen with do_list since
+                # do_list = True is only used from TableMapper that is handling
+                # runtime outside mapFieldIntern()
+                v = m_runtime{m.runtime};
+            }
+            else if (m.struct) {
+                v = rec;
+                map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
+            }
+            else
+                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
+
+            bool v_is_list = v.typeCode() == NT_LIST;
+            if (v_is_list) {
+                if (do_list) {
+                    if (list_size != v.size())
+                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the input batch length expected is %d", key, v, v.size(), list_size);
+                }
+                else {
+                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y in non-list mode", key, v);
+                }
+            }
+
+            # move any XML CDATA into the field value
+            # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
+            if (v."^cdata^")
+                v = v."^cdata^";
+
+            # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
+            if (m.subclass)
+                v = v_is_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
+
+            # execute any field filter if necessary
+            if (m.code) {
+                try {
+                    if (do_list) {
+                        v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
+                            xrange(0, list_size - 1);
+                        # here we make a list from 'v' either way, since we simply
+                        # cannot predict what 'code' could do with 'v' and 'rec'
+                        v_is_list = True;
+                    }
+                    else {
+                        v = m.code(v, rec);
+                    }
+                }
+                catch (hash<ExceptionInfo> ex) {
+                    ex.desc = sprintf("field %y closure: %s", key, ex.desc);
+                    throw ex.err, ex.desc, ex.arg;
+                }
+            }
+
+            if (v_is_list) {
+                map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
+            }
+            else {
+                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
+                    delete v;
+            }
+
+            if (m.type) {
+                # note: v_is_list implies do_list
+                if (v_is_list)
+                    map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
+                else
+                    mapFieldType(key, m, \v, rec);
+            }
+
+            if (exists m."default") {
+                if (v_is_list) {
+                    map v[$#] = m."default", v, !exists $1;
+                }
+                else if (!exists v)
+                    v = m."default";
+            }
+
+            # check maximum length
+            if (m.maxlen) {
+                if (v_is_list) {
+                    if (m.trunc)
+                        map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
+                    else
+                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec(rec, $#)), v, $1.size() > m.maxlen;
+                }
+                else {
+                    if (v.size() > m.maxlen) {
+                        # truncate the string if necessary
+                        if (m.trunc) {
+                            v = truncateField(key, v, 0, 0, m.maxlen);
+                        }
+                        else
+                            fieldLengthError(key, $1, 0, 0, m.maxlen, rec);
+                    }
+                }
+            }
+
+            if (m.mand) {
+                if (v_is_list) {
+                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
+                }
+                else if (!exists v)
+                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
+            }
+
+            # add value to row list
+            if (m.ostruct) {
+                # recursive closure for generating structured data
+                code ah = auto sub (*hash ch, auto vc, int off = 0) {
+                    if (off == m.ostruct.size())
+                        return vc;
+                    string k = m.ostruct[off];
+                    auto oh = ch{k};
+                    if (exists oh && oh.typeCode() != NT_HASH)
+                        throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
+                    ch{k} = ah(oh, vc, off + 1);
+                    return ch;
+                };
+                try {
+                    h = ah(h, v);
+                    return;
+                }
+                catch (hash<ExceptionInfo> ex) {
+                    if (ex.err == "INVALID-OUTPUT")
+                        error2(ex.err, ex.desc);
+                    else
+                        rethrow;
+                }
+            }
+
+            h{key} = v;
+        }
+
+        #! called to truncate fields when processing hashes of lists
+        private string truncateField(string k, string val, int ix, int sze, int maxlen) {
+            if (info_log)
+                info_log("field %y = %y%s input length %d truncating to %d bytes",
+                        getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
+            return trunc_str(val, maxlen, encoding);
+        }
+
+        #! called when a field exceeds its maximum length when processing hashes of lists
+        private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash rc) {
+            error2("STRING-TOO-LONG", "field %y = %y%s, input length %d exceeds maximum byte length %d for input row: %y",
+                    getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen, rc);
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
@@ -958,7 +1193,7 @@ Mapper mapv(DataMap);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash m, reference v, hash rec) {
+        private mapFieldType(string key, hash m, reference<any> v, hash rec) {
             if (v === NULL) {
                 delete v;
                 return;
@@ -1049,7 +1284,7 @@ Mapper mapv(DataMap);
         }
 
         #! to be overridden as necessary in subclasses
-        private any mapSubclass(hash m, any v) {
+        private auto mapSubclass(hash m, auto v) {
             return v;
         }
     }
@@ -1066,7 +1301,6 @@ Mapper mapv(DataMap);
 
         #! creates the iterator from the arguments passed
         /** @param iter input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-            @param map the mapper to transform the data
         */
         constructor(Qore::AbstractIterator iter) {
             i = iter;
@@ -1092,8 +1326,8 @@ Mapper mapv(DataMap);
 
             @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
          */
-        list mapBulk(int size) {
-            list rv = ();
+        list<hash> mapBulk(int size) {
+            list<hash> rv();
             while (next()) {
                 rv += getValue();
                 if (rv.size() == size)

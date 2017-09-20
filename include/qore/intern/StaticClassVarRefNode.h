@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   StaticClassVarRefNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -50,7 +50,7 @@ public:
    QoreVarInfo& vi;
    std::string str;
 
-   DLLLOCAL StaticClassVarRefNode(const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
+   DLLLOCAL StaticClassVarRefNode(const QoreProgramLocation& loc, const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
 
    DLLLOCAL virtual ~StaticClassVarRefNode();
 

@@ -1,10 +1,10 @@
 /*
   QoreSSLCertificate.cpp
- 
+
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2015 David Nichols
-  
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_SSLCertificate.h>
-#include <qore/intern/QoreSSLIntern.h>
+#include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QoreSSLIntern.h"
 
 #include <openssl/err.h>
 
@@ -44,6 +44,58 @@ struct qore_sslcert_private {
       if (cert)
          X509_free(cert);
    }
+
+   DLLLOCAL ASN1_OBJECT* getAlgorithm() {
+#ifdef HAVE_X509_GET_SIGNATURE_NID
+      return OBJ_nid2obj(X509_get_signature_nid(cert));
+#else
+      return cert->sig_alg->algorithm;
+#endif
+   }
+
+   DLLLOCAL BinaryNode* getBinary() {
+#ifdef HAVE_X509_GET_SIGNATURE_NID
+      OPENSSL_X509_GET0_SIGNATURE_CONST ASN1_BIT_STRING* sig;
+      OPENSSL_X509_GET0_SIGNATURE_CONST X509_ALGOR* alg;
+      X509_get0_signature(&sig, &alg, cert);
+      BinaryNode* rv = new BinaryNode;
+      rv->append(sig->data, sig->length);
+      return rv;
+#else
+      int len = cert->signature->length;
+      char* buf = (char*)malloc(len);
+      // FIXME: should throw an out of memory exception here
+      if (!buf)
+         return new BinaryNode;
+
+      memcpy(buf, cert->signature->data, len);
+      return new BinaryNode(buf, len);
+#endif
+   }
+
+   DLLLOCAL EVP_PKEY* getPublicKey() {
+#ifdef HAVE_X509_GET_SIGNATURE_NID
+#ifdef HAVE_X509_GET0_PUBKEY
+      return X509_get0_pubkey(cert);
+#else
+      return X509_get_pubkey(cert);
+#endif
+#else
+      return X509_PUBKEY_get(cert->cert_info->key);
+#endif
+   }
+
+   DLLLOCAL QoreStringNode* getPublicKeyAlgorithm() {
+#ifdef HAVE_X509_GET_SIGNATURE_NID
+      EVP_PKEY* pkey = getPublicKey();
+      int nid;
+      if (EVP_PKEY_get_default_digest_nid(pkey, &nid) <= 0)
+         return new QoreStringNode("unknown");
+      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(OBJ_nid2obj(nid));
+#else
+      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(cert->cert_info->key->algor->algorithm);
+#endif
+   }
 };
 
 QoreSSLCertificate::~QoreSSLCertificate() {
@@ -54,7 +106,7 @@ QoreSSLCertificate::QoreSSLCertificate(X509* c) : priv(new qore_sslcert_private(
 }
 
 QoreSSLCertificate::QoreSSLCertificate(const BinaryNode* bin, ExceptionSink* xsink) : priv(new qore_sslcert_private(0)) {
-   OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char* )bin->getPtr();
+   OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char*)bin->getPtr();
    priv->cert = d2i_X509(0, &p, (int)bin->size());
    if (!priv->cert) {
       long e = ERR_get_error();
@@ -71,7 +123,7 @@ QoreSSLCertificate::QoreSSLCertificate(const char* fn, ExceptionSink* xsink) : p
       xsink->raiseErrnoException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
       return;
    }
-   
+
    PEM_read_X509(fp, &priv->cert, 0, 0);
    fclose(fp);
    if (!priv->cert)
@@ -92,20 +144,20 @@ AbstractQoreNode* QoreSSLCertificate::doPurposeValue(int id, int ca) const {
    int rc = X509_check_purpose(priv->cert, id, ca);
    if (rc == 1)
       return boolean_true();
-   
+
    if (!rc)
       return boolean_false();
-   
+
    return new QoreBigIntNode(rc);
 }
 
-X509* QoreSSLCertificate::getData() const { 
-   return priv->cert; 
+X509* QoreSSLCertificate::getData() const {
+   return priv->cert;
 }
 
 QoreStringNode* QoreSSLCertificate::getPEM(ExceptionSink* xsink) const {
    QoreMemBIO b;
-   
+
    if (!b.writePEMX509(priv->cert)) {
       xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
       return 0;
@@ -113,7 +165,7 @@ QoreStringNode* QoreSSLCertificate::getPEM(ExceptionSink* xsink) const {
 
    char* buf;
    long len = b.getMemData(&buf);
-   
+
    return new QoreStringNode(buf, (int)len);
 }
 
@@ -142,34 +194,27 @@ DateTimeNode* QoreSSLCertificate::getNotAfterDate() const {
 }
 
 QoreStringNode* QoreSSLCertificate::getSignatureType() const {
-   return ASN1_OBJECT_to_QoreStringNode(priv->cert->sig_alg->algorithm);
+   return ASN1_OBJECT_to_QoreStringNode(priv->getAlgorithm());
 }
 
 BinaryNode* QoreSSLCertificate::getSignature() const {
-   int len = priv->cert->signature->length;
-   char* buf = (char* )malloc(len);
-   // FIXME: should throw an out of memory exception here
-   if (!buf)
-      return new BinaryNode;
-
-   memcpy(buf, priv->cert->signature->data, len);
-   return new BinaryNode(buf, len);
+   return priv->getBinary();
 }
 
 QoreStringNode* QoreSSLCertificate::getPublicKeyAlgorithm() const {
-   return ASN1_OBJECT_to_QoreStringNode(priv->cert->cert_info->key->algor->algorithm);
+   return priv->getPublicKeyAlgorithm();
 }
 
 // returns the public key for the certificate in DER format
 BinaryNode* QoreSSLCertificate::getPublicKey() const {
-   EVP_PKEY* key = X509_PUBKEY_get(priv->cert->cert_info->key);
+   EVP_PKEY* key = priv->getPublicKey();
    if (!key)
       return 0;
 
    int size = i2d_PUBKEY(key, 0);
    //printd(5, "QoreSSLCertificate::getPublicKey() public key size=%d\n", size);
    unsigned char* buf = 0;
-   i2d_PUBKEY(priv->cert->cert_info->key->pkey, &buf);
+   i2d_PUBKEY(key, &buf);
    if (!buf)
       return 0;
 
@@ -177,11 +222,11 @@ BinaryNode* QoreSSLCertificate::getPublicKey() const {
 }
 
 QoreHashNode* QoreSSLCertificate::getPurposeHash() const {
-   QoreHashNode* h = new QoreHashNode();
+   QoreHashNode* h = new QoreHashNode;
    QoreString tstr;
    for (int i = 0; i < X509_PURPOSE_get_count(); i++) {
       X509_PURPOSE* pt = X509_PURPOSE_get0(i);
-      
+
       int id = X509_PURPOSE_get_id(pt);
       const char* name,* nameca;
       switch (id) {
@@ -225,7 +270,7 @@ QoreHashNode* QoreSSLCertificate::getPurposeHash() const {
             nameca = (char* )tstr.getBuffer();
             break;
       }
-      
+
       // get non-CA value
       h->setKeyValue(name, doPurposeValue(id, 0), 0);
       // get CA value
@@ -256,7 +301,7 @@ QoreHashNode* QoreSSLCertificate::getInfo() const {
    //h->setKeyValue("signature", getSignature(), 0);
    // get public key
    //h->setKeyValue("publicKey", getPublicKey(), 0);
-   
+
    return h;
 }
 

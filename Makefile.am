@@ -1,14 +1,14 @@
 libdir = ${exec_prefix}/lib${LIBSUFFIX}
 pkglibdir = $(libdir)/$(mypkglibdir)
-#modverdir = $(libdir)/$(mymodverdir)
 modverdir = $(datarootdir)/$(mymodverdir)
 includedir = $(prefix)/include/qore
+qoredatadir = $(datarootdir)/qore
 
 ## use automake to create the Makefile.in for configure
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib
+SUBDIRS = lib modules/astparser
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -20,29 +20,38 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
-	qlib/Mapper.qm
+	qlib/Mapper.qm \
+	qlib/ConnectionProvider.qm \
+	qlib/RestSchemaValidator.qm \
+	qlib/Swagger.qm \
+	qlib/RestClient.qm \
+	qlib/WebSocketClient.qm
 
-DOX_MODULES = qlib/SmtpClient.qm \
-	qlib/TelnetClient.qm \
-	qlib/Pop3Client.qm \
+DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
+	qlib/DatasourceProvider.qm \
+	qlib/Diff.qm \
 	qlib/FilePoller.qm \
 	qlib/FixedLengthUtil.qm \
+	qlib/FreetdsSqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
-	qlib/FreetdsSqlUtil.qm \
-        qlib/Qorize.qm \
+	qlib/Pop3Client.qm \
+	qlib/Qdx.qm \
+	qlib/Qorize.qm \
+	qlib/QUnit.qm \
 	qlib/MysqlSqlUtil.qm \
 	qlib/RestHandler.qm \
-	qlib/RestClient.qm \
-	qlib/WebSocketHandler.qm \
-	qlib/WebSocketClient.qm \
-	qlib/WebUtil.qm \
-	qlib/TableMapper.qm \
+	qlib/SalesforceRestClient.qm \
+	qlib/SewioRestClient.qm \
+	qlib/SewioWebSocketClient.qm \
 	qlib/Schema.qm \
-	qlib/QUnit.qm \
-	qlib/Diff.qm \
-	qlib/BulkSqlUtil.qm
+	qlib/SchemaReverse.qm \
+	qlib/SmtpClient.qm \
+	qlib/TableMapper.qm \
+	qlib/TelnetClient.qm \
+	qlib/WebSocketHandler.qm \
+	qlib/WebUtil.qm
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -67,8 +76,10 @@ QDX_SRC=doxygen/qdx
 if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
 QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
+QDX_DEP = $(QDX_SRC)
 else
 QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
+QDX_DEP = $(QDX_SRC) qore
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
@@ -100,8 +111,10 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_ListHashIterator.qpp \
 	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_AbstractLineIterator.qpp \
 	lib/QC_DataLineIterator.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_InputStreamLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_RangeIterator.qpp \
@@ -128,6 +141,27 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ThreadPool.qpp \
 	lib/QC_TreeMap.qpp \
 	lib/QC_AbstractThreadResource.qpp \
+	lib/QC_InputStream.qpp \
+	lib/QC_BinaryInputStream.qpp \
+	lib/QC_StringInputStream.qpp \
+	lib/QC_FileInputStream.qpp \
+	lib/QC_EncodingConversionInputStream.qpp \
+	lib/QC_OutputStream.qpp \
+	lib/QC_BinaryOutputStream.qpp \
+	lib/QC_StringOutputStream.qpp \
+	lib/QC_FileOutputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
+	lib/QC_StreamPipe.qpp \
+	lib/QC_PipeInputStream.qpp \
+	lib/QC_PipeOutputStream.qpp \
+	lib/QC_StreamWriter.qpp \
+	lib/QC_StreamReader.qpp \
+	lib/QC_BufferedStreamReader.qpp \
+	lib/QC_Transform.qpp \
+	lib/QC_TransformInputStream.qpp \
+	lib/QC_TransformOutputStream.qpp \
+	lib/QC_StdoutOutputStream.qpp \
+	lib/QC_StderrOutputStream.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -162,6 +196,109 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/qc_errno.qpp \
 	lib/qc_qore.qpp
 
+MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
+	modules/astparser/src/QC_AstTree.qpp \
+	modules/astparser/src/QC_AstTreeSearcher.qpp \
+	modules/astparser/src/AstParseErrorLog.h \
+	modules/astparser/src/AstParser.h \
+	modules/astparser/src/AstParserHolder.h \
+	modules/astparser/src/AstPrinter.h \
+	modules/astparser/src/AstTreeHolder.h \
+	modules/astparser/src/AstTreePrinter.h \
+	modules/astparser/src/AstTreeSearcher.h \
+	modules/astparser/src/QC_AstParser.h \
+	modules/astparser/src/QC_AstTree.h \
+	modules/astparser/src/QC_AstTreeSearcher.h \
+	modules/astparser/src/ast_scanner.lpp \
+	modules/astparser/src/ast_parser.ypp \
+	modules/astparser/src/ast/ASTModifiers.h \
+	modules/astparser/src/ast/ASTTree.h \
+	modules/astparser/src/ast/ASTStatement.h \
+	modules/astparser/src/ast/ASTOperator.h \
+	modules/astparser/src/ast/ASTExpression.h \
+	modules/astparser/src/ast/ASTSymbolInfo.h \
+	modules/astparser/src/ast/ASTParseOption.h \
+	modules/astparser/src/ast/ASTParseLocation.h \
+	modules/astparser/src/ast/ASTName.h \
+	modules/astparser/src/ast/AST.h \
+	modules/astparser/src/ast/expressions/ASTImplicitElemExpression.h \
+	modules/astparser/src/ast/expressions/ASTContextModExpression.h \
+	modules/astparser/src/ast/expressions/ASTReturnsExpression.h \
+	modules/astparser/src/ast/expressions/ASTTernaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTListExpression.h \
+	modules/astparser/src/ast/expressions/ASTAccessExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexTransExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexExpression.h \
+	modules/astparser/src/ast/expressions/ASTBackquoteExpression.h \
+	modules/astparser/src/ast/expressions/ASTCaseExpression.h \
+	modules/astparser/src/ast/expressions/ASTBinaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTNameExpression.h \
+	modules/astparser/src/ast/expressions/ASTLiteralExpression.h \
+	modules/astparser/src/ast/expressions/ASTConstrInitExpression.h \
+	modules/astparser/src/ast/expressions/ASTCallExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexSubstExpression.h \
+	modules/astparser/src/ast/expressions/ASTContextRowExpression.h \
+	modules/astparser/src/ast/expressions/ASTCastExpression.h \
+	modules/astparser/src/ast/expressions/ASTAssignmentExpression.h \
+	modules/astparser/src/ast/expressions/ASTIndexExpression.h \
+	modules/astparser/src/ast/expressions/ASTClosureExpression.h \
+	modules/astparser/src/ast/expressions/ASTImplicitArgExpression.h \
+	modules/astparser/src/ast/expressions/ASTFindExpression.h \
+	modules/astparser/src/ast/expressions/ASTDeclExpression.h \
+	modules/astparser/src/ast/expressions/ASTUnaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTSwitchBodyExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashElementExpression.h \
+	modules/astparser/src/ast/statements/ASTRethrowStatement.h \
+	modules/astparser/src/ast/statements/ASTOnBlockExitStatement.h \
+	modules/astparser/src/ast/statements/ASTIfStatement.h \
+	modules/astparser/src/ast/statements/ASTDoWhileStatement.h \
+	modules/astparser/src/ast/statements/ASTSummarizeStatement.h \
+	modules/astparser/src/ast/statements/ASTThrowStatement.h \
+	modules/astparser/src/ast/statements/ASTForeachStatement.h \
+	modules/astparser/src/ast/statements/ASTWhileStatement.h \
+	modules/astparser/src/ast/statements/ASTExpressionStatement.h \
+	modules/astparser/src/ast/statements/ASTContextStatement.h \
+	modules/astparser/src/ast/statements/ASTSwitchStatement.h \
+	modules/astparser/src/ast/statements/ASTForStatement.h \
+	modules/astparser/src/ast/statements/ASTContinueStatement.h \
+	modules/astparser/src/ast/statements/ASTReturnStatement.h \
+	modules/astparser/src/ast/statements/ASTThreadExitStatement.h \
+	modules/astparser/src/ast/statements/ASTBreakStatement.h \
+	modules/astparser/src/ast/statements/ASTStatementBlock.h \
+	modules/astparser/src/ast/statements/ASTTryStatement.h \
+	modules/astparser/src/ast/statements/ASTCallStatement.h \
+	modules/astparser/src/ast/ASTNode.h \
+	modules/astparser/src/ast/ASTDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTVariableDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTMemberGroupDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTVarListDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTSuperclassDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTClassDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTHashMemberDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTClosureDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTNamespaceDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTHashDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTFunctionDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTConstantDeclaration.h \
+	modules/astparser/src/ast/ASTParseError.h \
+	modules/astparser/src/queries/FindMatchingSymbolsQuery.cpp \
+	modules/astparser/src/queries/FindMatchingSymbolsQuery.h \
+	modules/astparser/src/queries/FindNodeAndParentsQuery.cpp \
+	modules/astparser/src/queries/FindNodeAndParentsQuery.h \
+	modules/astparser/src/queries/FindNodeQuery.cpp \
+	modules/astparser/src/queries/FindNodeQuery.h \
+	modules/astparser/src/queries/FindReferencesQuery.cpp \
+	modules/astparser/src/queries/FindReferencesQuery.h \
+	modules/astparser/src/queries/FindSymbolInfoQuery.cpp \
+	modules/astparser/src/queries/FindSymbolInfoQuery.h \
+	modules/astparser/src/queries/FindSymbolsQuery.cpp \
+	modules/astparser/src/queries/FindSymbolsQuery.h \
+	modules/astparser/src/queries/GetNodesInfoQuery.cpp \
+	modules/astparser/src/queries/GetNodesInfoQuery.h \
+	modules/astparser/src/queries/SymbolInfoFixes.cpp \
+	modules/astparser/src/queries/SymbolInfoFixes.h
+
 include_HEADERS = \
 	include/qore/QoreValue.h \
 	include/qore/ReferenceArgumentHelper.h \
@@ -189,6 +326,7 @@ include_HEADERS = \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
+	include/qore/TypedHashDecl.h \
 	include/qore/QoreString.h \
 	include/qore/qore-version.h \
 	include/qore/common.h \
@@ -242,7 +380,12 @@ include_HEADERS = \
 	include/qore/QoreFile.h \
 	include/qore/Qore.h \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
-	include/qore/QoreEvents.h
+	include/qore/QoreEvents.h \
+	include/qore/InputStream.h \
+	include/qore/OutputStream.h \
+	include/qore/Transform.h \
+	include/qore/AbstractException.h \
+	include/qore/QoreStandardException.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -262,11 +405,13 @@ noinst_HEADERS = \
 	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
+	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
 	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
+	include/qore/intern/qore_encoding_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
 	include/qore/intern/QoreLValue.h \
@@ -274,7 +419,6 @@ noinst_HEADERS = \
 	include/qore/intern/QoreQueueIntern.h \
 	include/qore/intern/ModuleInfo.h \
 	include/qore/intern/QoreTimeZoneManager.h \
-	include/qore/intern/QoreTreeNode.h \
 	include/qore/intern/BarewordNode.h \
 	include/qore/intern/StaticClassVarRefNode.h \
 	include/qore/intern/SelfVarrefNode.h \
@@ -288,19 +432,21 @@ noinst_HEADERS = \
 	include/qore/intern/SmartMutex.h \
 	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
+	include/qore/intern/NewComplexTypeNode.h \
 	include/qore/intern/RWLock.h \
 	include/qore/intern/SSLSocketHelper.h \
 	include/qore/intern/QoreSignal.h \
-	include/qore/intern/RegexSubstNode.h \
-	include/qore/intern/RegexTransNode.h \
-	include/qore/intern/QoreRegexNode.h \
+	include/qore/intern/QoreRegexSubst.h \
+	include/qore/intern/QoreTransliteration.h \
+	include/qore/intern/QoreRegex.h \
 	include/qore/intern/QoreRegexBase.h \
 	include/qore/intern/QoreLibIntern.h \
 	include/qore/intern/QoreGetOpt.h \
 	include/qore/intern/QoreClassList.h \
+	include/qore/intern/HashDeclList.h \
+	include/qore/intern/typed_hash_decl_private.h \
 	include/qore/intern/QException.h \
 	include/qore/intern/ParserSupport.h \
-	include/qore/intern/Operator.h \
 	include/qore/intern/ObjectMethodReferenceNode.h \
 	include/qore/intern/NamedScope.h \
 	include/qore/intern/QoreNamespaceIntern.h \
@@ -351,12 +497,15 @@ noinst_HEADERS = \
 	include/qore/intern/QoreClosureNode.h \
 	include/qore/intern/QoreClosureParseNode.h \
 	include/qore/intern/QoreParseHashNode.h \
+	include/qore/intern/QoreParseListNode.h \
 	include/qore/intern/QoreImplicitArgumentNode.h \
 	include/qore/intern/QoreImplicitElementNode.h \
 	include/qore/intern/qore_string_private.h \
 	include/qore/intern/qore_number_private.h \
 	include/qore/intern/qore_date_private.h \
 	include/qore/intern/sql_statement_private.h \
+	include/qore/intern/ThreadLocalVariableData.h \
+	include/qore/intern/ThreadClosureVariableStack.h \
 	include/qore/intern/qore_program_private.h \
 	include/qore/intern/qore_socket_private.h \
 	include/qore/intern/QoreDir.h \
@@ -371,13 +520,33 @@ noinst_HEADERS = \
 	include/qore/intern/QoreSpliceOperatorNode.h \
 	include/qore/intern/QoreExtractOperatorNode.h \
 	include/qore/intern/QoreCastOperatorNode.h \
+	include/qore/intern/QoreKeysOperatorNode.h \
 	include/qore/intern/QoreUnaryMinusOperatorNode.h \
+	include/qore/intern/QoreUnaryPlusOperatorNode.h \
 	include/qore/intern/QoreLogicalNotOperatorNode.h \
 	include/qore/intern/QoreDotEvalOperatorNode.h \
 	include/qore/intern/QoreLogicalEqualsOperatorNode.h \
 	include/qore/intern/QoreLogicalNotEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteEqualsOperatorNode.h \
+	include/qore/intern/QoreLogicalAbsoluteNotEqualsOperatorNode.h \
 	include/qore/intern/QoreModuloOperatorNode.h \
+	include/qore/intern/QoreBinaryAndOperatorNode.h \
+	include/qore/intern/QoreBinaryOrOperatorNode.h \
+	include/qore/intern/QoreBinaryXorOperatorNode.h \
+	include/qore/intern/QoreBinaryNotOperatorNode.h \
+	include/qore/intern/QoreShiftLeftOperatorNode.h \
+	include/qore/intern/QoreShiftRightOperatorNode.h \
+	include/qore/intern/QoreExistsOperatorNode.h \
+	include/qore/intern/QoreElementsOperatorNode.h \
+	include/qore/intern/QoreInstanceOfOperatorNode.h \
+	include/qore/intern/QoreHashObjectDereferenceOperatorNode.h \
+	include/qore/intern/QoreRegexMatchOperatorNode.h \
+	include/qore/intern/QoreRegexNMatchOperatorNode.h \
+	include/qore/intern/QoreRegexExtractOperatorNode.h \
+	include/qore/intern/QoreRegexSubstOperatorNode.h \
+	include/qore/intern/QoreTransliterationOperatorNode.h \
 	include/qore/intern/QoreAssignmentOperatorNode.h \
+	include/qore/intern/QoreListAssignmentOperatorNode.h \
 	include/qore/intern/QorePlusEqualsOperatorNode.h \
 	include/qore/intern/QoreIntPlusEqualsOperatorNode.h \
 	include/qore/intern/QoreMinusEqualsOperatorNode.h \
@@ -411,20 +580,66 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMapSelectOperatorNode.h \
 	include/qore/intern/QoreHashMapOperatorNode.h \
 	include/qore/intern/QoreHashMapSelectOperatorNode.h \
+	include/qore/intern/QoreFoldlOperatorNode.h \
+	include/qore/intern/QoreSelectOperatorNode.h \
 	include/qore/intern/QoreChompOperatorNode.h \
 	include/qore/intern/QoreTrimOperatorNode.h \
 	include/qore/intern/QoreSquareBracketsOperatorNode.h \
+	include/qore/intern/QoreShiftOperatorNode.h \
+	include/qore/intern/QoreUnshiftOperatorNode.h \
+	include/qore/intern/QorePopOperatorNode.h \
+	include/qore/intern/QorePushOperatorNode.h \
+	include/qore/intern/QoreLogicalAndOperatorNode.h \
+	include/qore/intern/QoreLogicalOrOperatorNode.h \
+	include/qore/intern/QoreLogicalComparisonOperatorNode.h \
+	include/qore/intern/QorePlusOperatorNode.h \
+	include/qore/intern/QoreMinusOperatorNode.h \
+	include/qore/intern/QoreMultiplicationOperatorNode.h \
+	include/qore/intern/QoreBackgroundOperatorNode.h \
+	include/qore/intern/QoreRangeOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsRangeOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
 	include/qore/intern/QoreObjectIterator.h \
 	include/qore/intern/QoreHashListIterator.h \
 	include/qore/intern/QoreListHashIterator.h \
+	include/qore/intern/WeakReferenceNode.h \
 	include/qore/intern/SingleValueIterator.h \
 	include/qore/intern/RangeIterator.h \
 	include/qore/intern/ThreadPool.h \
+	include/qore/intern/FunctionalOperatorInterface.h \
+	include/qore/intern/FunctionalOperator.h \
 	include/qore/intern/qore_var_rwlock_priv.h \
 	include/qore/intern/qore_qd_private.h \
+	include/qore/intern/BinaryInputStream.h \
+	include/qore/intern/BinaryOutputStream.h \
+	include/qore/intern/EncodingConversionInputStream.h \
+	include/qore/intern/EncodingConversionOutputStream.h \
+	include/qore/intern/FileInputStream.h \
+	include/qore/intern/FileOutputStream.h \
+	include/qore/intern/InputStreamBase.h \
+	include/qore/intern/InputStreamLineIterator.h \
+	include/qore/intern/InputStreamWrapper.h \
+	include/qore/intern/OutputStreamBase.h \
+	include/qore/intern/OutputStreamWrapper.h \
+	include/qore/intern/StreamPipe.h \
+	include/qore/intern/StreamWriter.h \
+	include/qore/intern/StreamReader.h \
+	include/qore/intern/BufferedStreamReader.h \
+	include/qore/intern/StringInputStream.h \
+	include/qore/intern/StringOutputStream.h \
+	include/qore/intern/TransformInputStream.h \
+	include/qore/intern/TransformOutputStream.h \
+	include/qore/intern/StdoutOutputStream.h \
+	include/qore/intern/StderrOutputStream.h \
+	include/qore/intern/StringReaderHelper.h \
+	include/qore/intern/CompressionTransforms.h \
+	include/qore/intern/EncryptionTransforms.h \
+	include/qore/intern/IconvHelper.h \
+	include/qore/intern/FileLineIterator.h \
+	include/qore/intern/DataLineIterator.h \
+	include/qore/intern/EncodingConvertor.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -513,6 +728,7 @@ LANG_TMP_DOXYFILES_SRC = doxygen/lang/mainpage.dox \
 	doxygen/lang/205_namespaces.dox \
 	doxygen/lang/210_constants.dox \
 	doxygen/lang/215_classes.dox \
+	doxygen/lang/217_hashdecl.dox \
 	doxygen/lang/220_threading.dox \
 	doxygen/lang/225_exception_handling.dox \
 	doxygen/lang/230_signal_handling.dox \
@@ -554,11 +770,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	examples/obj2.q \
 	examples/old2new \
 	examples/pop3.q \
-	examples/qget \
-	examples/rest \
 	examples/restserver.q \
 	examples/schema \
-	examples/sqlutil \
 	examples/stmt.q \
 	examples/telnet.q \
 	qore.spec \
@@ -567,9 +780,12 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	cmake/QoreMacros.cmake \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
-	$(LANG_QPP_SRC)
+	$(LANG_QPP_SRC) \
+	$(MODULE_EXTRA_SRC)
 
 dist_modver_DATA = $(USER_MODULES)
+
+dist_qoredata_DATA = doxygen/Doxyfile.in
 
 include $(srcdir)/qoretests.mk
 
@@ -623,44 +839,54 @@ $(LANG_TMP_DOXYFILES_SRC): doxygen/lang/%.dox: doxygen/lang/%.dox.tmpl lib $(QPP
 lib/libqore.la: dummy
 	cd lib; make
 
-if COND_MINGWCC
-else
-$(QDX): qore
-endif
-
 QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=../../$(m)/html)
 
 # explicit Doxyfile rules for modules providing tags for other modules
-doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
-doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
-doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
-doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
 
-doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
 
-doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
 
+doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm.dox.h -tMime.tag=../../Mime/html $< $@
+
+doxygen/qlib/Doxyfile.RestSchemaValidator: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
+
+doxygen/qlib/Doxyfile.Swagger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/Swagger.qm:doxygen/qlib/Swagger.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
+
+doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
+
+doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
+
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
-$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_SRC)
+$(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
 
 TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm.dox.h,$(USER_MODS)))
-$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_SRC)
+$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_DEP)
 	$(QDX) $< $@
 
 QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
@@ -694,8 +920,8 @@ install-html-local:
 	$(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/library/html/search
 	for mod in $(USER_MODS); do $(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/modules/$$mod/html/search; done
 	for dir in $(DOXYGEN_OUTPUT); do \
-	   for f in $$dir/*; do if [ -f $$f ]; then $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir; fi; done; \
-	   for f in $$dir/search/*; do $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir/search; done; \
+		for f in $$dir/*; do if [ -f $$f ]; then $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir; fi; done; \
+		for f in $$dir/search/*; do $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir/search; done; \
 	done
 
 clean-local:
@@ -738,7 +964,7 @@ endif
 
 bin_PROGRAMS = qore
 # qr
-dist_bin_SCRIPTS = doxygen/qdx
+dist_bin_SCRIPTS = doxygen/qdx bin/qget bin/rest bin/sfrest bin/sqlutil bin/schema-reverse
 if COND_SINGLE_COMPILATION_UNIT
 qore_SOURCES = qore-single-compilation-unit.cpp
 #qr_SOURCES = qr-single-compilation-unit.cpp

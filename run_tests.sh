@@ -1,55 +1,152 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 print_usage ()
 {
   echo "Usage: run_tests.sh [OPTIONS]"
-  echo "Run all the qore tests."
+  echo "Run qore tests."
   echo
-  echo "  -j    Use --format=junit option for the tests, making them print JUnit output."
-  echo "  -v    Use --format=plain option for the tests, making them print one statement per each test case."
+  echo "  -d <dir>   Run only specified tests (as found in $BASE_TEST_PATH)."
+  echo "  -j         Use --format=junit option for the tests, making them print JUnit output."
+  echo "  -t         Measure execution time of the tests."
+  echo "  -v         Use --format=plain option for the tests, making them print one statement per each test case."
 }
 
-TEST_OUTPUT_FORMAT=""
-PRINT_TEXT=1
+err_multiple_format_opts()
+{
+  echo "Multiple formatting options can't be used at the same time." >&2
+  print_usage
+  exit 1
+}
 
-# Handle command-line arguments.
-if [ $# -eq 0 ]; then
-    TEST_OUTPUT_FORMAT=""
-elif [ $# -eq 1 ]; then
-    if [ "$1" = "-v" ]; then
-        TEST_OUTPUT_FORMAT="-v"
-    elif [ "$1" = "-j" ]; then
-        TEST_OUTPUT_FORMAT="--format=junit"
-        PRINT_TEXT=0
-    else
-        echo "Unknown option: $1"
-        print_usage
-        exit 1
-    fi
-else
-    echo "Too many options."
-    print_usage
-    exit 1
+BASE_TEST_PATH="./examples/test"
+MEASURE_TIME=0
+PRINT_TEXT=1
+TEST_DIRS=""
+TEST_OUTPUT_FORMAT=""
+
+while getopts ":d:jvt" opt; do
+    case $opt in
+        d)
+            TEST_DIRS="$TEST_DIRS \"$BASE_TEST_PATH/$OPTARG\""
+            ;;
+        j)
+            if [ -n "$TEST_OUTPUT_FORMAT" ]; then
+                err_multiple_format_opts
+            else
+                TEST_OUTPUT_FORMAT="--format=junit"
+                PRINT_TEXT=0
+            fi
+            ;;
+        v)
+            if [ -n "$TEST_OUTPUT_FORMAT" ]; then
+                err_multiple_format_opts
+            else
+                TEST_OUTPUT_FORMAT="-v"
+            fi
+            ;;
+        t)
+            MEASURE_TIME=1
+            ;;
+        \?)
+            echo "Unknown option: -$OPTARG" >&2
+            print_usage
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
+# If no test dirs were specified, run all the tests
+if [ -z "$TEST_DIRS" ]; then
+    TEST_DIRS=$BASE_TEST_PATH
 fi
 
 QORE=""
 QR=""
+LIBQORE=""
 QORE_LIB_PATH="./lib/.libs:./qlib:$LD_LIBRARY_PATH"
 
 # Test that qore is built.
-if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -r "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
-    QORE="./qore"
-    QR="./qr"
+if [ -s "./.libs/qore" ] && [ -f "./qore" ] && [ -f "./lib/.libs/libqore.so" -o "./lib/.libs/libqore.dylib" ]; then
+    if [ -f "./lib/.libs/libqore.so" ]; then
+        LIBQORE="./lib/.libs/libqore.so"
+    elif [ -f "./lib/.libs/libqore.dylib" ]; then
+        LIBQORE="./lib/.libs/libqore.dylib"
+    fi
+    QORE="./.libs/qore"
+    QR="./.libs/qr"
 else
+    for D in `ls -d */`; do
+        d=`echo ${D%%/}`
+        if [ -f "$d/CMakeCache.txt" ] && [ -f "$d/qore" ] && [ -f "$d/libqore.so" -o "$d/libqore.dylib" ]; then
+            if [ -f "$d/libqore.so" ]; then
+                LIBQORE="$d/libqore.so"
+            elif [ -f "$d/libqore.dylib" ]; then
+                LIBQORE="$d/libqore.dylib"
+            fi
+            QORE="$d/qore"
+            QR="$d/qr"
+            break
+        fi
+    done
+fi
+
+if [ -z "$QORE" ] || [ -z "$LIBQORE" ]; then
     echo "Qore is not built. Exiting."
     exit 1
 fi
 
+export LD_LIBRARY_PATH=$QORE_LIB_PATH
+export QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR
+
+if [ $MEASURE_TIME -eq 1 ]; then
+    # Test time commands.
+    TIME_OK=0
+    TIME_BIN=""
+    TIME_CMD=""
+    TIME_FORMAT="-------------------------------------\nUserTime: %U\nSystemTime: %S\nWallClockTime: %e\nMinorPageFaults: %R\nMajorPageFaults: %F\nAverageSharedTextSize: %X\nAverageUnsharedDataSize: %D\nAverageStackSize: %p\nAverageTotalSize: %K\nMaximumResidentSetSize: %M\nAverageResidentSetSize: %t\nFilesystemInputs: %I\nFilesystemOutputs: %O\nSocketMessagesSent: %s\nSocketMessagesReceived: %r\nExitStatus: %x"
+
+    test_time() {
+        TIME_CMD="$TIME_BIN -f \"$TIME_FORMAT\""
+        eval $TIME_CMD ls / >/dev/null 2>&1
+        TIME_OK=$?
+    }
+
+    TIME_BINS="time /usr/bin/time /bin/time `which time`"
+    for tm in $TIME_BINS; do
+        TIME_BIN=$tm
+        test_time
+        if [ $TIME_OK -eq 0 ]; then
+            break
+        fi
+        TIME_CMD=""
+    done
+
+    if [ "$TIME_CMD" = "" ]; then
+        TIME_CMD="time -p"
+    fi
+fi
+
+# Print info about used variables etc.
+echo "Using qore: $QORE"
+echo "Using libqore: $LIBQORE"
+echo "QORE_INCLUDE_DIR=$QORE_INCLUDE_DIR"
+echo "QORE_MODULE_DIR=$QORE_MODULE_DIR"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+if [ $MEASURE_TIME -eq 1 ]; then
+    printf "TIME_CMD: %s\n" "$TIME_CMD"
+fi
+echo
+
 # Search for tests in the test directory.
-TESTS=$( find ./examples/test/ -name "*.qtest" )
+TESTS=`eval find "$TEST_DIRS" -name "*.qtest"`
 FAILED_TESTS=""
 
-TEST_COUNT=$( echo $TESTS | wc -w )
+TEST_COUNT=`echo $TESTS | wc -w`
 PASSED_TEST_COUNT=0
 FAILED_TEST_COUNT=0
 
@@ -60,27 +157,25 @@ for test in $TESTS; do
         echo "====================================="
         echo "Running test ($i/$TEST_COUNT): $test"
         echo "-------------------------------------"
-    fi
-
-    if [ "$test" = "./examples/test/qore/classes/FtpClient/FtpClient.qtest" ]; then
-        echo "Skipping $test because it doesn't really test what it should. Need to fix it."
-        echo "-------------------------------------"; echo
-        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
-        i=$((i+1))
-        continue
+        echo "cmdline: LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT"
+        echo "-------------------------------------"
     fi
 
     # Run single test.
-    QORE_MODULE_DIR=./qlib:$QORE_MODULE_DIR LD_LIBRARY_PATH=$QORE_LIB_PATH $QORE $test $TEST_OUTPUT_FORMAT
+    if [ $MEASURE_TIME -eq 1 ]; then
+        eval LD_PRELOAD=$LIBQORE $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
+    else
+        LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT
+    fi
 
     if [ $? -eq 0 ]; then
-        PASSED_TEST_COUNT=$((PASSED_TEST_COUNT+1))
+        PASSED_TEST_COUNT=`expr $PASSED_TEST_COUNT + 1`
     else
-        FAILED_TEST_COUNT=$((FAILED_TEST_COUNT+1))
+        FAILED_TEST_COUNT=`expr $FAILED_TEST_COUNT + 1`
         FAILED_TESTS="$FAILED_TESTS $test"
     fi
 
-    i=$((i+1))
+    i=`expr $i + 1`
     if [ $PRINT_TEXT -eq 1 ]; then echo "-------------------------------------"; echo; fi
 done
 

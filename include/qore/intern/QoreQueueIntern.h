@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -139,13 +139,13 @@ public:
    DLLLOCAL void pushAndTakeRef(AbstractQoreNode* n);
 
    // push at the end of the queue
-   DLLLOCAL void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
 
    // insert at the beginning of the queue
-   DLLLOCAL void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
 
-   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
-   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms, bool& to);
 
    DLLLOCAL bool empty() const {
       return !len;

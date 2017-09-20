@@ -34,7 +34,7 @@
 
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern QoreClass *QC_HTTPCLIENT;
-DLLLOCAL extern QoreClass *QC_SOCKET;
+DLLEXPORT extern QoreClass *QC_SOCKET;
 DLLLOCAL QoreClass *initHTTPClientClass(QoreNamespace& ns);
 
 class HTTPInfoRefHelper {
@@ -50,6 +50,7 @@ public:
    DLLLOCAL ~HTTPInfoRefHelper() {
       // we have to create a temporary ExceptionSink if there is
       // an active exception, otherwise writing back the reference will fail
+      assert(xsink);
       ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
 
       // write info hash to reference

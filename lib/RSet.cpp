@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,10 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 RObject::~RObject() {
-   delete rset;
+   assert(!rset);
 }
 
 bool RObject::scanCheck(RSetHelper& rsh, AbstractQoreNode* n) {
@@ -44,11 +45,15 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    printd(QRO_LVL, "RObject::setRSet() this: %p %s rs: %p rcnt: %d\n", this, getName(), rs, rcnt);
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
    }
    rset = rs;
    rcount = rcnt;
+#ifdef DEBUG
+   if (rcount > references)
+      printd(0, "RObject::setRSet() this: %p '%s' cannot set rcount %d > references %d\n", this, getName(), rcount, references.load());
+   assert(rcount <= references);
+#endif
    if (rs) {
       rs->ref();
       // we make a weak reference from the rset to the object to ensure that it does not disappear while the rset is valid
@@ -58,19 +63,108 @@ void RObject::setRSet(RSet* rs, int rcnt) {
    ++rcycle;
 }
 
-void RObject::invalidateRSet() {
-   assert(rml.checkRSectionExclusive());
-   // invalidating the rset removes the weak references to all contained objects
-   if (rset)
-      rset->invalidate();
+void RObject::derefRealIntern() {
+   assert(rrefs > 0);
+   // before allowing the real references to reach zero, we need to ensure that any rset invalidation action has completed
+   while (rrefs == 1 && rref_wait) {
+      ++rref_waiting;
+      rcond.wait(rlck);
+      --rref_waiting;
+   }
+   assert(rrefs > 0);
+
+   --rrefs;
+}
+
+int RObject::deref(bool real, bool& do_scan, bool& rescan) {
+   // the mutex ensures atomicity
+   AutoLocker al(rlck);
+   if (real)
+      derefRealIntern();
+   else
+      assert(rrefs >= 0);
+
+   // dereference the object and save the resulting value as the return value
+   int rv_refs = --references;
+
+   do_scan = !rrefs;
+
+   if (do_scan) {
+      rescan = deferred_scan;
+      if (deferred_scan)
+         deferred_scan = false;
+   }
+   else
+      rescan = false;
+
+   // mark that we have a dereference action in progress
+   ++ref_inprogress;
+
+   return rv_refs;
+}
+
+void RObject::derefDone(bool del) {
+   AutoLocker al(rlck);
+   // decrement the in progress count, if it's the last thread, and there are waiting threads, then wake one up
+   if ((!--ref_inprogress) && ref_waiting) {
+      // we have to use broadcast here because the condition variable is shared
+      rcond.broadcast();
+      assert(!del);
+   }
+   else if (del) {
+      // if we are going to delete the object, then wait for all other in-progress calls to complete first
+      while (ref_inprogress) {
+         ++ref_waiting;
+         rcond.wait(rlck);
+         --ref_waiting;
+      }
+   }
+}
+
+int RObject::checkDeferScan() {
+   {
+      AutoLocker al(rlck);
+      // if we have a "real reference" (a reference that cannot be recursive), then we delay the scan
+      if (!rrefs) {
+         // we are making a scan now, so if the deferred_scan flag is set, unset it
+         if (deferred_scan)
+            deferred_scan = false;
+         printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d scan OK\n", this, getName(), rrefs);
+         return 0;
+      }
+      if (deferred_scan) {
+         printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d deferred_scan already set\n", this, getName(), rrefs);
+         return -1;
+      }
+      printd(QRO_LVL, "RObject::checkDeferScan() this: %p (%s) rrefs: %d setting deferred_scan\n", this, getName(), rrefs);
+      deferred_scan = true;
+      // if there is no rset, we can return immediately, no rset can be attached while rrefs > 0
+      if (!rset)
+         return -1;
+      // otherwise we need to invalidate the rset and ensure that
+      // rrefs does not go to zero until this is done
+      rref_wait = true;
+   }
+
+   removeInvalidateRSet();
+   AutoLocker al(rlck);
+   rref_wait = false;
+   if (rref_waiting)
+      rcond.broadcast();
+
+   return -1;
 }
 
 void RObject::removeInvalidateRSet() {
+   QoreAutoVarRWWriteLocker al(rml);
+   removeInvalidateRSetIntern();
+}
+
+void RObject::removeInvalidateRSetIntern() {
    assert(rml.checkRSectionExclusive());
    if (rset) {
       // invalidating the rset removes the weak references to all contained objects
-      rset->invalidate();
-      rset->deref();
+      rset->invalidateDeref();
       rset = 0;
       rcount = 0;
    }
@@ -97,8 +191,6 @@ int RSet::canDelete(int ref_copy, int rcount) {
    if (!valid)
       return -1;
 
-   bool make_invalid = false;
-
    {
       QoreAutoRWReadLocker al(rwl);
       if (!valid)
@@ -118,20 +210,29 @@ int RSet::canDelete(int ref_copy, int rcount) {
          }
          printd(QRO_LVL, "RSet::canDelete() this: %p can delete graph obj %p '%s' rcount: %d refs: %d\n", this, *i, (*i)->getName(), (*i)->rcount, (*i)->refs());
       }
-      // invalidate the rset
-      make_invalid = true;
    }
 
-   if (make_invalid) {
-      QoreAutoRWWriteLocker al(rwl);
-      if (!valid)
-         return -1;
+   // invalidate the rset
+   QoreAutoRWWriteLocker al(rwl);
+   if (!valid)
+      return -1;
 
-      invalidateIntern();
-   }
+   invalidateIntern();
 
    printd(QRO_LVL, "RSet::canDelete() this: %p can delete all objects in graph\n", this);
    return 1;
+}
+
+robject_dereference_helper::robject_dereference_helper(RObject* obj, bool real) : o(obj), qo(0) {
+   refs = obj->deref(real, do_scan, deferred_scan);
+   del = !refs;
+}
+
+robject_dereference_helper::~robject_dereference_helper() {
+   o->derefDone(del);
+
+   if (del && qo)
+      qo->tDeref();
 }
 
 class RSectionScanHelper {
@@ -183,6 +284,8 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
    if (!needs_scan(n))
       return false;
 
+   //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
+
    switch (get_node_type(n)) {
       case NT_OBJECT:
          return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
@@ -232,7 +335,7 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
          for (cvar_map_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i) {
             // do not grab the lock if the lvalue cannot contain an object or closure (also not through a container)
-            if (!i->second->needsScan()) {
+            if (!i->second->needsScan(true)) {
                printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: var %s: no scan\n", c, i->first->getName());
                continue;
             }
@@ -256,6 +359,9 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
 
          return false;
       }
+
+      case NT_REFERENCE:
+         return lvalue_ref::get(static_cast<ReferenceNode*>(n))->scanReference(*this);
 
       case NT_VALUE_LIST:
          assert(false);
@@ -378,7 +484,7 @@ void RSetHelper::mergeRSet(int i, RSet*& rset) {
       else {
          printd(QRO_LVL, " + %p '%s': oi->second.rset: %p (%d) assimilating %p (%d)\n", oi->first, oi->first->getName(), oi->second.rset, (int)oi->second.rset->size(), rset, (int)rset->size());
          // merge rset into oi->second.rset and retag objects
-         RSet*old_rset = rset;
+         RSet* old_rset = rset;
          rset = oi->second.rset;
          for (rset_t::iterator i = old_rset->begin(), e = old_rset->end(); i != e; ++i) {
             rset->insert(*i);
@@ -400,6 +506,8 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
          if (i == (int)(ovec.size() - 1)) {
             printd(QRO_LVL, " + %p '%s': parent object %p '%s' was not in cycle (rcount: %d -> %d)\n", fi->first, fi->first->getName(), ovec[i]->first, ovec[i]->first->getName(), fi->second.rcount, fi->second.rcount + 1);
             ++fi->second.rcount;
+            // rcount can never be more than real references for the target object
+            assert(fi->first->references >= fi->second.rcount);
          }
       }
       else
@@ -408,6 +516,7 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
    return false;
 }
 
+// XXX RSectionScanHelper
 bool RSetHelper::checkIntern(RObject& obj) {
 #ifdef DEBUG
    bool hl = obj.rml.hasRSectionLock();
@@ -450,12 +559,16 @@ bool RSetHelper::checkIntern(RObject& obj) {
          if (inCurrentSet(fi)) {
             printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
             ++fi->second.rcount;
+            // rcount can never be more than real references for the target object
+            assert(fi->first->references >= fi->second.rcount);
          }
          else if (!ovec.empty()) {
             // FIXME: use this optimization in the loop below
             if (ovec.back()->second.rset == fi->second.rset) {
                printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount, fi->second.rcount + 1);
                ++fi->second.rcount;
+               // rcount can never be more than real references for the target object
+               assert(fi->first->references >= fi->second.rcount);
                return false;
             }
 
@@ -534,10 +647,12 @@ bool RSetHelper::checkIntern(RObject& obj) {
 
       // insert into total scanned object set
       fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
-      ++fomap_size;
 
       // check if the object should be iterated
-      if (!obj.needsScan()) {
+      if (!obj.needsScan(true)) {
+         // remove from invalidation set if present
+         tr_out.erase(&obj);
+
          printd(QRO_LVL, "RSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getName());
          fi->second.ok = true;
          assert(!fi->second.rset);
@@ -570,7 +685,7 @@ public:
       AutoLocker al(obj.rlck);
       while (obj.rscan) {
          ++obj.rwaiting;
-         obj.rdone.wait(obj.rlck);
+         obj.rcond.wait(obj.rlck);
          --obj.rwaiting;
       }
       obj.rscan = gettid();
@@ -579,8 +694,9 @@ public:
    DLLLOCAL ~RScanHelper() {
       AutoLocker al(obj.rlck);
       assert(obj.rscan == gettid());
+      // we have to use broadcast here because the condition variable is shared
       if (obj.rwaiting)
-         obj.rdone.signal();
+         obj.rcond.broadcast();
       obj.rscan = 0;
    }
 
@@ -589,11 +705,15 @@ public:
    }
 };
 
-RSetHelper::RSetHelper(RObject& obj) : fomap_size(0) {
+RSetHelper::RSetHelper(RObject& obj) {
 #ifdef DEBUG
    lcnt = 0;
 #endif
    if (q_disable_gc)
+      return;
+
+   // if the scan should be deferred
+   if (obj.checkDeferScan())
       return;
 
    printd(QRO_LVL, "RSetHelper::RSetHelper() this: %p (%p %s) ENTER\n", this, &obj, obj.getName());
@@ -617,7 +737,8 @@ RSetHelper::RSetHelper(RObject& obj) : fomap_size(0) {
       break;
    }
 
-   commit(obj);
+   if (obj.isValid())
+      commit(obj);
 
    printd(QRO_LVL, "RSetHelper::RSetHelper() this: %p (%p) EXIT\n", this, &obj);
 }
@@ -626,6 +747,8 @@ void RSetHelper::commit(RObject& obj) {
 #ifdef DEBUG
    bool has_obj = false;
 #endif
+
+   assert(obj.rml.checkRSectionExclusive());
 
    // invalidate rsets
    for (rs_set_t::iterator i = tr_invalidate.begin(), e = tr_invalidate.end(); i != e; ++i) {
@@ -655,6 +778,8 @@ void RSetHelper::commit(RObject& obj) {
 
    for (omap_t::iterator i = fomap.begin(), e = fomap.end(); i != e; ++i) {
       RSet* rs = i->second.rset;
+      assert(!rs || (rs->size() == rs->getCount()));
+
       if (!rs)
          continue;
       for (rset_t::iterator ri = rs->begin(), re = rs->end(); ri != re; ++ri) {
@@ -699,7 +824,6 @@ void RSetHelper::rollback() {
    }
 
    fomap.clear();
-   fomap_size = 0;
    ovec.clear();
    tr_out.clear();
    tr_invalidate.clear();

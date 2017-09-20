@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   will unlink (delete) UNIX domain socket files when closed
 
@@ -38,6 +38,8 @@
 #define _QORE_QORESOCKET_H
 
 #include <qore/Qore.h>
+#include <qore/InputStream.h>
+#include <qore/OutputStream.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -125,6 +127,7 @@ class QoreSocket {
    friend struct qore_socket_private;
    friend struct qore_httpclient_priv;
    friend class QoreSocketObject;
+   friend class QoreFtpClient;
 
 private:
    //! private implementation of the class
@@ -651,6 +654,19 @@ public:
        @return 0 for OK, not 0 if an error occured
    */
    DLLEXPORT int send(int fd, qore_offset_t size = -1);
+
+   //! sends untranslated data from an open file descriptor
+   /**
+       @param fd a file descriptor, open for reading
+       @param size the number of bytes to send (-1 = send all until EOF)
+       @param timeout_ms a timeout in milliseconds for socket I/O operations
+       @param xsink if an I/O error occurs, the Qore-language exception information will be added here
+
+       @return 0 for OK, not 0 if an error occured
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! sends a 1-byte binary integer data to a connected socket
    /** The socket must be connected before this call is made.
@@ -1193,13 +1209,31 @@ public:
 
    //! receive data on the socket and write it to a file descriptor
    /** The socket must be connected before this call is made.
+
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
-       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
        @return 0 for OK, not 0 for error
+
        @note the timeout value applies to each read from the socket
    */
    DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms);
+
+   //! receive data on the socket and write it to a file descriptor
+   /** The socket must be connected before this call is made.
+
+       @param fd the file descriptor to write to, must be already opened for writing
+       @param size the number of bytes to read from the socket, -1 to read until the socket is closed
+       @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+
+       @return 0 for OK, not 0 for error
+
+       @note the timeout value applies to each read from the socket
+
+       @since Qore 0.8.12.3
+   */
+   DLLEXPORT int recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
    //! send an HTTP request message on the socket
    /** The socket must be connected before this call is made.
@@ -1396,7 +1430,7 @@ public:
    /** The socket must be connected before this call is made.
        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
        are returned as the other hash keys in the hash.
-       @param timeout_ms tieout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @param source the event source code for socket events
        @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
@@ -1678,6 +1712,36 @@ public:
 
    //! returns true if a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read
    DLLEXPORT bool pendingHttpChunkedBody() const;
+
+   //! sets the SSL verification mode
+   /** If no SSL connection is in place, then the mode is saved for use with future SSL connections.
+
+       @param mode see the \c mode parameter of SSL_set_verify() for details
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT void setSslVerifyMode(int mode);
+
+   //! returns the SSL verification mode
+   /** @return see the \c mode parameter of SSL_set_verify() for details
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT int getSslVerifyMode() const;
+
+   //! with peer verification enabled, all certificates are accepted regardless of the validity of the Certificate Authority
+   /** @param accept_all if true, accepts self-signed certs, if false, then not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT void acceptAllCertificates(bool accept_all = true);
+
+   //! returns the current value of the "accept all certificates" flag
+   /** @return the current value of the "accept all certificates" flag; if true, accepts self-signed certs, if false, then not
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT bool getAcceptAllCertificates() const;
 
    DLLLOCAL static void doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink);
 

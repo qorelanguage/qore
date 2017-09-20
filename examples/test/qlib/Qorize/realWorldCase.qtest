@@ -70,7 +70,7 @@ public class QorizeRealWorldTest inherits QUnit::Test {
 %ifdef NoXml
         testSkip("no XML module present");
 %else
-        testAssertion("qorizeNamed NEWSTYLE", bool sub () { return (qorizeNamed(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorizeNamed NEWSTYLE", bool sub () { return (qorize_named(m_h, 'name', NEWSTYLE).size() > MIN_LENGTH); }, list());
 %endif
     }
 
@@ -78,7 +78,7 @@ public class QorizeRealWorldTest inherits QUnit::Test {
 %ifdef NoXml
         testSkip("no XML module present");
 %else
-        testAssertion("qorizeNamed OLDSTYLE", bool sub() { return (qorizeNamed(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
+        testAssertion("qorizeNamed OLDSTYLE", bool sub() { return (qorize_named(m_h, 'name', OLDSTYLE).size() > MIN_LENGTH); }, list());
 %endif
     }
 }

@@ -42,7 +42,7 @@
     @section string String
 
     @par Description:
-    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not with the exception of the single quote character, which is the only character that may be escaped (ex: <tt>'hello \'there\''</tt>).\n\n
+    String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not.\n\n
     Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.\n\n
     For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
     It is legal to specify a string literal with newline characters like the following:\n
@@ -65,6 +65,44 @@ on more than 1 line";
 
     @par Type Name:
     \c "string"
+
+    @anchor string_slicing
+    @par String slicing:
+    As an alternative way of acquiring substrings, strings can be "sliced" by dereferencing them using the @ref list_element_operator "[] operator" with a range or a list, as in the following examples:\n
+    @code{.py}
+string str = "hello";
+
+# Creates a substring with the first two characters of the original string
+string str1a = str[0..1];
+string str1b = str[0,1];
+string str1c = str[..1];
+printf("string 1a: %y\n", str1a);
+printf("string 1b: %y\n", str1b);
+printf("string 1c: %y\n", str1c);
+
+# Creates a substring with the last two characters of the original string in reverse order
+string str2a = str[4..3];
+string str2b = str[4,3];
+printf("string 2a: %y\n", str2a);
+printf("string 2b: %y\n", str2b);
+
+# Creates a substring from different characters in the string
+string str3 = str[4,3..1,0];
+printf("string 3: %y\n", str3);
+
+# -------------------------
+# the output is as follows:
+
+string 1a: "he"
+string 1b: "he"
+string 1c: "he"
+string 2a: "ol"
+string 2b: "ol"
+string 3: "olleh"
+    @endcode \n
+
+    When making a substring with a list of character offsets and referring to a character offset that does not exist,
+    no characters are added to the output string; these references are ignored.
 
     @see
     - @ref string_type, @ref softstring_type
@@ -119,7 +157,7 @@ on more than 1 line";
     @section number Number
 
     @par Description:
-    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries.\n\n
+    %Qore "number" values are arbitrary-precision numbers as provided by the <a href="http://gmplib.org">GMP</a> and <a href="http://www.mpfr.org">MPFR</a> libraries. Inside, they are implemented as floating-point values and therefore comparing them entails the same problems as comparing floats. You should not compare two number values for equality directly.\n\n
     Operations with number values are generally slower than those with @ref float "floats" but support far greater accuracy.  To give an immediate number value; write an integer or floating-point value and append an \c "n" to it, designating a "number" value.\n\n
     In numeric operations where at least one argument is a number type, the other operands will generally be automatically converted to a number type and the result of the operation will also be a number type.  When an operator acts on two values of type number, the result of the operation has the precision of the operand with the greatest precision.
 
@@ -287,13 +325,19 @@ prompt% qore -X 'P0000-00-03T21:00:00'
     - one month is treated as equivalent to 31 days (\c 1M == \c 31D)
     - 365 days are treated as equivalent to one year (\c 365D == \c 1Y)
 
-    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref True, when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
+    These assumptions try to make sense of expressions like: @verbatim 45D > 1M @endverbatim for example.  Month lengths can range from 28 to 31 days, therefore while the expression: @verbatim 30D < 1M @endverbatim will be evaluated as @ref Qore::True "True", when adding \c 30D to an @ref absolute_dates "absolute date value", the result could be less than adding \c 1M (for example, when the operand is an @ref absolute_dates "absolute date" in February).
 
     <hr>
     @section binary Binary
 
     @par Description:
     The binary data type is used to hold binary arbitrary binary data. Internally it is represented by a pointer to a memory location for the data and a size indicator.\n\n
+    Binary literal values are given in between angle brackets as an even series of hexadecimal digits:\n
+    @code{.py}
+binary b = <651144fe3310b5cc84>;
+b += <abde77>;
+# b now contains <651144fe3310b5cc84abde77>
+    @endcode \n
     Binary data can be concatenated with the + and += operators and manipulated with the @ref splice "splice" and @ref extract "extract" operators.\n\n
     This data can be manipulated by being written and read from @ref Qore::File, @ref Qore::Socket, @ref Qore::SQL::Datasource, @ref Qore::SQL::DatasourcePool, or @ref Qore::SQL::SQLStatement objects, or converted and parsed to/from base64 encoded strings using the makeBase64String() and parseBase64String() functions, or compressed and decompressed using the compress(), gzip(), bzip2(), etc. functions, and processed by most cryptographic funtions, among others.\n\n
     Binary objects can be read from a @ref Qore::File object using the Qore::File::readBinary() method and can be written using the Qore::File::write() method. Please see the @ref Qore::File class for more information.\n\n
@@ -312,6 +356,43 @@ prompt% qore -X 'P0000-00-03T21:00:00'
 
     @par Type Name:
     \c "binary"
+
+    @anchor binary_slicing
+    @par Binary slicing:
+    Binary objects can be "sliced" by dereferencing them using the @ref list_element_operator "[] operator" with a range or a list, as in the following examples:\n
+    @code{.py}
+binary bin = <beadface>;
+
+# Creates a binary slice with the first two bytes of the original binary object
+binary bin1a = bin[0..1];
+binary bin1b = bin[0,1];
+binary bin1c = bin[..1];
+printf("binary 1a: %s\n", bin1a.toHex());
+printf("binary 1b: %s\n", bin1b.toHex());
+printf("binary 1c: %s\n", bin1c.toHex());
+
+# Creates a binary slice with the last two bytes of the original binary object in reverse order
+binary bin2a = bin[3..2];
+binary bin2b = bin[3,2];
+printf("binary 2a: %s\n", bin2a.toHex());
+printf("binary 2b: %s\n", bin2b.toHex());
+
+# Creates a binary slice with different bytes of the original binary object
+binary bin3 = bin[3,2..1,0];
+printf("binary 3: %s\n", bin3.toHex());
+
+# -------------------------
+# the output is as follows:
+binary 1a: bead
+binary 1b: bead
+binary 1c: bead
+binary 2a: cefa
+binary 2b: cefa
+binary 3: cefaadbe
+    @endcode \n
+
+    When making a binary slice with a list of byte offsets and referring to a byte offset that does not exist,
+    no bytes are added to the output binary slice; these references are ignored.
 
     @see @ref binary_type
 

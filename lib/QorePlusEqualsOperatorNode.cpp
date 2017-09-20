@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,39 +29,49 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreObjectIntern.h"
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
-AbstractQoreNode *QorePlusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
    checkLValue(left, pflag);
 
-   const QoreTypeInfo *rightTypeInfo = 0;
+   const QoreTypeInfo* rightTypeInfo = nullptr;
    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-   if (!ti->isType(NT_LIST)
-       && !ti->isType(NT_HASH)
-       && !ti->isType(NT_OBJECT)
-       && !ti->isType(NT_STRING)
-       && !ti->isType(NT_FLOAT)
-       && !ti->isType(NT_NUMBER)
-       && !ti->isType(NT_DATE)
-       && !ti->isType(NT_BINARY)) {
+   if (QoreTypeInfo::isType(ti, NT_LIST)) {
+      if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
+         const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
+         if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
+            parseException(loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
+               QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+         }
+      }
+   }
+   else if (!QoreTypeInfo::isType(ti, NT_LIST)
+       && !QoreTypeInfo::isType(ti, NT_HASH)
+       && !QoreTypeInfo::isType(ti, NT_OBJECT)
+       && !QoreTypeInfo::isType(ti, NT_STRING)
+       && !QoreTypeInfo::isType(ti, NT_FLOAT)
+       && !QoreTypeInfo::isType(ti, NT_NUMBER)
+       && !QoreTypeInfo::isType(ti, NT_DATE)
+       && !QoreTypeInfo::isType(ti, NT_BINARY)) {
       // if the lhs type is not one of the above types,
       // there are 2 possibilities: the lvalue has no value, in which
       // case it takes the value of the right side, or if it's anything else it's
       // converted to an integer, so we just check if it can be assigned an
       // integer value below, this is enough
-      if (ti->returnsSingle()) {
-	 check_lvalue_int(ti, "+=");
-	 ti = bigIntTypeInfo;
-	 return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+      if (QoreTypeInfo::returnsSingle(ti)) {
+         check_lvalue_int(loc, ti, "+=");
+         ti = bigIntTypeInfo;
+         return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
       }
       else
-	 ti = 0;
+         ti = 0;
    }
    typeInfo = ti;
 
@@ -91,8 +101,8 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    if (vtype == NT_NOTHING) {
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = v.getTypeInfo();
-      if (typeInfo->hasDefaultValue()) {
-         if (v.assign(typeInfo->getDefaultValue()))
+      if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
+         if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
             return QoreValue();
          vtype = v.getType();
       }
@@ -110,20 +120,20 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
    if (vtype == NT_LIST) {
       v.ensureUnique(); // no exception possible here
-      QoreListNode *l = reinterpret_cast<QoreListNode*>(v.getValue());
+      QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
       if (new_right->getType() == NT_LIST)
-	 l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()));
+         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
       else
-	 l->push(new_right.getReferencedValue());
+         l->push(new_right.getReferencedValue(), xsink);
    } // do hash plus-equals if left side is a hash
    else if (vtype == NT_HASH) {
       if (new_right->getType() == NT_HASH) {
-	 v.ensureUnique();
-	 reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
+         v.ensureUnique();
+         reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
       }
       else if (new_right->getType() == NT_OBJECT) {
-	 v.ensureUnique();
-	 new_right->get<QoreObject>()->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
+         v.ensureUnique();
+         qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
       }
    }
    // do hash/object plus-equals if left side is an object
@@ -134,11 +144,11 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    // do string plus-equals if left-hand side is a string
    else if (vtype == NT_STRING) {
       if (!new_right->isNullOrNothing()) {
-	 QoreStringValueHelper str(*new_right);
+         QoreStringValueHelper str(*new_right);
 
-	 v.ensureUnique();
-	 QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
-	 vs->concat(*str, xsink);
+         v.ensureUnique();
+         QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
+         vs->concat(*str, xsink);
       }
    }
    else if (vtype == NT_NUMBER) {
@@ -151,24 +161,24 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
    }
    else if (vtype == NT_DATE) {
       if (!new_right->isNullOrNothing()) {
-	 // gets a relative date/time value from the value
-	 DateTime date(*new_right);
-	 v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
+         // gets a relative date/time value from the value
+         DateTime date(*new_right);
+         v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
       }
    }
    else if (vtype == NT_BINARY) {
       if (!new_right->isNullOrNothing()) {
-	 v.ensureUnique();
-	 BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
-	 if (new_right->getType() == NT_BINARY) {
-	    const BinaryNode *arg = new_right->get<const BinaryNode>();
-	    b->append(arg);
-	 }
-	 else {
-	    QoreStringNodeValueHelper str(*new_right);
-	    if (str->strlen())
-	       b->append(str->getBuffer(), str->strlen());
-	 }
+         v.ensureUnique();
+         BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
+         if (new_right->getType() == NT_BINARY) {
+            const BinaryNode *arg = new_right->get<const BinaryNode>();
+            b->append(arg);
+         }
+         else {
+            QoreStringNodeValueHelper str(*new_right);
+            if (str->strlen())
+               b->append(str->getBuffer(), str->strlen());
+         }
       }
    }
    else { // do integer plus-equals

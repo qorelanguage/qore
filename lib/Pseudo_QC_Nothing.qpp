@@ -175,7 +175,7 @@ nothing <nothing>::firstKey() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 *hash h = hash_or_nothing();
-any n = h.firstValue();
+auto n = h.firstValue();
     @endcode
 
     @see <hash>::firstValue()
@@ -209,7 +209,7 @@ nothing <nothing>::lastKey() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 *hash h = hash_or_nothing();
-any n = h.firstValue();
+auto n = h.firstValue();
     @endcode
 
     @see <hash>::lastValue()

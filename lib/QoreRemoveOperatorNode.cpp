@@ -60,16 +60,9 @@ AbstractQoreNode *QoreRemoveOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
    assert(!typeInfo);
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
-      if (exp && check_lvalue(exp))
-         parse_error("the remove operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
+      if (exp)
+	 checkLValue(exp, pflag);
       returnTypeInfo = typeInfo;
    }
    return this;
-}
-
-QoreRemoveOperatorNode* QoreRemoveOperatorNode::copyBackground(ExceptionSink* xsink) const {
-   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-   if (*xsink)
-      return 0;
-   return new QoreRemoveOperatorNode(n_exp.release());
 }

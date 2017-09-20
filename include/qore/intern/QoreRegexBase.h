@@ -36,7 +36,6 @@
 #define _QORE_REGEXBASE_H
 
 // base class for regex and regex substitution classes
-
 #include <pcre.h>
 
 #define check_re_options(a) (a & ~(PCRE_CASELESS|PCRE_DOTALL|PCRE_EXTENDED|PCRE_MULTILINE|PCRE_UTF8))

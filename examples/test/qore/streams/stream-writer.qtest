@@ -1,0 +1,143 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class StreamWriterTest
+
+class StreamWriterTest inherits QUnit::Test {
+    constructor() : QUnit::Test("StreamWriter test", "1.0") {
+        addTestCase("Basic print(f) tests", \basicPrintfTests());
+        addTestCase("Basic write binary tests", \basicWriteBinaryTests());
+        addTestCase("Basic write int tests", \basicWriteIntTests());
+        addTestCase("Encoding tests", \encodingTests());
+
+        set_return_value(main());
+    }
+
+    basicPrintfTests() {
+        BinaryOutputStream os = new BinaryOutputStream();
+        StreamWriter sw = new StreamWriter(os);
+        assertEq("".encoding(), sw.getEncoding());
+        sw.print("");
+        sw.printf("");
+        sw.vprintf("", ("",));
+        sw.f_printf("");
+        sw.f_vprintf("", ("",));
+        assertEq(binary(), os.getData());
+
+        sw.print("Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+        sw.printf("Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+        sw.vprintf("Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+        sw.f_printf("Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+        sw.f_vprintf("Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+
+        sw.printf("%5s 4", "Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n 4"), os.getData());
+        sw.vprintf("%5s 4", ("Lorem ipsum\n", 23));
+        assertEq(binary("Lorem ipsum\n 4"), os.getData());
+        sw.vprintf("%5s 4", "Lorem ipsum\n");
+        assertEq(binary("Lorem ipsum\n 4"), os.getData());
+        sw.f_printf("%5s 4", "Lorem ipsum\n");
+        assertEq(binary("Lorem 4"), os.getData());
+        sw.f_vprintf("%5s 4", ("Lorem ipsum\n", 23));
+        assertEq(binary("Lorem 4"), os.getData());
+        sw.f_vprintf("%5s 4", "Lorem ipsum\n");
+        assertEq(binary("Lorem 4"), os.getData());
+    }
+
+    basicWriteBinaryTests() {
+        BinaryOutputStream os = new BinaryOutputStream();
+        StreamWriter sw = new StreamWriter(os);
+
+        sw.write(binary());
+        assertEq(binary(), os.getData());
+        sw.write(<010203>);
+        assertEq(<010203>, os.getData());
+        sw.write(binary("Lorem ipsum\n"));
+        assertEq(binary("Lorem ipsum\n"), os.getData());
+    }
+
+    basicWriteIntTests() {
+        BinaryOutputStream os = new BinaryOutputStream();
+        StreamWriter sw = new StreamWriter(os);
+
+        sw.writei1(0);
+        assertEq(<00>, os.getData());
+        sw.writei2(0);
+        assertEq(<0000>, os.getData());
+        sw.writei4(0);
+        assertEq(<00000000>, os.getData());
+        sw.writei8(0);
+        assertEq(<0000000000000000>, os.getData());
+
+        sw.writei2LSB(0);
+        assertEq(<0000>, os.getData());
+        sw.writei4LSB(0);
+        assertEq(<00000000>, os.getData());
+        sw.writei8LSB(0);
+        assertEq(<0000000000000000>, os.getData());
+
+        sw.writei1(0xabcd);
+        assertEq(<cd>, os.getData());
+        sw.writei2(0xab12cd34);
+        assertEq(<cd34>, os.getData());
+        sw.writei4(0x1234abcd5678efab);
+        assertEq(<5678efab>, os.getData());
+        sw.writei8(0x1234abcd5678efab);
+        assertEq(<1234abcd5678efab>, os.getData());
+
+        sw.writei2LSB(0xab12cd34);
+        assertEq(<34cd>, os.getData());
+        sw.writei4LSB(0x1234abcd5678efab);
+        assertEq(<abef7856>, os.getData());
+        sw.writei8LSB(0x1234abcd5678efab);
+        assertEq(<abef7856cdab3412>, os.getData());
+    }
+
+    encodingTests() {
+        string s = "příliš žluťoučký kůň úpěl ďábelské ódy";
+        string sUTF8 = convert_encoding(s, "UTF8");
+        string sUTF16 = convert_encoding(s, "UTF16");
+        string sUTF16LE = convert_encoding(s, "UTF16LE");
+        string sUTF16BE = convert_encoding(s, "UTF16BE");
+
+        BinaryOutputStream os = new BinaryOutputStream();
+        StreamWriter sw = new StreamWriter(os, "UTF8");
+        sw.print(s);
+        assertEq(binary(sUTF8), os.getData());
+        sw.print(sUTF8);
+        assertEq(binary(sUTF8), os.getData());
+
+        os = new BinaryOutputStream();
+        sw = new StreamWriter(os, "UTF16");
+        sw.printf(s);
+        assertEq(binary(sUTF16), os.getData());
+        sw.printf(sUTF16);
+        assertEq(binary(sUTF16), os.getData());
+
+        os = new BinaryOutputStream();
+        sw = new StreamWriter(os, "UTF16LE");
+        sw.print(s);
+        assertEq(binary(sUTF16LE), os.getData());
+        sw.print(sUTF16LE);
+        assertEq(binary(sUTF16LE), os.getData());
+
+        os = new BinaryOutputStream();
+        sw = new StreamWriter(os, "UTF16BE");
+        sw.printf(s);
+        assertEq(binary(sUTF16BE), os.getData());
+        sw.printf(sUTF16BE);
+        assertEq(binary(sUTF16BE), os.getData());
+    }
+}

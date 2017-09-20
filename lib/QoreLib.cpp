@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,13 +29,22 @@
   information.
 */
 
-#include <qore/Qore.h>
-#include <qore/intern/git-revision.h>
-#include <qore/intern/qore_number_private.h>
-#include <qore/intern/QoreSignal.h>
-#include <qore/intern/QoreObjectIntern.h>
-#include <qore/intern/qore_qd_private.h>
-#include <qore/intern/ql_crypto.h>
+#include "qore/Qore.h"
+#include "qore/intern/git-revision.h"
+#include "qore/intern/qore_number_private.h"
+#include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/qore_qd_private.h"
+#include "qore/intern/ql_crypto.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/StringReaderHelper.h"
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
+
+#include <sstream>
+#include <locale>
+#include <atomic>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -53,6 +62,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <ctype.h>
 
 FeatureList qoreFeatureList;
 
@@ -134,11 +144,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
      "HAVE_ATOMIC_OPERATIONS",
      QO_OPTION,
-#ifdef HAVE_ATOMIC_MACROS
-     true
-#else
-     false
-#endif
+     std::atomic_int{}.is_lock_free(),
    },
    { QORE_OPT_STACK_GUARD,
      "HAVE_STACK_GUARD",
@@ -289,7 +295,16 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_FUNC_ROUND,
+   { QORE_OPT_DSS,
+    "HAVE_DSS",
+    QO_ALGORITHM,
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    true
+#else
+    false
+#endif
+  },
+  { QORE_OPT_FUNC_ROUND,
      "HAVE_ROUND",
      QO_FUNCTION,
 #ifdef HAVE_ROUND
@@ -477,7 +492,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    QoreString tbuf(cstr->getEncoding());
 
    printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
-	  param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
+          param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
    qore_type_t t = qv.getType();
 #ifdef DEBUG
    if (t == NT_STRING) {
@@ -512,66 +527,66 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    char p = *param;
    switch (*param) {
       case 's': {
-	 QoreStringValueHelper astr(qv);
-	 length = astr->strlen();
-	 if ((width != -1) && (length > width) && !type)
-	    width = length;
-	 if ((width != -1) && (length > width)) {
-	    tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
-	 }
-	 else {
-	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
-	       tbuf.concat(*astr, xsink);
-	       while (width > length) {
-		  tbuf.concat(' ');
-		  width--;
-	       }
-	    }
-	    else {
-	       while (width > length) {
-		  tbuf.concat(' ');
-		  width--;
-	       }
-	       tbuf.concat(*astr, xsink);
-	    }
-	 }
-	 break;
+         QoreStringValueHelper astr(qv);
+         length = astr->strlen();
+         if ((width != -1) && (length > width) && !type)
+            width = length;
+         if ((width != -1) && (length > width)) {
+            tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
+         }
+         else {
+            if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
+               tbuf.concat(*astr, xsink);
+               while (width > length) {
+                  tbuf.concat(' ');
+                  width--;
+               }
+            }
+            else {
+               while (width > length) {
+                  tbuf.concat(' ');
+                  width--;
+               }
+               tbuf.concat(*astr, xsink);
+            }
+         }
+         break;
       }
       case 'p':
-	 p = 'x';
+         p = 'x';
       case 'd':
       case 'o':
       case 'x':
       case 'X': {
-	 // recreate the sprintf format argument
-	 f = fmt;
-	 *(f++) = '%';
-	 if (opts & P_JUSTIFY_LEFT)
-	    *(f++) = '-';
-	 if (opts & P_INCLUDE_PLUS)
-	    *(f++) = '+';
-	 if (width != -1) {
-	    if (opts & P_SPACE_FILL)
-	       *(f++) = ' ';
-	    else if (opts & P_ZERO_FILL)
-	       *(f++) = '0';
-	    f += sprintf(f, "%d", width);
-	 }
+         // recreate the sprintf format argument
+         f = fmt;
+         *(f++) = '%';
+         if (opts & P_JUSTIFY_LEFT)
+            *(f++) = '-';
+         if (opts & P_INCLUDE_PLUS)
+            *(f++) = '+';
+         if (width != -1) {
+            if (opts & P_SPACE_FILL)
+               *(f++) = ' ';
+            else if (opts & P_ZERO_FILL)
+               *(f++) = '0';
+            f += sprintf(f, "%d", width);
+         }
 #ifdef _Q_WINDOWS
-	 *(f++) = 'I';
-	 *(f++) = '6';
-	 *(f++) = '4';
+         *(f++) = 'I';
+         *(f++) = '6';
+         *(f++) = '4';
 #else
-	 *(f++) = 'l';
-	 *(f++) = 'l';
+         *(f++) = 'l';
+         *(f++) = 'l';
 #endif
-	 *(f++) = p; // 'd', etc;
-	 *f = '\0';
+         *(f++) = p; // 'd', etc;
+         *f = '\0';
          int64 val = qv.getAsBigInt();
-	 tbuf.sprintf(fmt, val);
-	 if (type && (width != -1))
-	    tbuf.terminate(width);
-	 break;
+         tbuf.sprintf(fmt, val);
+         if (type && (width != -1))
+            tbuf.terminate(width);
+         break;
       }
       case 'A':
       case 'a':
@@ -581,59 +596,62 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
       case 'f':
       case 'E':
       case 'e': {
-	 // recreate the sprintf format argument
-	 f = fmt;
-	 *(f++) = '%';
-	 if (opts & P_JUSTIFY_LEFT)
-	    *(f++) = '-';
-	 if (opts & P_INCLUDE_PLUS)
-	    *(f++) = '+';
-	 if (width != -1) {
-	    if (opts & P_SPACE_FILL)
-	       *(f++) = ' ';
-	    else if (opts & P_ZERO_FILL)
-	       *(f++) = '0';
-	    f += sprintf(f, "%d", width);
-	 }
-	 if (decimals != -1) {
-	    *(f++) = '.';
-	    f += sprintf(f, "%d", decimals);
-	 }
-	 if (t == NT_NUMBER) {
-	    *(f++) = QORE_MPFR_SPRINTF_ARG;
+         // recreate the sprintf format argument
+         f = fmt;
+         *(f++) = '%';
+         if (opts & P_JUSTIFY_LEFT)
+            *(f++) = '-';
+         if (opts & P_INCLUDE_PLUS)
+            *(f++) = '+';
+         if (width != -1) {
+            if (opts & P_SPACE_FILL)
+               *(f++) = ' ';
+            else if (opts & P_ZERO_FILL)
+               *(f++) = '0';
+            f += sprintf(f, "%d", width);
+         }
+         if (decimals != -1) {
+            *(f++) = '.';
+            f += sprintf(f, "%d", decimals);
+         }
+         if (t == NT_NUMBER) {
+            *(f++) = QORE_MPFR_SPRINTF_ARG;
             *(f++) = *param; // a|A|e|E|f|F|g|G
             *f = '\0';
             qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
-	 }
-	 else {
-	    *(f++) = *param; // a|A|e|E|f|F|g|G
-	    *f = '\0';
-	    double val = qv.getAsFloat();
-	    tbuf.sprintf(fmt, val);
-	    //printd(5, "fmt: '%s' val: %f\n", fmt, val);
-	 }
-	 if (type && (width != -1))
-	    tbuf.terminate(width);
-	 break;
+         }
+         else {
+            *(f++) = *param; // a|A|e|E|f|F|g|G
+            *f = '\0';
+            double val = qv.getAsFloat();
+            tbuf.sprintf(fmt, val);
+            // issue 1556: external modules that call setlocale() can change
+            // the decimal point character used here from '.' to ','
+            q_fix_decimal(&tbuf);
+            //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
+         }
+         if (type && (width != -1))
+            tbuf.terminate(width);
+         break;
       }
       case 'n':
       case 'N': {
-	 QoreNodeAsStringHelper t(qv, *param == 'N'
-				  ? (width == -1 ? FMT_NORMAL : width)
-				  : FMT_NONE, xsink);
-	 tbuf.concat(*t, xsink);
-	 break;
+         QoreNodeAsStringHelper t(qv, *param == 'N'
+                                  ? (width == -1 ? FMT_NORMAL : width)
+                                  : FMT_NONE, xsink);
+         tbuf.concat(*t, xsink);
+         break;
       }
       case 'y': {
-	 QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
-	 tbuf.concat(*t, xsink);
-	 break;
+         QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
+         tbuf.concat(*t, xsink);
+         break;
       }
       default:
-	 // if the format argument is not understood, then make sure and just consume the '%' char
-	 tbuf.concat('%');
-	 param = str;
-	 *taken = 0;
+         // if the format argument is not understood, then make sure and just consume the '%' char
+         tbuf.concat('%');
+         param = str;
+         *taken = 0;
    }
 
    cstr->concat(&tbuf, xsink);
@@ -641,6 +659,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 }
 
 QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
    const QoreStringNode* p;
 
@@ -656,17 +675,17 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
-	 const AbstractQoreNode* node = get_param(params, j++);
-	 i += process_opt(*buf, (char*)&pstr[i], node, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    j--;
+         const AbstractQoreNode* node = get_param(params, j++);
+         i += process_opt(*buf, (char*)&pstr[i], node, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            j--;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
-	     ++i;
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
       }
    }
 
@@ -674,6 +693,7 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
 }
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    const QoreStringNode* fmt;
 
    if (!(fmt = test_string_param(params, offset)))
@@ -693,28 +713,28 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
       const AbstractQoreNode* arg = 0;
 
       if ((pstr[i] == '%')) {
-	 if (args) {
-	    if (arg_list && j < arg_list->size()) {
-	       havearg = true;
-	       arg = get_param(arg_list, j);
-	    }
-	    else if (!j) {
-	       arg = args;
-	       havearg = true;
-	    }
-	 }
+         if (args) {
+            if (arg_list && j < arg_list->size()) {
+               havearg = true;
+               arg = get_param(arg_list, j);
+            }
+            else if (!j) {
+               arg = args;
+               havearg = true;
+            }
+         }
       }
       if (havearg) {
-	 ++j;
-	 i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    --j;
+         ++j;
+         i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            --j;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
              ++i;
       }
    }
@@ -722,6 +742,7 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    unsigned i, j, l;
 
    QoreValue pv = get_param_value(params, offset);
@@ -739,17 +760,17 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
-	 pv = get_param_value(params, j++);
-	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    j--;
+         pv = get_param_value(params, j++);
+         i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            j--;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
-	     ++i;
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
       }
    }
 
@@ -757,6 +778,7 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
 }
 
 QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
+   assert(xsink);
    QoreValue pv = get_param_value(params, offset);
    if (pv.getType() != NT_STRING)
       return new QoreStringNode;
@@ -778,25 +800,25 @@ QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, E
       QoreValue cv;
 
       if ((pstr[i] == '%')) {
-	 if (!pv.isNothing()) {
-	    havearg = true;
-	    if (arg_list && j < arg_list->size())
-	       cv = get_param(arg_list, j);
-	    else if (!j)
-	       cv = pv;
-	 }
+         if (!pv.isNothing()) {
+            havearg = true;
+            if (arg_list && j < arg_list->size())
+               cv = get_param(arg_list, j);
+            else if (!j)
+               cv = pv;
+         }
       }
       if (havearg) {
-	 ++j;
-	 i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    --j;
+         ++j;
+         i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            --j;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
              ++i;
       }
    }
@@ -828,7 +850,7 @@ static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, Ex
 
    if (!c) {
       if (!end_ok)
-	 xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+         xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
    }
    else {
       QoreStringNode* desc = new QoreStringNode;
@@ -857,7 +879,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
       }
       // if we've reached the end of the string here, then exit the loop
       if (!buf[pos])
-	 break;
+         break;
 
       // get second 6 bits
       ++pos;
@@ -935,14 +957,14 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    while (buf < end) {
       int b = get_nibble(*buf, xsink);
       if (b < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       int l = get_nibble(*buf, xsink);
       if (l < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -950,7 +972,7 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-static inline int parse_get_nibble(char c) {
+static int parse_get_nibble(const QoreProgramLocation& loc, char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -958,12 +980,12 @@ static inline int parse_get_nibble(char c) {
    if (c >= 'a' && c <= 'f')
       return c - 87;
 
-   parseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   parseException(loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
    return -1;
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode* parseHex(const char* buf, int len) {
+BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
@@ -972,25 +994,25 @@ BinaryNode* parseHex(const char* buf, int len) {
 
    const char* end = buf + len;
    while (buf < end) {
-      int b = parse_get_nibble(*buf);
+      int b = parse_get_nibble(loc, *buf);
       if (b < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
 #if 0
       // this can never happen; the parser guarantees an even number of digits
       if (!(*buf)) {
-	 free(binbuf);
-	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-	 return 0;
+         free(binbuf);
+         parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
+         return 0;
       }
 #endif
 
-      int l = parse_get_nibble(*buf);
+      int l = parse_get_nibble(loc, *buf);
       if (l < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -1006,7 +1028,7 @@ char* make_class_name(const char* str) {
    p = cn;
    while (*p) {
       if (*p == '-')
-	 *p = '_';
+         *p = '_';
       p++;
    }
    return cn;
@@ -1024,7 +1046,7 @@ void qore_setup_argv(int pos, int argc, char* argv[]) {
    int end = argc - pos;
    for (int i = 0; i < argc; i++) {
       if (i < end)
-	 ARGV->push(new QoreStringNode(argv[i + pos]));
+         ARGV->push(new QoreStringNode(argv[i + pos]));
       QORE_ARGV->push(new QoreStringNode(argv[i]));
    }
 }
@@ -1037,11 +1059,11 @@ void init_lib_intern(char* env[]) {
       char* p;
 
       if ((p = strchr(env[i], '='))) {
-	 char save = *p;
-	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
-	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
-	 *p = save;
+         char save = *p;
+         *p = '\0';
+         ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
+         //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
+         *p = save;
       }
       i++;
    }
@@ -1102,7 +1124,7 @@ const char* q_find_first_path_sep(const char* path) {
    const char* p = path;
    while (*p) {
       if (*p == '/' || *p == '\\')
-	 return p;
+         return p;
       ++p;
    }
    return 0;
@@ -1118,7 +1140,7 @@ const char* q_find_last_path_sep(const char* path) {
    const char* rv = 0;
    while (*p) {
       if (*p == '/' || *p == '\\')
-	 rv = p;
+         rv = p;
       ++p;
    }
    return rv;
@@ -1377,32 +1399,32 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreListNode* make_args(AbstractQoreNode* arg) {
+QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg) {
    if (!arg)
-      return 0;
+      return nullptr;
 
-   QoreListNode* l;
-   if (arg->getType() == NT_LIST) {
-      l = reinterpret_cast<QoreListNode*>(arg);
+   QoreParseListNode* l;
+   if (arg->getType() == NT_PARSE_LIST) {
+      l = reinterpret_cast<QoreParseListNode*>(arg);
       if (!l->isFinalized())
          return l;
    }
 
-   l = new QoreListNode(arg->needs_eval());
-   l->push(arg);
+   l = new QoreParseListNode(loc);
+   l->add(arg, loc);
    return l;
 }
 
 const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
-   const AbstractQoreNode* p = h->getKeyValue(key);
-   if (is_nothing(p))
-      return 0;
+   QoreValue p = h->getValueKeyValue(key);
+   if (p.isNothing())
+      return nullptr;
 
-   if (p->getType() != NT_STRING) {
-      xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, get_type_name(p));
-      return 0;
+   if (p.getType() != NT_STRING) {
+      xsink->raiseException(err, "'%s' key is not type 'string' but is type '%s'", key, p.getTypeName());
+      return nullptr;
    }
-   return reinterpret_cast<const QoreStringNode*>(p)->getBuffer();
+   return p.get<const QoreStringNode>()->c_str();
 }
 
 void q_strerror(QoreString &str, int err) {
@@ -1465,17 +1487,27 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       return 0;
 
    if (ntype == NT_OPERATOR) {
-      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
-      if (op) {
-	 return check_lvalue(op->getLeft(), assignment);
+      {
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
+         }
       }
-      return -1;
+      {
+         QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->get(0), assignment);
+         }
+      }
+      {
+         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
+         }
+         return -1;
+      }
    }
 
-   if (ntype == NT_TREE) {
-      QoreTreeNode* t = reinterpret_cast<QoreTreeNode*>(node);
-      return t->getOp() == OP_OBJECT_REF ? check_lvalue(t->left, assignment) : -1;
-   }
    return -1;
 }
 
@@ -1518,35 +1550,42 @@ QoreListNode* stat_to_list(const struct stat& sbuf) {
    return l;
 }
 
-QoreHashNode* stat_to_hash(const struct stat& sbuf) {
-   QoreHashNode* h = new QoreHashNode;
+TypedHashDecl* qore_get_hashdecl(const char* name) {
+   TypedHashDecl* rv = qore_ns_private::get(*staticSystemNamespace->rootGetQoreNamespace())->hashDeclList.find(name);
+   assert(rv);
+   return rv;
+}
+
+QoreHashNode* stat_to_hash(const struct stat& sbuf, const TypedHashDecl* hd) {
+   QoreHashNode* h = new QoreHashNode(hd, nullptr);
 
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("dev",     new QoreBigIntNode((int64)sbuf.st_dev), 0);
-   h->setKeyValue("inode",   new QoreBigIntNode(sbuf.st_ino), 0);
-   h->setKeyValue("mode",    new QoreBigIntNode(sbuf.st_mode), 0);
-   h->setKeyValue("nlink",   new QoreBigIntNode(sbuf.st_nlink), 0);
-   h->setKeyValue("uid",     new QoreBigIntNode(sbuf.st_uid), 0);
-   h->setKeyValue("gid",     new QoreBigIntNode(sbuf.st_gid), 0);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("dev",     (int64)sbuf.st_dev);
+   ph->setKeyValueIntern("inode",   (int64)sbuf.st_ino);
+   ph->setKeyValueIntern("mode",    (int64)sbuf.st_mode);
+   ph->setKeyValueIntern("nlink",   (int64)sbuf.st_nlink);
+   ph->setKeyValueIntern("uid",     (int64)sbuf.st_uid);
+   ph->setKeyValueIntern("gid",     (int64)sbuf.st_gid);
    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   h->setKeyValue("rdev",    new QoreBigIntNode((int64)sbuf.st_rdev), 0);
-   h->setKeyValue("size",    new QoreBigIntNode(sbuf.st_size), 0);
+   ph->setKeyValueIntern("rdev",    (int64)sbuf.st_rdev);
+   ph->setKeyValueIntern("size",    (int64)sbuf.st_size);
 
-   h->setKeyValue("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime), 0);
-   h->setKeyValue("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), 0);
-   h->setKeyValue("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), 0);
+   ph->setKeyValueIntern("atime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime));
+   ph->setKeyValueIntern("mtime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
+   ph->setKeyValueIntern("ctime",   DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
 
    int64 blksize, blocks;
    stat_get_blocks(sbuf, blksize, blocks);
-   h->setKeyValue("blksize", new QoreBigIntNode(blksize), 0);
-   h->setKeyValue("blocks",  new QoreBigIntNode(blocks), 0);
+   ph->setKeyValueIntern("blksize", (int64)blksize);
+   ph->setKeyValueIntern("blocks",  (int64)blocks);
 
    // process permissions
    QoreStringNode* perm = new QoreStringNode;
    const char* type = q_mode_to_perm(sbuf.st_mode, *perm);
 
-   h->setKeyValue("type", new QoreStringNode(type), 0);
-   h->setKeyValue("perm", perm, 0);
+   ph->setKeyValueIntern("type", new QoreStringNode(type));
+   ph->setKeyValueIntern("perm", perm);
 
    return h;
 }
@@ -1557,18 +1596,18 @@ QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
 
 #ifdef DARWIN
 #else
-   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), 0);
+   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), nullptr);
 #endif
-   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), 0);
-   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), 0);
-   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), 0);
-   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), 0);
-   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), 0);
-   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), 0);
-   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), 0);
-   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), 0);
-   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), 0);
-   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), 0);
+   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), nullptr);
+   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), nullptr);
+   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), nullptr);
+   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), nullptr);
+   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), nullptr);
+   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), nullptr);
+   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), nullptr);
+   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), nullptr);
+   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), nullptr);
+   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), nullptr);
 
    return h;
 }
@@ -1624,7 +1663,7 @@ bool q_path_is_readable(const char* path) {
 
    if ((rc = stat(path, &sbuf)))
       return false;
-   
+
    if (S_ISDIR(sbuf.st_mode)) { // If path is a directory.
       DIR* dp = opendir(path);
       if (dp != NULL) {
@@ -1685,7 +1724,7 @@ void QoreProgramLocation::toString(QoreString& str) const {
    if (start_line > 0) {
       str.sprintf(":%d", start_line);
       if (end_line > 0 && end_line != start_line)
-	 str.sprintf("-%d", end_line);
+         str.sprintf("-%d", end_line);
    }
 
    if (source)
@@ -1843,7 +1882,7 @@ char* strcasestr(const char* s1, const char* s2) {
 
    for (size_t i = 0, end = len1 - len2; i <= end; ++i) {
       if (!strncasecmp(s2, s1 + i, len2)) {
-	 return ((char*)s1 + i);
+         return ((char*)s1 + i);
       }
    }
 
@@ -1962,10 +2001,10 @@ int q_getcwd(QoreString& cwd) {
       if (!b) {
           if (errno == ERANGE) {
               bs *= 2;
-	      cwd.reserve(bs);
+              cwd.reserve(bs);
               continue;
           }
-	  //printd(5, "q_getcwd() failed: errno: %d\n", errno);
+          //printd(5, "q_getcwd() failed: errno: %d\n", errno);
           return -1;
       }
       break;
@@ -1995,7 +2034,7 @@ int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 #endif
    if (!p) {
       if (xsink)
-	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
+         xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
       return -1;
    }
 #if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
@@ -2013,7 +2052,7 @@ int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
    // verify that the path exists
    if (!q_get_mode(rv)) {
       if (xsink)
-	 xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
+         xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
       return -1;
    }
    return 0;
@@ -2047,10 +2086,14 @@ int qore_get_ptr_hash(QoreString& str, const void* ptr) {
 }
 
 void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
-   assert(big_len && little_len);
+   assert(big && little);
 #ifdef HAVE_MEMMEM
    return memmem(big, big_len, little, little_len);
 #else
+   if (!big_len)
+      return nullptr;
+   if (!little_len)
+      return big;
    const char* lt = (const char*)little;
    const char* bg = (const char*)big;
    const char* p = bg;
@@ -2058,22 +2101,30 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    while (p < end) {
       const char* f = (const char*)memchr(p, lt[0], end - p);
       if (!f || ((bg - f) < (ptrdiff_t)little_len))
-	 return 0;
+         return nullptr;
       p = f;
       bool found = true;
       for (size_t i = 1; i < little_len; ++i) {
-	 if (*f != lt[i]) {
-	    found = false;
-	    break;
-	 }
-	 ++f;
+         if (*f != lt[i]) {
+            found = false;
+            break;
+         }
+         ++f;
       }
       if (found)
-	 return (void*)p;
+         return (void*)p;
       ++p;
    }
-   return 0;
+   return nullptr;
 #endif
+}
+
+double q_strtod(const char* str) {
+   std::istringstream istr(str);
+   istr.imbue(std::locale::classic());
+   double rv;
+   istr >> rv;
+   return rv;
 }
 
 #ifdef _Q_WINDOWS
@@ -2099,3 +2150,383 @@ int q_fstatvfs(const char* filepath, struct statvfs* buf) {
    return statvfs(dir, buf);
 }
 #endif
+
+// call to get a node with reference count 1 (copy on write)
+void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
+   assert(*v);
+   if (!(*v)->is_unique()) {
+      AbstractQoreNode* old = *v;
+      (*v) = old->realCopy();
+      old->deref(xsink);
+      assert(!*xsink);
+   }
+}
+
+// checks for illegal "self" assignments in an object context
+void check_self_assignment(const QoreProgramLocation& loc, AbstractQoreNode* n, LocalVar* selfid) {
+   qore_type_t ntype = n->getType();
+
+   // if it's a variable reference
+   if (ntype == NT_VARREF) {
+      VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
+      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
+         parse_error(loc, "illegal assignment to 'self' in an object context");
+      return;
+   }
+}
+
+int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned an integer value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)) {
+      if (getProgram()->getParseExceptionSink()) {
+         QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+         QoreTypeInfo::getThisType(typeInfo, *desc);
+         desc->sprintf(", but the %s will assign it an integer value", name);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned a floating-point value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+      QoreTypeInfo::getThisType(typeInfo, *desc);
+      desc->sprintf(", but the %s will assign it a number value", name);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_float(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned a floating-point value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
+      QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+      QoreTypeInfo::getThisType(typeInfo, *desc);
+      desc->sprintf(", but the %s will assign it a float value", name);
+      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      return -1;
+   }
+   return 0;
+}
+
+int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+   // make sure the lvalue can be assigned an integer value
+   // raise a parse exception only if parse exceptions are not suppressed
+   if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT)
+         && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER)) {
+      if (getProgram()->getParseExceptionSink()) {
+         QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+         QoreTypeInfo::getThisType(typeInfo, *desc);
+         desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
+         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      }
+      return -1;
+   }
+   if (QoreTypeInfo::parseReturns(typeInfo, NT_INT)) {
+      if (QoreTypeInfo::parseReturns(typeInfo, NT_FLOAT)) {
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_NUMBER))
+            typeInfo = bigIntFloatOrNumberTypeInfo;
+         else
+            typeInfo = bigIntOrFloatTypeInfo;
+      }
+      else
+         typeInfo = bigIntTypeInfo;
+   }
+   else {
+      if (QoreTypeInfo::parseReturns(typeInfo, NT_FLOAT))
+         if (QoreTypeInfo::parseReturns(typeInfo, NT_NUMBER))
+            typeInfo = floatOrNumberTypeInfo;
+         else
+            typeInfo = floatTypeInfo;
+      else
+         typeInfo = numberTypeInfo;
+   }
+
+   return 0;
+}
+
+static void do_subst(QoreString& str, const char* i, const char* ep, int offset) {
+   assert(i < ep);
+   QoreString var(i + 1 + offset, ep - i - 1 - offset, str.getEncoding());
+   QoreString val;
+   SystemEnvironment::get(var.c_str(), val);
+
+   //printd(5, "do_subst() '%s': '%s'\n", var.c_str(), val.c_str());
+
+   str.replace(i - str.c_str(), ep - i + offset, val.c_str());
+}
+
+static int do_bracket_subst(QoreString& str, const char* i, char c) {
+   const char* ep = strchr(i + 2, c);
+   if (!ep)
+      return -1;
+
+   do_subst(str, i, ep, 1);
+   return 0;
+}
+
+int q_env_subst(QoreString& str) {
+   const char* i;
+   while ((i = strchr(str.c_str(), '$'))) {
+      const char* ep = i + 1;
+      if (!*ep)
+         return -1;
+      if (*ep == '(') {
+         if (do_bracket_subst(str, i, ')'))
+            return -1;
+         continue;
+      }
+      if (*ep == '{') {
+         if (do_bracket_subst(str, i, '}'))
+            return -1;
+         continue;
+      }
+      while (*ep && (*ep == '_' || isalnum(*ep)))
+         ++ep;
+      do_subst(str, i, ep, 0);
+   }
+
+   return 0;
+}
+
+static void q_remove_bom_utf16_intern(QoreString* str, const QoreEncoding*& enc) {
+   assert(str->getEncoding() == enc);
+   if (str->size() > 1 && !enc->isAsciiCompat()) {
+      if ((enc == QCS_UTF16 || enc == QCS_UTF16BE) && str->c_str()[0] == (char)0xfe && str->c_str()[1] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16BE);
+            enc = QCS_UTF16BE;
+         }
+      }
+      else if ((enc == QCS_UTF16 || enc == QCS_UTF16LE) && str->c_str()[1] == (char)0xfe && str->c_str()[0] == (char)0xff) {
+         str->replace(0, 2, (const char*)nullptr);
+         if (enc == QCS_UTF16) {
+            str->setEncoding(QCS_UTF16LE);
+            enc = QCS_UTF16LE;
+         }
+      }
+   }
+}
+
+QoreString* q_remove_bom_utf16(QoreString* str, const QoreEncoding*& enc) {
+   q_remove_bom_utf16_intern(str, enc);
+   return str;
+}
+
+QoreStringNode* q_remove_bom_utf16(QoreStringNode* str, const QoreEncoding*& enc) {
+   q_remove_bom_utf16_intern(str, enc);
+   return str;
+}
+
+QoreStringNode* q_read_string_all(ExceptionSink* xsink, const QoreEncoding* enc, f_read_t my_read) {
+   size_t size = 0;
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+   while (true) {
+      // ensure there is space in the buffer
+      str->reserve(size + DefaultStreamReaderHelperBufferSize);
+
+      int64 rc = my_read((void*)(str->c_str() + size), DefaultStreamReaderHelperBufferSize, xsink);
+
+      if (*xsink)
+         return 0;
+      if (!rc)
+         break;
+
+      size += rc;
+   }
+   if (!size)
+      return 0;
+   str->terminate(size);
+   return str.release();
+}
+
+QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncoding* enc, f_read_t my_read) {
+   if (!size)
+      return nullptr;
+   if (size < 0)
+      return q_read_string_all(xsink, enc, my_read);
+
+   // original number of characters requested
+   size_t orig_size = size;
+
+   // byte offset of the byte position directly after the last full character scanned
+   size_t last_char = 0;
+
+   // total number of characters read
+   size_t char_len = 0;
+
+   // minimum character width
+   unsigned mw = enc->getMinCharWidth();
+   // get minimum byte length
+   size *= mw;
+
+   bool check_bom = false;
+
+   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
+   while (char_len < orig_size) {
+      // get the minimum number of bytes to read
+      size_t bs = size - str->size();
+
+      // ensure there is space in the buffer
+      str->reserve(str->size() + bs);
+
+      int rc = my_read((void*)(str->c_str() + str->size()), bs, xsink);
+      if (*xsink)
+         return 0;
+      if (rc == 0)
+         break;
+
+      str->terminate(str->size() + rc);
+
+      //printd(5, "srh bs: %d rc: %d str: '%s' (%d %s)\n", bs, rc, str->c_str(), str->size(), enc->getCode());
+
+      // if we have a non-multi-byte character encoding, then we can use byte lengths
+      if (!enc->isMultiByte()) {
+         if ((size_t)size == str->size())
+            break;
+         continue;
+      }
+      else if (!check_bom && str->size() > 1) {
+         check_bom = true;
+         q_remove_bom_utf16(*str, enc);
+      }
+
+      // scan data read and find the last valid character position
+      const char* e = str->c_str() + str->size();
+      while (char_len < orig_size && last_char < str->size()) {
+         const char* p = str->c_str() + last_char;
+         int cc = enc->getCharLen(p, e - p);
+         if (!cc) {
+            xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QSD " according to the input encoding: '%s'", last_char, enc->getCode());
+
+            return 0;
+         }
+
+         //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d last_char: " QSD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc, last_char, *p, p - str->c_str(), cc, enc->getCode());
+
+         if (cc > 0) {
+            // increment character count
+            ++char_len;
+            // increment byte position after last full character read
+            last_char += cc;
+            continue;
+         }
+
+         // otherwise we need to recalculate the total size to read and break
+         cc = -cc;
+         // how many bytes of this character do we have
+         unsigned hb = (str->size() - last_char);
+         assert((unsigned)cc > hb);
+         // we will add one byte for the missing character below; here we add in any other bytes we might need
+         if ((unsigned)cc > (hb + 1))
+            size += (cc - hb - 1);
+
+         break;
+      }
+
+      // now we add the minimum character byte length to the remaining size
+      // for every character we have not yet read
+      size = str->size() + ((orig_size - char_len) * mw);
+   }
+
+   return str->empty() ? 0 : str.release();
+}
+
+template <typename T>
+T* q_fix_decimal_tmpl(T* str, size_t offset = 0) {
+   char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
+   if (p)
+      *p = '.';
+   return str;
+}
+
+QoreString* q_fix_decimal(QoreString* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreString>(str, offset);
+}
+
+QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset) {
+   return q_fix_decimal_tmpl<QoreStringNode>(str, offset);
+}
+
+bool q_libqore_shutdown() {
+   return qore_shutdown.load(std::memory_order_relaxed);
+}
+
+QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
+   return thread_get_local_vars(frame, xsink);
+}
+
+int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   int rc = thread_set_local_var_value(name, val, xsink);
+
+   if (rc == 1) {
+      rc = thread_set_closure_var_value(name, val, xsink);
+
+      if (rc == 1) {
+         xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", name);
+         rc = -1;
+      }
+   }
+
+   return rc;
+}
+
+template<>
+bool ThreadBlock<LocalVarValue>::frameBoundary(int p) {
+   return var[p].frame_boundary;
+}
+
+template<>
+bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
+   return (bool)var[p];
+}
+
+void q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
+   switch (data.getType()) {
+      case NT_STRING: {
+         const QoreStringNode* str = data.get<const QoreStringNode>();
+         ptr = str->getBuffer();
+         len = str->size();
+         return;
+      }
+      case NT_BINARY: {
+         const BinaryNode* b = data.get<const BinaryNode>();
+         ptr = (const char*)b->getPtr();
+         len = b->size();
+         return;
+      }
+   }
+}
+
+const char* get_full_type_name(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_HASH: {
+         const qore_hash_private* h = qore_hash_private::get(*static_cast<const QoreHashNode*>(n));
+         if (h->hashdecl)
+            return QoreTypeInfo::getName(h->hashdecl->getTypeInfo());
+         if (h->complexTypeInfo)
+            return QoreTypeInfo::getName(h->complexTypeInfo);
+         break;
+      }
+      case NT_LIST: {
+         const qore_list_private* l = qore_list_private::get(*static_cast<const QoreListNode*>(n));
+         if (l->complexTypeInfo)
+            return QoreTypeInfo::getName(l->complexTypeInfo);
+         break;
+      }
+      case NT_OBJECT:
+         return QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
+      default:
+         break;
+   }
+   return get_type_name(n);
+}
