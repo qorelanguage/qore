@@ -917,12 +917,13 @@ static ThreadLocalProgramData* get_var_frame(int& frame) {
       pgm = ch->getProgram();
       if (ch->getNextContext(tlpd, ch))
          return nullptr;
-      //printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
    }
 
    if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
       return nullptr;
 
+   //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d pgm: %p fc: %d\n", tlpd, ch, frame, pgm, tlpd->lvstack.getFrameCount());
    return tlpd;
 }
 
