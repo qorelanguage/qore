@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,8 @@
 #include <qore/QoreString.h>
 #include <qore/AbstractThreadResource.h>
 
-#include <qore/intern/DatasourceStatementHelper.h>
-#include <qore/intern/QoreSQLStatement.h>
+#include "qore/intern/DatasourceStatementHelper.h"
+#include "qore/intern/QoreSQLStatement.h"
 
 #include <map>
 #include <deque>
@@ -80,8 +80,8 @@ public:
 
    DLLLOCAL DatasourceConfig(const DatasourceConfig& old) :
       driver(old.driver), user(old.user), pass(old.pass), db(old.db), encoding(old.encoding), host(old.host),
-      port(old.port), opts(old.opts ? old.opts->hashRefSelf() : 0),
-      q(old.q ? old.q->queueRefSelf() : 0), arg(old.arg ? old.arg->refSelf() : 0) {
+      port(old.port), opts(old.opts ? old.opts->hashRefSelf() : nullptr),
+      q(old.q ? old.q->queueRefSelf() : nullptr), arg(old.arg ? old.arg->refSelf() : nullptr) {
    }
 
    DLLLOCAL ~DatasourceConfig() {
@@ -94,63 +94,26 @@ public:
       if (q) {
          q->deref(xsink);
 #ifdef DEBUG
-         q = 0;
+         q = nullptr;
 #endif
       }
       if (arg) {
          arg->deref(xsink);
 #ifdef DEBUG
-         arg = 0;
+         arg = nullptr;
 #endif
       }
       if (opts) {
          opts->deref(xsink);
 #ifdef DEBUG
-         opts = 0;
+         opts = nullptr;
 #endif
       }
    }
 
    // the first connection (opened in the DatasourcePool constructor) is passed with an xsink obj
    // because invalid options can cause an exception to be thrown
-   DLLLOCAL Datasource* get(ExceptionSink* xsink = 0) const {
-      Datasource* ds = new Datasource(driver);
-
-      if (!user.empty())
-         ds->setPendingUsername(user.c_str());
-      if (!pass.empty())
-         ds->setPendingPassword(pass.c_str());
-      if (!db.empty())
-         ds->setPendingDBName(db.c_str());
-      if (!encoding.empty())
-         ds->setPendingDBEncoding(encoding.c_str());
-      if (!host.empty())
-         ds->setPendingHostName(host.c_str());
-
-      if (port)
-         ds->setPendingPort(port);
-
-      if (q) {
-         q->ref();
-         ds->setEventQueue(q, arg ? arg->refSelf() : 0, 0);
-      }
-
-      // set options
-      ConstHashIterator hi(opts);
-      while (hi.next()) {
-         // skip "min" and "max" options
-         if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
-            continue;
-
-         if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
-            break;
-      }
-
-      // turn off autocommit
-      ds->setAutoCommit(false);
-
-      return ds;
-   }
+   DLLLOCAL Datasource* get(DatasourceStatementHelper* dsh, ExceptionSink* xsink = nullptr) const;
 
    DLLLOCAL void setQueue(Queue* n_q, AbstractQoreNode* n_arg, ExceptionSink* xsink) {
       if (q)
@@ -172,7 +135,7 @@ protected:
 
    unsigned min,
       max,
-      cmax,			 // current max
+      cmax,                      // current max
       wait_count,
       wait_max,
       tl_warning_ms;
@@ -198,7 +161,7 @@ protected:
    DLLLOCAL Datasource* getAllocatedDS();
    DLLLOCAL Datasource* getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink);
    DLLLOCAL Datasource* getDS(bool& new_ds, ExceptionSink* xsink);
-   DLLLOCAL void freeDS();
+   DLLLOCAL void freeDS(ExceptionSink* xsink);
    // share the code for exec() and execRaw()
    DLLLOCAL AbstractQoreNode* exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);
    DLLLOCAL int checkWait(int64 warn_total, ExceptionSink* xsink);
@@ -261,24 +224,24 @@ public:
    }
 
    // functions supporting DatasourceStatementHelper
-   DLLLOCAL DatasourceStatementHelper* getReferencedHelper(QoreSQLStatement* s) {
+   DLLLOCAL DatasourceStatementHelper* helperRefSelfImpl() {
       ref();
       return this;
    }
 
    // implementing DatasourceStatementHelper virtual functions
-   DLLLOCAL virtual void helperDestructor(QoreSQLStatement* s, ExceptionSink* xsink) {
+   DLLLOCAL virtual void helperDestructorImpl(QoreSQLStatement* s, ExceptionSink* xsink) {
       deref(xsink);
    }
 
-   DLLLOCAL virtual Datasource* helperStartAction(ExceptionSink* xsink, bool& new_transaction) {
+   DLLLOCAL virtual Datasource* helperStartActionImpl(ExceptionSink* xsink, bool& new_transaction) {
       return getDS(new_transaction, xsink);
    }
 
-   DLLLOCAL virtual Datasource* helperEndAction(char cmd, bool new_transaction, ExceptionSink* xsink) {
+   DLLLOCAL virtual Datasource* helperEndActionImpl(char cmd, bool new_transaction, ExceptionSink* xsink) {
       //printd(5, "DatasourcePool::helperEndAction() cmd: %d '%s', nt: %d\n", cmd, DAH_TEXT(cmd), new_transaction);
       if (cmd == DAH_RELEASE) {
-         freeDS();
+         freeDS(xsink);
          return 0;
       }
 
@@ -290,8 +253,8 @@ public:
       return tmap.find(gettid()) != tmap.end();
    }
 
-   DLLLOCAL QoreHashNode* getConfigHash() const;
-   DLLLOCAL QoreStringNode* getConfigString() const;
+   DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
+   DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);
 
    DLLLOCAL void clearWarningCallback(ExceptionSink* xsink);
    DLLLOCAL void setWarningCallback(int64 warning_ms, ResolvedCallReferenceNode* cb, AbstractQoreNode* arg, ExceptionSink* xsink);
@@ -326,15 +289,7 @@ public:
          2) the connection was acquired for this call, and
               the command was NOCHANGE, meaning, leave the connection in the same state it was before the call
    */
-   DLLLOCAL ~DatasourcePoolActionHelper() {
-      if (!ds)
-	 return;
-
-      if (cmd == DAH_RELEASE
-          || ds->wasConnectionAborted()
-          || (new_ds && (cmd == DAH_NOCHANGE)))
-	 dsp.freeDS();
-   }
+   DLLLOCAL ~DatasourcePoolActionHelper();
 
 #if 0
    DLLLOCAL void addSQL(const QoreString* sql) {

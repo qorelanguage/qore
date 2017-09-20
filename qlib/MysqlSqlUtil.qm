@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
+/*  MysqlSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.0
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -91,6 +91,13 @@ module MysqlSqlUtil {
 
     @section mysql_relnotes Release Notes
 
+    @subsection mysqlsqlutilv12 MysqlSqlUtil v1.2
+    - added support for complex types
+
+    @subsection mysqlsqlutilv111 MysqlSqlUtil v1.1.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+
     @subsection mysqlsqlutilv11 MysqlSqlUtil v1.1
     - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
     - corrected support for the \c binary type (<a href="https://github.com/qorelanguage/qore/issues/524">bug 524</a>)
@@ -114,7 +121,7 @@ public namespace MysqlSqlUtil {
         return new MysqlDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<*string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -323,7 +330,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         abstract AbstractIterator keyIterator();
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
         }
     }
@@ -335,7 +342,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -389,7 +396,7 @@ my any $v = $c.name;
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -468,7 +475,9 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        string getDropSql() {
+        /** @param opt this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("drop function %s", name);
         }
 
@@ -478,7 +487,10 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the function in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("alter function %s rename to %s", name, new_name);
         }
     }
@@ -502,19 +514,23 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("update %s set name = '%s' where name = '%s'", table_name, new_name, name);
         }
 
         #! returns a string that can be used to drop the sequence from the database
-        string getDropSql() {
+        /** @param opt this argument is ignored
+         */
+        string getDropSql(*hash opt) {
             return sprintf("delete from %s where name = '%s'", table_name, name);
         }
     }
 
     #! represents a MySQL view
     public class MysqlView inherits SqlUtil::AbstractView {
-
         public {
             #! table catalog value
             *string tablecatalog;
@@ -542,7 +558,7 @@ my any $v = $c.name;
 
         #! returns a string that can be used to create the view in the database
         string getCreateSql(*hash opt) {
-            # TODO/FIXME: more mysql options - what's allows in "opt"?
+            # TODO/FIXME: check options
             return sprintf("create %sview %s as %s",
                            opt.replace ? "or replace " : "",
                            name,
@@ -551,9 +567,12 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             list ret;
-            push ret, getDropSql();
+            push ret, getDropSql(opt);
             string origName = name;
             name = new_name;
             push ret, getCreateSql(); # TODO/FIXME: opts
@@ -1005,25 +1024,43 @@ end";
                     },
                 ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e %%k')", arg1);
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!MysqlTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, MysqlTruncDate.keys());
+                        }
+                        return sprintf("cast(date_format(%s, %s) as datetime)", arg1, MysqlTruncDate{arg});
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
+            const MysqlTruncDate = (
+                    DT_YEAR     : "'%Y-01-01 00:00:00'",
+                    DT_MONTH    : "'%Y-%m-01 00:00:00'",
+                    DT_DAY      : "'%Y-%m-%d 00:00:00'",
+                    DT_HOUR     : "'%Y-%m-%d %H:00:00'",
+                    DT_MINUTE   : "'%Y-%m-%d %H:%i:00'",
+                    DT_SECOND   : "'%Y-%m-%d %H:%i:%s'",
                 );
         }
 
@@ -1129,14 +1166,23 @@ end";
                 }
 
                 MysqlColumn c;
-                any defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                auto defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
                 if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
                         case Type::Int: defval = defval.toInt(); break;
                         case Type::Float: defval = defval.toFloat(); break;
                         case Type::Number: defval = defval.toNumber(); break;
-                        case Type::Date: defval = date(defval); break;
+                        case Type::Date: {
+                            try {
+                                defval = date(defval);
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                # ignore INVALID-DATE; keep text (ex: "CURRENT_TIMESTAMP")
+                                if (ex.err != "INVALID-DATE")
+                                    rethrow;
+                            }
+                        }
                         # don't know what to do with Type::Binary ???
                         default: break;
                     }
@@ -1224,7 +1270,7 @@ end";
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name);
+                    reference<hash> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
@@ -1251,7 +1297,7 @@ end";
             my *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name);
+                reference<MysqlUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new MysqlUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
@@ -1407,7 +1453,7 @@ end";
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /^Duplicate entry /)
                     return False;
                 rethrow;
@@ -1424,12 +1470,12 @@ end";
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             return MysqlTable::getSqlValueIntern(v);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private static *string getSqlValueIntern(any v) {
+        private static *string getSqlValueIntern(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1460,7 +1506,7 @@ my string $str = $table.getSqlValue($date);
 
             @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
-        static *string getSqlValue(any v) {
+        static *string getSqlValue(auto v) {
            *string str = MysqlTable::getSqlValueIntern(v);
             if (!exists str)
                 throw "VALUE-ERROR", sprintf("class MysqlTable cannot convert type %y to an SQL string (value: %y)", v.type(), v);
@@ -1471,7 +1517,7 @@ my string $str = $table.getSqlValue($date);
             return True;
         }
 
-        private preSetupTableImpl(reference desc, *hash opt) {
+        private preSetupTableImpl(reference<hash> desc, *hash opt) {
             # see if there is an auto-increment column and set the primary key flag if it matches the primary key declaraion
             foreach string k in (desc.columns.keyIterator()) {
                 if (desc.columns{k}.auto_increment) {
@@ -1509,13 +1555,13 @@ my string $str = $table.getSqlValue($date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
            sql += " limit %v";
            args += qh.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
@@ -1533,13 +1579,13 @@ my string $str = $table.getSqlValue($date);
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
         }
 
         private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)

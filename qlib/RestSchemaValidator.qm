@@ -1,0 +1,678 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file RestSchemaValidator.qm an abstract API for validating REST schemas
+
+/*  RestSchemaValidator.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+# make sure we have the required qore version
+%requires qore >= 0.8.13
+
+# requires the HttpServerUtil module
+%requires(reexport) HttpServerUtil >= 0.3.12
+
+# need mime definitions
+%requires(reexport) Mime >= 1.4
+
+%try-module yaml >= 0.5
+%define NoYaml
+%endtry
+
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+module RestSchemaValidator {
+    version = "1.0";
+    desc = "RestSchemaValidator module providing an abstract REST schema validation API";
+    author = "David Nichols <david.nichols@qoretechnologies.com>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage RestSchemaValidator module
+
+    @tableofcontents
+
+    @section restschemavalidatorintro RestSchemaValidator Module Introduction
+
+    The %RestSchemaValidator module provides an abstract <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> schema validation API to %Qore.
+
+    Primary classes provided by this module:
+    - @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+    - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
+
+    @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_0 RestSchemaValidator v1.0
+
+    - initial release of the RestSchemaValidator module
+*/
+
+#! main namespace for all public RestSchemaValidator declarations
+public namespace RestSchemaValidator {
+    #! a hash of information about a client-side request
+    public hashdecl RestRequestClientInfo {
+        #! the URI path for the request
+        string uri_path;
+        #! the Content-Type for the message
+        string content;
+        #! the serialized message body hash
+        *data body;
+    }
+
+    #! a hash of information about a server-side request
+    public hashdecl RestRequestServerInfo {
+        #! the URI path without query arguments
+        string path;
+        #! any query arguments
+        *hash query;
+        #! the deserialized message body data
+        any body;
+        #! miscellaneous free-form info about the parsed request
+        hash info;
+    }
+
+    #! a hash of information about a response from the server
+    public hashdecl RestResponseClientInfo {
+        #! the HTTP status code
+        int code;
+        #! the deserialized message body
+        any body;
+        #! the HTTP headers received
+        hash hdr;
+        #! miscellaneous free-form info about the parsed response
+        hash info;
+    }
+
+    #! a hash giving example info for example HTTP request messages
+    public hashdecl RestExampleRequestInfo {
+        #! the HTTP request URI
+        string request_uri;
+        #! the HTTP request header hash
+        hash hdr;
+        #! the HTTP request body
+        string body;
+    }
+
+    #! a hash giving example info for example HTTP response messages
+    public hashdecl RestExampleResponseInfo {
+        #! the HTTP response URI
+        string response_uri;
+        #! the HTTP status code
+        int code;
+        #! the HTTP response header hash
+        hash hdr;
+        #! the HTTP response body
+        string body;
+    }
+
+    #! a hash giving example information for building a request or response in Qore
+    public hashdecl RestQoreExampleCodeInfo {
+        #! a hash giving example hashdecl declarations for hash objects in the message; keys are hashdecl names; string values are Qore example code declarations of the given hashdecl
+        hash<string, string> hashdecls();
+
+        #! a string giving the example code generation
+        string example;
+    }
+
+    #! abstract REST schema validation classes
+    public class AbstractRestSchemaValidator {
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        string getTargetUrl() {
+            return getTargetUrlImpl();
+        }
+
+        #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param body the unserialized message body data
+            @param headers any headers to include in the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestRequestClientInfo hash with information about the request
+
+            @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+        */
+        hash<RestRequestClientInfo> processRequest(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+            return processRequestImpl(method, path, body, headers, content_types);
+        }
+
+        #! processes and parses a client request and returns the deserialized message body (if any)
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param http_body the unserialized message body hash
+            @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+            @return a @ref RestRequestServerInfo hash of request information
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+        */
+        hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
+            return parseRequestImpl(method, path, http_body, \headers);
+        }
+
+        #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+        /** @param method the HTTP method of the original request
+            @param path the URI path of the original request (without query arguments)
+            @param code the HTTP response code
+            @param response_body the response body data (if any)
+            @param headers HTTP headers to include in the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+            @return an @ref HttpServer::HttpResponseInfo hash for the response
+
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+            @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+        */
+        hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+            return processResponseImpl(method, path, code, response_body, headers, content_types);
+        }
+
+        #! parses and validates the response from the server and returns a hash of the processed info
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the original request (without any query arguments)
+            @param code the HTTP response code
+            @param response_body the HTTP response body data (if any)
+            @param hdr as hash of HTTP headers received
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        */
+        hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash hdr) {
+            # strip any query arguments from the path when validating
+            path =~ s/\?.*//;
+            return parseResponseImpl(method, path, code, response_body, hdr);
+        }
+
+        #! returns a hash of example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
+        */
+        hash<RestQoreExampleCodeInfo> getQoreExampleRequest(string method, string path) {
+            return getQoreExampleRequestImpl(method, path);
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        hash<RestExampleRequestInfo> getExampleRequest(string method, string path, *softlist<string> content_types) {
+            return getExampleRequestImpl(method, path, content_types);
+        }
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
+        */
+        hash<RestQoreExampleCodeInfo> getQoreExampleResponse(string method, string path, int code) {
+            return getQoreExampleResponseImpl(method, path, code);
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
+        */
+        hash<RestExampleResponseInfo> getExampleResponse(string method, string path, int code, *softlist<string> content_types) {
+            hash<RestExampleResponseInfo> rv = getExampleResponseImpl(method, path, code, content_types);
+            if (!rv.response_uri)
+                rv.response_uri = sprintf("HTTP/1.1 %d %s", code, HttpCodes{code} ?? "Unknown");
+            return rv;
+        }
+
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        string getBasePath() {
+            return getBasePathImpl();
+        }
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        setBasePath(string basePath) {
+            setBasePathImpl(basePath);
+        }
+
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        private abstract string getTargetUrlImpl();
+
+        #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param body the unserialized message body data
+            @param headers any headers to include in the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestRequestClientInfo hash with information about the request
+
+            @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+        */
+        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types);
+
+        #! processes and parses a client request and returns the deserialized message body (if any)
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param http_body the unserialized message body hash
+            @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+            @return a @ref RestRequestServerInfo hash of request information
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+        */
+        private abstract hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers);
+
+        #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+        /** @param method the HTTP method of the original request
+            @param path the URI path of the original request (without query arguments)
+            @param code the HTTP response code
+            @param response_body the response body data (if any)
+            @param headers HTTP headers to include in the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+            @return an HttpResponseInfo hash for the response
+
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+            @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+        */
+        private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types);
+
+        #! parses and validates the response from the server and returns a hash of the processed info
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the original request (without any query arguments)
+            @param code the HTTP response code
+            @param response_body the HTTP response body data (if any)
+            @param hdr as hash of HTTP headers received
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        */
+        private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        private abstract string getBasePathImpl();
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        private abstract setBasePathImpl(string basePath);
+
+        #! returns a hash of example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
+        */
+        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path);
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        private abstract hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types);
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
+        */
+        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code);
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
+        */
+        private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types);
+    }
+
+    #! null REST validator; no schema is used but default serialization and deserialization is performed
+    public class NullRestSchemaValidator inherits AbstractRestSchemaValidator {
+        public {
+            #! Data serialization support mapping codes to MIME types and de/serialization functions
+            const DataSerializationSupport = {
+%ifndef NoJson
+                MimeTypeJson: \make_json(),
+%endif
+%ifndef NoYaml
+                MimeTypeYamlRpc: \make_yaml(),
+                MimeTypeYaml: \make_yaml(),
+%endif
+%ifndef NoXml
+                MimeTypeXml: \make_xmlrpc_value(),
+                MimeTypeXmlApp: string sub (auto v) {
+                    switch (v.typeCode()) {
+                        case NT_LIST: return make_xml(("list": ("element": v)));
+                        case NT_HASH: return v.size() == 1 && v.firstValue().lsize() == 1 ? make_xml(v) : make_xml(("value": v));
+                    }
+                    return make_xml(("value": v));
+                },
+%endif
+                MimeTypeFormUrlEncoded: string sub (auto v) {
+                    if (v.typeCode() == NT_HASH)
+                        return mime_get_form_urlencoded_string(v);
+                    throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
+                },
+                MimeTypeText: string sub (auto s) { return sprintf("%s", s); },
+            };
+
+            const DataSerializationSupportList = keys DataSerializationSupport;
+
+%ifndef NoYaml
+            const DeserializeYaml = (
+                "code": "yaml",
+                "in": \parse_yaml(),
+                );
+%endif
+%ifndef NoXml
+            const DeserializeXml = (
+                "code": "xml",
+                "arg": True,
+                "in": any sub (string xml, reference<string> type) {
+                    try {
+                        on_success type = "xml";
+                        return parse_xmlrpc_value(xml);
+                    }
+                    catch (hash<ExceptionInfo> ex) {
+                        try {
+                            on_success type = "rawxml";
+                            return parse_xml(xml);
+                        }
+                        catch () {
+                        }
+                        rethrow;
+                    }
+                },
+                );
+%endif
+
+            #! Data deserialization support MIME types to codes and de/serialization functions
+            const DataDeserializationSupport = {
+                MimeTypeFormUrlEncoded: (
+                    "code": "url",
+                    "in": \mime_parse_form_urlencoded_string(),
+                ),
+%ifndef NoJson
+                MimeTypeJson: (
+                    "code": "json",
+                    "in": \parse_json(),
+                ),
+%endif
+%ifndef NoYaml
+                MimeTypeYamlRpc: DeserializeYaml,
+                MimeTypeYaml: DeserializeYaml,
+%endif
+%ifndef NoXml
+                MimeTypeXml: DeserializeXml,
+                MimeTypeXmlApp: DeserializeXml,
+%endif
+                MimeTypeText: (
+                    "code": "text",
+                    "in": string sub (string s) { return s; },
+                ),
+
+            };
+        }
+
+        #! returns the target URL for the schema
+        /** @return the target URL for the schema
+
+            @throws MISSING-TARGET-URL no target URL provided for the schema
+        */
+        private string getTargetUrlImpl() {
+            throw "MISSING-TARGET-URL", "no target URL provided";
+        }
+
+        #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param body the unserialized message body data
+            @param headers any headers to include in the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestRequestClientInfo hash with information about the request
+
+            @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
+        */
+        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+            string ct = content_types[0] ?? DataSerializationSupportList[0];
+            return cast<hash<RestRequestClientInfo>>((
+                "uri_path": path,
+                "content": ct,
+                "body": DataSerializationSupport{ct}(body),
+            ));
+        }
+
+        #! processes and parses a client request and returns the deserialized message body (if any)
+        /** @param method the HTTP method (case-insensitive)
+            @param path the URI path with any query arguments
+            @param http_body the unserialized message body hash
+            @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+
+            @return a @ref RestRequestServerInfo hash of request information
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+        */
+        private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
+            hash<UriQueryInfo> h = parse_uri_query(path);
+
+            hash<RestRequestServerInfo> rv((
+                "path": h.method,
+                "query": h.params,
+            ));
+
+            if (exists http_body) {
+                *hash dh = DataDeserializationSupport.(headers."content-type");
+                if (!dh)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", headers."content-type", keys DataDeserializationSupport, http_body);
+
+                if (http_body.typeCode() != NT_STRING)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", headers."content-type", http_body.type());
+
+                string ds_code = dh.code;
+                rv.body = dh.arg
+                    ? dh.in(http_body, \ds_code)
+                    : dh.in(http_body);
+
+                rv.info.code = ds_code;
+            }
+
+            return rv;
+        }
+
+        #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
+        /** @param method the HTTP method of the original request
+            @param path the URI path of the original request (without query arguments)
+            @param code the HTTP response code
+            @param response_body the response body data (if any)
+            @param headers HTTP headers to include in the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+
+            @return an HttpResponseInfo hash for the response
+
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+            @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
+
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
+            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+        */
+        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+            if (exists response_body) {
+                string ct;
+                if (!content_types)
+                    ct = DataSerializationSupport.firstKey();
+                else {
+                    foreach string rct in (content_types) {
+                        if (DataSerializationSupport{rct}) {
+                            ct = rct;
+                            break;
+                        }
+                    }
+                }
+
+                if (!ct)
+                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
+                headers."Content-Type" = ct;
+                response_body = DataSerializationSupport{ct}(response_body);
+            }
+
+            return cast<hash<HttpResponseInfo>>((
+                "code": code,
+                "body": response_body,
+                "hdr": headers,
+            ));
+        }
+
+        #! parses and validates the response from the server and returns a hash of the processed info
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the original request (without any query arguments)
+            @param code the HTTP response code
+            @param response_body the HTTP response body data (if any)
+            @param hdr as hash of HTTP headers received
+
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        */
+        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+            hash<RestResponseClientInfo> rv((
+                "code": code,
+                "hdr": hdr,
+            ));
+
+            if (exists response_body) {
+                *hash dh = DataDeserializationSupport.(hdr."content-type");
+                if (!dh)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", hdr."content-type", keys DataDeserializationSupport, response_body);
+
+                if (response_body.typeCode() != NT_STRING)
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", hdr."content-type", response_body.type());
+
+                string ds_code = dh.code;
+                rv.body = dh.arg
+                    ? dh.in(response_body, \ds_code)
+                    : dh.in(response_body);
+
+                rv.info.code = ds_code;
+            }
+
+            return rv;
+        }
+
+        #! returns the base path prefix for all requests in this schema
+        /** @return the base path prefix for all requests in this schema
+        */
+        private string getBasePathImpl() {
+            return "";
+        }
+
+        #! overrides the basePath value
+        /** @param basePath the new base path value; use an empty string here to clear the basePath
+        */
+        setBasePathImpl(string basePath) {
+            throw "UNSUPPORT-OPERATION", sprintf("the basePath cannot be overridden in the NullRestSchemaValidator class");
+        }
+
+        #! returns a hash of example Qore code for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given request message
+        */
+        private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
+            return new hash<RestQoreExampleCodeInfo>();
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method (case insensitive)
+            @param path the URI path of the request
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestExampleRequestInfo of example message information for the given request
+        */
+        private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+            return new hash<RestExampleRequestInfo>();
+        }
+
+        #! returns example Qore code for the given response
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+
+            @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
+        */
+        private hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code) {
+            return new hash<RestQoreExampleCodeInfo>();
+        }
+
+        #! returns a hash of example message information for the given request
+        /** @param method the HTTP method of the original request (case insensitive)
+            @param path the URI path of the original request
+            @param code the HTTP response code of the response
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
+
+            @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
+        */
+        private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+            return new hash<RestExampleResponseInfo>();
+        }
+    }
+}

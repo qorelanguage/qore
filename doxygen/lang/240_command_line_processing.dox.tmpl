@@ -10,47 +10,47 @@
 
     <b>Parse Option Command-Line Parameters</b>
     |!Long Param|!Short|!Description
-    |<tt>-</tt><tt>-define=</tt><em>arg</em>|\c -D|Creates and optionally sets a value for a parse define
-    |<tt>-</tt><tt>-load=</tt><em>arg</em>|\c -l|Loads a module immediately. The argument can be a module/feature name or an absolute path to the module
-    |<tt>-</tt><tt>-no-global-vars</tt>|\c -G|Disallows the use of global variables. Equivalent to parse option @ref Qore::PO_NO_GLOBAL_VARS and the @ref no-global-vars "%no-global-vars" directive
-    |<tt>-</tt><tt>-no-subroutine-defs</tt>|\c -S|Disallows subroutine (function) definitions. Equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the @ref no-subroutine-defs "%no-subroutine-defs" directive
-    |<tt>-</tt><tt>-no-thread-control</tt>|\c -R|Disallows any thread control operations (@ref background "background operator" and @ref thread_exit "thread_exit statement", for example). Equivalent to parse option @ref Qore::PO_NO_THREAD_CONTROL and the @ref no-thread-control "%no-thread-control" directive
-    |<tt>-</tt><tt>-no-thread-classes</tt>|n/a|Disallows access to thread classes (for example, the @ref Qore::Thread::Mutex "Mutex" class, @ref Qore::Thread::Gate "Gate" class, @ref Qore::Thread::Queue "Queue" class, etc). Equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the @ref no-thread-classes "%no-thread-classes" directive
-    |<tt>-</tt><tt>-no-threads</tt>|\c -T|Disallows access to both thread control and thread classes (equivalent to the \c --no-thread-control and \c --no-thread-classes options documented above). Equivalent to parse option @ref Qore::PO_NO_THREADS and the @ref no-threads "%no-threads" directive
-    |<tt>-</tt><tt>-no-top-level</tt>|\c -L|Disallows top level code. Equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the @ref no-top-level "%no-top-level" directive
-    |<tt>-</tt><tt>-no-class-defs</tt>|n/a|Disallows class definitions. Equivalent to @ref Qore::PO_NO_CLASS_DEFS and the @ref no-class-defs "%no-class-defs" directive
-    |<tt>-</tt><tt>-no-namespace-defs</tt>|n/a|Disallows new namespace definitions. Equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the @ref no-namespace-defs "%no-namespace-defs" directive
-    |<tt>-</tt><tt>-no-external-process</tt>|\c -E|Disallows any access to external processes (with system(), backquote(), exec(), the @ref backquote_operator "backquote operator", etc). Equivalent to parse option @ref Qore::PO_NO_EXTERNAL_PROCESS and the @ref no-external-process "%no-external-process" directive
-    |<tt>-</tt><tt>-no-process-control</tt>|\c -P|Disallows access to functions that would affect the current process (exit(), fork(), etc). Equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the @ref no-process-control "%no-process-control" directive
-    |<tt>-</tt><tt>-no-filesystem</tt>|\c -F|Disallows access to the local filesystem; puts the @ref no-filesystem "%no-filesystem" parse option in effect. Equivalent to parse option code @ref Qore::PO_NO_FILESYSTEM and the @ref no-filesystem "%no-filesystem" parse directive
-    |<tt>-</tt><tt>-no-constant-defs</tt>|n/a|Disallows constant definitions. Equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the @ref no-constant-defs "%no-constant-defs" directive
-    |<tt>-</tt><tt>-no-network</tt>|\c -Y|Disallows access to the network; puts the @ref no-network "%no-network" parse option in effect. Equivalent to parse option code @ref Qore::PO_NO_NETWORK and the @ref no-network "%no-network" parse directive
-    |<tt>-</tt><tt>-no-new</tt>|\c -N|Disallows use of the @ref new "new operator". Equivalent to parse option @ref Qore::PO_NO_NEW and the @ref no-new "%no-new" directive
-    |<tt>-</tt><tt>-no-database</tt>|\c -D|Disallows use of database functionality. Equivalent to parse option @ref Qore::PO_NO_DATABASE and the @ref no-database "%no-database" directive
-    |<tt>-</tt><tt>-no-child-restrictions</tt>|\c -I|Allows child program objects to have parse option restrictions that are not a strict subset of the parents. Equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the @ref no-child-restrictions "%no-child-restrictions" directive
-    |<tt>-</tt><tt>-require-our</tt>|\c -O|Requires global variables to be declared with our prior to use (similar to perl's <tt>use strict vars</tt> pragma). Equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the @ref require-our "%require-our" directive
-    |<tt>-</tt><tt>-lock-options</tt>|\c -K|Prohibits further changes to parse options (equivalent to the @ref lock-options "%lock-options" directive)
-    |<tt>-</tt><tt>-lock-warnings</tt>|\c -A|Prohibits further changes to the warning mask. Equivalent to parse option @ref Qore::PO_LOCK_WARNINGS and the @ref lock-warnings "%lock-warnings" directive
-    |<tt>-</tt><tt>-enable-all-warnings</tt>|\c -W|Enables all @ref warnings "warnings". Equivalent to the @ref enable-all-warnings "%enable-all-warnings" directive
-    |<tt>-</tt><tt>-enable-warning=</tt><em>arg</em>|\c -w|Enables the named @ref warnings "warning". Equivalent to the @ref enable-warning "%enable-warning" directive
-    |<tt>-</tt><tt>-list-warnings</tt>|\c -i|Lists all valid @ref warnings "warnings" in %Qore and exits immediately
+    |<tt>--define=</tt><em>arg</em>|\c -D|Creates and optionally sets a value for a parse define
+    |<tt>--load=</tt><em>arg</em>|\c -l|Loads a module immediately. The argument can be a module/feature name or an absolute path to the module
+    |<tt>--no-global-vars</tt>|\c -G|Disallows the use of global variables. Equivalent to parse option @ref Qore::PO_NO_GLOBAL_VARS and the @ref no-global-vars "%no-global-vars" directive
+    |<tt>--no-subroutine-defs</tt>|\c -S|Disallows subroutine (function) definitions. Equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the @ref no-subroutine-defs "%no-subroutine-defs" directive
+    |<tt>--no-thread-control</tt>|\c -R|Disallows any thread control operations (@ref background "background operator" and @ref thread_exit "thread_exit statement", for example). Equivalent to parse option @ref Qore::PO_NO_THREAD_CONTROL and the @ref no-thread-control "%no-thread-control" directive
+    |<tt>--no-thread-classes</tt>|n/a|Disallows access to thread classes (for example, the @ref Qore::Thread::Mutex "Mutex" class, @ref Qore::Thread::Gate "Gate" class, @ref Qore::Thread::Queue "Queue" class, etc). Equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the @ref no-thread-classes "%no-thread-classes" directive
+    |<tt>--no-threads</tt>|\c -T|Disallows access to both thread control and thread classes (equivalent to the \c --no-thread-control and \c --no-thread-classes options documented above). Equivalent to parse option @ref Qore::PO_NO_THREADS and the @ref no-threads "%no-threads" directive
+    |<tt>--no-top-level</tt>|\c -L|Disallows top level code. Equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the @ref no-top-level "%no-top-level" directive
+    |<tt>--no-class-defs</tt>|n/a|Disallows class definitions. Equivalent to @ref Qore::PO_NO_CLASS_DEFS and the @ref no-class-defs "%no-class-defs" directive
+    |<tt>--no-namespace-defs</tt>|n/a|Disallows new namespace definitions. Equivalent to @ref Qore::PO_NO_NAMESPACE_DEFS and the @ref no-namespace-defs "%no-namespace-defs" directive
+    |<tt>--no-external-process</tt>|\c -E|Disallows any access to external processes (with system(), backquote(), exec(), the @ref backquote_operator "backquote operator", etc). Equivalent to parse option @ref Qore::PO_NO_EXTERNAL_PROCESS and the @ref no-external-process "%no-external-process" directive
+    |<tt>--no-process-control</tt>|\c -P|Disallows access to functions that would affect the current process (exit(), fork(), etc). Equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the @ref no-process-control "%no-process-control" directive
+    |<tt>--no-filesystem</tt>|\c -F|Disallows access to the local filesystem; puts the @ref no-filesystem "%no-filesystem" parse option in effect. Equivalent to parse option code @ref Qore::PO_NO_FILESYSTEM and the @ref no-filesystem "%no-filesystem" parse directive
+    |<tt>--no-constant-defs</tt>|n/a|Disallows constant definitions. Equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the @ref no-constant-defs "%no-constant-defs" directive
+    |<tt>--no-network</tt>|\c -Y|Disallows access to the network; puts the @ref no-network "%no-network" parse option in effect. Equivalent to parse option code @ref Qore::PO_NO_NETWORK and the @ref no-network "%no-network" parse directive
+    |<tt>--no-new</tt>|\c -N|Disallows use of the @ref new "new operator". Equivalent to parse option @ref Qore::PO_NO_NEW and the @ref no-new "%no-new" directive
+    |<tt>--no-database</tt>|\c -D|Disallows use of database functionality. Equivalent to parse option @ref Qore::PO_NO_DATABASE and the @ref no-database "%no-database" directive
+    |<tt>--no-child-restrictions</tt>|\c -I|Allows child program objects to have parse option restrictions that are not a strict subset of the parents. Equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the @ref no-child-restrictions "%no-child-restrictions" directive
+    |<tt>--require-our</tt>|\c -O|Requires global variables to be declared with our prior to use (similar to perl's <tt>use strict vars</tt> pragma). Equivalent to parse option @ref Qore::PO_REQUIRE_OUR and the @ref require-our "%require-our" directive
+    |<tt>--lock-options</tt>|\c -K|Prohibits further changes to parse options (equivalent to the @ref lock-options "%lock-options" directive)
+    |<tt>--lock-warnings</tt>|\c -A|Prohibits further changes to the warning mask. Equivalent to parse option @ref Qore::PO_LOCK_WARNINGS and the @ref lock-warnings "%lock-warnings" directive
+    |<tt>--enable-all-warnings</tt>|\c -W|Enables all @ref warnings "warnings". Equivalent to the @ref enable-all-warnings "%enable-all-warnings" directive
+    |<tt>--enable-warning=</tt><em>arg</em>|\c -w|Enables the named @ref warnings "warning". Equivalent to the @ref enable-warning "%enable-warning" directive
+    |<tt>--list-warnings</tt>|\c -i|Lists all valid @ref warnings "warnings" in %Qore and exits immediately
 
     <b>Miscellaneous Command-Line Parameters</b>
     |!Long Param|!Short|!Description
-    |<tt>-</tt><tt>-exec=</tt><em>arg</em>|\c -e|parses and executes the argument text as a %Qore program. If this option is specified then any script given on the command-line will be ignored
-    |<tt>-</tt><tt>-exec-class[=</tt><em>arg</em><tt>]</tt>|\c -x|instantiates the class with the same name as the program (with the directory path and extension stripped); also turns on --no-top-level. If the program is read from <tt>stdin</tt> or from the command line, an argument must be given specifying the class name
-    |<tt>-</tt><tt>-show-module-errors</tt>|\c -m|Shows any errors loading %Qore modules
-    |<tt>-</tt><tt>-charset=</tt><em>arg</em>|\c -c|Sets the @ref default_encoding "default character encoding" for the program
-    |<tt>-</tt><tt>-show-charset=</tt><em>arg</em>|\c -s|Shows a list of all known @ref character_encoding "character encodings"
-    |<tt>-</tt><tt>-show-aliases</tt>|\c -a|Shows a list of all known @ref character_encoding "character encoding" aliases
-    |<tt>-</tt><tt>-help</tt>|\c -h|Shows help text
-    |<tt>-</tt><tt>-version</tt>|\c -v|Shows %Qore library version information and exits
+    |<tt>--disable-gc</tt>|\c -g|Disables the garbage collector
+    |<tt>--exec=</tt><em>arg</em>|\c -e|parses and executes the argument text as a %Qore program. If this option is specified then any script given on the command-line will be ignored
+    |<tt>--exec-class[=</tt><em>arg</em><tt>]</tt>|\c -x|instantiates the class with the same name as the program (with the directory path and extension stripped); also turns on --no-top-level. If the program is read from <tt>stdin</tt> or from the command line, an argument must be given specifying the class name
+    |<tt>--show-module-errors</tt>|\c -m|Shows any errors loading %Qore modules
+    |<tt>--charset=</tt><em>arg</em>|\c -c|Sets the @ref default_encoding "default character encoding" for the program
+    |<tt>--show-charset=</tt><em>arg</em>|\c -s|Shows a list of all known @ref character_encoding "character encodings"
+    |<tt>--show-aliases</tt>|\c -a|Shows a list of all known @ref character_encoding "character encoding" aliases
+    |<tt>--help</tt>|\c -h|Shows help text
+    |<tt>--version</tt>|\c -v|Shows %Qore library version information and exits
 
     There are two additional options available with debugging versions of %Qore as follows:
 
     <b>Description of Debugging Command-Line Parameters</b>
     |!Long Param|!Short|!Description
-    |<tt>-</tt><tt>-debug=</tt><em>arg</em>|\c -d|Turns on %Qore debugging output (output to \c stderr). Higher arg numbers give more output. This option is only available with DEBUG builds
-    |<tt>-</tt><tt>-trace</tt>|\c -t|Turns on %Qore tracing (output to \c stderr). This option is only available with DEBUG builds
+    |<tt>--debug=</tt><em>arg</em>|\c -d|Turns on %Qore debugging output (output to \c stderr). Higher arg numbers give more output. This option is only available with DEBUG builds
+    |<tt>--trace</tt>|\c -t|Turns on %Qore tracing (output to \c stderr). This option is only available with DEBUG builds
 */
-

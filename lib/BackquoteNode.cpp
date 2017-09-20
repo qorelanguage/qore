@@ -1,10 +1,10 @@
 /*
   BackquoteNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -31,8 +31,12 @@
 #include <qore/Qore.h>
 
 #include <errno.h>
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
 
-BackquoteNode::BackquoteNode(char *c_str) : ParseNode(NT_BACKQUOTE), str(c_str) {
+BackquoteNode::BackquoteNode(const QoreProgramLocation& loc, char *c_str) : ParseNode(loc, NT_BACKQUOTE), str(c_str) {
 }
 
 BackquoteNode::~BackquoteNode() {
@@ -52,7 +56,7 @@ int BackquoteNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink)
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *BackquoteNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -103,6 +107,9 @@ QoreStringNode* backquoteEval(const char* cmd, int& rc, ExceptionSink* xsink) {
 
    // wait for child process to terminate and close pipe
    rc = pclose(p);
-
+#ifdef HAVE_SYS_WAIT_H
+   if (WIFEXITED(rc))
+      rc = WEXITSTATUS(rc);
+#endif
    return s.release();
 }

@@ -6,6 +6,8 @@
 %require-types
 %strict-args
 
+%disable-warning module-only
+
 %include ../../../../qlib/QUnit.qm
 
 %exec-class ResultsTest
@@ -150,6 +152,7 @@ public class ResultsTest inherits QUnit::Test {
         # Check the return value of the assertion
         list lret = testAssertion("assertion list", \returnsList(), (list(1,2,3),), new TestResultValue((1,2,3)));
         bool bret = testAssertion("assertion bool", \equals(), (lret, (1,2,3)));
+        assertEq(True, bret);
         testAssertion("assertion return value", \returnsTrue());
     }
 

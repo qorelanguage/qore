@@ -1,10 +1,10 @@
 /*
   QoreSpliceOperatorNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
-  
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreSpliceOperatorNode::splice_str("splice operator expression");
 
@@ -47,40 +47,38 @@ int QoreSpliceOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
 AbstractQoreNode *QoreSpliceOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    const QoreTypeInfo *expTypeInfo = 0;
-   
+
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
-   checkLValue(lvalue_exp, pflag);
-   //if (lvalue_exp && check_lvalue(lvalue_exp))
-   //   parse_error("the splice operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
-
-   if (expTypeInfo->hasType()) {
-      if (!expTypeInfo->parseAcceptsReturns(NT_LIST)
-            && !expTypeInfo->parseAcceptsReturns(NT_BINARY)
-            && !expTypeInfo->parseAcceptsReturns(NT_STRING)) {
-	 QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
-	 expTypeInfo->getThisType(*desc);
-	 desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
-	 qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", desc);
+   if (!checkLValue(lvalue_exp, pflag)) {
+      if (QoreTypeInfo::hasType(expTypeInfo)) {
+         if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
+             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
+             && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
+            QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'splice' operator is ");
+            QoreTypeInfo::getThisType(expTypeInfo, *desc);
+            desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'splice' operator only operates on lists, strings, and binary objects");
+            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         }
+         else
+            returnTypeInfo = typeInfo = expTypeInfo;
       }
-      else
-	 returnTypeInfo = typeInfo = expTypeInfo;
    }
 
    // check offset expression
    expTypeInfo = 0;
    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-   if (expTypeInfo->nonNumericValue())
-      expTypeInfo->doNonNumericWarning("the offset expression (2nd position) with the 'splice' operator is ");
+   if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
+      expTypeInfo->doNonNumericWarning(loc, "the offset expression (2nd position) with the 'splice' operator is ");
 
    // check length expression, if any
    if (length_exp) {
       expTypeInfo = 0;
       length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
-      if (expTypeInfo->nonNumericValue())
-	 expTypeInfo->doNonNumericWarning("the length expression (3nd position) with the 'splice' operator is ");
+      if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
+         expTypeInfo->doNonNumericWarning(loc, "the length expression (3nd position) with the 'splice' operator is ");
    }
 
    // check new value expression, if any
@@ -111,7 +109,7 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    ReferenceHolder<> exp_holder(xsink);
    if (new_exp)
       exp_holder = exp.getReferencedValue();
-   
+
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper val(lvalue_exp, xsink);
    if (!val)
@@ -124,17 +122,17 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
       // see if the lvalue has a default type
       const QoreTypeInfo *typeInfo = val.getTypeInfo();
       if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
-         if (val.assign(typeInfo->getDefaultValue()))
+         if (val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
             return QoreValue();
          vt = val.getType();
       }
    }
 
    if (vt != NT_LIST && vt != NT_STRING && vt != NT_BINARY) {
-      xsink->raiseException("EXTRACT-ERROR", "first (lvalue) argument to the extract operator is not a list, string, or binary object");
+      xsink->raiseException(loc, "EXTRACT-ERROR", nullptr, "first (lvalue) argument to the extract operator is not a list, string, or binary object");
       return QoreValue();
    }
-   
+
    // no exception can occur here
    val.ensureUnique();
 
@@ -143,24 +141,31 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 #ifdef DEBUG
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
-      printd(5, "op_splice() val: %p (size: "QSD") offset: "QSD"\n", vl, vl->size(), offset);
+      printd(5, "op_splice() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
    }
-   else {
+   else if (vt == NT_STRING) {
       QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
-      printd(5, "op_splice() val: %p (strlen: "QSD") offset: "QSD"\n", vs, vs->strlen(), offset);
+      printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
+   }
+   else if (vt == NT_STRING) {
+      QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
+      printd(5, "op_splice() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
    }
 #endif
 
    if (vt == NT_LIST) {
       QoreListNode *vl = reinterpret_cast<QoreListNode *>(val.getValue());
-      if (!length_exp && !new_exp)
-	 vl->splice(offset, xsink);
+      if (!length_exp && !new_exp) {
+         vl->splice(offset, xsink);
+      }
       else {
-	 qore_size_t length = (qore_size_t)elength->getAsBigInt();
-	 if (!new_exp)
-	    vl->splice(offset, length, xsink);
-	 else	    
-	    vl->splice(offset, length, *exp_holder, xsink);
+         qore_size_t length = (qore_size_t)elength->getAsBigInt();
+         if (!new_exp) {
+            vl->splice(offset, length, xsink);
+         }
+         else {
+            vl->splice(offset, length, *exp_holder, xsink);
+         }
       }
    }
    else if (vt == NT_STRING) {

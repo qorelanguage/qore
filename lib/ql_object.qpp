@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,9 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_object.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ql_object.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreClassIntern.h"
 
 static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
    TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
@@ -52,7 +53,6 @@ static QoreObject* create_object_intern(const QoreStringNode* class_name, unsign
 
    if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
       return 0;
-
 
    const QoreValueList* real_args;
    ReferenceHolder<QoreValueList> tmp_args(xsink);
@@ -116,7 +116,7 @@ list get_method_list(object obj) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any result = callObjectMethod(obj, "method", arg1, arg2);
+auto result = callObjectMethod(obj, "method", arg1, arg2);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -128,7 +128,7 @@ any result = callObjectMethod(obj, "method", arg1, arg2);
 
     @deprecated use call_object_method(); camel-case function names were deprecated in %Qore 0.8.12
  */
-any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
+auto callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
    ReferenceHolder<QoreListNode> call_args(xsink);
 
    // if there are arguments to pass
@@ -137,8 +137,6 @@ any callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
       call_args = args->getOldList(2);
    }
 
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, *call_args, xsink);
 }
 
@@ -158,7 +156,7 @@ nothing callObjectMethod() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-any result = call_object_method(obj, "method", arg1, arg2);
+auto result = call_object_method(obj, "method", arg1, arg2);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -170,7 +168,7 @@ any result = call_object_method(obj, "method", arg1, arg2);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethod()
 */
-any call_object_method(object obj, string method, ...) {
+auto call_object_method(object obj, string method, ...) {
    ReferenceHolder<QoreListNode> call_args(xsink);
 
    // if there are arguments to pass
@@ -179,8 +177,6 @@ any call_object_method(object obj, string method, ...) {
       call_args = args->getOldList(2);
    }
 
-   // make sure method call is internal (allows access to private methods) if this function was called internally
-   CodeContextHelper cch(0, obj, xsink);
    return obj->evalMethod(method, *call_args, xsink);
 }
 
@@ -201,8 +197,7 @@ any call_object_method(object obj, string method, ...) {
 
     @deprecated use call_object_method_args(); camel-case function names were deprecated in %Qore 0.8.12
  */
-any callObjectMethodArgs(object obj, string method, *softlist varg) [flags=DEPRECATED] {
-   CodeContextHelper cch(0, obj, xsink);
+auto callObjectMethodArgs(object obj, string method, *softlist<auto> varg) [flags=DEPRECATED] {
    return obj->evalMethod(method, varg, xsink);
 }
 
@@ -222,7 +217,7 @@ nothing callObjectMethodArgs() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-any result = call_object_method_args(obj, "method", arglist);
+auto result = call_object_method_args(obj, "method", arglist);
     @endcode
 
     @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
@@ -234,8 +229,7 @@ any result = call_object_method_args(obj, "method", arglist);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
 */
-any call_object_method_args(object obj, string method, *softlist varg) {
-   CodeContextHelper cch(0, obj, xsink);
+auto call_object_method_args(object obj, string method, *softlist<auto> varg) {
    return obj->evalMethod(method, varg, xsink);
 }
 
@@ -253,7 +247,7 @@ any call_object_method_args(object obj, string method, *softlist varg) {
 
     @since %Qore 0.8.5
  */
-any call_pseudo(any val, string meth, ...) {
+ auto call_pseudo(any val, string meth, ...) {
    ReferenceHolder<QoreListNode> nargs(xsink);
    if (args->size() > 2)
       nargs = args->getOldList(2);
@@ -274,7 +268,7 @@ any call_pseudo(any val, string meth, ...) {
 
     @since %Qore 0.8.8
  */
-any call_pseudo_args(any val, string meth, *softlist argv) {
+auto call_pseudo_args(any val, string meth, *softlist<auto> argv) {
    return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
 }
 
@@ -322,7 +316,7 @@ object obj = create_object_args(class_name, arg_list);
 
     @since %Qore 0.8.12
  */
-object create_object_args(string class_name, *softlist argv) {
+object create_object_args(string class_name, *softlist<auto> argv) {
    ReferenceHolder<QoreValueList> arg_list(xsink);
    if (argv)
       arg_list = new QoreValueList(argv);

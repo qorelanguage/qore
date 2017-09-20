@@ -1,10 +1,10 @@
 /*
   QoreSSLPrivateKey.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
-  
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 #include <qore/QoreSSLPrivateKey.h>
-#include <qore/intern/QoreSSLIntern.h>
+#include "qore/intern/QoreSSLIntern.h"
 
 #include <errno.h>
 #include <openssl/err.h>
@@ -86,8 +86,8 @@ QoreSSLPrivateKey::QoreSSLPrivateKey(const QoreString* str, const char* pp, Exce
       xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing PEM string");
 }
 
-EVP_PKEY* QoreSSLPrivateKey::getData() const { 
-   return priv->pk; 
+EVP_PKEY* QoreSSLPrivateKey::getData() const {
+   return priv->pk;
 }
 
 QoreStringNode* QoreSSLPrivateKey::getPEM(ExceptionSink* xsink) const {
@@ -99,14 +99,14 @@ QoreStringNode* QoreSSLPrivateKey::getPEM(ExceptionSink* xsink) const {
    }
    char* buf;
    long len = BIO_get_mem_data(bp, &buf);
-   
+
    QoreStringNode* str = new QoreStringNode(buf, (int)len);
    BIO_free(bp);
    return str;
 }
 
 const char* QoreSSLPrivateKey::getType() const {
-   switch (EVP_PKEY_type(priv->pk->type)) {
+   switch (EVP_PKEY_base_id(priv->pk)) {
 #ifndef OPENSSL_NO_RSA
       case EVP_PKEY_RSA:
          return "RSA";

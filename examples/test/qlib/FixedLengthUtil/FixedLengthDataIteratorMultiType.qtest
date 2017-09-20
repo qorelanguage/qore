@@ -1,0 +1,214 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FixedLengthUtil.qm
+
+%exec-class Test
+
+class MyFixedLengthDataIterator inherits FixedLengthDataIterator {
+    constructor(string data, hash spec, *hash opts) : FixedLengthUtil::FixedLengthDataIterator(data, spec, opts) {
+    }
+    string identifyType(string input_line) {
+        if (input_line.size() != 5) {
+            return FixedLengthDataIterator::identifyType(input_line);
+        }
+        switch (input_line) {
+        case /^[0-9]/:
+            return "type5_2";
+        default:
+            return "type5_1";
+        }
+    }
+}
+
+
+class Test inherits QUnit::Test {
+    public {
+        const Data =
+            "00000ABCDEABCDE\n"+
+            "0000112345ABCDE\n"+
+            "90000AABCDEABCD\n"+
+            "90000QQQABCDEAB\n"+
+            "9123012345ABCDE\n"+
+            "12345QWERTYUIOP\n"+
+            "12KID01122016\n"+
+            "45CHYCHOTA_SE\n"+
+            "ABCDA\n"+
+            "1234A\n";
+
+        const Specs = (
+            # length 15
+            "type15_value1_0" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "value"  : 0,
+                ),
+                "col2" : (
+                    "length" : 10,
+                    "type"   : "string",
+                ),
+            ),
+            "type15_value1_1" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "value"  : 1,
+                ),
+                "col2" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col3" : (
+                    "length" : 5,
+                    "type"   : "string",
+                ),
+            ),
+            "type15_value1_90000_regex2" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "value"  : 90000,  # earlier than regex matching value too
+                ),
+                "col2" : (
+                    "length" : 10,
+                    "type"   : "string",
+                    "regex"  : "^QQQ", # 2nd rule
+                ),
+            ),
+            "type15_value1_90000" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "value"  : 90000,  # earlier than regex matching value too
+                ),
+                "col2" : (
+                    "length" : 1,
+                    "type"   : "string",
+                ),
+                "col3" : (
+                    "length" : 9,
+                    "type"   : "string",
+                ),
+            ),
+            "type15_regex1_9xxx0" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                    "regex"  : "^9[0-9]{3,3}0",
+                ),
+                "col2" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col3" : (
+                    "length" : 5,
+                    "type"   : "string",
+                ),
+            ),
+            "type15_norule" : (
+                "col1" : (
+                    "length" : 5,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 10,
+                    "type"   : "string",
+                ),
+            ),
+            # length 13
+            "type13_value2_KID" : (
+                "col1" : (
+                    "length" : 2,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 3,
+                    "type"   : "string",
+                    "value"  : "KID",
+                ),
+                "col3" : (
+                    "length"   : 8,
+                    "type"     : "date",
+                    "format"   : "DDMMYYYY",
+                    # "timezone" : "UTC", # use global if omitted
+                ),
+            ),
+            "type13_regex2_ch" : (
+                "col1" : (
+                    "length" : 2,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 11,
+                    "type"   : "string",
+                    "regex"  : "^CH",
+                ),
+            ),
+            # length 5
+            "type5_1" : (
+                "col1" : (
+                    "length" : 4,
+                    "type"   : "string",
+                ),
+                "col2" : (
+                    "length" : 1,
+                    "type"   : "string",
+                ),
+            ),
+            "type5_2" : (
+                "col1" : (
+                    "length" : 4,
+                    "type"   : "int",
+                ),
+                "col2" : (
+                    "length" : 1,
+                    "type"   : "string",
+                ),
+            ),
+        );
+
+        const GlobalOptions = (
+            "encoding"     : "UTF-8",
+            "eol"          : "\n",
+            "ignore_empty" : True,
+            "timezone"     : "UTC", # used if not in some date column specification
+            );
+    }
+
+    constructor() : QUnit::Test("FixedLengthDataIterator", "1.0", \ARGV) {
+        addTestCase("FixedLengthDataIterator basic tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        list Result = (
+            ("type": "type15_value1_0", "record": ("col1": 0, "col2": "ABCDEABCDE")),
+            ("type": "type15_value1_1", "record": ("col1": 1, "col2": 12345, "col3": "ABCDE")),
+            ("type": "type15_value1_90000", "record": ("col1": 90000, "col2": "A", "col3": "ABCDEABCD")),
+            ("type": "type15_value1_90000_regex2", "record": ("col1": 90000, "col2": "QQQABCDEAB")),
+            ("type": "type15_regex1_9xxx0", "record": ("col1": 91230, "col2": 12345, "col3": "ABCDE")),
+            ("type": "type15_norule", "record": ("col1": 12345, "col2": "QWERTYUIOP")),
+
+            ("type": "type13_value2_KID", "record": ("col1": 12, "col2": "KID", "col3": 2016-12-01Z)),
+            ("type": "type13_regex2_ch", "record": ("col1": 45, "col2": "CHYCHOTA_SE")),
+
+            ("type": "type5_1", "record": ("col1": "ABCD", "col2": "A")),
+            ("type": "type5_2", "record": ("col1": 1234, "col2": "A")),
+        );
+        MyFixedLengthDataIterator i(Data, Specs, GlobalOptions);
+        int idx = 1;
+        foreach hash r in (Result) {
+            testAssertionValue(sprintf("line %d is there", idx), i.next(), True);
+            testAssertionValue(sprintf("line %d content check", idx), i.getValue(), r);
+            idx++;
+        }
+        testAssertionValue(sprintf("line %d is not there", idx), i.next(), False);
+    }
+}

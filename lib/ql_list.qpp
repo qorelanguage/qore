@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ql_list.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/ql_list.h"
+#include "qore/intern/qore_program_private.h"
 
 ResolvedCallReferenceNode* getCallReference(const QoreString* str, ExceptionSink* xsink) {
    // ensure string is in default encoding
@@ -42,6 +42,7 @@ ResolvedCallReferenceNode* getCallReference(const QoreString* str, ExceptionSink
 }
 
 bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink) {
+   assert(xsink);
    ConstListIterator li(l);
    while (li.next()) {
       bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
@@ -80,7 +81,7 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sort(any arg) [flags=NOOP] {
+auto sort(auto arg) [flags=NOOP] {
    return arg.getReferencedValue();
 }
 
@@ -152,7 +153,7 @@ list sort(list l, code f) [flags=RET_VALUE_ONLY] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sortDescending(any arg) [flags=NOOP,DEPRECATED] {
+auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.getReferencedValue();
 }
 
@@ -214,7 +215,7 @@ list sortDescending(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sort_descending(any arg) [flags=NOOP] {
+auto sort_descending(auto arg) [flags=NOOP] {
    return arg.getReferencedValue();
 }
 
@@ -292,7 +293,7 @@ list sort_descending(list l, code f) [flags=RET_VALUE_ONLY] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sortStable(any arg) [flags=NOOP,DEPRECATED] {
+auto sortStable(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.getReferencedValue();
 }
 
@@ -360,7 +361,7 @@ list sortStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sort_stable(any arg) [flags=NOOP] {
+auto sort_stable(auto arg) [flags=NOOP] {
    return arg.getReferencedValue();
 }
 
@@ -438,7 +439,7 @@ list sort_stable(list l, code f) [flags=RET_VALUE_ONLY] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sortDescendingStable(any arg) [flags=NOOP,DEPRECATED] {
+auto sortDescendingStable(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.getReferencedValue();
 }
 
@@ -516,7 +517,7 @@ list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
 */
-any sort_descending_stable(any arg) [flags=NOOP] {
+auto sort_descending_stable(auto arg) [flags=NOOP] {
    return arg.getReferencedValue();
 }
 
@@ -596,7 +597,7 @@ list sort_descending_stable(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-any v = min(l);
+auto v = min(l);
     @endcode
 
     @param l the list to process
@@ -605,7 +606,7 @@ any v = min(l);
 
     @see max(list)
 */
-any min(list l) [flags=CONSTANT] {
+auto min(list l) [flags=CONSTANT] {
    return l->min();
 }
 
@@ -613,7 +614,7 @@ any min(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-any v = min(l, "my_sort_function");
+auto v = min(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -623,7 +624,7 @@ any v = min(l, "my_sort_function");
 
     @see max(list, string)
 */
-any min(list l, string func) [flags=RET_VALUE_ONLY] {
+auto min(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? 0 : l->min(*fr, xsink);
 }
@@ -633,7 +634,7 @@ any min(list l, string func) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-any v = min(l, sort_func);
+auto v = min(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -643,7 +644,7 @@ any v = min(l, sort_func);
 
     @see max(list, code)
 */
-any min(list l, code f) [flags=RET_VALUE_ONLY] {
+auto min(list l, code f) [flags=RET_VALUE_ONLY] {
    return l->min(f, xsink);
 }
 
@@ -652,7 +653,7 @@ any min(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-any v = min(v1, v2, v3);
+auto v = min(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -661,7 +662,7 @@ any v = min(v1, v2, v3);
 
     @see max(...)
 */
-any min(...) [flags=CONSTANT] {
+auto min(...) [flags=CONSTANT] {
    return args ? args->minValue(xsink) : 0;
 }
 
@@ -670,7 +671,7 @@ any min(...) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-any v = max(l);
+auto v = max(l);
     @endcode
 
     @param l the list to process
@@ -679,7 +680,7 @@ any v = max(l);
 
     @see min(list)
 */
-any max(list l) [flags=CONSTANT] {
+auto max(list l) [flags=CONSTANT] {
    return l->max();
 }
 
@@ -687,7 +688,7 @@ any max(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-any v = max(l, "my_sort_function");
+auto v = max(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -697,7 +698,7 @@ any v = max(l, "my_sort_function");
 
     @see min(list, string)
 */
-any max(list l, string func) [flags=RET_VALUE_ONLY] {
+auto max(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? 0 : l->max(*fr, xsink);
 }
@@ -707,7 +708,7 @@ any max(list l, string func) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-any v = max(l, sort_func);
+auto v = max(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -717,7 +718,7 @@ any v = max(l, sort_func);
 
     @see min(list, code)
 */
-any max(list l, code f) [flags=RET_VALUE_ONLY] {
+auto max(list l, code f) [flags=RET_VALUE_ONLY] {
    return l->max(f, xsink);
 }
 
@@ -726,7 +727,7 @@ any max(list l, code f) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-any v = max(v1, v2, v3);
+auto v = max(v1, v2, v3);
     @endcode
 
     @param ... the list of values to process given directly to the function
@@ -735,7 +736,7 @@ any v = max(v1, v2, v3);
 
     @see min(...)
 */
-any max(...) [flags=CONSTANT] {
+auto max(...) [flags=CONSTANT] {
    return args ? args->maxValue(xsink) : 0;
 }
 
@@ -791,7 +792,7 @@ if (inlist(str, strlist))
 
     @see inlist_hard(any, softlist)
 */
-bool inlist(any arg, softlist l) [flags=RET_VALUE_ONLY] {
+bool inlist(auto arg, softlist l) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
 }
 
@@ -824,7 +825,7 @@ if (inlist_hard(str, strlist))
 
     @see inlist(any, softlist)
 */
-bool inlist_hard(any arg, softlist l) [flags=RET_VALUE_ONLY] {
+bool inlist_hard(auto arg, softlist l) [flags=RET_VALUE_ONLY] {
    bool arg_is_nothing = arg.isNothing();
 
    ConstListIterator li(l);

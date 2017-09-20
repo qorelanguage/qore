@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   AbstractQoreNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,6 @@
 #define FMT_NORMAL      0
 
 class LocalVar;
-class QoreTypeInfo;
 
 //! The base class for all value and parse types in Qore expression trees
 /**
@@ -129,7 +128,7 @@ private:
    DLLEXPORT virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
    //! decrements the reference count
-   /** deletes the object when the reference count = 0.  
+   /** deletes the object when the reference count = 0.
        The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return true if the object can be deleted, false if not (externally-managed)
@@ -170,10 +169,10 @@ protected:
 
    //! set to flag with new QoreValue API (derived from ParseNode) - FIXME: to be removed when new ABI is implemented
    bool has_value_api : 1;
-   
+
    //! default destructor does nothing
    /**
-      The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, AbstractQoreNode::deref() takes an ExceptionSink pointer argument by default as well. 
+      The destructor is protected because it should not be called directly, which also means that these objects cannot normally be created on the stack.  They are referenced counted, and the deref() function should be used to decrement the reference count rather than using the delete operator.  Because the QoreObject class at least could throw a Qore Exception when it is deleted, AbstractQoreNode::deref() takes an ExceptionSink pointer argument by default as well.
    */
    DLLEXPORT virtual ~AbstractQoreNode();
 
@@ -237,7 +236,7 @@ public:
    DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool& del) const;
 
    //! assigns the date representation of a value to the DateTime reference passed, default implementation does nothing
-   /** 
+   /**
        @param dt the DateTime reference to be assigned
    */
    DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
@@ -368,7 +367,7 @@ public:
    }
 
    //! decrements the reference count and calls derefImpl() if there_can_be_only_one is false, otherwise does nothing
-   /** if there_can_be_only_one is false, calls derefImpl() and deletes the object when the reference count = 0.  
+   /** if there_can_be_only_one is false, calls derefImpl() and deletes the object when the reference count = 0.
        The ExceptionSink argument is needed for those types that could throw an exception when they are deleted (ex: QoreObject)
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
@@ -402,9 +401,9 @@ public:
    // new eval APIs - to be virtual in bew API
    DLLEXPORT QoreValue evalValue(ExceptionSink* xsink) const;
    DLLEXPORT QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const;
-   
+
    //! returns the "has value api" flags - FIXME: remove with new ABI
-   DLLLOCAL bool hasValueApi() const;   
+   DLLLOCAL bool hasValueApi() const;
 };
 
 //! The base class for all types in Qore expression trees that cannot throw an exception when deleted
@@ -437,32 +436,32 @@ private:
 
 protected:
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
 
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
 
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual int integerEvalImpl(ExceptionSink* xsink) const;
 
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual bool boolEvalImpl(ExceptionSink* xsink) const;
 
    //! should never be called for value types
-   /** in debugging builds of the library, calls to this function will abort 
+   /** in debugging builds of the library, calls to this function will abort
     */
    DLLEXPORT virtual double floatEvalImpl(ExceptionSink* xsink) const;
 

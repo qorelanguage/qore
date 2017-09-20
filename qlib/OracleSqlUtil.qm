@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, sro
+/*  OracleSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.2";
+    version = "1.2.3";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -254,6 +254,17 @@ my hash $schema = (
     @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection v123 OracleSqlUtil v1.2.3
+    - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+
+    @subsection v122 OracleSqlUtil v1.2.2
+    - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
+
+    @subsection v121 OracleSqlUtil v1.2.1
+    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
 
     @subsection v12 OracleSqlUtil v1.2
     - implemented support for the \c "returning" clause as an insert option
@@ -520,7 +531,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -611,7 +622,7 @@ my any $v = $c.name;
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -696,7 +707,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the sequence in the database
-        string getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("rename %s to %s", name, new_name);
         }
     }
@@ -746,7 +761,11 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the view in the database
-        softlist getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             return sprintf("rename %s to %s", name, new_name);
         }
     }
@@ -793,6 +812,8 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to create the object in the database
+        /** @param opt create options; if \a replace is @ref Qore::True "True", then <tt>CREATE OR REPLACE</tt> will be used in the create statement
+         */
         softlist getCreateSql(*hash opt) {
             return sprintf("create%s %s %s", opt.replace ? " or replace" : "", type, src);
         }
@@ -803,29 +824,49 @@ my any $v = $c.name;
         }
 
         #! returns a string that can be used to rename the object in the database
-        list getRenameSql(string new_name) {
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
+            return sprintf("rename %s to %s", name, new_name);
+        }
+    }
+
+    #! the base class for Oracle code objects that cannot be renamed in place
+    public class OracleCodeBaseNoRename inherits OracleCodeBase {
+        #! creates the object from the arguments passed
+        /** @param n the name of the object
+            @param n_type the type of object
+            @param n_src the source of the object
+         */
+        constructor(string n, string n_type, string n_src) : OracleCodeBase(n, n_type, n_src) {
+        }
+
+        #! returns a string that can be used to rename the object in the database
+        /** The object is dropped and recreated with this method call
+
+            @param new_name the new name of the object
+            @param opt rename options; if \a force if @ref Qore::True "True", then the \c FORCE option will be used with the drop statement
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
             list l = ();
-            l += getDropSql();
+            l += getDropSql(opt);
             l += getCreateSql();
             return l;
         }
     }
 
     #! represents an Oracle type
-    public class OracleType inherits OracleCodeBase {
-        constructor(string n_name, string n_src) : OracleCodeBase(n_name, "type", n_src) {
+    public class OracleType inherits OracleCodeBaseNoRename {
+        constructor(string n_name, string n_src) : OracleCodeBaseNoRename(n_name, "type", n_src) {
         }
 
-        #! Force to drop named type (object or collection)
-        /** Named types in schema can have dependencies between each other.
-            But the FORCE keyword used in drop allows us to avoid complex
-            dependency tree calculation because all objects will be dropped
-            at the end
-
-            @note this method is intended for use in schema management
+        #! returns a string that can be used to drop the type from the database
+        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c FORCE option will be used in the drop statement
          */
-        string getDropSqlForce() {
-            return sprintf("drop %s %s force", type, name);
+        string getDropSql(*hash opt) {
+            return sprintf("drop %s %s%s", type, name, opt.force ? " force" : "");
         }
     }
 
@@ -850,8 +891,8 @@ my any $v = $c.name;
     }
 
     #! represents an Oracle package
-    public class OraclePackage inherits OracleCodeBase {
-        private {
+    public class OraclePackage inherits OracleCodeBaseNoRename {
+        public {
             #! package body source
             *string body_src;
         }
@@ -861,7 +902,7 @@ my any $v = $c.name;
             @param n_src the source of the package declaration
             @param n_body_src the package body source
          */
-        constructor(string n, string n_src, *string n_body_src) : OracleCodeBase(n, "package", n_src) {
+        constructor(string n, string n_src, *string n_body_src) : OracleCodeBaseNoRename(n, "package", n_src) {
             body_src = n_body_src;
         }
 
@@ -883,7 +924,7 @@ my any $v = $c.name;
     }
 
     #! represents an Oracle materialized view
-    public class OracleMaterializedView inherits OracleCodeBase {
+    public class OracleMaterializedView inherits OracleCodeBaseNoRename {
         public {
             #! Flag if is loggign mode used
             bool logging;
@@ -900,7 +941,7 @@ my any $v = $c.name;
             @param n_logging if the materialized view should use logging
             @param n_use_index if the materialized view should use an index
          */
-        constructor(string n, string n_src, bool n_logging = True, bool n_use_index = True, *string n_tablespace) : OracleCodeBase(n, "materialized view", n_src) {
+        constructor(string n, string n_src, bool n_logging = True, bool n_use_index = True, *string n_tablespace) : OracleCodeBaseNoRename(n, "materialized view", n_src) {
             logging = n_logging;
             use_index = n_use_index;
             tablespace = n_tablespace;
@@ -937,7 +978,7 @@ my any $v = $c.name;
                 );
 
             #! oracle-specific schema description / alignment options
-            const OracleAlignSchemaOptions = AbstractDatabase::CreationOptions
+            const OracleAlignSchemaOptions = AbstractDatabase::AlignSchemaOptions
                 + OracleCreationOptions
                 + OracleTable::OracleAlignTableOptions
                 ;
@@ -1133,7 +1174,7 @@ my any $v = $c.name;
             return new OracleSequence(name, start, increment, end);
         }
 
-        private getSchemaName(reference name, reference schema) {
+        private getSchemaName(reference<string> name, reference<string> schema) {
             # see if there is a schema in the name
             *string sstr = (name =~ x/^(\w+)\.\w+/)[0];
             if (sstr) {
@@ -1327,7 +1368,7 @@ my any $v = $c.name;
             return src;
         }
 
-        private checkSource(string type, string name, reference src) {
+        private checkSource(string type, string name, reference<string> src) {
             # remove whitespace from the beginning and end of the string
             trim src;
 
@@ -1785,7 +1826,7 @@ my any $v = $c.name;
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
@@ -1804,8 +1845,8 @@ my any $v = $c.name;
                                 case NT_NOTHING:
                                     continue;
                                 case NT_DATE:
-                                case NT_FLOAT:
                                 case NT_INT:
+                                case NT_FLOAT:
                                 case NT_NUMBER:
                                 case NT_STRING:
                                     ltype = it.getValue().typeCode();
@@ -1816,21 +1857,32 @@ my any $v = $c.name;
                             if (ltype) break;
                         }
 
-                        # Bind to oracle by expected type
-                        switch (ltype) {
-                            case NT_DATE:
-                                args += bindOracleCollection("SYS.ODCIDATELIST", arg);
-                                break;
-                            case NT_FLOAT:
-                            case NT_NUMBER:
-                            case NT_INT:
-                                args += bindOracleCollection("SYS.ODCINUMBERLIST", arg);
-                                break;
-                            default:
-                                args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", arg);
+                        # Split long array to chunks of no more than 32767 elements due to Oracle limitation
+                        # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
+                        int count;
+                        while (arg.size()) {
+                            ++count;
+                            list chunk = extract arg, 0, 32767;
+
+                            # Bind to Oracle by expected type
+                            switch (ltype) {
+                                case NT_DATE:
+                                    args += bindOracleCollection("SYS.ODCIDATELIST", chunk);
+                                    break;
+                                case NT_INT:
+                                case NT_FLOAT:
+                                case NT_NUMBER:
+                                    args += bindOracleCollection("SYS.ODCINUMBERLIST", chunk);
+                                    break;
+                                default:
+                                    args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
+                            }
                         }
 
-                        return cn + " in (select column_value from table(%v))";
+                        if (count)
+                            return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
+                        else
+                            return "1 != 1";
 %endif
 %ifdef NO_ORACLE
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
@@ -1838,7 +1890,7 @@ my any $v = $c.name;
                     },
                 ),
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1896,29 +1948,29 @@ my any $v = $c.name;
                     },
                 ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.nextval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1930,7 +1982,7 @@ my any $v = $c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.currval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1939,6 +1991,29 @@ my any $v = $c.name;
                         return sql;
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!OracleTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y", arg, OracleTruncDate.keys());
+                        }
+                        # seconds are not part of TRUNC() in oracle
+                        if (exists OracleTruncDate{arg}) {
+                            return sprintf("trunc(%s, %s)", arg1, OracleTruncDate{arg});
+                        }
+                        # for timestamps
+                        return sprintf("cast (%s as date)", arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            const OracleTruncDate = (
+                    DT_YEAR     : "'YYYY'",
+                    DT_MONTH    : "'MM'",
+                    DT_DAY      : "'DD'",
+                    DT_HOUR     : "'HH24'",
+                    DT_MINUTE   : "'MI'",
+                    DT_SECOND   : NOTHING,
                 );
 
             #! a hash of default value operator descriptions for Oracle
@@ -1956,6 +2031,22 @@ my any $v = $c.name;
                     "code": string sub (string cve, string arg) {
                         return sprintf("%s.currval", arg);
                     },
+                ),
+                );
+
+            #! a hash of default update operator definitions for Oracle
+            const OracleUopMap = DefaultUopMap + (
+                COP_SEQ: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("%s.nextval", arg);
+                    }
+                ),
+                COP_SEQ_CURRVAL: (
+                    "nocolumn": True,
+                    "code": string sub (*string cve, string arg) {
+                        return sprintf("%s.currval", arg);
+                    }
                 ),
                 );
 
@@ -2024,7 +2115,7 @@ my any $v = $c.name;
             try {
                 setTableInfoIntern();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "TABLE-ERROR")
                     return False;
                 rethrow;
@@ -2042,7 +2133,7 @@ my any $v = $c.name;
 
             # get any comment
             if (!m_isView) {
-                any cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+                auto cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
                 comment = cm ? cm : NOTHING;
             }
 
@@ -2189,7 +2280,7 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private getSelectWhereSqlUnlocked(reference<string> sql, reference<list> args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch, psch);
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12)
@@ -2210,7 +2301,7 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12) {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
@@ -2240,7 +2331,7 @@ my any $v = $c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
             if (!qh.limit)
                 return;
 
@@ -2292,6 +2383,10 @@ my any $v = $c.name;
                     case "BFILE":
                     case "BLOB":
                     case "CLOB": size = 0; break;
+                }
+                # there is no size for NTY objects (not listed in registered types in OraTypeMap)
+                if (!exists th) {
+                    size = 0;
                 }
 
                 # set default numeric precision to 0 if not given
@@ -2431,7 +2526,7 @@ my any $v = $c.name;
                         row.target_column = row.target_column.lwr();
                         row.target_table = row.target_table.lwr();
                     }
-                    reference c = \rv.(row.constraint_name);
+                    reference<hash> c = \rv.(row.constraint_name);
                     #if (!columns.hasKey(row.source_column))# && c.target.columns.(row.target_column)) {
                     #    printf("ERROR: %y.%y ->  %y.%y (%y): %y\n", name, row.source_column, row.target_table, row.target_column, row.constraint_name, columns.keys());
                     c.columns.(row.source_column) = columns{row.source_column};
@@ -2471,7 +2566,7 @@ my any $v = $c.name;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
-                reference ch = \rv.(row.constraint_name);
+                reference<OracleUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch) {
                     ch = new OracleUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                     if (row.index_name)
@@ -2579,7 +2674,7 @@ my any $v = $c.name;
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /ORA-00001/)
                     return False;
                 rethrow;
@@ -2629,13 +2724,18 @@ my any $v = $c.name;
             return OracleIopMap;
         }
 
+        #! returns the raw (default) update operator map for this object
+        private hash getRawUpdateOperatorMap() {
+            return OracleUopMap;
+        }
+
         #! returns a hash of valid pseudocolumns
         private *hash getPseudoColumnHash() {
             return OraclePseudoColumnHash;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_NUMBER:
@@ -2791,9 +2891,9 @@ my any $v = $c.name;
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
-            foreach any v in (opt.returning) {
+            foreach auto v in (opt.returning) {
                 hash rh;
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;

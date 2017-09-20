@@ -1,0 +1,102 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class TryModuleTest
+
+class TryModuleTest inherits QUnit::Test {
+    constructor() : QUnit::Test("TryModule test", "1.0") {
+        addTestCase("Test", \testTryModule());
+        set_return_value(main());
+    }
+
+    testTryModule() {
+        {
+            Program p(PO_NEW_STYLE);
+
+            string code = "
+%try-module (hash ex bad_module > 99.9
+our int i = 1;
+%endtry
+
+*int sub get() {
+    return i;
+}";
+
+            assertThrows("PARSE-EXCEPTION", "missing close", \p.parse(), (code, ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+
+            string code = "
+%try-module (hash ex) bad_module > 99.9
+our int i = 1;
+%endtry
+
+*int sub get() {
+    return i;
+}";
+
+            assertThrows("PARSE-EXCEPTION", "invalid.*var", \p.parse(), (code, ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+
+            string code = "
+%try-module
+our int i = 1;
+%endtry
+
+*int sub get() {
+    return i;
+}";
+
+            assertThrows("PARSE-EXCEPTION", "missing argument", \p.parse(), (code, ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+
+            p.parse("
+%try-module(ex) bad_module > 99.9
+our int i = 1;
+%endtry
+
+*int sub get() {
+    return i;
+}
+", "");
+
+            assertEq(NOTHING, p.callFunction("get"));
+            p.run();
+            assertEq(1, p.callFunction("get"));
+        }
+
+        {
+            Program p();
+
+            p.parse("
+%try-module ($ex) bad_module > 99.9
+our int $i = 1;
+%endtry
+
+*int sub get() {
+    return $i;
+}
+", "");
+
+            assertEq(NOTHING, p.callFunction("get"));
+            p.run();
+            assertEq(1, p.callFunction("get"));
+        }
+    }
+}

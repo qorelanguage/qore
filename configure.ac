@@ -1,11 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.12],
+AC_INIT([qore], [0.8.13],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
+AC_CONFIG_HEADER(modules/astparser/config.h)
 
 # fix default include dir
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
@@ -169,6 +170,8 @@ case "${host_os}" in
 		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
 		   if test -z "$NATIVE_CXX"; then
 		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+		   else
+                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
 		   fi
 		fi
 		if test -z "$NATIVE_CXX"; then
@@ -206,6 +209,12 @@ QPP_CPPFLAGS="$QPP_CPPFLAGS -DHAVE_UNIX_CONFIG_H"
 AC_SUBST(QPP_CPPFLAGS)
 
 AC_PROG_LEX
+
+# test for C++11
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+if test "$HAVE_CXX11" = "1"; then
+    AM_CXXFLAGS=-std=gnu++11
+fi
 
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
@@ -303,7 +312,7 @@ AC_ARG_WITH([libsuffix],
 # FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
-      *linux*)	if test "$GXX" = "yes"; then
+      *linux*)	if test "$GXX" = "yes" -a "$ARCH" != "aarch64"; then
 		   CXXFLAGS="$CXXFLAGS -m64"
 		fi
 		# only set LIBSUFFIX=64 if /usr/lib64 exists
@@ -732,6 +741,9 @@ set_pcre_cppflags() {
     if test "$1" != "/usr/include"; then
         PCRE_CPPFLAGS=-I$1
     fi
+    if test -n "$pcre_static"; then
+        PCRE_CPPFLAGS="${PCRE_CPPFLAGS} -DPCRE_STATIC=1"
+    fi
     with_pcre_includes="$1"
 }
 
@@ -1058,6 +1070,42 @@ else
        [AC_MSG_RESULT([ok])
         AC_DEFINE([HAVE_OPENSSL_HMAC_RV], 1, [Define if HMAC_Update() and friends support a return value])],
        [AC_MSG_RESULT([no return values are supported])])
+
+    # check for X509_get_signature_nid()
+    AC_MSG_CHECKING([X509_get_signature_nid() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[int rc = X509_get_signature_nid(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET_SIGNATURE_NID], 1, [Define if X509_get_signature_nid() is present])],
+       [AC_MSG_RESULT([no X509_get_signature_nid() present])])
+
+    # check for X509_get0_signature() const correctness
+    AC_MSG_CHECKING([X509_get0_signature() const correctness in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[const ASN1_BIT_STRING* sig; const X509_ALGOR* alg; X509_get0_signature(&sig, &alg, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_SIGNATURE_CONST], 1, [Define if X509_get0_signature() is present and accepts const args])],
+       [AC_MSG_RESULT([no X509_get0_signature() present or does not accept const args])])
+
+    # check for X509_get0_pubkey()
+    AC_MSG_CHECKING([X509_get0_pubkey() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[X509_get0_pubkey(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_PUBKEY], 1, [Define if X509_get0_pubkey() is present])],
+       [AC_MSG_RESULT([no X509_get0_pubkey() present])])
+
+    # check for OPENSSL_init_crypto()
+    AC_MSG_CHECKING([OPENSSL_init_crypto() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/crypto.h>]],
+    [[int rc = OPENSSL_init_crypto(0, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_INIT_CRYPTO], 1, [Define if OPENSSL_init_crypto() is present])],
+       [AC_MSG_RESULT([no OPENSSL_init_crypto() present])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
@@ -1445,7 +1493,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
+AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
@@ -1632,6 +1680,32 @@ if test "$darwin" = "yes"; then
     LIBS="$SAVE_LIBS"
 fi
 
+# do we need -latomic on this platform
+AC_MSG_CHECKING([for pure compile-time atomic functionality])
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <atomic>]],
+[[bool b = std::atomic_int{}.is_lock_free();]])],
+   [ATOMIC_COMPILE_ONLY=1
+    AC_MSG_RESULT([found])
+    AC_DEFINE([HAVE_ATOMIC_COMPILE_ONLY], 1, [define if there is no need to link with libatomic])],
+   [AC_MSG_RESULT([needs libatomic])])
+if test "$ATOMIC_COMPILE_ONLY" != "1"; then
+    SAVE_LIBS="$LIBS"
+    LIBS="$LIBS $QORE_LIB_LDFLAGS $OPENSSL_LDFLAGS -latomic"
+    AC_MSG_CHECKING([for libatomic])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <atomic>]],
+    [[bool b = std::atomic_int{}.is_lock_free();]])],
+       [LIBATOMIC_FOUND=1
+        AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_LIBATOMIC], 1, [define if libatomic])],
+       [AC_MSG_RESULT([not found])])
+    if test "$LIBATOMIC_FOUND" = "1"; then
+      QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -latomic"
+    fi
+    LIBS="$SAVE_LIBS"
+fi
+
 # turn on some build flags for non-debugging, non-profiling builds
 #if test "$enable_debug" = "no" -a "$enable_profile" = "no" -a "$enable_optimization" = "yes" ; then
     # we can no longer strip binaries and libraries with non-debugging, non-profiling builds on Darwin with -Wl,-x because it breaks linking :(
@@ -1700,9 +1774,12 @@ fi
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API=$MODULE_API_MAJOR.$MODULE_API_MINOR
+
 mypkglibdir=qore-modules
 AC_SUBST([MODULE_API_MAJOR])
 AC_SUBST([MODULE_API_MINOR])
+AC_SUBST(MODULE_API)
 AC_SUBST([mypkglibdir])
 
 # save more version information in config.h
@@ -1755,13 +1832,20 @@ if test "${prefix}" = "NONE"; then
    prefix=${myprefix}
 fi
 
+# libdir that is set for Makefile in Makefile.am, but not set for configure in
+# configure.ac. This way (for example) config.status generates qore.pc from qore.pc.in
+# that points to incorrect libdir (using .../lib instead of .../lib64 on x64 machines,
+# for example). --PQ 03-Aug-2016
+libdir="\${exec_prefix}/lib${LIBSUFFIX}"
+AC_SUBST([libdir])
+
 # set module path
 if test "$windows" = yes; then
-  winprefix=z:`echo ${myprefix}|sed 's/\//\\\\\\\\\\\\\\\\/g'`
-  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'|sed 's/\//\\\\\\\\\\\\\\\\/g'`
+  winprefix="z:${myprefix}"
+  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'`
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_DIR="${winprefix}\\\\\\\\\lib${LIBSUFFIX}\\\\\\\\${winlibdir}"
-  USER_MODULE_DIR="${winprefix}\\\\\\\\\share\\\\\\\\${winlibdir}"
+  MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
+  USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
 else
   MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
   if test -z "${datarootdir}"; then
@@ -1783,8 +1867,8 @@ AC_SUBST([mymodverdir])
 # get version-dependent module path
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}\\\\\\\\${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then
@@ -1796,13 +1880,18 @@ fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
+modexeclibdir="${MODULE_VER_DIR}"
+AC_SUBST([modexeclibdir])
+
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
-CMAKE_INSTALL_FULL_BINDIR="${myprefix}/bin"
-CMAKE_INSTALL_FULL_INCLUDEDIR="${myprefix}/include"
-CMAKE_INSTALL_FULL_LIBDIR="${myprefix}/lib${LIBSUFFIX}"
+CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
+CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"
+CMAKE_INSTALL_FULL_LIBDIR="`eval echo ${myprefix}/lib${LIBSUFFIX}`"
+CMAKE_INSTALL_FULL_DATADIR="`eval echo ${datarootdir}`"
 AC_SUBST([CMAKE_INSTALL_FULL_BINDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_INCLUDEDIR])
 AC_SUBST([CMAKE_INSTALL_FULL_LIBDIR])
+AC_SUBST([CMAKE_INSTALL_FULL_DATADIR])
 
 if test "$enable_profile" = yes; then
    QORE_LIB_CXXFLAGS="$QORE_LIB_CXXFLAGS -g -pg"
@@ -1842,6 +1931,7 @@ AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
+AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

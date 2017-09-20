@@ -33,26 +33,6 @@
 #define STACK_DIRECTION_DOWN 1
 
 #ifdef __GNUC__
-#define HAVE_ATOMIC_MACROS
-
-// returns 1 when counter reaches zero, 0 if not
-static inline int atomic_dec(volatile int *a) {
-   unsigned char rc;
-
-   __asm(
-        "lock; decl %0; sete %1"
-        : "=m" (*a), "=qm" (rc)
-	: "m" (*a) : "memory"
-      );
-   return rc != 0;
-}
-
-static inline void atomic_inc(volatile int *a) {
-   __asm(
-        "lock; incl %0"
-        : "=m" (*a)
-   );
-}
 
 #define HAVE_CHECK_STACK_POS
 
@@ -61,15 +41,10 @@ static inline size_t get_stack_pos() {
    __asm("movl %%esp, %0" : "=g" (addr) );
    return addr;
 }
- 
+
 #endif // __GNUC__
 
 #ifdef __SUNPRO_CC
-#define HAVE_ATOMIC_MACROS
-
-// these routines are implemented in assembler
-extern "C" int atomic_dec(volatile int *a);
-extern "C" void atomic_inc(volatile int *a);
 
 #define HAVE_CHECK_STACK_POS
 extern "C" size_t get_stack_pos();

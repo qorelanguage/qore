@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreBinaryLValueOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -42,7 +42,11 @@ protected:
 public:
    const QoreTypeInfo *ti; // typeinfo of lhs
 
-   DLLLOCAL QoreBinaryLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right), ti(0) {
+   DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right), ti(0) {
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 };
 
@@ -54,7 +58,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreBinaryIntLValueOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(n_left, n_right) {
+   DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right) {
    }
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -68,11 +72,15 @@ public:
       checkLValue(left, pflag);
 
       // make sure left side can take an integer value
-      check_lvalue_int(mti, name);
+      check_lvalue_int(loc, mti, name);
 
       mti = 0;
       // FIXME: check for invalid operation - type cannot be converted to integer
       right = right->parseInit(oflag, pflag, lvids, mti);
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 };
 #endif

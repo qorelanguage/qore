@@ -3,7 +3,7 @@
 
   extensible and type system for the Qore programming language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/QoreClassIntern.h"
 
 #include <string.h>
 #include <assert.h>
@@ -66,6 +66,7 @@ qore_type_t get_next_type_id() {
 
 // 0 = equal, 1 = not equal
 bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink *xsink) {
+   assert(xsink);
    if (is_nothing(l)) {
       if (is_nothing(r))
          return 0;
@@ -90,94 +91,26 @@ bool q_compare_soft(const QoreValue l, const QoreValue r, ExceptionSink *xsink) 
    return !QoreLogicalEqualsOperatorNode::softEqual(l, r, xsink);
 }
 
-QoreTypeInfoHelper::QoreTypeInfoHelper(const char* n_tname) : typeInfo(new ExternalTypeInfo(n_tname, *this)) {
-}
-
-QoreTypeInfoHelper::QoreTypeInfoHelper(qore_type_t id, const char* n_tname) : typeInfo(new ExternalTypeInfo(id, n_tname, *this)) {
-   add_to_type_map(id, typeInfo);
-}
-
-QoreTypeInfoHelper::~QoreTypeInfoHelper() {
-   delete typeInfo;
-}
-
-void QoreTypeInfoHelper::assign(qore_type_t id) {
-   typeInfo->assign(id);
-   add_to_type_map(id, typeInfo);
-}
-
-const QoreTypeInfo* QoreTypeInfoHelper::getTypeInfo() const {
-   return typeInfo;
-}
-
-void QoreTypeInfoHelper::addAcceptsType(const QoreTypeInfo* n_typeInfo) {
-   typeInfo->addAcceptsType(n_typeInfo);
-}
-
-void QoreTypeInfoHelper::setInt() {
-   typeInfo->setInt();
-}
-
-void QoreTypeInfoHelper::setInexactReturn() {
-   typeInfo->setInexactReturn();
-}
-
-void QoreTypeInfoHelper::setInputFilter() {
-   typeInfo->setInputFilter();
-}
-
-void QoreTypeInfoHelper::setIntMatch() {
-   typeInfo->setIntMatch();
-}
-
-bool QoreTypeInfoHelper::acceptInputImpl(QoreValue& n, ExceptionSink *xsink) const {
-   assert(false);
-   return false;
-}
-
-int QoreTypeInfoHelper::doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, AbstractQoreNode* n, ExceptionSink *xsink) const {
-   return typeInfo->doAcceptError(priv_error, obj, param_num, param_name, n, xsink);
-}
-
-AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper(const char* name, int n_domain) : QoreTypeInfoHelper(new ExternalTypeInfo(*this)), qc(new QoreClass(name, n_domain, typeInfo)) {
-   typeInfo->assign(qc);
-   //printd(5, "AbstractQoreClassTypeInfoHelper::AbstractQoreClassTypeInfoHelper() this=%p typeInfo=%p\n", this, typeInfo);
-}
-
-AbstractQoreClassTypeInfoHelper::~AbstractQoreClassTypeInfoHelper() {
-   delete qc;
-}
-
-QoreClass* AbstractQoreClassTypeInfoHelper::getClass() {
-   QoreClass* rv = qc;
-   qc = 0;
-   return rv;
-}
-
-bool AbstractQoreClassTypeInfoHelper::hasClass() const {
-   return qc;
-}
-
 int testObjectClassAccess(const QoreObject* obj, const QoreClass* shouldbeclass) {
    return qore_class_private::runtimeCheckCompatibleClass(*shouldbeclass, *(obj->getClass()));
 }
 
 const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo) {
-   return typeInfo->getUniqueReturnClass();
+   return QoreTypeInfo::getUniqueReturnClass(typeInfo);
 }
 
 qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
-   return typeInfo->parseAccepts(otherTypeInfo);
+   return QoreTypeInfo::parseAccepts(typeInfo, otherTypeInfo);
 }
 
 qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
-   return otherTypeInfo->parseAccepts(typeInfo);
+   return QoreTypeInfo::parseAccepts(otherTypeInfo, typeInfo);
 }
 
 bool typeInfoHasType(const QoreTypeInfo* typeInfo) {
-   return typeInfo->hasType();
+   return QoreTypeInfo::hasType(typeInfo);
 }
 
 const char* typeInfoGetName(const QoreTypeInfo* typeInfo) {
-   return typeInfo->getName();
+   return QoreTypeInfo::getName(typeInfo);
 }
