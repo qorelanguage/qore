@@ -913,6 +913,9 @@ static ThreadLocalProgramData* get_var_frame(int& frame) {
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
+      // ch can be nullptr in the initial Program context
+      if (!ch)
+          return nullptr;
       // get previous Program before changing context
       pgm = ch->getProgram();
       if (ch->getNextContext(tlpd, ch))
