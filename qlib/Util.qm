@@ -58,6 +58,7 @@ module Util {
 
     Functions:
     - @ref Util::compare_version()
+    - @ref Util::flatten()
     - @ref Util::get_byte_size()
     - @ref Util::get_exception_string()
     - @ref Util::get_marketing_byte_size()
@@ -89,6 +90,7 @@ module Util {
     - added the @ref Util::make_uri_query() "make_uri_query()" function
     - added the @ref Util::parse_uri_query() "parse_uri_query()" function
     - added the @ref Util::UriQueryInfo "UriQueryInfo" hashdecl
+    - added the @ref Util::flatten() "flatten()" function
 
     @subsection util_1_2 Util 1.2
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
@@ -1278,6 +1280,17 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
     }
 
     #! Flattens a nested list (the nesting can be to any depth).
+    /**
+        @param  arg a list to flatten
+        @return a flattened list
+
+        @par Example:
+        @code{.py}
+list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
+        @endcode
+
+        @since Util 1.3
+    */
     public list sub flatten (softlist arg) {
         list r;
         foreach any i in (arg) {
@@ -1297,7 +1310,7 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
 
         @par Example:
         @code{.py}
-list s = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
+list z = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
         @endcode
 
         @since Util 1.2
