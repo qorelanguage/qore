@@ -115,6 +115,7 @@ log("started listener on %s", lh.desc);
     @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - added support for the HTTP \c "PATCH" method
 
     @subsection http03111 HttpServer 0.3.11.1
     - fixed a bug where @ref HttpServer::HttpServer::addListener() would not accept port 0 meaning bind on any random open port (<a href="https://github.com/qorelanguage/qore/issues/1284">bug 1284</a>)
@@ -520,6 +521,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             "DELETE": True,
             "GET": True,
             "OPTIONS": True,
+            "PATCH": True,
             #"TRACE": True,
             #"CONNECT": True,
             );

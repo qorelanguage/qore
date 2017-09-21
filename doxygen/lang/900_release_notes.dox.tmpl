@@ -183,6 +183,8 @@
         - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
         - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
         - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+        .
+        Additionally, the HTTPClient class now understands the \c PATCH method (<a href="https://tools.ietf.org/html/rfc5789">RFC 5789</a>)
       - @ref Qore::RangeIterator::constructor(int) was updated; the second argument was removed to avoid ambiguity with the other overloaded constructor
       - @ref Qore::TreeMap::get() "TreeMap::get()": added a new optional argument to return the unmatched part of the search string
       - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
