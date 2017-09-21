@@ -68,6 +68,9 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         else if (hdr.method == "PUT") {
             return makeResponse( ("Content-Type" : m_mime), 200, m_data);
         }
+        else if (hdr.method == "PATCH") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
+        }
     }
 }
 
@@ -135,6 +138,9 @@ public class Main inherits QUnit::Test {
         rest.setSerialization("text");
         ret = rest.put("/api_text", VALUE_TEXT.output);
         testAssertionValue("/api_text", ret.body, VALUE_TEXT.output);
+
+        ret = rest.patch("/api_text", VALUE_TEXT.output);
+        assertEq(VALUE_TEXT.output, ret.body);
 
 %ifndef NoXml
         rest.setSerialization("rawxml");
