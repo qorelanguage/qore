@@ -40,6 +40,36 @@ module TextWrap {
     init    = sub () { init(); };
 }
 
+/** @mainpage TextWrap Module
+
+    @tableofcontents
+
+    @section textwrapintro TextWrap Module Introduction
+
+    The %TextWrap module provides some convenience functions,
+    as well as TextWrapper class, for text wrapping and filling.
+
+    To use this module, use \c "%requires TextWrap" in your code.
+
+    All public symbols in the module are defined in the TextWrap namespace.
+
+    Functions:
+    - @ref TextWrap::wrap()
+    - @ref TextWrap::fill()
+    - @ref TextWrap::shorten()
+
+    - @ref TextWrap::dedent()
+    - @ref TextWrap::indent()
+
+    Classes:
+    - @ref TextWrap::TextWrapper
+
+    @section textwraprelnotes Release Notes
+
+    @subsection textwrap_1_0
+    - initial version of the TextWrap module
+*/
+
 namespace Init {
     sub init() {
     }
