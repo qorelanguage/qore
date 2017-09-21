@@ -902,25 +902,38 @@ void thread_pop_frame_boundary() {
    td->tlpd->cvstack.popFrameBoundary();
 }
 
+static ThreadLocalProgramData* get_var_frame(int& frame) {
+   if (frame < 0)
+      return nullptr;
+
+   ThreadData* td = thread_data.get();
+   ThreadLocalProgramData* tlpd = td->tlpd;
+   ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+   QoreProgram* pgm = td->current_pgm;
+
+   while (frame > tlpd->lvstack.getFrameCount()) {
+      frame -= (tlpd->lvstack.getFrameCount() + 1);
+      // ch can be nullptr in the initial Program context
+      if (!ch)
+          return nullptr;
+      // get previous Program before changing context
+      pgm = ch->getProgram();
+      if (ch->getNextContext(tlpd, ch))
+         return nullptr;
+      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+   }
+
+   if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
+      return nullptr;
+
+   //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d pgm: %p fc: %d\n", tlpd, ch, frame, pgm, tlpd->lvstack.getFrameCount());
+   return tlpd;
+}
+
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   if (frame >= 0) {
-      ThreadData* td = thread_data.get();
-      ThreadLocalProgramData* tlpd = td->tlpd;
-      ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
-      QoreProgram* pgm = td->current_pgm;
-      //printd(5, "thread_get_local_vars() tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
-      while (frame > tlpd->lvstack.getFrameCount()) {
-         frame -= (tlpd->lvstack.getFrameCount() + 1);
-         if (ch->getNextContext(tlpd, ch))
-            return rv.release();
-         pgm = ch->getProgram();
-         //printd(5, "thread_get_local_vars() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
-      }
-
-      if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
-         return rv.release();
-
+   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   if (tlpd) {
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
          return nullptr;
@@ -931,12 +944,16 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    return rv.release();
 }
 
-int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->lvstack.setVarValue(name, val, xsink);
+// returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
+int thread_set_local_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   return tlpd ? tlpd->lvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
-int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   return thread_data.get()->tlpd->cvstack.setVarValue(name, val, xsink);
+// returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
+int thread_set_closure_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
 void parse_push_name(const char* name) {
@@ -1539,11 +1556,11 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
    if (!pgm)
       return;
 
-   qore_program_private* pp = qore_program_private::get(*pgm);
-
    ThreadData* td = thread_data.get();
    //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+
    if (pgm != td->current_pgm) {
+      qore_program_private* pp = qore_program_private::get(*pgm);
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
          //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");

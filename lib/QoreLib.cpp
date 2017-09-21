@@ -2465,11 +2465,11 @@ QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
    return thread_get_local_vars(frame, xsink);
 }
 
-int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   int rc = thread_set_local_var_value(name, val, xsink);
+int q_set_thread_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   int rc = thread_set_local_var_value(frame, name, val, xsink);
 
    if (rc == 1) {
-      rc = thread_set_closure_var_value(name, val, xsink);
+      rc = thread_set_closure_var_value(frame, name, val, xsink);
 
       if (rc == 1) {
          xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", name);
@@ -2490,21 +2490,22 @@ bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
    return (bool)var[p];
 }
 
-void q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
+int q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
    switch (data.getType()) {
       case NT_STRING: {
          const QoreStringNode* str = data.get<const QoreStringNode>();
          ptr = str->getBuffer();
          len = str->size();
-         return;
+         return 0;
       }
       case NT_BINARY: {
          const BinaryNode* b = data.get<const BinaryNode>();
          ptr = (const char*)b->getPtr();
          len = b->size();
-         return;
+         return 0;
       }
    }
+   return -1;
 }
 
 const char* get_full_type_name(const AbstractQoreNode* n) {
