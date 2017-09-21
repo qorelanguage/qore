@@ -313,6 +313,7 @@ Content-Length: 36
     - added @ref RestHandler::RestHandler::handleExternalRequest "RestHandler::handleExternalRequest()" to allow for REST API methods to be called internally (i.e. without an HTTP call)
     - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
     - added support for REST schema validation
+    - added default support for the HTTP \c "PATCH" method
 
     @subsection rh_1_1 RestHandler v1.1
     - added support for the HTTP \c OPTIONS method
@@ -754,6 +755,7 @@ public namespace RestHandler {
                 "PUT": "put",
                 "DELETE": "del",
                 "OPTIONS": "options",
+                "PATCH": "patch",
                 );
 
             #! supported mime types for de/serializing responses

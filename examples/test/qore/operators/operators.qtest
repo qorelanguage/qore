@@ -1032,6 +1032,9 @@ class Test inherits QUnit::Test {
                 assertEq(Type::Int, i.type());
         }
 
+        # check range operator precedence
+        assertEq((0,1,2), (0,1,2,3,4)[0..3-1]);
+
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { list l = (()..()); delete l; }", ""));
