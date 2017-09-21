@@ -1666,6 +1666,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left ','
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS '=' WEAK_ASSIGNMENT
 %right '?' ':'
+%nonassoc RANGE
 %right NULL_COALESCING VALUE_COALESCING
 %left LOGICAL_OR
 %left LOGICAL_AND BROKEN_LOGICAL_OR
@@ -1678,7 +1679,6 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left '+' '-'                   // arithmetic plus and minus
 %left '%'                       // modulo
 %left '*' '/'                   // arithmetic multiply and divide
-%nonassoc RANGE
 %right TOK_ELEMENTS TOK_KEYS
 %nonassoc TOK_SHIFT TOK_POP TOK_CHOMP TOK_TRIM
 %left NEG                     // unary minus, defined for precedence
