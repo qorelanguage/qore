@@ -3681,14 +3681,24 @@ exp:
     | exp '%' exp                       { $$ = new QoreModuloOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '/' exp                       { $$ = new QoreDivisionOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp '[' exp RANGE exp ']'         { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @6.last_line), $1, $3, $5); }
     | exp '[' exp RANGE ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, nullptr); }
     | exp '[' RANGE exp ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, nullptr, $4); }
     | exp '[' RANGE ']'                 {
                                            parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "illegal range without start or end expressions; at least start or end must be given for a range");
                                            $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, nullptr, nullptr);
                                         }
-    | exp '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp '[' exp ']'                   {
+        $$ = nullptr;
+        if ($3 && $3->getType() == NT_OPERATOR) {
+           QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3);
+           if (ron) {
+              std::unique_ptr<QoreRangeOperatorNode> holder(ron);
+              $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, ron->swapLeft(nullptr), ron->swapRight(nullptr));
+           }
+        }
+        if (!$$)
+           $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3);
+    }
     | exp '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
@@ -3760,14 +3770,24 @@ exp_n:
     | exp_n '%' exp                       { $$ = new QoreModuloOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '/' exp                       { $$ = new QoreDivisionOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '*' exp                       { $$ = new QoreMultiplicationOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
-    | exp_n '[' exp RANGE exp ']'         { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @6.last_line), $1, $3, $5); }
     | exp_n '[' exp RANGE ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, $3, nullptr); }
     | exp_n '[' RANGE exp ']'             { $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @5.last_line), $1, nullptr, $4); }
     | exp_n '[' RANGE ']'                 {
                                              parse_error(QoreProgramLocation(@1.first_line, @4.last_line), "illegal range without start or end expressions; at least start or end must be given for a range");
                                              $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, nullptr, nullptr);
                                           }
-    | exp_n '[' exp ']'                   { $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
+    | exp_n '[' exp ']'                   {
+        $$ = nullptr;
+        if ($3 && $3->getType() == NT_OPERATOR) {
+           QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3);
+           if (ron) {
+              std::unique_ptr<QoreRangeOperatorNode> holder(ron);
+              $$ = new QoreSquareBracketsRangeOperatorNode(QoreProgramLocation(@1.first_line, @4.last_line), $1, ron->swapLeft(nullptr), ron->swapRight(nullptr));
+           }
+        }
+        if (!$$)
+           $$ = new QoreSquareBracketsOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3);
+    }
     | exp_n '{' exp '}'                   { $$ = new QoreHashObjectDereferenceOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n RANGE exp                     { $$ = new QoreRangeOperatorNode(QoreProgramLocation(@1.first_line, @3.last_line), $1, $3); }
     | exp_n '.' exp                       { $$ = process_dot(@1.first_line, @3.last_line, $1, $3); }
