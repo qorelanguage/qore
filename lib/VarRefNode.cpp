@@ -340,14 +340,14 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag,
             vrn_type = VRN_HASHDECL;
         }
         else {
-            const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+            const QoreTypeInfo* ti = typeInfo == autoHashTypeInfo ? autoTypeInfo : QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
             //printd(5, "VarRefNewObjectNode::parseInitImpl() ti: %p type: '%s' ti: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo), ti, QoreTypeInfo::getName(ti));
             if (ti) {
                 parseInitComplexHashInitialization(loc, oflag, pflag, lvids, ti);
                 vrn_type = VRN_COMPLEXHASH;
             }
             else {
-                ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+                ti = typeInfo == autoListTypeInfo ? autoTypeInfo : QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
                 if (ti) {
                     parseInitComplexListInitialization(loc, oflag, pflag, lvids, ti);
                     vrn_type = VRN_COMPLEXLIST;
