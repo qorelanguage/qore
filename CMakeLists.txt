@@ -765,6 +765,7 @@ qore_user_module("qlib/FixedLengthUtil.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/SqlUtil.qm" "Util")
+qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
