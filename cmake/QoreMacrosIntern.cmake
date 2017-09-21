@@ -34,8 +34,6 @@ macro(qore_check_headers_cxx)
 #    unset(file_output)
 endmacro()
 
-
-
 macro(qore_check_funcs)
     set(options)
     set(oneValueArgs)
@@ -122,12 +120,48 @@ return 0;
 }"
 HAVE_OPENSSL_HMAC_RV)
 
+# check for X509_get_signature_nid()
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+int nid = X509_get_signature_nid(0);
+return 0;
+}"
+HAVE_X509_GET_SIGNATURE_NID)
+
+# check for const correctness in X509_get0_signature() (1.1+ has it)
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+const ASN1_BIT_STRING* sig;
+const X509_ALGOR* alg;
+X509_get0_signature(&sig, &alg, 0);
+return 0;
+}"
+HAVE_X509_GET0_SIGNATURE_CONST)
+
+# check for X509_get0_pubkey() (1.1+ has it)
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+X509_get0_pubkey(0);
+return 0;
+}"
+HAVE_X509_GET0_PUBKEY)
+
+# check for OPENSSL_init_crypto()
+check_cxx_source_compiles("
+#include <openssl/crypto.h>
+int main(void) {
+int nid = OPENSSL_init_crypto(0, 0);
+return 0;
+}"
+HAVE_OPENSSL_INIT_CRYPTO)
+
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 endmacro()
-
-
 
 macro(qore_mpfr_checks)
 

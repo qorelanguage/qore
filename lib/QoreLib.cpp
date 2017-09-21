@@ -295,7 +295,16 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
-   { QORE_OPT_FUNC_ROUND,
+   { QORE_OPT_DSS,
+    "HAVE_DSS",
+    QO_ALGORITHM,
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    true
+#else
+    false
+#endif
+  },
+  { QORE_OPT_FUNC_ROUND,
      "HAVE_ROUND",
      QO_FUNCTION,
 #ifdef HAVE_ROUND
@@ -483,7 +492,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    QoreString tbuf(cstr->getEncoding());
 
    printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
-	  param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
+          param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
    qore_type_t t = qv.getType();
 #ifdef DEBUG
    if (t == NT_STRING) {
@@ -518,66 +527,66 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
    char p = *param;
    switch (*param) {
       case 's': {
-	 QoreStringValueHelper astr(qv);
-	 length = astr->strlen();
-	 if ((width != -1) && (length > width) && !type)
-	    width = length;
-	 if ((width != -1) && (length > width)) {
-	    tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
-	 }
-	 else {
-	    if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
-	       tbuf.concat(*astr, xsink);
-	       while (width > length) {
-		  tbuf.concat(' ');
-		  width--;
-	       }
-	    }
-	    else {
-	       while (width > length) {
-		  tbuf.concat(' ');
-		  width--;
-	       }
-	       tbuf.concat(*astr, xsink);
-	    }
-	 }
-	 break;
+         QoreStringValueHelper astr(qv);
+         length = astr->strlen();
+         if ((width != -1) && (length > width) && !type)
+            width = length;
+         if ((width != -1) && (length > width)) {
+            tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
+         }
+         else {
+            if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
+               tbuf.concat(*astr, xsink);
+               while (width > length) {
+                  tbuf.concat(' ');
+                  width--;
+               }
+            }
+            else {
+               while (width > length) {
+                  tbuf.concat(' ');
+                  width--;
+               }
+               tbuf.concat(*astr, xsink);
+            }
+         }
+         break;
       }
       case 'p':
-	 p = 'x';
+         p = 'x';
       case 'd':
       case 'o':
       case 'x':
       case 'X': {
-	 // recreate the sprintf format argument
-	 f = fmt;
-	 *(f++) = '%';
-	 if (opts & P_JUSTIFY_LEFT)
-	    *(f++) = '-';
-	 if (opts & P_INCLUDE_PLUS)
-	    *(f++) = '+';
-	 if (width != -1) {
-	    if (opts & P_SPACE_FILL)
-	       *(f++) = ' ';
-	    else if (opts & P_ZERO_FILL)
-	       *(f++) = '0';
-	    f += sprintf(f, "%d", width);
-	 }
+         // recreate the sprintf format argument
+         f = fmt;
+         *(f++) = '%';
+         if (opts & P_JUSTIFY_LEFT)
+            *(f++) = '-';
+         if (opts & P_INCLUDE_PLUS)
+            *(f++) = '+';
+         if (width != -1) {
+            if (opts & P_SPACE_FILL)
+               *(f++) = ' ';
+            else if (opts & P_ZERO_FILL)
+               *(f++) = '0';
+            f += sprintf(f, "%d", width);
+         }
 #ifdef _Q_WINDOWS
-	 *(f++) = 'I';
-	 *(f++) = '6';
-	 *(f++) = '4';
+         *(f++) = 'I';
+         *(f++) = '6';
+         *(f++) = '4';
 #else
-	 *(f++) = 'l';
-	 *(f++) = 'l';
+         *(f++) = 'l';
+         *(f++) = 'l';
 #endif
-	 *(f++) = p; // 'd', etc;
-	 *f = '\0';
+         *(f++) = p; // 'd', etc;
+         *f = '\0';
          int64 val = qv.getAsBigInt();
-	 tbuf.sprintf(fmt, val);
-	 if (type && (width != -1))
-	    tbuf.terminate(width);
-	 break;
+         tbuf.sprintf(fmt, val);
+         if (type && (width != -1))
+            tbuf.terminate(width);
+         break;
       }
       case 'A':
       case 'a':
@@ -587,62 +596,62 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
       case 'f':
       case 'E':
       case 'e': {
-	 // recreate the sprintf format argument
-	 f = fmt;
-	 *(f++) = '%';
-	 if (opts & P_JUSTIFY_LEFT)
-	    *(f++) = '-';
-	 if (opts & P_INCLUDE_PLUS)
-	    *(f++) = '+';
-	 if (width != -1) {
-	    if (opts & P_SPACE_FILL)
-	       *(f++) = ' ';
-	    else if (opts & P_ZERO_FILL)
-	       *(f++) = '0';
-	    f += sprintf(f, "%d", width);
-	 }
-	 if (decimals != -1) {
-	    *(f++) = '.';
-	    f += sprintf(f, "%d", decimals);
-	 }
-	 if (t == NT_NUMBER) {
-	    *(f++) = QORE_MPFR_SPRINTF_ARG;
+         // recreate the sprintf format argument
+         f = fmt;
+         *(f++) = '%';
+         if (opts & P_JUSTIFY_LEFT)
+            *(f++) = '-';
+         if (opts & P_INCLUDE_PLUS)
+            *(f++) = '+';
+         if (width != -1) {
+            if (opts & P_SPACE_FILL)
+               *(f++) = ' ';
+            else if (opts & P_ZERO_FILL)
+               *(f++) = '0';
+            f += sprintf(f, "%d", width);
+         }
+         if (decimals != -1) {
+            *(f++) = '.';
+            f += sprintf(f, "%d", decimals);
+         }
+         if (t == NT_NUMBER) {
+            *(f++) = QORE_MPFR_SPRINTF_ARG;
             *(f++) = *param; // a|A|e|E|f|F|g|G
             *f = '\0';
             qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
-	 }
-	 else {
-	    *(f++) = *param; // a|A|e|E|f|F|g|G
-	    *f = '\0';
-	    double val = qv.getAsFloat();
-	    tbuf.sprintf(fmt, val);
+         }
+         else {
+            *(f++) = *param; // a|A|e|E|f|F|g|G
+            *f = '\0';
+            double val = qv.getAsFloat();
+            tbuf.sprintf(fmt, val);
             // issue 1556: external modules that call setlocale() can change
             // the decimal point character used here from '.' to ','
             q_fix_decimal(&tbuf);
-	    //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
-	 }
-	 if (type && (width != -1))
-	    tbuf.terminate(width);
-	 break;
+            //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
+         }
+         if (type && (width != -1))
+            tbuf.terminate(width);
+         break;
       }
       case 'n':
       case 'N': {
-	 QoreNodeAsStringHelper t(qv, *param == 'N'
-				  ? (width == -1 ? FMT_NORMAL : width)
-				  : FMT_NONE, xsink);
-	 tbuf.concat(*t, xsink);
-	 break;
+         QoreNodeAsStringHelper t(qv, *param == 'N'
+                                  ? (width == -1 ? FMT_NORMAL : width)
+                                  : FMT_NONE, xsink);
+         tbuf.concat(*t, xsink);
+         break;
       }
       case 'y': {
-	 QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
-	 tbuf.concat(*t, xsink);
-	 break;
+         QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
+         tbuf.concat(*t, xsink);
+         break;
       }
       default:
-	 // if the format argument is not understood, then make sure and just consume the '%' char
-	 tbuf.concat('%');
-	 param = str;
-	 *taken = 0;
+         // if the format argument is not understood, then make sure and just consume the '%' char
+         tbuf.concat('%');
+         param = str;
+         *taken = 0;
    }
 
    cstr->concat(&tbuf, xsink);
@@ -666,17 +675,17 @@ QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, Exc
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
-	 const AbstractQoreNode* node = get_param(params, j++);
-	 i += process_opt(*buf, (char*)&pstr[i], node, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    j--;
+         const AbstractQoreNode* node = get_param(params, j++);
+         i += process_opt(*buf, (char*)&pstr[i], node, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            j--;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
-	     ++i;
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
       }
    }
 
@@ -704,28 +713,28 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
       const AbstractQoreNode* arg = 0;
 
       if ((pstr[i] == '%')) {
-	 if (args) {
-	    if (arg_list && j < arg_list->size()) {
-	       havearg = true;
-	       arg = get_param(arg_list, j);
-	    }
-	    else if (!j) {
-	       arg = args;
-	       havearg = true;
-	    }
-	 }
+         if (args) {
+            if (arg_list && j < arg_list->size()) {
+               havearg = true;
+               arg = get_param(arg_list, j);
+            }
+            else if (!j) {
+               arg = args;
+               havearg = true;
+            }
+         }
       }
       if (havearg) {
-	 ++j;
-	 i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    --j;
+         ++j;
+         i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            --j;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
              ++i;
       }
    }
@@ -751,17 +760,17 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
    for (i = 0; i < l; i++) {
       int taken = 1;
       if ((pstr[i] == '%') && (j < params->size())) {
-	 pv = get_param_value(params, j++);
-	 i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    j--;
+         pv = get_param_value(params, j++);
+         i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            j--;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
-	     ++i;
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
+             ++i;
       }
    }
 
@@ -791,25 +800,25 @@ QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, E
       QoreValue cv;
 
       if ((pstr[i] == '%')) {
-	 if (!pv.isNothing()) {
-	    havearg = true;
-	    if (arg_list && j < arg_list->size())
-	       cv = get_param(arg_list, j);
-	    else if (!j)
-	       cv = pv;
-	 }
+         if (!pv.isNothing()) {
+            havearg = true;
+            if (arg_list && j < arg_list->size())
+               cv = get_param(arg_list, j);
+            else if (!j)
+               cv = pv;
+         }
       }
       if (havearg) {
-	 ++j;
-	 i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
-	 if (*xsink)
-	    return 0;
-	 if (!taken)
-	    --j;
+         ++j;
+         i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
+         if (*xsink)
+            return 0;
+         if (!taken)
+            --j;
       }
       else {
-	 buf->concat(pstr[i]);
-	 if (pstr[i] == '%' && pstr[i+1] == '%')
+         buf->concat(pstr[i]);
+         if (pstr[i] == '%' && pstr[i+1] == '%')
              ++i;
       }
    }
@@ -841,7 +850,7 @@ static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, Ex
 
    if (!c) {
       if (!end_ok)
-	 xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+         xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
    }
    else {
       QoreStringNode* desc = new QoreStringNode;
@@ -870,7 +879,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
       }
       // if we've reached the end of the string here, then exit the loop
       if (!buf[pos])
-	 break;
+         break;
 
       // get second 6 bits
       ++pos;
@@ -948,14 +957,14 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    while (buf < end) {
       int b = get_nibble(*buf, xsink);
       if (b < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       int l = get_nibble(*buf, xsink);
       if (l < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -987,23 +996,23 @@ BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len) {
    while (buf < end) {
       int b = parse_get_nibble(loc, *buf);
       if (b < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
 #if 0
       // this can never happen; the parser guarantees an even number of digits
       if (!(*buf)) {
-	 free(binbuf);
-	 parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-	 return 0;
+         free(binbuf);
+         parseError("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
+         return 0;
       }
 #endif
 
       int l = parse_get_nibble(loc, *buf);
       if (l < 0) {
-	 free(binbuf);
-	 return 0;
+         free(binbuf);
+         return 0;
       }
       buf++;
       binbuf[blen++] = b << 4 | l;
@@ -1019,7 +1028,7 @@ char* make_class_name(const char* str) {
    p = cn;
    while (*p) {
       if (*p == '-')
-	 *p = '_';
+         *p = '_';
       p++;
    }
    return cn;
@@ -1037,7 +1046,7 @@ void qore_setup_argv(int pos, int argc, char* argv[]) {
    int end = argc - pos;
    for (int i = 0; i < argc; i++) {
       if (i < end)
-	 ARGV->push(new QoreStringNode(argv[i + pos]));
+         ARGV->push(new QoreStringNode(argv[i + pos]));
       QORE_ARGV->push(new QoreStringNode(argv[i]));
    }
 }
@@ -1050,11 +1059,11 @@ void init_lib_intern(char* env[]) {
       char* p;
 
       if ((p = strchr(env[i], '='))) {
-	 char save = *p;
-	 *p = '\0';
-	 ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
-	 //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
-	 *p = save;
+         char save = *p;
+         *p = '\0';
+         ENV->setKeyValue(env[i], new QoreStringNode(p + 1), 0);
+         //printd(5, "creating $ENV{\"%s\"} = \"%s\"\n", env[i], p + 1);
+         *p = save;
       }
       i++;
    }
@@ -1115,7 +1124,7 @@ const char* q_find_first_path_sep(const char* path) {
    const char* p = path;
    while (*p) {
       if (*p == '/' || *p == '\\')
-	 return p;
+         return p;
       ++p;
    }
    return 0;
@@ -1131,7 +1140,7 @@ const char* q_find_last_path_sep(const char* path) {
    const char* rv = 0;
    while (*p) {
       if (*p == '/' || *p == '\\')
-	 rv = p;
+         rv = p;
       ++p;
    }
    return rv;
@@ -1478,17 +1487,25 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       return 0;
 
    if (ntype == NT_OPERATOR) {
-      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
-      if (op) {
-	 return check_lvalue(op->getLeft(), assignment);
-      }
-      else {
-         QoreHashObjectDereferenceOperatorNode* hop = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
-         if (hop) {
-            return check_lvalue(hop->getLeft(), assignment);
+      {
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
          }
       }
-      return -1;
+      {
+         QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->get(0), assignment);
+         }
+      }
+      {
+         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
+         }
+         return -1;
+      }
    }
 
    return -1;
@@ -1707,7 +1724,7 @@ void QoreProgramLocation::toString(QoreString& str) const {
    if (start_line > 0) {
       str.sprintf(":%d", start_line);
       if (end_line > 0 && end_line != start_line)
-	 str.sprintf("-%d", end_line);
+         str.sprintf("-%d", end_line);
    }
 
    if (source)
@@ -1865,7 +1882,7 @@ char* strcasestr(const char* s1, const char* s2) {
 
    for (size_t i = 0, end = len1 - len2; i <= end; ++i) {
       if (!strncasecmp(s2, s1 + i, len2)) {
-	 return ((char*)s1 + i);
+         return ((char*)s1 + i);
       }
    }
 
@@ -1984,10 +2001,10 @@ int q_getcwd(QoreString& cwd) {
       if (!b) {
           if (errno == ERANGE) {
               bs *= 2;
-	      cwd.reserve(bs);
+              cwd.reserve(bs);
               continue;
           }
-	  //printd(5, "q_getcwd() failed: errno: %d\n", errno);
+          //printd(5, "q_getcwd() failed: errno: %d\n", errno);
           return -1;
       }
       break;
@@ -2017,7 +2034,7 @@ int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
 #endif
    if (!p) {
       if (xsink)
-	 xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
+         xsink->raiseErrnoException("REALPATH-ERROR", errno, "error calling realpath()");
       return -1;
    }
 #if defined(SOLARIS) || (defined(__NetBSD_Version__) && (__NetBSD_Version__ < 601000000))
@@ -2035,7 +2052,7 @@ int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* xsink) {
    // verify that the path exists
    if (!q_get_mode(rv)) {
       if (xsink)
-	 xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
+         xsink->raiseException("REALPATH-ERROR", "path '%s' does not exist", rv.getBuffer());
       return -1;
    }
    return 0;
@@ -2069,10 +2086,14 @@ int qore_get_ptr_hash(QoreString& str, const void* ptr) {
 }
 
 void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
-   assert(big_len && little_len);
+   assert(big && little);
 #ifdef HAVE_MEMMEM
    return memmem(big, big_len, little, little_len);
 #else
+   if (!big_len)
+      return nullptr;
+   if (!little_len)
+      return big;
    const char* lt = (const char*)little;
    const char* bg = (const char*)big;
    const char* p = bg;
@@ -2080,21 +2101,21 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    while (p < end) {
       const char* f = (const char*)memchr(p, lt[0], end - p);
       if (!f || ((bg - f) < (ptrdiff_t)little_len))
-	 return 0;
+         return nullptr;
       p = f;
       bool found = true;
       for (size_t i = 1; i < little_len; ++i) {
-	 if (*f != lt[i]) {
-	    found = false;
-	    break;
-	 }
-	 ++f;
+         if (*f != lt[i]) {
+            found = false;
+            break;
+         }
+         ++f;
       }
       if (found)
-	 return (void*)p;
+         return (void*)p;
       ++p;
    }
-   return 0;
+   return nullptr;
 #endif
 }
 
@@ -2444,11 +2465,11 @@ QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
    return thread_get_local_vars(frame, xsink);
 }
 
-int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   int rc = thread_set_local_var_value(name, val, xsink);
+int q_set_thread_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   int rc = thread_set_local_var_value(frame, name, val, xsink);
 
    if (rc == 1) {
-      rc = thread_set_closure_var_value(name, val, xsink);
+      rc = thread_set_closure_var_value(frame, name, val, xsink);
 
       if (rc == 1) {
          xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in the current stack frame", name);
@@ -2469,21 +2490,22 @@ bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
    return (bool)var[p];
 }
 
-void q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
+int q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
    switch (data.getType()) {
       case NT_STRING: {
          const QoreStringNode* str = data.get<const QoreStringNode>();
          ptr = str->getBuffer();
          len = str->size();
-         return;
+         return 0;
       }
       case NT_BINARY: {
          const BinaryNode* b = data.get<const BinaryNode>();
          ptr = (const char*)b->getPtr();
          len = b->size();
-         return;
+         return 0;
       }
    }
+   return -1;
 }
 
 const char* get_full_type_name(const AbstractQoreNode* n) {

@@ -132,7 +132,7 @@ public class SqlTestBase inherits QUnit::Test {
         # select a single column and then asterisk
         string col = table.describe().firstKey();
         hash sh = (
-            "columns": (cop_as(col, "col"), "*"),
+            "columns": (cop_as(col, "table"), "*"),
             "limit": 1,
             );
 

@@ -22,6 +22,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/SqlUtil.qm \
 	qlib/Mapper.qm \
 	qlib/ConnectionProvider.qm \
+	qlib/RestSchemaValidator.qm \
+	qlib/Swagger.qm \
 	qlib/RestClient.qm \
 	qlib/WebSocketClient.qm
 
@@ -194,6 +196,109 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/qc_option.qpp \
 	lib/qc_errno.qpp \
 	lib/qc_qore.qpp
+
+MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
+	modules/astparser/src/QC_AstTree.qpp \
+	modules/astparser/src/QC_AstTreeSearcher.qpp \
+	modules/astparser/src/AstParseErrorLog.h \
+	modules/astparser/src/AstParser.h \
+	modules/astparser/src/AstParserHolder.h \
+	modules/astparser/src/AstPrinter.h \
+	modules/astparser/src/AstTreeHolder.h \
+	modules/astparser/src/AstTreePrinter.h \
+	modules/astparser/src/AstTreeSearcher.h \
+	modules/astparser/src/QC_AstParser.h \
+	modules/astparser/src/QC_AstTree.h \
+	modules/astparser/src/QC_AstTreeSearcher.h \
+	modules/astparser/src/ast_scanner.lpp \
+	modules/astparser/src/ast_parser.ypp \
+	modules/astparser/src/ast/ASTModifiers.h \
+	modules/astparser/src/ast/ASTTree.h \
+	modules/astparser/src/ast/ASTStatement.h \
+	modules/astparser/src/ast/ASTOperator.h \
+	modules/astparser/src/ast/ASTExpression.h \
+	modules/astparser/src/ast/ASTSymbolInfo.h \
+	modules/astparser/src/ast/ASTParseOption.h \
+	modules/astparser/src/ast/ASTParseLocation.h \
+	modules/astparser/src/ast/ASTName.h \
+	modules/astparser/src/ast/AST.h \
+	modules/astparser/src/ast/expressions/ASTImplicitElemExpression.h \
+	modules/astparser/src/ast/expressions/ASTContextModExpression.h \
+	modules/astparser/src/ast/expressions/ASTReturnsExpression.h \
+	modules/astparser/src/ast/expressions/ASTTernaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTListExpression.h \
+	modules/astparser/src/ast/expressions/ASTAccessExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexTransExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexExpression.h \
+	modules/astparser/src/ast/expressions/ASTBackquoteExpression.h \
+	modules/astparser/src/ast/expressions/ASTCaseExpression.h \
+	modules/astparser/src/ast/expressions/ASTBinaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTNameExpression.h \
+	modules/astparser/src/ast/expressions/ASTLiteralExpression.h \
+	modules/astparser/src/ast/expressions/ASTConstrInitExpression.h \
+	modules/astparser/src/ast/expressions/ASTCallExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashExpression.h \
+	modules/astparser/src/ast/expressions/ASTRegexSubstExpression.h \
+	modules/astparser/src/ast/expressions/ASTContextRowExpression.h \
+	modules/astparser/src/ast/expressions/ASTCastExpression.h \
+	modules/astparser/src/ast/expressions/ASTAssignmentExpression.h \
+	modules/astparser/src/ast/expressions/ASTIndexExpression.h \
+	modules/astparser/src/ast/expressions/ASTClosureExpression.h \
+	modules/astparser/src/ast/expressions/ASTImplicitArgExpression.h \
+	modules/astparser/src/ast/expressions/ASTFindExpression.h \
+	modules/astparser/src/ast/expressions/ASTDeclExpression.h \
+	modules/astparser/src/ast/expressions/ASTUnaryExpression.h \
+	modules/astparser/src/ast/expressions/ASTSwitchBodyExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashElementExpression.h \
+	modules/astparser/src/ast/statements/ASTRethrowStatement.h \
+	modules/astparser/src/ast/statements/ASTOnBlockExitStatement.h \
+	modules/astparser/src/ast/statements/ASTIfStatement.h \
+	modules/astparser/src/ast/statements/ASTDoWhileStatement.h \
+	modules/astparser/src/ast/statements/ASTSummarizeStatement.h \
+	modules/astparser/src/ast/statements/ASTThrowStatement.h \
+	modules/astparser/src/ast/statements/ASTForeachStatement.h \
+	modules/astparser/src/ast/statements/ASTWhileStatement.h \
+	modules/astparser/src/ast/statements/ASTExpressionStatement.h \
+	modules/astparser/src/ast/statements/ASTContextStatement.h \
+	modules/astparser/src/ast/statements/ASTSwitchStatement.h \
+	modules/astparser/src/ast/statements/ASTForStatement.h \
+	modules/astparser/src/ast/statements/ASTContinueStatement.h \
+	modules/astparser/src/ast/statements/ASTReturnStatement.h \
+	modules/astparser/src/ast/statements/ASTThreadExitStatement.h \
+	modules/astparser/src/ast/statements/ASTBreakStatement.h \
+	modules/astparser/src/ast/statements/ASTStatementBlock.h \
+	modules/astparser/src/ast/statements/ASTTryStatement.h \
+	modules/astparser/src/ast/statements/ASTCallStatement.h \
+	modules/astparser/src/ast/ASTNode.h \
+	modules/astparser/src/ast/ASTDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTVariableDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTMemberGroupDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTVarListDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTSuperclassDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTClassDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTHashMemberDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTClosureDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTNamespaceDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTHashDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTFunctionDeclaration.h \
+	modules/astparser/src/ast/declarations/ASTConstantDeclaration.h \
+	modules/astparser/src/ast/ASTParseError.h \
+	modules/astparser/src/queries/FindMatchingSymbolsQuery.cpp \
+	modules/astparser/src/queries/FindMatchingSymbolsQuery.h \
+	modules/astparser/src/queries/FindNodeAndParentsQuery.cpp \
+	modules/astparser/src/queries/FindNodeAndParentsQuery.h \
+	modules/astparser/src/queries/FindNodeQuery.cpp \
+	modules/astparser/src/queries/FindNodeQuery.h \
+	modules/astparser/src/queries/FindReferencesQuery.cpp \
+	modules/astparser/src/queries/FindReferencesQuery.h \
+	modules/astparser/src/queries/FindSymbolInfoQuery.cpp \
+	modules/astparser/src/queries/FindSymbolInfoQuery.h \
+	modules/astparser/src/queries/FindSymbolsQuery.cpp \
+	modules/astparser/src/queries/FindSymbolsQuery.h \
+	modules/astparser/src/queries/GetNodesInfoQuery.cpp \
+	modules/astparser/src/queries/GetNodesInfoQuery.h \
+	modules/astparser/src/queries/SymbolInfoFixes.cpp \
+	modules/astparser/src/queries/SymbolInfoFixes.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
@@ -492,6 +597,8 @@ noinst_HEADERS = \
 	include/qore/intern/QoreMinusOperatorNode.h \
 	include/qore/intern/QoreMultiplicationOperatorNode.h \
 	include/qore/intern/QoreBackgroundOperatorNode.h \
+	include/qore/intern/QoreRangeOperatorNode.h \
+	include/qore/intern/QoreSquareBracketsRangeOperatorNode.h \
 	include/qore/intern/QorePseudoMethods.h \
 	include/qore/intern/QoreHashIterator.h \
 	include/qore/intern/QoreListIterator.h \
@@ -530,6 +637,10 @@ noinst_HEADERS = \
 	include/qore/intern/StringReaderHelper.h \
 	include/qore/intern/CompressionTransforms.h \
 	include/qore/intern/EncryptionTransforms.h \
+	include/qore/intern/IconvHelper.h \
+	include/qore/intern/FileLineIterator.h \
+	include/qore/intern/DataLineIterator.h \
+	include/qore/intern/EncodingConvertor.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -670,7 +781,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	cmake/QoreMacros.cmake \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
-	$(LANG_QPP_SRC)
+	$(LANG_QPP_SRC) \
+	$(MODULE_EXTRA_SRC)
 
 dist_modver_DATA = $(USER_MODULES)
 
@@ -758,8 +870,14 @@ doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm.dox.h -tMime.tag=../../Mime/html $< $@
 
+doxygen/qlib/Doxyfile.RestSchemaValidator: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
+
+doxygen/qlib/Doxyfile.Swagger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/Swagger.qm:doxygen/qlib/Swagger.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
+
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html $< $@
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@

@@ -140,20 +140,22 @@ ldconfig %{_libdir}
 %package stdlib
 Summary: Standard library modules
 Group: System Environment/Libraries
-BuildArch: noarch
 Requires: libqore = %{version}-%{release}
+Requires: qore-module(abi)%{?_isa} = 0.20
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
 
-This package provides the Qore language standard library user modules.
+This package provides the Qore language standard library user and binary
+modules.
 
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
 %doc COPYING.MIT README-LICENSE
+%{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -197,6 +199,7 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore
 %{_prefix}/include/*
+%{_datarootdir}/qore/Doxyfile.in
 
 %package devel-doc
 Summary: C++ API documentation for the qore library

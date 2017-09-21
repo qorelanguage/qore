@@ -33,30 +33,51 @@
 #include "qore/intern/ThreadClosureVariableStack.h"
 #include "qore/intern/LocalVar.h"
 
+int ThreadClosureVariableStack::getFrame(int frame, Block*& w, int& p) {
+  assert(frame >= 0);
+
+  if (!frame) {
+     w = curr;
+     p = w->pos;
+     return 0;
+  }
+
+  // find requested frame
+  int cframe = 0;
+
+  w = curr;
+  while (true) {
+     p = w->pos;
+     while (p) {
+        --p;
+        const ClosureVarValue* var = w->var[p];
+        if (!var) {
+           if (frame == ++cframe)
+              return 0;
+           continue;
+        }
+     }
+     w = w->prev;
+     if (!w)
+        break;
+  }
+  return -1;
+}
+
 void ThreadClosureVariableStack::getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
-   assert(frame >= 0);
+   Block* w;
+   int p;
+   if (getFrame(frame, w, p))
+      return;
 
-   // find requested frame
-   int cframe = 0;
-
-   bool in_frame = !frame;
-
-   Block* w = curr;
    while (true) {
-      int p = w->pos;
       while (p) {
          --p;
          const ClosureVarValue* var = w->var[p];
-         if (!var) {
-            if (in_frame)
-               break;
-            ++cframe;
-            if (frame == cframe)
-               in_frame = true;
-            continue;
-         }
+         if (!var)
+            return;
 
-         if (in_frame && !var->skip) {
+         if (!var->skip) {
             ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
             v->setKeyValue("type", new QoreStringNode("closure"), xsink);
             v->setKeyValue("value", var->evalValue(xsink).takeNode(), xsink);
@@ -66,19 +87,23 @@ void ThreadClosureVariableStack::getLocalVars(QoreHashNode& h, int frame, Except
       w = w->prev;
       if (!w)
          break;
+      p = w->pos;
    }
 }
 
 // returns 0 = OK, 1 = no such variable, -1 exception setting variable
-int ThreadClosureVariableStack::setVarValue(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   Block* w = curr;
+int ThreadClosureVariableStack::setVarValue(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   Block* w;
+   int p;
+   if (getFrame(frame, w, p))
+      return 1;
+
    while (true) {
-      int p = w->pos;
       while (p) {
          --p;
          const ClosureVarValue* var = w->var[p];
          if (!var)
-            break;
+            return 1;
 
          if (!var->skip && !strcmp(var->id, name)) {
             LValueHelper lvh(xsink);
@@ -91,6 +116,7 @@ int ThreadClosureVariableStack::setVarValue(const char* name, const QoreValue& v
       w = w->prev;
       if (!w)
          break;
+      p = w->pos;
    }
    return 1;
 }

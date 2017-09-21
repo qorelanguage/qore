@@ -10,6 +10,8 @@
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
 
@@ -47,11 +49,31 @@ class MyRestHandler inherits RestHandler {
     }
 }
 
+class SwaggerRestClass inherits AbstractRestClass {
+    string name() {
+        return "swagger";
+    }
+
+    *AbstractRestClass subClass(string arg, hash cx, *hash ah) {
+        if (arg == "test")
+            return new TestRestClass();
+    }
+}
+
+class SwaggerRestHandler inherits RestHandler {
+    constructor(AbstractRestSchemaValidator validator) : RestHandler(NOTHING, validator) {
+        addClass(new SwaggerRestClass());
+    }
+}
+
 public class RestHandlerTest inherits QUnit::Test {
     private {
         HttpServer mServer;
         RestClient mClient;
         MyRestHandler mHandler();
+%ifndef NoJson
+        SwaggerRestHandler swaggerHandler(SwaggerLoader::fromString(make_json(TestSchema)));
+%endif
         int port;
 
         const SimpleHashValue = ("a": "1");
@@ -62,13 +84,15 @@ public class RestHandlerTest inherits QUnit::Test {
 
         const AllValues = ("1", "one", ListValue, SimpleHashValue, LargerHashValue, HashValue);
 
+        const AllYamlValues = AllValues + (now_us(), <bead>);
+
         const DataValues = (
 %ifndef NoXml
             "xml": AllValues,
 %endif
             "auto": AllValues,
 %ifndef NoYaml
-            "yaml": AllValues,
+            "yaml": AllYamlValues,
 %endif
 %ifndef NoJson
             "json": AllValues,
@@ -77,7 +101,49 @@ public class RestHandlerTest inherits QUnit::Test {
             "rawxml": SimpleHashValue,
 %endif
             "url": (SimpleHashValue, LargerHashValue),
-            );
+        );
+
+        const TestSchema = (
+            "swagger": "2.0",
+            "info": (
+                "title": "title",
+                "version": "1.0",
+            ),
+            "basePath": "/swagger",
+            "paths": (
+                "/test": (
+                    "parameters": (
+                        (
+                            "in": "query",
+                            "name": "action",
+                            "type": "string",
+                        ),
+                        (
+                            "in": "body",
+                            "name": "body",
+                            "schema": (
+                                "$ref": "#/definitions/Any",
+                            ),
+                        ),
+                    ),
+                    "responses": (
+                        "200": (
+                            "schema": (
+                                "$ref": "#/definitions/Any",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            "definitions": (
+                "Any": (
+                    "type": "object",
+                    "additionalParameters": (
+                        "type": "string",
+                    ),
+                ),
+            ),
+        );
     }
 
     public {
@@ -87,6 +153,7 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("Test direct interface", \directTest());
         addTestCase("Test external serialization", \serializationTest());
         addTestCase("Test xml", \xmlTest());
+        addTestCase("Test swagger", \swaggerTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -94,7 +161,10 @@ public class RestHandlerTest inherits QUnit::Test {
 
     globalSetUp() {
         mServer = new HttpServer(\log(), \log());
-        mServer.setHandler("rest-handler", "", MimeTypeHtml, mHandler);
+        mServer.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler);
+%ifndef NoJson
+        mServer.setHandler("swagger-handler", "/swagger", MimeTypeJson, swaggerHandler);
+%endif
         mServer.setDefaultHandler("rest-handler", mHandler);
         port = mServer.addListener(0).port;
 
@@ -175,6 +245,23 @@ public class RestHandlerTest inherits QUnit::Test {
             h = mClient.put("test?action=echo", ListValue, \info);
             assertEq(("list": ("element": ListValue)), h.body);
         }
+    }
+
+    swaggerTest() {
+%ifdef NoJson
+        # cannot test serialization with no binary modules present
+        testSkip("no json module present");
+%endif
+
+        # test direct interface
+        any val = swaggerHandler.handleExternalRequest("GET", "/swagger/test?action=echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = swaggerHandler.handleExternalRequest("PUT", "/swagger/test?action=echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = swaggerHandler.handleExternalRequest("GET", "/swagger/test?action=echo", HashValue);
+        assertEq(HashValue, val);
+        val = swaggerHandler.handleExternalRequest("PUT", "/swagger/test?action=echo", HashValue);
+        assertEq(HashValue, val);
     }
 
     urlTest() {

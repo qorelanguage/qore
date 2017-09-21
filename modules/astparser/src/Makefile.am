@@ -1,22 +1,22 @@
 MNAME=astparser
 
 if COND_MINGWCC
-QPP=qpp_native
+ASTPARSER_QPP=$(top_srcdir)/lib/qpp_native
 else
-QPP=qpp
+ASTPARSER_QPP=$(top_srcdir)/lib/qpp
 endif
 
 dummy:
 	echo "Build started!"
 
 QC_AstParser.cpp: QC_AstParser.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 QC_AstTree.cpp: QC_AstTree.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 QC_AstTreeSearcher.cpp: QC_AstTreeSearcher.qpp
-	$(QPP) -V $<
+	$(ASTPARSER_QPP) -V $<
 
 GENERATED_SOURCES = QC_AstParser.cpp QC_AstTree.cpp QC_AstTreeSearcher.cpp
 CLEANFILES = $(GENERATED_SOURCES)
@@ -35,12 +35,11 @@ ASTPARSER_SOURCES = astparser-module.cpp AstParser.cpp AstParserHolder.cpp \
 	queries/FindMatchingSymbolsQuery.cpp queries/FindNodeQuery.cpp \
 	queries/FindNodeAndParentsQuery.cpp queries/FindReferencesQuery.cpp \
 	queries/FindSymbolInfoQuery.cpp queries/FindSymbolsQuery.cpp \
-	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp \
-	ast_parser.cpp ast_scanner.cpp
-nodist_astparser_la_SOURCES = $(GENERATED_SOURCES)
+	queries/GetNodesInfoQuery.cpp queries/SymbolInfoFixes.cpp
+nodist_astparser_la_SOURCES = $(GENERATED_SOURCES) ast_parser.cpp ast_scanner.cpp
 endif
 
-lib_LTLIBRARIES = astparser.la
+modexeclib_LTLIBRARIES = astparser.la
 astparser_la_SOURCES = $(ASTPARSER_SOURCES)
 astparser_la_LDFLAGS = -module -avoid-version ${ASTPARSER_LIBS} ${MODULE_LDFLAGS}
 
@@ -57,13 +56,12 @@ endif
 endif
 
 if COND_MINGWCC
-RM_OTHER=$(DESTDIR)$(libdir)/$(MNAME).dll.a
+RM_OTHER=$(DESTDIR)$(modexeclibdir)/$(MNAME).dll.a
 endif
 
 install-exec-hook:
-	test -d $(MODULE_DIR) || mkdir -p $(MODULE_DIR)
-	mv $(DESTDIR)$(libdir)/$(MNAME).$(MODULE_SUFFIX) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
-	$(RM) $(DESTDIR)$(libdir)/$(MNAME).la $(DESTDIR)$(libdir)/$(MNAME).a $(RM_OTHER)
+	mv $(DESTDIR)$(modexeclibdir)/$(MNAME).$(MODULE_SUFFIX) $(DESTDIR)$(modexeclibdir)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(DESTDIR)$(modexeclibdir)/$(MNAME).la $(DESTDIR)$(modexeclibdir)/$(MNAME).a $(RM_OTHER)
 
 clean-local:
 	$(RM) -r $(GENERATED_SOURCES)
@@ -71,4 +69,4 @@ clean-local:
 	$(RM) *.qtest
 
 uninstall-local:
-	$(RM) $(MODULE_DIR)/$(MNAME)-api-$(MODULE_API).qmod
+	$(RM) $(DESTDIR)$(modexeclibdir)/$(MNAME)-api-$(MODULE_API).qmod

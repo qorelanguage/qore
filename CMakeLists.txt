@@ -568,6 +568,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreQuestionMarkOperatorNode.cpp
     lib/QoreKeysOperatorNode.cpp
     lib/QoreSelectOperatorNode.cpp
+    lib/QoreRangeOperatorNode.cpp
+    lib/QoreSquareBracketsRangeOperatorNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -770,11 +772,19 @@ qore_user_module("qlib/TextWrap.qm" "Util")
 # base 3 modules
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
-qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
+
+# base 5 modules
+qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
+
+# base 6 modules
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
+
+# base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
@@ -782,7 +792,7 @@ qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")

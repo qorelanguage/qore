@@ -69,6 +69,7 @@ module BulkSqlUtil {
     @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
     - updated the module to support drivers without bulk DML
     - updated for complex types
+    - added @ref BulkSqlUtil::AbstractBulkOperation::size() "AbstractBulkOperation::size()"
 
     @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
     - fixed a bug in the @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation" class where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
@@ -204,17 +205,6 @@ on_error ds.rollback();
         destructor() {
             if (hbuf.firstValue())
                 throw "BLOCK-ERROR", sprintf("there %s still %d row%s of data in the internal cache; make sure to call %s::flush() or %s::discard() before destroying the object to flush all data to the database", hbuf.firstValue().size() == 1 ? "is" : "are", hbuf.firstValue().size(), hbuf.firstValue().size() == 1 ? "" : "s", self.className(), self.className());
-        }
-
-        #! common constructor initialization
-        private init(*hash opts) {
-            block_size = opts.block_size ?? OptionDefaults.block_size;
-
-            if (block_size < 1)
-                throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must be >= 1", block_size);
-
-            if (opts.info_log)
-                info_log = opts.info_log;
         }
 
         #! queues row data in the block buffer; the block buffer is flushed to the DB if the buffer size reaches the limit defined by the \c block_size option; does not commit the transaction
@@ -357,6 +347,26 @@ on_error ds.rollback();
 
             # return all target data
             flushIntern();
+        }
+
+        #! returns the current size of the cache as a number of rows
+        /** @return the current size of the cache as a number of rows
+
+            @since %BulkSqlUtil 1.2
+        */
+        int size() {
+            return hbuf.firstValue().size();
+        }
+
+        #! common constructor initialization
+        private init(*hash opts) {
+            block_size = opts.block_size ?? OptionDefaults.block_size;
+
+            if (block_size < 1)
+                throw "BULK-SQL-OPERATION-ERROR", sprintf("the block_size option is set to %d; this value must be >= 1", block_size);
+
+            if (opts.info_log)
+                info_log = opts.info_log;
         }
 
         #! sets up the block buffer given the initial template hash of lists for inserting

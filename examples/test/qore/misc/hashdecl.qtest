@@ -204,10 +204,28 @@ class HashDeclTest inherits QUnit::Test {
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {hash<Container> c(); c.i = 'str';}", ""));
         }
 
-        {
+        if (HAVE_STACK_GUARD) {
             Program p(PO_NEW_STYLE);
             p.parse("sub t() { hash<R1> r(); }", "");
             assertThrows("STACK-LIMIT-EXCEEDED", \p.callFunction(), "t");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_NO_INHERIT_USER_HASHDECLS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() {hash<Container> c; delete c;}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_NO_INHERIT_USER_HASHDECLS);
+            p.importHashDecl("Container");
+            p.parse("hash<Container> sub t() {return new hash<Container>();}", "");
+            hash<Container> c = p.callFunction("t");
+            assertEq(True, c instanceof hash<Container>);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_NO_INHERIT_SYSTEM_HASHDECLS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() {hash<ExceptionInfo> c; delete c;}", ""));
         }
     }
 }

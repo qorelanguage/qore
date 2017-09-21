@@ -105,6 +105,9 @@ module SqlUtil {
     - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
     - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
 
+    @subsection sqlutilv1_3_4 SqlUtil v1.3.4
+    - fixed a bug in with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
+
     @subsection sqlutilv1_3_3 SqlUtil v1.3.3
     - fixed a bug in the \c offset query hash argument in SQL operation methods (<a href="https://github.com/qorelanguage/qore/issues/1880">issue 1880</a>)
     - implemented the @ref select_option_alias "alias" select option to fix a bug that prohibited only columns from the main query to be selected when joins are used (<a href="https://github.com/qorelanguage/qore/issues/1909">issue 1909</a>)
@@ -2179,7 +2182,7 @@ public namespace SqlUtil {
             "withalias": True,
             "code": string sub (string cve, string arg, reference<hash> psch) {
                 psch{arg} = cve;
-                return sprintf("%s as %s", cve, arg);
+                return sprintf("%s as %y", cve, arg);
             },
         ),
         COP_PREPEND: (

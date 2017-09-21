@@ -110,6 +110,7 @@ public class SqlTestBase inherits QUnit::Test {
             on_error insert.discard();
 
             assertEq(NOTHING, insert.queueData(getRows(insert_data, 0, 2) + crec));
+            assertEq(2, insert.size());
             assertEq(NOTHING, insert.queueData(getRows(insert_data, 2, 4) + crec));
             assertEq(NOTHING, insert.queueData(getRows(insert_data, 4) + crec));
         }

@@ -180,6 +180,14 @@ class ProgramTest inherits QUnit::Test {
             assertEq("source", ex.source);
             assertEq(10, ex.offset);
         }
+
+        {
+            Program p5(PO_NEW_STYLE);
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("#", ""));
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("/*", ""));
+        }
     }
 
     combineTest() {
@@ -417,7 +425,7 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value('i', 2); set_local_var_value('str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
 
             hash vh = (
                 "frame": ("type": "local", "value": 0),
@@ -432,19 +440,19 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); }", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); }", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('x', 2); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); sub () { i = 3; };}", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
-            p.parse("sub test() { int i = 1; set_local_var_value('i', 'hi'); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); sub () { i = 3; };}", "");
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
         }
 

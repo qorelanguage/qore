@@ -636,7 +636,48 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
    }
 }
 
-void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
+void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name) {
+      if (&from_pgm == this) {
+         xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
+         return;
+      }
+
+      const qore_ns_private* vns = nullptr;
+      const TypedHashDecl* hd;
+      {
+         // acquire safe access to parse structures in the source program
+         ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+         if (*xsink)
+            return;
+         hd = qore_root_ns_private::runtimeFindHashDecl(*from_pgm.RootNS, path, vns);
+      }
+
+      if (!hd) {
+          xsink->raiseException("HASHDECL-IMPORT-ERROR", "can't find hashdecl \"%s\" in source Program", path);
+          return;
+      }
+
+      // get exclusive access to program object for parsing
+      ProgramRuntimeParseContextHelper pch(xsink, pgm);
+      if (*xsink)
+         return;
+
+      // find/create target namespace based on source namespace
+      QoreNamespace* tns;
+      if (new_name && strstr(new_name, "::")) {
+         NamedScope nscope(new_name);
+
+         tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic());
+         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, nscope.getIdentifier());
+      }
+      else {
+         tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+         //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, new_name);
+      }
+   }
+
+   void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
    // get exclusive access to program object for parsing
    ProgramRuntimeParseContextHelper pch(xsink, pgm);
    if (*xsink)

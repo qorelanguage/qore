@@ -359,8 +359,9 @@ RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {
 }
 
 QoreValue RunTimeResolvedMethodReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   OptionalClassObjSubstitutionHelper osh(qc);
-   return qore_method_private::eval(*method, xsink, obj, args);
+   //printd(5, "RunTimeResolvedMethodReferenceNode::execValue() cpgm: %p opgm: %p\n", getProgram(), obj->getProgram());
+   // issue #2145: do not set the call reference class context before arguments are evaluted
+   return qore_method_private::eval(*method, xsink, obj, args, qc);
 }
 
 QoreProgram* RunTimeResolvedMethodReferenceNode::getProgram() const {
