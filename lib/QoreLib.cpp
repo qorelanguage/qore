@@ -1487,17 +1487,25 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
       return 0;
 
    if (ntype == NT_OPERATOR) {
-      QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
-      if (op) {
-         return check_lvalue(op->getLeft(), assignment);
-      }
-      else {
-         QoreHashObjectDereferenceOperatorNode* hop = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
-         if (hop) {
-            return check_lvalue(hop->getLeft(), assignment);
+      {
+         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
          }
       }
-      return -1;
+      {
+         QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->get(0), assignment);
+         }
+      }
+      {
+         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+         if (op) {
+            return check_lvalue(op->getLeft(), assignment);
+         }
+         return -1;
+      }
    }
 
    return -1;

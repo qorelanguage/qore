@@ -382,6 +382,9 @@ struct qore_httpclient_priv {
 void QoreHttpClientObject::static_init() {
    // setup static members of QoreHttpClientObject class
    method_map.insert(method_map_t::value_type("OPTIONS", true));
+   // FIXME: GET should not take a message body; this should be false
+   // but it cannot be changed or it would break backwards compatibility
+   // appropriate notes have been added to the API docs
    method_map.insert(method_map_t::value_type("GET", true));
    method_map.insert(method_map_t::value_type("HEAD", false));
    method_map.insert(method_map_t::value_type("POST", true));
@@ -389,6 +392,8 @@ void QoreHttpClientObject::static_init() {
    method_map.insert(method_map_t::value_type("DELETE", true));
    method_map.insert(method_map_t::value_type("TRACE", true));
    method_map.insert(method_map_t::value_type("CONNECT", true));
+   // PATCH: https://tools.ietf.org/html/rfc5789
+   method_map.insert(method_map_t::value_type("PATCH", true));
 
    header_ignore.insert("Content-Length");
 }

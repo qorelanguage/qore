@@ -59,6 +59,7 @@ class RestCmd {
             "proxy":     "P,proxy-url=s",
             "to":        "t,timeout=i",
             "lit":       "l,literal:i+",
+            "list":      "L,list",
             "reformat":  "R,reformat",
             "fullex":    "E,full-exception",
             "data":      "S,serialization=s",
@@ -79,9 +80,26 @@ class RestCmd {
     constructor() {
         GetOpt g(Opts);
         hash opt = g.parse3(\ARGV);
-
-        if (opt.help || !ARGV[0])
+        if (opt.help || (!ARGV[0] && !opt.list))
             usage();
+
+        hash opts;
+
+        if (opt.swagger) {
+            opts.validator = SwaggerLoader::fromFile(opt.swagger);
+        }
+        else if (opt.example)
+            error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
+        else if (opt.list)
+            error("option -L|--list requires -s|--swagger to provide the schema for returning the list");
+
+        if (opt.list) {
+            printf("URL: %s\n",  opts.validator.getTargetUrl());
+            foreach hash h in (opts.validator.getPathOperationHash().pairIterator()) {
+                map printf("%s /%s\n", $1.upr(), h.key), h.value;
+            }
+            thread_exit;
+        }
 
         *string meth = shift ARGV;
         if (!exists meth)
@@ -104,22 +122,15 @@ class RestCmd {
             usage();
         }
 
-        hash opts;
-
-        if (opt.swagger) {
-            opts.validator = SwaggerLoader::fromFile(opt.swagger);
-            if (url !~ /^[a-z]+:\/\//)
-                url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
-        }
-        else if (opt.example)
-            error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
-
         {
             string orig_url = url;
             url = get_connection_url(url);
             if (url != orig_url)
                 printf("using connection: %y url: %y\n", orig_url, url);
         }
+
+        if (opts.validator && url !~ /^[a-z]+:\/\//)
+            url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
 
         if (opt.example) {
             bool msg = True;
@@ -344,6 +355,7 @@ class RestCmd {
  -E,--full-exception       show full exception output
  -H,--header=ARG           send header with request
  -l,--literal              show literal API calls (more l's, more info)
+ -L,--list                 list URI paths and methods supported by the schema
  -P,--proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
  -R,--reformat             reformat data with -l+ for better readability
  -S,--serialization=ARG    set REST data serialization type:

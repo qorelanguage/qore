@@ -57,6 +57,7 @@ enum qore_var_t {
 class Var;
 class ScopedObjectCallNode;
 class QoreSquareBracketsOperatorNode;
+class QoreSquareBracketsRangeOperatorNode;
 class QoreHashObjectDereferenceOperatorNode;
 
 union qore_gvar_ref_u {
@@ -652,10 +653,14 @@ private:
    DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
    DLLLOCAL void* operator new(size_t);
 
+   DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op);
+   DLLLOCAL void doRemove(const QoreSquareBracketsRangeOperatorNode* op);
+
 protected:
    ExceptionSink* xsink;
    QoreLValueGeneric rv;
-   bool for_del;
+   bool for_del,
+      direct_list = false;
 
 public:
    DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
