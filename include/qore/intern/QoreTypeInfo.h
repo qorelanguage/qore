@@ -407,21 +407,21 @@ public:
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexHash(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexHash();
+      return ti == autoHashTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexHash();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexList();
+      return ti == autoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexList();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexSoftList(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexSoftList();
+      return ti == softAutoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexSoftList();
    }
 
    // static version of method, checking for null pointer
