@@ -3689,6 +3689,7 @@ exp:
                                         }
     | exp '[' exp ']'                   {
         $$ = nullptr;
+        // issue #2198: if we have a range between square brackets, we need to return a QoreSquareBracketsRangeOperatorNode
         if ($3 && $3->getType() == NT_OPERATOR) {
            QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3);
            if (ron) {
@@ -3778,6 +3779,7 @@ exp_n:
                                           }
     | exp_n '[' exp ']'                   {
         $$ = nullptr;
+        // issue #2198: if we have a range between square brackets, we need to return a QoreSquareBracketsRangeOperatorNode
         if ($3 && $3->getType() == NT_OPERATOR) {
            QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3);
            if (ron) {
