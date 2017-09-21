@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2017 September 20
+" Last Change:	2017 September 21
 
 if version < 600
   syntax clear
@@ -206,6 +206,7 @@ syn keyword qoreModule SqlUtil
 syn keyword qoreModule Swagger
 syn keyword qoreModule TableMapper
 syn keyword qoreModule TelnetClient
+syn keyword qoreModule TextWrap
 syn keyword qoreModule UnitTest
 syn keyword qoreModule Util
 syn keyword qoreModule WebSocketClient
