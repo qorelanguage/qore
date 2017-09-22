@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ContextrefNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -46,11 +46,11 @@ protected:
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return 0;
    }
-      
+
 public:
    char *str;
 
-   DLLLOCAL ContextrefNode(char *c_str);
+   DLLLOCAL ContextrefNode(const QoreProgramLocation& loc, char *c_str);
 
    DLLLOCAL virtual ~ContextrefNode();
 

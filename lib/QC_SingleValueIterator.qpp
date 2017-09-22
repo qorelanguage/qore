@@ -29,14 +29,14 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/SingleValueIterator.h>
+#include "qore/intern/SingleValueIterator.h"
 
 //! This class defines a simple iterator to be used to iterate single values (or complex objects where no iterator has been implemented yet)
 /** @since %Qore 0.8.6
 
     @par Example: SingleValueIterator basic usage
     @code{.py}
-    any val = 1;
+    auto val = 1;
     SingleValueIterator it(val);
     while (it.next()) {
         printf("iter: %n\n", it.getValue());
@@ -48,7 +48,7 @@
     Remember that input value is taken as a single token so result of the code above for a list as an input argument will be like this:
 
     @code{.py}
-    any val = (1, 2, 3);
+    auto val = (1, 2, 3);
     iter: list: (1, 2, 3)
     @endcode
 
@@ -63,7 +63,7 @@ qclass SingleValueIterator [arg=SingleValueIterator* i; ns=Qore; vparent=Abstrac
 SingleValueIterator i(v);
     @endcode
  */
-SingleValueIterator::constructor(any v) {
+SingleValueIterator::constructor(auto v) {
    self->setPrivate(CID_SINGLEVALUEITERATOR, new SingleValueIterator(v));
 }
 
@@ -109,7 +109,7 @@ while (i.next()) {
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
  */
-any SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
+auto SingleValueIterator::getValue() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 

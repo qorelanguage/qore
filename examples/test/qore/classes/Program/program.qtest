@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
+%allow-debugging
 
 %requires QUnit
 
@@ -31,7 +32,7 @@ class Test inherits Socket {
         data = (a, b, c);
     }
     any getData(int elem) {
-	return data[elem];
+        return data[elem];
     }
     string methodGate(string m) {
         return m;
@@ -59,101 +60,139 @@ class ProgramTest inherits QUnit::Test {
     }
 
     private {
-	const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
+        const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
+
+        # global variables provided by the Qore language
+        const QoreGlobalVars = ("Qore::ENV", "Qore::QORE_ARGV", "Qore::ARGV");
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
-	addTestCase("Program test", \programTest());
-	addTestCase("Combine test", \combineTest());
+        addTestCase("Program test", \programTest());
+        addTestCase("Combine test", \combineTest());
         addTestCase("Int assignments test", \intAssignmentsTest());
         addTestCase("constant exp test", \constantExpressionTest());
         addTestCase("type error test", \typeErrorTest());
         addTestCase("broken-operators test", \brokenOperatorsTest());
         addTestCase("class test", \classTest());
-	set_return_value(main());
+        addTestCase("setThreadInit test", \setThreadInitTest());
+        addTestCase("var test", \varTest());
+        set_return_value(main());
     }
 
     programTest() {
-	our Test to();
-	our Test ro();
+        our Test to();
+        our Test ro();
 
-	string func = "namespace ITest { const val = 1.0; class X; } our int gv2 = 123; int sub t2(int a) { return a + 2; } int sub et(int a) { return t(a); } string sub tot() { return get_class_name(to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { ro.getData(0); delete ro; } bool sub check_ro() { return exists ro; }";
+        string func = "namespace ITest { const val = 1.0; class X; } our int gv2 = 123; int sub t2(int a) { return a + 2; } int sub et(int a) { return t(a); } string sub tot() { return get_class_name(to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { ro.getData(0); delete ro; } bool sub check_ro() { return exists ro; }";
 
-	string pf = "newfunc();";
-	string nf = "bool sub newfunc() { return True; }";
+        string pf = "newfunc();";
+        string nf = "bool sub newfunc() { return True; }";
 
-	Program a(PO_NEW_STYLE);
-	a.parsePending(pf, "pending test part1", 0);
-	a.parsePending(nf, "pending test part2", 0);
-	a.parseCommit();
-	a.importFunction("t");
-	a.importGlobalVariable("to");
-	a.importGlobalVariable("ro", True);
-	a.parse(func, "test");
+        Program a(PO_NEW_STYLE);
+        a.parsePending(pf, "pending test part1", 0);
+        a.parsePending(nf, "pending test part2", 0);
+        a.parseCommit();
+        a.importFunction("t");
+        a.importGlobalVariable("to");
+        a.importGlobalVariable("ro", True);
+        a.parse(func, "test");
 
-	assertEq(True, a.callFunction("newfunc"));
-	assertEq(3, a.callFunction("t2", 1));
-	assertEq(4, a.callFunctionArgs("t2", list(int(2))));
-	assertEq(2, a.callFunction("et", 1));
-	assertEq("Test", a.callFunction("tot"));
-	assertEq("memberGate-member", to.member);
-	assertEq("method", to.method());
+        assertEq(True, a.callFunction("newfunc"));
+        assertEq(3, a.callFunction("t2", 1));
+        assertEq(4, a.callFunctionArgs("t2", list(int(2))));
+        assertEq(2, a.callFunction("et", 1));
+        assertEq("Test", a.callFunction("tot"));
+        assertEq("memberGate-member", to.member);
+        assertEq("method", to.method());
 
-	try {
-	    a.callFunction("deleteException");
-	}
-	catch (hash ex) {
-	    assertEq("ACCESS-ERROR", ex.err);
-	}
+        a.define("MY_TEST_EMPTY");
+        a.define("MY_TEST_STR", "a");
+        assertEq(True, a.isDefined("MY_TEST_EMPTY"));
+        assertEq(True, a.isDefined("MY_TEST_STR"));
+        assertEq(False, a.isDefined("MY_TEST_NONE"));
 
-	assertEq(True, a.callFunction("check_ro"));
+        assertEq(False, exists a.getDefine("MY_TEST_EMPTY"));
+        assertEq("a", a.getDefine("MY_TEST_STR"));
 
-	Queue o = a.callFunction("getObject");
-	object ox = a.callFunction("get_x");
-	delete a;
-	assertEq("Queue", get_class_name(o));
-	assertEq("X", get_class_name(ox));
+        a.undefine("MY_TEST_STR");
+        assertEq(False, a.isDefined("MY_TEST_STR"));
 
-	# test for incorrect parse location when processing constants after a commit
-	a = new Program(PO_NEW_STYLE);
-	a.parse("sub x() {}", "lib");
-	*hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
-	assertEq("<run-time-loaded: warn>", h.file);
+        *hash defs = a.getAllDefines();
+        assertEq(True, defs.PO_NEW_STYLE);
+        assertEq(True, exists defs.QorePlatformCPU);
+        assertEq(True, inlist("MY_TEST_EMPTY", keys defs));
+        assertEq(False, inlist("MY_TEST_STR", keys defs));
 
-	# make sure recursive constant definitions are handled
-	try {
-	    a.parse("const A = B; const B = A; any a = A;", "rec");
-	}
-	catch (hash ex) {
-	    assertEq("PARSE-EXCEPTION", ex.err);
-	}
+        try {
+            a.callFunction("deleteException");
+        }
+        catch (hash ex) {
+            assertEq("ACCESS-ERROR", ex.err);
+        }
 
-	string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
+        assertEq(True, a.callFunction("check_ro"));
 
-	Program p1(PO_NEW_STYLE);
-	Program p2(PO_NEW_STYLE);
+        Queue o = a.callFunction("getObject");
+        object ox = a.callFunction("get_x");
+        delete a;
+        assertEq("Queue", get_class_name(o));
+        assertEq("X", get_class_name(ox));
 
-	p1.parse(pstr, "p");
-	p2.parse(pstr, "p");
+        # test for incorrect parse location when processing constants after a commit
+        a = new Program(PO_NEW_STYLE);
+        a.parse("sub x() {}", "lib");
+        *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+        assertEq("<run-time-loaded: warn>", h.file);
 
-	object o2 = p1.callFunction("getT");
-	assertEq(1, p1.callFunction("checkT", o2));
-	assertEq(1, p2.callFunction("checkT", o2));
+        # make sure recursive constant definitions are handled
+        try {
+            a.parse("const A = B; const B = A;", "rec");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-EXCEPTION", ex.err);
+        }
 
-	Program p4(PO_NEW_STYLE);
-	try {
-	    p4.parse("error", "error", 0, "source", 10);
-	    assertEq(True, False);
-	}
-	catch (hash ex) {
-	    assertEq("source", ex.source);
-	    assertEq(10, ex.offset);
-	}
+        string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); } list<int> sub get_thread_list0(Program p) { return p.getThreadList(); } list<int> sub get_thread_list1(Program p) { Counter c0(1); Counter c1(1); background waiter(c0, c1); c0.waitForZero(); on_exit c1.dec(); return p.getThreadList(); } sub waiter(Counter c0, Counter c1) { c0.dec(); c1.waitForZero(); }";
+
+        Program p1(PO_NEW_STYLE);
+        Program p2(PO_NEW_STYLE);
+
+        p1.parse(pstr, "p");
+        p2.parse(pstr, "p");
+
+        object o2 = p1.callFunction("getT");
+        assertEq(1, p1.callFunction("checkT", o2));
+        assertEq(1, p2.callFunction("checkT", o2));
+
+        list<int> l = p1.callFunction("get_thread_list0", p1);
+        assertEq(1, l.size());
+        assertEq(gettid(), l[0]);
+        l = p1.callFunction("get_thread_list1", p1);
+        assertEq(2, l.size());
+        assertEq(gettid(), l[0]);
+
+        Program p4(PO_NEW_STYLE);
+        try {
+            p4.parse("error", "error", 0, "source", 10);
+            assertEq(True, False);
+        }
+        catch (hash ex) {
+            assertEq("source", ex.source);
+            assertEq(10, ex.offset);
+        }
+
+        {
+            Program p5(PO_NEW_STYLE);
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("#", ""));
+            # issue #2175: the following code will crash without the fix
+            assertThrows("PARSE-EXCEPTION", \p5.parse(), ("/*", ""));
+        }
     }
 
     combineTest() {
-	Program p(PO_NEW_STYLE);
-	testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
+        Program p(PO_NEW_STYLE);
+        testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
     }
 
     intAssignmentsTest() {
@@ -188,12 +227,22 @@ class ProgramTest inherits QUnit::Test {
     typeErrorTest() {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
-            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("sub f() {} f(1);", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub f() {} f(1);", ""));
         }
         {
             Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
             p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
             assertEq(NOTHING, p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE|PO_STRICT_ARGS); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \p.run());
         }
     }
 
@@ -294,6 +343,151 @@ class ProgramTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
             assertEq(NOTHING, p.parse("class X { static copy(X obj) {}}", ""));
+        }
+    }
+
+    setThreadInitTest() {
+        our int i = 0;
+        our Counter cnt(1);
+        Program p(PO_NEW_STYLE);
+        p.importGlobalVariable("i");
+        p.importGlobalVariable("cnt");
+        bool b = p.setThreadInit(sub () { i = 1;});
+        assertEq(False, b);
+        p.parse("background cnt.dec();", "");
+        p.run();
+        cnt.waitForZero();
+        assertEq(1, i);
+        b = p.setThreadInit();
+        assertEq(True, b);
+        i = 0;
+        cnt.inc();
+        p.run();
+        assertEq(0, i);
+    }
+
+    varTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            assertEq(("i": 1, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            p.setGlobalVarValue("i", 2);
+            assertEq(("i": 2, "T::str": "hi"), p.getGlobalVars() - QoreGlobalVars);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            assertThrows("RUNTIME-TYPE-ERROR", \p.setGlobalVarValue(), ("i", "hi"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi';", "");
+            p.run();
+            assertThrows("UNKNOWN-VARIABLE", \p.setGlobalVarValue(), ("x", "hi"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi'; set_global_var_value('i', 'hi');", "");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            p.parse("our int i = 1; namespace T { our string str; } T::str = 'hi'; set_global_var_value('x', 'hi');", "");
+            assertThrows("UNKNOWN-VARIABLE", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
+
+            hash vh = (
+                "frame": ("type": "local", "value": 0),
+                "i": ("type": "local", "value": 1),
+                "str": ("type": "local", "value": "hi"),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            assertEq(vh, p.callFunction("test", 0));
+            assertEq(p, p.callFunction("test", 1).p.value);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
+
+            hash vh = (
+                "frame": ("type": "local", "value": 0),
+                "i": ("type": "closure", "value": 2),
+                "str": ("type": "local", "value": "bye"),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            assertEq(vh, p.callFunction("test", 0));
+            assertEq(p, p.callFunction("test", 1).p.value);
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); }", "");
+            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); sub () { i = 3; };}", "");
+            assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); sub () { i = 3; };}", "");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
+
+            hash vh = (
+                "str": ("type": "local", "value": "hi"),
+                "i": ("type": "local", "value": 1),
+                "argv": ("type": "local", "value": NOTHING),
+                "frame": ("type": "local", "value": 1),
+                );
+
+            assertEq(vh, p.callFunction("test2", 1));
+
+            vh = (
+                "c": ("type": "local", "value": NOTHING),
+                "frame": ("type": "closure", "value": 0),
+                "argv": ("type": "local", "value": NOTHING),
+                );
+
+            hash pvh = p.callFunction("test2", 0);
+            pvh.c.value = NOTHING;
+            assertEq(vh, pvh);
+            assertEq({}, p.callFunction("test2", -1));
+            assertEq(p, p.callFunction("test2", 2).p.value);
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", "do not allow access", \p.parse(), ("get_local_vars(0);", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-ERROR", "local variable.*already declared", \p.parse(), ("hash h; hash h;", ""));
         }
     }
 }

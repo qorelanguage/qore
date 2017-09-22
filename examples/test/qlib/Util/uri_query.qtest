@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class UriQueryTest
+
+public class UriQueryTest inherits QUnit::Test {
+    constructor() : Test ("UriQueryTest", "1.0") {
+        addTestCase ("Tests for uri query functionality", \testUriQuery());
+        set_return_value(main());
+    }
+
+    testUriQuery() {
+        assertEq(("method": "path", "params": ("k": ("1", "2"))), parse_uri_query("path?k=1;k=2"));
+        assertEq(("method": "path", "params": ("k": ("1", "2"))), parse_uri_query("path?k=1&k=2"));
+        assertEq(("method": "path", "params": ("k": True)), parse_uri_query("path?k;k"));
+        assertEq(("method": "path", "params": ("k": True)), parse_uri_query("path?k&k"));
+
+        assertEq("path?k=1;k=2", make_uri_query(parse_uri_query("path?k=1;k=2")));
+        assertEq("path?k=1;k=2", make_uri_query(parse_uri_query("path?k=1&k=2")));
+        assertEq("path?k=1&k=2", make_uri_query(parse_uri_query("path?k=1;k=2"), "&"));
+        assertEq("path?k=1&k=2", make_uri_query(parse_uri_query("path?k=1&k=2"), "&"));
+        assertEq("path?k=1", make_uri_query(parse_uri_query("path?k;k")));
+        assertEq("path?k=1", make_uri_query(parse_uri_query("path?k&k")));
+    }
+}

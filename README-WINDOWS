@@ -2,12 +2,12 @@ Qore started out as a purely UNIX language, but, as of Qore 0.8.3, it is possibl
 
 BINARIES
 --------
-For Windows binaries, check for a zip package for the latest version on sourceforge:
-    http://sourceforge.net/projects/qore/files/qore/
+For Windows binaries, check for a zip package for the latest version on github:
+    https://github.com/qorelanguage/qore/releases
 
 BUILDING
 --------
-Currently Qore can only be (easily) built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).  
+Currently Qore can only be (easily) built with the mingw compiler as a cross-compiler (from Linux, OSX, etc).
 Information about this cross-compiler can be found here:
         http://mxe.cc/
 
@@ -31,13 +31,15 @@ if you get a configure error like:
    checking for the wsock32 library... configure: error: cannot find the wsock32 library which is needed to compile Qore for the target platform (Windows)
 make sure you don't have the CXX environment variable set to a native compiler; as this will override the cross-compiler set by the --host-i686-pc-mingw32 configure option (for example, I have CXX=clang++ so I have to call configure like:
         CXX= configure --host=i686-pc-mingw32 --with-dl-dir=<wherever you installed dlfcn> --prefix=<wherever you want windows qore>
+
+
 =======
 RUNNING
 -------
 set PATH to the binary directory where qore.exe and qore.dll are located:
     set PATH=%PATH%;c:\qopre\bin
 
-set QORE_MODULE_PATH to the module directory where Qore was installed, don't forget the versioned subdirectory for user modules; ex:\    
+set QORE_MODULE_PATH to the module directory where Qore was installed, don't forget the versioned subdirectory for user modules; ex:\
     set QORE_MODULE_PATH=c:\qore\lib\qore-modules:c:\qore\lib\qore-modules\0.8.5
 
 report any bugs to david@qore.org or post on the Qore forums:
@@ -92,7 +94,7 @@ method implementations missing in the Windows build (calling these will cause a 
   + File::setTerminalAttributes() (HAVE_TERMIOS)
   + File::statvfs() (HAVE_STATVFS)
   + static File::statvfs() (HAVE_STATVFS)
-  
+
 class implementations missing in the Windows build (calling any methods or trying to instantiate the class will cause a MISSING-FEATURE-ERROR to be issued at runtime):
   + TermIOS (HAVE_TERMIOS)
 
@@ -100,7 +102,6 @@ Also all TermIOS-related constants are missing on Windows
 
 * different functionality
 functions:
-  + is_readable() always returns True on directories (will be fixed in a later version of Qore), but is reliable with files
   + lstat() is an alias for stat() on Windows
   + hlstat() is an alias for hstat() on Windows
   + glob() is implemented by transforming the glob argument to a regular expression and then applying the regex to the list of files returned; it should give the same results as UNIX glob(), but in case it doesn't please let me know (david@qore.org)
@@ -112,19 +113,7 @@ methods:
   + static File::hlstat() is an alias for File::hstat() on Windows
 
 * time zone handling
-On Windows, Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones.
-
-Region names for TimeZone::constructor() (for example) must correspond to registry keys under the above key or the time zine information will not be loaded.
-
-The region name reported by TimeZone::region() will be the display name for the time zone, as found in the registry.
-
-For example:
-O:\bin>qore -ne "TimeZone tz('Central Europe Standard Time'); printf(\"%s\n\", tz.region());"
-(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague
-
-This differs from UNIX where the region name passed to the TimeZone constructor is the same region name that appears in the TimeZone::region() output; this is because Windows uses "Standard Time" in the key name in the registry, even though the underlying zone definition is for both standard and daylight savings time.
-
-Please be aware that the region names may differ in localized versions of Windows; I have read some information that leads me to believe that Windows stores localized names in the registry for the region names.  This will make is harder to make use of time zone regions on Windows in portable programs.
+On Windows, Qore's time zone information is read from binary time zone data in the Windows registry under HKEY_LOCAL_MACHINE SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zones as mapped from zoneinfo names.
 
 * socket support
 There are no UNIX sockets available on Windows, otherwise the Socket class should work the same as on UNIX systems; error messages will be Windows error messages
@@ -132,11 +121,5 @@ There are no UNIX sockets available on Windows, otherwise the Socket class shoul
 * threading
 threading should work identically as on UNIX
 
-* %include directives
-"/" characters will be transposed automatically to "\" characters on Windows
-
 * path separator
 The path separator is understood to be "\" on windows
-
-* errata
-other than the above, I have seen Qore crash on windows when using the pgsql driver connected to a remote server and the interface used for the pgsql connection changes its IP address.  I suspect that this is problem with the pgsql libs I'm using on Windows, but I'm not totally sure.
