@@ -146,7 +146,7 @@ case "${host_os}" in
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
-        MODULE_LDFLAGS="-no-undefined"
+		MODULE_LDFLAGS="-no-undefined"
 		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
 		# make sure OS is set to Windows when cross-compiling
