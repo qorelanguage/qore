@@ -1,0 +1,93 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class LongWordTest
+
+#! Test TextWrap::TextWrapper
+public class LongWordTest inherits BaseTest {
+    constructor () : BaseTest ("LongWordTest", "1.0") {
+        addTestCase ("TextWrap - LongWordTest - test_break_long", \test_break_long());
+        addTestCase ("TextWrap - LongWordTest - test_nobreak_long", \test_nobreak_long());
+        addTestCase ("TextWrap - LongWordTest - test_max_lines_long", \test_max_lines_long());
+        set_return_value(main());
+    }
+
+    private {
+        string text = 'Did you say "supercalifragilisticexpialidocious?"
+How *do* you spell that odd word, anyways?
+';
+        list expect;
+        list result;
+    }
+
+    setUp () {
+        self.wrapper = new TextWrapper();
+    }
+
+    test_break_long () {
+        # Wrap text with long words and lots of punctuation
+        self.check_wrap(self.text, 30,
+                        ('Did you say "supercalifragilis',
+                         'ticexpialidocious?" How *do*',
+                         'you spell that odd word,',
+                         'anyways?'));
+        self.check_wrap(self.text, 50,
+                        ('Did you say "supercalifragilisticexpialidocious?"',
+                         'How *do* you spell that odd word, anyways?'));
+
+        # SF bug 797650.  Prevent an infinite loop by making sure that at
+        # least one character gets split off on every pass.
+        self.check_wrap(strmul('-',10) + 'hello', 10,
+                        ('----------',
+                         '               h',
+                         '               e',
+                         '               l',
+                         '               l',
+                         '               o'),
+                        ('subsequent_indent': strmul(' ',15)));
+
+        # bug 1146.  Prevent a long word to be wrongly wrapped when the
+        # preceding word is exactly one character shorter than the width
+        self.check_wrap(self.text, 12,
+                        ('Did you say ',
+                         '"supercalifr',
+                         'agilisticexp',
+                         'ialidocious?',
+                         '" How *do*',
+                         'you spell',
+                         'that odd',
+                         'word,',
+                         'anyways?'));
+    }
+
+    test_nobreak_long () {
+        # Test with break_long_words disabled
+        self.wrapper.break_long_words = False;
+        self.wrapper.width = 30;
+        expect = ('Did you say',
+                  '"supercalifragilisticexpialidocious?"',
+                  'How *do* you spell that odd',
+                  'word, anyways?'
+                  );
+        result = self.wrapper.wrap(self.text);
+        self.check(result, expect);
+
+        # Same thing with kwargs passed to standalone wrap() function.
+        result = wrap(self.text, 30, ('break_long_words': False));
+        self.check(result, expect);
+    }
+
+    test_max_lines_long () {
+        self.check_wrap(self.text, 12,
+                        ('Did you say ',
+                         '"supercalifr',
+                         'agilisticexp',
+                         '[...]'),
+                        ('max_lines': 4));
+    }
+}
