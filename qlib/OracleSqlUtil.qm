@@ -69,7 +69,7 @@ module OracleSqlUtil {
 
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/14-oracle-module">oracle</a> binary module for communication with Oracle databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module for communication with Oracle databases
 
     @section ora_sql_operations SQL Operations on Oracle
 

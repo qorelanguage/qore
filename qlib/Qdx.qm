@@ -187,7 +187,7 @@ public namespace Qdx {
 
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
 
-            @param is the @ref Qore::StreamReader "StreamReader" to iterate over
+            @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
             @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
@@ -273,7 +273,7 @@ public namespace Qdx {
 
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
 
-            @param is the @ref Qore::StreamReader "StreamReader" to iterate over
+            @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
             @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 

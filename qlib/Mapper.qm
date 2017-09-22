@@ -761,7 +761,7 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+            @deprecated use @ref constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
@@ -789,7 +789,7 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+            @deprecated use @ref constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
@@ -817,7 +817,7 @@ Mapper mapv(DataMap);
 
             @since %Mapper 1.1
 
-            @deprecated use @ref Mapper::constructor() "Mapper construction options" to set
+            @deprecated use @ref constructor() "Mapper construction options" to set
                         the runtime options.
 
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already

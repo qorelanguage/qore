@@ -1432,7 +1432,7 @@ while (i.next()) {
         }
 
         #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
-        /** @param path the path to the CSV file to read
+        /** @param data the input data to iterate
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
