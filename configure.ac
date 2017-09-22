@@ -146,6 +146,7 @@ case "${host_os}" in
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+        MODULE_LDFLAGS="-no-undefined"
 		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
 		# make sure OS is set to Windows when cross-compiling
@@ -1002,6 +1003,9 @@ find_openssl() {
 
 if test "$mingw" = yes; then
     LIBS="$LIBS -lgdi32 -lz -lpsapi"
+    # if compiling for mingw32, we have to link with qore
+    MODULE_LDFLAGS="$MODULE_LDFLAGS -L${top_builddir}/lib -lqore"
+    AC_SUBST(MODULE_LDFLAGS)
 fi
 
 # see if we can figure out where the openssl library is
