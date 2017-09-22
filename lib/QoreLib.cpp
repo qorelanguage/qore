@@ -2093,7 +2093,7 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
    if (!big_len)
       return nullptr;
    if (!little_len)
-      return big;
+      return (void*)big;
    const char* lt = (const char*)little;
    const char* bg = (const char*)big;
    const char* p = bg;
