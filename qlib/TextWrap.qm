@@ -53,20 +53,20 @@ module TextWrap {
 
     All public symbols in the module are defined in the TextWrap namespace.
 
+    Primary class provided by this module:
+    - @ref TextWrap::TextWrapper "TextWrapper"
+
     Functions:
-    - @ref TextWrap::wrap()
-    - @ref TextWrap::fill()
-    - @ref TextWrap::shorten()
+    - @ref TextWrap::wrap() "wrap()"
+    - @ref TextWrap::fill() "fill()"
+    - @ref TextWrap::shorten() "shorten()"
 
-    - @ref TextWrap::dedent()
-    - @ref TextWrap::indent()
+    - @ref TextWrap::dedent() "dedent()"
+    - @ref TextWrap::indent() "indent()"
 
-    Classes:
-    - @ref TextWrap::TextWrapper
+    @section textwraprelnotes TextWrap Module Release Notes
 
-    @section textwraprelnotes Release Notes
-
-    @subsection textwrap_1_0
+    @subsection textwrap_1_0 TextWrap 1.0
     - initial version of the TextWrap module
 */
 
@@ -75,6 +75,7 @@ namespace Init {
     }
 }
 
+#! main namespace for all public symbols in the %TextWrap module
 public namespace TextWrap {
 
 # Hardcode the recognized whitespace characters to the US-ASCII
@@ -158,44 +159,44 @@ string sub xsprintf (string fmt, hash args) {
     If you want to completely replace the main wrapping algorithm,
     you'll probably have to override _wrap_chunks().
 
-    Several instance attributes control various aspects of wrapping:
-      width (default: 70)
+    Several instance attributes control various aspects of wrapping:\n
+    - width (default: 70)\n
         the maximum width of wrapped lines (unless break_long_words
         is false)
-      initial_indent (default: "")
+    - initial_indent (default: "")\n
         string that will be prepended to the first line of wrapped
         output.  Counts towards the line's width.
-      subsequent_indent (default: "")
+    - subsequent_indent (default: "")\n
         string that will be prepended to all lines save the first
         of wrapped output; also counts towards each line's width.
-      expand_tabs (default: true)
+    - expand_tabs (default: true)\n
         Expand tabs in input text to spaces before further processing.
         Each tab will become 0 .. 'tabsize' spaces, depending on its position
         in its line.  If false, each tab is treated as a single character.
-      tabsize (default: 8)
+    - tabsize (default: 8)\n
         Expand tabs in input text to 0 .. 'tabsize' spaces, unless
         'expand_tabs' is false.
-      replace_whitespace (default: true)
+    - replace_whitespace (default: true)\n
         Replace all whitespace characters in the input text by spaces
         after tab expansion.  Note that if expand_tabs is false and
         replace_whitespace is true, every tab will be converted to a
         single space!
-      fix_sentence_endings (default: false)
+    - fix_sentence_endings (default: false)\n
         Ensure that sentence-ending punctuation is always followed
         by two spaces.  Off by default because the algorithm is
         (unavoidably) imperfect.
-      break_long_words (default: true)
+    - break_long_words (default: true)\n
         Break words longer than 'width'.  If false, those words will not
         be broken, and some lines might be longer than 'width'.
-      break_on_hyphens (default: true)
+    - break_on_hyphens (default: true)\n
         Allow breaking hyphenated words.  If true, wrapping will occur
         preferably on whitespaces and right after hyphens part of
         compound words.
-      drop_whitespace (default: true)
+    - drop_whitespace (default: true)\n
         Drop leading and trailing whitespace from lines.
-      max_lines (default: None)
+    - max_lines (default: None)\n
         Truncate wrapped lines.
-      placeholder (default: ' [...]')
+    - placeholder (default: ' [...]')\n
         Append to the last line of truncated text.
 */
 public class TextWrapper {
