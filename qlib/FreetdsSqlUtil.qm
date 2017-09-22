@@ -1016,17 +1016,6 @@ any v = c.name;
                         return sprintf("substring(%s,%d,%d)", cve, args[0], args[1]);
                     },
                 ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
-                    },
-                ),
                 COP_YEAR: (
                     "code": string sub (string arg1, auto arg) {
                         return sprintf("substring(convert(varchar, dt, 120), 1, 4)", arg1);

@@ -82,7 +82,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
         const Tables = (
             "oracle_test": T_OracleTest,
-            "oracle_test_semantics" : T_OracleTestSemantics,
+            # these tables are real tables without CustomColumns, so these should not be enhanced
+            #"oracle_test_semantics" : T_OracleTestSemantics,
             );
 
         const Sequences = (
@@ -111,7 +112,10 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, OracleTest::CustomColumns);
+        return doTables(Tables, OracleTest::CustomColumns) + (
+                    "oracle_test_semantics" : T_OracleTestSemantics,
+                    "test_analytic_functions" : T_TestAnalyticFunctions,
+                );
     }
 
     private *hash getSequencesImpl() {
@@ -219,15 +223,16 @@ class OracleTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
-        }
 
-        addTestCase("sequence operators", \testSequenceOperators());
-        addTestCase("pseudo-columns", \testPseudoColumns());
-        addTestCase("character semantics", \testCharacterSemantics());
-        addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
-        addTestCase("default values", \testDefaultValues());
-        addTestCase("named types to align", \testNTYAlignment());
-        addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("sequence operators", \testSequenceOperators());
+            addTestCase("pseudo-columns", \testPseudoColumns());
+            addTestCase("character semantics", \testCharacterSemantics());
+            addTestCase("driver specific opts for columns", \testDriverSpecificColumns());
+            addTestCase("default values", \testDefaultValues());
+            addTestCase("named types to align", \testNTYAlignment());
+            addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
+        }
 
         set_return_value(main());
     }
