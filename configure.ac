@@ -1003,8 +1003,8 @@ find_openssl() {
 
 if test "$mingw" = yes; then
     LIBS="$LIBS -lgdi32 -lz -lpsapi"
-    # if compiling for mingw32, we have to link with qore
-    MODULE_LDFLAGS="$MODULE_LDFLAGS -L${top_builddir}/lib -lqore"
+    # if compiling for mingw32, binary modules delivered with qore have to link with libqore
+    MODULE_LDFLAGS="$MODULE_LDFLAGS -L\${top_builddir}/lib -lqore"
     AC_SUBST(MODULE_LDFLAGS)
 fi
 
