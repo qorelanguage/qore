@@ -136,8 +136,8 @@ public namespace WebSocketClient {
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
 
-        The @ref WeSocketClient::WeSocketClient "WeSocketClient" class includes support for running in sandboxed Program objects with the following parse options set:
-        - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in @ref WeSocketClient::WeSocketClient::constructor() "WeSocketClient::constructor()"
+        The @ref WebSocketClient::WebSocketClient "WebSocketClient" class includes support for running in sandboxed Program objects with the following parse options set:
+        - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()"
      */
     public class WebSocketClient {
         private {
@@ -331,7 +331,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "timeout": an integer giving the warning threshold in microseconds
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
+            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
             @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
             - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
             - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
@@ -339,7 +339,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
             - \c "us": an integer giving the number of microseconds for the operation
             - \c "bytes_sec": a float giving the transfer speed in bytes per second
             - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
+            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
             @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
             @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
             @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
@@ -366,9 +366,9 @@ hash h = ws.getUsageInfo();
             - \c "bytes_recv": an integer giving the total amount of bytes received
             - \c "us_sent": an integer giving the total number of microseconds spent sending data
             - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-            - \c "arg": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the optional argument for warning hashes
-            - \c "timeout": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the warning timeout in microseconds
-            - \c "min_throughput": (only if warning values have been set with @ref Qore::WebSocketClient::setWarningQueue() "WebSocketClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+            - \c "arg": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the optional argument for warning hashes
+            - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the warning timeout in microseconds
+            - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
             @since %WebSocketClient 1.1
 

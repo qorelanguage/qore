@@ -495,7 +495,8 @@ class qdx {
 
             if (!ppc && line !~ /^[ \t]*\/\//) {
                 list mods = ();
-                if (line !~ /"/) {
+                if (line =~ /\(.*\)/) {
+                #if (line !~ /"/) {
                     while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private:internal|private:hierarchy)([^A-Za-z0-9_].*)/))) {
                         l[1] =~ s/:.*//;
                         mods += l[1];

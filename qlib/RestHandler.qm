@@ -80,13 +80,13 @@ module RestHandler {
     @section restserialization Data Serialization Support
 
     The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if the modules are available when the RestHandler module is initialized:
-    - <a href="http://qore.org/qore-modules/41-json-module">json</a>: provides automatic support for JSON payload de/serialization
-    - <a href="http://qore.org/qore-modules/40-xml-module">xml</a>: provides automatic support for XML-RPC payload de/serialization
-    - <a href="http://qore.org/qore-modules/38-yaml-module">yaml</a>: provides automatic support for YAML payload de/serialization
+    - <a href="https://github.com/qorelanguage/module-json">json</a>: provides automatic support for JSON payload de/serialization
+    - <a href="https://github.com/qorelanguage/module-xml">xml</a>: provides automatic support for XML-RPC payload de/serialization
+    - <a href="https://github.com/qorelanguage/module-yaml">yaml</a>: provides automatic support for YAML payload de/serialization
 
     URL form encoding is supported as well for message bodies according to <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a> with \c "Content-Type: application/x-www-form-urlencoded".
 
-    For standard REST web service development, the <a href="http://qore.org/qore-modules/41-json-module">json</a> module will be required to support JSON serialization.
+    For standard REST web service development, the <a href="https://github.com/qorelanguage/module-json">json</a> module will be required to support JSON serialization.
 
     The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the incoming MIME type is supported and additionally will serialize outgoing messages automatically based on the client's declared capabilities (normally responses are serialized with the same serialization as the incoming message).
 
@@ -105,6 +105,7 @@ module RestHandler {
     - \c "DELETE /obj/subobj": match method \c AbstractRestClass::del()
     - \c "GET /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::getStatus()
     - \c "PUT /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::putStatus()
+    - \c "PATCH /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::patchStatus()
 
     In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the first letter of the action name is capitalized and appended to a lower case version of the HTTP method name (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword); if such a method exists in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData", and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed" response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented" response is returned.
 
@@ -114,6 +115,7 @@ module RestHandler {
     |!HTTP Method|!%Qore Method
     |\c GET|\c AbstractRestClass::get()
     |\c PUT|\c AbstractRestClass::put()
+    |\c PATCH|\c AbstractRestClass::patch()
     |\c POST|\c AbstractRestClass::post()
     |\c DELETE|\c AbstractRestClass::del()
     |\c OPTIONS|\c AbstractRestClass::options()

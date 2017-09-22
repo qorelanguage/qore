@@ -255,7 +255,7 @@ public namespace FreetdsSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-my list $l = $col.getAddColumnSql($t);
+list l = col.getAddColumnSql(t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
@@ -267,13 +267,14 @@ my list $l = $col.getAddColumnSql($t);
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code{.py}
-my list $l = $col.getModifySql($t, $newcol);
+list l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
 
             @param t the SqlUtil::AbstractTable object to modify
             @param col the new column definition
+            @param opt column modification options (none are supported in this class)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -312,7 +313,7 @@ my list $l = $col.getModifySql($t, $newcol);
         #! returns a string that can be used to rename the column
         /** @par Example:
             @code{.py}
-my string $str = $col.getRenameSql($t, "new_name");
+string str = col.getRenameSql(t, "new_name");
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify

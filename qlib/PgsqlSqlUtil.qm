@@ -60,7 +60,7 @@ module PgsqlSqlUtil {
 
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/15-pgsql-module">pgsql</a> binary module for communication with PostgreSQL databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-pgsql">pgsql</a> binary module for communication with PostgreSQL databases
 
     @section pgsql_schema_management Schema Management on PostgreSQL
 
@@ -148,7 +148,7 @@ $function$
     @endcode
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
-    to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
+    to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
 
@@ -424,6 +424,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the SqlUtil::AbstractTable object to modify
             @param col the new column definition
+            @param opt column modification options (none are supported by this class)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */

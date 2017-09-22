@@ -129,7 +129,7 @@ const Specs = (
     | \c timezone|string|override global timezone for current "date" field
     | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
     | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
-    | \c value|string|the value to use to compare to input data when determining the record type; if \v "value" is defined for a field, then \c "regex" cannot be defined
+    | \c value|string|the value to use to compare to input data when determining the record type; if \c "value" is defined for a field, then \c "regex" cannot be defined
     | \c regex|string|the regular expression to use to apply to input data lines when determining the record type
     | \c default|string|In writer the value is default output value when value is not specified in record data.
     | \c truncate|boolean|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False".
@@ -770,7 +770,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         return m_file_path;
     }
 
-    #! Returns a @ref Qore::StatHash "StatInfo" hash of the underlying file
+    #! Returns a @ref Qore::StatInfo "StatInfo" hash of the underlying file
     hash<Qore::StatInfo> hstat() {
         return Qore::hstat(m_file_path);
     }

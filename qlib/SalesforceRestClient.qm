@@ -150,7 +150,7 @@ rc.bulkJobClose(h.id);
 
     @section salesforcerestclientrelnotes Release Notes
 
-    @subsection salesforcerestclientv1_0 SalesforceRestClient v1.1
+    @subsection salesforcerestclientv1_1 SalesforceRestClient v1.1
     - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
 
@@ -274,7 +274,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
         @endverbatim
 
         The following methods support communication with the Salesforce.com Bulk REST API:
-        - @ref bulkRequest()
+        - @ref dobulkRequest()
         - @ref bulkGet()
         - @ref bulkPost()
         - @ref bulkJobCreate()
