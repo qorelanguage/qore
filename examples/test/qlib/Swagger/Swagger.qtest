@@ -1885,6 +1885,13 @@ public class SwaggerTest inherits QUnit::Test {
             assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
             assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
         }
+
+        {
+            hash<HttpResponseInfo> res = so.processResponse("get", "/user/login", 200, "OK", NOTHING, MimeTypeJson);
+            assertEq(200, res.code);
+            assertEq(MimeTypeJson, res.hdr."Content-Type");
+            assertEq("\"OK\"", res.body);
+        }
     }
 
     testExamples() {
