@@ -99,7 +99,6 @@ enum ClassAccess : unsigned char {
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
 #define _Q_WINDOWS 1
 #ifdef _WIN64
-#define _Q_WINDOWS 1
 #define _Q_WINDOWS64 1
 #endif
 #endif
@@ -119,6 +118,7 @@ enum ClassAccess : unsigned char {
   #define QORE_DIR_SEP_STR "\\"
   #define QORE_PATH_SEP ';'
   #define QORE_PATH_SEP_STR ";"
+  #include <winsock2.h>
 #else
   #ifdef HAVE_GCC_VISIBILITY
     #define DLLEXPORT __attribute__ ((visibility("default")))
