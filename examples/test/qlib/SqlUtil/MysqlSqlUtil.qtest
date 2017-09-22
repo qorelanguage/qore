@@ -165,6 +165,9 @@ class MysqlTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
+
+            # this feature can be enabled for MariaDB >= 10.2. Let's hope it will be recived in MySQL too
+            # addTestCase("analytic/window functions", \testAnalyticFunctions());
         }
 
         set_return_value(main());
