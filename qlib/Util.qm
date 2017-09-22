@@ -1281,7 +1281,7 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
 
     #! Flattens a nested list (the nesting can be to any depth).
     /**
-        @param  arg a list to flatten
+        @param arg a list to flatten
         @return a flattened list
 
         @par Example:
@@ -1294,11 +1294,13 @@ list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
     public list sub flatten (softlist arg) {
         list r;
         foreach any i in (arg) {
-            if (i.typeCode() == NT_LIST)
+            if (i.typeCode() == NT_LIST) {
                 foreach any j in (flatten(i))
                     r += j;
-            else
+            }
+            else {
                 r += i;
+            }
         }
         return r ?? ();
     }
