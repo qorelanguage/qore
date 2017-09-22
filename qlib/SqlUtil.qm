@@ -104,6 +104,8 @@ module SqlUtil {
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
     - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
     - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
+    - implemented analytic/window functions: new functions [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2202</a>]
+    - implemented analytic/window functions: cop_over full support including ORDER BY [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2203</a>]
 
     @subsection sqlutilv1_3_4 SqlUtil v1.3.4
     - fixed a bug in with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
@@ -2170,9 +2172,68 @@ public namespace SqlUtil {
 
     #! to return the date with truncated value
     /** @see cop_trunc_date()
+
         See also @ref sql_cop_trunc_date_enum
+
+        @since %SqlUtil 1.4.0
      */
     public const COP_TRUNC_DATE = "truncate_date";
+
+    #! Analytic (window) function: CUME_DIST
+    /** @see cop_cume_dist()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_CUME_DIST = "cume_dist";
+
+    #! Analytic (window) function: DENSE_RANK
+    /** @see cop_dense_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_DENSE_RANK = "dense_rank";
+
+    #! Analytic (window) function: FIRST_VALUE
+    /** @see cop_first_value()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_FIRST_VALUE = "first_value";
+
+    #! Analytic (window) function: LAST_VALUE
+    /** @see cop_last_value()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_LAST_VALUE = "last_value";
+
+    #! Analytic (window) function: NTILE
+    /** @see cop_ntile()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_NTILE = "ntile";
+
+    #! Analytic (window) function: PERCENT_RANK
+    /** @see cop_percent_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_PERCENT_RANK = "percent_rank";
+
+    #! Analytic (window) function: RANK
+    /** @see cop_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_RANK = "rank";
+
+    #! Analytic (window) function: ROW_NUMBER
+    /** @see cop_row_number()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_ROW_NUMBER = "row_number";
 
 
     #! a hash of default column operator descriptions
@@ -2305,6 +2366,70 @@ public namespace SqlUtil {
                 return sprintf("length(%s)", cve);
             },
         ),
+        COP_OVER: (
+            "code": string sub (*string cve, *list args)
+            {
+                *string partitionby = args[0];
+                *string orderby = args[1];
+                if (!exists partitionby && exists orderby) {
+                    throw "COP-OVER-ERROR", "Argument 'partitionby' must be given in case of usage of 'orderby'";
+                }
+                string sql = cve + " over (";
+                if (exists partitionby)
+                    sql += sprintf("partition by %s", partitionby); # TODO/FIXME: sql injection!
+                if (exists orderby)
+                    sql += sprintf(" order by %s", orderby); # TODO/FIXME: sql injection!
+                sql += ")";
+                return sql;
+            },
+        ),
+        COP_CUME_DIST: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "cume_dist()";
+            },
+        ),
+        COP_DENSE_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "dense_rank()";
+            },
+        ),
+        COP_FIRST_VALUE: (
+            "code": string sub (string cve) {
+                return sprintf("first_value(%s)", cve);
+            },
+        ),
+        COP_LAST_VALUE: (
+            "code": string sub (string cve) {
+                return sprintf("last_value(%s)", cve);
+            },
+        ),
+        COP_NTILE: (
+            "sqlvalue": True,
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return sprintf("ntile(%d)", arg);
+            },
+        ),
+        COP_PERCENT_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "percent_rank()";
+            },
+        ),
+        COP_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "rank()";
+            },
+        ),
+        COP_ROW_NUMBER: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "row_number()";
+            },
+        ),
         );
     #@}
 
@@ -2333,6 +2458,14 @@ public namespace SqlUtil {
         - @ref cop_year_hour(): return the year to hour value of the given date column
         - @ref cop_year_month(): return the year and month value of the given date column
         - @ref cop_trunc_date(): return truncated date regarding the mask
+        - @ref cop_cume_dist(): analytic/window function
+        - @ref cop_dense_rank(): analytic/window function
+        - @ref cop_first_value(): analytic/window function
+        - @ref cop_last_value(): analytic/window function
+        - @ref cop_ntile(): analytic/window function
+        - @ref cop_percent_rank(): analytic/window function
+        - @ref cop_rank(): analytic/window function
+        - @ref cop_row_number(): analytic/window function
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2627,8 +2760,8 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_over(auto column, string arg) {
-        return make_cop(COP_OVER, column, arg);
+    public hash<ColumnOperatorInfo> sub cop_over(auto column, *string partitionby, *string orderby) {
+        return make_cop(COP_OVER, column, (partitionby, orderby));
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
@@ -2855,12 +2988,280 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @since %SqlUtil 1.4.0
     */
-    public hash sub cop_trunc_date(auto column, string mask) {
+    public hash<ColumnOperatorInfo> sub cop_trunc_date(auto column, string mask) {
         if (!inlist(mask, DT_ALL_VALUES)) {
             throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", mask, DT_ALL_VALUES);
         }
         return make_cop(COP_TRUNC_DATE, column, mask);
     }
+
+
+    #! Analytic/window function: relative rank of the current row
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"),
+    );
+
+# rendered SQL statement
+# select cume_dist() over (partition by row_type order by id) as "cume_dist" test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (number of rows preceding or peer with current row) / (total rows)
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_cume_dist() {
+        return make_cop(COP_CUME_DIST, "");
+    }
+
+    #! Analytic/window function: rank of the current row without gaps
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"),
+    );
+
+# rendered SQL statement
+select dense_rank() over (partition by row_type order by id) as "dense_rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row without gaps; this function counts peer groups
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_dense_rank() {
+        return make_cop(COP_DENSE_RANK, "");
+    }
+
+    #! Analytic/window function: value evaluated at the row that is the first row of the window frame
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"),
+    );
+
+# rendered SQL statement
+select first_value(row_value) over (partition by row_type order by id) as "first_value" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the first row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_first_value(any column) {
+        return make_cop(COP_FIRST_VALUE, column);
+    }
+
+    #! Analytic/window function: value evaluated at the row that is the last row of the window frame
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"),
+    );
+
+# rendered SQL statement
+select last_value(row_value) over (partition by row_type order by id) as "last_value" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the last row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_last_value(any column) {
+        return make_cop(COP_LAST_VALUE, column);
+    }
+
+    #! Analytic/window function: integer ranging from 1 to the argument value, dividing the partition as equally as possible
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"),
+    );
+
+# rendered SQL statement
+select ntile(10) over (partition by row_type order by id) as "ntile" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @param value an integer value used as count of sp;it buckets
+
+        @return integer ranging from 1 to the argument value, dividing the partition as equally as possible
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_ntile(int value) {
+        return make_cop(COP_NTILE, "", value);
+    }
+
+    #! Analytic/window function: relative rank of the current row
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"),
+    );
+
+# rendered SQL statement
+select percent_rank() over (partition by row_type order by id) as "percent_rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (rank - 1) / (total rows - 1)
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_percent_rank() {
+        return make_cop(COP_PERCENT_RANK, "");
+    }
+
+    #! Analytic/window function: rank of the current row with gaps
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"),
+    );
+
+# rendered SQL statement
+select rank() over (partition by row_type order by id) as "rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row with gaps; same as row_number of its first peer
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_rank() {
+        return make_cop(COP_RANK, "");
+    }
+
+    #! Analytic/window function: number of the current row within its partition, counting from 1
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"),
+    );
+
+# rendered SQL statement
+select row_number() over (partition by row_type order by id) as "row_number" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return number of the current row within its partition, counting from 1
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_row_number() {
+        return make_cop(COP_ROW_NUMBER, "");
+    }
+
     #@}
 
     /** @defgroup sql_cop_trunc_date_enum cop_trunc_date formats

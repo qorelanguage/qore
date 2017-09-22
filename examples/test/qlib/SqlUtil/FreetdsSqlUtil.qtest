@@ -60,7 +60,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, FreetdsTest::CustomColumns);
+        return doTables(Tables, FreetdsTest::CustomColumns) + ("test_analytic_functions" : T_TestAnalyticFunctions);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -160,6 +160,8 @@ class FreetdsTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "sqlutil_test")).getTable();
+
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
         }
 
         set_return_value(main());

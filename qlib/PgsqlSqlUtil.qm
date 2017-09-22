@@ -1393,17 +1393,6 @@ auto v = c.name;
                         return sql;
                     },
                 ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
-                    },
-                ),
                 COP_YEAR: (
                     "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY')", arg1);
