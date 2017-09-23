@@ -64,6 +64,7 @@ ProgramBase::copy() {
 /**
  */
 ProgramBase::destructor() {
+   printd(5, "ProgramBase::constructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
    p->unregisterQoreObject(self, xsink);
    // the underlying object is created from C++ then it has reference and cannot be terminated
    p->deref();
