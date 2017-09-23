@@ -511,7 +511,7 @@ public namespace RestSchemaValidator {
             return cast<hash<RestRequestClientInfo>>((
                 "uri_path": path,
                 "content": ct,
-                "body": DataSerializationSupport{ct}(body),
+                "body": body ? DataSerializationSupport{ct}(body) : NOTHING,
             ));
         }
 
