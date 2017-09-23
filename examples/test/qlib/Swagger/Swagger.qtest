@@ -26,7 +26,7 @@
 
 string sub my_make_json(any v) {
 %ifndef NoJson
-    return make_json(values);
+    return make_json(v);
 %else
     return "";
 %endif
