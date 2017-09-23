@@ -177,7 +177,9 @@ public namespace DebugControl {
                 case 'session':
                     foreach Program p in (getAllPrograms()) {
                         int pgmId = p.getProgramId();
+                        result{pgmId}.scriptName = p.getScriptName();
                         result{pgmId}.scriptPath = p.getScriptPath();
+                        #result{pgmId}.scriptDir = p.getScriptDir();
                         {
                             rwlThread.readLock();
                             on_exit rwlThread.readUnlock();
@@ -221,7 +223,9 @@ public namespace DebugControl {
                         foreach ProgramBase p in (ProgramBase::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
                             if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
+                                result{pgmId}.scriptName = p.getScriptName();
                                 result{pgmId}.scriptPath = p.getScriptPath();
+                                #result{pgmId}.scriptDir = p.getScriptDir();
                                 result{pgmId}.threads = p.getThreadList();
                                 result{pgmId}.debugging = p instanceof Program;
                             }
@@ -804,7 +808,7 @@ public namespace DebugControl {
 
         onAttach(Program pgm, reference rs) {
             handleInterrupt("attach", pgm, \rs);
-          }
+        }
 
         onDetach(Program pgm, reference rs) {
             handleInterrupt("detach", pgm, \rs);
