@@ -56,7 +56,7 @@ typedef std::map<int, unsigned> ptid_map_t;
 class QoreParseLocationHelper {
 public:
    DLLLOCAL QoreParseLocationHelper(const char* file, const char* src, int offset) {
-      beginParsing(file, 0, src, offset);
+      beginParsing(file, nullptr, src, offset);
    }
 
    DLLLOCAL ~QoreParseLocationHelper() {
@@ -357,12 +357,12 @@ public:
    // public object that owns this private implementation
    QoreProgram* pgm;
 
-   DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = 0)
-      : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(0), warnSink(0), pendingParseSink(0), RootNS(0), QoreNS(0),
+   DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
+      : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr), pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(0),
-        exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(0), twaiting(0),
-        thr_init(0), exec_class_rv(0), pgm(n_pgm) {
+        exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
+        thr_init(0), exec_class_rv(nullptr), pgm(n_pgm) {
       printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
 #ifdef DEBUG
@@ -423,7 +423,7 @@ public:
 
    DLLLOCAL ~PreParseHelper() {
       if (swapped)
-         p->parseSink = 0;
+         p->parseSink = nullptr;
    }
 };
 
@@ -529,7 +529,7 @@ private:
    unsigned programId;
 
 public:
-   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm=0);
+   DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm=nullptr);
 
    DLLLOCAL ~qore_program_private();
 
@@ -546,7 +546,7 @@ public:
 
    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
       // grab all thread-local data in a vector and finalize it outside the lock
-      arg_vec_t* cl = 0;
+      arg_vec_t* cl = nullptr;
       {
          AutoLocker al(tlock);
          // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
@@ -728,33 +728,33 @@ public:
    }
 
    DLLLOCAL const char* parseGetScriptPath() const {
-      return script_path.empty() ? 0 : script_path.c_str();
+      return script_path.empty() ? nullptr : script_path.c_str();
    }
 
    DLLLOCAL const char* parseGetScriptDir() const {
-      return script_dir.empty() ? 0 : script_dir.c_str();
+      return script_dir.empty() ? nullptr : script_dir.c_str();
    }
 
    DLLLOCAL const char* parseGetScriptName() const {
-      return script_name.empty() ? 0 : script_name.c_str();
+      return script_name.empty() ? nullptr : script_name.c_str();
    }
 
    DLLLOCAL QoreStringNode* getScriptPath() const {
       // grab program-level parse lock
       AutoLocker al(&plock);
-      return script_path.empty() ? 0 : new QoreStringNode(script_path);
+      return script_path.empty() ? nullptr : new QoreStringNode(script_path);
    }
 
    DLLLOCAL QoreStringNode* getScriptDir() const {
       // grab program-level parse lock
       AutoLocker al(&plock);
-      return script_dir.empty() ? 0 : new QoreStringNode(script_dir);
+      return script_dir.empty() ? nullptr : new QoreStringNode(script_dir);
    }
 
    DLLLOCAL QoreStringNode* getScriptName() const {
       // grab program-level parse lock
       AutoLocker al(&plock);
-      return script_name.empty() ? 0 : new QoreStringNode(script_name);
+      return script_name.empty() ? nullptr : new QoreStringNode(script_name);
    }
 
    DLLLOCAL void setScriptPathExtern(const char* path) {
@@ -807,7 +807,7 @@ public:
    DLLLOCAL void internParseRollback();
 
    // call must push the current program on the stack and pop it afterwards
-   DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = 0, int offset = 0) {
+   DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
       //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
       assert(code && code[0]);
@@ -816,13 +816,13 @@ public:
       // when the QoreProgram object is deleted
       char* sname = strdup(label);
       addFile(sname);
-      char* src = orig_src ? strdup(orig_src) : 0;
+      char* src = orig_src ? strdup(orig_src) : nullptr;
       if (src)
          addFile(src);
 
       QoreParseLocationHelper qplh(sname, src, offset);
 
-      beginParsing(sname, 0, src, offset);
+      beginParsing(sname, nullptr, src, offset);
 
       // no need to save buffer, because it's deleted automatically in lexer
       //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
@@ -857,11 +857,11 @@ public:
 
       if (pendingParseSink) {
          parseSink->assimilate(pendingParseSink);
-         pendingParseSink = 0;
+         pendingParseSink = nullptr;
       }
    }
 
-   DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
+   DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on: %d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
       ProgramRuntimeParseContextHelper pch(xsink, pgm);
@@ -940,7 +940,7 @@ public:
          char* sname = strdup(name);
          addFile(sname);
 
-         QoreParseLocationHelper qplh(sname, 0, 0);
+         QoreParseLocationHelper qplh(sname, nullptr, 0);
 
          beginParsing(sname);
 
@@ -965,7 +965,7 @@ public:
          fprintf(stderr, "\n%d exception(s) skipped\n\n", exceptions_raised);
    }
 
-   DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
+   DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = nullptr, int offset = 0) {
       assert(xsink);
       if (!str->strlen())
          return;
@@ -1054,7 +1054,7 @@ public:
    }
 
    // called during run time (not during parsing)
-   DLLLOCAL void importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name = 0, bool inject = false);
+   DLLLOCAL void importFunction(ExceptionSink* xsink, QoreFunction *u, const qore_ns_private& oldns, const char* new_name = nullptr, bool inject = false);
 
    DLLLOCAL void del(ExceptionSink* xsink);
 
@@ -1199,7 +1199,7 @@ public:
       TZ = n_TZ;
    }
 
-   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = 0, bool inject = false) {
+   DLLLOCAL void exportFunction(ExceptionSink* xsink, qore_program_private* p, const char* name, const char* new_name = nullptr, bool inject = false) {
       if (this == p) {
          xsink->raiseException("FUNCTION-IMPORT-ERROR", "cannot import a function from the same Program object");
          return;
@@ -1211,7 +1211,7 @@ public:
       }
 
       const QoreFunction* u;
-      const qore_ns_private* ns = 0;
+      const qore_ns_private* ns = nullptr;
 
       {
          ProgramRuntimeParseAccessHelper rah(xsink, pgm);
@@ -1402,7 +1402,7 @@ public:
          return i->second;
       }
       is_defined = false;
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL AbstractQoreNode* runTimeGetDefine(const char* name, bool& is_defined) {
@@ -1495,7 +1495,7 @@ public:
       assert(xsink);
       ProgramRuntimeParseAccessHelper pah(xsink, pgm);
       if (*xsink)
-         return 0;
+         return nullptr;
       return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
    }
 
@@ -1525,7 +1525,7 @@ public:
 #endif
    }
 
-   DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc = 0) {
+   DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc = nullptr) {
       if (requires_exception) {
          xsink.clear();
          return;
@@ -1877,17 +1877,17 @@ public:
       pgm->priv->restoreParseOptions(pf);
    }
 
-   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = 0) {
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = nullptr) {
       assert(xsink);
       pgm->priv->addParseException(*xsink, loc);
       delete xsink;
    }
 
-   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, QoreProgramLocation* loc = 0) {
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, QoreProgramLocation* loc = nullptr) {
       pgm->priv->addParseException(xsink, loc);
    }
 
-   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram* trgpgm, const char* name, const char* new_name = 0, bool inject = false) {
+   DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram* trgpgm, const char* name, const char* new_name = nullptr, bool inject = false) {
       srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name, inject);
    }
 
@@ -1990,7 +1990,7 @@ public:
       QoreAutoRWWriteLocker al(&lck_debug_program);
       assert(n_dpgm==dpgm);
       if (!n_dpgm) return;
-      dpgm = 0;
+      dpgm = nullptr;
       printd(5, "qore_program_private::detachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
       AutoLocker al2(tlock);
       for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
@@ -2030,7 +2030,7 @@ public:
       if (!checkAllowDebugging(xsink))
             return;
       if (bkpt->pgm) {
-         bkpt->assignProgram(0, 0);
+         bkpt->assignProgram(nullptr, nullptr);
       }
       QoreAutoRWWriteLocker al(&lck_breakpoint);
       breakpointList.push_back(bkpt);
@@ -2042,7 +2042,7 @@ public:
       QoreAutoRWWriteLocker al(&lck_breakpoint);
       for (QoreBreakpointList_t::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
          (*it)->unassignAllStatements();
-         (*it)->pgm = 0;
+         (*it)->pgm = nullptr;
          (*it)->deref();
       }
       breakpointList.clear();
@@ -2059,7 +2059,7 @@ public:
 
    DLLLOCAL inline bool onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
-      return statement->getBreakpoint() != 0;
+      return statement->getBreakpoint() != nullptr;
    }
 
    DLLLOCAL unsigned long getStatementId(const AbstractStatement* statement) const {
@@ -2075,7 +2075,7 @@ public:
    DLLLOCAL AbstractStatement* resolveStatementId(unsigned long statementId) const {
       AutoLocker al(&plock);
       if (statementId == 0 || statementId > statementIds.size())
-         return 0;
+         return nullptr;
       return statementIds[statementId-1];
    }
 
@@ -2090,7 +2090,7 @@ public:
          if (i->first->priv->programId == programId)
             return i->first;
       }
-      return 0;
+      return nullptr;
    }
 
    DLLLOCAL bool checkAllowDebugging(ExceptionSink *xsink) {
@@ -2146,6 +2146,7 @@ public:
    DLLLOCAL static void registerStatement(QoreProgram* pgm, AbstractStatement *statement) {
       if (pgm) {
          // allocate unique id for statement
+         AutoLocker al(&pgm->priv->plock);
          ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
          if (i == pgm->priv->reverseStatementIds.end()) {
             pgm->priv->statementIds.push_back(statement);
@@ -2159,12 +2160,12 @@ public:
       AutoLocker al(&plock);
       std::map<const char*, sline_statement_multimap_t*>::iterator it;
       if (statementByFileIndex.empty()) {
-         return 0;
+         return nullptr;
       }
       bool addOffs = true;
       if (!name || *name == '\0') {
          if (statementByFileIndex.size() != 1)
-            return 0;
+            return nullptr;
          it = statementByFileIndex.begin();
       } else {
          size_t l = strlen(name);
@@ -2189,7 +2190,7 @@ public:
                }
                if (it == statementByFileIndex.end()) {
                   printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no suffix match, this: %p\n", name, line, this);
-                  return 0;
+                  return nullptr;
                }
                printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by file suffix match, this: %p\n", name, line, this);
             } else {
@@ -2203,17 +2204,17 @@ public:
       sline_statement_multimap_t *ssm = it->second;
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found '%s', this: %p, ssm#: %d\n", name, line, it->first, this, ssm->size());
       if (ssm->size() == 0)
-         return 0;
+         return nullptr;
 
       std::map<int, AbstractStatement*>::iterator li = ssm->upper_bound(line);
       if (li == ssm->begin()) {
          printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no statement found by line #1, this: %p\n", name, line, this);
-         return 0;
+         return nullptr;
       }
       --li;
       int ln = li->first;
       int minnl = -1;
-      AbstractStatement* st = 0;
+      AbstractStatement* st = nullptr;
       while (true) {
          // find the nearest statement, i.e. statement with smallest num of lines
          if (ln != li->first) {
@@ -2247,6 +2248,7 @@ public:
    }
 
    DLLLOCAL void registerQoreObject(QoreObject *o, ExceptionSink* xsink) {
+      printd(5, "qore_program_private::registerQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
       QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
       qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
       assert(i != qore_program_private::qore_program_to_object_map.end());
@@ -2258,18 +2260,19 @@ public:
    }
 
    DLLLOCAL void unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) {
+      printd(5, "qore_program_private::unregisterQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
       QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
       qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
       assert(i != qore_program_private::qore_program_to_object_map.end());
       assert(i->second == o);
-      i->second = 0;
+      i->second = nullptr;
    }
 
    DLLLOCAL QoreObject* findQoreObject() {
       QoreAutoRWReadLocker al(&lck_programMap);
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       if (i == qore_program_to_object_map.end()) {
-         return 0;
+         return nullptr;
       } else {
          return i->second;
       }
@@ -2280,9 +2283,11 @@ public:
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
       assert(i != qore_program_to_object_map.end());
       if (i->second) {
+         printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
          i->second->ref();
       } else {
          i->second = new QoreObject(pgm->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), pgm);
+         printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, new second: %p\n", pgm, pgm->getProgramId(), i->second);
          pgm->ref();
       }
       return i->second;
@@ -2295,9 +2300,11 @@ public:
       qore_program_to_object_map_t::iterator i = qore_program_to_object_map.begin();
       while (i != qore_program_to_object_map.end()) {
          if (i->second) {
+            printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->second->ref();
          } else {
             i->second = new QoreObject(i->first->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), i->first);
+            printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->first->ref();
          }
          (*l)->push(i->second);
