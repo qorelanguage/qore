@@ -24,17 +24,17 @@
 
 %exec-class SwaggerTest
 
-string sub my_make_json(hash h) {
+string sub my_make_json(any v) {
 %ifndef NoJson
-    return make_json(h);
+    return make_json(v);
 %else
     return "";
 %endif
 }
 
-string sub my_make_yaml(hash h) {
+string sub my_make_yaml(any v) {
 %ifndef NoYaml
-    return make_yaml(h);
+    return make_yaml(v);
 %else
     return "";
 %endif
