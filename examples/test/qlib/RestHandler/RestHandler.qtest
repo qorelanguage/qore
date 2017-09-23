@@ -73,6 +73,8 @@ public class RestHandlerTest inherits QUnit::Test {
         MyRestHandler mHandler();
 %ifndef NoJson
         SwaggerRestHandler swaggerHandler(SwaggerLoader::fromString(make_json(TestSchema)));
+%else
+        SwaggerRestHandler swaggerHandler;
 %endif
         int port;
 

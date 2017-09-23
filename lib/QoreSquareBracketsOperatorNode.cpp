@@ -182,7 +182,6 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValu
         ConstListIterator it(r.get<const QoreListNode>());
         switch (left_type) {
             case NT_LIST: {
-                const QoreListNode* ll = l.get<const QoreListNode>();
                 // calculate the runtime element type if possible
                 const QoreTypeInfo* vtype = nullptr;
                 // try to find a common value type, if any
@@ -305,7 +304,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
 }
 
 bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-    if (++offset == rl->size())
+    if ((size_t)++offset == rl->size())
         return true;
 
 //printd(0, "QoreFunctionalSquareBracketsOperator::getNextImpl() offset: %d n: %p '%s'\n", (int)offset, rl->retrieve_entry(offset), get_type_name(rl->retrieve_entry(offset)));
