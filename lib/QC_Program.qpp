@@ -699,6 +699,7 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    assert(!xsink->isEvent());
 
    self->setPrivate(CID_PROGRAM, pgm);
+   printd(5, "Program::constructor() pgm: %p, pgmid: %d, self: %p\n", pgm, pgm->getProgramId(), self);
 }
 
 //! Throws an exception to prevent objects of this class from being copied
@@ -713,6 +714,8 @@ Program::copy() {
 /**
  */
 Program::destructor() {
+   printd(5, "Program::destructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+   // inherited system object destructor is not executed
    p->unregisterQoreObject(self, xsink);
    if (p->is_unique()) {
       p->waitForTerminationAndDeref(xsink);
@@ -1447,6 +1450,8 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
 #endif
    if (!*xsink) {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0));
+      // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+      p->unregisterQoreObject(self, xsink);
       self->doDelete(xsink);
    }
 }
@@ -1480,6 +1485,8 @@ Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
 #endif
    if (!*xsink) {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | QMLO_PRIVATE);
+      // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+      p->unregisterQoreObject(self, xsink);
       self->doDelete(xsink);
    }
 }
