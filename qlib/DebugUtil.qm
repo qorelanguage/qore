@@ -28,6 +28,7 @@
 %require-types
 %enable-all-warnings
 %new-style
+%no-debugging
 
 module DebugUtil {
     version = "0.1";

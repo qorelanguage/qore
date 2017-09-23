@@ -37,6 +37,7 @@
 # enable all warnings
 %enable-all-warnings
 %new-style
+%no-debugging
 %debugger
 
 module DebugHandler {
