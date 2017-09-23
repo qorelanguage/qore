@@ -169,7 +169,6 @@ volatile unsigned qore_program_private::programIdCounter = 1;
 
 
 qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
-   printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p\n", this, pgm);
    QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
    qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
    assert(i == qore_program_private::qore_program_to_object_map.end());
@@ -177,10 +176,11 @@ qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_opt
       programId = programIdCounter++;
       qore_program_private::qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, 0));
    }
+   printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p, pgmid: %d\n", this, pgm, programId);
 }
 
 qore_program_private::~qore_program_private() {
-   printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p\n", this, pgm);
+   printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p, pgmid: %d\n", this, pgm, programId);
    if (dpgm)
       dpgm->removeProgram(pgm);
    // wait till all debug calls are finished, no new calls possible as dpgm->removeProgram() set dpmg to NULL
@@ -193,7 +193,13 @@ qore_program_private::~qore_program_private() {
    } else {
       assert(i->second == 0);
       qore_program_to_object_map.erase(i);
+      printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p, pgmid: %d removed\n", this, pgm, programId);
    }
+   statementByFileIndex.clear();
+   statementIds.clear();
+   reverseStatementIds.clear();
+   statementByLabelIndex.clear();
+
    assert(!parseSink);
    assert(!warnSink);
    assert(!pendingParseSink);
@@ -1151,12 +1157,13 @@ void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, Ex
 }
 
 QoreProgram::~QoreProgram() {
-   printd(5, "QoreProgram::~QoreProgram() this: %p\n", this);
+   printd(5, "QoreProgram::~QoreProgram() this: %p, pgmid: %d\n", this, priv->getProgramId());
    delete priv;
 }
 
 // setup independent program object
 QoreProgram::QoreProgram() : priv(new qore_program_private(this, PO_DEFAULT)) {
+   printd(5, "QoreProgram::QoreProgram() this: %p, pgmid: %d\n", this, priv->getProgramId());
 }
 
 // setup independent program object
@@ -1164,7 +1171,7 @@ QoreProgram::QoreProgram(int64 po) : priv(new qore_program_private(this, po)) {
 }
 
 QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn) : priv(new qore_program_private(this, po, pgm)) {
-   printd(QPP_DBG_LVL, "QoreProgram::QoreProgram(), this: %p, pgm: %p, priv: %p\n", this, pgm, priv);
+   printd(QPP_DBG_LVL, "QoreProgram::QoreProgram(), this: %p, pgm: %p, priv: %p, pgmid: %d\n", this, pgm, priv, priv->getProgramId());
    priv->exec_class = ec;
    if (ecn)
       priv->exec_class_name = ecn;
@@ -2007,11 +2014,11 @@ void QoreBreakpoint::getStatements(AbstractStatementList_t &statList, ExceptionS
 
 QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
    QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : 0);
-   QoreListNode* l = new QoreListNode;
+   ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
    for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
-      l->push(new QoreBigIntNode(pgm->getStatementId(*it)));
+      (*l)->push(new QoreBigIntNode(pgm->getStatementId(*it)));
    }
-   return l;
+   return l.release();
 }
 
 AbstractStatement* QoreBreakpoint::resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const {
