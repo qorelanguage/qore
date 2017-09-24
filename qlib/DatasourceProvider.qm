@@ -143,6 +143,7 @@ string connstr = get_ds_string(str);
 namespace Priv {
     string sub try_get_ds_string(string mod, string str) {
         Program p();
+        p.setScriptPath(sprintf("Qore::DatasourceProvider(%s,%s)", mod, str));
         p.loadModule(mod);
         return p.callFunction("get_mod_ds_string", str);
     }

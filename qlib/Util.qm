@@ -496,6 +496,7 @@ bool abs = absolute_path_windows(path);
         # use a sandboxed Program object
         Program prog(PO_LOCKDOWN);
         try {
+            prog.setScriptPath(sprintf("Qore::Util::eval_text"));
             prog.parse(str, "main");
             auto rv = prog.callFunction("get");
             # if it's a float, then return a string to preseve formatting
