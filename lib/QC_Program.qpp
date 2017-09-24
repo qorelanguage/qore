@@ -1441,6 +1441,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
  */
 Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJECTION] {
    // remove the QoreProgram private data from the object
+  printd(5, "Program::loadApplyToUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
    QoreProgram* pgm = (QoreProgram*)
 #endif
@@ -1476,6 +1477,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
  */
 Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
    // remove the QoreProgram private data from the object
+  printd(5, "Program::loadApplyToPrivateUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
    QoreProgram* pgm = (QoreProgram*)
 #endif
