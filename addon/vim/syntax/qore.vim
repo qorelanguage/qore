@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2017 May 29
+" Last Change:	2017 September 21
 
 if version < 600
   syntax clear
@@ -77,9 +77,10 @@ syn keyword qoreType string softstring
 syn keyword qoreType timeout
 
 syn keyword qoreType any
+syn keyword qoreType auto
 syn keyword qoreType code
 syn keyword qoreType data
-syn keyword qoreType hash
+syn keyword qoreType hash hashdecl
 syn keyword qoreType list softlist
 syn keyword qoreType nothing
 syn keyword qoreType object
@@ -103,9 +104,12 @@ syn match qoreParseInclude "^%include\>"
 syn match qoreParseInclude "^%module-cmd\>"
 syn match qoreParseInclude "^%requires\>"
 syn match qoreParseInclude "^%try-module\>"
+syn match qoreParseInclude "^%try-reexport-module\>"
 
 syn match qoreParseDirective "^%allow-bare-refs\>"
+syn match qoreParseDirective "^%allow-debugging\>"
 syn match qoreParseDirective "^%allow-injection\>"
+syn match qoreParseDirective "^%allow-weak-references\>"
 syn match qoreParseDirective "^%append-include-path\>"
 syn match qoreParseDirective "^%append-module-path\>"
 syn match qoreParseDirective "^%assume-global\>"
@@ -115,10 +119,13 @@ syn match qoreParseDirective "^%broken-list-parsing\>"
 syn match qoreParseDirective "^%broken-logic-precedence\>"
 syn match qoreParseDirective "^%broken-loop-statement\>"
 syn match qoreParseDirective "^%broken-operators\>"
+syn match qoreParseDirective "^%broken-references\>"
 syn match qoreParseDirective "^%correct-int-assignments\>"
 syn match qoreParseDirective "^%correct-list-parsing\>"
 syn match qoreParseDirective "^%correct-logic-precedence\>"
+syn match qoreParseDirective "^%correct-loop-statement\>"
 syn match qoreParseDirective "^%correct-operators\>"
+syn match qoreParseDirective "^%correct-references\>"
 syn match qoreParseDirective "^%disable-all-warnings\>"
 syn match qoreParseDirective "^%disable-warning\>"
 syn match qoreParseDirective "^%enable-all-warnings\>"
@@ -190,12 +197,16 @@ syn keyword qoreModule Qorize
 syn keyword qoreModule QUnit
 syn keyword qoreModule RestClient
 syn keyword qoreModule RestHandler
+syn keyword qoreModule RestSchemaValidator
 syn keyword qoreModule SalesforceRestClient
 syn keyword qoreModule Schema
+syn keyword qoreModule SchemaReverse
 syn keyword qoreModule SmtpClient
 syn keyword qoreModule SqlUtil
+syn keyword qoreModule Swagger
 syn keyword qoreModule TableMapper
 syn keyword qoreModule TelnetClient
+syn keyword qoreModule TextWrap
 syn keyword qoreModule UnitTest
 syn keyword qoreModule Util
 syn keyword qoreModule WebSocketClient

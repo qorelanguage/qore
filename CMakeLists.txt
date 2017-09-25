@@ -574,6 +574,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreQuestionMarkOperatorNode.cpp
     lib/QoreKeysOperatorNode.cpp
     lib/QoreSelectOperatorNode.cpp
+    lib/QoreRangeOperatorNode.cpp
+    lib/QoreSquareBracketsRangeOperatorNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -772,6 +774,7 @@ qore_user_module("qlib/FixedLengthUtil.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/SqlUtil.qm" "Util")
+qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
 qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")

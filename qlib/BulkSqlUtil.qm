@@ -672,7 +672,7 @@ inserter.setRowCode(rowcode);
         #! inserts internally-queued queued data in the database with bulk DML operations
         /**
             This method sets up the SQL DML query used for inserts when row is queued.
-            Output values are only retrieved if @ref sql_iops_funcs are used and a
+            Output values are only retrieved if @ref sql_iop_funcs are used and a
             \c rowcode @ref closure "closure" or @ref call_reference "call reference"
             has been set beforehand in the constructor() or by calling setRowCode() and
             the underlying DBI driver supports the \c "returning"

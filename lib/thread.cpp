@@ -922,6 +922,9 @@ int saveframe = frame;
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
+      // ch can be nullptr in the initial Program context
+      if (!ch)
+          return nullptr;
       // get previous Program before changing context
       if (!ch) {
          printd(5, "get_var_frame() ch is null\n");
@@ -932,7 +935,7 @@ int saveframe = frame;
          printd(5, "get_var_frame() getNextContext() is null\n");
          return nullptr;
       }
-      printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount());
+      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount());
    }
 
    //printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
@@ -940,6 +943,7 @@ int saveframe = frame;
    if (!pgm->checkAllowDebugging(xsink))
       return nullptr;
 
+   //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d pgm: %p fc: %d\n", tlpd, ch, frame, pgm, tlpd->lvstack.getFrameCount());
    return tlpd;
 }
 

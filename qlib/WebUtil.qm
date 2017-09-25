@@ -738,7 +738,9 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! this method calls handleRequestImpl() to service the request, if handleRequestImpl() returns @ref nothing, then it tries to automatically serve a matching template or files from the filesystem or serve the default resource if no resource can be matched
-        /** @param cx call context hash; this hash will have the following keys:
+        /** @param listener the listener handling the request
+            @param s the socket object for the connection
+            @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
@@ -844,6 +846,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             return makeResponse(500, desc);
         }
 
+        #! tries to serve the request from the filesystem
         private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body) {
             *string path = cx.resource_path;
 

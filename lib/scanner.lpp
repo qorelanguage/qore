@@ -1724,6 +1724,7 @@ module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext 
 \^=                                     return XOR_EQUALS;
 \>\>=                                   return SHIFT_RIGHT_EQUALS;
 \<\<=                                   return SHIFT_LEFT_EQUALS;
+\.\.                                    return RANGE;
 
 \<{WS}+=                                check_broken_op(yylloc, yytext, "<="); return LOGICAL_LE;
 \>{WS}+=                                check_broken_op(yylloc, yytext, ">="); return LOGICAL_GE;

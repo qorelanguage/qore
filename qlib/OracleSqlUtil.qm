@@ -69,7 +69,7 @@ module OracleSqlUtil {
 
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/14-oracle-module">oracle</a> binary module for communication with Oracle databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module for communication with Oracle databases
 
     @section ora_sql_operations SQL Operations on Oracle
 
@@ -1934,17 +1934,6 @@ auto v = c.name;
                         if (!exists args[1])
                             return sprintf("substr(%s,%d)", cve, args[0]);
                         return sprintf("substr(%s,%d,%d)", cve, args[0], args[1]);
-                    },
-                ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
                     },
                 ),
                 COP_YEAR: (

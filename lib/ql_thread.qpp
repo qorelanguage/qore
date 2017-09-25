@@ -768,6 +768,11 @@ thread_yield();
     @since %Qore 0.8.13
 */
 nothing thread_yield() [dom=PROCESS] {
+#ifdef _Q_WINDOWS
+    // cnanot find a working mingw c++ compiler with support for std::this_thread
+    SwitchToThread();
+#else
     std::this_thread::yield();
+#endif
 }
 //@}

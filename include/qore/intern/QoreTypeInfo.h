@@ -407,21 +407,21 @@ public:
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexHash(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexHash();
+      return ti == autoHashTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexHash();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexList();
+      return ti == autoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexList();
    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexSoftList(const QoreTypeInfo* ti) {
       if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
          return nullptr;
-      return ti->return_vec[0].spec.getComplexSoftList();
+      return ti == softAutoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexSoftList();
    }
 
    // static version of method, checking for null pointer
@@ -610,11 +610,16 @@ public:
       }
 
       // ctype |* NOTHING -> *type
-      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::parseAcceptsReturns(ntype, NT_NOTHING)) {
+      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::isType(ntype, NT_NOTHING)) {
          const QoreTypeInfo* ti = get_or_nothing_type(ctype);
          ctype = ti;
-         if (!ti)
-            return false;
+         return ctype ? true : false;
+      }
+
+      // ctype==NOTHING | type -> *type
+      if (QoreTypeInfo::isType(ctype, NT_NOTHING)) {
+         ctype = get_or_nothing_type_check(ntype);
+         return ctype ? true : false;
       }
 
       // ctype |* *ctype -> *ctype

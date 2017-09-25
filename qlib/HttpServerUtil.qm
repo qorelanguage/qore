@@ -309,7 +309,7 @@ public namespace HttpServer {
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
     /** @param path the URI path to parse
 
-        @return a @ref UriQueryInfo hash
+        @return a @ref Util::UriQueryInfo hash
 
         @since
         - 0.3.11 the \a params key value is always returned as a hash
@@ -1217,7 +1217,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param b message body, if any
 
-        @return to accept a dedicated connection, return a hash (ideally an @ref HttpRequestInfo hash) with the following key:
+        @return to accept a dedicated connection, return a hash (ideally an @ref HttpServer::HttpRequestInfo hash) with the following key:
         - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
         .

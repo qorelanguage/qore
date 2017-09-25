@@ -356,8 +356,8 @@ class SchemaBase {
                 switch (format) {
                     case "byte":
                     case "binary": return "<deadbeef>";
-                    case "date": return now_us().format("YYYY-MM-DD");
-                    case "date-time": return now_us().format("YYYY-MM-DDTHH:mm:SS.xx");
+                    case "date": return now_us();
+                    case "date-time": return now_us();
                     default:
                         return "value";
                 }
@@ -1146,6 +1146,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return rv;
     }
 
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    private hash<string, list<string>> getPathOperationHashImpl() {
+        return paths.getPathOperationHash();
+    }
+
     #! returns the base path prefix for all requests in this schema
     /** @return the base path prefix for all requests in this schema
     */
@@ -1612,6 +1619,17 @@ public class PathComponent {
             throw "INVALID-PATH", sprintf("path %y is valid but has no API definition", path.join("/"));
         return w.pio;
     }
+
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    getPathOperationHash(reference<hash<string, list<string>>> h) {
+        if (pio)
+            h{pfx} = pio.getMethods();
+        map $1.getPathOperationHash(\h), paths.iterator();
+        if (wildcard)
+            wildcard.getPathOperationHash(\h);
+    }
 }
 
 #! This class stores the path tree for URI path matching
@@ -1639,6 +1657,15 @@ public class PathsObject inherits ObjectBase {
     */
     PathItemObject match(string path) {
         return paths.match(path.split("/"));
+    }
+
+    #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+    /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+    */
+    hash<string, list<string>> getPathOperationHash() {
+        hash<string, list<string>> rv();
+        paths.getPathOperationHash(\rv);
+        return rv;
     }
 }
 
@@ -1678,13 +1705,13 @@ public class PathItemObject inherits ObjectBase {
         #! A hash of @ref OperationObject "OperationObjects" correspoding to different methods.
         /**
             Keys are lowercase method names, with possible values being:
-            - "get"
-            - "put"
-            - "post"
-            - "del"
-            - "options"
-            - "head"
-            - "patch"
+            - \c "get"
+            - \c "put"
+            - \c "post"
+            - \c "delete"
+            - \c "options"
+            - \c "head"
+            - \c "patch"
          */
         hash<string, OperationObject> operations;
     }
@@ -1717,7 +1744,7 @@ public class PathItemObject inherits ObjectBase {
 
         delete opObj;
         if (optional_field(objType, oh, "delete", NT_HASH, \opObj))
-            operations.del = new OperationObject(path, "delete", opObj, swagger);
+            operations."delete" = new OperationObject(path, "delete", opObj, swagger);
 
         delete opObj;
         if (optional_field(objType, oh, "options", NT_HASH, \opObj))
@@ -1763,6 +1790,13 @@ public class PathItemObject inherits ObjectBase {
         if (!op)
             throw "INVALID-METHOD", sprintf("%s %s: no operation defined for this path; known methods: %y", method.upr(), path, keys operations);
         return op;
+    }
+
+    #! returns a list of HTTP methods supported by this object
+    /** @return a list of HTTP methods supported by this object
+    */
+    softlist getMethods() {
+        return keys operations;
     }
 }
 
@@ -3151,19 +3185,31 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         string typestr = get_qore_type(self.name, type, format, items);
         if (type == "array") {
             if (decl)
-                return sprintf("%s %s(%s,);\n", typestr, self.name, items.getQoreExample(\rv, name, False));
+                return sprintf("%s %s(%s,);\n", typestr, name, items.getQoreExample(\rv, name, False));
             else
                 return sprintf("(%s,)", items.getQoreExample(\rv, self.name, False));
         }
 
         if (type != "object") {
-            softstring example = sprintf("%y", getExampleValue());
+            any val = getExampleValue();
+            string example;
+            switch (val.typeCode()) {
+                case NT_DATE:
+                    example = val.format("YYYY-MM-DDTHH:mm:SS.xxZ");
+                    break;
+                case NT_BINARY:
+                    example = sprintf("<%s>", val.toHex());
+                    break;
+                default:
+                    example = sprintf("%y", val);
+                    break;
+            }
             if (decl)
-                return sprintf("%s %s = %s;\n", typestr, self.name, example);
+                return sprintf("%s %s = %s;\n", typestr, name, example);
             return example;
         }
 
-        if (!rv.hashdecls{name}) {
+        if (properties) {
             string str = sprintf("hashdecl %s {\n", self.name);
             foreach hash h in (properties.pairIterator()) {
                 str += sprintf("    %s %s", get_qore_type(h.value.name, h.value.type, h.value.format, h.value.items), h.key);
@@ -3172,22 +3218,32 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 str += ";\n";
             }
             str += "}\n";
-            rv.hashdecls{name} = str;
+            rv.hashdecls{self.name} = str;
         }
 
         string str;
-        if (decl)
-            str = sprintf("hash<%s> %s(", self.name, name);
-        else
-            str = sprintf("new hash<%s>(", self.name);
-        str += "{\n";
-        foreach hash h in (properties.pairIterator()) {
-            string pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
-            # add 4 spaces to the beginning of each line
-            str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
-            str += ",\n";
+        if (properties) {
+            if (decl)
+                str = sprintf("hash<%s> %s(", self.name, name);
+            else
+                str = sprintf("new hash<%s>(", self.name);
+
+            str += "{\n";
+            foreach hash h in (properties.pairIterator()) {
+                string pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
+                # add 4 spaces to the beginning of each line
+                str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
+                str += ",\n";
+            }
+            str += "})";
         }
-        str += "})";
+        else if (additionalProperties instanceof SchemaObject) {
+            string ptype = get_qore_type(additionalProperties.name, additionalProperties.type, additionalProperties.format, additionalProperties.items);
+            if (decl)
+                str = sprintf("hash<string, %s> %s()", ptype, name);
+            else
+                str = sprintf("new hash<string, %s>()", ptype);
+        }
         if (decl)
             str += ";\n";
         return str;

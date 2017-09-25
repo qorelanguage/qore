@@ -1,0 +1,61 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class FillTest
+
+#! Test TextWrap::fill() and various indents
+public class FillTest inherits BaseTest {
+    constructor () : BaseTest ("FillTest", "1.0") {
+        addTestCase ("TextWrap - FillTest - test_fill", \test_fill());
+        addTestCase ("TextWrap - FillTest - test_initial_indent", \test_initial_indent());
+        addTestCase ("TextWrap - FillTest - test_subsequent_indent", \test_subsequent_indent());
+        set_return_value(main());
+    }
+
+    private {
+        string text = 'This paragraph will be filled, first without any indentation,
+and then with some (including a hanging indent).';
+        any expect;
+        any result;
+    }
+
+    #! Test the fill() method
+    test_fill () {
+        expect = 'This paragraph will be filled, first
+without any indentation, and then with
+some (including a hanging indent).';
+
+        result = fill(self.text, 40);
+        self.check(result, expect);
+    }
+
+    #! Test initial_indent parameter
+    test_initial_indent () {
+        expect = ("     This paragraph will be filled,",
+                  "first without any indentation, and then",
+                  "with some (including a hanging indent).");
+        result = wrap(self.text, 40, ('initial_indent': "     "));
+        self.check(result, expect);
+
+        expect = expect.join("\n");
+        result = fill(self.text, 40, ('initial_indent': "     "));
+        self.check(result, expect);
+    }
+
+    #! Test subsequent_indent parameter
+    test_subsequent_indent () {
+        expect = '  * This paragraph will be filled, first
+    without any indentation, and then
+    with some (including a hanging
+    indent).';
+
+        result = fill(self.text, 40,
+                      ('initial_indent': "  * ", 'subsequent_indent': "    "));
+        self.check(result, expect);
+    }
+}

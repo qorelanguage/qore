@@ -242,6 +242,8 @@
 #include "QoreMinusOperatorNode.cpp"
 #include "QoreMultiplicationOperatorNode.cpp"
 #include "QoreBackgroundOperatorNode.cpp"
+#include "QoreRangeOperatorNode.cpp"
+#include "QoreSquareBracketsRangeOperatorNode.cpp"
 #include "QoreValue.cpp"
 #include "FunctionalOperatorInterface.cpp"
 #include "FunctionalOperator.cpp"

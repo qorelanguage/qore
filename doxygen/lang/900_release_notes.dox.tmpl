@@ -13,6 +13,7 @@
     - the random number generator is always seeded with a random number when the Qore library is initialized; to get a predictable sequence from @ref Qore::rand() "rand()", you must explicitly seed the random number generator by calling @ref Qore::srand() "srand()" with a predefined seed number
     - the @ref synchronized "synchronized" keyword now operates differently depending on the context; <tt><b>synchronized</b></tt> functions have a global reentrant lock associated with the function (as in previous versions of %Qore), whereas now <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.  This aligns %Qore's @ref synchronized "synchronized" behavior with that of Java and <tt>[MethodImpl(MethodImplOptions.Synchronized)]</tt> .NET/CLR (<a href="https://github.com/qorelanguage/qore/issues/894">issue 894</a>).
     - classes may not have the name \c "auto" due to the introduction of this identifier as a special type name
+    - a new keyword @ref hashdecl "hashdecl" has been introduced to support type-safe hash declarations
 
     @subsection qore_0813_new_features New Features in Qore
     - complex type support
@@ -79,6 +80,14 @@
       - @ref foldl "foldl": supports lazy evaluation of the iterator expression
       - @ref foldr "foldlr": supports lazy evaluation of the iterator expression
       - @ref foreach "foreach": supports lazy evaluation of the iterator expression
+      - @ref range_operator ".. (range operator)": supports lazy evaluation of itself
+      - @ref list_element_operator "[n,m,...] (list, string, or binary dereference with multiple indices))": supports lazy evaluation of itself
+    - support for list, string, and binary slices with offsets and ranges:
+      - @ref list_slicing "list slices"
+      - @ref string_slicing "string slices"
+      - @ref binary_slicing "binary slices"
+      - new @ref range_operator ".. range operator"
+      - updated @ref list_element_operator "[] operator"
     - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
       - @ref Qore::decrypt_to_binary()
       - @ref Qore::decrypt_to_string()
@@ -127,6 +136,7 @@
       - <a href="../../modules/SewioRestClient/html/index.html">SewioRestClient</a>
       - <a href="../../modules/SewioWebSocketClient/html/index.html">SewioWebSocketClient</a>
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>
+      - <a href="../../modules/TextWrap/html/index.html">TextWrap</a>
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
       - @ref debugger" %debugger": allows running debug commands
@@ -159,6 +169,8 @@
       - see new cryptographic constants listed above
     - implemented additional parse-time checks for many @ref operators "operators" to provide feedback for invalid operations detected at parse time
     - implemented the @ref weak_assignment_operator "weak assignment operator (:=)" (only available with @ref allow-weak-references "%allow-weak-references")
+    - implemented the @ref range_operator "range operator (..)"
+    - implemented support for list expressions inside the @ref list_element_operator "dereference operator ([])"
     - new methods:
       - @ref Qore::Program::getAllDefines()
       - @ref Qore::Program::getGlobalVars()
@@ -178,6 +190,8 @@
         - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
         - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
         - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+        .
+        Additionally, the HTTPClient class now understands the \c PATCH method (<a href="https://tools.ietf.org/html/rfc5789">RFC 5789</a>)
       - @ref Qore::RangeIterator::constructor(int) was updated; the second argument was removed to avoid ambiguity with the other overloaded constructor
       - @ref Qore::TreeMap::get() "TreeMap::get()": added a new optional argument to return the unmatched part of the search string
       - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
@@ -227,6 +241,8 @@
       - <a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a> module updates:
         - added complex type support
         - added the \c AbstractBulkOperation::size() method
+        - implemented analytic/window functions: new functions [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2202</a>]
+        - implemented analytic/window functions: cop_over full support including ORDER BY [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2203</a>]
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - added support for streams
       - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
@@ -288,6 +304,7 @@
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - the \c parse_uri_query() function was moved here from the <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module
         - \c parse_uri_query() now handles repeated query arguments as a list
+        - added public function \c flatten()
       - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
         - added the \c WebSocketConnectionObject class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
         - updated for complex types
@@ -308,6 +325,7 @@
       - fixed the module to work properly even with DB drivers that do not support parameter array binding (<a href="https://github.com/qorelanguage/qore/issues/1154">issue 1154</a>)
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module fixes:
       - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
+      - added an exception when detected headers do not match the \a fields option (<a href="https://github.com/qorelanguage/qore/issues/2179">issue 2179</a>)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module fixes:
       - added logic to attempt to mask passwords in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module fixes:

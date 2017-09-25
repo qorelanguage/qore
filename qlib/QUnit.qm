@@ -1171,6 +1171,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @param expectedDesc the expected exception detail (desc field), ignored if NOTHING
         @param theCode the code to execute
         @param args optional arguments to the code
+        @param name an optional label for the assertion
      */
     public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist<auto> args, *string name) {
         TestCase tc = getTestCase("assertEqThrows");
@@ -1202,6 +1203,7 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @param expectedErr the expected exception type
         @param theCode the code to execute
         @param args optional arguments to the code
+        @param name an optional label for the assertion
      */
     public assertThrows(string expectedErr, code theCode, *softlist<auto> args, *string name) {
         assertThrows(expectedErr, NOTHING, theCode, args, name);

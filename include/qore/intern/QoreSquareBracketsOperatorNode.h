@@ -33,10 +33,10 @@
 
 #define _QORE_QORESQUAREBRACKETSOPERATORNODE_H
 
-class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<> {
+class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
 OP_COMMON
 protected:
-   const QoreTypeInfo* typeInfo;
+   const QoreTypeInfo* typeInfo = nullptr;
 
    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
@@ -44,8 +44,10 @@ protected:
 
    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
+   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
 public:
-   DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right), typeInfo(0) {
+   DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -57,6 +59,26 @@ public:
    }
 
    DLLLOCAL static QoreValue doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink);
+};
+
+class QoreFunctionalSquareBracketsOperator : public FunctionalOperatorInterface {
+protected:
+    ValueOptionalRefHolder left, right;
+    const QoreListNode* rl;
+    qore_offset_t offset = -1;
+
+public:
+    DLLLOCAL QoreFunctionalSquareBracketsOperator(ValueEvalRefHolder& lhs, ValueEvalRefHolder& rhs, ExceptionSink* xsink)
+        : left(*lhs, lhs.isTemp(), xsink),
+          right(*rhs, rhs.isTemp(), xsink),
+          rl(rhs->get<const QoreListNode>()) {
+       lhs.clearTemp();
+       rhs.clearTemp();
+    }
+
+    DLLLOCAL virtual ~QoreFunctionalSquareBracketsOperator() {}
+
+    DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
 #endif

@@ -1106,7 +1106,7 @@ public namespace Schema {
             string version_table;
             #! the name of the column containing the version string
             string version_column;
-            #! a @ref where_clause "where clause hash" defining the row where the schema version string is located
+            #! a @ref where_clauses "where clause hash" defining the row where the schema version string is located
             hash version_where;
         }
 
@@ -1216,7 +1216,7 @@ public namespace Schema {
             return getVersionColumnImpl();
         }
 
-        #! returns the @ref where_clause "where clause hash" defining the row where the schema version string is located by calling getVersionWhereImpl()
+        #! returns the @ref where_clauses "where clause hash" defining the row where the schema version string is located by calling getVersionWhereImpl()
         /** this function wraps getVersionWhereImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getVersionWhereImpl()
         */
@@ -1230,7 +1230,7 @@ public namespace Schema {
         #! returns the name of the column holding the schema version string
         private abstract string getVersionColumnImpl();
 
-        #! returns the @ref where_clause "where clause hash" defining the row where the schema version string is located
+        #! returns the @ref where_clauses "where clause hash" defining the row where the schema version string is located
         private abstract hash getVersionWhereImpl();
     }
 }

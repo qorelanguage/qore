@@ -264,6 +264,13 @@ public namespace RestSchemaValidator {
             return rv;
         }
 
+        #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+        /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+        */
+        hash<string, list<string>> getPathOperationHash() {
+            return getPathOperationHashImpl();
+        }
+
         #! returns the base path prefix for all requests in this schema
         /** @return the base path prefix for all requests in this schema
         */
@@ -338,6 +345,11 @@ public namespace RestSchemaValidator {
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
         private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+
+        #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+        /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+        */
+        private abstract hash<string, list<string>> getPathOperationHashImpl();
 
         #! returns the base path prefix for all requests in this schema
         /** @return the base path prefix for all requests in this schema
@@ -499,7 +511,7 @@ public namespace RestSchemaValidator {
             return cast<hash<RestRequestClientInfo>>((
                 "uri_path": path,
                 "content": ct,
-                "body": DataSerializationSupport{ct}(body),
+                "body": exists body ? DataSerializationSupport{ct}(body) : NOTHING,
             ));
         }
 
@@ -615,6 +627,13 @@ public namespace RestSchemaValidator {
             }
 
             return rv;
+        }
+
+        #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
+        /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
+        */
+        private hash<string, list<string>> getPathOperationHashImpl() {
+            return new hash<string, list<string>>();
         }
 
         #! returns the base path prefix for all requests in this schema

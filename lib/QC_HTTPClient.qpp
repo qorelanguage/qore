@@ -130,7 +130,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method requires sending a message body; for example:
+    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method can accept a message body; for example:
     @code{.py}
     # add two new HTTP methods for WebDAV; both require message bodies
     HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));

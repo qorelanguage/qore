@@ -78,10 +78,14 @@ public class Main inherits QUnit::Test {
         delete m_http;
     }
 
-    methodGetTest() {
+    checkModule() {
 %ifdef NoJson
         testSkip("no json module");
 %endif
+    }
+
+    methodGetTest() {
+        checkModule();
         SewioRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
         any ret;
 
@@ -90,9 +94,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodPutTest() {
-%ifdef NoJson
-        testSkip("no json module");
-%endif
+        checkModule();
         SewioRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
         any ret;
 
@@ -102,12 +104,14 @@ public class Main inherits QUnit::Test {
     }
 
     negTest() {
+        checkModule();
         assertThrows("SEWIORESTCLIENT-ERROR", sub () {new SewioRestClient(("url": "http://localhost:" + port));});
         RestClient rest(("url": "http://localhost:" + port, "apikey": ""));
         assertThrows("REST-RESPONSE-ERROR", \rest.get(), "/api_json");
     }
 
     connectionTest() {
+        checkModule();
         string url = "sewiorest://localhost:8080";
         SewioRestConnection swsc("test", "test", url, True, ("apikey": "x"), parse_url(url));
         assertEq(True, swsc instanceof SewioRestConnection);
