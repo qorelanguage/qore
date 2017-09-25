@@ -114,8 +114,8 @@ set(LIBQORE_QPP_SRC
     lib/QC_GetOpt.qpp
     lib/QC_HTTPClient.qpp
     lib/QC_Mutex.qpp
-    lib/QC_ProgramBase.qpp
     lib/QC_Program.qpp
+    lib/QC_ProgramProbe.qpp
     lib/QC_DebugProgram.qpp
     lib/QC_Breakpoint.qpp
     lib/QC_Queue.qpp

@@ -269,7 +269,7 @@
 #include "qc_errno.cpp"
 #include "qc_qore.cpp"
 #include "QC_Socket.cpp"
-#include "QC_ProgramBase.cpp"
+#include "QC_ProgramProbe.cpp"
 #include "QC_Program.cpp"
 #include "QC_DebugProgram.cpp"
 #include "QC_Breakpoint.cpp"

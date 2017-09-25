@@ -132,7 +132,7 @@ public namespace DebugControl {
             pgm.setGlobalVarValue('ARGV', args);
             pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
             logger.log(DUV_DEBUG, "add program");
-            addProgram(pgm);
+            addProgram(pgm.getProgram());
 
             if ((script ?? '') == '') {
                 if (fileName == '/dev/stdin') {  # is exception needed ??
@@ -153,11 +153,6 @@ public namespace DebugControl {
             return pgm;
         }
 
-        private Program getPgm(ProgramBase pgmb) {
-            if (!(pgmb instanceof Program))
-                throw "DEBUG-HANDLER-ERROR", sprintf("Program %y uses PO_NO_DEBUGGING options", pgmb.getProgramId());
-            return pgmb;
-        }
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
             logger.log(DUV_INFO, "processCommand: %y", receiveData);
@@ -175,7 +170,7 @@ public namespace DebugControl {
                     result = ('class': self.className());
                     break;
                 case 'session':
-                    foreach Program p in (getAllPrograms()) {
+                    foreach ProgramProbe p in (getAllPrograms()) {
                         int pgmId = p.getProgramId();
                         result{pgmId}.scriptName = p.getScriptName();
                         result{pgmId}.scriptPath = p.getScriptPath();
@@ -192,7 +187,7 @@ public namespace DebugControl {
                     }
                     break;
                 case 'program':
-                    ProgramBase pgmb;
+                    ProgramProbe pgmb;
                     *string pgmName = shift cmd;
                     switch (cmd[0]) {
                     case 'list':
@@ -200,12 +195,12 @@ public namespace DebugControl {
                     case 'create':
                         break;
                     default:
-                        pgmb = ProgramBase::resolveProgramId(int(pgmName));
+                        pgmb = ProgramProbe::resolveProgramId(int(pgmName));
                     }
                     switch (shift cmd) {
                     case 'stop':
                         # no locking
-                        breakProgram(getPgm(pgmb));
+                        breakProgram(pgmb);
                         result = 'ok';
                         break;
 
@@ -213,24 +208,24 @@ public namespace DebugControl {
                         softint tid = shift cmd;
                         switch (shift cmd) {
                         case 'stop':
-                            breakProgramThread(getPgm(pgmb), tid);
+                            breakProgramThread(pgmb, tid);
                             result = 'ok';
                             break;
                         }
                         break;
 
                     case 'list':
-                        foreach ProgramBase p in (ProgramBase::getAllPrograms()) {
+                        foreach ProgramProbe p in (ProgramProbe::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
                             if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
                                 result{pgmId}.scriptName = p.getScriptName();
                                 result{pgmId}.scriptPath = p.getScriptPath();
                                 #result{pgmId}.scriptDir = p.getScriptDir();
                                 result{pgmId}.threads = p.getThreadList();
-                                result{pgmId}.debugging = p instanceof Program;
+                                result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
                             }
                         }
-#                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramBase::getAllPrograms();
+#                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramProbe::getAllPrograms();
                         map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
                         {
                             rwlThread.readLock();
@@ -246,12 +241,12 @@ public namespace DebugControl {
                         createProgram(receiveData.filename, NOTHING, receiveData.args);
                         break;
                     case 'add':
-                        addProgram(getPgm(pgmb));
+                        addProgram(pgmb);
                         result = 'ok';
                         break;
 
                     case 'remove':
-                        removeProgram(getPgm(pgmb));
+                        removeProgram(pgmb);
                         result = 'ok';
                         break;
 
@@ -259,20 +254,20 @@ public namespace DebugControl {
                         string varName = shift cmd;
                         switch (shift cmd) {
                         case 'set':
-                            getPgm(pgmb).setGlobalVarValue(varName, unserialize(receiveData.value));
+                            pgmb.setGlobalVarValue(varName, unserialize(receiveData.value));
                             result = 'ok';
                             break;
 
                         case 'get':
                             bool existF;
-                            any v = serialize(getPgm(pgmb).getGlobalVariable(varName, \existF));
+                            any v = serialize(pgmb.getGlobalVariable(varName, \existF));
                             if (existF) {
                                 result = v;
                             }
                             break;
 
                         case 'list':
-                            softlist l  = keys getPgm(pgmb).getGlobalVars();
+                            softlist l  = keys pgmb.getGlobalVars();
                             foreach my string s in (\l) {
                                 s =~ s/^Qore:://;
                             }
@@ -289,12 +284,10 @@ public namespace DebugControl {
                             if (pgmb.isDefined(defName)) {
                                 result = pgmb.getDefine(defName);
                             }
-                            if (pgmb instanceof Program) {
-                                bool existF;
-                                any v = getPgm(pgmb).getGlobalVariable(defName, \existF);
-                                if (existF) {
-                                    result = v;
-                                }
+                            bool existF;
+                            any v = pgmb.getGlobalVariable(defName, \existF);
+                            if (existF) {
+                                result = v;
                             }
                             break;
 
@@ -333,7 +326,7 @@ public namespace DebugControl {
                         }
                         switch (shift cmd) {
                         case 'list':
-                            list bkpts = getPgm(pgmb).getBreakpoints();
+                            list bkpts = pgmb.getBreakpoints();
                             result = ();
                             foreach Breakpoint b2 in (bkpts) {
                                 if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
@@ -343,7 +336,7 @@ public namespace DebugControl {
                                     binfo.policy = encodeValue('policy', b2.getPolicy(), policyStrings);
                                     binfo.statements = ();
                                     foreach int sid in (b2.getStatementIds()) {
-                                        push binfo.statements, ('id': sid) + getPgm(pgmb).getStatementIdInfo(sid);
+                                        push binfo.statements, ('id': sid) + pgmb.getStatementIdInfo(sid);
                                     }
                                     if (!binfo.threads)
                                         remove binfo.threads;
@@ -355,7 +348,7 @@ public namespace DebugControl {
                             break;
 
                         case 'create':
-                            b.assignProgram(getPgm(pgmb));
+                            b.assignProgram(pgmb);
                             result = b.getBreakpointId();
                             break;
 
@@ -387,17 +380,17 @@ public namespace DebugControl {
                             case 'list':
                                 result = hash();
                                 foreach int sid in (b.getStatementIds()) {
-                                    result{sid} = getPgm(pgmb).getStatementIdInfo(sid);
+                                    result{sid} = pgmb.getStatementIdInfo(sid);
                                 }
                                 break;
 
                             case 'assign':
-                                b.assignStatement(resolveStatement(getPgm(pgmb), receiveData.value));
+                                b.assignStatement(resolveStatement(pgmb, receiveData.value));
                                 result = 'ok';
                                 break;
 
                             case 'unassign':
-                                b.unassignStatement(resolveStatement(getPgm(pgmb), receiveData.value));
+                                b.unassignStatement(resolveStatement(pgmb, receiveData.value));
                                 result = 'ok';
                                 break;
                             }
@@ -497,7 +490,7 @@ public namespace DebugControl {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot encode %y value %y", name, val);
         }
 
-        private int resolveStatement(Program pgm, *hash value) {
+        private int resolveStatement(ProgramProbe pgm, *hash value) {
             if (exists value.id) {
                 return value.id;
             }
@@ -512,6 +505,9 @@ public namespace DebugControl {
 
         # make_json does not support object code etc. so we need somehow process values
         private hash serialize(any val) {
+#if (True) {
+#  return ('val': sprintf("serialize: %N\n", val));
+#}
             any v;
             switch (val.typeCode()) {
             case NT_NOTHING:
@@ -539,7 +535,12 @@ public namespace DebugControl {
                     v.class = val.className();
                 }
                 foreach string k in (keys val) {
-                    v{k} = serialize(val{k});
+                    if (val{k}.typeCode() == NT_OBJECT) {
+                        v{k}.type = val{k}.className();
+                        v{k}.value = 'not-serialized-object';  # TODO
+                    } else {
+                        v{k} = serialize(val{k});
+                    }
                 }
                 break;
             default:
@@ -550,6 +551,16 @@ public namespace DebugControl {
                 sv.value = v;
             }
             return sv;
+        }
+        private *hash serializeLocal(string name, hash val) {
+            val.value = serialize(val.value);
+            return ('name': name) + val;
+        }
+        private *hash serializeLocals(*hash vals) {
+            foreach string k in (keys vals) {
+                vals{k}.value = serialize(vals{k}.value);
+            }
+            return vals;
         }
         private any unserialize(any sv) {
             if (sv.typeCode() == NT_HASH) {
@@ -585,7 +596,7 @@ public namespace DebugControl {
                 return sv;
             }
         }
-        private *hash handleInterrupt(string func, Program pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
+        private *hash handleInterrupt(string func, ProgramProbe pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx.queue = new Thread::Queue();
@@ -605,16 +616,21 @@ public namespace DebugControl {
               'func': func,
               'runstate': encodeValue('runState', runState, runStateStrings),
               'frame': 0,
-#'localvars0': keys get_local_vars(0),
-#'localvars1': keys get_local_vars(1),
-'localvars2': serialize(get_local_vars(2)),
-'localvars3': serialize(get_local_vars(3)),
-'localvars4': serialize(get_local_vars(4)),
-'localvars5': keys get_local_vars(5),
-'localvars6': keys get_local_vars(6),
-'localvars7': keys get_local_vars(7),
-'dbgpgmid': ProgramBase::getProgram().getProgramId(),
             );
+            try {
+#sendData1.localvars0 = keys get_local_vars(0);
+#sendData1.localvars1 = keys get_local_vars(1);
+sendData1.localvars2 = serializeLocals(get_local_vars(2));
+sendData1.localvars3 = serializeLocals(get_local_vars(3));
+sendData1.localvars4 = serializeLocals(get_local_vars(4));
+sendData1.localvars5 = keys get_local_vars(5);
+sendData1.localvars6 =  keys get_local_vars(6);
+sendData1.localvars7 = keys get_local_vars(7);
+sendData1.dbgpgmid = ProgramProbe::getProgram().getProgramId();
+
+            } catch (hash ex) {
+#printf("Exception: %y\n", ex);
+            }
             if (exists statementId) {
               sendData1.statementid = statementId;
             }
@@ -671,7 +687,7 @@ public namespace DebugControl {
                             case 'get':
                                 *hash lv = get_local_vars(ctxCT.frameId + frameOffset);
                                 if (exists lv{varName}) {
-                                    result = serialize(lv{varName});
+                                    result = serializeLocal(varName, lv{varName});
                                 }
                                 break;
                             case 'set':
@@ -806,27 +822,27 @@ public namespace DebugControl {
             broadcastDataImpl(sd);
         }
 
-        onAttach(Program pgm, reference rs) {
+        onAttach(ProgramProbe pgm, reference rs) {
             handleInterrupt("attach", pgm, \rs);
         }
 
-        onDetach(Program pgm, reference rs) {
+        onDetach(ProgramProbe pgm, reference rs) {
             handleInterrupt("detach", pgm, \rs);
         }
 
-        onStep(Program pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
+        onStep(ProgramProbe pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
             handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
         }
 
-        onFunctionEnter(Program pgm, int statementId, reference rs) {
+        onFunctionEnter(ProgramProbe pgm, int statementId, reference rs) {
             handleInterrupt('funcEnter', pgm, \rs, statementId);
         }
 
-        onFunctionExit(Program pgm, int statementId, reference result, reference rs) {
+        onFunctionExit(ProgramProbe pgm, int statementId, reference result, reference rs) {
             handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
         }
 
-        onException(Program pgm, int statementId, hash ex, reference dismiss, reference rs) {
+        onException(ProgramProbe pgm, int statementId, hash ex, reference dismiss, reference rs) {
             handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
         }
     }

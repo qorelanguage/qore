@@ -32,6 +32,7 @@ class MyDebugProgram inherits DebugProgram {
     list traceLog;
     list actions;
     *softlist attach_only_tids;
+    Counter handleCount();
   }
 
   constructor(): DebugProgram() {
@@ -51,8 +52,9 @@ class MyDebugProgram inherits DebugProgram {
         return actions[0];
     }
   }
-  handle(int func, Program pgm, reference runState, *int statementId, *hash extra) {
+  handle(int func, ProgramProbe pgm, reference runState, *int statementId, *hash extra) {
     *hash location;
+    handleCount.inc();
     if (statementId)
       location = pgm.getStatementIdInfo(statementId);
     #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, runState, location, extra);
@@ -76,8 +78,9 @@ class MyDebugProgram inherits DebugProgram {
     if (exists act) {
       shift actions;
       if (act.typeCode() == NT_HASH) {
-        if (exists act.runState)
+        if (exists act.runState) {
           runState = act.runState;
+        }
       } else {
         runState = act;
       }
@@ -85,7 +88,7 @@ class MyDebugProgram inherits DebugProgram {
     #printf("it:%y, runState:%d, act:%y\n", it, runState, act);
   }
 
-  onAttach(Program pgm, reference runState) {
+  onAttach(ProgramProbe pgm, reference runState) {
     if (attach_only_tids && !attach_only_tids.contains(gettid())) {
         #printf("Avoid attach %d\n", gettid());
         runState = DebugDetach;
@@ -94,11 +97,11 @@ class MyDebugProgram inherits DebugProgram {
     }
   }
 
-  onDetach(Program pgm, reference runState) {
+  onDetach(ProgramProbe pgm, reference runState) {
     handle(ST_DETACH, pgm, \runState);
   }
 
-  onStep(Program pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
+  onStep(ProgramProbe pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.flow) {
@@ -108,11 +111,11 @@ class MyDebugProgram inherits DebugProgram {
     handle(st, pgm, \runState, statementId ?? blockStatementId);
   }
 
-  onFunctionEnter(Program pgm, int statementId, reference runState) {
+  onFunctionEnter(ProgramProbe pgm, int statementId, reference runState) {
     handle(ST_FUNC_ENTER, pgm, \runState, statementId);
   }
 
-  onFunctionExit(Program pgm, int statementId, reference returnValue, reference runState) {
+  onFunctionExit(ProgramProbe pgm, int statementId, reference returnValue, reference runState) {
     any act = getAction(ST_FUNC_EXIT);
     if (exists act.retVal) {
         returnValue = act.retVal;
@@ -120,11 +123,12 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_FUNC_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
   }
 
-  onException(Program pgm, int statementId, hash ex, reference dismiss, reference runState) {
+  onException(ProgramProbe pgm, int statementId, hash ex, reference dismiss, reference runState) {
     any act = getAction(ST_EXCEPTION);
     if (exists act.dismiss) {
         dismiss = act.dismiss;
     }
+    #printf("Exception: %y\n", ex);
     handle(ST_EXCEPTION, pgm, \runState, statementId, ("ex": ex));
   }
 
@@ -141,7 +145,8 @@ class DebugTest inherits QUnit::Test {
         hash line;
         int main_tid;
         Mutex semaphore;
-        Program thisProgram;
+        Counter counter();
+        ProgramProbe thisProgram;
         MyDebugProgram debugProgram;
     }
 
@@ -154,7 +159,7 @@ class DebugTest inherits QUnit::Test {
         addTestCase("MultiThreadBreakTest", \multiThreadBreakTest());   # problem in valrind because of timing ?
         #addTestCase("MultiThreadDebugTest", \multiThreadDebugTest());
 
-        thisProgram = ProgramBase::getProgram();
+        thisProgram = ProgramProbe::getProgram();
         debugProgram = new MyDebugProgram();
         semaphore = new Mutex();
         main_tid = gettid();
@@ -221,12 +226,15 @@ class DebugTest inherits QUnit::Test {
         int i=0;
         int stamp = clock_getmillis();
         while (clock_getmillis() - stamp < max_ms) {
+            if (counter.getCount() > 0) {
+                counter.dec();
+            }
+            usleep(1);  # yield
             i++;
         }
         return clock_getmillis() - stamp < max_ms;
     }
     # end of tested program
-
 
     assertTraceLog(string name, list traceLog) {
     #printf("actuallog: %N\n", debugProgram.traceLog);
@@ -289,9 +297,11 @@ class DebugTest inherits QUnit::Test {
 
     debugBreakThread(int tid) {
         #printf("debugBreakThread running %d\n", tid);
-        #printf("debugBreakThread addProgram\n");
         debugProgram.addProgram(thisProgram);
-        usleep(100ms);  # leave some time to reach loop block
+        counter.inc();  # to avoid race loop vs. attach
+        if (counter.waitForZero(200ms) != 0) {   # leave some time to reach loop block
+            printf("ERROR: loop not reached\n");
+        }
         if (tid >= 0) {
             #printf("debugBreakThread breakProgramThread(%d)\n", tid);
             debugProgram.breakProgramThread(thisProgram, tid);
@@ -300,8 +310,8 @@ class DebugTest inherits QUnit::Test {
             debugProgram.breakProgram(thisProgram);
         }
         #printf("debugBreakThread waiting for program finish\n");
-        if (semaphore.lock(1200ms) < 0) {  # waith till tst program finishes because of break infinite loop  etc.
-            #printf("ERROR: semaphore locked\n");
+        if (semaphore.lock(1200ms) < 0) {  # wait till tst program finishes because of break infinite loop  etc.
+            printf("ERROR: semaphore locked\n");
         } else {
             #printf("debugBreakThread done unlock itself\n");
             semaphore.unlock();
@@ -311,14 +321,17 @@ class DebugTest inherits QUnit::Test {
 
     checkBreakProgram(string name, int tid, bool breakRes) {
         printf("checkBreakProgram(%d)\n", tid);
+        debugProgram.waitForTerminationAndClear();
         debugProgram.setActions(list(DebugRun, ("flow": DebugFlowBreak, "runState": DebugDetach)), main_tid);
         semaphore.lock();
+        counter.inc();
         background debugBreakThread(tid);
-        testAssertionValue(sprintf(name+':program finished'), tstBreakProgram(), breakRes);
+        any res = tstBreakProgram();
         semaphore.unlock();
-        usleep(100ms);  # leave some time to finish thread
+        debugProgram.waitForTerminationAndClear();
+        testAssertionValue(sprintf(name+':program finished'), res, breakRes);  # do when debug is over not to make QUnit exception
         if (breakRes) {
-            assertTraceLog(name, list((/*SB_BLOCK || SB_STEP*/"tid": main_tid, "line": line.tstBreakProgram+5)));
+            assertTraceLog(name, list((/*SB_BLOCK || SB_STEP*/"tid": main_tid  /*, "line": line.tstBreakProgram+9 might depend on funcEntry where break might not work*/ )));
         } else {
             assertTraceLog(name, list());
         }
@@ -492,8 +505,8 @@ class DebugTest inherits QUnit::Test {
 
     multiThreadBreakTest() {
         checkBreakProgram("break program", -1, True);
-#        checkBreakProgram("break thread", gettid(), True);
-#        checkBreakProgram("break unknown thread", gettid()+12, False);
+        checkBreakProgram("break thread", gettid(), True);
+        checkBreakProgram("break unknown thread", gettid()+12, False);
     }
 
     multiThreadDebugTest() {
@@ -624,51 +637,54 @@ class DebugTest inherits QUnit::Test {
         p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
         p.parseCommit();
 
-        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
-        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
+        ProgramProbe pp = p.getProgram();
+
+        assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
+        assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
 
         int sid;
-        sid = p.findStatementId("main.q", 1);
+        pp = p.getProgram();
+        sid = pp.findStatementId("main.q", 1);
         testAssertionValue(name+'findStatementId("main.q", 1)', sid > 0, True);
 
         hash info;
-        info = p.getStatementIdInfo(sid);
+        info = pp.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1) );
 
-        sid = p.findStatementId("label-f1", 2);
+        sid = pp.findStatementId("label-f1", 2);
         testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid > 0, True);
 
-        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 12) full file', p.findStatementId("/usr/lib/my-source.q", 12), sid);
-        testAssertionValue(name+'findStatementId("/lib/my-source.q", 12) suffix', p.findStatementId("/lib/my-source.q", 12), sid);
-        testAssertionValue(name+'findStatementId("lib/my-source.q", 12) suffix', p.findStatementId("lib/my-source.q", 12), sid);
-        testAssertionValue(name+'findStatementId("my-source.q", 12) suffix', p.findStatementId("my-source.q", 12), sid);
-        assertThrows('PROGRAM-STATEMENT-ERROR', \p.findStatementId(), ("ib/my-source.q", 102), name+'findStatementId("ib/my-source.q", 12) no suffix match');
+        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 12) full file', pp.findStatementId("/usr/lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("/lib/my-source.q", 12) suffix', pp.findStatementId("/lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("lib/my-source.q", 12) suffix', pp.findStatementId("lib/my-source.q", 12), sid);
+        testAssertionValue(name+'findStatementId("my-source.q", 12) suffix', pp.findStatementId("my-source.q", 12), sid);
+        assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("ib/my-source.q", 102), name+'findStatementId("ib/my-source.q", 12) no suffix match');
 
-        info = p.getStatementIdInfo(sid);
+        info = pp.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-f1", 1)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 2, 'end_line': 2) );
 
 
-        sid = p.findStatementId("label-f1", 8);
+        sid = pp.findStatementId("label-f1", 8);
         testAssertionValue(name+'findStatementId("label-f1", 8)', sid > 0, True);
-        testAssertionValue(name+'findStatementId("label-f1", 11) multiline', p.findStatementId("label-f1", 11), sid);
-        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("label-f1", 11) multiline', pp.findStatementId("label-f1", 11), sid);
+        info = pp.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-f1", 11)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 8, 'end_line': 12) );
 
-        sid = p.findStatementId("label-sleep", 2);
+        sid = pp.findStatementId("label-sleep", 2);
         testAssertionValue(name+'findStatementId("label-sleep", 2)', sid > 0, True);
-        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 102) full file', p.findStatementId("/usr/lib/my-source.q", 102), sid);
-        info = p.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 102) full file', pp.findStatementId("/usr/lib/my-source.q", 102), sid);
+        info = pp.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-sleep", 2)', info, ('file': 'label-sleep', 'source': '/usr/lib/my-source.q', 'offset': 100, 'start_line': 2, 'end_line': 2) );
     }
 
     programTest() {
         string name = "Program::";
-        list l = ProgramBase::getAllPrograms();
+        list l = ProgramProbe::getAllPrograms();
         testAssertionValue(name+'getAllPrograms', l.size(), 3);
         testAssertionValue(name+'getProgramId', thisProgram.getProgramId() > 0, True);
         testAssertionValue(name+'getProgramId 2', l[0].getProgramId(), thisProgram.getProgramId());
-        assertThrows('PROGRAM-ERROR', \ProgramBase::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
-        testAssertionValue(name+'resolveProgramId', ProgramBase::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
+        assertThrows('PROGRAM-ERROR', \ProgramProbe::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
+        testAssertionValue(name+'resolveProgramId', ProgramProbe::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
     }
 }
 

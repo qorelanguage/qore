@@ -43,8 +43,18 @@ class QoreProgram;
 class ExceptionSink;
 class AbstractStatement;
 class StatementBlock;
+class QoreBreakpoint;
 class qore_program_private;
 class qore_debug_program_private;
+
+enum DebugRunStateEnum : unsigned char {
+   DBG_RS_DETACH = 0,
+   DBG_RS_RUN = 1,
+   DBG_RS_STEP = 2,
+   DBG_RS_STEP_OVER = 3,
+   DBG_RS_UNTIL_RETURN = 4,
+   DBG_RS_STOPPED = 5,    // last one, see assert in setRunState
+};
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -115,20 +125,26 @@ public:
 
    /**
     * Break specific program thread
+    * @return true if program is being debugged
     */
-   DLLEXPORT void breakProgramThread(QoreProgram *pgm, int tid) const;
+   DLLEXPORT bool breakProgramThread(QoreProgram *pgm, int tid) const;
    /**
     * Break program, i.e. all threads
+    * @return true if program is being debugged
     */
-   DLLEXPORT void breakProgram(QoreProgram *pgm) const;
+   DLLEXPORT bool breakProgram(QoreProgram *pgm) const;
 
 
-   //! this call blocks until the program's last thread terminates, and then calls QoreDebugProgram::deref()
+   //! remove programs and wait till the program's last thread terminates
    /**
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT void waitForTerminationAndDeref(ExceptionSink* xsink);
+   DLLEXPORT void waitForTerminationAndClear(ExceptionSink* xsink);
 
+   //! get number of program currently interrupted
+   /**
+   */
+   DLLEXPORT int getInterruptedCount();
 };
 
 #endif /* INCLUDE_QORE_QOREDEBUGPROGRAM_H_ */

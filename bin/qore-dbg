@@ -10,6 +10,7 @@
 %requires DebugCmdLine
 %requires DebugControl
 %debugger
+%no-debugging
 
 %exec-class DebugWrapper
 

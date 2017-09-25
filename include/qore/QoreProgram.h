@@ -65,15 +65,6 @@
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 
-enum DebugRunStateEnum : unsigned char {
-   DBG_RS_DETACH = 0,
-   DBG_RS_RUN = 1,
-   DBG_RS_STEP = 2,
-   DBG_RS_STEP_OVER = 3,
-   DBG_RS_UNTIL_RETURN = 4,
-   DBG_RS_STOPPED = 5,    // last one, see assert in setRunState
-};
-
 enum BreakpointPolicy : unsigned char {
    BKP_PO_NONE = 0,
    BKP_PO_ACCEPT = 1,

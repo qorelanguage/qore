@@ -30,6 +30,7 @@
 %require-types
 %enable-all-warnings
 %new-style
+%no-debugging
 
 module DebugCmdLine {
     version = "0.1";

@@ -1789,20 +1789,23 @@ QoreListNode* QoreDebugProgram::getAllProgramObjects() {
    return priv->getAllProgramObjects();
 }
 
-void QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
+bool QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
    printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
-   priv->breakProgramThread(pgm, tid);
+   return priv->breakProgramThread(pgm, tid);
 }
 
-void QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
+bool QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
    printd(5, "QoreDebugProgram::breakProgram(), this: %p, pgm: %p\n", this, pgm);
-   priv->breakProgram(pgm);
+   return priv->breakProgram(pgm);
 }
 
-void QoreDebugProgram::waitForTerminationAndDeref(ExceptionSink* xsink) {
-   printd(5, "QoreDebugProgram::waitForTerminationAndDeref(), this: %p\n", this);
+void QoreDebugProgram::waitForTerminationAndClear(ExceptionSink* xsink) {
+   printd(5, "QoreDebugProgram::waitForTerminationAndClear(), this: %p\n", this);
    priv->waitForTerminationAndClear(xsink);
-   deref(xsink);
+}
+
+int QoreDebugProgram::getInterruptedCount() {
+   return priv->getInterruptedCount();
 }
 
 void QoreProgram::assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink) {

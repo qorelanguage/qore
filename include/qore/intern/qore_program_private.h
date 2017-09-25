@@ -42,7 +42,7 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_AutoReadLock.h"
 #include "qore/intern/QC_AutoWriteLock.h"
 #include "qore/intern/QC_Program.h"
-#include "qore/intern/QC_ProgramBase.h"
+#include "qore/intern/QC_ProgramProbe.h"
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 
@@ -2286,7 +2286,7 @@ public:
          printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
          i->second->ref();
       } else {
-         i->second = new QoreObject(pgm->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), pgm);
+         i->second = new QoreObject(QC_PROGRAMPROBE, getProgram(), pgm);
          printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, new second: %p\n", pgm, pgm->getProgramId(), i->second);
          pgm->ref();
       }
@@ -2303,7 +2303,7 @@ public:
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->second->ref();
          } else {
-            i->second = new QoreObject(i->first->checkAllowDebugging(nullptr) ? QC_PROGRAM : QC_PROGRAMBASE, getProgram(), i->first);
+            i->second = new QoreObject(QC_PROGRAMPROBE, getProgram(), i->first);
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->first->ref();
          }
@@ -2354,6 +2354,7 @@ public:
       if (i != qore_program_map.end())
          return;  // already exists
       qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
+      pgm->ref();
       pgm->priv->attachDebug(this);
    }
 
@@ -2365,6 +2366,7 @@ public:
          return;
       pgm->priv->detachDebug(this);
       qore_program_map.erase(i);
+      pgm->deref();
       // onDetach will not be executed as program is removed
    }
 
@@ -2374,8 +2376,10 @@ public:
       qore_program_map_t::iterator i;
       while ((i = qore_program_map.begin()) != qore_program_map.end()) {
          qore_program_private* qpp = i->second;
+         QoreProgram *p = i->first;
          qore_program_map.erase(i);
          qpp->detachDebug(this);
+         p->deref();
       }
    }
 
@@ -2432,28 +2436,34 @@ public:
       dpgm->onException(pgm, statement, rs, xsink);
    }
 
-   DLLLOCAL void breakProgramThread(QoreProgram *pgm, int tid) {
+   DLLLOCAL bool breakProgramThread(QoreProgram *pgm, int tid) {
       QoreAutoRWReadLocker al(&tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
       printd(5, "qore_debug_program_private::breakProgramThread(), this: %p, pgm: %p, i: %p, end: %p, tid: %d\n", this, pgm, i, qore_program_map.end(), tid);
       if (i == qore_program_map.end())
-         return;
+         return false;
       i->second->breakProgramThread(tid);
+      return true;
    }
 
-   DLLLOCAL void breakProgram(QoreProgram *pgm) {
+   DLLLOCAL bool breakProgram(QoreProgram *pgm) {
       QoreAutoRWReadLocker al(&tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
       printd(5, "qore_debug_program_private::breakProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
       if (i == qore_program_map.end())
-         return;
+         return false;
       i->second->breakProgram();
+      return true;
    }
 
    DLLLOCAL void waitForTerminationAndClear(ExceptionSink *xsink) {
       removeAllPrograms();
       // wait till all debug calls finished, avoid deadlock as it might be handled in current thread
       debug_program_counter.waitForZero();
+   }
+
+   DLLLOCAL int getInterruptedCount() {
+      return debug_program_counter.getCount();
    }
 
 };

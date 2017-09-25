@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
-# to test ProgramBase::getProgram
+# to test ProgramProbe::getProgram
 %debugger
 
 %requires QUnit
@@ -626,12 +626,12 @@ class ProgramTest inherits QUnit::Test {
 
     programInfoTest() {
         Program a(PO_NEW_STYLE);
-        list pp = ProgramBase::getAllPrograms();
+        list pp = ProgramProbe::getAllPrograms();
         assertEq(True, a.getProgramId() > 0, "getProgramId()");
         assertEq(True, pp.size()>=2, "getAllPrograms()");
-        assertEq(True, ProgramBase::getProgram().getProgramId() == pp[0].getProgramId(), "getProgramId(0)");
+        assertEq(True, ProgramProbe::getProgram().getProgramId() == pp[0].getProgramId(), "getProgramId(0)");
         assertEq(True, a.getProgramId() == pp[pp.size()-1].getProgramId(), "getProgramId(1)");
-        assertEq(True, ProgramBase::resolveProgramId(a.getProgramId()).getProgramId() == a.getProgramId(), "resolveProgramId()");
+        assertEq(True, ProgramProbe::resolveProgramId(a.getProgramId()).getProgramId() == a.getProgramId(), "resolveProgramId()");
     }
 
     testCV(*string ns, *string cls, string func, string name) {
@@ -642,7 +642,7 @@ class ProgramTest inherits QUnit::Test {
         if (exists ns) {
 #            s = ns + "::" + s;   # namespace is ignored
         }
-        Program p = ProgramBase::getProgram();
+        ProgramProbe p = ProgramProbe::getProgram();
         list val = p.findFunctionVariants(name);
         list l;
         push l, ("desc": s+"()", "params": list());
@@ -656,7 +656,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     testVS(string name, list val) {
-        Program p = ProgramBase::getProgram();
+        ProgramProbe p = ProgramProbe::getProgram();
         foreach hash v in (val) {
             int st = p.findFunctionStatementId(name, v.params);
             testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
@@ -664,7 +664,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     findRuntimeTest() {
-        Program p = ProgramBase::getProgram();
+        ProgramProbe p = ProgramProbe::getProgram();
         assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("doesnotexist"), "findFunctionVariants(doesnotexist)");
 
         testCV(NOTHING, NOTHING, "funcTest", "funcTest");

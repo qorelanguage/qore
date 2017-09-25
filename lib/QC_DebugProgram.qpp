@@ -75,9 +75,9 @@ const DebugFlowBreak = RC_BREAK;
 const DebugFlowContinue = RC_CONTINUE;
 //@}
 
-//! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging.
-/** One instance may be assigned to one or more @ref Qore::Program "Program" instances which may run in one or more threads.
-    @ref Qore::Program "Program" is added into debugging list, next the program being debugged notifies debugger when next qore script
+//! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging via @ref Qore::ProgramProbe "ProgramProbe".
+/** One instance may be assigned to one or more @ref Qore::ProgramProbe "ProgramProbe" instances which may run in one or more threads.
+    @ref Qore::ProgramProbe "ProgramProbe" is added into debugging list, next the program being debugged notifies debugger when next qore script
     event occurs. Calling of notification method is performed always in program thread. When the program flow is to be interrupted
     then it happens in notification method of this class. Then debugger decides to continue then returns from notification function
     and passes @ref debug_rs_options value "step option" code back.
@@ -98,13 +98,13 @@ const DebugFlowContinue = RC_CONTINUE;
 
     class MyDebugProgram dbg() inherits DebugProgram {
     private(local):
-       onAttach(Program pgm, reference rs) {
+       onAttach(ProgramProbe pgm, reference rs) {
           rs = DebugStep;
        }
 
     }
 
-    Program p = Program::getProgram();
+    ProgramProbe p = ProgramProbe::getProgram();
     dbg.addProgram(p);
 
     pgm.parse(code);
@@ -138,14 +138,31 @@ DebugProgram::copy() {
  *
  */
 DebugProgram::destructor() {
-   dpgm->waitForTerminationAndDeref(xsink);
+   dpgm->waitForTerminationAndClear(xsink);
+   dpgm->deref(xsink);
+}
+
+//! Clear all programs and wait for all threads to finish executing callbacks
+/**
+ *
+ */
+nothing DebugProgram::waitForTerminationAndClear() {
+   dpgm->waitForTerminationAndClear(xsink);
+}
+
+//! Get number of interrupted threads
+/**
+ *
+ */
+int DebugProgram::getInterruptedCount() {
+   dpgm->getInterruptedCount();
 }
 
 //! Add program to debugging
 /**
  *
  */
-nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
+nothing DebugProgram::addProgram(ProgramProbe[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->addProgram(pgm, xsink);
 }
@@ -154,7 +171,7 @@ nothing DebugProgram::addProgram(Program[QoreProgram] pgm) {
 /**
  *
  */
-nothing DebugProgram::removeProgram(Program[QoreProgram] pgm) {
+nothing DebugProgram::removeProgram(ProgramProbe[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
    dpgm->removeProgram(pgm);
 }
@@ -170,29 +187,29 @@ list DebugProgram::getAllPrograms() {
 /**
  *
  */
-DebugProgram::onAttach(Program[QoreProgram] pgm, reference rs) {
+DebugProgram::onAttach(ProgramProbe[QoreProgram] pgm, reference rs) {
 }
 
 //! Executed when thread is datached from program being debugged
 /**
  *
  */
-DebugProgram::onDetach(Program[QoreProgram] pgm, reference rs) {
+DebugProgram::onDetach(ProgramProbe[QoreProgram] pgm, reference rs) {
 }
 
 //! Executed when step is performed
 /**
  *
  */
-DebugProgram::onStep(Program[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs) {
+DebugProgram::onStep(ProgramProbe[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs) {
 }
 
 //! Executed when a function is entered.
 /**
     @see
-       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
+       @ref Qore::ProgramProbe::getStatementIdInfo "ProgramProbe::getStatementIdInfo"
  */
-DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference rs) {
+DebugProgram::onFunctionEnter(ProgramProbe[QoreProgram] pgm, int statement, reference rs) {
 }
 
 //! Executed when a function is exited.
@@ -200,31 +217,31 @@ DebugProgram::onFunctionEnter(Program[QoreProgram] pgm, int statement, reference
     @see
        @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
  */
-DebugProgram::onFunctionExit(Program[QoreProgram] pgm, int statement, reference returnValue, reference rs) {
+DebugProgram::onFunctionExit(ProgramProbe[QoreProgram] pgm, int statement, reference returnValue, reference rs) {
 }
 
 //! Executed when an exception is raised.
 /**
     @see
-       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
+       @ref Qore::ProgramProbe::getStatementIdInfo "ProgramProbe::getStatementIdInfo"
  */
-DebugProgram::onException(Program[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs) {
+DebugProgram::onException(ProgramProbe[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs) {
 }
 
 //! Break particular program thread
 /**
-  *
+  * @return true if program is being debugged
   */
-nothing DebugProgram::breakProgramThread(Program[QoreProgram] pgm, int tid) {
+bool DebugProgram::breakProgramThread(ProgramProbe[QoreProgram] pgm, int tid) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
-   dpgm->breakProgramThread(pgm, tid);
+   return dpgm->breakProgramThread(pgm, tid);
 }
 
 //! Break program, i.e. all threads
 /**
-  *
+  * @return true if program is being debugged
   */
-nothing DebugProgram::breakProgram(Program[QoreProgram] pgm) {
+bool DebugProgram::breakProgram(ProgramProbe[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
-   dpgm->breakProgram(pgm);
+   return dpgm->breakProgram(pgm);
 }
