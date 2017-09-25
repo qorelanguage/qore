@@ -2367,10 +2367,12 @@ public namespace SqlUtil {
             },
         ),
         COP_OVER: (
-            "code": string sub (*string cve, *list args)
+            "columnargs" : True,
+            "columnargs_ignore_nothings" : True,
+            "code": string sub (*string cve, hash args)
             {
-                *string partitionby = args[0];
-                *string orderby = args[1];
+                *string partitionby = args.args[0];
+                *string orderby = args.args[1];
                 if (!exists partitionby && exists orderby) {
                     throw "COP-OVER-ERROR", "Argument 'partitionby' must be given in case of usage of 'orderby'";
                 }
@@ -2761,7 +2763,8 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
     public hash<ColumnOperatorInfo> sub cop_over(auto column, *string partitionby, *string orderby) {
-        return make_cop(COP_OVER, column, (partitionby, orderby));
+        list args = (partitionby, orderby, );
+        return make_cop(COP_OVER, column, ("args" : args));
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
@@ -12718,6 +12721,9 @@ string sql = table.getSelectSql(sh, \args);
                     switch (narg.typeCode()) {
                         case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
                         case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
+                        # HACK: for COP_OVER. We need to handle situation when arg can be NOTHING
+                        #       but also we have to validate non-NOTHING args to real columns.
+                        case NT_NOTHING: if (cmd.columnargs_ignore_nothings) continue;
                         default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
                     }
                 }
