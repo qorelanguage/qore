@@ -1052,6 +1052,18 @@ public class SqlTestBase inherits QUnit::Test {
 
             ix++;
         }
+
+        # 2227: sqlutil: cop_over is broken in statements with join
+        # or superquery. partitionby and orderby clauses are not
+        # expanded to fully qualified column names
+        hash sh2227 = (
+                "columns" : ("row_value",
+                             cop_as(cop_over(cop_max("row_value"), "row_type"), "max_value"),
+                       ),
+                "join" : join_inner("test_analytic_functions", "t1", ("id" : "id")),
+            );
+        any res2227 = t.select(sh2227, \sql);
+        assertEq(True, res2227.firstValue().size() > 0, "bug 2227 test must return some data");
     }
 
 }
