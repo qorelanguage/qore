@@ -115,7 +115,7 @@ const DebugFlowContinue = RC_CONTINUE;
 
     @since %Qore 0.8.13
 */
-qclass DebugProgram [dom=DEBUGGER; arg=QoreDebugProgramWithQoreObject* dpgm; ns=DebugProgram];
+qclass DebugProgram [dom=DEBUGGER; arg=QoreDebugProgramWithQoreObject* dpgm;];
 
 //! Creates the debug program object with notification functions without any functionality
 /**

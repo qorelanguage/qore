@@ -57,7 +57,7 @@ module DebugControl {
 #! the DebugControl namespace contains all the definitions in the DebugControl module
 public namespace DebugControl {
 
-    #! Class to implement @ref DebugProgram control using commands
+    #! Class to implement @ref Qore::DebugProgram "DebugProgram" control using commands
     public class DebugProgramControl inherits DebugProgram, AbstractDebugControl {
         private {
             #!data pool related to suspended thread, key is threadId

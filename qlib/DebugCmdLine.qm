@@ -66,10 +66,10 @@ public namespace DebugCmdLine {
                 'verbose': 'v,verbose',
                 'listen': 'l,listen=s@',
             );
-            wrapper-prog -v -l xxx xxx -v -l    #the second xxx is target program name
-            wrapper-prog -v -h xxx xxx          #the first xxx is target program name
-            wrapper-prog -v --listen=xxx xxx    #the second xxx is target program name
-            wrapper-prog -v --listen xxx xxx    #the second xxx is target program name
+            wrapper-prog -v -l xxx xxx -v -l    # the second xxx is target program name
+            wrapper-prog -v -h xxx xxx          # the first xxx is target program name
+            wrapper-prog -v --listen=xxx xxx    # the second xxx is target program name
+            wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
         **/
     public class WrapperGetOpt inherits GetOpt {
         public constructor(hash options): GetOpt(options) {
@@ -80,7 +80,7 @@ public namespace DebugCmdLine {
             @param args @ref list of arguments passed to wrapper, typically ARGV
             @param wrp_args returns list of wrapper arguments
             @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
-            @param pgm_args return @list of target program arguments
+            @param pgm_args return @ref list of target program arguments
 
             @code{.py}
             hash opts = (

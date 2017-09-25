@@ -59,7 +59,7 @@ module DebugHandler {
     dimultaneously.
 
     @see
-    - @ref DebugControl
+    - @ref DebugControl::DebugProgramControl "DebugProgramControl"
 
     @subsection websockethandler_v0_1 Version 0.1
     - the initial version of the WebSocketHandler module

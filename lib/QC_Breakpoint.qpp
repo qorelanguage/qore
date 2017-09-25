@@ -75,7 +75,7 @@ const BreakpointPolicyReject = BKP_PO_REJECT;
 
     @since %Qore 0.8.13
 */
-qclass Breakpoint [dom=DEBUGGER; arg=QoreBreakpoint* bkpt; ns=Breakpoint];
+qclass Breakpoint [dom=DEBUGGER; arg=QoreBreakpoint* bkpt;];
 
 //! Creates the breakpoint object with notification functions without any functionality
 /**
