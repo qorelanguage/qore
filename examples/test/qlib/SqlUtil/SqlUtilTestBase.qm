@@ -331,6 +331,8 @@ public class SqlTestBase inherits QUnit::Test {
                 # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
                 # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
                 # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                cop_as(cop_value(1), "cop_as_ok"), # cop_as with any word
+                cop_as(cop_value(1), "from"), # cop_as with reserved word
             ),
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
             );
@@ -352,6 +354,8 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_multiply": 4,
             "cop_coalesce": "hello",
             "cop_length": 2,
+            "cop_as_ok": 1,
+            "from": 1,
             );
 
         foreach hash e in (expect.pairIterator())
