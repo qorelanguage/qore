@@ -209,7 +209,7 @@ bool PO_BROKEN_OPERATORS = false;
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module angle_state
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -726,17 +726,12 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             AST_FLEX_DO_EOF
                                         }
 }
-\#                                      {
-                                            int c;
-                                            while ((c = yyinput(yyscanner))) {
-                                                if (c == '\n')
-                                                    break;
-                                                else if (c == EOF) {
-                                                    AST_FLEX_DO_EOF
-                                                    break;
-                                                }
-                                            }
-                                        }
+\#                                      BEGIN(line_comment);
+<line_comment>{
+    [\n\r]                              BEGIN(INITIAL);
+    <<EOF>>                             AST_FLEX_DO_EOF
+    [^\n\r]                             // ignore any other character until EOL
+}
 where                                   return TOK_WHERE;
 private                                 return TOK_PRIVATE;
 private:internal                        return TOK_PRIVATEINTERNAL;
@@ -1070,23 +1065,22 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
 \<{WS}+\<{WS}*=                         return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
 \<{WS}*\<{WS}+=                         return PO_BROKEN_OPERATORS ? SHIFT_LEFT_EQUALS : WS_SHIFT_LEFT_EQUALS;
 
-\/\*                                    {
-                                            int c;
-                                            while ((c = yyinput(yyscanner))) {
-                                                if (c == '*') {
-                                                    do {
-                                                        c = yyinput(yyscanner);
-                                                    }
-                                                    while (c == '*');
-                                                    if (c == '/')
-                                                        break;
-                                                }
-                                                if (c == EOF) {
-                                                    yyterminate();
-                                                    return OPEN_BLK_COMMENT_AT_EOF_ERROR;
-                                                }
-                                            }
+\/\*                                    BEGIN(block_comment1);
+<block_comment1>{
+    \*                                  BEGIN(block_comment2);
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
                                         }
+    [^\*]                               // ignore other input
+}
+<block_comment2>{
+    \/                                  BEGIN(INITIAL);
+    \*                                  // ignore
+    <<EOF>>                             {
+                                            AST_FLEX_DO_EOF
+                                        }
+    [^\/\*]                             BEGIN(block_comment1);
+}
 <regex_googleplex>{
     s\/                                 { yylval->regexsubst = new ASTRegexSubstExpression; yylloc->saveFirst(); BEGIN(regex_subst1); }
     x\/                                 { yylval->regex = new ASTRegexExpression(true); yylloc->saveFirst(); BEGIN(regex_extract_state); }
