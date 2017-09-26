@@ -228,7 +228,6 @@ public namespace DebugProgramControl {
                                 result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
                             }
                         }
-#                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramControl::getAllPrograms();
                         map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
                         {
                             rwlThread.readLock();
@@ -508,9 +507,6 @@ public namespace DebugProgramControl {
 
         # make_json does not support object code etc. so we need somehow process values
         private hash serialize(any val) {
-#if (True) {
-#  return ('val': sprintf("serialize: %N\n", val));
-#}
             any v;
             switch (val.typeCode()) {
             case NT_NOTHING:
@@ -611,16 +607,18 @@ public namespace DebugProgramControl {
                 ctxThread{tid} = ctx;
             }
             hash sendData1 = (
-              'type': 'event',
-              'cmd': 'interrupt',
-              'pgmid': ctx.pgmId,
-              'tid': tid,
-              'stamp': now_us(),
-              'func': func,
-              'runstate': encodeValue('runState', runState, runStateStrings),
-              'frame': 0,
+                'type': 'event',
+                'cmd': 'interrupt',
+                'pgmid': ctx.pgmId,
+                'tid': tid,
+                'stamp': now_us(),
+                'func': func,
+                'runstate': encodeValue('runState', runState, runStateStrings),
+                'frame': 0,
             );
+/*
             try {
+                # to show important stack values each step
                 #sendData1.localvars0 = keys get_local_vars(0);
                 #sendData1.localvars1 = keys get_local_vars(1);
                 sendData1.localvars2 = serializeLocals(get_local_vars(2));
@@ -629,12 +627,13 @@ public namespace DebugProgramControl {
                 sendData1.localvars5 = keys get_local_vars(5);
                 sendData1.localvars6 = keys get_local_vars(6);
                 sendData1.localvars7 = keys get_local_vars(7);
-                sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
+                sendData1.dpgmid = ProgramControl::getProgram().getProgramId();
             } catch (hash<ExceptionSink> ex) {
-#printf("Exception: %y\n", ex);
+                #printf("Exception: %y\n", ex);
             }
+*/
             if (exists statementId) {
-              sendData1.statementid = statementId;
+                sendData1.statementid = statementId;
             }
             if (exists statementId && statementId > 0) {
                 hash location = pgm.getStatementIdInfo(statementId);
@@ -648,7 +647,10 @@ public namespace DebugProgramControl {
             if (exists refName) {
                 sendData1{refName} = refValue;
             }
-            broadcastDataImpl(sendData1);
+            try {
+                broadcastDataImpl(sendData1);
+            } catch (hash<ExceptionSink> ex) {
+            }
 
             hash ctxCT;
             {
@@ -813,14 +815,17 @@ public namespace DebugProgramControl {
             }
             # notify program is running again
             hash sd = (
-              'type': 'event',
-              'cmd': 'run',
-              'pgmid': ctx.pgmId,
-              'tid': tid,
-              'stamp': now_us(),
-              'runstate': encodeValue('runState', runState, runStateStrings),
+                'type': 'event',
+                'cmd': 'run',
+                'pgmid': ctx.pgmId,
+                'tid': tid,
+                'stamp': now_us(),
+                'runstate': encodeValue('runState', runState, runStateStrings),
             );
-            broadcastDataImpl(sd);
+            try {
+                broadcastDataImpl(sd);
+            } catch (hash<ExceptionSink> ex) {
+            }
         }
 
         onAttach(ProgramControl pgm, reference rs) {
