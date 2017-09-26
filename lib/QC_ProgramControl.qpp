@@ -36,6 +36,30 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 
+//! statement information hash as returned by @ref Qore::ProgramBase::getStatementIdInfo() "ProgramBase::getStatementIdInfo()"
+/** 
+  In case of one code object in one file, then @ref file is the set, @ref source is nullptr, @ref offset is 0, 
+  and the line number is taken directly from @ref start_line and @ref end_line.
+
+  In case of multiple code objects in one file, then all members are assigned values, in such cases 
+  @ref start_line and @ref end_line refer to the line number within the code object, and the line 
+  number in the file is calculated by adding with @ref offset, giving the line number offset within source.
+
+  @since %Qore 0.8.13
+*/
+hashdecl StatementInfo {
+    //! refers to the label given when parsing the code
+    string file;
+    //! refers to the actual file name or path of the source code (if the label does not provide this info)
+    string source;
+    //! the offset of the code in source
+    int offset;
+    //! statement start line
+    int start_line;
+    //! statement end line
+    int end_line;
+}
+
 //! ProgramBase object provides safe information about a Qore program
 /** The object is never instantiated in script but returned by a API function.
     The class provides only safe data non breaking security model.
@@ -273,7 +297,7 @@ list ProgramControl::getBreakpoints() {
       @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
       @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
 */
-hash ProgramControl::getStatementIdInfo(int statementId) {
+hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    AbstractStatement* s = p->resolveStatementId(statementId);
