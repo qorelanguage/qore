@@ -13,6 +13,7 @@
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("Queue", "1.0") {
         addTestCase("simple tests", \simpleTests());
+        addTestCase("timeout", \timeoutTests());
         addTestCase("leak test", \leakTest());
         set_return_value(main());
     }
@@ -49,6 +50,15 @@ class Test inherits QUnit::Test {
         # set queue to error
         q.setError("ERR", "desc");
         c.waitForZero();
+    }
+
+    timeoutTests() {
+        Queue q(1);
+        assertThrows("QUEUE-TIMEOUT", \q.get(), -1);
+        assertThrows("QUEUE-TIMEOUT", \q.pop(), -1);
+        q.push(True);
+        assertThrows("QUEUE-TIMEOUT", \q.insert(), (True, -1));
+        assertThrows("QUEUE-TIMEOUT", \q.push(), (True, -1));
     }
 
     wait(Queue q, Counter c) {
