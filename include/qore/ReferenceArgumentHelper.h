@@ -75,15 +75,14 @@ public:
    */
    DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
 
-   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /**
+   // creates a fake local variable assigned to "val" and creates a reference to the local variable
+   /*
       @param val the value to assign to the local variable
       @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
     */
-
-   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
-   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /**
+   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
+   // creates a fake local variable assigned to "val" and creates a reference to the local variable
+   /*
          @param val the value to assign to the local variable
          @param typeInfo the type restriction for the lvalue
          @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
@@ -104,7 +103,7 @@ public:
     @endcode
 
    */
-   DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
+   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
 
    //! frees all memory still managed by the object
    DLLEXPORT ~ReferenceArgumentHelper();

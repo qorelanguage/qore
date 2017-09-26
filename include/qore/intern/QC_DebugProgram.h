@@ -50,21 +50,18 @@ private:
       ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink2);
       args->push(QoreProgram::getQoreObject(pgm));
       for (int i=0; i<paramCount; i++) {
-         printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, param: %d/%d, type: %s\n", name, this, i, paramCount, params[i]?params[i]->getTypeName():"n/a");
+         //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, param: %d/%d, type: %s\n", name, this, i, paramCount, params[i]?params[i]->getTypeName():"n/a");
          args->push(params[i]);
       }
-// LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
-//      ReferenceHolder<QoreBigIntNode> rsn(new QoreBigIntNode(rs), &xsink2);
+      // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
       ReferenceArgumentHelper rah(rs, &xsink2);
-      //ReferenceArgumentHelper rah(new QoreBigIntNode(rs), &xsink2);
       args->push(rah.getArg()); // caller owns ref
-      printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, rs: %d, xsink2: %d\n", name, this, pgm, paramCount, rs, xsink2.isEvent());
+      //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, rs: %d, xsink2: %d\n", name, this, pgm, paramCount, rs, xsink2.isEvent());
       discard(qo->evalMethod(name, *args, &xsink2), &xsink2);
       QoreValue v(rah.getOutputQoreValue());
       rs = (DebugRunStateEnum) v.getAsBigInt();
       v.discard(&xsink2);
-//      rs = DebugRunStateEnum(rah.getOutputValue()->getAsInt());
-      printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, rs: %d\n", name, this, pgm, rs);
+      //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, rs: %d\n", name, this, pgm, rs);
       /* catch all exceptions from debug code, optionally we could assimilate on demand or create exception handler
        * but developer can try/catch by himself to handle it
        */
@@ -73,15 +70,15 @@ private:
 
 public:
    DLLLOCAL QoreDebugProgramWithQoreObject(QoreObject* n_qo): qo(n_qo) {
-      printd(5, "QoreDebugProgramWithCoreObject::QoreDebugProgramWithCoreObject() this: %p, qo: %p\n", this, n_qo);
+      //printd(5, "QoreDebugProgramWithCoreObject::QoreDebugProgramWithCoreObject() this: %p, qo: %p\n", this, n_qo);
    }
    DLLLOCAL virtual void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-      printd(5, "QoreDebugProgramWithCoreObject::onAttach() this: %p, pgm: %p\n", this, pgm);
+      //printd(5, "QoreDebugProgramWithCoreObject::onAttach() this: %p, pgm: %p\n", this, pgm);
       ExceptionSink xsink2;
       callMethod("onAttach", pgm, 0, 0, rs, xsink, xsink2);
    }
    DLLLOCAL virtual void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-      printd(5, "QoreDebugProgramWithCoreObject::onDetach() this: %p, pgm: %p\n", this, pgm);
+      //printd(5, "QoreDebugProgramWithCoreObject::onDetach() this: %p, pgm: %p\n", this, pgm);
       ExceptionSink xsink2;
       callMethod("onDetach", pgm, 0, 0, rs, xsink, xsink2);
    }
@@ -90,68 +87,57 @@ public:
       AbstractQoreNode* params[3];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       params[1] = statement ? new QoreBigIntNode(pgm->getStatementId(statement)) : 0;
+      /*
       if (!params[0]->getAsInt())
          printd(5, "QoreDebugProgramWithCoreObject::onStep::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       if (statement && !params[1]->getAsInt()) {
          printd(5, "QoreDebugProgramWithCoreObject::onStep::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
-      }
+      }*/
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
-      //ReferenceHolder<QoreBigIntNode> flowN(new QoreBigIntNode(flow), &xsink2);
       ReferenceArgumentHelper rah(flow, &xsink2);
-      //ReferenceArgumentHelper rah(new QoreBigIntNode(flow), &xsink2);
       params[2] = rah.getArg(); // caller owns ref
       callMethod("onStep", pgm, 3, params, rs, xsink, xsink2);
       QoreValue v(rah.getOutputQoreValue());
       flow = v.getAsBigInt();
       v.discard(&xsink2);
-      //flow = DebugRunStateEnum(rah.getOutputValue()->getAsInt());
    }
    DLLLOCAL virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *blockStatement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[1];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
+      /*
       if (!params[0]->getAsInt())
          printd(5, "QoreDebugProgramWithCoreObject::onFunctionEnter::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+      */
       callMethod("onFunctionEnter", pgm, 1, params, rs, xsink, xsink2);
    }
    DLLLOCAL virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *blockStatement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[2];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
+      /*
       if (!params[0]->getAsInt())
          printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
-      //returnValue.assign(returnValue.takeNode());  // "nodize", create node when is simple type
-      printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
-      if (returnValue.getInternalNode()) {
-         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#1: QVtype: %d, refCount: %d\n", returnValue.type, returnValue.getInternalNode()->reference_count());
-      }
+      */
+      //printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       ReferenceArgumentHelper rah(returnValue, &xsink2);
-      //ReferenceArgumentHelper rah(returnValue.getInternalNode(), &xsink2);
-      if (returnValue.getInternalNode()) {
-         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#2: refCount: %d\n", returnValue.getInternalNode()->reference_count());
-      }
       params[1] = rah.getArg(); // caller owns ref
       callMethod("onFunctionExit", pgm, 2, params, rs, xsink, xsink2);
       returnValue = rah.getOutputValue(); // caller owns ref
-      //returnValue.assign(rah.getOutputValue());  // caller owns ref
-      //returnValue.sanitize();
-      printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#3: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
-      if (returnValue.getInternalNode()) {
-         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#4: refCount: %d\n", returnValue.getInternalNode()->reference_count());
-      }
+      //printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#3: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
    }
    DLLLOCAL virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       ExceptionSink xsink2;
       AbstractQoreNode* params[3];
       params[0] = new QoreBigIntNode(pgm->getStatementId(statement));
+      /*
       if (!params[0]->getAsInt())
          printd(5, "QoreDebugProgramWithCoreObject::onException::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
+      */
       QoreException* except = xsink->getException();
       params[1] = except->makeExceptionObject();
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
-      //ReferenceHolder<QoreBoolNode> dismiss(get_bool_node(false), &xsink2);
       ReferenceArgumentHelper rah(QoreValue(false), &xsink2);
-      //ReferenceArgumentHelper rah(get_bool_node(false), &xsink2);
       params[2] = rah.getArg(); // caller owns ref
       callMethod("onException", pgm, 3, params, rs, xsink, xsink2);
       QoreValue v(rah.getOutputQoreValue());
@@ -159,9 +145,6 @@ public:
          xsink->clear();  // dismiss exception
       }
       v.discard(&xsink2);
-//      if (rah.getOutputValue()->getAsBool()) {
-         //xsink->clear();  // dismiss exception
-//      }
    }
 };
 

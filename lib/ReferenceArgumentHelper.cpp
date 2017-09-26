@@ -75,11 +75,13 @@ struct lvih_intern {
 ReferenceArgumentHelper::ReferenceArgumentHelper(QoreValue val, ExceptionSink *xsink) : priv(new lvih_intern(val, nullptr, xsink)) {
 }
 
+/*
 ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(val, nullptr, xsink)) {
 }
 
 ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, const QoreTypeInfo* typeInfo, ExceptionSink *xsink) : priv(new lvih_intern(val, typeInfo, xsink)) {
 }
+*/
 
 ReferenceArgumentHelper::~ReferenceArgumentHelper() {
    delete priv;
