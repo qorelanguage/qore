@@ -29,7 +29,7 @@
 %requires json >= 1.5
 %requires HttpServerUtil >= 0.3.11
 %requires DebugUtil
-%requires DebugControl
+%requires DebugProgramControl
 %requires Mime
 
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %enable-all-warnings
 %new-style
 %no-debugging
-%debugger
+%allow-debugger
 
 module DebugHandler {
     version = "0.1";
@@ -59,7 +59,7 @@ module DebugHandler {
     dimultaneously.
 
     @see
-    - @ref DebugControl::DebugProgramControl "DebugProgramControl"
+    - @ref DebugProgramControl::DebugProgramControl "DebugProgramControl"
 
     @subsection websockethandler_v0_1 Version 0.1
     - the initial version of the WebSocketHandler module

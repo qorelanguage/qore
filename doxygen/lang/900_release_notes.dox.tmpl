@@ -139,7 +139,7 @@
       - <a href="../../modules/TextWrap/html/index.html">TextWrap</a>
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
-      - @ref debugger" %debugger": allows running debug commands
+      - @ref allow-debugger" %allow-debugger": allows running debug commands
       - @ref no-debugging "%no-debugging": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref allow-weak-references "%allow-weak-references": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
@@ -152,7 +152,7 @@
     - new constants:
       - @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT": DBI capability for drivers that support returning an @ref Qore::SQL::SQLStatement "SQLStatement" object for a @ref resultset_output_binding "result set" when bound with the @ref Qore::SQL::RESULTSET "RESULTSET" placeholder specification
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
-      - @ref Qore::PO_DEBUGGER "PO_DEBUGGER": allows running debugger commands
+      - @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER": allows running debugger commands
       - @ref Qore::PO_NO_DEBUGGING "PO_NO_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
       - @ref Qore::PO_ALLOW_WEAK_REFERENCES "PO_ALLOW_WEAK_REFERENCES": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement

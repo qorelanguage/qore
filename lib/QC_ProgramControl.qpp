@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_ProgramProbe.qpp
+  QC_ProgramControl.qpp
 
   Qore Programming Language
 
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/QC_ProgramProbe.h"
+#include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/qore_program_private.h"
@@ -45,29 +45,29 @@
 
     @since %Qore 0.8.13
  */
-qclass ProgramProbe [arg=QoreProgram* p; dom=DEBUGGER];
+qclass ProgramControl [arg=QoreProgram* p; dom=DEBUGGER];
 
 //! Throws an exception to prevent objects of this class being created from script
 /**
     @throw PROGRAM-CREATE-ERROR copying ProgramBase objects is currently unsupported
  */
-ProgramProbe::constructor() {
-   xsink->raiseException("PROGRAM-COPY-ERROR", "creating ProgramProbe objects is currently unsupported");
+ProgramControl::constructor() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "creating ProgramControl objects is currently unsupported");
 }
 
 //! Throws an exception to prevent objects of this class from being copied
 /**
     @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
  */
-ProgramProbe::copy() {
-   xsink->raiseException("PROGRAM-COPY-ERROR", "copying ProgramProbe objects is currently unsupported");
+ProgramControl::copy() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "copying ProgramControl objects is currently unsupported");
 }
 
 //! Dereferences the internal Program object and deletes the %Qore object
 /**
  */
-ProgramProbe::destructor() {
-   printd(5, "ProgramProbe::constructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+ProgramControl::destructor() {
+   printd(5, "ProgramControl::constructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
    p->unregisterQoreObject(self, xsink);
    // the underlying object is created from C++ then it has reference and cannot be terminated
    p->deref();
@@ -76,42 +76,42 @@ ProgramProbe::destructor() {
 //! Returns the current binary-or'ed parse option mask for the Program object
 /** see Qore::Program::getParseOptions "Program::getParseOptions"
  */
-int ProgramProbe::getParseOptions() {
+int ProgramControl::getParseOptions() {
    return p->getParseOptions64();
 }
 
 //! Returns the current script directory as a string or @ref nothing if not set
 /** see Qore::Program::getScriptDir "Program::getScriptDir"
  */
-*string ProgramProbe::getScriptDir() {
+*string ProgramControl::getScriptDir() {
    return p->getScriptDir();
 }
 
 //! Returns the current script name as a string or @ref nothing if not set
 /** see Qore::Program::getScriptPath "Program::getScriptPath"
  */
-*string ProgramProbe::getScriptName() {
+*string ProgramControl::getScriptName() {
    return p->getScriptName();
 }
 
 //! Returns the current script directory and filename if known, otherwise returns @ref nothing
 /** see Qore::Program::getScriptPath "Program::getScriptPath"
  */
-*string ProgramProbe::getScriptPath() {
+*string ProgramControl::getScriptPath() {
    return p->getScriptPath();
 }
 
 //! Returns the default local time zone for the object
 /** see Qore::Program::getTimeZone "Program::getTimeZone"
  */
-TimeZone ProgramProbe::getTimeZone() {
+TimeZone ProgramControl::getTimeZone() {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
 //! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
 /** see Qore::Program::isDefined "Program::isDefined"
  */
-bool ProgramProbe::isDefined(string def) {
+bool ProgramControl::isDefined(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
 }
@@ -119,7 +119,7 @@ bool ProgramProbe::isDefined(string def) {
 //! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
 /** see Qore::Program::getDefine "Program::getDefine"
  */
-auto ProgramProbe::getDefine(string def) {
+auto ProgramControl::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
 }
@@ -127,26 +127,26 @@ auto ProgramProbe::getDefine(string def) {
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program
 /** see Qore::Program::getAllDefines "Program::getAllDefines"
  */
-*hash ProgramProbe::getAllDefines() {
+*hash ProgramControl::getAllDefines() {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
 //! Get program id
 /** see Qore::Program::getProgramId "Program::getProgramId"
  */
-int ProgramProbe::getProgramId() [flags=RET_VALUE_ONLY;] {
+int ProgramControl::getProgramId() [flags=RET_VALUE_ONLY;] {
    return p->getProgramId();
 }
 
 //! Get instance of program id
 /**
    @see
-      @ref Qore::ProgramProbe::resolveProgramId "ProgramProbe::resolveProgramId"
+      @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId"
 
    @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramBase "ProgramBase" instance
 
  */
-static ProgramProbe ProgramProbe::resolveProgramId(int programId) [dom=DEBUGGER] {
+static ProgramControl ProgramControl::resolveProgramId(int programId) [dom=DEBUGGER] {
    QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
    if (!pgm) {
       return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
@@ -154,33 +154,33 @@ static ProgramProbe ProgramProbe::resolveProgramId(int programId) [dom=DEBUGGER]
    return QoreProgram::getQoreObject(pgm);
 }
 
-//! Get probe for instance of current program
+//! Get control for instance of current program
 /**
  */
-static ProgramProbe ProgramProbe::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+static ProgramControl ProgramControl::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    QoreProgram* pgm = getProgram();
    return QoreProgram::getQoreObject(pgm);
 }
 
 //! Get instance of all programs. 
 /**
-   Use @ref Qore::ProgramProbe::resolveProgramId "ProgramProbe::resolveProgramId" to get instance
+   Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId" to get instance
  */
-static list ProgramProbe::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+static list ProgramControl::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getAllQoreObjects(xsink);
 }
 
 //! returns a list of thread IDs active in this Program
 /** see Qore::Program::getThreadList "Program::getThreadList"
 */
-list<int> ProgramProbe::getThreadList() [flags=CONSTANT] {
+list<int> ProgramControl::getThreadList() [flags=CONSTANT] {
    return p->getThreadList();
 }
 
 //! Checks if a user function exists in the program object
 /** see Qore::Program::existsFunction "Program::existsFunction"
  */
-bool ProgramProbe::existsFunction(string name) [flags=RET_VALUE_ONLY] {
+bool ProgramControl::existsFunction(string name) [flags=RET_VALUE_ONLY] {
    if (!p->checkAllowDebugging(xsink))
       return false;
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
@@ -192,7 +192,7 @@ bool ProgramProbe::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 //! Returns a the value of the global variable identified by the first string argument
 /** see Qore::Program::getGlobalVariable "Program::getGlobalVariable"
  */
-auto ProgramProbe::getGlobalVariable(string varname, *reference<bool> rexists) {
+auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists) {
    if (!p->checkAllowDebugging(xsink)) 
       return QoreValue();
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
@@ -217,7 +217,7 @@ auto ProgramProbe::getGlobalVariable(string varname, *reference<bool> rexists) {
 //! returns a hash of global variables
 /** see Qore::Program::getGlobalVars "Program::getGlobalVars"
  */
-hash ProgramProbe::getGlobalVars() [flags=CONSTANT] {
+hash ProgramControl::getGlobalVars() [flags=CONSTANT] {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    return p->getGlobalVars();
@@ -226,7 +226,7 @@ hash ProgramProbe::getGlobalVars() [flags=CONSTANT] {
 //! set the value of a global variable
 /** see Qore::Program::setGlobalVars "Program::setGlobalVars"
  */
-nothing ProgramProbe::setGlobalVarValue(string name, auto value) {
+nothing ProgramControl::setGlobalVarValue(string name, auto value) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
@@ -235,7 +235,7 @@ nothing ProgramProbe::setGlobalVarValue(string name, auto value) {
 //! Assign @ref Breakpoint instance to @ref Qore::Program "Program". If breakpoint has been assigned to an program then is unassigned in the first step.
 /**
  */
-nothing ProgramProbe::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
+nothing ProgramControl::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    p->assignBreakpoint(bkpt, xsink);
@@ -244,7 +244,7 @@ nothing ProgramProbe::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
 //! delete all breakpoints from instance
 /**
  */
-nothing ProgramProbe::deleteAllBreakpoints() {
+nothing ProgramControl::deleteAllBreakpoints() {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    p->deleteAllBreakpoints();
@@ -253,7 +253,7 @@ nothing ProgramProbe::deleteAllBreakpoints() {
 //! get list of breakpoint assigned to program.
 /**
  */
-list ProgramProbe::getBreakpoints() {
+list ProgramControl::getBreakpoints() {
    if (!p->checkAllowDebugging(xsink))
      return QoreValue();
    QoreBreakpointList_t bl;
@@ -270,10 +270,10 @@ list ProgramProbe::getBreakpoints() {
    @return a hash of statement info
 
    @see
-      @ref Qore::ProgramProbe::findStatementId "ProgramProbe::findStatementId"
-      @ref Qore::ProgramProbe::findFunctionStatementId "ProgramProbe::findFunctionStatementId"
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
 */
-hash ProgramProbe::getStatementIdInfo(int statementId) {
+hash ProgramControl::getStatementIdInfo(int statementId) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    AbstractStatement* s = p->resolveStatementId(statementId);
@@ -296,10 +296,10 @@ hash ProgramProbe::getStatementIdInfo(int statementId) {
    @param line to find statement. In case of multiple statements of line the first one is found
 
    @see
-      @ref Qore::ProgramProbe::findFunctionStatementId "ProgramProbe::findFunctionStatementId"
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
 
 */
-int ProgramProbe::findStatementId(string file, int line) {
+int ProgramControl::findStatementId(string file, int line) {
    if (!p->checkAllowDebugging(xsink))
       return 0;
    AbstractStatement* s = p->findStatement(file->c_str(), line);
@@ -315,10 +315,10 @@ int ProgramProbe::findStatementId(string file, int line) {
    @param params param types to resolve particular variant
 
    @see
-      @ref Qore::ProgramProbe::findStatementId "ProgramProbe::findStatementId"
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
 
 */
-int ProgramProbe::findFunctionStatementId(string function, *list params) {
+int ProgramControl::findFunctionStatementId(string function, *list params) {
    if (!p->checkAllowDebugging(xsink))
       return 0;
    ReferenceHolder<QoreValueList> vl(new QoreValueList(params), xsink);
@@ -336,7 +336,7 @@ int ProgramProbe::findFunctionStatementId(string function, *list params) {
     - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
 
 */
-list ProgramProbe::findFunctionVariants(string function) {
+list ProgramControl::findFunctionVariants(string function) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);

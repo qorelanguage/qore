@@ -31,7 +31,7 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
 	qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
-	qlib/DebugControl.qm \
+	qlib/DebugProgramControl.qm \
 	qlib/DebugHandler.qm \
 	qlib/DebugUtil.qm \
 	qlib/Diff.qm \
@@ -134,7 +134,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_HTTPClient.qpp \
 	lib/QC_Mutex.qpp \
 	lib/QC_Program.qpp \
-	lib/QC_ProgramProbe.qpp \
+	lib/QC_ProgramControl.qpp \
 	lib/QC_DebugProgram.qpp \
 	lib/QC_Breakpoint.qpp \
 	lib/QC_Queue.qpp \
@@ -670,7 +670,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Sequence.h \
 	include/qore/intern/QC_RWLock.h \
 	include/qore/intern/QC_Program.h \
-	include/qore/intern/QC_ProgramProbe.h \
+	include/qore/intern/QC_ProgramControl.h \
 	include/qore/intern/QC_DebugProgram.h \
 	include/qore/intern/QC_Breakpoint.h \
 	include/qore/intern/QC_Mutex.h \

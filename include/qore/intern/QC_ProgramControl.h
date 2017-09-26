@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_ProgramProbe.h
+  QC_ProgramControl.h
   
   Qore Programming Language
 
@@ -29,14 +29,14 @@
   information.
 */
 
-#ifndef _QORE_CLASS_PROGRAMPROBE_H
+#ifndef _QORE_CLASS_PROGRAMCONTROL_H
 
-#define _QORE_CLASS_PROGRAMPROBE_H
+#define _QORE_CLASS_PROGRAMCONTROL_H
 
-DLLEXPORT extern qore_classid_t CID_PROGRAMPROBE;
-DLLLOCAL extern QoreClass* QC_PROGRAMPROBE;
-DLLLOCAL QoreClass *initProgramProbeClass(QoreNamespace& ns);
+DLLEXPORT extern qore_classid_t CID_PROGRAMCONTROL;
+DLLLOCAL extern QoreClass* QC_PROGRAMCONTROL;
+DLLLOCAL QoreClass *initProgramControlClass(QoreNamespace& ns);
 
 #include <qore/QoreProgram.h>
 
-#endif // _QORE_CLASS_PROGRAMPROBE_H
+#endif // _QORE_CLASS_PROGRAMCONTROL_H

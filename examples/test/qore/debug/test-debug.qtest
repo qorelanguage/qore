@@ -5,7 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
-%debugger
+%allow-debugger
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -52,7 +52,7 @@ class MyDebugProgram inherits DebugProgram {
         return actions[0];
     }
   }
-  handle(int func, ProgramProbe pgm, reference runState, *int statementId, *hash extra) {
+  handle(int func, ProgramControl pgm, reference runState, *int statementId, *hash extra) {
     *hash location;
     handleCount.inc();
     if (statementId)
@@ -88,7 +88,7 @@ class MyDebugProgram inherits DebugProgram {
     #printf("it:%y, runState:%d, act:%y\n", it, runState, act);
   }
 
-  onAttach(ProgramProbe pgm, reference runState) {
+  onAttach(ProgramControl pgm, reference runState) {
     if (attach_only_tids && !attach_only_tids.contains(gettid())) {
         #printf("Avoid attach %d\n", gettid());
         runState = DebugDetach;
@@ -97,11 +97,11 @@ class MyDebugProgram inherits DebugProgram {
     }
   }
 
-  onDetach(ProgramProbe pgm, reference runState) {
+  onDetach(ProgramControl pgm, reference runState) {
     handle(ST_DETACH, pgm, \runState);
   }
 
-  onStep(ProgramProbe pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
+  onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.flow) {
@@ -111,11 +111,11 @@ class MyDebugProgram inherits DebugProgram {
     handle(st, pgm, \runState, statementId ?? blockStatementId);
   }
 
-  onFunctionEnter(ProgramProbe pgm, int statementId, reference runState) {
+  onFunctionEnter(ProgramControl pgm, int statementId, reference runState) {
     handle(ST_FUNC_ENTER, pgm, \runState, statementId);
   }
 
-  onFunctionExit(ProgramProbe pgm, int statementId, reference returnValue, reference runState) {
+  onFunctionExit(ProgramControl pgm, int statementId, reference returnValue, reference runState) {
     any act = getAction(ST_FUNC_EXIT);
     if (exists act.retVal) {
         returnValue = act.retVal;
@@ -123,7 +123,7 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_FUNC_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
   }
 
-  onException(ProgramProbe pgm, int statementId, hash ex, reference dismiss, reference runState) {
+  onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference runState) {
     any act = getAction(ST_EXCEPTION);
     if (exists act.dismiss) {
         dismiss = act.dismiss;
@@ -146,7 +146,7 @@ class DebugTest inherits QUnit::Test {
         int main_tid;
         Mutex semaphore;
         Counter counter();
-        ProgramProbe thisProgram;
+        ProgramControl thisProgram;
         MyDebugProgram debugProgram;
     }
 
@@ -159,7 +159,7 @@ class DebugTest inherits QUnit::Test {
         addTestCase("MultiThreadBreakTest", \multiThreadBreakTest());   # problem in valrind because of timing ?
         #addTestCase("MultiThreadDebugTest", \multiThreadDebugTest());
 
-        thisProgram = ProgramProbe::getProgram();
+        thisProgram = ProgramControl::getProgram();
         debugProgram = new MyDebugProgram();
         semaphore = new Mutex();
         main_tid = gettid();
@@ -637,7 +637,7 @@ class DebugTest inherits QUnit::Test {
         p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
         p.parseCommit();
 
-        ProgramProbe pp = p.getProgram();
+        ProgramControl pp = p.getProgram();
 
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
@@ -679,12 +679,12 @@ class DebugTest inherits QUnit::Test {
 
     programTest() {
         string name = "Program::";
-        list l = ProgramProbe::getAllPrograms();
+        list l = ProgramControl::getAllPrograms();
         testAssertionValue(name+'getAllPrograms', l.size(), 3);
         testAssertionValue(name+'getProgramId', thisProgram.getProgramId() > 0, True);
         testAssertionValue(name+'getProgramId 2', l[0].getProgramId(), thisProgram.getProgramId());
-        assertThrows('PROGRAM-ERROR', \ProgramProbe::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
-        testAssertionValue(name+'resolveProgramId', ProgramProbe::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
+        assertThrows('PROGRAM-ERROR', \ProgramControl::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
+        testAssertionValue(name+'resolveProgramId', ProgramControl::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
     }
 }
 

@@ -42,7 +42,7 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_AutoReadLock.h"
 #include "qore/intern/QC_AutoWriteLock.h"
 #include "qore/intern/QC_Program.h"
-#include "qore/intern/QC_ProgramProbe.h"
+#include "qore/intern/QC_ProgramControl.h"
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 
@@ -2286,7 +2286,7 @@ public:
          printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
          i->second->ref();
       } else {
-         i->second = new QoreObject(QC_PROGRAMPROBE, getProgram(), pgm);
+         i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), pgm);
          printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, new second: %p\n", pgm, pgm->getProgramId(), i->second);
          pgm->ref();
       }
@@ -2303,7 +2303,7 @@ public:
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->second->ref();
          } else {
-            i->second = new QoreObject(QC_PROGRAMPROBE, getProgram(), i->first);
+            i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), i->first);
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->first->ref();
          }

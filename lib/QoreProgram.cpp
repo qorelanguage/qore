@@ -134,7 +134,7 @@ ParseOptionMaps::ParseOptionMaps() {
       doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
       doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
       doMap(PO_NO_DEBUGGING, "PO_NO_DEBUGGING");
-      doMap(PO_DEBUGGER, "PO_DEBUGGER");
+      doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {

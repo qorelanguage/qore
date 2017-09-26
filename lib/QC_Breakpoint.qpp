@@ -55,14 +55,14 @@ const BreakpointPolicyReject = BKP_PO_REJECT;
 //@}
 
 
-//! Breakpoint class supports breakpoint setting for particular %Qore @ref Qore::ProgramProbe "ProgramProbe" when debugging.
+//! Breakpoint class supports breakpoint setting for particular %Qore @ref Qore::ProgramControl "ProgramControl" when debugging.
 /** Breakpoint is assigned to one or more statement. When program flows through it then @ref DebugProgram "DebugProgram" callback is executed.
     Breakpoint activity may be limited to one or more threads.
 
     @par Example:
     @code{.py}
 
-    ProgramProbe p = ProgramProbe::getProgram();
+    ProgramControl p = ProgramControl::getProgram();
     .....
     Breakpoint b = new Breakpoint();
     b.setPolicy(BreakpointPolicyNone);
@@ -149,7 +149,7 @@ int Breakpoint::getPolicy() {
  *
  *  @param new_pgm Program to be assigned
  */
-nothing Breakpoint::assignProgram(ProgramProbe[QoreProgram] pgm) {
+nothing Breakpoint::assignProgram(ProgramControl[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
    bkpt->assignProgram(pgm, xsink);
 }

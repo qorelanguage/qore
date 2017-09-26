@@ -115,7 +115,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_HTTPClient.qpp
     lib/QC_Mutex.qpp
     lib/QC_Program.qpp
-    lib/QC_ProgramProbe.qpp
+    lib/QC_ProgramControl.qpp
     lib/QC_DebugProgram.qpp
     lib/QC_Breakpoint.qpp
     lib/QC_Queue.qpp
@@ -778,7 +778,7 @@ qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
 qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
-qore_user_module("qlib/DebugControl.qm" "DebugUtil")
+qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
@@ -813,7 +813,7 @@ qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
 # base 7 modules
-qore_user_module("qlib/DebugHandler.qm" "DebugControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
 
 # print info
 message(STATUS "")

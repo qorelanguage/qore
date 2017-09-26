@@ -120,22 +120,42 @@
     @see @ref require-dollar "%require-dollar"
 
     <hr>
-    @section allow-debugging %%allow-debugging
+    @section no-debugging %no-debugging
 
     @par Parse Directive:
-    <tt>%%allow-debugging</tt>
+    <tt>%%no-debugging</tt>
 
     @par Command Line:
     n/a
 
     @par Parse Option Constant:
-    @ref Qore::PO_ALLOW_DEBUGGING
+    @ref Qore::PO_NO_DEBUGGING
 
     @par Description:
     Allows debugging actions that could be insecure such as reading the thread local variable stack.
     Currently allows the following functions to be used:
     - @ref Qore::get_local_vars()
     - @ref Qore::set_local_var_value()
+
+    @since %Qore 0.8.13
+
+    <hr>
+    @section allow-debugger %allow-debugger
+
+    @par Parse Directive:
+    <tt>%%allow-debugger</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ALLOW_DEBUGGER
+
+    @par Description:
+    Allows debugger actions that could probe running program instances from debugger.
+    Mainly related to classes:
+    - @ref Qore::ProgramControl
+    - @ref Qore::DebugProgram
 
     @since %Qore 0.8.13
 

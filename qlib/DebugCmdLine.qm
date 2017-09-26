@@ -658,7 +658,7 @@ public namespace DebugCmdLine {
         constructor() {
         }
 
-        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugControlProgram)
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl)
         abstract public *hash doCommandImpl(hash data);
 
         public doCommand(hash data) {

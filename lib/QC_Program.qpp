@@ -31,7 +31,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_Program.h"
-#include "qore/intern/QC_ProgramProbe.h"
+#include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/qore_program_private.h"
@@ -510,7 +510,7 @@ const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
 /**
     @since %Qore 0.8.13
  */
-const PO_DEBUGGER = PO_DEBUGGER;
+const PO_ALLOW_DEBUGGER = PO_ALLOW_DEBUGGER;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -675,9 +675,9 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    @ref Qore::ProgramProbe "ProgramProbe" provides internal Program data for debugging purposes.  
+    @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.  
 
-    Use @ref Qore::ProgramProgram::getProgramProbe "ProgramProbram::getProgramProbe" function to attach currently running program
+    Use @ref Qore::ProgramProgram::getProgramControl "ProgramProbram::getProgramControl" function to attach currently running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -1785,9 +1785,9 @@ list<int> Program::getThreadList() [flags=CONSTANT] {
     return p->getThreadList();
 }
 
-//! Get @ref Qore::ProgramProbe "ProgramProbe"
+//! Get @ref Qore::ProgramControl "ProgramControl"
 /**
  */
-ProgramProbe Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+ProgramControl Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getQoreObject(p);
 }

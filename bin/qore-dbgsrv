@@ -3,12 +3,12 @@
 
 %enable-all-warnings
 %new-style
-%debugger
+%allow-debugger
 
 %requires qore >= 0.8.13
 %requires HttpServer
 %requires DebugUtil
-%requires DebugControl
+%requires DebugProgramControl
 %requires DebugHandler
 
 %exec-class DebugWrapper

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DebugControl.qm Debug common code
+#! @file DebugProgramControl.qm Debug common code
 
-/*  DebugControl.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  DebugProgramControl.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,11 @@
 %enable-all-warnings
 %new-style
 %no-debugging
-%debugger
-# child program won't inherit parent program options (including %debugger)
+%allow-debugger
+# child program won't inherit parent program options (including %allow-debugger)
 %no-child-restrictions
 
-module DebugControl {
+module DebugProgramControl {
     version = "0.1";
     desc = "user module providing common debug server stuff";
     author = "Tomas Mandys <tomas.mandys@qore.org>";
@@ -42,20 +42,20 @@ module DebugControl {
     license = "MIT";
 }
 
-/** @mainpage DebugControl Module
+/** @mainpage DebugProgramControl Module
 
     @tableofcontents
 
-    @section debugcontrolintro Introduction to the DebugControl Module
+    @section debugprogramcontrolintro Introduction to the DebugProgramControl Module
 
-    The %DebugControl module provides common functionality for implementing debugger server utilities
+    The %DebugProgramControl module provides common functionality for implementing debugger server utilities
 
     @subsection dc_v0_1 v0.1
-    - the initial version of the DebugControl module
+    - the initial version of the DebugProgramControl module
 */
 
-#! the DebugControl namespace contains all the definitions in the DebugControl module
-public namespace DebugControl {
+#! the DebugProgramControl namespace contains all the definitions in the DebugProgramControl module
+public namespace DebugProgramControl {
 
     #! Class to implement @ref Qore::DebugProgram "DebugProgram" control using commands
     public class DebugProgramControl inherits DebugProgram, AbstractDebugControl {
@@ -170,7 +170,7 @@ public namespace DebugControl {
                     result = ('class': self.className());
                     break;
                 case 'session':
-                    foreach ProgramProbe p in (getAllPrograms()) {
+                    foreach ProgramControl p in (getAllPrograms()) {
                         int pgmId = p.getProgramId();
                         result{pgmId}.scriptName = p.getScriptName();
                         result{pgmId}.scriptPath = p.getScriptPath();
@@ -187,7 +187,7 @@ public namespace DebugControl {
                     }
                     break;
                 case 'program':
-                    ProgramProbe pgmb;
+                    ProgramControl pgmb;
                     *string pgmName = shift cmd;
                     switch (cmd[0]) {
                     case 'list':
@@ -195,7 +195,7 @@ public namespace DebugControl {
                     case 'create':
                         break;
                     default:
-                        pgmb = ProgramProbe::resolveProgramId(int(pgmName));
+                        pgmb = ProgramControl::resolveProgramId(int(pgmName));
                     }
                     switch (shift cmd) {
                     case 'stop':
@@ -215,7 +215,7 @@ public namespace DebugControl {
                         break;
 
                     case 'list':
-                        foreach ProgramProbe p in (ProgramProbe::getAllPrograms()) {
+                        foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
                             if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
                                 result{pgmId}.scriptName = p.getScriptName();
@@ -225,7 +225,7 @@ public namespace DebugControl {
                                 result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
                             }
                         }
-#                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramProbe::getAllPrograms();
+#                        map result{$1.getProgramId()}.scriptPath = $1.getScriptPath(), ProgramControl::getAllPrograms();
                         map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
                         {
                             rwlThread.readLock();
@@ -490,7 +490,7 @@ public namespace DebugControl {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot encode %y value %y", name, val);
         }
 
-        private int resolveStatement(ProgramProbe pgm, *hash value) {
+        private int resolveStatement(ProgramControl pgm, *hash value) {
             if (exists value.id) {
                 return value.id;
             }
@@ -537,7 +537,7 @@ public namespace DebugControl {
                 foreach string k in (keys val) {
                     if (val{k}.typeCode() == NT_OBJECT) {
                         v{k}.type = val{k}.className();
-                        v{k}.value = 'not-serialized-object';  # TODO
+                        v{k}.value = sprintf("%N", val{k});  # TODO: to avoid circular references between objects
                     } else {
                         v{k} = serialize(val{k});
                     }
@@ -596,7 +596,7 @@ public namespace DebugControl {
                 return sv;
             }
         }
-        private *hash handleInterrupt(string func, ProgramProbe pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
+        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx.queue = new Thread::Queue();
@@ -626,7 +626,7 @@ sendData1.localvars4 = serializeLocals(get_local_vars(4));
 sendData1.localvars5 = keys get_local_vars(5);
 sendData1.localvars6 =  keys get_local_vars(6);
 sendData1.localvars7 = keys get_local_vars(7);
-sendData1.dbgpgmid = ProgramProbe::getProgram().getProgramId();
+sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
 
             } catch (hash ex) {
 #printf("Exception: %y\n", ex);
@@ -822,27 +822,27 @@ sendData1.dbgpgmid = ProgramProbe::getProgram().getProgramId();
             broadcastDataImpl(sd);
         }
 
-        onAttach(ProgramProbe pgm, reference rs) {
+        onAttach(ProgramControl pgm, reference rs) {
             handleInterrupt("attach", pgm, \rs);
         }
 
-        onDetach(ProgramProbe pgm, reference rs) {
+        onDetach(ProgramControl pgm, reference rs) {
             handleInterrupt("detach", pgm, \rs);
         }
 
-        onStep(ProgramProbe pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
             handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
         }
 
-        onFunctionEnter(ProgramProbe pgm, int statementId, reference rs) {
+        onFunctionEnter(ProgramControl pgm, int statementId, reference rs) {
             handleInterrupt('funcEnter', pgm, \rs, statementId);
         }
 
-        onFunctionExit(ProgramProbe pgm, int statementId, reference result, reference rs) {
+        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs) {
             handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
         }
 
-        onException(ProgramProbe pgm, int statementId, hash ex, reference dismiss, reference rs) {
+        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
             handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
         }
     }

@@ -8,8 +8,8 @@
 %requires qore >= 0.8.13
 %requires DebugUtil
 %requires DebugCmdLine
-%requires DebugControl
-%debugger
+%requires DebugProgramControl
+%allow-debugger
 %no-debugging
 
 %exec-class DebugWrapper
