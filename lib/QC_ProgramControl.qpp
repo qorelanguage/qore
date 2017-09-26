@@ -35,6 +35,8 @@
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/qore_date_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 //! statement information hash as returned by @ref Qore::ProgramBase::getStatementIdInfo() "ProgramBase::getStatementIdInfo()"
 /** 
@@ -304,12 +306,13 @@ hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
    if (!s) {
       return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
    }
-   QoreHashNode* h = new QoreHashNode;
-   h->setKeyValue("file", new QoreStringNode(s->loc.file), 0);
-   h->setKeyValue("source", new QoreStringNode(s->loc.source), 0);
-   h->setKeyValue("offset", new QoreBigIntNode(s->loc.offset), 0);
-   h->setKeyValue("start_line", new QoreBigIntNode(s->loc.start_line), 0);
-   h->setKeyValue("end_line", new QoreBigIntNode(s->loc.end_line), 0);
+   QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("file", new QoreStringNode(s->loc.file));
+   ph->setKeyValueIntern("source", new QoreStringNode(s->loc.source));
+   ph->setKeyValueIntern("offset", new QoreBigIntNode(s->loc.offset));
+   ph->setKeyValueIntern("start_line", new QoreBigIntNode(s->loc.start_line));
+   ph->setKeyValueIntern("end_line", new QoreBigIntNode(s->loc.end_line));
    return h;
 }
 

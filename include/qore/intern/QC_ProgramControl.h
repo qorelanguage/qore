@@ -36,7 +36,9 @@
 DLLEXPORT extern qore_classid_t CID_PROGRAMCONTROL;
 DLLLOCAL extern QoreClass* QC_PROGRAMCONTROL;
 DLLLOCAL QoreClass *initProgramControlClass(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_StatementInfo(QoreNamespace& ns);
 
 #include <qore/QoreProgram.h>
+
 
 #endif // _QORE_CLASS_PROGRAMCONTROL_H
