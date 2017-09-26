@@ -72,16 +72,18 @@ public namespace DebugCmdLine {
             wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
         **/
     public class WrapperGetOpt inherits GetOpt {
-        public constructor(hash options): GetOpt(options) {
+        #! create the object with the given @ref Qore::GetOpt "GetOpt" option hash
+        public constructor(hash options) : GetOpt(options) {
         }
-        /**
-            Parses input arguments till a standalone argument is found.
 
+        #! Parses input arguments until a standalone argument is found.
+        /**
             @param args @ref list of arguments passed to wrapper, typically ARGV
             @param wrp_args returns list of wrapper arguments
-            @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
+            @param pgm_name returns target program filename; "" is considered a special file name (meaning \c stdin), NOTHING when no name provided
             @param pgm_args return @ref list of target program arguments
 
+            @par Example:
             @code{.py}
             hash opts = (
                 'help': 'h,help',
@@ -96,7 +98,7 @@ public namespace DebugCmdLine {
 
             try {
                 opt = g.parse2(\dargs);
-            } catch (hash ex) {
+            } catch (hash<ExceptionSink> ex) {
                 stderr.printf("%s: %s\n", ex.err, ex.desc);
                 help(-1);
             }
@@ -105,10 +107,9 @@ public namespace DebugCmdLine {
                 stderr.print("No input file\n");
                 exit(-1);
             }
-
             @endcode
         **/
-        public split(list args, reference wrp_args, reference pgm_name, reference pgm_args) {
+        public split(list<string> args, reference<list> wrp_args, reference<*string> pgm_name, reference<list> pgm_args) {
             pgm_name = NOTHING;
             wrp_args = ();
             pgm_args = ();
@@ -134,11 +135,11 @@ public namespace DebugCmdLine {
         }
     }
 
-
     public const DUV_NONE = 0;
     public const DUV_INFO = 1;
     public const DUV_DEBUG = 2;
 
+    #! class that can be used for logging
     public class DebugLogger {
         public {
             int verbose = DUV_NONE;
@@ -151,15 +152,12 @@ public namespace DebugCmdLine {
         */
         public log(int verbosity, string fmt) {
             if (verbose >= verbosity) {
-                if (argv) {
-                    stdout.vprintf(fmt+"\n", argv);
-                } else {
-                    stdout.print(fmt+"\n");
-                }
+                stdout.vprintf(fmt+"\n", argv);
             }
         }
     }
 
+    #! debug command line class
     public class DebugCommandLine inherits AbstractDebugControl {
         public {
             string ln_prompt = 'qdbg> ';
@@ -209,7 +207,7 @@ public namespace DebugCmdLine {
                             try {
                                 hash data.cmd = 'version';
                                 res.host = dcl.doCommandImpl(data).result;
-                            } catch (hash ex) {
+                            } catch (hash<ExceptionSink> ex) {
                             }
                             dcl.printData(res);
                         },
@@ -319,7 +317,6 @@ public namespace DebugCmdLine {
                                 },
                             ),
                             'global': (
-
                                 '*': (
                                     'desc': 'get/set global variable',
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -341,7 +338,6 @@ public namespace DebugCmdLine {
                                 'desc': 'get/set global variable',
                             ),
                             'define': (
-
                                 '*': (
                                     'desc': 'get defines',
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -652,7 +648,6 @@ public namespace DebugCmdLine {
                     ),
                 ),
             );
-
         }
 
         constructor() {
@@ -668,18 +663,18 @@ public namespace DebugCmdLine {
             }
         }
 
-        public any parseValue(softlist args) {
+        public auto parseValue(softlist args) {
             # TODO parse as qore type
             return shift args;
         }
 
-        public any getContextValue(string key) {
+        public auto getContextValue(string key) {
             rwlContext.readLock();
             on_exit rwlContext.readUnlock();
             return cx{key};
         }
 
-        public setContextValue(string key, any value) {
+        public setContextValue(string key, auto value) {
             rwlContext.writeLock();
             on_exit rwlContext.writeUnlock();
             cx{key} = value;
@@ -687,7 +682,7 @@ public namespace DebugCmdLine {
 
         public hash getStatementValue(list args) {
             if (!args)
-                throw "DEBUG-PROGRAM-HELPER", sprintf("Statement prescription is missing");
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Statement description is missing");
             string s;
             s = trim(shift args);
             if (s =~ /^[0-9]+$/) {
@@ -841,7 +836,7 @@ public namespace DebugCmdLine {
                 case NT_CALLREF:
                     try {
                         v = cmd.variants(self, cmd.path, cmd.args);
-                    } catch (hash ex) {
+                    } catch (hash<ExceptionSink> ex) {
                     }
                     break;
                 default:
@@ -861,7 +856,7 @@ public namespace DebugCmdLine {
             Linenoise::set_callback(\ln_callback());
             string lastLine = '';
             while (True) {
-                my *string line = Linenoise::line(ln_prompt);
+                *string line = Linenoise::line(ln_prompt);
                 if (!exists line) {
                     printf("\n^C signal caught. Exiting.\n");
                         break;
@@ -881,9 +876,9 @@ public namespace DebugCmdLine {
                     if (cmd.cmd.action) {
 #                    printf("exec:%y\n", cmd);
                         try {
-                            any rc = cmd.cmd.action(self, cmd.path, cmd.args);
+                            auto rc = cmd.cmd.action(self, cmd.path, cmd.args);
                             if (rc) break;
-                        } catch (hash ex) {
+                        } catch (hash<ExceptionSink> ex) {
                             showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
                         }
                     }
@@ -893,10 +888,9 @@ public namespace DebugCmdLine {
                 }
             }
             # Linenoise::history_save('history.txt');
-
         }
 
-        public printData(any data) {
+        public printData(auto data) {
             string outs;
             if (data.typeCode() == NT_HASH) {
                 switch (data.type) {
@@ -928,10 +922,7 @@ public namespace DebugCmdLine {
             }
             if (exists outs) {
                 # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
-                list l = outs.split("\n");
-                foreach my string line in (l) {
-                    stdout.print(line+"\r\n");
-                }
+                stdout.print(replace(outs, "\n", "\r\n"));
                 # TODO: how refresh linenoise command line ?
             }
         }
@@ -952,18 +943,10 @@ public namespace DebugCmdLine {
             return threadId;
         }
 
-        static public list enumBreakpointId(DebugCommandLine dcl, softlist path, softlist args) {
+        static public softlist enumBreakpointId(DebugCommandLine dcl, softlist path, softlist args) {
             hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/list';
             *hash sd = dcl.doCommandImpl(data);
-            if (sd.result) {
-                list res;
-                map (push res, $1.id), sd.result;
-                return res;
-            } else {
-                return ();
-            }
+            return map $1.id, sd.result;
         }
-
     }
-
 }

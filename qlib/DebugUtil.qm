@@ -53,12 +53,18 @@ module DebugUtil {
 #! the DebugUtil namespace contains all the definitions in the DebugUtil module
 public namespace DebugUtil {
 
+    #! class supporting argument parsing for executing programs to debug
     /**
-        When implementing a wrapper which executes program whose name is passed at command line then we can divide
-        arguments usually into 3 groups, internal wrapper arguments, target program filename and program arguments.
+        When implementing a wrapper that executes a program whose name is passed on the command line, we can divide
+        the arguments usually into 3 groups:
+        - internal wrapper arguments
+        - target program filename
+        - program arguments
+
         The class support argument parsing for such a case.
 
         Examples:
+        @verbose
             (   # GetOpt options
                 'help': 'h,help',
                 'verbose': 'v,verbose',
@@ -68,18 +74,20 @@ public namespace DebugUtil {
             wrapper-prog -v -h xxx xxx          # the first xxx is target program name
             wrapper-prog -v --listen=xxx xxx    # the second xxx is target program name
             wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
-        **/
+        @endverbose
+    **/
     public class WrapperGetOpt inherits GetOpt {
         public constructor(hash options): GetOpt(options) {
         }
-        /**
-            Parses input arguments till a standalone argument is found.
 
+        #! Parses input arguments until a standalone argument is found.
+        /**
             @param args @ref list of arguments passed to wrapper, typically ARGV
             @param wrp_args returns list of wrapper arguments
             @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
             @param pgm_args return @ref list of target program arguments
 
+            @par Example:
             @code{.py}
             hash opts = (
     		    'help': 'h,help',
@@ -103,10 +111,9 @@ public namespace DebugUtil {
                 stderr.print("No input file\n");
                 exit(-1);
             }
-
             @endcode
         **/
-        public split(list args, reference wrp_args, reference pgm_name, reference pgm_args) {
+        public split(list<string> args, reference<list> wrp_args, reference<*string> pgm_name, reference<list> pgm_args) {
             pgm_name = NOTHING;
             wrp_args = ();
             pgm_args = ();
@@ -132,11 +139,11 @@ public namespace DebugUtil {
         }
     }
 
-
     public const DUV_NONE = 0;
     public const DUV_INFO = 1;
     public const DUV_DEBUG = 2;
 
+    #! class that can be used for logging
     public class DebugLogger {
         public {
             int verbose = DUV_NONE;
@@ -149,15 +156,12 @@ public namespace DebugUtil {
         */
         public log(int verbosity, string fmt) {
             if (verbose >= verbosity) {
-                if (argv) {
-                    stdout.vprintf(fmt+"\n", argv);
-                } else {
-                    stdout.print(fmt+"\n");
-                }
+                stdout.vprintf(fmt+"\n", argv);
             }
         }
     }
 
+    #! base class for controlling debugging
     public class AbstractDebugControl {
         public {
             DebugLogger logger;
@@ -169,17 +173,16 @@ public namespace DebugUtil {
             const boolStrings = ('false': False, 'true': True);
             const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
         }
+
         static public list enumFilter(softlist items, *string path) {
             if (path.size() == 0) {
                 return items;
             }
-            list res = ();
-            map (push res, $1), items, AbstractDebugControl::evalCondition($1, path);
-            return res;
+            return map $1, items, AbstractDebugControl::evalCondition($1, path);
         }
 
         static public bool evalCondition(softstring value, *string cond) {
-            if (!exists cond | cond == "")
+            if (!cond.val())
                 return True;
             if (cond =~ /^=/) {
                 return substr(cond, 1) == value;

@@ -114,10 +114,9 @@ public namespace DebugHandler {
         }
     }
 
-    #! the main web socket handler class
-    /** connections are represented by object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
-        @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method
-        can be overridden in subclasses to return a custom object for each connection if required.
+    #! the main web socket debug handler class
+    /** connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
+        @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method can be overridden in subclasses to return a custom object for each connection if required.
 
         @par Receiving WebSocket Messages from Clients
         When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
@@ -145,9 +144,10 @@ public namespace DebugHandler {
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
-        WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
+        WebSocketHandler::WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
             return new WebSocketDebugConnection(self, cx);
         }
+
         logInfo(string fmt) {
             logger.log(DUV_INFO, vprintf(fmt, argv));
         }
@@ -161,30 +161,35 @@ public namespace DebugHandler {
         }
     }
 
+    #! web socket debug program control class
     public class WebSocketDebugProgramControl inherits DebugProgramControl {
         private {
             WebSocketDebugHandler handler;
         }
 
+        #! creates the object
         constructor(*HttpServer::AbstractAuthenticator auth) : DebugProgramControl() {
             handler = new WebSocketDebugHandler(auth, self);
         }
 
-        public sendDataImpl(hash cx, any data) {
+        #! sends data to the given connection
+        public sendDataImpl(hash cx, auto data) {
             handler.sendOne(cx.id, make_yaml(data));
         }
 
-        public broadcastDataImpl(any data) {
+        #! sends data to all connections
+        public broadcastDataImpl(auto data) {
              handler.sendAll(make_yaml(data));
         }
 
+        #! returns the web socket handler object
         public WebSocketHandler getHandler() {
             return handler;
         }
 
+        #! returns the MIME type for serialized data
         public *string getContentType() {
             return MimeTypeYamlRpc;
         }
     }
-
 }

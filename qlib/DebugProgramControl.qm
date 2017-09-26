@@ -57,7 +57,7 @@ module DebugProgramControl {
 #! the DebugProgramControl namespace contains all the definitions in the DebugProgramControl module
 public namespace DebugProgramControl {
 
-    #! Class to implement @ref Qore::DebugProgram "DebugProgram" control using commands
+    #! Class implementing @ref Qore::DebugProgram "DebugProgram" control using commands
     public class DebugProgramControl inherits DebugProgram, AbstractDebugControl {
         private {
             #!data pool related to suspended thread, key is threadId
@@ -71,6 +71,8 @@ public namespace DebugProgramControl {
 
             const frameOffset = 2;
         }
+
+        #! creates the object
         constructor() : DebugProgram() {
         }
 
@@ -81,6 +83,7 @@ public namespace DebugProgramControl {
             ctxConnection{cx.id} = ();
         }
 
+        #! unregister a connection context
         public unregisterConnection(hash cx) {
             rwlConnection.writeLock();
             on_exit rwlConnection.writeUnlock();
@@ -88,13 +91,13 @@ public namespace DebugProgramControl {
             # if (!ctxConnection)  run stopped programs ?
         }
 
-        private updateConnectionContext(hash cx, any cx_data) {
+        private updateConnectionContext(hash cx, auto cx_data) {
         }
 
         #! send data to particular client
-        abstract public sendDataImpl(hash cx, any data);
+        abstract public sendDataImpl(hash cx, auto data);
         #! send data to all clients
-        abstract public broadcastDataImpl(any data);
+        abstract public broadcastDataImpl(auto data);
 
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
@@ -453,7 +456,7 @@ public namespace DebugProgramControl {
                 if (exists result) {
                     sendData.type = 'response';
                 }
-            } catch (hash ex) {
+            } catch (hash<ExceptionSink> ex) {
                 logger.log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
@@ -618,17 +621,16 @@ public namespace DebugProgramControl {
               'frame': 0,
             );
             try {
-#sendData1.localvars0 = keys get_local_vars(0);
-#sendData1.localvars1 = keys get_local_vars(1);
-sendData1.localvars2 = serializeLocals(get_local_vars(2));
-sendData1.localvars3 = serializeLocals(get_local_vars(3));
-sendData1.localvars4 = serializeLocals(get_local_vars(4));
-sendData1.localvars5 = keys get_local_vars(5);
-sendData1.localvars6 =  keys get_local_vars(6);
-sendData1.localvars7 = keys get_local_vars(7);
-sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
-
-            } catch (hash ex) {
+                #sendData1.localvars0 = keys get_local_vars(0);
+                #sendData1.localvars1 = keys get_local_vars(1);
+                sendData1.localvars2 = serializeLocals(get_local_vars(2));
+                sendData1.localvars3 = serializeLocals(get_local_vars(3));
+                sendData1.localvars4 = serializeLocals(get_local_vars(4));
+                sendData1.localvars5 = keys get_local_vars(5);
+                sendData1.localvars6 = keys get_local_vars(6);
+                sendData1.localvars7 = keys get_local_vars(7);
+                sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
+            } catch (hash<ExceptionSink> ex) {
 #printf("Exception: %y\n", ex);
             }
             if (exists statementId) {
@@ -777,7 +779,6 @@ sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
                             break;
 
                         case 'breakpoint':
-
                             break;
                         }
 
@@ -785,7 +786,7 @@ sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
                             sd.type = 'response';
                         }
 
-                    } catch (hash ex) {
+                    } catch (hash<ExceptionSink> ex) {
                         sd.type = 'error';
                         result.err = ex.err;
                         result.desc = ex.desc;
@@ -800,7 +801,7 @@ sendData1.dbgpgmid = ProgramControl::getProgram().getProgramId();
                         sd.result = result;
                         try {
                             sendDataImpl(cx, sd);
-                        } catch (hash ex) {
+                        } catch (hash<ExceptionSink> ex) {
                         }
                     }
                 }
