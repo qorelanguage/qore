@@ -97,7 +97,7 @@ msg.addTO("My Best Friend <you@friend.com>");
     - fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
 
     @subsection mailmessage_v1_0_2
-    - use <string>::isPrintableAscii() to determine which mail headers need encoding
+    - use &lt;string&gt;::isPrintableAscii() to determine which mail headers need encoding
 
     @subsection mailmessage_v1_0_1
     - fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding

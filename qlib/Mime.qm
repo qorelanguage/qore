@@ -582,7 +582,7 @@ public namespace Mime {
     }
 
     #! encodes data according to the given encoding
-    /** @param data the data to encode
+    /** @param mime_data the data to encode
         @param enc the encoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is ignored)
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
@@ -683,7 +683,7 @@ public namespace Mime {
     }
 
     #! decodes data according to the given encoding
-    /** @param data the data to decode
+    /** @param mime_data the data to decode
         @param enc the decoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is ignored)
         @param ct the content-type of the data; if there is a \c "charset=xxx" component and the data is decoded to a string, then it will be returned in the given character encoding
 

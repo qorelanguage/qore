@@ -1226,7 +1226,7 @@ string replace(string str, string source, string target, int start = 0, int end 
 
         while (const char* p = (const char*)q_memmem(cstr, str->size() - (cstr - str->c_str()), pattern, plen)) {
             //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->c_str());
-            if ((end > 0) && (p - str->c_str() + plen) > end)
+            if ((end > 0) && (p - str->c_str() + plen) > (size_t)end)
                 break;
 
             if (p != cstr)

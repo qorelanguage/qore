@@ -11,8 +11,8 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 00) # Note: it must be always 2 numeric notation. E.g. 00, 01, ... to follow autotools builds
 #set(VERSION_PATCH xxx)
 
 if(DEFINED VERSION_PATCH)
@@ -767,6 +767,7 @@ qore_user_module("qlib/FixedLengthUtil.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/SqlUtil.qm" "Util")
+qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")

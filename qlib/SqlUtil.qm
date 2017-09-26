@@ -104,6 +104,8 @@ module SqlUtil {
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
     - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
     - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
+    - implemented analytic/window functions: new functions [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2202</a>]
+    - implemented analytic/window functions: cop_over full support including ORDER BY [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2203</a>]
 
     @subsection sqlutilv1_3_4 SqlUtil v1.3.4
     - fixed a bug in with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
@@ -1139,15 +1141,15 @@ else
     - For objects that are dropped and recreated, renaming the object is generally supported if the underlying database server supports
     renaming.
     - Schemas (and other objects) can also be dropped based on a generic description (or descriptions derived from the database); see
-    @ref SqlUtil::Database::getDropSchemaSql()
+    @ref SqlUtil::AbstractDatabase::getDropSchemaSql()
 
     @section creating_new_objects Creating New Objects
 
     New objects are generally creating using appropriate methods from the @ref SqlUtil::Database "Database" class, such as the following:
-    - @ref SqlUtil::Database::makeFunction() "Database::makeFunction()"
-    - @ref SqlUtil::Database::makeProcedure() "Database::makeProcedure()"
-    - @ref SqlUtil::Database::makeSequence() "Database::makeSequence()"
-    - @ref SqlUtil::Database::makeTable() "Database::makeTable()"
+    - @ref SqlUtil::AbstractDatabase::makeFunction() "AbstractDatabase::makeFunction()"
+    - @ref SqlUtil::AbstractDatabase::makeProcedure() "AbstractDatabase::makeProcedure()"
+    - @ref SqlUtil::AbstractDatabase::makeSequence() "AbstractDatabase::makeSequence()"
+    - @ref SqlUtil::AbstractDatabase::makeTable() "AbstractDatabase::makeTable()"
 
     Tables can also be created by instantiating a @ref SqlUtil::Table "Table" object (see @ref SqlUtil::AbstractTable::constructor()).
 
@@ -1158,10 +1160,10 @@ else
 
     Existing objects can be retrieved from the database using appropriate methods from the @ref SqlUtil::Database "Database" class,
     such as the following:
-    - @ref SqlUtil::Database::getFunction() "Database::getFunction()"
-    - @ref SqlUtil::Database::getProcedure() "Database::getProcedure()"
-    - @ref SqlUtil::Database::getSequence() "Database::getSequence()"
-    - @ref SqlUtil::Database::getTable() "Database::getTable()"
+    - @ref SqlUtil::AbstractDatabase::getFunction() "AbstractDatabase::getFunction()"
+    - @ref SqlUtil::AbstractDatabase::getProcedure() "AbstractDatabase::getProcedure()"
+    - @ref SqlUtil::AbstractDatabase::getSequence() "AbstractDatabase::getSequence()"
+    - @ref SqlUtil::AbstractDatabase::getTable() "AbstractDatabase::getTable()"
 
     Each database driver may provide additional objects (such as types or materialized views, etc); see driver-specific documentation for more
     information.
@@ -1169,18 +1171,18 @@ else
     @section listing_objects Listing Objects
 
     Listing database objects can be performed using appropriate methods from the @ref SqlUtil::Database "Database" class, such as the following:
-    - @ref SqlUtil::Database::listFunctions() "Database::listFunctions()"
-    - @ref SqlUtil::Database::listProcedures() "Database::listProcedures()"
-    - @ref SqlUtil::Database::listSequences() "Database::listSequences()"
-    - @ref SqlUtil::Database::listTables() "Database::listTables()"
-    - @ref SqlUtil::Database::listViews() "Database::listViews()"
+    - @ref SqlUtil::AbstractDatabase::listFunctions() "AbstractDatabase::listFunctions()"
+    - @ref SqlUtil::AbstractDatabase::listProcedures() "AbstractDatabase::listProcedures()"
+    - @ref SqlUtil::AbstractDatabase::listSequences() "AbstractDatabase::listSequences()"
+    - @ref SqlUtil::AbstractDatabase::listTables() "AbstractDatabase::listTables()"
+    - @ref SqlUtil::AbstractDatabase::listViews() "AbstractDatabase::listViews()"
 
     Alternatively, iterators for lists of objects can be acquired with the following methods:
-    - @ref SqlUtil::Database::functionIterator() "Database::functionIterator()"
-    - @ref SqlUtil::Database::procedureIterator() "Database::procedureIterator()"
-    - @ref SqlUtil::Database::sequenceIterator() "Database::sequenceIterator()"
-    - @ref SqlUtil::Database::tableIterator() "Database::tableIterator()"
-    - @ref SqlUtil::Database::viewIterator() "Database::viewIterator()"
+    - @ref SqlUtil::AbstractDatabase::functionIterator() "AbstractDatabase::functionIterator()"
+    - @ref SqlUtil::AbstractDatabase::procedureIterator() "AbstractDatabase::procedureIterator()"
+    - @ref SqlUtil::AbstractDatabase::sequenceIterator() "AbstractDatabase::sequenceIterator()"
+    - @ref SqlUtil::AbstractDatabase::tableIterator() "AbstractDatabase::tableIterator()"
+    - @ref SqlUtil::AbstractDatabase::viewIterator() "AbstractDatabase::viewIterator()"
 
     @section interdependent_tables Working With Interdependent Tables
 
@@ -1408,7 +1410,7 @@ const Schema = (
     - @ref SqlUtil::AbstractTable::constructor()
     - @ref SqlUtil::AbstractTable::setupTable()
 
-    Table description hashes are also used when aligning tables to a template, which can be used to automate schema upgrades; see @ref SqlUtil::AbstractTable::getAlignSql(), @ref SqlUtil::Database::getAlignSql(), and @ref table_desc_hash "table description hash" for more information.
+    Table description hashes are also used when aligning tables to a template, which can be used to automate schema upgrades; see @ref SqlUtil::AbstractTable::getAlignSql(), @ref SqlUtil::AbstractDatabase::getAlignSql(), and @ref table_desc_hash "table description hash" for more information.
 
     @subsection retrieving_table_info Retrieving Table Information
 
@@ -2170,9 +2172,68 @@ public namespace SqlUtil {
 
     #! to return the date with truncated value
     /** @see cop_trunc_date()
+
         See also @ref sql_cop_trunc_date_enum
+
+        @since %SqlUtil 1.4.0
      */
     public const COP_TRUNC_DATE = "truncate_date";
+
+    #! Analytic (window) function: CUME_DIST
+    /** @see cop_cume_dist()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_CUME_DIST = "cume_dist";
+
+    #! Analytic (window) function: DENSE_RANK
+    /** @see cop_dense_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_DENSE_RANK = "dense_rank";
+
+    #! Analytic (window) function: FIRST_VALUE
+    /** @see cop_first_value()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_FIRST_VALUE = "first_value";
+
+    #! Analytic (window) function: LAST_VALUE
+    /** @see cop_last_value()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_LAST_VALUE = "last_value";
+
+    #! Analytic (window) function: NTILE
+    /** @see cop_ntile()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_NTILE = "ntile";
+
+    #! Analytic (window) function: PERCENT_RANK
+    /** @see cop_percent_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_PERCENT_RANK = "percent_rank";
+
+    #! Analytic (window) function: RANK
+    /** @see cop_rank()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_RANK = "rank";
+
+    #! Analytic (window) function: ROW_NUMBER
+    /** @see cop_row_number()
+
+        @since %SqlUtil 1.4.0
+    */
+    public const COP_ROW_NUMBER = "row_number";
 
 
     #! a hash of default column operator descriptions
@@ -2182,7 +2243,7 @@ public namespace SqlUtil {
             "withalias": True,
             "code": string sub (string cve, string arg, reference<hash> psch) {
                 psch{arg} = cve;
-                return sprintf("%s as %y", cve, arg);
+                return sprintf("%s as %s", cve, arg);
             },
         ),
         COP_PREPEND: (
@@ -2305,6 +2366,72 @@ public namespace SqlUtil {
                 return sprintf("length(%s)", cve);
             },
         ),
+        COP_OVER: (
+            "columnargs" : True,
+            "columnargs_ignore_nothings" : True,
+            "code": string sub (*string cve, hash args)
+            {
+                *string partitionby = args.args[0];
+                *string orderby = args.args[1];
+                if (!exists partitionby && exists orderby) {
+                    throw "COP-OVER-ERROR", "Argument 'partitionby' must be given in case of usage of 'orderby'";
+                }
+                string sql = cve + " over (";
+                if (exists partitionby)
+                    sql += sprintf("partition by %s", partitionby); # TODO/FIXME: sql injection!
+                if (exists orderby)
+                    sql += sprintf(" order by %s", orderby); # TODO/FIXME: sql injection!
+                sql += ")";
+                return sql;
+            },
+        ),
+        COP_CUME_DIST: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "cume_dist()";
+            },
+        ),
+        COP_DENSE_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "dense_rank()";
+            },
+        ),
+        COP_FIRST_VALUE: (
+            "code": string sub (string cve) {
+                return sprintf("first_value(%s)", cve);
+            },
+        ),
+        COP_LAST_VALUE: (
+            "code": string sub (string cve) {
+                return sprintf("last_value(%s)", cve);
+            },
+        ),
+        COP_NTILE: (
+            "sqlvalue": True,
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return sprintf("ntile(%d)", arg);
+            },
+        ),
+        COP_PERCENT_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "percent_rank()";
+            },
+        ),
+        COP_RANK: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "rank()";
+            },
+        ),
+        COP_ROW_NUMBER: (
+            "nocolumn": True,
+            "code": string sub (*string cve, any arg) {
+                return "row_number()";
+            },
+        ),
         );
     #@}
 
@@ -2333,6 +2460,14 @@ public namespace SqlUtil {
         - @ref cop_year_hour(): return the year to hour value of the given date column
         - @ref cop_year_month(): return the year and month value of the given date column
         - @ref cop_trunc_date(): return truncated date regarding the mask
+        - @ref cop_cume_dist(): analytic/window function
+        - @ref cop_dense_rank(): analytic/window function
+        - @ref cop_first_value(): analytic/window function
+        - @ref cop_last_value(): analytic/window function
+        - @ref cop_ntile(): analytic/window function
+        - @ref cop_percent_rank(): analytic/window function
+        - @ref cop_rank(): analytic/window function
+        - @ref cop_row_number(): analytic/window function
 
         Column operator functions can be nested as in the following example:
         @par Example:
@@ -2627,8 +2762,9 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
     */
-    public hash<ColumnOperatorInfo> sub cop_over(auto column, string arg) {
-        return make_cop(COP_OVER, column, arg);
+    public hash<ColumnOperatorInfo> sub cop_over(auto column, *string partitionby, *string orderby) {
+        list args = (partitionby, orderby, );
+        return make_cop(COP_OVER, column, ("args" : args));
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
@@ -2855,12 +2991,280 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
 
         @since %SqlUtil 1.4.0
     */
-    public hash sub cop_trunc_date(auto column, string mask) {
+    public hash<ColumnOperatorInfo> sub cop_trunc_date(auto column, string mask) {
         if (!inlist(mask, DT_ALL_VALUES)) {
             throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", mask, DT_ALL_VALUES);
         }
         return make_cop(COP_TRUNC_DATE, column, mask);
     }
+
+
+    #! Analytic/window function: relative rank of the current row
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"),
+    );
+
+# rendered SQL statement
+# select cume_dist() over (partition by row_type order by id) as "cume_dist" test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (number of rows preceding or peer with current row) / (total rows)
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_cume_dist() {
+        return make_cop(COP_CUME_DIST, "");
+    }
+
+    #! Analytic/window function: rank of the current row without gaps
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"),
+    );
+
+# rendered SQL statement
+select dense_rank() over (partition by row_type order by id) as "dense_rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row without gaps; this function counts peer groups
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_dense_rank() {
+        return make_cop(COP_DENSE_RANK, "");
+    }
+
+    #! Analytic/window function: value evaluated at the row that is the first row of the window frame
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"),
+    );
+
+# rendered SQL statement
+select first_value(row_value) over (partition by row_type order by id) as "first_value" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the first row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_first_value(any column) {
+        return make_cop(COP_FIRST_VALUE, column);
+    }
+
+    #! Analytic/window function: value evaluated at the row that is the last row of the window frame
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"),
+    );
+
+# rendered SQL statement
+select last_value(row_value) over (partition by row_type order by id) as "last_value" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return returns value evaluated at the row that is the last row of the window frame
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_last_value(any column) {
+        return make_cop(COP_LAST_VALUE, column);
+    }
+
+    #! Analytic/window function: integer ranging from 1 to the argument value, dividing the partition as equally as possible
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"),
+    );
+
+# rendered SQL statement
+select ntile(10) over (partition by row_type order by id) as "ntile" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @param value an integer value used as count of sp;it buckets
+
+        @return integer ranging from 1 to the argument value, dividing the partition as equally as possible
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_ntile(int value) {
+        return make_cop(COP_NTILE, "", value);
+    }
+
+    #! Analytic/window function: relative rank of the current row
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"),
+    );
+
+# rendered SQL statement
+select percent_rank() over (partition by row_type order by id) as "percent_rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return relative rank of the current row: (rank - 1) / (total rows - 1)
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_percent_rank() {
+        return make_cop(COP_PERCENT_RANK, "");
+    }
+
+    #! Analytic/window function: rank of the current row with gaps
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"),
+    );
+
+# rendered SQL statement
+select rank() over (partition by row_type order by id) as "rank" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return rank of the current row with gaps; same as row_number of its first peer
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_rank() {
+        return make_cop(COP_RANK, "");
+    }
+
+    #! Analytic/window function: number of the current row within its partition, counting from 1
+    /** @par Example:
+        @code{.py}
+# with table structure (Schema module syntax)
+const T_TestAnalyticFunctions = (
+    "columns" : (
+        "id" : c_number(),
+        "row_type" : c_varchar(10),
+        "row_value" : c_number(),
+    ),
+);
+
+# select hash
+hash sh = (
+        "columns" : cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"),
+    );
+
+# rendered SQL statement
+select row_number() over (partition by row_type order by id) as "row_number" from test_analytic_functions;
+        @endcode
+
+        Analytic/window function. Must be used with @ref cop_over() with \c partitionby and \c orderby arguments
+
+        @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
+
+        @return number of the current row within its partition, counting from 1
+
+        @since %SqlUtil 1.4.0
+    */
+    public hash<ColumnOperatorInfo> sub cop_row_number() {
+        return make_cop(COP_ROW_NUMBER, "");
+    }
+
     #@}
 
     /** @defgroup sql_cop_trunc_date_enum cop_trunc_date formats
@@ -4224,7 +4628,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 select * from schema.table where name = other_name and ((type = %v and validation flag is not null) or (expiration_date >= %v))
         @endverbatim
 
-        @param h1 the hash of expressions to combine with \c "or" logic
+        @param h1 the first hash of expressions to combine with \c "or" logic
+        @param h2 the second hash of expressions to combine with \c "or" logic
         @param ... remaining expressions to combine with \c "or" logic
 
         @return a hash with an @ref OperatorInfo hash value keyed by a fake column name (\c "_OR_" with a numeric prefix for uniqueness) for use in a where operation description hash for use in @ref where_clauses "where clauses"
@@ -5276,6 +5681,7 @@ list l = col.getModifySql(t, newcol);
 
             @param t the AbstractTable object to modify
             @param c the new column definition
+            @param opt column modification options (if supported by the underlying driver)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -5335,6 +5741,7 @@ list l = col.getModifySql(t, newcol);
 
             @param t the AbstractTable object to modify
             @param c the new column definition
+            @param opt column modification options (if supported by the underlying driver)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -6640,7 +7047,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
             #! default generic schema description / alignment options
             /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
-                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
+                - \c force: (@ref bool_type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
             */
             const AlignSchemaOptions = CreationOptions + (
                 "force": Type::Boolean,
@@ -6648,7 +7055,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
             #! default generic drop schema options
             /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
-                - \c force: (@ref bool_Type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
+                - \c force: (@ref bool_type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
             */
             const DropSchemaOptions = CallbackOptions + (
                 "force": Type::Boolean,
@@ -12314,6 +12721,9 @@ string sql = table.getSelectSql(sh, \args);
                     switch (narg.typeCode()) {
                         case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
                         case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
+                        # HACK: for COP_OVER. We need to handle situation when arg can be NOTHING
+                        #       but also we have to validate non-NOTHING args to real columns.
+                        case NT_NOTHING: if (cmd.columnargs_ignore_nothings) continue;
                         default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
                     }
                 }
@@ -12322,7 +12732,17 @@ string sql = table.getSelectSql(sh, \args);
             if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
-            return cmd.withalias ? cmd.code(cve, arg, \psch_ref) : cmd.code(cve, arg);
+            if (cmd.withalias) {
+                # get escaped AS alias only when required (a reserved word)
+                switch (arg.typeCode()) {
+                    case NT_STRING: arg = getColumnSqlName(arg); break;
+                    case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
+                }
+                return cmd.code(cve, arg, \psch_ref);
+            }
+            else {
+                return cmd.code(cve, arg);
+            }
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {

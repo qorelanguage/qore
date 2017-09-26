@@ -61,11 +61,28 @@ module TableMapper {
     - @ref TableMapper::SqlStatementOutboundMapper "SqlStatementOutboundMapper": provides a SQL statement source based mapper
     - @ref TableMapper::SqlStatementMapperIterator "SqlStatementMapperIterator": provides a helper SQL statement source based iterator with mapping capability
 
+    @section inboundtablemapper_sequences Inserting Sequence Values with the InboundTableMapper Class
+
+    @ref TableMapper::InboundTableMapper "InboundTableMapper" objects can be used to insert sequence values in the
+    target table, and the values inserted are returned in the output value of @ref TableMapper::InboundTableMapper::insertRow()
+    "InboundTableMapper::insertRow()" and also present in the argument to any @ref TableMapper::InboundTableMapper::setRowCode() "rowcode" call when using the @ref tablemapper_bulk_insert_api "bulk insert API" on supported databases (databases supporting the \c returning clause in insert statements).
+
+    The mapper field options are:
+    - \c sequence: inserts the value of the given sequence into the target column and increments the sequence
+    - \c sequence_currval: inserts the current value the given sequence into the target column; does not increment the sequence
+
+    @note "autoincrement" columns cannot be used if the inserted value should be returned from an insert operation;
+    an explicit sequence needs to be used so that the inserted value can be returned and used for further processing.
+
+    @see See the following section for an example and @ref tablemapperkeys for more information
+
     @section tablemapperexamples TableMapper Examples
 
-    The following is an example map hash with comments:
+    The following is an example map for an @ref TableMapper::InboundTableMapper "InboundTableMapper" hash with comments:
     @code{.py}
 const DataMap = (
+    # output column: "rec_id" populated from the given sequence
+    "rec_id": ("sequence": "seq_rec_id"),
     # output column: "id" mapper from the "Id" element of any "^attributes^" hash in the input record
     "id": "^attributes^.Id",
     # output column: "name": maps from an input field with the same name (no translations are made)
@@ -97,23 +114,24 @@ printf("%d record%s inserted\n", map.getCount(), map.getCount() == 1 ? "" : "s")
     This will insert all the mapped input data into data into the \c ORDER_TABLE
     table and then print out the number of rows inserted.
 
-    This is an example for TableMapper::SqlStatementOutboundMapper. It selects data
-    from the \c ORDER_DATE and it transforms rows regarding mapping used.
+    The following is an example for TableMapper::SqlStatementOutboundMapper. It selects data
+    from the \c ORDER_DATE table and it transforms rows according to the mappings supplied in
+    the constructor.
 
     @code{.py}
 # SqlUtil Table object
 Table table(ds, "order_table");
 # mapping definition
 const DataMap = (
-        "id" : True,
-        "foo" : "name",
-        "bar" : ("code" : string sub (any ignored, hash rec) { return format_date("YYYYMMDD", rec."order_table"); } ),
-    );
-# SqlUgtil select hash
+    "id": True,
+    "foo": "name",
+    "bar": ("code": string sub (any ignored, hash rec) { return format_date("YYYYMMDD", rec."order_table"); }),
+);
+# SqlUtil select hash
 hash sh = (
-        "columns" : ("id", "name", "order_date"),
-        "where" : ( "id" : op_gt(1000) ),
-    );
+    "columns": ("id", "name", "order_date"),
+    "where": ("id": op_gt(1000)),
+);
 
 SqlStatementOutboundMapper m(table, sh, DataMap);
 on_exit m.commit();
@@ -340,7 +358,7 @@ InboundTableMapper mapper(table, DbMapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert/upsert approach is used which allows for better performance
             - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted/upserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information; note that this is also applied when upserting despite the name
-            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable (such as sequence values inserted from \c "sequence" field options for the given column)
             - \c "upsert": if @ref Qore::True "True" then data will be upserted instead of inserted (default is to insert)
             - \c "upsert_strategy": see @ref upsert_options for possible values for the upsert strategy; if this option is present, then \c "upsert" is also assumed to be @ref Qore::True "True"; if not present but \c "upsert" is @ref Qore::True "True", then @ref SqlUtil::AbstractTable::UpsertAuto is assumed
 
@@ -379,7 +397,7 @@ InboundTableMapper mapper(table, DbMapper);
             @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options plus the following options specific to this object:
             - \c "unstable_input": set this option to @ref Qore::True "True" (default @ref Qore::False "False") if the input passed to the mapper is unstable, meaning that different hash keys or a different hash key order can be passed as input data in each call to insertRow(); if this option is set, then insert speed will be reduced by about 33%; when this option is not set, an optimized insert/upsert approach is used which allows for better performance
             - \c "insert_block": for DB drivers supporting bulk DML (for use with the queueData(), flush(), and discard() methods), the number of rows inserted/upserted at once (default: 1000, only used when \c "unstable_input" is @ref Qore::False "False") and bulk inserts are supported in the table object; see @ref tablemapper_bulk_insert_api for more information; note that this is also applied when upserting despite the name
-            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable
+            - \c "rowcode": a per-row @ref closure or @ref call_reference for batch inserts/upserts; this must take a single hash argument and will be called for every row after a bulk insert/upsert; the hash argument representing the row inserted/upserted will also contain any output values for inserts if applicable (such as sequence values inserted from \c "sequence" field options for the given column)
             - \c "upsert": if @ref Qore::True "True" then data will be upserted instead of inserted (default is to insert)
             - \c "upsert_strategy": see @ref upsert_options for possible values for the upsert strategy; if this option is present, then \c "upsert" is also assumed to be @ref Qore::True "True"; if not present but \c "upsert" is @ref Qore::True "True", then @ref SqlUtil::AbstractTable::UpsertAuto is assumed
 
@@ -587,7 +605,7 @@ InboundTableMapper mapper(table, DbMapper);
         #! inserts or upserts a row into the target table based on a mapped input record; does not commit the transaction
         /** @param rec the input record
 
-            @return a hash of the row values inserted/upserted (row name: value)
+            @return a hash of the row values inserted/upserted (row name: value); note that any sequence values inserted are also returned here
 
             @note on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 

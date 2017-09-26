@@ -67,7 +67,8 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, PgsqlTest::CustomColumns);
+        return doTables(Tables, PgsqlTest::CustomColumns)
+                + ( "test_analytic_functions" : T_TestAnalyticFunctions );
     }
 
     private *hash getSequencesImpl() {
@@ -202,6 +203,7 @@ class PgsqlTest inherits SqlTestBase {
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
 
             addTestCase("sequence operators", \testSequenceOperators());
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
         }
 
         set_return_value(main());

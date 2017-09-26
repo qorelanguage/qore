@@ -1269,7 +1269,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
          QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
          ReferenceHolder<> v(xsink);
          if (!rl) {
-            if (ind < l->size())
+            if (ind < (int64)l->size())
                v = qore_list_private::get(*l)->takeExists(ind);
          }
          else {
@@ -1280,7 +1280,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
             v = new QoreListNode;
             while (li.next()) {
                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < l->size()) {
+               if (ind >= 0 && ind < (int64)l->size()) {
                   iset.insert(ind);
                   static_cast<QoreListNode*>(*v)->push(qore_list_private::get(*l)->takeExists(ind));
                }
@@ -1312,7 +1312,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
          SimpleRefHolder<QoreStringNode> v;
          size_t len = str->length();
          if (!rl) {
-            if (ind < len)
+            if (ind < (int64)len)
                v = str->substr(ind, 1, xsink);
             else
                v = new QoreStringNode(str->getEncoding());
@@ -1324,7 +1324,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
             ConstListIterator li(rl);
             while (li.next()) {
                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < len) {
+               if (ind >= 0 && ind < (int64)len) {
                   iset.insert(ind);
                   int cp = str->getUnicodePoint(ind, xsink);
                   if (*xsink)
@@ -1355,7 +1355,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
          BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
          SimpleRefHolder<BinaryNode> v(new BinaryNode);
          if (!rl) {
-            if (ind < bin->size())
+            if (ind < (int64)bin->size())
                bin->substr(**v, ind, 1);
          }
          else {
@@ -1364,7 +1364,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
             ConstListIterator li(rl);
             while (li.next()) {
                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < bin->size()) {
+               if (ind >= 0 && ind < (int64)bin->size()) {
                   iset.insert(ind);
                   bin->substr(**v, ind, 1);
                }

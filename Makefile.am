@@ -50,6 +50,7 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/SmtpClient.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
+	qlib/TextWrap.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebUtil.qm
 

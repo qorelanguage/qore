@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.13],
+AC_INIT([qore], [0.9.0],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
@@ -146,6 +146,7 @@ case "${host_os}" in
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+		MODULE_LDFLAGS="-no-undefined"
 		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
 		# make sure OS is set to Windows when cross-compiling
@@ -1002,6 +1003,9 @@ find_openssl() {
 
 if test "$mingw" = yes; then
     LIBS="$LIBS -lgdi32 -lz -lpsapi"
+    # if compiling for mingw32, binary modules delivered with qore have to link with libqore
+    MODULE_LDFLAGS="$MODULE_LDFLAGS -L\${top_builddir}/lib -lqore"
+    AC_SUBST(MODULE_LDFLAGS)
 fi
 
 # see if we can figure out where the openssl library is
