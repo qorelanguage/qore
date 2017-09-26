@@ -7,7 +7,7 @@
 %requires linenoise
 %requires qore >= 0.8.13
 %requires WebSocketClient
-%requires json >= 1.5
+%requires yaml >= 0.5
 %requires DebugUtil
 %requires DebugCmdLine
 
@@ -34,7 +34,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         #if (!wsc.isOpen()) throw
         pendingUid = clock_getmicros();
         data.uid = pendingUid;
-        string d = make_json(data);
+        string d = make_yaml(data);
         while (counter.getCount() > 0) {
             counter.dec();
         }
@@ -54,7 +54,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         if (!exists msg)
             return;
         try {
-            any d = parse_json(msg);
+            any d = parse_yaml(msg);
             if (counter.getCount() > 0) {
                 if (d.type == "response" && pendingUid == d.uid) {
                     recData = d;

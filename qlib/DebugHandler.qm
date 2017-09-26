@@ -26,7 +26,7 @@
 %requires qore >= 0.8.13
 %requires WebSocketUtil
 %requires WebSocketHandler
-%requires json >= 1.5
+%requires yaml >= 0.5
 %requires HttpServerUtil >= 0.3.11
 %requires DebugUtil
 %requires DebugProgramControl
@@ -70,7 +70,7 @@ public namespace DebugHandler {
     #! this class represents a connection to a debug server via websocket client
     /** @par Receiving Debug commands from Clients
         The class implements @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()"
-        to handle incomming commands passed as JSON objects to control assigned @ref DebugProgram instance
+        to handle incomming commands passed as YAML objects to control assigned @ref DebugProgram instance
         Such a command is handled on request/response basis.
 
         Unsolicited messages are send to client when an event occurs in program being debugged.
@@ -98,7 +98,7 @@ public namespace DebugHandler {
         */
         gotMessage(string msg) {
             try {
-                any receiveData = parse_json(msg);
+                any receiveData = parse_yaml(msg);
                 *hash sendData = dhandler.debugProgram.processCommand(cx, receiveData);
                 if (exists sendData)
                     dhandler.debugProgram.sendDataImpl(cx, sendData);
@@ -171,11 +171,11 @@ public namespace DebugHandler {
         }
 
         public sendDataImpl(hash cx, any data) {
-            handler.sendOne(cx.id, make_json(data));
+            handler.sendOne(cx.id, make_yaml(data));
         }
 
         public broadcastDataImpl(any data) {
-             handler.sendAll(make_json(data));
+             handler.sendAll(make_yaml(data));
         }
 
         public WebSocketHandler getHandler() {
@@ -183,7 +183,7 @@ public namespace DebugHandler {
         }
 
         public *string getContentType() {
-            return MimeTypeJsonRpc;
+            return MimeTypeYamlRpc;
         }
     }
 
