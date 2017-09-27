@@ -455,7 +455,7 @@ public namespace DebugProgramControl {
                 if (exists result) {
                     sendData.type = 'response';
                 }
-            } catch (hash<ExceptionSink> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 logger.log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
@@ -628,7 +628,7 @@ public namespace DebugProgramControl {
                 sendData1.localvars6 = keys get_local_vars(6);
                 sendData1.localvars7 = keys get_local_vars(7);
                 sendData1.dpgmid = ProgramControl::getProgram().getProgramId();
-            } catch (hash<ExceptionSink> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 #printf("Exception: %y\n", ex);
             }
 */
@@ -649,7 +649,7 @@ public namespace DebugProgramControl {
             }
             try {
                 broadcastDataImpl(sendData1);
-            } catch (hash<ExceptionSink> ex) {
+            } catch (hash<ExceptionInfo> ex) {
             }
 
             hash ctxCT;
@@ -788,7 +788,7 @@ public namespace DebugProgramControl {
                             sd.type = 'response';
                         }
 
-                    } catch (hash<ExceptionSink> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         sd.type = 'error';
                         result.err = ex.err;
                         result.desc = ex.desc;
@@ -803,7 +803,7 @@ public namespace DebugProgramControl {
                         sd.result = result;
                         try {
                             sendDataImpl(cx, sd);
-                        } catch (hash<ExceptionSink> ex) {
+                        } catch (hash<ExceptionInfo> ex) {
                         }
                     }
                 }
@@ -824,7 +824,7 @@ public namespace DebugProgramControl {
             );
             try {
                 broadcastDataImpl(sd);
-            } catch (hash<ExceptionSink> ex) {
+            } catch (hash<ExceptionInfo> ex) {
             }
         }
 

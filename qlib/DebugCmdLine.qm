@@ -98,7 +98,7 @@ public namespace DebugCmdLine {
 
             try {
                 opt = g.parse2(\dargs);
-            } catch (hash<ExceptionSink> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 stderr.printf("%s: %s\n", ex.err, ex.desc);
                 help(-1);
             }
@@ -207,7 +207,7 @@ public namespace DebugCmdLine {
                             try {
                                 hash data.cmd = 'version';
                                 res.host = dcl.doCommandImpl(data).result;
-                            } catch (hash<ExceptionSink> ex) {
+                            } catch (hash<ExceptionInfo> ex) {
                             }
                             dcl.printData(res);
                         },
@@ -836,7 +836,7 @@ public namespace DebugCmdLine {
                 case NT_CALLREF:
                     try {
                         v = cmd.variants(self, cmd.path, cmd.args);
-                    } catch (hash<ExceptionSink> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                     }
                     break;
                 default:
@@ -878,7 +878,7 @@ public namespace DebugCmdLine {
                         try {
                             auto rc = cmd.cmd.action(self, cmd.path, cmd.args);
                             if (rc) break;
-                        } catch (hash<ExceptionSink> ex) {
+                        } catch (hash<ExceptionInfo> ex) {
                             showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
                         }
                     }
