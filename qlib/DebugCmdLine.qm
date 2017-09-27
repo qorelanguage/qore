@@ -909,10 +909,11 @@ public namespace DebugCmdLine {
                         } catch (hash<ExceptionInfo> ex) {
                             showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
                         }
+                    } else {
+                        printf("Unknown command parameter(s), use <TAB> or \"help <command> <param> ...\" for more info\n", cmd.cmd);
                     }
-#                    printf("%y\n", cmd);
                 } else {
-                    printf("Unknown command\n");
+                    printf("Unknown command, use <TAB> key or \"help\" to get list of commands\n");
                 }
             }
             # Linenoise::history_save('history.txt');
