@@ -581,12 +581,10 @@ public namespace DebugCmdLine {
                                 '*': (
                                     'desc': 'set current thread, arg: threadId',
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'status';
+                                        hash data.cmd = 'program/='+dcl.checkProgramId()+'/list';
                                         *hash sd = dcl.doCommandImpl(data);
                                         if (sd.result) {
-                                            list tids;
-                                            map (push tids, $1.tid), sd.result;
-                                            return tids;
+                                            return DebugCommandLine::enumFilter(sd.result{dcl.checkProgramId()}.threads, pop path);
                                         } else {
                                             return ();
                                         }
