@@ -113,7 +113,7 @@ public namespace DebugUtil {
             }
             @endcode
         **/
-        public split(list<string> args, reference<list> wrp_args, reference<*string> pgm_name, reference<list> pgm_args) {
+        public split(list args, reference<list> wrp_args, reference<*string> pgm_name, reference<list> pgm_args) {
             pgm_name = NOTHING;
             wrp_args = ();
             pgm_args = ();
