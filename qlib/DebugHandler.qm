@@ -52,17 +52,17 @@ module DebugHandler {
 
     @tableofcontents
 
-    @section websockethandlerintro Introduction to the WebSocketHandler Module
+    @section debughandlerintro Introduction to the DebugHandler Module
 
-    The %WebSocketHandler module provides a handler to be used with @ref HttpServer to support server side
-    end for remote debuuger. More websocket clients may connect to websocket server and debug
-    dimultaneously.
+    The %DebugHandler module provides a handler to be used with @ref HttpServer to support server-side
+    %Qore-language debugging.  Multiple websocket clients may connect to the websocket server and debug
+    simultaneously.
 
     @see
     - @ref DebugProgramControl::DebugProgramControl "DebugProgramControl"
 
-    @subsection websockethandler_v0_1 Version 0.1
-    - the initial version of the WebSocketHandler module
+    @subsection debughandler_v0_1 DebugHandler Version 0.1
+    - the initial version of the DebugHandler module
 */
 
 #! the DebugHandler namespace contains all the objects in the DebugHandler module
