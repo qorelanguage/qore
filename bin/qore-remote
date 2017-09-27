@@ -54,7 +54,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         if (!exists msg)
             return;
         try {
-            any d = parse_yaml(msg);
+            auto d = parse_yaml(msg);
             if (counter.getCount() > 0) {
                 if (d.type == "response" && pendingUid == d.uid) {
                     recData = d;
@@ -63,7 +63,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
                 }
             }
             printData(d);
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             wscErr(sprintf("wscEvent: %y", ex));
         }
     }
@@ -119,7 +119,7 @@ class DebugWrapper {
             default:
                 opt.url = "ws://"+opt.url;
             }
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             stderr.printf("%s: %s\n", ex.err, ex.desc);
             help(-1);
         }
@@ -131,11 +131,13 @@ class DebugWrapper {
         if (opt.verbose) {
             logger.verbose = opt.verbose;
         }
-        logger.log(DUV_INFO, "url: %s, verbose: %d\n", opt.url, logger.verbose);
+        logger.log(DUV_INFO, "url: %s, verbose: %d", opt.url, logger.verbose);
         dcl = new DebugCommandLineRemote(opt);
         dcl.logger = logger;
         try {
             dcl.wsc.connect();
+            # unconditional connection message
+            stdout.printf("connected to debug server %y; \"help\" for help\n", opt.url);
             *hash sess = dcl.doCommandImpl(('cmd': 'session'));
             if (sess.result) {
                 string pgmId = sess.result.firstKey();
@@ -147,7 +149,7 @@ class DebugWrapper {
             dcl.runCmdLine();
             dcl.wsc.disconnect();
 
-        } catch (hash e) {
+        } catch (hash<ExceptionInfo> e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
             exit(-1);
         }
@@ -167,7 +169,7 @@ class DebugWrapper {
 
             "\n"
             "Example:\n"
-            "  %s -v -u localhost:1000/debug\n"
+            "  %s -v localhost:1000/debug\n"
             "\n"
             ,
             get_script_name(),

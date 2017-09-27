@@ -264,10 +264,44 @@ public namespace DebugCmdLine {
                                 },
                             ),
                             'list': (
-                                'desc': 'list programs',
+                                '>': (
+                                    'full': (
+                                        'desc': 'verbose program listing',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            hash data.cmd = 'program//list';
+                                            dcl.doCommand(data);
+                                        },
+                                    ),
+                                ),
+                                'desc': 'list programs, [full] for a verbose listing',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program//list';
-                                    dcl.doCommand(data);
+                                    *hash pgm_info = dcl.doCommandImpl(data);
+                                    if (pgm_info.result) {
+                                        # get max name width
+                                        int max = 1;
+                                        foreach hash h in (pgm_info.result.pairIterator()) {
+                                            if (!h.value.scriptName.val()) {
+                                                stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
+                                                delete pgm_info.result{h.key};
+                                                continue;
+                                            }
+                                            int len;
+                                            if (!h.value.scriptName.val())
+                                                len = (pgm_info.result{h.key}.scriptName = sprintf("n/a path %y", h.value.scriptPath)).length();
+                                            else
+                                                len = h.value.scriptName.length();
+                                            if (len > max)
+                                                max = len;
+                                        }
+                                        string fmt = sprintf(" %%4d: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+                                        foreach string id in (sort(keys pgm_info.result, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
+                                            stdout.printf(fmt,
+                                                id, pgm_info.result{id}.scriptName, pgm_info.result{id}.threads.size(), pgm_info.result{id}.debugging, pgm_info.result{id}.debugged);
+                                        }
+                                    }
+                                    else
+                                        stdout.printf("no results returned from server\n\r");
                                 },
                             ),
                             'current': (
@@ -914,6 +948,9 @@ public namespace DebugCmdLine {
                         }
                     }
                     break;
+                case 'error':
+                    outs = sprintf("cmd %y: %s: %s\n", data.cmd, data.result.err, data.result.desc);
+                    break;
                 }
                 if (!exists outs)
                     outs = sprintf("%N", data);
@@ -930,7 +967,7 @@ public namespace DebugCmdLine {
         public int checkProgramId() {
             *softint pgmId = getContextValue('programId');
             if (!exists pgmId) {
-                throw "DEBUG-COMMAND", "Program is not set";
+                throw "DEBUG-COMMAND", "Program is not set (try: \"pgm list\", \"pgm current [id]\")";
             }
             return pgmId;
         }
@@ -938,7 +975,7 @@ public namespace DebugCmdLine {
         public int checkThreadId() {
             *softint threadId = getContextValue('threadId');
             if (!exists threadId) {
-                throw "DEBUG-COMMAND", "Thread context is not set";
+                throw "DEBUG-COMMAND", "Thread context is not set (try: \"thread current [id]\")";
             }
             return threadId;
         }

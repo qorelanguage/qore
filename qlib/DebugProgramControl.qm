@@ -160,7 +160,7 @@ public namespace DebugProgramControl {
         public *hash processCommand(hash cx, hash receiveData) {
             logger.log(DUV_INFO, "processCommand: %y", receiveData);
             hash sendData;
-            any result;
+            auto result;
             try {
                 list cmd = receiveData.cmd.split('/');
                 logger.log(DUV_DEBUG, "command: %y", cmd);
@@ -262,7 +262,7 @@ public namespace DebugProgramControl {
 
                         case 'get':
                             bool existF;
-                            any v = serialize(pgmb.getGlobalVariable(varName, \existF));
+                            auto v = serialize(pgmb.getGlobalVariable(varName, \existF));
                             if (existF) {
                                 result = v;
                             }
@@ -287,7 +287,7 @@ public namespace DebugProgramControl {
                                 result = pgmb.getDefine(defName);
                             }
                             bool existF;
-                            any v = pgmb.getGlobalVariable(defName, \existF);
+                            auto v = pgmb.getGlobalVariable(defName, \existF);
                             if (existF) {
                                 result = v;
                             }
@@ -472,7 +472,7 @@ public namespace DebugProgramControl {
             }
         }
 
-        private any resolveValue(string name, *string val, hash strings, any defVal) {
+        private auto resolveValue(string name, *string val, hash strings, auto defVal) {
             if (exists val) {
                 if (!exists strings{val}) {
                     throw "DEBUG-HANDLER-ERROR", sprintf("%y value %y is not found in %y", name, val, keys strings);
@@ -483,7 +483,7 @@ public namespace DebugProgramControl {
             }
         }
 
-        private string encodeValue(string name, any val, hash strings) {
+        private string encodeValue(string name, auto val, hash strings) {
             foreach string k in (keys strings) {
                 if (strings{k} == val) {
                     return k;
@@ -506,8 +506,8 @@ public namespace DebugProgramControl {
         }
 
         # make_json does not support object code etc. so we need somehow process values
-        private hash serialize(any val) {
-            any v;
+        private hash serialize(auto val) {
+            auto v;
             switch (val.typeCode()) {
             case NT_NOTHING:
             case NT_NULL:
@@ -523,7 +523,7 @@ public namespace DebugProgramControl {
                 break;
             case NT_LIST:
                 v = ();
-                foreach any i in (val) {
+                foreach auto i in (val) {
                     push v, serialize(i);
                 }
                 break;
@@ -561,7 +561,7 @@ public namespace DebugProgramControl {
             }
             return vals;
         }
-        private any unserialize(any sv) {
+        private auto unserialize(auto sv) {
             if (sv.typeCode() == NT_HASH) {
                 switch (TypeNameMap{sv.type}) {
                 case NT_NOTHING:
@@ -570,7 +570,7 @@ public namespace DebugProgramControl {
                     return NULL;
                 case NT_LIST:
                     list ret;
-                    foreach any i in (sv.value) {
+                    foreach auto i in (sv.value) {
                         push ret, unserialize(i);
                     }
                     return ret;
@@ -665,9 +665,9 @@ public namespace DebugProgramControl {
             # wait to process command passed as marshalled call from websocket thread
             bool ret = False;
             while (!ret) {
-                any qrd = ctx.queue.get();
+                auto qrd = ctx.queue.get();
                 {
-                    any result;
+                    auto result;
                     hash sd;
                     hash cx;
                     hash rd;
