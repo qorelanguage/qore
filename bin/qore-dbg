@@ -140,7 +140,7 @@ class DebugWrapper {
 
     private help(int exCode=1) {
         printf("usage: %s [options] <program> [<program params> ...]\n"
-            "  where <file> is program being debugged, use \"--\" to get code from stdin\n"
+            "  where <program> is the program to debug, use \"--\" to get code from stdin\n"
             "  -v     verbose\n"
             "  -h     help\n"
             #"  -c, --charset=arg            sets default character set encoding\n"

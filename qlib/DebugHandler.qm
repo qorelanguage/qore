@@ -73,8 +73,8 @@ public namespace DebugHandler {
         to handle incomming commands passed as YAML objects to control assigned @ref DebugProgram instance
         Such a command is handled on request/response basis.
 
-        Unsolicited messages are send to client when an event occurs in program being debugged.
-
+        Unsolicited messages are sent to client asynchronously when an event occurs in the
+        program being debugged.
     */
     public class WebSocketDebugConnection inherits WebSocketHandler::WebSocketConnection {
         public {
@@ -151,6 +151,37 @@ public namespace DebugHandler {
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
         WebSocketHandler::WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
             return new WebSocketDebugConnection(self, cx);
+        }
+
+        #! called by the HTTP server to handle incoming HTTP requests
+        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False"
+
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parseURL())
+            - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
+            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
+            - \c user: the current RBAC username (if any)
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+            - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+            @param b message body, if any
+
+            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
+            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+            - \c "body": the message body to return in the response
+            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response; this class returns the %Qore websocket debug protocol version in the header \c "QoreDebugWsProtocol"
+
+            Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
+         */
+        hash handleRequest(hash cx, hash hdr, *data b) {
+            hash rv = WebSocketHandler::handleRequest(cx, hdr, b);
+            rv.hdr{QoreDebugWsProtocolHeader} = QoreDebugProtocolVersion;
+            return rv;
         }
 
         logInfo(string fmt) {

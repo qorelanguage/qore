@@ -66,10 +66,10 @@ public namespace DebugCmdLine {
                 'verbose': 'v,verbose',
                 'listen': 'l,listen=s@',
             );
-            wrapper-prog -v -l xxx xxx -v -l    # the second xxx is target program name
-            wrapper-prog -v -h xxx xxx          # the first xxx is target program name
-            wrapper-prog -v --listen=xxx xxx    # the second xxx is target program name
-            wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
+            wrapper-prog -v -l xxx trg -v -l    # trg is the target program name
+            wrapper-prog -v -h trg xxx          # trg is the target program name
+            wrapper-prog -v --listen=xxx trg    # trg is the target program name
+            wrapper-prog -v --listen xxx trg    # trg is the target program name
         **/
     public class WrapperGetOpt inherits GetOpt {
         #! create the object with the given @ref Qore::GetOpt "GetOpt" option hash
@@ -80,7 +80,7 @@ public namespace DebugCmdLine {
         /**
             @param args @ref list of arguments passed to wrapper, typically ARGV
             @param wrp_args returns list of wrapper arguments
-            @param pgm_name returns target program filename; "" is considered a special file name (meaning \c stdin), NOTHING when no name provided
+            @param pgm_name returns the target program filename; "" is considered a special file name (meaning \c stdin), NOTHING when no name provided
             @param pgm_args return @ref list of target program arguments
 
             @par Example:
@@ -177,13 +177,28 @@ public namespace DebugCmdLine {
                             },
                             'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 shift path; # remove help arg
-                                *hash cmd = dcl.findCmd(path + args, True);
-                                if (cmd.cmd) {
-                                    printf("%s: %s\n", (path+args).join(' '), cmd.cmd.desc);
+                                int last_param;
+                                # get full path list
+                                list fl = path + args;
+                                *hash cmd = dcl.findCmd(fl, True, \last_param);
+                                # see if we have an unknown command or option
+                                if (last_param < fl.size()) {
+                                    if (!last_param)
+                                        printf("%s: unknown command; try \"help\"\n", fl[0]);
+                                    else {
+                                        string ctxt = fl[0..(last_param - 1)].join(' ');
+                                        printf("%s: unknown argument %y; try \"help %s\"\n", ctxt, fl[last_param], ctxt);
+                                    }
+                                    return;
                                 }
-                                cmd = dcl.findCmd(path + args + (''), True);
+                                string full_cmd = fl[0..(last_param - 1)].join(" ");
+                                #printf("fl: %y lp: %y full_cmd: %N\n", fl, last_param, full_cmd);
+                                if (cmd.cmd) {
+                                    printf("%s: %s\n", full_cmd, cmd.cmd.desc);
+                                }
+                                cmd = dcl.findCmd(fl + '', True);
                                 if (cmd.variants.typeCode()==NT_HASH) {
-                                    printf("\nSubcommand list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                                    printf("\nSubcommand list: %s\n", (foldl $1 + ", " + $2, sort(keys cmd.variants ?? ())));
                                 }
                             },
                         ),
@@ -318,7 +333,11 @@ public namespace DebugCmdLine {
                                 ),
                                 'desc': 'get current program',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    dcl.printData(dcl.getContextValue('programId'));
+                                    auto v = dcl.getContextValue('programId');
+                                    if (!exists v)
+                                        stdout.printf("no current program set\n");
+                                    else
+                                        dcl.printData(v);
                                 },
                             ),
                             'add': (
@@ -595,7 +614,11 @@ public namespace DebugCmdLine {
                                 ),
                                 'desc': 'get current thread',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    dcl.printData(dcl.getContextValue('threadId'));
+                                    auto v = dcl.getContextValue('threadId');
+                                    if (!exists v)
+                                        stdout.printf("no current thread set (\"pgm info\" to list threads)\n");
+                                    else
+                                        dcl.printData(v);
                                 },
                             ),
                             'local': (
@@ -861,7 +884,6 @@ public namespace DebugCmdLine {
                 }
             }
             *hash cmd = findCmd(args);
-
             if (cmd.variants) {
                 *list v;
                 switch (cmd.variants.typeCode()) {

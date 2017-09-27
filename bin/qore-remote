@@ -14,25 +14,28 @@
 %exec-class DebugWrapper
 
 class DebugCommandLineRemote inherits DebugCommandLine {
-    const WSC_TIMEOUT = 500;
+    const WSC_TIMEOUT = 1500ms;
     public {
         Counter counter();
         int pendingUid;
         any recData;
         WebSocketClient wsc;
-        int wscTimeout;
+        timeout wscTimeout;
 		bool connecting;
 		string serverSignature;
+        string url;
     }
+
     constructor (hash opts): DebugCommandLine() {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
         opts.log = \wscLog();
         opts.errlog = \wscErr();
         opts.debuglog = \wscDebug();
+        url = opts.url;
         wsc = new WebSocketClient(\wscEvent(), opts);
     }
-    public *hash doCommandImpl(hash data) {
 
+    public *hash doCommandImpl(hash data) {
         #if (!wsc.isOpen()) throw
         pendingUid = clock_getmicros();
         data.uid = pendingUid;
@@ -50,16 +53,22 @@ class DebugCommandLineRemote inherits DebugCommandLine {
             return recData;
         }
     }
+
 	public nothing connect() {
 		connecting = True;
         counter.inc();
-		wsc.connect();
+		hash hh = wsc.connect();
+        *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
+        if (!prot_ver.val())
+            throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
+        if (prot_ver != QoreDebugProtocolVersion)
+            throw "QORE-DEBUG", sprintf("Qore debug server at %y claims unsupported protocol version %y; expecting %y", url, prot_ver, QoreDebugProtocolVersion);
         if (counter.waitForZero(wscTimeout)) {
             throw "QORE-DEBUG", "No response from debug server";
         } else {
             serverSignature = recData.result;
             if (serverSignature !~ /^Qore\/DebugServer\/DebugProgramControl:/ ) {
-                throw "QORE-DEBUG", "Wrong debug server signature";
+                throw "QORE-DEBUG", sprintf("Invalid debug server signature: %y", serverSignature);
             }
         }
 	}

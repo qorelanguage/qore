@@ -52,7 +52,6 @@ module DebugUtil {
 
 #! the DebugUtil namespace contains all the definitions in the DebugUtil module
 public namespace DebugUtil {
-
     #! class supporting argument parsing for executing programs to debug
     /**
         When implementing a wrapper that executes a program whose name is passed on the command line, we can divide
@@ -139,9 +138,19 @@ public namespace DebugUtil {
         }
     }
 
+    #! The HTTP header string for the %Qore debug protocol version
+    public const QoreDebugWsProtocolHeader = "QoreDebugWsProtocol";
+
+    #! The debug protocol version implemented
+    public const QoreDebugProtocolVersion = "0.1";
+
+    #! logging constant: no logging
     public const DUV_NONE = 0;
+    #! logging constant: info messages
     public const DUV_INFO = 1;
+    #! logging constant: debug messages
     public const DUV_DEBUG = 2;
+    #! logging constant: detailed debug messages
     public const DUV_DEBUG_1 = 3;
 
     #! class that can be used for logging
