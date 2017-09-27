@@ -112,6 +112,11 @@ public namespace DebugHandler {
         connectionClosed() {
             dhandler.debugProgram.unregisterConnection(cx);
         }
+        #! send welcome message to identify itself
+        registered() {
+            dhandler.debugProgram.connectionRegistered(cx);
+        }
+
     }
 
     #! the main web socket debug handler class

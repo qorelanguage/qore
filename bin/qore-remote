@@ -21,6 +21,8 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         any recData;
         WebSocketClient wsc;
         int wscTimeout;
+		bool connecting;
+		string serverSignature;
     }
     constructor (hash opts): DebugCommandLine() {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
@@ -48,6 +50,19 @@ class DebugCommandLineRemote inherits DebugCommandLine {
             return recData;
         }
     }
+	public nothing connect() {
+		connecting = True;
+        counter.inc();
+		wsc.connect();
+        if (counter.waitForZero(wscTimeout)) {
+            throw "QORE-DEBUG", "No response from debug server";
+        } else {
+            serverSignature = recData.result;
+            if (serverSignature !~ /^Qore\/DebugServer\/DebugProgramControl:/ ) {
+                throw "QORE-DEBUG", "Wrong debug server signature";
+            }
+        }
+	}
 
     public wscEvent(*data msg) {
         logger.log(DUV_DEBUG, "received: %y", msg);
@@ -56,11 +71,13 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         try {
             auto d = parse_yaml(msg);
             if (counter.getCount() > 0) {
-                if (d.type == "response" && pendingUid == d.uid) {
+                if ((d.type == "response" && pendingUid == d.uid && !connecting) ||
+				    (d.type == "event" && d.cmd == "welcome" && connecting) ) {
                     recData = d;
                     counter.dec();
+					connecting = False;
                     return;
-                }
+				}
             }
             printData(d);
         } catch (hash<ExceptionInfo> ex) {
@@ -135,9 +152,9 @@ class DebugWrapper {
         dcl = new DebugCommandLineRemote(opt);
         dcl.logger = logger;
         try {
-            dcl.wsc.connect();
+            dcl.connect();
             # unconditional connection message
-            stdout.printf("connected to debug server %y; \"help\" for help\n", opt.url);
+            stdout.printf("connected to debug server %y (%y); \"help\" for help\n", opt.url, dcl.serverSignature);
             *hash sess = dcl.doCommandImpl(('cmd': 'session'));
             if (sess.result) {
                 string pgmId = sess.result.firstKey();

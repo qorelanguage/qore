@@ -81,6 +81,19 @@ public namespace DebugProgramControl {
             rwlConnection.writeLock();
             on_exit rwlConnection.writeUnlock();
             ctxConnection{cx.id} = ();
+            # Note: we cannot sendDataImpl/broadcaseDataImpl as cx.id not registered in WebSocketHandler
+        }
+
+        #! send welcome message
+        public connectionRegistered(hash cx) {
+            hash sd.type = 'event';
+            sd.stamp = now_us();
+            sd.cmd = 'welcome';
+            sd.result = sprintf("Qore/DebugServer/DebugProgramControl:%s", "0.1"); # TODO: how to get value from module header
+            try {
+                sendDataImpl(cx, sd);
+            } catch (hash<ExceptionInfo> ex) {
+            }
         }
 
         #! unregister a connection context
