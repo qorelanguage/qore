@@ -54,7 +54,7 @@ class DebugWrapper {
 
         try {
             opt = g.parse2(\dargs);
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             stderr.printf("%s: %s\n", ex.err, ex.desc);
             help(-1);
         }
@@ -95,16 +95,15 @@ class DebugWrapper {
             }
             # background or http server uses own thread, loop
 
-        } catch (hash e) {
+        } catch (hash<ExceptionInfo> e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
             exit(-1);
         }
-
     }
 
 
     public httplog(fmt) {
-        logger.log(DUV_INFO, vprintf(fmt, argv));
+        logger.log(DUV_INFO, vsprintf(fmt, argv));
     }
 
     public httperr(fmt) {

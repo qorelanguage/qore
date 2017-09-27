@@ -154,15 +154,15 @@ public namespace DebugHandler {
         }
 
         logInfo(string fmt) {
-            logger.log(DUV_INFO, vprintf(fmt, argv));
+            logger.log(DUV_INFO, vsprintf(fmt, argv));
         }
 
         logDebug(string fmt) {
-            logger.log(DUV_DEBUG, vprintf(fmt, argv));
+            logger.log(DUV_DEBUG, vsprintf(fmt, argv));
         }
 
         logError(string fmt) {
-            stderr.vprintf(fmt+"\n", argv);
+            stderr.vsprintf(fmt+"\n", argv);
         }
     }
 

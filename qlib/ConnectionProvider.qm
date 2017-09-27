@@ -757,15 +757,17 @@ string connstr = get_connection(str);
 namespace Priv {
     *hash sub priv_try_get_connections(string mod) {
         Program p();
-        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s)", mod));
         p.loadModule(mod);
+        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s)", mod));
         return p.callFunction("get_mod_connections");
     }
 
     ConnectionProvider::AbstractConnection sub priv_try_get_connection(string mod, string conn) {
         Program p();
-        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s,%s)", mod, conn));
         p.loadModule(mod);
+        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s,%s)", mod, conn));
         return p.callFunction("get_mod_connection", conn);
     }
 }

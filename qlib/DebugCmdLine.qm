@@ -109,10 +109,10 @@ public namespace DebugCmdLine {
             }
             @endcode
         **/
-        public split(*list<string> args, reference<list> wrp_args, reference<*string> pgm_name, reference<list> pgm_args) {
+        public split(list<string> args, reference<list<string>> wrp_args, reference<*string> pgm_name, reference<list<string>> pgm_args) {
             pgm_name = NOTHING;
-            wrp_args = ();
-            pgm_args = ();
+            wrp_args = new list<string>();
+            pgm_args = new list<string>();
             while (args) {
                 string s = shift args;
                 push wrp_args, s;
@@ -278,7 +278,7 @@ public namespace DebugCmdLine {
                                         int max = 1;
                                         foreach hash h in (pgm_info.result.pairIterator()) {
                                             if (!h.value.scriptName.val()) {
-                                                stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
+                                                #stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
                                                 delete pgm_info.result{h.key};
                                                 continue;
                                             }
@@ -794,10 +794,11 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public *hash findCmd(list args, bool findHelp = False) {  /* public because it is needed from closure */
+        public *hash findCmd(list args, bool findHelp = False, *reference<int> last_param) {  /* public because it is needed from closure */
             hash result;
             result.path = ();
             hash c = commands;
+            last_param = 0;
             while (args.size() > 0) {
                 if (findHelp && exists c."*") {
                     # skip
@@ -816,9 +817,11 @@ public namespace DebugCmdLine {
                         c = c.">"{args[0]};
                         result.cmd = c;
                         push result.path, shift args;
+                        ++last_param;
                     } else {
                         if (exists result.variants) {
                             push result.path, shift args;
+                            ++last_param;
                         }
                         break;
                     }
@@ -829,6 +832,7 @@ public namespace DebugCmdLine {
                         result.variants = c.enum;
                     }
                     push result.path, shift args;
+                    ++last_param;
                     result.cmd = c;
                 } else if (exists c."**") {
                     c = c."**";
@@ -836,6 +840,7 @@ public namespace DebugCmdLine {
                         result.variants = c.enum;
                     }
                     push result.path, shift args;
+                    ++last_param;
                     result.cmd = c;
                     break;
                 } else
@@ -897,7 +902,9 @@ public namespace DebugCmdLine {
                 } else {
                     line = lastLine;
                 }
-                *hash cmd = findCmd(splitCmd(line));
+                int last_param;
+                list args = splitCmd(line);
+                *hash cmd = findCmd(args, NOTHING, \last_param);
                 if (cmd.cmd) {
 #                    printf("line:%y\n", line);
 
@@ -910,10 +917,10 @@ public namespace DebugCmdLine {
                             showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
                         }
                     } else {
-                        printf("Unknown command parameter(s), use <TAB> or \"help <command> <param> ...\" for more info\n", cmd.cmd);
+                        printf("%y: Unknown parameter %y, use <TAB> or \"help %s\" for more info\n", args[0], args[last_param], (foldl $1 + " " + $2, (map $1, args, $# < last_param)));
                     }
                 } else {
-                    printf("Unknown command, use <TAB> key or \"help\" to get list of commands\n");
+                    printf("%y: Unknown command, use <TAB> key or \"help\" to get list of commands\n", args[0]);
                 }
             }
             # Linenoise::history_save('history.txt');

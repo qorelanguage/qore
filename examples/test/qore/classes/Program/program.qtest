@@ -9,7 +9,7 @@
 # to test ProgramControl::getProgram
 %allow-debugger
 
-%requires QUnit
+%requires ../../../../../qlib/QUnit.qm
 %exec-class ProgramTest
 
 int sub t(any a) {
@@ -676,12 +676,12 @@ class ProgramTest inherits QUnit::Test {
         testCV("NS", "TestNS", "funcTest", "NS::TestNS::funcTest");
 
         try {
-            list val;
             /*
+            list val;
             # TODO::constructor, destructor does not work
             val = p.findFunctionVariants("Test::constructor");
             assertEq(2, val.size(), "findFunctionVariants(Test::constructor)");
-            testVS("Test::constructor", val); 
+            testVS("Test::constructor", val);
             val = p.findFunctionVariants("Test::destructor");
             assertEq(1, val.size(), "findFunctionVariants(Test::destructor)");
             testVS("Test::destructor", val);

@@ -756,7 +756,11 @@ protected:
          return false;
 
       for (unsigned i = 0; i < t->return_vec.size(); ++i) {
-         if (t->return_vec[i].spec != return_vec[i].spec)
+         bool may_not_match = false;
+         bool may_need_filter = false;
+         if (!return_vec[i].spec.match(t->return_vec[i].spec, may_not_match, may_need_filter))
+            return false;
+         if (may_not_match)
             return false;
       }
 

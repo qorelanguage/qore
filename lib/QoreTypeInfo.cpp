@@ -640,7 +640,9 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_COMPLEXREF: {
                //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
-               if (QoreTypeInfo::equal(u.ti, t.u.ti))
+               // the passed argument's type must be a superset or equal to the reference type's subtype
+               // that is; if the types are different, the reference type's subtype must be more restrictive than the passed type's
+               if (QoreTypeInfo::equal(t.u.ti, u.ti))
                   return QTI_IDENT;
                return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
             }
