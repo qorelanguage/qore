@@ -114,7 +114,7 @@ public namespace DebugProgramControl {
 
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
-            logger.log(DUV_DEBUG, "create program: %y", fileName);
+            logger.log(DUV_DEBUG_1, "create program: %y", fileName);
             Program pgm = new Program(PO_DEFAULT);
             # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
             # note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
@@ -147,21 +147,21 @@ public namespace DebugProgramControl {
             # update arguments without debug options
             pgm.setGlobalVarValue('ARGV', args);
             pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
-            logger.log(DUV_DEBUG, "add program");
+            logger.log(DUV_DEBUG_1, "add program");
             addProgram(pgm.getProgram());
 
             if ((script ?? '') == '') {
                 if (fileName == '/dev/stdin') {  # is exception needed ??
-                    logger.log(DUV_DEBUG, "read stdin");
+                    logger.log(DUV_DEBUG_1, "read stdin");
                     script = stdin.read(-1, 0);
-                    logger.log(DUV_DEBUG, "%s", script);
+                    logger.log(DUV_DEBUG_1, "%s", script);
                 } else {
-                    logger.log(DUV_DEBUG, "read file: %y", fileName);
+                    logger.log(DUV_DEBUG_1, "read file: %y", fileName);
                     script = ReadOnlyFile::readTextFile(fileName);
                 }
             }
             pgm.setScriptPath(fileName);
-            logger.log(DUV_DEBUG, "parse code");
+            logger.log(DUV_DEBUG_1, "parse code");
             *hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
             if (wh) {
                 logger.log(DUV_INFO, "warning: %N", wh);
@@ -171,12 +171,12 @@ public namespace DebugProgramControl {
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
-            logger.log(DUV_INFO, "processCommand: %y", receiveData);
+            logger.log(DUV_DEBUG_1, "processCommand: %y", receiveData);
             hash sendData;
             auto result;
             try {
                 list cmd = receiveData.cmd.split('/');
-                logger.log(DUV_DEBUG, "command: %y", cmd);
+                logger.log(DUV_DEBUG_1, "command: %y", cmd);
 
                 switch (shift cmd) {
                 case 'help':

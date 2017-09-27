@@ -135,10 +135,6 @@ public namespace DebugCmdLine {
         }
     }
 
-    public const DUV_NONE = 0;
-    public const DUV_INFO = 1;
-    public const DUV_DEBUG = 2;
-
     #! class that can be used for logging
     public class DebugLogger {
         public {

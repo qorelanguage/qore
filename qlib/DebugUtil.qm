@@ -142,6 +142,7 @@ public namespace DebugUtil {
     public const DUV_NONE = 0;
     public const DUV_INFO = 1;
     public const DUV_DEBUG = 2;
+    public const DUV_DEBUG_1 = 3;
 
     #! class that can be used for logging
     public class DebugLogger {
