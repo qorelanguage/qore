@@ -118,9 +118,9 @@ public:
    DLLLOCAL int pop() {
       int rc = stack[stack.size() - 1];
       if (stack.size() > 1)
-	 stack.pop_back();
+         stack.pop_back();
       else
-	 stack[0] = 0;
+         stack[0] = 0;
       return rc;
    }
    DLLLOCAL int get() {
@@ -138,7 +138,7 @@ public:
    }
    DLLLOCAL void inc_numeric() {
       if (in)
-	 return;
+         return;
       inc();
    }
    DLLLOCAL void inc() {
@@ -922,10 +922,8 @@ int saveframe = frame;
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
-      // ch can be nullptr in the initial Program context
-      if (!ch)
-          return nullptr;
       // get previous Program before changing context
+      // ch can be nullptr in the initial Program context
       if (!ch) {
          printd(5, "get_var_frame() ch is null\n");
          return nullptr;
