@@ -482,7 +482,7 @@ const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
 */
 const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
 
-//! Disallows debugging actions that could be insecure such as reading the thread local variable stack
+//! Forbids debugging of the current @ref Qore::Program "Program" object; when this option is set, debuggers cannot attach to the @ref Qore::Program "Program" object
 /** @see @ref no-debugging "%no-debugging"
 
     @since %Qore 0.8.13
@@ -506,7 +506,7 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_SYSTEM_HASHDECLS;
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
 
-//! Allows the use of the debugger related stuff mainly via @ref DebugProgram
+//! Allows the use of functionality required to implement a debugger, mainly via @ref Qore::DebugProgram "DebugProgram"
 /**
     @since %Qore 0.8.13
  */
