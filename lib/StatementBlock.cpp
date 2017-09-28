@@ -269,9 +269,6 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
                   xsink->assimilate(obe_xsink);
                   if (!error)
                      error = true;
-                  if (!error) {
-                     error = true;
-                  }
                }
             }
          }
