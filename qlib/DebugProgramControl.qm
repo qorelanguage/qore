@@ -233,7 +233,7 @@ public namespace DebugProgramControl {
                                 result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
                                 break;
                             case -2:
-                                result = "ERROR: operation failed; Program not added as a debug target";
+                                result = "ERROR: operation failed; target Program has not yet been added as a debug target; add the program first and try again";
                                 break;
                         }
                         break;
@@ -250,7 +250,7 @@ public namespace DebugProgramControl {
                                     result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
                                     break;
                                 case -2:
-                                    result = "ERROR: operation failed; Program not added as a debug target";
+                                    result = "ERROR: operation failed; target Program has not yet been added as a debug target; add the program first and try again";
                                     break;
                                 case -3:
                                     result = sprintf("ERROR: operation failed; TID %d not active in target Program", tid);

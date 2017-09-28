@@ -195,9 +195,9 @@ set(QORE_BIN_FILES
     bin/schema-reverse
     bin/sfrest
     bin/sqlutil
-	bin/qdb
-	bin/qdb-server
-	bin/qdb-remote
+	bin/qdbg
+	bin/qdbg-server
+	bin/qdbg-remote
 )
 
 set(QORE_DOX_TMPL_SRC
