@@ -143,6 +143,7 @@ public namespace WebUtil {
         constructor(int po = DefaultProgramOptions) {
             # create Program
             p = new Program(po);
+            p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
             # ensure old style for embedded Programs
             if (!(po & PO_ALLOW_BARE_REFS))
                 p.disableParseOptions(PO_ALLOW_BARE_REFS);
@@ -364,6 +365,7 @@ hash h = qft.render(ctx);
             if (mtime) {
                 delete p;
                 p = new Program(po);
+                p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
                 # ensure old style for embedded Programs
                 if (!(po & PO_ALLOW_BARE_REFS))
                     p.disableParseOptions(PO_ALLOW_BARE_REFS);

@@ -1,0 +1,373 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_ProgramControl.qpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/QC_ProgramControl.h"
+#include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/qore_date_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+
+//! statement information hash as returned by @ref Qore::ProgramBase::getStatementIdInfo() "ProgramBase::getStatementIdInfo()"
+/**
+  In case of one code object in one file, then @ref file is the set, @ref source is nullptr, @ref offset is 0,
+  and the line number is taken directly from @ref start_line and @ref end_line.
+
+  In case of multiple code objects in one file, then all members are assigned values, in such cases
+  @ref start_line and @ref end_line refer to the line number within the code object, and the line
+  number in the file is calculated by adding with @ref offset, giving the line number offset within source.
+
+  @since %Qore 0.8.13
+*/
+hashdecl StatementInfo {
+    //! refers to the label given when parsing the code
+    string file;
+    //! refers to the actual file name or path of the source code (if the label does not provide this info)
+    string source;
+    //! the offset of the code in source
+    int offset;
+    //! statement start line
+    int start_line;
+    //! statement end line
+    int end_line;
+}
+
+//! ProgramBase object provides safe information about a Qore program
+/** The object is never instantiated in script but returned by a API function.
+    The class provides only safe data non breaking security model.
+
+    @see
+        @ref Qore::Program "Program"
+
+    @since %Qore 0.8.13
+ */
+qclass ProgramControl [arg=QoreProgram* p; dom=DEBUGGER];
+
+//! Throws an exception to prevent objects of this class being created from script
+/**
+    @throw PROGRAM-CREATE-ERROR copying ProgramBase objects is currently unsupported
+ */
+ProgramControl::constructor() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "creating ProgramControl objects is currently unsupported");
+}
+
+//! Throws an exception to prevent objects of this class from being copied
+/**
+    @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
+ */
+ProgramControl::copy() {
+   xsink->raiseException("PROGRAM-COPY-ERROR", "copying ProgramControl objects is currently unsupported");
+}
+
+//! Dereferences the internal Program object and deletes the %Qore object
+/**
+ */
+ProgramControl::destructor() {
+   printd(5, "ProgramControl::constructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+   p->unregisterQoreObject(self, xsink);
+   // the underlying object is created from C++ then it has reference and cannot be terminated
+   p->deref(xsink);
+}
+
+//! Returns the current binary-or'ed parse option mask for the Program object
+/** see Qore::Program::getParseOptions "Program::getParseOptions"
+ */
+int ProgramControl::getParseOptions() {
+   return p->getParseOptions64();
+}
+
+//! Returns the current script directory as a string or @ref nothing if not set
+/** see Qore::Program::getScriptDir "Program::getScriptDir"
+ */
+*string ProgramControl::getScriptDir() {
+   return p->getScriptDir();
+}
+
+//! Returns the current script name as a string or @ref nothing if not set
+/** see Qore::Program::getScriptPath "Program::getScriptPath"
+ */
+*string ProgramControl::getScriptName() {
+   return p->getScriptName();
+}
+
+//! Returns the current script directory and filename if known, otherwise returns @ref nothing
+/** see Qore::Program::getScriptPath "Program::getScriptPath"
+ */
+*string ProgramControl::getScriptPath() {
+   return p->getScriptPath();
+}
+
+//! Returns the default local time zone for the object
+/** see Qore::Program::getTimeZone "Program::getTimeZone"
+ */
+TimeZone ProgramControl::getTimeZone() {
+   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
+}
+
+//! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
+/** see Qore::Program::isDefined "Program::isDefined"
+ */
+bool ProgramControl::isDefined(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
+}
+
+//! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
+/** see Qore::Program::getDefine "Program::getDefine"
+ */
+auto ProgramControl::getDefine(string def) {
+   TempEncodingHelper t(def, QCS_DEFAULT, xsink);
+   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+}
+
+//! Retrieves all @ref conditional_parsing "parse defines" in the current Program
+/** see Qore::Program::getAllDefines "Program::getAllDefines"
+ */
+*hash ProgramControl::getAllDefines() {
+   return qore_program_private::runTimeGetAllDefines(p);
+}
+
+//! Get program id
+/** see Qore::Program::getProgramId "Program::getProgramId"
+ */
+int ProgramControl::getProgramId() [flags=RET_VALUE_ONLY;] {
+   return p->getProgramId();
+}
+
+//! Get instance of program id
+/**
+   @see
+      @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId"
+
+   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramBase "ProgramBase" instance
+
+ */
+static ProgramControl ProgramControl::resolveProgramId(int programId) [dom=DEBUGGER] {
+   QoreProgram* pgm = QoreProgram::resolveProgramId(programId);
+   if (!pgm) {
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find program for programId (%d)", programId);
+   }
+   return QoreProgram::getQoreObject(pgm);
+}
+
+//! Get control for instance of current program
+/**
+ */
+static ProgramControl ProgramControl::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   QoreProgram* pgm = getProgram();
+   return QoreProgram::getQoreObject(pgm);
+}
+
+//! Get instance of all programs.
+/**
+   Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId" to get instance
+ */
+static list ProgramControl::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   return QoreProgram::getAllQoreObjects(xsink);
+}
+
+//! returns a list of thread IDs active in this Program
+/** see Qore::Program::getThreadList "Program::getThreadList"
+*/
+list<int> ProgramControl::getThreadList() [flags=CONSTANT] {
+   return p->getThreadList();
+}
+
+//! Checks if a user function exists in the program object
+/** see Qore::Program::existsFunction "Program::existsFunction"
+ */
+bool ProgramControl::existsFunction(string name) [flags=RET_VALUE_ONLY] {
+   if (!p->checkAllowDebugging(xsink))
+      return false;
+   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+   if (!tmp)
+      return false;
+   return p->existsFunction(tmp->getBuffer());
+}
+
+//! Returns a the value of the global variable identified by the first string argument
+/** see Qore::Program::getGlobalVariable "Program::getGlobalVariable"
+ */
+auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
+   if (!t)
+      return QoreValue();
+
+   bool found;
+   ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
+
+   if (rexists) {
+     QoreTypeSafeReferenceHelper r(rexists, xsink);
+     if (!r)
+       return QoreValue();
+
+     if (r.assign(get_bool_node(found), xsink))
+       return QoreValue();
+   }
+
+   return rv.release();
+}
+
+//! returns a hash of global variables
+/** see Qore::Program::getGlobalVars "Program::getGlobalVars"
+ */
+hash ProgramControl::getGlobalVars() [flags=CONSTANT] {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   return p->getGlobalVars();
+}
+
+//! set the value of a global variable
+/** see Qore::Program::setGlobalVars "Program::setGlobalVars"
+ */
+nothing ProgramControl::setGlobalVarValue(string name, auto value) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
+
+//! Assign @ref Breakpoint instance to @ref Qore::Program "Program". If breakpoint has been assigned to an program then is unassigned in the first step.
+/**
+ */
+nothing ProgramControl::assignBreakpoint(Breakpoint[QoreBreakpoint] bkpt) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   p->assignBreakpoint(bkpt, xsink);
+}
+
+//! delete all breakpoints from instance
+/**
+ */
+nothing ProgramControl::deleteAllBreakpoints() {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   p->deleteAllBreakpoints();
+}
+
+//! get list of breakpoint assigned to program.
+/**
+ */
+list ProgramControl::getBreakpoints() {
+   if (!p->checkAllowDebugging(xsink))
+     return QoreValue();
+   QoreBreakpointList_t bl;
+   p->getBreakpoints(bl);
+   QoreListNode *l = new QoreListNode;
+   for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
+      l->push((*it)->getQoreObject());
+   }
+   return l;
+}
+
+//! get information related to statement id
+/**
+   @return a hash of statement info
+
+   @see
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
+*/
+hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   AbstractStatement* s = p->resolveStatementId(statementId);
+   if (!s) {
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
+   }
+   QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("file", new QoreStringNode(s->loc.file));
+   ph->setKeyValueIntern("source", new QoreStringNode(s->loc.source));
+   ph->setKeyValueIntern("offset", new QoreBigIntNode(s->loc.offset));
+   ph->setKeyValueIntern("start_line", new QoreBigIntNode(s->loc.start_line));
+   ph->setKeyValueIntern("end_line", new QoreBigIntNode(s->loc.end_line));
+   return h;
+}
+
+//! Find statement related to position in file
+/**
+   @param file name where is looking for. Searching is done in three steps, in the first one is looking for full name match, in the second is looking for label full match (if exists) and
+      in the third for end suffix match. File can by empty if program contains only one file. Beware of label formating, see @ref Qore::Program::parse
+   @param line to find statement. In case of multiple statements of line the first one is found
+
+   @see
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
+
+*/
+int ProgramControl::findStatementId(string file, int line) {
+   if (!p->checkAllowDebugging(xsink))
+      return 0;
+   AbstractStatement* s = p->findStatement(file->c_str(), line);
+   if (!s) {
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
+   }
+   return p->getStatementId(s);
+}
+
+//! Find the first statement for function entry point
+/**
+   @param function name
+   @param params param types to resolve particular variant
+
+   @see
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
+
+*/
+int ProgramControl::findFunctionStatementId(string function, *list params) {
+   if (!p->checkAllowDebugging(xsink))
+      return 0;
+   ReferenceHolder<QoreValueList> vl(new QoreValueList(params), xsink);
+   AbstractStatement* s = p->findFunctionStatement(function->c_str(), *vl, xsink);
+   if (!s)
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for function \"%s\"", function->c_str());
+   return p->getStatementId(s);
+}
+
+//! finds all variants of a function or class method and returns a list of the results
+/** @param function the function or class method name; may also be namespace-justified
+
+    @return a list of hashes or nothing if the name cannot be resolved; when matched, each hash element has the following keys:
+    - \c desc: a string description of the call which includes the name and the full text call signature
+    - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
+
+*/
+list ProgramControl::findFunctionVariants(string function) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
+   if (!vl)
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
+   return vl->getOldList();
+}

@@ -163,9 +163,25 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
+StatementBlock::StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+}
+
+StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+}
+
+StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
+   qore_program_private::registerStatement(getProgram(), this);
+   addStatement(s);
+}
+
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
    QoreValue return_value;
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   tlpd->dbgFunctionEnter(this, xsink);
    execImpl(return_value, xsink);
+   tlpd->dbgFunctionExit(this, return_value, xsink);
    return return_value;
 }
 
@@ -179,6 +195,8 @@ void StatementBlock::addStatement(AbstractStatement* s) {
          on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
       loc.end_line = s->loc.end_line;
+      qore_program_private::registerStatement(getProgram(), s);
+      qore_program_private::addStatementToIndex(getProgram(), s);
    }
 }
 
@@ -216,11 +234,25 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
    if (obe)
       pushBlock(on_block_exit_list.end());
 
-   // execute block
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
-         break;
-
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   // to execute even when block is empty, e.g. while(true);
+   rc = tlpd->dbgStep(this, 0, xsink);
+   if (!rc && !*xsink) {
+      // execute block
+      for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+         rc = tlpd->dbgStep(this, *i, xsink);
+         if (rc || *xsink)
+            break;
+         rc = (*i)->exec(return_value, xsink);
+         if (xsink->isEvent()) {
+            tlpd->dbgException(*i, xsink);
+            if (xsink->isEvent()) {
+               break;
+            }
+         }
+         if (rc) break;
+      }
+   }
    // execute "on block exit" code if applicable
    if (obe) {
       ExceptionSink obe_xsink;

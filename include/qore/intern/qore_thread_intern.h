@@ -85,7 +85,10 @@ class qore_class_private;
 class AbstractQoreFunctionVariant;
 class AbstractQoreZoneInfo;
 class ThreadProgramData;
+struct ThreadLocalProgramData;
 class QoreAbstractModule;
+class QoreRWLock;
+
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -304,6 +307,7 @@ DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
 DLLLOCAL void clear_thread_tz();
 
 DLLLOCAL ThreadProgramData* get_thread_program_data();
+DLLLOCAL ThreadLocalProgramData* get_thread_local_program_data();
 
 DLLLOCAL int thread_ref_set(const lvalue_ref* r);
 DLLLOCAL void thread_ref_remove(const lvalue_ref* r);
@@ -956,6 +960,7 @@ public:
       if (ROdereference())
          delete this;
    }
+   DLLLOCAL int gettid();
 };
 
 class ThreadFrameBoundaryHelper {
@@ -970,5 +975,6 @@ public:
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
+DLLLOCAL extern QoreRWLock lck_debug_program;
 
 #endif

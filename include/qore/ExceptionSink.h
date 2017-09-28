@@ -190,6 +190,7 @@ public:
    DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, AbstractQoreNode* arg, AbstractQoreNode* desc);
    DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, AbstractQoreNode* arg, const char* fmt, ...);
    DLLLOCAL QoreException* catchException();
+   DLLLOCAL QoreException* getException();
    DLLLOCAL void overrideLocation(const QoreProgramLocation& loc);
    DLLLOCAL void rethrow(QoreException* old);
 

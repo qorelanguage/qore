@@ -251,6 +251,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/schema-reverse
 /usr/bin/sfrest
 /usr/bin/sqlutil
+/usr/bin/qdbg
+/usr/bin/qdbg-server
+/usr/bin/qdbg-remote
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*

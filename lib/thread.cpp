@@ -83,6 +83,9 @@ DLLLOCAL pthread_mutexattr_t ma_recursive;
 DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 #endif
 
+DLLLOCAL QoreRWLock lck_debug_program;
+
+
 #ifdef QORE_MANAGE_STACK
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
@@ -115,9 +118,9 @@ public:
    DLLLOCAL int pop() {
       int rc = stack[stack.size() - 1];
       if (stack.size() > 1)
-	 stack.pop_back();
+         stack.pop_back();
       else
-	 stack[0] = 0;
+         stack[0] = 0;
       return rc;
    }
    DLLLOCAL int get() {
@@ -135,7 +138,7 @@ public:
    }
    DLLLOCAL void inc_numeric() {
       if (in)
-	 return;
+         return;
       inc();
    }
    DLLLOCAL void inc() {
@@ -482,7 +485,7 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
 void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
       return;
-   //printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
+   printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
    ref();
    td->current_pgm->depRef();
    {
@@ -490,6 +493,7 @@ void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
       assert(pgm_set.find(td->current_pgm) == pgm_set.end());
       pgm_set.insert(td->current_pgm);
    }
+   td->tlpd->dbgPendingAttach();
    if (runtime)
       qore_program_private::doThreadInit(*td->current_pgm, xsink);
 }
@@ -530,6 +534,10 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
       if (!qore_program_private::endThread(pgm, this, xsink))
          deref();
    }
+}
+
+int ThreadProgramData::gettid() {
+   return td->tid;
 }
 
 class ThreadCleanupNode {
@@ -902,7 +910,8 @@ void thread_pop_frame_boundary() {
    td->tlpd->cvstack.popFrameBoundary();
 }
 
-static ThreadLocalProgramData* get_var_frame(int& frame) {
+static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
+int saveframe = frame;
    if (frame < 0)
       return nullptr;
 
@@ -913,17 +922,23 @@ static ThreadLocalProgramData* get_var_frame(int& frame) {
 
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
-      // ch can be nullptr in the initial Program context
-      if (!ch)
-          return nullptr;
       // get previous Program before changing context
-      pgm = ch->getProgram();
-      if (ch->getNextContext(tlpd, ch))
+      // ch can be nullptr in the initial Program context
+      if (!ch) {
+         printd(5, "get_var_frame() ch is null\n");
          return nullptr;
-      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d fc: %d\n", tlpd, ch, frame, tlpd->lvstack.getFrameCount());
+      }
+      pgm = ch->getProgram();
+      if (ch->getNextContext(tlpd, ch)) {
+         printd(5, "get_var_frame() getNextContext() is null\n");
+         return nullptr;
+      }
+      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount());
    }
 
-   if (!(pgm->getParseOptions64() & PO_ALLOW_DEBUGGING))
+   //printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
+   printd(5, "get_var_frame(): tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d, allow-debugging: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount(), pgm->checkAllowDebugging(0));
+   if (!pgm->checkAllowDebugging(xsink))
       return nullptr;
 
    //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d pgm: %p fc: %d\n", tlpd, ch, frame, pgm, tlpd->lvstack.getFrameCount());
@@ -932,7 +947,7 @@ static ThreadLocalProgramData* get_var_frame(int& frame) {
 
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
    if (tlpd) {
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);
       if (*xsink)
@@ -946,13 +961,13 @@ QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
 
 // returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
 int thread_set_local_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
    return tlpd ? tlpd->lvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
 // returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
 int thread_set_closure_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   ThreadLocalProgramData* tlpd = get_var_frame(frame);
+   ThreadLocalProgramData* tlpd = get_var_frame(frame, xsink);
    return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
@@ -1280,6 +1295,12 @@ ThreadProgramData* get_thread_program_data() {
    return td->tpd;
 }
 
+ThreadLocalProgramData* get_thread_local_program_data() {
+   ThreadData* td = thread_data.get();
+   assert(td);
+   return td->tlpd;
+}
+
 // pushes a new argv reference counter
 void new_argv_ref() {
    thread_data.get()->argv_refs.push();
@@ -1563,10 +1584,10 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       qore_program_private* pp = qore_program_private::get(*pgm);
       // try to increment thread count
       if (pp->incThreadCount(xsink)) {
-         //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
+         printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
          return;
       }
-      //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() OK\n");
+      printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() OK\n");
 
       // set up thread stacks
       restore = true;
@@ -1713,6 +1734,7 @@ ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
 }
 
 QoreProgram* getProgram() {
+   printd(5, "getProgram(): %p\n", (thread_data.get())->current_pgm);
    return (thread_data.get())->current_pgm;
    //return (thread_data.get())->pgmStack->getProgram();
 }

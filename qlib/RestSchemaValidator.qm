@@ -610,7 +610,7 @@ public namespace RestSchemaValidator {
                 "hdr": hdr,
             ));
 
-            if (exists response_body) {
+            if (response_body.val()) {
                 *hash dh = DataDeserializationSupport.(hdr."content-type");
                 if (!dh)
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", hdr."content-type", keys DataDeserializationSupport, response_body);

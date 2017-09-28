@@ -115,6 +115,9 @@ set(LIBQORE_QPP_SRC
     lib/QC_HTTPClient.qpp
     lib/QC_Mutex.qpp
     lib/QC_Program.qpp
+    lib/QC_ProgramControl.qpp
+    lib/QC_DebugProgram.qpp
+    lib/QC_Breakpoint.qpp
     lib/QC_Queue.qpp
     lib/QC_RWLock.qpp
     lib/QC_SQLStatement.qpp
@@ -192,6 +195,9 @@ set(QORE_BIN_FILES
     bin/schema-reverse
     bin/sfrest
     bin/sqlutil
+	bin/qdbg
+	bin/qdbg-server
+	bin/qdbg-remote
 )
 
 set(QORE_DOX_TMPL_SRC
@@ -752,6 +758,7 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 
 # base modules
 qore_user_module("qlib/DatasourceProvider.qm" "")
+qore_user_module("qlib/DebugUtil.qm" "")
 qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
@@ -770,6 +777,8 @@ qore_user_module("qlib/SqlUtil.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
+qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
+qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
@@ -802,6 +811,9 @@ qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
+
+# base 7 modules
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
 
 # print info
 message(STATUS "")

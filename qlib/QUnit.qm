@@ -608,7 +608,7 @@ public class QUnit::TestReporter {
         exit(1);
     }
 
-    private processOptions(reference<list> p_argv) {
+    private processOptions(reference<list<string>> p_argv) {
         if (m_options.help)
             usage();
 
@@ -641,7 +641,7 @@ public class QUnit::TestReporter {
         @param p_argv an optional reference to a list of command-line arguments
         @param opts the option hash to be passed to @ref Qore::GetOpt::constructor()
     */
-    constructor(string name, string version, *reference<list> p_argv, hash opts = Opts) {
+    constructor(string name, string version, *reference<list<string>> p_argv, hash opts = Opts) {
         m_name = name;
         m_version = version;
         if (!p_argv)
@@ -810,7 +810,7 @@ public class QUnit::Test inherits QUnit::TestReporter {
     }
 
     #! creates the object and sets the name of the test
-    constructor(string name, string version, *reference<list> p_argv, *hash opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
+    constructor(string name, string version, *reference<list<string>> p_argv, *hash opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
     }
 
     #! global setup; will be called once before tests are run
@@ -966,7 +966,7 @@ addTestCase(obj);
         return sprintf("%s (%s)", v.split("\n")[0], value.type());
     }
 
-    private compare(auto v1, auto v2, reference<list> out, string path, *bool soft_comparisons) {
+    private compare(auto v1, auto v2, reference<list<string>> out, string path, *bool soft_comparisons) {
         if ((!soft_comparisons && v1 !== v2) || (soft_comparisons && v1 != v2)) {
             if (v1.typeCode() == NT_HASH && v2.typeCode() == NT_HASH) {
                 compareHashes(v1, v2, \out, path);
@@ -980,7 +980,7 @@ addTestCase(obj);
         }
     }
 
-    private compareHashes(hash h1, hash h2, reference<list> out, string path = "", *bool soft_comparisons) {
+    private compareHashes(hash h1, hash h2, reference<list<string>> out, string path = "", *bool soft_comparisons) {
         foreach string key in (h1.keyIterator()) {
             if (h2.hasKey(key)) {
                 compare(h1{key}, h2{key}, \out, path + "." + key, soft_comparisons);
@@ -995,7 +995,7 @@ addTestCase(obj);
         }
     }
 
-    private compareLists(list<auto> l1, list<auto> l2, reference<list> out, string path = "", *bool soft_comparisons) {
+    private compareLists(list<auto> l1, list<auto> l2, reference<list<string>> out, string path = "", *bool soft_comparisons) {
         int len1 = elements l1;
         int len2 = elements l2;
 
@@ -1574,7 +1574,7 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         static bool instantiated = False;
     }
 
-    constructor(string name, string version, *reference<list> p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
+    constructor(string name, string version, *reference<list<string>> p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
         if (instantiated) {
             throw "TESTING-EXCEPTION", "Only one instance of DependencyInjectedTest per program allowed!";
         }
@@ -1650,6 +1650,6 @@ public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
     public setScriptPath(*string testedFile) {}
     private injectIntoModule(string module) {}
 
-    constructor(string name, string version, *reference<list> p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
+    constructor(string name, string version, *reference<list<string>> p_argv, *hash opts) : QUnit::Test(name, version, \p_argv, opts) {
     }
 }
