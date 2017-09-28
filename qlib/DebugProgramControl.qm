@@ -105,8 +105,7 @@ public namespace DebugProgramControl {
             on_exit rwlConnection.writeUnlock();
 
             # remove attached programs
-            map printf("DEBUG: %y\n", $1), keys ctxConnection{cx.id}.program;
-            map removeProgram($1), keys ctxConnection{cx.id}.program;
+            map removeProgram($1), ctxConnection{cx.id}.program.iterator();
 
             delete ctxConnection{cx.id};
             # if (!ctxConnection)  run stopped programs ?
@@ -310,7 +309,7 @@ public namespace DebugProgramControl {
                                 result = sprintf('program ID %d not added', pgmb.getProgramId());
                                 break;
                             }
-                            delete r;
+                            remove r;
                         }
                         removeProgram(pgmb);
                         result = 'ok';

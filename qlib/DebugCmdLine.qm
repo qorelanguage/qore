@@ -26,6 +26,7 @@
 %requires qore >= 0.8.13
 %requires DebugUtil
 %requires linenoise
+%requires Util
 
 %require-types
 %enable-all-warnings
@@ -274,6 +275,27 @@ public namespace DebugCmdLine {
                                     dcl.doCommand(data);
                                 },
                             ),
+                            'search': (
+                                'desc': 'regex search for a program',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    if (!args[0].val()) {
+                                        stdout.printf("usage: pgm search <regex>\n");
+                                        return;
+                                    }
+                                    hash data.cmd = 'program//list';
+                                    *hash pgm_info = dcl.doCommandImpl(data);
+                                    hash rh;
+                                    foreach hash h in (pgm_info.result.pairIterator()) {
+                                        if (regex(h.value.scriptName ?? "", args[0]))
+                                            rh{h.key} = h.value;
+                                    }
+                                    if (!rh)
+                                        stdout.printf("no program matching %y found out of %d programs\r\n", args[0], pgm_info.result.size());
+                                    else {
+                                        DebugCommandLine::showPrograms(rh);
+                                    }
+                                },
+                            ),
                             'list': (
                                 '>': (
                                     'full': (
@@ -288,34 +310,13 @@ public namespace DebugCmdLine {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program//list';
                                     *hash pgm_info = dcl.doCommandImpl(data);
-                                    if (pgm_info.result) {
-                                        # get max name width
-                                        int max = 1;
-                                        foreach hash h in (pgm_info.result.pairIterator()) {
-                                            if (!h.value.scriptName.val()) {
-                                                #stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
-                                                delete pgm_info.result{h.key};
-                                                continue;
-                                            }
-                                            int len;
-                                            if (!h.value.scriptName.val())
-                                                len = (pgm_info.result{h.key}.scriptName = sprintf("n/a path %y", h.value.scriptPath)).length();
-                                            else
-                                                len = h.value.scriptName.length();
-                                            if (len > max)
-                                                max = len;
-                                        }
-                                        string fmt = sprintf(" %%4d: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
-                                        foreach string id in (sort(keys pgm_info.result, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
-                                            stdout.printf(fmt,
-                                                id, pgm_info.result{id}.scriptName, pgm_info.result{id}.threads.size(), pgm_info.result{id}.debugging, pgm_info.result{id}.debugged);
-                                        }
-                                    }
+                                    if (pgm_info.result)
+                                        DebugCommandLine::showPrograms(pgm_info.result);
                                     else
                                         stdout.printf("no results returned from server\n\r");
                                 },
                             ),
-                            'current': (
+                            'set': (
                                 '*': (
                                     'desc': 'set current program, arg: programId',
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -333,11 +334,13 @@ public namespace DebugCmdLine {
                                         stdout.printf("remote program context set to %y\r\n", val);
                                     },
                                 ),
+                            ),
+                            'current': (
                                 'desc': 'get current program',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     auto v = dcl.getContextValue('programId');
                                     if (!exists v)
-                                        stdout.printf("no current program set\r\n");
+                                        stdout.printf("no current program set (pgm set <id> to set)\r\n");
                                     else
                                         dcl.printData(v);
                                 },
@@ -598,7 +601,7 @@ public namespace DebugCmdLine {
 
                     'thread': (
                         '>': (
-                            'current': (
+                            'set': (
                                 '*': (
                                     'desc': 'set current thread, arg: threadId',
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -621,6 +624,8 @@ public namespace DebugCmdLine {
                                         }
                                     },
                                 ),
+                            ),
+                            'current': (
                                 'desc': 'get current thread',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     auto v = dcl.getContextValue('threadId');
@@ -720,6 +725,30 @@ public namespace DebugCmdLine {
             *hash ret = doCommandImpl(data);
             if (ret) {
                 printData(ret);
+            }
+        }
+
+        static showPrograms(hash ph) {
+            # get max name width
+            int max = 1;
+            foreach hash h in (ph.pairIterator()) {
+                if (!h.value.scriptName.val()) {
+                    #stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
+                    delete ph{h.key};
+                    continue;
+                }
+                int len;
+                if (!h.value.scriptName.val())
+                    len = (ph{h.key}.scriptName = sprintf("n/a path %y", h.value.scriptPath)).length();
+                else
+                    len = h.value.scriptName.length();
+                if (len > max)
+                    max = len;
+            }
+            string fmt = sprintf(" %%4d: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+            foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
+                stdout.printf(fmt,
+                    id, ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
             }
         }
 
@@ -986,7 +1015,10 @@ public namespace DebugCmdLine {
                     }
                     break;
                 case 'error':
-                    outs = sprintf("cmd %y: %s: %s\n", data.cmd, data.result.err, data.result.desc);
+                    if (data.result.ex)
+                        outs = sprintf("cmd %y server-side error: %s\n", data.cmd, get_exception_string(data.result.ex));
+                    else
+                        outs = sprintf("cmd %y server-side error: %s: %s\n", data.cmd, data.result.err, data.result.desc);
                     break;
                 }
                 if (!exists outs)
@@ -1006,7 +1038,7 @@ public namespace DebugCmdLine {
         public int checkProgramId() {
             *softint pgmId = getContextValue('programId');
             if (!exists pgmId) {
-                throw "DEBUG-COMMAND", "Program is not set (try: \"pgm list\", \"pgm current [id]\")";
+                throw "DEBUG-COMMAND", "Program is not set (try: \"pgm list\", \"pgm set [id]\")";
             }
             return pgmId;
         }
@@ -1014,7 +1046,7 @@ public namespace DebugCmdLine {
         public int checkThreadId() {
             *softint threadId = getContextValue('threadId');
             if (!exists threadId) {
-                throw "DEBUG-COMMAND", "Thread context is not set (try: \"thread current [id]\")";
+                throw "DEBUG-COMMAND", "Thread context is not set (try: \"thread set [id]\")";
             }
             return threadId;
         }
