@@ -160,8 +160,6 @@ public namespace WebSocketHandler {
         */
         registered() {
         }
-
-        #! called when the connection terminates; the default implementation does nothing
     }
 
     #! the main web socket handler class
