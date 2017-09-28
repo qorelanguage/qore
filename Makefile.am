@@ -894,7 +894,7 @@ doxygen/qlib/Doxyfile.DebugUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DebugUtil.qm:doxygen/qlib/DebugUtil.qm.dox.h $< $@
 
 doxygen/qlib/Doxyfile.DebugProgramControl: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DebugProgramControl.qm:doxygen/qlib/DebugProgramControl.qm.dox.h -DebugUtil.tag=../../DebugUtil/html $< $@
+	$(QDX) -M=qlib/DebugProgramControl.qm:doxygen/qlib/DebugProgramControl.qm.dox.h -MDebugUtil.tag=../../DebugUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
