@@ -167,7 +167,7 @@
       - @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT": DBI capability for drivers that support returning an @ref Qore::SQL::SQLStatement "SQLStatement" object for a @ref resultset_output_binding "result set" when bound with the @ref Qore::SQL::RESULTSET "RESULTSET" placeholder specification
       - @ref Qore::PathSep "PathSep": defines the platform-specific path separator character
       - @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER": allows running debugger commands
-      - @ref Qore::PO_NO_DEBUGGING "PO_NO_DEBUGGING": allows debugging actions that could be insecure such as reading the thread local variable stack
+      - @ref Qore::PO_NO_DEBUGGING "PO_NO_DEBUGGING": disallows debugging of the @ref Qore::Program "Program"
       - @ref Qore::PO_ALLOW_WEAK_REFERENCES "PO_ALLOW_WEAK_REFERENCES": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref Qore::PO_BROKEN_LOOP_STATEMENT "PO_BROKEN_LOOP_STATEMENT": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
       - @ref Qore::PO_BROKEN_REFERENCES "PO_BROKEN_REFERENCES": reverts @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions to pre-%Qore-0.8.13 behavior where they would have no effect

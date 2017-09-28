@@ -896,7 +896,7 @@ pgm.parseRollback();
     @endcode
 
     @see
-P    - Qore::Program::parse()
+    - Qore::Program::parse()
     - Qore::Program::parseCommit()
     - Qore::Program::parsePending()
     - Qore::parse()
@@ -1762,7 +1762,7 @@ nothing Program::setGlobalVarValue(string name, auto value) {
 //! finds all variants of a function or class method and returns a list of the results
 /** @param function the function or class method name; may also be namespace-justified
 
-    @return a list of hashes or nothing if the name cannot be resolved; when matched, each hash element has the following keys:
+    @return a list of hashes for each resolved name; when matched, each hash element has the following keys:
     - \c desc: a string description of the call which includes the name and the full text call signature
     - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
 
