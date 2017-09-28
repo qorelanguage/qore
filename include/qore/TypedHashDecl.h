@@ -125,4 +125,7 @@ DLLEXPORT extern const TypedHashDecl* hashdeclCallStackInfo;
 //! ExceptionInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclExceptionInfo;
 
+//! StatementInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclStatementInfo;
+
 #endif

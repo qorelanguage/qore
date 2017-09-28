@@ -20,14 +20,18 @@ const Test = (
     },
 );
 
+int sub rt(reference<list<string>> r) {
+    return 1;
+}
+
 const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
         addTestCase("complex assignments", \testComplexAssignments());
-        addTestCase("auto", \testComplexAutoTypes());
-        addTestCase("complex type compat", \testComplexTypesCompat());
-        addTestCase("types", \testTypes());
+        #addTestCase("auto", \testComplexAutoTypes());
+        #addTestCase("complex type compat", \testComplexTypesCompat());
+        #addTestCase("types", \testTypes());
         set_return_value(main());
     }
 
@@ -62,6 +66,21 @@ class TypeTest inherits QUnit::Test {
         nval = 4;
         cmd = TestList[nval];
         assertEq(NOTHING, cmd);
+
+        {
+            list l1;
+            reference<list<string>> r = \l1;
+            assertEq(l1, r);
+        }
+
+        {
+            code c = int sub (reference<list<string>> r) {
+                return 1;
+            };
+            list l1;
+            assertEq(1, rt(\l1));
+            assertEq(1, c(\l1));
+        }
     }
 
     testComplexAutoTypes() {

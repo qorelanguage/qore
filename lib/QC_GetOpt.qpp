@@ -303,7 +303,7 @@ if (exists o."_ERRORS_") {
 
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
-hash GetOpt::parse(reference<list> pgm_args) {
+hash GetOpt::parse(reference<list<string>> pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();
@@ -363,7 +363,7 @@ catch (ex) {
 
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
-hash GetOpt::parse2(reference<list> pgm_args) {
+hash GetOpt::parse2(reference<list<string>> pgm_args) {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();
@@ -420,7 +420,7 @@ hash o = getopt.parse3(\ARGV);
     - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
-hash GetOpt::parse3(reference<list> pgm_args) [dom=PROCESS] {
+hash GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
    if (!ref)
       return QoreValue();

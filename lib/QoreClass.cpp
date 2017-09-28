@@ -2859,7 +2859,7 @@ void BCSMList::execDestructors(QoreObject* o, ExceptionSink* xsink) const {
 
 void BCSMList::execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const {
    for (class_list_t::const_reverse_iterator i = rbegin(), e = rend(); i != e; ++i) {
-      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o: %p virt: %s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
+      //printd(5, "BCSMList::execSystemDestructors() %s::destructor() o: %p virt: %s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
       if (!i->second)
          i->first->priv->execBaseClassSystemDestructor(o, xsink);
    }
@@ -3192,31 +3192,33 @@ void QoreClass::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
 }
 
 void qore_class_private::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p\n", name.c_str(), self, scl, scl ? &scl->sml : 0);
+   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p, self: %p, destructor: %p, isSystemObject: %d\n", name.c_str(), self, scl, scl ? &scl->sml : 0, self, destructor, self->isSystemObject());
 
    // we use a new, blank exception sink to ensure all destructor code gets executed
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
 
    if (self->isSystemObject()) {
-      if (destructor)
+      if (destructor) {
          destructor->priv->evalSystemDestructor(self, &de);
-      else
+      } else {
          self->defaultSystemDestructor(classID, &de);
-
+      }
       // execute superclass destructors
-      if (scl)
+      if (scl) {
          scl->sml.execSystemDestructors(self, &de);
+      }
    }
    else {
-      if (destructor)
+      if (destructor) {
          destructor->priv->evalDestructor(self, &de);
-      else if (sys)
+      } else if (sys) {
          self->defaultSystemDestructor(classID, &de);
-
+      }
       // execute superclass destructors
-      if (scl)
+      if (scl) {
          scl->sml.execDestructors(self, &de);
+      }
    }
 
    xsink->assimilate(de);
@@ -3226,6 +3228,7 @@ void qore_class_private::execBaseClassDestructor(QoreObject* self, ExceptionSink
    // we use a new, blank exception sink to ensure all destructor code gets executed
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
+   //printd(5, "qore_class_private::execBaseClassDestructor() %s::destructor(), destructor: %p, sys: %d\n", name.c_str(), destructor, sys);
    if (destructor)
       destructor->priv->evalDestructor(self, &de);
    else if (sys)
@@ -4666,6 +4669,7 @@ void BuiltinDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreOb
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructorVariant::evalDestructor() o: %p, v: %d, classid: %d, private: %p\n", self, self->isValid(), thisclass.getID(), private_data);
    if (!private_data)
       return;
    destructor(self, private_data, xsink);
@@ -4675,6 +4679,7 @@ void BuiltinDestructor2Variant::evalDestructor(const QoreClass &thisclass, QoreO
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructor2Variant::evalDestructor() o: %p, v: %d, private: %p\n", self, self->isValid(), private_data);
    if (!private_data)
       return;
    destructor(thisclass, self, private_data, xsink);
@@ -4684,6 +4689,7 @@ void BuiltinDestructor3Variant::evalDestructor(const QoreClass &thisclass, QoreO
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructor3Variant::evalDestructor() o: %p, v: %d, private: %p\n", self, self->isValid(), private_data);
    if (!private_data)
       return;
    destructor(thisclass, ptr, self, private_data, xsink);
@@ -4804,6 +4810,7 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
+   //printd(5, "DestructorMethodFunction::evalDestructor() %s::%s() o: %p, v: %d, ct: %d\n", getClassName(), getName(), self, self->isValid(),ct);
    CodeEvaluationHelper ceh(xsink, this, variant, "destructor", (QoreValueList*)0, self, qore_class_private::get(thisclass), ct);
    if (*xsink) return;
 

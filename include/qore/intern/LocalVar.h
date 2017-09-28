@@ -115,7 +115,7 @@ public:
    DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
    }
 
-   DLLLOCAL VarValueBase() : val(QV_Bool), finalized(false), frame_boundary(false) {
+   DLLLOCAL VarValueBase() : val(QV_Bool), id(0), skip(false), finalized(false), frame_boundary(false) {
    }
 
    DLLLOCAL void setFrameBoundary() {
@@ -383,7 +383,7 @@ public:
    }
 
    DLLLOCAL void instantiateSelf(QoreObject* value) const {
-      //printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
+      printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
       if (!closure_use) {
          LocalVarValue* val = thread_instantiate_lvar();
          val->set(name.c_str(), typeInfo, value, true, true);

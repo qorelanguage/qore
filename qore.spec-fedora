@@ -166,6 +166,9 @@ make check
 %{_bindir}/schema-reverse
 %{_bindir}/sfrest
 %{_bindir}/sqlutil
+%{_bindir}/qdbg
+%{_bindir}/qdbg-server
+%{_bindir}/qdbg-remote
 %{_mandir}/man1/qore.1.*
 
 %changelog
