@@ -1766,6 +1766,8 @@ nothing Program::setGlobalVarValue(string name, auto value) {
     - \c desc: a string description of the call which includes the name and the full text call signature
     - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
 
+    @throw PROGRAM-ERROR thrown if the function cannot be found
+
     @since %Qore 0.8.13
 */
 list Program::findFunctionVariants(string function) {
