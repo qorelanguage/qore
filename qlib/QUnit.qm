@@ -645,7 +645,7 @@ public class QUnit::TestReporter {
         m_name = name;
         m_version = version;
         if (!p_argv)
-            p_argv = ARGV;
+            p_argv = cast<list<string>>(ARGV);
         m_options = new GetOpt(opts).parse2(\p_argv);
         processOptions(\p_argv);
 
