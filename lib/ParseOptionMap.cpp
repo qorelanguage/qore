@@ -86,12 +86,13 @@ void ParseOptionMap::static_init() {
    DO_MAP("broken-loop-statement",    PO_BROKEN_LOOP_STATEMENT);
    DO_MAP("strong-encapsulation",     PO_STRONG_ENCAPSULATION);
    DO_MAP("no-uncontrolled-apis",     PO_NO_UNCONTROLLED_APIS);
-   DO_MAP("allow-debugging",          PO_ALLOW_DEBUGGING);
+   DO_MAP("no-debugging",             PO_NO_DEBUGGING);
    DO_MAP("broken-references",        PO_BROKEN_REFERENCES);
    DO_MAP("no-system-classes",        PO_NO_INHERIT_SYSTEM_CLASSES);
    DO_MAP("no-system-functions",      PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS);
    DO_MAP("no-system-hashdecls",      PO_NO_INHERIT_SYSTEM_HASHDECLS);
    DO_MAP("allow-weak-references",    PO_ALLOW_WEAK_REFERENCES);
+   DO_MAP("allow-debugger",           PO_ALLOW_DEBUGGER);
 
    // the following are not useful from the command-line
    //DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);

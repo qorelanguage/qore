@@ -144,6 +144,8 @@ namespace Priv {
     string sub try_get_ds_string(string mod, string str) {
         Program p();
         p.loadModule(mod);
+        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+        p.setScriptPath(sprintf("Qore::DatasourceProvider(%s,%s)", mod, str));
         return p.callFunction("get_mod_ds_string", str);
     }
 }

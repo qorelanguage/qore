@@ -6,14 +6,120 @@
 %require-types
 %strict-args
 %no-child-restrictions
-%allow-debugging
+# to test ProgramControl::getProgram
+%allow-debugger
 
-%requires QUnit
-
+%requires ../../../../../qlib/QUnit.qm
 %exec-class ProgramTest
 
 int sub t(any a) {
     return a + 1;
+}
+
+list sub funcTest() {
+    return list();
+}
+list sub funcTest(int a) {
+    return list(a);
+}
+list sub funcTest(string a) {
+    return list(a);
+}
+list sub funcTest(int a, string b) {
+    return list(a, b);
+}
+list sub funcTest(int a, binary b, *string c) {
+    return list(a, b);
+}
+
+nothing sub funcParamTypeTest(
+    int i, *int i2,
+    string s, *string s2,
+    bool bo, *bool bo2,
+    float f, *float f2,
+    number n, *number n2,
+    binary bi, *binary b2,
+    list l, *list l2,
+    hash h, *hash h2,
+    object o, *object o2,
+    any a,
+    date d, *date d2,
+    code co, *code co2,
+    data da, *data da2,
+    reference r, *reference r2,
+    #null
+    #nothing
+    softint si, *softint si2,
+    softfloat sf, *softfloat sf2,
+    softnumber sn, *softnumber sn2,
+    softbool sb, *softbool sb2,
+    softstring ss, *softstring ss2,
+    softdate sd, *softdate sd2,
+    softlist sl, *softlist sl2,
+    timeout t, *timeout t2,
+    closure cl,
+    callref cr,
+    Test test,
+    TestNS testns,
+    NS::TestNS nsttestns
+    ) {
+}
+
+
+namespace NS {
+    list sub funcNSTest() {
+        return list();
+    }
+    list sub funcNSTest(int a) {
+        return list(a);
+    }
+    list sub funcNSTest(string a) {
+        return list(a);
+    }
+    list sub funcNSTest(int a, string b) {
+        return list(a, b);
+    }
+    list sub funcNSTest(int a, binary b, *string c) {
+        return list(a, b);
+    }
+
+    class TestNS {
+        private list funcTest() {
+            return list();
+        }
+        list funcTest(int a) {
+            return list(a);
+        }
+        list funcTest(string a) {
+            return list(a);
+        }
+        list funcTest(int a, string b) {
+            return list(a, b);
+        }
+        list funcTest(int a, binary b, *string c) {
+            return list(a, b);
+        }
+    }
+
+    class TestNS2 inherits TestNS {
+        private list funcTest() {
+            return list();
+        }
+        list funcTest(int a) {
+            return list(a);
+        }
+        list funcTest(string a) {
+            return list(a);
+        }
+        list funcTest(int a, string b) {
+            return list(a, b);
+        }
+        list funcTest(int a, binary b, *string c) {
+            return list(a, b);
+        }
+    }
+    class TestNS3 inherits TestNS {
+    }
 }
 
 class Test inherits Socket {
@@ -31,6 +137,13 @@ class Test inherits Socket {
         b = 2;
         data = (a, b, c);
     }
+
+    constructor(list dummy) { # overload test
+        data = dummy;
+    }
+    destructor() {
+    }
+
     any getData(int elem) {
         return data[elem];
     }
@@ -53,6 +166,24 @@ class Test inherits Socket {
     any argTest() {
         return argv;
     }
+
+    list funcTest() {
+        return list();
+    }
+    list funcTest(int a) {
+        return list(a);
+    }
+    list funcTest(string a) {
+        return list(a);
+    }
+    list funcTest(int a, string b) {
+        return list(a, b);
+    }
+    list funcTest(int a, binary b, *string c) {
+        return list(a, b);
+    }
+
+
 }
 
 class ProgramTest inherits QUnit::Test {
@@ -76,7 +207,9 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("class test", \classTest());
         addTestCase("setThreadInit test", \setThreadInitTest());
         addTestCase("var test", \varTest());
-        set_return_value(main());
+        addTestCase("Program info test", \programInfoTest());
+	    addTestCase("Find runtime function test", \findRuntimeTest());
+    	set_return_value(main());
     }
 
     programTest() {
@@ -409,7 +542,7 @@ class ProgramTest inherits QUnit::Test {
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; return get_local_vars(frame); }", "");
 
             hash vh = (
@@ -424,7 +557,7 @@ class ProgramTest inherits QUnit::Test {
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
 
             hash vh = (
@@ -439,25 +572,25 @@ class ProgramTest inherits QUnit::Test {
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); }", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); sub () { i = 3; };}", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); sub () { i = 3; };}", "");
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
         }
 
         {
-            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGING);
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
             p.parse("hash sub test1(int frame) { code c = sub () { if (frame > 10) throw 1; }; c(); return get_local_vars(frame); } hash sub test2(int frame) { int i = 1; string str = 'hi'; return test1(frame); }", "");
 
             hash vh = (
@@ -488,6 +621,118 @@ class ProgramTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
             assertThrows("PARSE-ERROR", "local variable.*already declared", \p.parse(), ("hash h; hash h;", ""));
+        }
+    }
+
+    programInfoTest() {
+        Program a(PO_NEW_STYLE);
+        list pp = ProgramControl::getAllPrograms();
+        assertEq(True, a.getProgramId() > 0, "getProgramId()");
+        assertEq(True, pp.size()>=2, "getAllPrograms()");
+        assertEq(True, ProgramControl::getProgram().getProgramId() == pp[0].getProgramId(), "getProgramId(0)");
+        assertEq(True, a.getProgramId() == pp[pp.size()-1].getProgramId(), "getProgramId(1)");
+        assertEq(True, ProgramControl::resolveProgramId(a.getProgramId()).getProgramId() == a.getProgramId(), "resolveProgramId()");
+    }
+
+    testCV(*string ns, *string cls, string func, string name) {
+        string s = func;
+        if (exists cls) {
+            s = cls + "::" + s;
+        }
+        if (exists ns) {
+#            s = ns + "::" + s;   # namespace is ignored
+        }
+        ProgramControl p = ProgramControl::getProgram();
+        list val = p.findFunctionVariants(name);
+        list l;
+        push l, ("desc": s+"()", "params": list());
+        push l, ("desc": s+"(int a)", "params": list("int"));
+        push l, ("desc": s+"(string a)", "params": list("string"));
+        push l, ("desc": s+"(int a, string b)", "params": list("int", "string"));
+        push l, ("desc": s+"(int a, binary b, *string c)", "params": list("int", "binary", "*string"));
+        testAssertionValue(sprintf("findFunctionVariants(%s)", name), val, l);
+
+        testVS(name, val);
+    }
+
+    testVS(string name, list val) {
+        ProgramControl p = ProgramControl::getProgram();
+        foreach hash v in (val) {
+            int st = p.findFunctionStatementId(name, v.params);
+            testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
+        }
+    }
+
+    findRuntimeTest() {
+        ProgramControl p = ProgramControl::getProgram();
+        assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("doesnotexist"), "findFunctionVariants(doesnotexist)");
+
+        testCV(NOTHING, NOTHING, "funcTest", "funcTest");
+        testCV("NS", NOTHING, "funcNSTest", "funcNSTest");
+        testCV("NS", NOTHING, "funcNSTest", "NS::funcNSTest");
+        testCV(NOTHING, "Test", "funcTest", "Test::funcTest");
+        testCV("NS", "TestNS", "funcTest", "TestNS::funcTest");
+        testCV("NS", "TestNS2", "funcTest", "TestNS2::funcTest");
+        testCV("NS", "TestNS", "funcTest", "NS::TestNS::funcTest");
+
+        try {
+            /*
+            list val;
+            # TODO::constructor, destructor does not work
+            val = p.findFunctionVariants("Test::constructor");
+            assertEq(2, val.size(), "findFunctionVariants(Test::constructor)");
+            testVS("Test::constructor", val);
+            val = p.findFunctionVariants("Test::destructor");
+            assertEq(1, val.size(), "findFunctionVariants(Test::destructor)");
+            testVS("Test::destructor", val);
+            */
+        } catch (hash ex) {
+            printf("%y\n", ex);
+        }
+
+        try {
+            # extra stuff
+            list val;
+            val = p.findFunctionVariants("Test::methodGate");
+            assertEq(1, val.size(), "findFunctionVariants(Test::methodGate)");
+            testVS("Test::methodGate", val);
+            val = p.findFunctionVariants("Test::memberGate");
+            assertEq(1, val.size(), "findFunctionVariants(Test::memberGate)");
+            testVS("Test::memberGate", val);
+            val = p.findFunctionVariants("Test::memberNotification");
+            assertEq(1, val.size(), "findFunctionVariants(Test::memberNotification)");
+            testVS("Test::memberNotification", val);
+        } catch (hash ex) {
+            printf("%y\n", ex);
+        }
+
+        try {
+            # non existing func
+            assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("NS::funcTest"), 'findFunctionVariants(NS::funcTest)');
+            assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("NS::Test::funcTest"), 'findFunctionVariants(NS::Test::funcTest)');
+            assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("NSNOTEXIST::funcTest"), 'findFunctionVariants(NSNOTEXIST::funcTest)');
+            #assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("TestNS3::funcTest"), 'findFunctionVariants(TestNS3::funcTest)');  # TODO: resolved function from inherited class
+        } catch (hash ex) {
+            printf("%y\n", ex);
+        }
+
+        list v = p.findFunctionVariants("funcParamTypeTest");
+        assertEq(1, v.size());
+        try {
+            assertEq(
+                "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, *object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, *reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, *softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, *softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, Test test, TestNS testns, TestNS nsttestns)",
+                v[0].desc # TODO: class: Test ????, *softlist,  namespaces ignored, closure, callref as code
+            );
+        } catch (hash ex) {
+            printf("%y\n", ex);
+        }
+        try {
+            assertEq(
+                ("int", "*int", "string", "*string", "bool", "*bool", "float", "*float", "number", "*number", "binary", "*binary", "list", "*list", "hash", "*hash", "object", "*object", "any", "date", "*date", "code", "*code", "data", "*data", "reference", "*reference", "softint", "*softint", "softfloat", "*softfloat", "softnumber", "*softnumber", "softbool", "*softbool", "softstring", "*softstring", "softdate", "*softdate", "softlist", "*softlist", "timeout", "*timeout", "code", "code", "object<Test>", "object<TestNS>", "object<TestNS>"),
+                v[0].params
+            );
+        } catch (hash ex) {
+            printf("%y\n", ex);
         }
     }
 }
