@@ -377,12 +377,11 @@ public:
       }
 
       // initialize global vars
-      const QoreTypeInfo* losti = qore_get_complex_list_type(stringTypeInfo);
-      Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", losti);
+      Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
       if (var && ARGV)
          var->setInitial(ARGV->copy());
 
-      var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", losti);
+      var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
       if (var && QORE_ARGV)
          var->setInitial(QORE_ARGV->copy());
 
