@@ -491,7 +491,7 @@ class DebugTest inherits QUnit::Test {
         # breakpoint group
         b2.assignStatement(thisProgram.findStatementId('', line.tstFunction+6));
         b2.assignStatement(thisProgram.findStatementId('', line.tstFunction+9));
-        checkProgram("breakpoint b1(enable), b2(accept,group3)", splice(action2, 1, 0, (DebugRun, DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6), ("func": ST_STEP, "line": line.tstFunction+9))), "DIVISION-BY-ZERO");        
+        checkProgram("breakpoint b1(enable), b2(accept,group3)", splice(action2, 1, 0, (DebugRun, DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6), ("func": ST_STEP, "line": line.tstFunction+9))), "DIVISION-BY-ZERO");
         b2.unassignStatement(thisProgram.findStatementId('', line.tstFunction+9));
         checkProgram("breakpoint b1(enable), b2(accept,group2)", splice(action2, 1, 0, list(DebugRun)), splice(traceLog2, 1, 0, (("func": ST_STEP, "line": line.tstFunction+6))), "DIVISION-BY-ZERO");
         b2.setEnabled(False);
@@ -682,7 +682,18 @@ class DebugTest inherits QUnit::Test {
         list l = ProgramControl::getAllPrograms();
         testAssertionValue(name+'getAllPrograms', l.size(), 3);
         testAssertionValue(name+'getProgramId', thisProgram.getProgramId() > 0, True);
-        testAssertionValue(name+'getProgramId 2', l[0].getProgramId(), thisProgram.getProgramId());
+        # NOTE: getAllPrograms() does not guarantee the return value order
+        # ensure that the current program is in the list
+        {
+            int id;
+            foreach ProgramControl p in (l) {
+                if (p.getProgramId() == thisProgram.getProgramId()) {
+                    id = p.getProgramId();
+                    break;
+                }
+            }
+            assertEq(thisProgram.getProgramId(), id);
+        }
         assertThrows('PROGRAM-ERROR', \ProgramControl::resolveProgramId(), list(0), name+'.resolveProgramId() no program');
         testAssertionValue(name+'resolveProgramId', ProgramControl::resolveProgramId(thisProgram.getProgramId()).getProgramId(), thisProgram.getProgramId());
     }

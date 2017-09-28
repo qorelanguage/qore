@@ -97,12 +97,21 @@ public namespace DebugHandler {
         /**
         */
         gotMessage(string msg) {
+            *hash sendData;
             try {
                 any receiveData = parse_yaml(msg);
-                *hash sendData = dhandler.debugProgram.processCommand(cx, receiveData);
+                sendData = dhandler.debugProgram.processCommand(cx, receiveData);
                 if (exists sendData)
                     dhandler.debugProgram.sendDataImpl(cx, sendData);
-            } catch (hash ex) {
+            }
+            catch (hash<ExceptionInfo> ex) {
+                if (dhandler.logger)
+                    dhandler.logger.log(DUV_DEBUG, "exception: %y", ex);
+                sendData.type = 'error';
+                sendData.result.err = ex.err;
+                sendData.result.desc = ex.desc;
+                sendData.result.ex = ex;
+                dhandler.debugProgram.sendDataImpl(cx, sendData);
             }
         }
 
@@ -116,7 +125,6 @@ public namespace DebugHandler {
         registered() {
             dhandler.debugProgram.connectionRegistered(cx);
         }
-
     }
 
     #! the main web socket debug handler class
@@ -143,9 +151,16 @@ public namespace DebugHandler {
 
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
         /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
+            @param dpc the debug program controller object
+            @param args an optional list of arguments for the setLogger() method
          */
-        constructor(*HttpServer::AbstractAuthenticator auth, WebSocketDebugProgramControl dpc) : WebSocketHandler::WebSocketHandler(auth) {
+        constructor(*HttpServer::AbstractAuthenticator auth, WebSocketDebugProgramControl dpc, *list args) : WebSocketHandler::WebSocketHandler(auth) {
             debugProgram = dpc;
+            setLogger(args);
+        }
+
+        setLogger(*list args) {
+            logger = new DebugLogger();
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
@@ -193,7 +208,7 @@ public namespace DebugHandler {
         }
 
         logError(string fmt) {
-            stderr.vsprintf(fmt+"\n", argv);
+            logger.log(DUV_INFO, vsprintf("ERROR: " + fmt, argv));
         }
     }
 
@@ -203,9 +218,14 @@ public namespace DebugHandler {
             WebSocketDebugHandler handler;
         }
 
-        #! creates the object
-        constructor(*HttpServer::AbstractAuthenticator auth) : DebugProgramControl() {
-            handler = new WebSocketDebugHandler(auth, self);
+        #! creates the object and set the web socket handler object by calling setHandler()
+        constructor(string serverName, *HttpServer::AbstractAuthenticator auth) : DebugProgramControl(serverName) {
+            setHandler(auth, argv);
+        }
+
+        #! sets the web socket handler object; override in a subclass to provide a custom handler object
+        private setHandler(*HttpServer::AbstractAuthenticator auth, *list args) {
+            handler = new WebSocketDebugHandler(auth, self, args);
         }
 
         #! sends data to the given connection

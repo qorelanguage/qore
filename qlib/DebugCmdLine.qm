@@ -328,14 +328,16 @@ public namespace DebugCmdLine {
                                         }
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        dcl.setContextValue('programId', pop path);
+                                        string val = pop path;
+                                        dcl.setContextValue('programId', val);
+                                        stdout.printf("remote program context set to %y\r\n", val);
                                     },
                                 ),
                                 'desc': 'get current program',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     auto v = dcl.getContextValue('programId');
                                     if (!exists v)
-                                        stdout.printf("no current program set\n");
+                                        stdout.printf("no current program set\r\n");
                                     else
                                         dcl.printData(v);
                                 },
@@ -609,7 +611,14 @@ public namespace DebugCmdLine {
                                         }
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        dcl.setContextValue('threadId', int(pop path));
+                                        if (path.last() =~ /[^0-9]/) {
+                                            stdout.printf("ERROR: TID must be an integer; got %y \r\n", path.last());
+                                        }
+                                        else {
+                                            softint val = pop path;
+                                            dcl.setContextValue('threadId', val);
+                                            stdout.printf("remote thread context set to TID %y\r\n", val);
+                                        }
                                     },
                                 ),
                                 'desc': 'get current thread',
@@ -958,8 +967,12 @@ public namespace DebugCmdLine {
                     case NT_LIST:
                         outs = sprintf("%N", data.result);
                         break;
+                    case NT_STRING:
+                        outs = data.result;
+                        break;
                     default:
                         outs = sprintf("%y", data.result);
+                        break;
                     }
                     break;
                 case 'event':
@@ -984,6 +997,8 @@ public namespace DebugCmdLine {
             if (exists outs) {
                 # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
                 stdout.print(replace(outs, "\n", "\r\n"));
+                if (outs !~ /\n$/)
+                    stdout.print("\r\n");
                 # TODO: how refresh linenoise command line ?
             }
         }

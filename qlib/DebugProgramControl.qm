@@ -56,11 +56,10 @@ module DebugProgramControl {
 
 #! the DebugProgramControl namespace contains all the definitions in the DebugProgramControl module
 public namespace DebugProgramControl {
-
     #! Class implementing @ref Qore::DebugProgram "DebugProgram" control using commands
     public class DebugProgramControl inherits DebugProgram, AbstractDebugControl {
         private {
-            #!data pool related to suspended thread, key is threadId
+            #! data pool related to suspended thread, key is threadId
             hash ctxThread;
             #! data pool for data related to cx.id
             hash ctxConnection;
@@ -68,19 +67,22 @@ public namespace DebugProgramControl {
             Qore::Thread::RWLock rwlThread();
             #! lock for @ref ctxConnection access
             Qore::Thread::RWLock rwlConnection();
+            #! server name
+            string serverName;
 
             const frameOffset = 2;
         }
 
         #! creates the object
-        constructor() : DebugProgram() {
+        constructor(string serverName) : DebugProgram() {
+            self.serverName = serverName;
         }
 
         #! register context for new connection
         public registerConnection(hash cx) {
             rwlConnection.writeLock();
             on_exit rwlConnection.writeUnlock();
-            ctxConnection{cx.id} = ();
+            ctxConnection{cx.id} = {};
             # Note: we cannot sendDataImpl/broadcaseDataImpl as cx.id not registered in WebSocketHandler
         }
 
@@ -89,10 +91,11 @@ public namespace DebugProgramControl {
             hash sd.type = 'event';
             sd.stamp = now_us();
             sd.cmd = 'welcome';
-            sd.result = sprintf("Qore/DebugServer/DebugProgramControl:%s", "0.1"); # TODO: how to get value from module header
+            sd.result = serverName;
             try {
                 sendDataImpl(cx, sd);
-            } catch (hash<ExceptionInfo> ex) {
+            }
+            catch (hash<ExceptionInfo> ex) {
             }
         }
 
@@ -100,6 +103,11 @@ public namespace DebugProgramControl {
         public unregisterConnection(hash cx) {
             rwlConnection.writeLock();
             on_exit rwlConnection.writeUnlock();
+
+            # remove attached programs
+            map printf("DEBUG: %y\n", $1), keys ctxConnection{cx.id}.program;
+            map removeProgram($1), keys ctxConnection{cx.id}.program;
+
             delete ctxConnection{cx.id};
             # if (!ctxConnection)  run stopped programs ?
         }
@@ -171,12 +179,14 @@ public namespace DebugProgramControl {
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
-            logger.log(DUV_DEBUG_1, "processCommand: %y", receiveData);
+            if (logger)
+                logger.log(DUV_DEBUG_1, "processCommand: %y", receiveData);
             hash sendData;
             auto result;
             try {
                 list cmd = receiveData.cmd.split('/');
-                logger.log(DUV_DEBUG_1, "command: %y", cmd);
+                if (logger)
+                    logger.log(DUV_DEBUG_1, "command: %y", cmd);
 
                 switch (shift cmd) {
                 case 'help':
@@ -216,16 +226,37 @@ public namespace DebugProgramControl {
                     switch (shift cmd) {
                     case 'stop':
                         # no locking
-                        breakProgram(pgmb);
-                        result = 'ok';
+                        switch (breakProgram(pgmb)) {
+                            case 0:
+                                result = 'ok';
+                                break;
+                            case -1:
+                                result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
+                                break;
+                            case -2:
+                                result = "ERROR: operation failed; Program not added as a debug target";
+                                break;
+                        }
                         break;
 
                     case 'thread':
                         softint tid = shift cmd;
                         switch (shift cmd) {
                         case 'stop':
-                            breakProgramThread(pgmb, tid);
-                            result = 'ok';
+                            switch (breakProgramThread(pgmb, tid)) {
+                                case 0:
+                                    result = 'ok';
+                                    break;
+                                case -1:
+                                    result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
+                                    break;
+                                case -2:
+                                    result = "ERROR: operation failed; Program not added as a debug target";
+                                    break;
+                                case -3:
+                                    result = sprintf("ERROR: operation failed; TID %d not active in target Program", tid);
+                                    break;
+                            }
                             break;
                         }
                         break;
@@ -256,11 +287,31 @@ public namespace DebugProgramControl {
                         createProgram(receiveData.filename, NOTHING, receiveData.args);
                         break;
                     case 'add':
+                        {
+                            rwlConnection.writeLock();
+                            on_exit rwlConnection.writeUnlock();
+                            reference r = \ctxConnection{cx.id}.program{pgmb.getProgramId()};
+                            if (r) {
+                                result = sprintf('program ID %d already added', pgmb.getProgramId());
+                                break;
+                            }
+                            r = pgmb;
+                        }
                         addProgram(pgmb);
                         result = 'ok';
                         break;
 
                     case 'remove':
+                        {
+                            rwlConnection.writeLock();
+                            on_exit rwlConnection.writeUnlock();
+                            reference r = \ctxConnection{cx.id}.program{pgmb.getProgramId()};
+                            if (!r) {
+                                result = sprintf('program ID %d not added', pgmb.getProgramId());
+                                break;
+                            }
+                            delete r;
+                        }
                         removeProgram(pgmb);
                         result = 'ok';
                         break;
@@ -469,7 +520,8 @@ public namespace DebugProgramControl {
                     sendData.type = 'response';
                 }
             } catch (hash<ExceptionInfo> ex) {
-                logger.log(DUV_DEBUG, "exception: %y", ex);
+                if (logger)
+                    logger.log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
                 result.desc = ex.desc;
@@ -837,7 +889,8 @@ public namespace DebugProgramControl {
             );
             try {
                 broadcastDataImpl(sd);
-            } catch (hash<ExceptionInfo> ex) {
+            }
+            catch (hash<ExceptionInfo> ex) {
             }
         }
 

@@ -1789,12 +1789,12 @@ QoreListNode* QoreDebugProgram::getAllProgramObjects() {
    return priv->getAllProgramObjects();
 }
 
-bool QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
+int QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
    printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
    return priv->breakProgramThread(pgm, tid);
 }
 
-bool QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
+int QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
    printd(5, "QoreDebugProgram::breakProgram(), this: %p, pgm: %p\n", this, pgm);
    return priv->breakProgram(pgm);
 }

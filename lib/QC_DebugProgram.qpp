@@ -76,32 +76,27 @@ const DebugFlowContinue = RC_CONTINUE;
 //@}
 
 //! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging via @ref Qore::ProgramControl "ProgramControl".
-/** One instance may be assigned to one or more @ref Qore::ProgramControl "ProgramControl" instances which may run in one or more threads.
-    @ref Qore::ProgramControl "ProgramControl" is added into debugging list, next the program being debugged notifies debugger when next qore script
-    event occurs. Calling of notification method is performed always in program thread. When the program flow is to be interrupted
-    then it happens in notification method of this class. Then debugger decides to continue then returns from notification function
+/** One instance may be assigned to one or more @ref Qore::ProgramControl "ProgramControl" instances which may
+    run in one or more threads.
+    @ref Qore::ProgramControl "ProgramControl" is added to the debugging list, next the program being debugged notifies the debugger when the next execution event occurs. Calling of notification method is always
+    performed in the program thread. When the program flow is to be interrupted
+    then it happens in the notification method of this class. Then debugger decides to continue and then returns from the notification function
     and passes @ref debug_rs_options value "step option" code back.
 
     The debugger should probably handle control in separate thread.
 
-    DebugProgram class just defines interface and real functionality should be implemented in descendant class.
+    The DebugProgram class defines the interface and the real functionality should be implemented in a child class.
 
     @par Example:
     @code{.py}
 
-    const code = "
-       for (int i=0; i<10; i++) {
-
-       }
-
-    ";
+    const code = "for (int i=0; i<10; i++) {}";
 
     class MyDebugProgram dbg() inherits DebugProgram {
-    private(local):
+    private:
        onAttach(ProgramControl pgm, reference rs) {
           rs = DebugStep;
        }
-
     }
 
     ProgramControl p = ProgramControl::getProgram();
@@ -230,18 +225,18 @@ DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash e
 
 //! Break particular program thread
 /**
-  * @return true if program is being debugged
+  * @return 0 if the operation was successful, returns -1 if the program does not allow debugging (i.e. @ref Qore::PO_NO_DEBUGGING is set), -2 if the program has not been set as a debug target, or -3 if the given thread is not active in the target program
   */
-bool DebugProgram::breakProgramThread(ProgramControl[QoreProgram] pgm, int tid) {
+int DebugProgram::breakProgramThread(ProgramControl[QoreProgram] pgm, int tid) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
    return dpgm->breakProgramThread(pgm, tid);
 }
 
 //! Break program, i.e. all threads
 /**
-  * @return true if program is being debugged
+  * @return 0 if the operation was successful, returns -1 if the program does not allow debugging (i.e. @ref Qore::PO_NO_DEBUGGING is set) or -2 if the program has not been set as a debug target
   */
-bool DebugProgram::breakProgram(ProgramControl[QoreProgram] pgm) {
+int DebugProgram::breakProgram(ProgramControl[QoreProgram] pgm) {
    ReferenceHolder<QoreProgram> holder(pgm, xsink);
    return dpgm->breakProgram(pgm);
 }

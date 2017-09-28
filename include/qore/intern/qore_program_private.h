@@ -502,19 +502,19 @@ private:
    ReverseStatementIdMap_t reverseStatementIds;
 
    /**
-    * get safely debug program pointer. The debug program instance itself must exists. It's not matter of lock as the flow goes to QoreDebugProgram
-    * instance and may stay very long time.
+    * get safely debug program pointer. The debug program instance itself must exist. It's not a matter of locking as the flow goes to QoreDebugProgram
+    * instance and may stay a very long time.
     */
 
    DLLLOCAL qore_debug_program_private* getDebugProgram(AutoQoreCounterDec& ad) {
-      QoreAutoRWReadLocker al(&lck_debug_program);
+      AutoLocker al(tlock);
+      //QoreAutoRWReadLocker al(&lck_debug_program);
       qore_debug_program_private* ret = dpgm;
       if (ret) {
          // new debug call in progress
          ad.inc();
       }
       return ret;
-
    }
 
    // lck_breakpoint lock should be aquired
@@ -1974,28 +1974,30 @@ public:
 
    DLLLOCAL void attachDebug(const qore_debug_program_private* n_dpgm) {
       printd(5, "qore_program_private::attachDebug(n_dpgm: %p), dpgm: %p\n", n_dpgm, dpgm);
-      QoreAutoRWWriteLocker al(&lck_debug_program);
+      AutoLocker al(tlock);
+      //QoreAutoRWWriteLocker arwl(&lck_debug_program);
 
-      if (dpgm == n_dpgm) return;
+      if (dpgm == n_dpgm)
+         return;
       dpgm = const_cast<qore_debug_program_private*>(n_dpgm);
       printd(5, "qore_program_private::attachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
-      AutoLocker al2(tlock);
-      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
-         i->second->dbgPendingAttach();
-         i->second->dbgBreak();
+      for (auto& i : pgm_data_map) {
+         i.second->dbgPendingAttach();
+         i.second->dbgBreak();
       }
    }
 
    DLLLOCAL void detachDebug(const qore_debug_program_private* n_dpgm) {
       printd(5, "qore_program_private::detachDebug(n_dpgm: %p), dpgm: %p\n", n_dpgm, dpgm);
-      QoreAutoRWWriteLocker al(&lck_debug_program);
+      AutoLocker al(tlock);
+      //QoreAutoRWWriteLocker arwl(&lck_debug_program);
       assert(n_dpgm==dpgm);
-      if (!n_dpgm) return;
+      if (!n_dpgm)
+         return;
       dpgm = nullptr;
       printd(5, "qore_program_private::detachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
-      AutoLocker al2(tlock);
-      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
-         i->second->dbgPendingDetach();
+      for (auto& i : pgm_data_map) {
+         i.second->dbgPendingDetach();
       }
       // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
    }
@@ -2007,22 +2009,23 @@ public:
    DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
-   DLLLOCAL void breakProgramThread(int tid) {
+   DLLLOCAL int breakProgramThread(int tid) {
       printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
       AutoLocker al(tlock);
-      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
-         if (i->first->gettid() == tid) {
-            i->second->dbgBreak();
-            break;
+      for (auto& i : pgm_data_map) {
+         if (i.first->gettid() == tid) {
+            i.second->dbgBreak();
+            return 0;
          }
       }
+      return -1;
    }
 
    DLLLOCAL void breakProgram() {
       printd(5, "qore_program_private::breakProgram(), this: %p\n", this);
       AutoLocker al(tlock);
-      for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
-         i->second->dbgBreak();
+      for (auto& i : pgm_data_map) {
+         i.second->dbgBreak();
       }
    }
 
@@ -2097,7 +2100,7 @@ public:
    DLLLOCAL bool checkAllowDebugging(ExceptionSink *xsink) {
       if (pwo.parse_options & PO_NO_DEBUGGING) {
          if (xsink) {
-               xsink->raiseException("DEBUGGING", "program does not provide internal data for debugging");
+            xsink->raiseException("DEBUGGING", "program does not provide internal data for debugging");
          }
          return false;
       } else
@@ -2387,7 +2390,7 @@ public:
    DLLLOCAL QoreListNode* getAllProgramObjects() {
       QoreAutoRWReadLocker al(&tlock);
       printd(5, "qore_debug_program_private::getAllProgramObjects(), this: %p\n", this);
-      ReferenceHolder<QoreListNode> l(new QoreListNode(), nullptr);
+      ReferenceHolder<QoreListNode> l(new QoreListNode, nullptr);
       qore_program_map_t::iterator i = qore_program_map.begin();
       while (i != qore_program_map.end()) {
          QoreObject* o = QoreProgram::getQoreObject(i->first);
@@ -2432,32 +2435,43 @@ public:
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
       dpgm->onException(pgm, statement, rs, xsink);
    }
 
-   DLLLOCAL bool breakProgramThread(QoreProgram *pgm, int tid) {
+   DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {
+      //printd(5, "breakProgramThread pgm: %p tid: %d po: %lld\n", pgm, tid, pgm->priv->pwo.parse_options);
+      // do not allow breaking if the Program does not support debugging
+      if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
+         return -1;
+
       QoreAutoRWReadLocker al(&tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
       printd(5, "qore_debug_program_private::breakProgramThread(), this: %p, pgm: %p, i: %p, end: %p, tid: %d\n", this, pgm, i, qore_program_map.end(), tid);
       if (i == qore_program_map.end())
-         return false;
-      i->second->breakProgramThread(tid);
-      return true;
+         return -2;
+      if (i->second->breakProgramThread(tid))
+         return -3;
+      return 0;
    }
 
-   DLLLOCAL bool breakProgram(QoreProgram *pgm) {
+   DLLLOCAL int breakProgram(QoreProgram* pgm) {
+      //printd(5, "breakProgram pgm: %p po: %lld\n", pgm, pgm->priv->pwo.parse_options);
+      // do not allow breaking if the Program does not support debugging
+      if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
+         return -1;
+
       QoreAutoRWReadLocker al(&tlock);
       qore_program_map_t::iterator i = qore_program_map.find(pgm);
       printd(5, "qore_debug_program_private::breakProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
       if (i == qore_program_map.end())
-         return false;
+         return -2;
       i->second->breakProgram();
-      return true;
+      return 0;
    }
 
-   DLLLOCAL void waitForTerminationAndClear(ExceptionSink *xsink) {
+   DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink) {
       removeAllPrograms();
       // wait till all debug calls finished, avoid deadlock as it might be handled in current thread
       debug_program_counter.waitForZero();
@@ -2466,7 +2480,6 @@ public:
    DLLLOCAL int getInterruptedCount() {
       return debug_program_counter.getCount();
    }
-
 };
 
 #endif

@@ -675,7 +675,7 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
-    @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.  
+    @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.
 
     Use @ref Qore::ProgramProgram::getProgramControl "ProgramProbram::getProgramControl" function to attach currently running program
 
@@ -717,12 +717,16 @@ Program::destructor() {
    printd(5, "Program::destructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
    // inherited system object destructor is not executed
    //p->unregisterQoreObject(self, xsink);
+
+   p->waitForTerminationAndDeref(xsink);
+   /*
    if (p->is_unique()) {
       p->waitForTerminationAndDeref(xsink);
    } else {
       // if the underlying object is created from C++ then it has reference and cannot be terminated
-      p->deref();
+      p->deref(xsink);
    }
+   */
 }
 
 //! Parses the string argument and adds the code to the Program object

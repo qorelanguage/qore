@@ -17,7 +17,7 @@ class WebSocketDebugProgramControlHost inherits WebSocketDebugProgramControl {
     public {
         DebugWrapper dw;
     }
-    constructor(*HttpServer::AbstractAuthenticator auth, DebugWrapper n_dw) : WebSocketDebugProgramControl(auth) {
+    constructor(*HttpServer::AbstractAuthenticator auth, DebugWrapper n_dw) : WebSocketDebugProgramControl("qdb-server v1.0", auth) {
         dw = n_dw;
     }
 }

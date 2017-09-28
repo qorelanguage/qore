@@ -22,7 +22,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         WebSocketClient wsc;
         timeout wscTimeout;
 		bool connecting;
-		string serverSignature;
+		string serverName;
         string url;
     }
 
@@ -66,10 +66,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         if (counter.waitForZero(wscTimeout)) {
             throw "QORE-DEBUG", "No response from debug server";
         } else {
-            serverSignature = recData.result;
-            if (serverSignature !~ /^Qore\/DebugServer\/DebugProgramControl:/ ) {
-                throw "QORE-DEBUG", sprintf("Invalid debug server signature: %y", serverSignature);
-            }
+            serverName = recData.result;
         }
 	}
 
@@ -163,7 +160,7 @@ class DebugWrapper {
         try {
             dcl.connect();
             # unconditional connection message
-            stdout.printf("connected to debug server %y (%y); \"help\" for help\n", opt.url, dcl.serverSignature);
+            stdout.printf("connected to debug server %y: %s; \"help\" for help\n", opt.url, dcl.serverName);
             *hash sess = dcl.doCommandImpl(('cmd': 'session'));
             if (sess.result) {
                 string pgmId = sess.result.firstKey();

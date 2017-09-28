@@ -39,12 +39,12 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 
 //! statement information hash as returned by @ref Qore::ProgramBase::getStatementIdInfo() "ProgramBase::getStatementIdInfo()"
-/** 
-  In case of one code object in one file, then @ref file is the set, @ref source is nullptr, @ref offset is 0, 
+/**
+  In case of one code object in one file, then @ref file is the set, @ref source is nullptr, @ref offset is 0,
   and the line number is taken directly from @ref start_line and @ref end_line.
 
-  In case of multiple code objects in one file, then all members are assigned values, in such cases 
-  @ref start_line and @ref end_line refer to the line number within the code object, and the line 
+  In case of multiple code objects in one file, then all members are assigned values, in such cases
+  @ref start_line and @ref end_line refer to the line number within the code object, and the line
   number in the file is calculated by adding with @ref offset, giving the line number offset within source.
 
   @since %Qore 0.8.13
@@ -96,7 +96,7 @@ ProgramControl::destructor() {
    printd(5, "ProgramControl::constructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
    p->unregisterQoreObject(self, xsink);
    // the underlying object is created from C++ then it has reference and cannot be terminated
-   p->deref();
+   p->deref(xsink);
 }
 
 //! Returns the current binary-or'ed parse option mask for the Program object
@@ -188,7 +188,7 @@ static ProgramControl ProgramControl::getProgram() [flags=RET_VALUE_ONLY; dom=DE
    return QoreProgram::getQoreObject(pgm);
 }
 
-//! Get instance of all programs. 
+//! Get instance of all programs.
 /**
    Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId" to get instance
  */
@@ -219,7 +219,7 @@ bool ProgramControl::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 /** see Qore::Program::getGlobalVariable "Program::getGlobalVariable"
  */
 auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists) {
-   if (!p->checkAllowDebugging(xsink)) 
+   if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    TempEncodingHelper t(varname, QCS_DEFAULT, xsink);
    if (!t)

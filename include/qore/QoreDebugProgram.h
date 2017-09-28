@@ -125,15 +125,15 @@ public:
 
    /**
     * Break specific program thread
-    * @return true if program is being debugged
+    * @return 0 if the operation was successful, -1 if the target program does not allow debugging, -2 if xxx
     */
-   DLLEXPORT bool breakProgramThread(QoreProgram *pgm, int tid) const;
+   DLLEXPORT int breakProgramThread(QoreProgram *pgm, int tid) const;
+
    /**
     * Break program, i.e. all threads
-    * @return true if program is being debugged
+    * @return 0 if the operation was successful, -1 if the target program does not allow debugging, -2 if xxx
     */
-   DLLEXPORT bool breakProgram(QoreProgram *pgm) const;
-
+   DLLEXPORT int breakProgram(QoreProgram *pgm) const;
 
    //! remove programs and wait till the program's last thread terminates
    /**
