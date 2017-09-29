@@ -1,7 +1,7 @@
 # this spec file can be used for multiple RPM-based distributions including Fedora, RHEL, *SUSE, and others
 
 %{?_datarootdir: %global mydatarootdir %_datarootdir}
-%{!?_datarootdir: %global mydatarootdir /usr/share}
+%{!?_datarootdir: %global mydatarootdir %{buildroot}/usr/share}
 
 %global module_dir %{_libdir}/qore-modules
 %global user_module_dir %{mydatarootdir}/qore-modules/
@@ -128,7 +128,6 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.14.0
 %{_libdir}/libqore.so.5
-%{module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
@@ -154,8 +153,8 @@ modules.
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
+%{module_dir}
 %doc COPYING.MIT README-LICENSE
-%{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
@@ -199,7 +198,8 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore
 %{_prefix}/include/*
-%{_datarootdir}/qore/Doxyfile.in
+%{mydatarootdir}/qore
+%{mydatarootdir}/qore/*
 
 %package devel-doc
 Summary: C++ API documentation for the qore library

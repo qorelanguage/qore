@@ -684,12 +684,40 @@ public namespace DebugCmdLine {
                         ),
                         'desc': 'thread related commands',
                     ),
-                    'stack': (
+                    'bt': (
                         'desc': 'get stack for current thread',
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             hash data.cmd = 'thread/stack';
                             data.tid = dcl.checkThreadId();
-                            dcl.doCommand(data);
+                            *hash th = dcl.doCommandImpl(data);
+                            if (th) {
+                                stdout.printf("TID %d call stack:\r\n", th.tid);
+                                foreach hash lh in (th.result) {
+                                    string str = " - ";
+                                    if (lh.function.val())
+                                        str += sprintf("%s()", lh.function);
+                                    else
+                                        str += "<unknown function>";
+                                    str += " (";
+                                    string loc;
+                                    if (lh.source)
+                                        loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
+                                    else {
+                                        loc += sprintf("%s", lh.file ?? "<unknown>");
+                                        if (lh.line > 0)
+                                            loc += sprintf(":%d", lh.line);
+                                    }
+                                    if (lh.endline > 0)
+                                        loc += sprintf("-%d", lh.endline + lh.offset);
+                                    if (loc)
+                                        str += loc + " ";
+                                    str += lh.type;
+                                    str += ")";
+                                    stdout.print(str + "\r\n");
+                                }
+                            }
+                            else
+                                stdout.print("server returned no response\r\n");
                         },
                     ),
                     'go': (
@@ -1009,15 +1037,44 @@ public namespace DebugCmdLine {
                     }
                     break;
                 case 'event':
-                    if (data.cmd == 'interrupt') {
-                        if (!exists getContextValue('programId')) {
-                            setContextValue('programId', data.pgmid);
+                    outs = sprintf("%s: server event", data.stamp.format("YYYY-MM-DD HH:mm:SS.xx"));
+                    if (data.pgmid)
+                        outs += sprintf(": pgm %d", data.pgmid);
+                    if (data.tid)
+                        outs += sprintf(": tid %d", data.tid);
+                    if (data.file || data.line || data.statementid) {
+                        outs += " (";
+                        if (data.line) {
+                            if (!data.file.val())
+                                data.file = "<unknown>";
+                            outs += sprintf("%s:%d", data.file, data.line);
                         }
-                        if (!exists getContextValue('threadId')) {
-                            setContextValue('threadId', data.tid);
+                        else if (data.file)
+                            outs += data.file;
+                        if (data.statementid) {
+                            if (data.line || data.file.val())
+                                outs += " ";
+                            outs += sprintf("stmtid %d", data.statementid);
                         }
+                        outs += ")";
                     }
+                    outs += sprintf(": cmd %y: action %y: run %y", data.cmd, data.func, data.runstate);
+                    switch (data.cmd) {
+                        case 'interrupt': {
+                            if (!exists getContextValue('programId')) {
+                                setContextValue('programId', data.pgmid);
+                                outs += " [pgm ctx set]";
+                            }
+                            if (!exists getContextValue('threadId')) {
+                                setContextValue('threadId', data.tid);
+                                outs += " [thread ctx set]";
+                            }
+                        }
+                        break;
+                    }
+                    outs += "\n";
                     break;
+
                 case 'error':
                     if (data.result.ex)
                         outs = sprintf("cmd %y server-side error: %s\n", data.cmd, get_exception_string(data.result.ex));

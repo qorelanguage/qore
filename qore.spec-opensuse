@@ -19,6 +19,7 @@
 
 
 %define module_dir %{_libdir}/qore-modules
+%define user_module_dir %{_datarootdir}/qore-modules/
 Name:           qore
 Version:        0.9
 Release:        0
@@ -188,6 +189,7 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_bindir}/qdbg-server
 %{_bindir}/qdbg-remote
 %{module_dir}
+%{user_module_dir}
 %{_mandir}/man1/qore.1.*
 %{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
