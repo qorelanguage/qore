@@ -21,7 +21,7 @@
 %define module_dir %{_libdir}/qore-modules
 %define user_module_dir %{_datarootdir}/qore-modules/
 Name:           qore
-Version:        0.8.13
+Version:        0.9
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -194,5 +194,3 @@ rm %{buildroot}/%{_libdir}/libqore.la
 %{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
 %changelog
-* Wed Feb 1 2017 David Nichols <david@qore.org> 0.8.13
-- updated version to 0.8.13
