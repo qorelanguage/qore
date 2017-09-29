@@ -274,7 +274,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
         @endverbatim
 
         The following methods support communication with the Salesforce.com Bulk REST API:
-        - @ref dobulkRequest()
+        - @ref doBulkRequest()
         - @ref bulkGet()
         - @ref bulkPost()
         - @ref bulkJobCreate()

@@ -70,7 +70,7 @@ public namespace DebugHandler {
     #! this class represents a connection to a debug server via websocket client
     /** @par Receiving Debug commands from Clients
         The class implements @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()"
-        to handle incomming commands passed as YAML objects to control assigned @ref DebugProgram instance
+        to handle incomming commands passed as YAML objects to control assigned @ref Qore::ProgramControl "ProgramControl" instance
         Such a command is handled on request/response basis.
 
         Unsolicited messages are sent to client asynchronously when an event occurs in the
@@ -115,7 +115,7 @@ public namespace DebugHandler {
             }
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
         connectionClosed() {
