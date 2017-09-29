@@ -53,7 +53,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         DebugCommandLineLocal dcl;
     }
     const CX = ('id': 1);
-    constructor () {
+    constructor () : DebugProgramControl(QORE_ARGV[0]) {
         registerConnection(CX);
     }
     destructor() {
@@ -158,7 +158,6 @@ class DebugWrapper {
             "\n"
             ,
             get_script_name(),
-            0,
             get_script_name()
 
         );

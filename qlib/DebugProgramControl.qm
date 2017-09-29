@@ -78,6 +78,21 @@ public namespace DebugProgramControl {
             self.serverName = serverName;
         }
 
+        #! resume any blocked threads
+        shutdown() {
+            rwlThread.writeLock();
+            on_exit rwlThread.writeUnlock();
+
+            hash qrd = (
+                "data": (
+                    "cmd": "thread/go",
+                ),
+                "cx": {},
+            );
+
+            map $1.queue.push(qrd), ctxThread.iterator(), $1.queue;
+        }
+
         #! register context for new connection
         public registerConnection(hash cx) {
             rwlConnection.writeLock();
@@ -662,8 +677,10 @@ public namespace DebugProgramControl {
         private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
-            hash ctx.queue = new Thread::Queue();
-            ctx.pgmId = pgm.getProgramId();
+            hash ctx = (
+                "queue": new Queue(),
+                "pgmId": pgm.getProgramId(),
+            );
             {
                 rwlThread.writeLock();
                 on_exit rwlThread.writeUnlock();
@@ -867,7 +884,9 @@ public namespace DebugProgramControl {
                         sd.result = result;
                         try {
                             sendDataImpl(cx, sd);
-                        } catch (hash<ExceptionInfo> ex) {
+                        }
+                        catch (hash<ExceptionInfo> ex) {
+                            break;
                         }
                     }
                 }
@@ -917,5 +936,4 @@ public namespace DebugProgramControl {
             handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
         }
     }
-
 }
