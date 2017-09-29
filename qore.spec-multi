@@ -128,7 +128,6 @@ functionality.
 %defattr(-,root,root,-)
 %{_libdir}/libqore.so.5.14.0
 %{_libdir}/libqore.so.5
-%{module_dir}/*qmod
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
@@ -154,8 +153,8 @@ modules.
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
+%{module_dir}
 %doc COPYING.MIT README-LICENSE
-%{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
