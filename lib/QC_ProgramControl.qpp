@@ -38,7 +38,7 @@
 #include "qore/intern/qore_date_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-//! statement information hash as returned by @ref Qore::ProgramBase::getStatementIdInfo() "ProgramBase::getStatementIdInfo()"
+//! statement information hash as returned by @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()"
 /**
   In case of one code object in one file, then @ref file is the set, @ref source is nullptr, @ref offset is 0,
   and the line number is taken directly from @ref start_line and @ref end_line.
@@ -62,7 +62,7 @@ hashdecl StatementInfo {
     int end_line;
 }
 
-//! ProgramBase object provides safe information about a Qore program
+//! The ProgramControl class provides safe information about a Qore program
 /** The object is never instantiated in script but returned by a API function.
     The class provides only safe data non breaking security model.
 
@@ -75,7 +75,7 @@ qclass ProgramControl [arg=QoreProgram* p; dom=DEBUGGER];
 
 //! Throws an exception to prevent objects of this class being created from script
 /**
-    @throw PROGRAM-CREATE-ERROR copying ProgramBase objects is currently unsupported
+    @throw PROGRAM-CREATE-ERROR copying ProgramControl objects is currently unsupported
  */
 ProgramControl::constructor() {
    xsink->raiseException("PROGRAM-COPY-ERROR", "creating ProgramControl objects is currently unsupported");
@@ -169,7 +169,7 @@ int ProgramControl::getProgramId() [flags=RET_VALUE_ONLY;] {
    @see
       @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId"
 
-   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramBase "ProgramBase" instance
+   @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramControl "ProgramControl" instance
 
  */
 static ProgramControl ProgramControl::resolveProgramId(int programId) [dom=DEBUGGER] {

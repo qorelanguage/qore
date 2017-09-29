@@ -206,7 +206,7 @@ abstract DebugProgram::onFunctionEnter(ProgramControl[QoreProgram] pgm, int stat
 //! Executed when a function is exited.
 /**
     @see
-       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
+       @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
 abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
 

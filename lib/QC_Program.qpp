@@ -677,7 +677,7 @@ qclass Program [arg=QoreProgram* p];
 
     @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.
 
-    Use @ref Qore::ProgramProgram::getProgramControl "ProgramProbram::getProgramControl" function to attach currently running program
+    Use the @ref Qore::ProgramControl::getProgram() "ProgramControl::getProgram()" method to attach to the currently running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -1519,7 +1519,7 @@ Program::loadModule(string name) [dom=MODULES] {
 }
 
 //! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
-/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
     If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
 
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
@@ -1548,7 +1548,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
 }
 
 //! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
-/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
     @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
@@ -1585,7 +1585,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
 }
 
 //! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
-/** This function allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
 
@@ -1712,7 +1712,7 @@ Program::importSystemApi() {
 pgm.setThreadInit(sub () { var = 123; });
     @endcode
 
-    @note the code will be run for all new threads, but is not run by this function for the current thread
+    @note the code will be run for all new threads, but is not run by this method for the current thread
 
     @see @ref Qore::set_thread_init()
 
@@ -1764,7 +1764,7 @@ nothing Program::setGlobalVarValue(string name, auto value) {
 
     @return a list of hashes for each resolved name; when matched, each hash element has the following keys:
     - \c desc: a string description of the call which includes the name and the full text call signature
-    - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
+    - \c params: a QoreValueList object that gives the params in a format that can be used by @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
 
     @throw PROGRAM-ERROR thrown if the function cannot be found
 
