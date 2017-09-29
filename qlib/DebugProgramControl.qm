@@ -78,6 +78,11 @@ public namespace DebugProgramControl {
             self.serverName = serverName;
         }
 
+        #! resumes any blocked threads and destroys the object
+        destructor() {
+            shutdown();
+        }
+
         #! resume any blocked threads
         shutdown() {
             rwlThread.writeLock();
