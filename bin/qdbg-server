@@ -50,7 +50,7 @@ class DebugWrapper {
         list dargs;
         hash opt;
         *string fileName;
-        g.split(ARGV, \dargs, \fileName, \ARGV);
+        g.split(cast<list<string>>(ARGV), \dargs, \fileName, \ARGV);
 
         try {
             opt = g.parse2(\dargs);
@@ -63,44 +63,41 @@ class DebugWrapper {
             help();
         }
 
-        logger= new DebugLogger();
-        if (opt.verbose) {
-            logger.verbose = opt.verbose;
-        }
+        logger = new DebugLogger();
+        logger.verbose = opt.verbose + 1;
         try {
-            logger.log(DUV_INFO, "create DebugProgram");
+            logger.log(DUV_DEBUG, "create DebugProgram");
             dpc = new WebSocketDebugProgramControlHost(NOTHING, self);
             dpc.logger = logger;
-            logger.log(DUV_INFO, "create WebSocketDebugHandler");
+            logger.log(DUV_DEBUG, "create WebSocketDebugHandler");
             wsHandler = dpc.getHandler();
             wsHandler.logger = logger;
 
-            logger.log(DUV_INFO, "create HttpServer");
+            logger.log(DUV_DEBUG, "create HttpServer");
             mServer = new HttpServer(\httplog(), \httperr(), logger.verbose>=DUV_DEBUG);
             mServer.setHandler("ws-handler", opt.path ?? "", dpc.getContentType(), wsHandler);
             mServer.setDefaultHandler("ws-handler", wsHandler);
             if (opt.listen) {
                 foreach string l in (opt.listen) {
                     mServer.addListener(l);
+                    logger.log(DUV_INFO, "started debug server listener: %s", l);
                 }
             } else {
-                mServer.addListener(0);
+                int port = mServer.addListener(0).port;
+                logger.log(DUV_DEBUG, "debug server listening on port %d", port);
             }
 
             if (exists fileName) {
                 Program pgm = dpc.createProgram(fileName, opt, ARGV);
                 logger.log(DUV_INFO, "run program");
                 background pgm.run();
-                #sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
             }
             # background or http server uses own thread, loop
-
         } catch (hash<ExceptionInfo> e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
             exit(-1);
         }
     }
-
 
     public httplog(fmt) {
         logger.log(DUV_INFO, vsprintf(fmt, argv));
@@ -117,7 +114,7 @@ class DebugWrapper {
             "  -h     help\n"
             "  -l,--listen=<addr:port>  listener address, multiple listeners is supported, default: %s\n"
             "  -l,--listen=/<sock>      if begins with a \"/\" character then it is assumed to be a UNIX socket\n"
-            "  -p,--path=<path>    URL path for HTTP handler, default is impty string\n"
+            "  -p,--path=<path>    URL path for HTTP handler, default is empty string\n"
             "\n"
             "Example:\n"
             "  %s -v -l 127.0.0.1:10000 -p debug myfile.q -my -program params\n"

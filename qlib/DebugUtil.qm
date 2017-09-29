@@ -63,7 +63,7 @@ public namespace DebugUtil {
         The class support argument parsing for such a case.
 
         Examples:
-        @verbose
+        @verbatim
             (   # GetOpt options
                 'help': 'h,help',
                 'verbose': 'v,verbose',
@@ -73,7 +73,7 @@ public namespace DebugUtil {
             wrapper-prog -v -h xxx xxx          # the first xxx is target program name
             wrapper-prog -v --listen=xxx xxx    # the second xxx is target program name
             wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
-        @endverbose
+        @endverbatim
     **/
     public class WrapperGetOpt inherits GetOpt {
         public constructor(hash options): GetOpt(options) {

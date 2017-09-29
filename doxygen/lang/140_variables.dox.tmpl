@@ -10,14 +10,12 @@
 
     <b>Special %Qore Variables</b>
     |!Variable|!Scope|!Data Type|!Explanation
-    |\c argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
-    |\c Qore::ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
-    |\c Qore::QORE_ARGV|Global|List|complete qore command-line arguments
-    |\c Qore::ENV|Global|Hash|UNIX program environment
+    |\c argv|Local|@ref list_or_nothing_type "*list"|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
+    |\c Qore::ARGV|Global|@ref list_type "list"|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
+    |\c Qore::QORE_ARGV|Global|@ref list_type "list"|complete qore command-line arguments
+    |\c Qore::ENV|Global|@ref hash_type "hash"|UNIX program environment
 
-    @note
-    - As of version 0.5.0, \c STDERR and \c STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
-    - As of version 0.8.4, global variables are namespace members; if a namespace path is not declared for the global variable, then the global variable will reside in the root namespace
+    @note global variables are namespace members; if a namespace path is not declared for the global variable, then the global variable will reside in the root namespace
 
     @section variable_declarations Variable Declarations and Lexical Scope
 

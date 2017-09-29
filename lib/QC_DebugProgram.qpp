@@ -182,46 +182,40 @@ list DebugProgram::getAllPrograms() {
 /**
  *
  */
-DebugProgram::onAttach(ProgramControl[QoreProgram] pgm, reference rs) {
-}
+abstract DebugProgram::onAttach(ProgramControl[QoreProgram] pgm, reference rs);
 
 //! Executed when thread is datached from program being debugged
 /**
  *
  */
-DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs) {
-}
+abstract DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs);
 
 //! Executed when step is performed
 /**
  *
  */
-DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs) {
-}
+abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs);
 
 //! Executed when a function is entered.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-DebugProgram::onFunctionEnter(ProgramControl[QoreProgram] pgm, int statement, reference rs) {
-}
+abstract DebugProgram::onFunctionEnter(ProgramControl[QoreProgram] pgm, int statement, reference rs);
 
 //! Executed when a function is exited.
 /**
     @see
-       @ref Qore::Program::getStatementIdInfo "Program::getStatementIdInfo"
+       @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs) {
-}
+abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
 
 //! Executed when an exception is raised.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs) {
-}
+abstract DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs);
 
 //! Break particular program thread
 /**

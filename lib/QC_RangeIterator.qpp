@@ -83,7 +83,6 @@ RangeIterator::constructor(int start, int stop, int step = 1, auto val) {
 
 //! creates the numerical sequence iterator with the initial arguments
 /** @param stop a final value
-    @param val an optional value to be returned instead of the default integer value
 
     @par Example:
     @code{.py}
@@ -262,7 +261,6 @@ xrange(-3); # 0, -1, -2, -3
     @endcode
 
     @param stop the final value
-    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
@@ -271,7 +269,6 @@ xrange(-3); # 0, -1, -2, -3
     @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
-    @since %Qore 0.8.11.1 this function takes the optional \a val argument
  */
 RangeIterator xrange(int stop) [flags=CONSTANT] {
    ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);

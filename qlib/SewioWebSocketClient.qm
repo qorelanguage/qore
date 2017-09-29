@@ -92,7 +92,7 @@ c.waitForZero();
 
     @section sewiowebsocketclient_relnotes SewioWebSocketClient Module Release History
 
-    @subsection wsc_v1_0 v1.0
+    @subsection swsc_v1_0 v1.0
     - the initial version of the SewioWebSocketClient module
 */
 
