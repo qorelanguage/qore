@@ -92,16 +92,16 @@ class DebugWrapper {
         WrapperGetOpt g(opts);
         # first we need split debug args and program args, 'qore-dbg debug-args program-name program-args'
         # it is not trivial, e.g.
-        #    qore-dbg -v -l xxx xxx     #the second xxx is program name
-        #   qore-dbg -v -h xxx xxx     #the first xxx is program name
-        #    qore-dbg -v --listen=xxx xxx     #the second xxx is program name
-        #    qore-dbg -v --listen xxx xxx     #the second xxx is program name
+        #    qore-dbg -v -l xxx xxx         #the second xxx is program name
+        #    qore-dbg -v -h xxx xxx         #the first xxx is program name
+        #    qore-dbg -v --listen=xxx xxx   #the second xxx is program name
+        #    qore-dbg -v --listen xxx xxx   #the second xxx is program name
         # GetOpt does not support such a parse function
         #
         list dargs;
         hash opt;
         *string fileName;
-        g.split(ARGV, \dargs, \fileName, \ARGV);
+        g.split(cast<list<string>>(ARGV), \dargs, \fileName, \ARGV);
 
         try {
             opt = g.parse2(\dargs);
