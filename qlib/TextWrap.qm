@@ -64,6 +64,7 @@ module TextWrap {
     Loosely related functions:
     - @ref TextWrap::dedent() "dedent()"
     - @ref TextWrap::indent() "indent()"
+    - @ref TextWrap::expandtabs() "expandtabs()"
 
     @section textwraprelnotes TextWrap Module Release Notes
 
@@ -85,29 +86,6 @@ public namespace TextWrap {
 const c_whitespace = "\t\n\013\014\r ";
 
 # -- Private helpers ---------------------------------------------------
-
-string sub expandtabs (string text, int tabsize = 8) {
-    list res = ();
-    int col = 0;
-    foreach string chunk in (regex_extract (text, '([\t\r\n]{1}|[^\t\r\n]+)', Qore::RE_Global)) {
-        switch (chunk) {
-            case "\t":
-                string pad = strmul(' ', tabsize - col % tabsize);
-                res += pad;
-                col += pad.length();
-                break;
-            case "\r":
-            case "\n":
-                res += chunk;
-                col = 0;
-                break;
-            default:
-                res += chunk;
-                col += chunk.length();
-        }
-    }
-    return res.join('');
-}
 
 any sub sum (list la, *any start) {
     map start += $1, la;
@@ -149,6 +127,55 @@ string sub xsprintf (string fmt, hash args) {
             throw "VALUE-ERROR", "incomplete format";
     }
     return vsprintf (fmtlist.join(''), arglist);
+}
+
+# -- Public helpers ----------------------------------------------------
+
+#! Return a copy of the string where all tab characters are expanded using spaces.
+/**
+    Return a copy of the string where all tab characters are replaced by one or more spaces,
+    depending on the current column and the given tab size.  Tab positions occur every tabsize
+    characters (default is 8, giving tab positions at columns 0, 8, 16 and so on).  To expand
+    the string, the current column is set to zero and the string is examined character by character.
+    If the character is a tab (\\t), one or more space characters are inserted in the result until
+    the current column is equal to the next tab position.  (The tab character itself is not copied.)
+    If the character is a newline (\\n) or return (\\r), it is copied and the current column is reset
+    to zero.  Any other character is copied unchanged and the current column is incremented by one
+    regardless of how the character is represented when printed.
+
+    @param text a string to process
+    @param tabsize number of spaces to use in place of one tabulator; default: 8
+    @return a new string with all tabulators changed to spaces
+
+    @par Example:
+    @code{.py}
+        >>> expandtabs("01\t012\t0123\t01234")
+        "01      012     0123    01234"
+        >>> expandtabs("01\t012\t0123\t01234", 4)
+        "01  012 0123    01234"
+    @endcode
+*/
+public string sub expandtabs (string text, int tabsize = 8) {
+    list res = ();
+    int col = 0;
+    foreach string chunk in (regex_extract (text, '([\t\r\n]{1}|[^\t\r\n]+)', Qore::RE_Global)) {
+        switch (chunk) {
+            case "\t":
+                string pad = strmul(' ', tabsize - col % tabsize);
+                res += pad;
+                col += pad.length();
+                break;
+            case "\r":
+            case "\n":
+                res += chunk;
+                col = 0;
+                break;
+            default:
+                res += chunk;
+                col += chunk.length();
+        }
+    }
+    return res.join('');
 }
 
 # -- Public functionality ----------------------------------------------
