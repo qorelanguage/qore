@@ -67,9 +67,6 @@ ASTTree* AstParser::parseFile(const char* filename) {
 
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
-    if (rc) {
-        return nullptr;
-    }
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
@@ -79,6 +76,10 @@ ASTTree* AstParser::parseFile(const char* filename) {
 
     // Destroy scanner.
     yylex_destroy(lexer);
+
+    // If error happened during parsing, don't return the tree.
+    if (rc)
+        return nullptr;
 
     // Release the created tree.
     return tree.release();
@@ -105,15 +106,16 @@ ASTTree* AstParser::parseString(const char* str) {
 
     // Parse.
     int rc = yyparse(lexer, this, tree.get());
-    if (rc) {
-        return nullptr;
-    }
 
     // Destroy buffer.
     yy_delete_buffer(buf, lexer);
 
     // Destroy scanner.
     yylex_destroy(lexer);
+
+    // If error happened during parsing, don't return the tree.
+    if (rc)
+        return nullptr;
 
     // Release the created tree.
     return tree.release();

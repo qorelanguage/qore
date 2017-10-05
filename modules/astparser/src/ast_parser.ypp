@@ -232,7 +232,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token WEAK_ASSIGNMENT ":= operator"
 
 // other
-%token PARSE_OPT_STR "parse option string (no data)"
+%token PARSE_OPTION_BEGIN "parse option beginning"
 
 // scanner errors
 %token INTEGER_OVERFLOW_ERROR "'integer overflow error (cannot represent in a 64-bit signed number)'"
@@ -292,7 +292,8 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token <regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <i4> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
-%token <parseopt> PARSE_OPTION "parse option"
+%token <parseopt> PARSE_OPTION_END "parse option end"
+%token <parseopt> PARSE_OPTION_FULL "full parse option"
 
 %nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE
@@ -389,9 +390,9 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } DOT_KW_IDENTIFIER PARSE_OPTION QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
-%destructor { free($$); } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
-%destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
+%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { free($$); $$ = nullptr; } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
+%destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } $$ = nullptr; } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
 
 %%
 top_level_commands:
@@ -446,12 +447,12 @@ top_level_command:
         ;
 
 parse_option:
-        PARSE_OPTION {
+        PARSE_OPTION_FULL {
             $$ = $1;
             $$->loc = @1;
         }
-        | PARSE_OPTION PARSE_OPT_STR {
-            $$ = $1;
+        | PARSE_OPTION_BEGIN PARSE_OPTION_END {
+            $$ = $2;
             $$->loc.set(@1, @2);
         }
         ;
