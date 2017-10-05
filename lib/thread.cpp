@@ -911,7 +911,9 @@ void thread_pop_frame_boundary() {
 }
 
 static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
-int saveframe = frame;
+#ifdef DEBUG
+   int saveframe = frame;
+#endif
    if (frame < 0)
       return nullptr;
 
