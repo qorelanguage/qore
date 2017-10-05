@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2017 September 21
+" Last Change:	2017 October 2
 
 if version < 600
   syntax clear
@@ -21,7 +21,7 @@ syn keyword qoreKeyword		inherits
 syn keyword qoreKeyword		module
 syn keyword qoreKeyword		namespace
 syn keyword qoreStorageClass 	my our
-syn keyword qoreAccess		private
+syn keyword qoreAccess		private hierarchy internal
 syn keyword qoreAccess		public
 syn keyword qoreStorageClass 	static
 syn keyword qoreKeyword		sub returns
@@ -107,7 +107,7 @@ syn match qoreParseInclude "^%try-module\>"
 syn match qoreParseInclude "^%try-reexport-module\>"
 
 syn match qoreParseDirective "^%allow-bare-refs\>"
-syn match qoreParseDirective "^%allow-debugging\>"
+syn match qoreParseDirective "^%allow-debugger\>"
 syn match qoreParseDirective "^%allow-injection\>"
 syn match qoreParseDirective "^%allow-weak-references\>"
 syn match qoreParseDirective "^%append-include-path\>"
@@ -141,6 +141,7 @@ syn match qoreParseDirective "^%no-class-defs\>"
 syn match qoreParseDirective "^%no-child-restrictions\>"
 syn match qoreParseDirective "^%no-constant-defs\>"
 syn match qoreParseDirective "^%no-database\>"
+syn match qoreParseDirective "^%no-debugging\>"
 syn match qoreParseDirective "^%no-external-access\>"
 syn match qoreParseDirective "^%no-external-info\>"
 syn match qoreParseDirective "^%no-external-process\>"
@@ -179,6 +180,10 @@ syn keyword qoreModule BulkSqlUtil
 syn keyword qoreModule ConnectionProvider
 syn keyword qoreModule CsvUtil
 syn keyword qoreModule DatasourceProvider
+syn keyword qoreModule DebugCmdLine
+syn keyword qoreModule DebugHandler
+syn keyword qoreModule DebugProgramControl
+syn keyword qoreModule DebugUtil
 syn keyword qoreModule Diff
 syn keyword qoreModule FilePoller
 syn keyword qoreModule FixedLengthUtil

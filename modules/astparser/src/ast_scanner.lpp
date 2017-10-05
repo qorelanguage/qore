@@ -209,7 +209,7 @@ bool PO_BROKEN_OPERATORS = false;
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module angle_state
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module try_reexport_module angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -232,188 +232,167 @@ RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
 RTIME           PT(-?[0-9]+[HMSu])+
 
 %%
-^%no-global-vars{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_GLOBAL_VARS); return PARSE_OPTION; }
-^%no-subroutine-defs{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_SUBROUTINE_DEFS); return PARSE_OPTION; }
-^%no-threads{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_THREADS); return PARSE_OPTION; }
-^%no-thread-classes{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CLASSES); return PARSE_OPTION; }
-^%no-thread-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CONTROL); return PARSE_OPTION; }
-^%no-thread-info{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_INFO); return PARSE_OPTION; }
-^%no-top-level{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_NO_TOP_LEVEL_STATEMENTS); return PARSE_OPTION; }
-^%no-class-defs{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_CLASS_DEFS); return PARSE_OPTION; }
-^%no-namespace-defs{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_NAMESPACE_DEFS); return PARSE_OPTION; }
-^%no-external-process{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_PROCESS); return PARSE_OPTION; }
-^%no-external-info{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_INFO); return PARSE_OPTION; }
-^%no-external-access{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_ACCESS); return PARSE_OPTION; }
-^%no-filesystem{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_FILESYSTEM); return PARSE_OPTION; }
-^%no-io{WS}*$                           { yylval->parseopt = new ASTParseOption(APOK_NO_IO); return PARSE_OPTION; }
-^%lockdown{WS}*$                        { yylval->parseopt = new ASTParseOption(APOK_LOCKDOWN); return PARSE_OPTION; }
-^%lock-options{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_LOCK_OPTIONS); return PARSE_OPTION; }
-^%lock-warnings{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_LOCK_WARNINGS); return PARSE_OPTION; }
-^%no-locale-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_LOCALE_CONTROL); return PARSE_OPTION; }
-^%no-process-control{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_PROCESS_CONTROL); return PARSE_OPTION; }
-^%no-constant-defs{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_CONSTANT_DEFS); return PARSE_OPTION; }
-^%no-new{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_NEW); return PARSE_OPTION; }
-^%no-network{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_NETWORK); return PARSE_OPTION; }
-^%no-child-restrictions{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_NO_CHILD_PO_RESTRICTIONS); return PARSE_OPTION; }
-^%allow-injection{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_INJECTION); return PARSE_OPTION; }
-^%no-database{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_NO_DATABASE); return PARSE_OPTION; }
-^%no-gui{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_GUI); return PARSE_OPTION; }
-^%no-terminal-io{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_TERMINAL_IO); return PARSE_OPTION; }
-^%no-modules{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_MODULES); return PARSE_OPTION; }
-^%require-our{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_OUR); return PARSE_OPTION; }
-^%require-types{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_TYPES); return PARSE_OPTION; }
-^%require-prototypes{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_PROTOTYPES); return PARSE_OPTION; }
-^%strict-args{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_STRICT_ARGS); return PARSE_OPTION; }
-^%allow-bare-refs{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_BARE_REFS); return PARSE_OPTION; }
-^%require-dollar{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_DOLLAR); return PARSE_OPTION; }
-^%assume-local{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_ASSUME_LOCAL); return PARSE_OPTION; }
-^%assume-global{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_ASSUME_GLOBAL); return PARSE_OPTION; }
-^%new-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_NEW_STYLE); return PARSE_OPTION; }
-^%old-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_OLD_STYLE); return PARSE_OPTION; }
-^%perl-bool-eval{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_PERL_BOOLEAN_EVAL); return PARSE_OPTION; }
-^%strict-bool-eval{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_STRICT_BOOLEAN_EVAL); return PARSE_OPTION; }
-^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION; }
-^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION; }
-^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION; }
-^%allow-weak-references{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_ALLOW_WEAK_REFERENCES); return PARSE_OPTION; }
-^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION; }
-^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION; }
-^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION; }
-^%broken-int-assignments{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_BROKEN_INT_ASSIGNMENTS); return PARSE_OPTION; }
-^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_OPERATORS); return PARSE_OPTION; }
-^%correct-list-parsing{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LIST_PARSING); return PARSE_OPTION; }
-^%correct-logic-precedence{WS}*$        { PO_BROKEN_LOGIC_PRECEDENCE = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOGIC_PRECEDENCE); return PARSE_OPTION; }
-^%correct-loop-statement{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOOP_STATEMENT); return PARSE_OPTION; }
-^%correct-int-assignments{WS}*$         { yylval->parseopt = new ASTParseOption(APOK_CORRECT_INT_ASSIGNMENTS); return PARSE_OPTION; }
-^%correct-operators{WS}*$               { PO_BROKEN_OPERATORS = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_OPERATORS); return PARSE_OPTION; }
-^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION; }
-^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION; }
-^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION; }
-^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION; }
-^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION; }
-^%append-include-path{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); BEGIN(append_path_state); return PARSE_OPTION; }
+^%no-global-vars{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_GLOBAL_VARS); return PARSE_OPTION_FULL; }
+^%no-subroutine-defs{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_SUBROUTINE_DEFS); return PARSE_OPTION_FULL; }
+^%no-threads{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_THREADS); return PARSE_OPTION_FULL; }
+^%no-thread-classes{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CLASSES); return PARSE_OPTION_FULL; }
+^%no-thread-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_CONTROL); return PARSE_OPTION_FULL; }
+^%no-thread-info{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_THREAD_INFO); return PARSE_OPTION_FULL; }
+^%no-top-level{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_NO_TOP_LEVEL_STATEMENTS); return PARSE_OPTION_FULL; }
+^%no-class-defs{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_CLASS_DEFS); return PARSE_OPTION_FULL; }
+^%no-namespace-defs{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_NAMESPACE_DEFS); return PARSE_OPTION_FULL; }
+^%no-external-process{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_PROCESS); return PARSE_OPTION_FULL; }
+^%no-external-info{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_INFO); return PARSE_OPTION_FULL; }
+^%no-external-access{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_EXTERNAL_ACCESS); return PARSE_OPTION_FULL; }
+^%no-filesystem{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_FILESYSTEM); return PARSE_OPTION_FULL; }
+^%no-io{WS}*$                           { yylval->parseopt = new ASTParseOption(APOK_NO_IO); return PARSE_OPTION_FULL; }
+^%lockdown{WS}*$                        { yylval->parseopt = new ASTParseOption(APOK_LOCKDOWN); return PARSE_OPTION_FULL; }
+^%lock-options{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_LOCK_OPTIONS); return PARSE_OPTION_FULL; }
+^%lock-warnings{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_LOCK_WARNINGS); return PARSE_OPTION_FULL; }
+^%no-locale-control{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_NO_LOCALE_CONTROL); return PARSE_OPTION_FULL; }
+^%no-process-control{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_NO_PROCESS_CONTROL); return PARSE_OPTION_FULL; }
+^%no-constant-defs{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_NO_CONSTANT_DEFS); return PARSE_OPTION_FULL; }
+^%no-new{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_NEW); return PARSE_OPTION_FULL; }
+^%no-network{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_NETWORK); return PARSE_OPTION_FULL; }
+^%no-child-restrictions{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_NO_CHILD_PO_RESTRICTIONS); return PARSE_OPTION_FULL; }
+^%allow-injection{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_INJECTION); return PARSE_OPTION_FULL; }
+^%no-database{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_NO_DATABASE); return PARSE_OPTION_FULL; }
+^%no-gui{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_NO_GUI); return PARSE_OPTION_FULL; }
+^%no-terminal-io{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_TERMINAL_IO); return PARSE_OPTION_FULL; }
+^%no-modules{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_NO_MODULES); return PARSE_OPTION_FULL; }
+^%require-our{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_OUR); return PARSE_OPTION_FULL; }
+^%require-types{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_TYPES); return PARSE_OPTION_FULL; }
+^%require-prototypes{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_PROTOTYPES); return PARSE_OPTION_FULL; }
+^%strict-args{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_STRICT_ARGS); return PARSE_OPTION_FULL; }
+^%allow-bare-refs{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_BARE_REFS); return PARSE_OPTION_FULL; }
+^%require-dollar{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_REQUIRE_DOLLAR); return PARSE_OPTION_FULL; }
+^%assume-local{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_ASSUME_LOCAL); return PARSE_OPTION_FULL; }
+^%assume-global{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_ASSUME_GLOBAL); return PARSE_OPTION_FULL; }
+^%new-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_NEW_STYLE); return PARSE_OPTION_FULL; }
+^%old-style{WS}*$                       { yylval->parseopt = new ASTParseOption(APOK_OLD_STYLE); return PARSE_OPTION_FULL; }
+^%perl-bool-eval{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_PERL_BOOLEAN_EVAL); return PARSE_OPTION_FULL; }
+^%strict-bool-eval{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_STRICT_BOOLEAN_EVAL); return PARSE_OPTION_FULL; }
+^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION_FULL; }
+^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION_FULL; }
+^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION_FULL; }
+^%allow-weak-references{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_ALLOW_WEAK_REFERENCES); return PARSE_OPTION_FULL; }
+^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION_FULL; }
+^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION_FULL; }
+^%broken-loop-statement{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOOP_STATEMENT); return PARSE_OPTION_FULL; }
+^%broken-int-assignments{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_BROKEN_INT_ASSIGNMENTS); return PARSE_OPTION_FULL; }
+^%broken-operators{WS}*$                { PO_BROKEN_OPERATORS = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_OPERATORS); return PARSE_OPTION_FULL; }
+^%correct-list-parsing{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LIST_PARSING); return PARSE_OPTION_FULL; }
+^%correct-logic-precedence{WS}*$        { PO_BROKEN_LOGIC_PRECEDENCE = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOGIC_PRECEDENCE); return PARSE_OPTION_FULL; }
+^%correct-loop-statement{WS}*$          { yylval->parseopt = new ASTParseOption(APOK_CORRECT_LOOP_STATEMENT); return PARSE_OPTION_FULL; }
+^%correct-int-assignments{WS}*$         { yylval->parseopt = new ASTParseOption(APOK_CORRECT_INT_ASSIGNMENTS); return PARSE_OPTION_FULL; }
+^%correct-operators{WS}*$               { PO_BROKEN_OPERATORS = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_OPERATORS); return PARSE_OPTION_FULL; }
+^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION_FULL; }
+^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION_FULL; }
+^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION_FULL; }
+^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION_FULL; }
+^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION_FULL; }
+^%append-include-path{WS}+              { BEGIN(append_path_state); return PARSE_OPTION_BEGIN; }
 <append_path_state>[^\n\r]+             {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<append_path_state><<EOF>>              {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%append-module-path{WS}*$              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); return PARSE_OPTION; }
-^%append-module-path{WS}+               { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); BEGIN(append_module_state); return PARSE_OPTION; }
+<append_path_state><<EOF>>              { AST_FLEX_DO_EOF }
+^%append-module-path{WS}*$              { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH); return PARSE_OPTION_FULL; }
+^%append-module-path{WS}+               { BEGIN(append_module_state); return PARSE_OPTION_BEGIN; }
 <append_module_state>[^\n\r]+           {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_APPEND_MODULE_PATH, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<append_module_state><<EOF>>            {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%set-time-zone{WS}*$                   { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); return PARSE_OPTION; }
-^%set-time-zone{WS}+                    { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); BEGIN(set_zone); return PARSE_OPTION; }
+<append_module_state><<EOF>>            { AST_FLEX_DO_EOF }
+^%set-time-zone{WS}*$                   { yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE); return PARSE_OPTION_FULL; }
+^%set-time-zone{WS}+                    { BEGIN(set_zone); return PARSE_OPTION_BEGIN; }
 <set_zone>[^\n\r]+                      {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_SET_TIME_ZONE, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<set_zone><<EOF>>                       {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%enable-all-warnings{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_ENABLE_ALL_WARNINGS); return PARSE_OPTION; }
-^%disable-all-warnings{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_DISABLE_ALL_WARNINGS); return PARSE_OPTION; }
-^%disable-warning{WS}*$                 { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); return PARSE_OPTION; }
-^%disable-warning{WS}+                  { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); BEGIN(disable_warning); return PARSE_OPTION; }
+<set_zone><<EOF>>                       { AST_FLEX_DO_EOF }
+^%enable-all-warnings{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_ENABLE_ALL_WARNINGS); return PARSE_OPTION_FULL; }
+^%disable-all-warnings{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_DISABLE_ALL_WARNINGS); return PARSE_OPTION_FULL; }
+^%disable-warning{WS}*$                 { yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING); return PARSE_OPTION_FULL; }
+^%disable-warning{WS}+                  { BEGIN(disable_warning); return PARSE_OPTION_BEGIN; }
 <disable_warning>[^\n\r]+               {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
                                             const char* trimmed = trim_inplace(yytext);
                                             if (trimmed)
-                                                po->str = trimmed;
+                                                yylval->parseopt = new ASTStringParseOption(APOK_DISABLE_WARNING, trimmed);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<disable_warning><<EOF>>                {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%enable-warning{WS}*$                  { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); return PARSE_OPTION; }
-^%enable-warning{WS}+                   { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); BEGIN(enable_warning); return PARSE_OPTION; }
+<disable_warning><<EOF>>                { AST_FLEX_DO_EOF }
+^%enable-warning{WS}*$                  { yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING); return PARSE_OPTION_FULL; }
+^%enable-warning{WS}+                   { BEGIN(enable_warning); return PARSE_OPTION_BEGIN; }
 <enable_warning>[^\n\r]+                {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
                                             const char* trimmed = trim_inplace(yytext);
                                             if (trimmed)
-                                                po->str = trimmed;
+                                                yylval->parseopt = new ASTStringParseOption(APOK_ENABLE_WARNING, trimmed);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<enable_warning><<EOF>>                 {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%exec-class{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); return PARSE_OPTION; }
-^%exec-class{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); BEGIN(exec_class_state); return PARSE_OPTION; }
+<enable_warning><<EOF>>                 { AST_FLEX_DO_EOF }
+^%exec-class{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS); return PARSE_OPTION_FULL; }
+^%exec-class{WS}+                       { BEGIN(exec_class_state); return PARSE_OPTION_BEGIN; }
 <exec_class_state>{
     [^\n\r]+                            {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
                                             const char* trimmed = trim_inplace(yytext);
                                             if (trimmed)
-                                                po->str = trimmed;
+                                                yylval->parseopt = new ASTStringParseOption(APOK_EXEC_CLASS, trimmed);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
-^%try-reexport-module{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_TRY_REEXPORT_MODULE); return PARSE_OPTION; }
-^%try-reexport-module{WS}+              { yylval->parseopt = new ASTStringParseOption(APOK_TRY_REEXPORT_MODULE); BEGIN(try_module); return PARSE_OPTION; }
-^%try-module{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_TRY_MODULE); return PARSE_OPTION; }
-^%try-module{WS}+                       { yylval->parseopt = new ASTStringParseOption(APOK_TRY_MODULE); BEGIN(try_module); return PARSE_OPTION; }
-<try_module>[^\n\r]+                    {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+^%try-reexport-module{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_TRY_REEXPORT_MODULE); return PARSE_OPTION_FULL; }
+^%try-reexport-module{WS}+              { BEGIN(try_reexport_module); return PARSE_OPTION_BEGIN; }
+<try_reexport_module>[^\n\r]+           {
+                                            yylval->parseopt = new ASTStringParseOption(APOK_TRY_REEXPORT_MODULE, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<try_module><<EOF>>                     {
-                                            AST_FLEX_DO_EOF
+<try_reexport_module><<EOF>>            { AST_FLEX_DO_EOF }
+^%try-module{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_TRY_MODULE); return PARSE_OPTION_FULL; }
+^%try-module{WS}+                       { BEGIN(try_module); return PARSE_OPTION_BEGIN; }
+<try_module>[^\n\r]+                    {
+                                            yylval->parseopt = new ASTStringParseOption(APOK_TRY_MODULE, yytext);
+                                            BEGIN(INITIAL);
+                                            return PARSE_OPTION_END;
                                         }
-^%endtry{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_ENDTRY); return PARSE_OPTION; }
-^%requires{WS}*$                        { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); return PARSE_OPTION; }
-^%requires                              { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); BEGIN(requires); return PARSE_OPTION; }
+<try_module><<EOF>>                     { AST_FLEX_DO_EOF }
+^%endtry{WS}*$                          { yylval->parseopt = new ASTParseOption(APOK_ENDTRY); return PARSE_OPTION_FULL; }
+^%requires{WS}*$                        { yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES); return PARSE_OPTION_FULL; }
+^%requires                              { BEGIN(requires); return PARSE_OPTION_BEGIN; }
 <requires>[^\n\r]+                      {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
                                             const char* trimmed = trim_inplace(yytext);
                                             if (trimmed)
-                                                po->str = trimmed;
+                                                yylval->parseopt = new ASTStringParseOption(APOK_REQUIRES, trimmed);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<requires><<EOF>>                       {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%module-cmd{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); return PARSE_OPTION; }
-^%module-cmd                            { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); BEGIN(module_cmd); return PARSE_OPTION; }
+<requires><<EOF>>                       { AST_FLEX_DO_EOF }
+^%module-cmd{WS}*$                      { yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD); return PARSE_OPTION_FULL; }
+^%module-cmd                            { BEGIN(module_cmd); return PARSE_OPTION_BEGIN; }
 <module_cmd>{WS}*                       /* ignore white space */
 <module_cmd>[^\n\r]+                    {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_MODULE_CMD, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<module_cmd><<EOF>>                     {
-                                            AST_FLEX_DO_EOF
-                                        }
-^%define{WS}*$                          { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); return PARSE_OPTION; }
-^%define{WS}+                           { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); BEGIN(p_def); return PARSE_OPTION; }
+<module_cmd><<EOF>>                     { AST_FLEX_DO_EOF }
+^%define{WS}*$                          { yylval->parseopt = new ASTStringParseOption(APOK_DEFINE); return PARSE_OPTION_FULL; }
+^%define{WS}+                           { BEGIN(p_def); return PARSE_OPTION_BEGIN; }
 <p_def>{WS}*                            /* ignore white space */
 <p_def>[^\n\r]+                         {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_DEFINE, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
+<p_def><<EOF>>                          { AST_FLEX_DO_EOF }
 ^%ifdef{WS}*$                           { /*parse_error("missing argument to %%ifdef");*/ }
 ^%ifdef{WS}+                            BEGIN(p_ifdef);
 <p_ifdef>{
@@ -430,9 +409,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             }*/
                                             BEGIN(INITIAL);
                                         }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 ^%ifndef{WS}*$                          { /*parse_error("missing argument to %%ifndef");*/ }
 ^%ifndef{WS}+                           BEGIN(p_ifndef);
@@ -450,9 +427,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
                                             }*/
                                             BEGIN(INITIAL);
                                         }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 ^%else{WS}*$                            {
                                             /*if (!parse_cond_else()) {
@@ -487,9 +462,7 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #endif
                                         }
     \n                                  /* ignore */
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 <p_skip_to_endif_or_else>{
     ^%else{WS}*$                        {
@@ -522,26 +495,19 @@ RTIME           PT(-?[0-9]+[HMSu])+
 #endif
                                         }
     \n                                  /* ignore */
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 ^%endif{WS}*$                           {} /* parse_cond_pop(); */
-^%include{WS}*$                         { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); return PARSE_OPTION; }
-^%include{WS}+                          { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); BEGIN(incl); return PARSE_OPTION; }
+^%include{WS}*$                         { yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE); return PARSE_OPTION_FULL; }
+^%include{WS}+                          { BEGIN(incl); return PARSE_OPTION_BEGIN; }
 <incl>{WS}*                             /* ignore white space */
 <incl>[^\n\r]+                          {
-                                            ASTStringParseOption* po = static_cast<ASTStringParseOption*>(yylval->parseopt);
-                                            po->str = yytext;
+                                            yylval->parseopt = new ASTStringParseOption(APOK_INCLUDE, yytext);
                                             BEGIN(INITIAL);
-                                            return PARSE_OPT_STR;
+                                            return PARSE_OPTION_END;
                                         }
-<incl><<EOF>>                           {
-                                            AST_FLEX_DO_EOF
-                                        }
-<INITIAL><<EOF>>                        {
-                                            AST_FLEX_DO_EOF
-                                        }
+<incl><<EOF>>                           { AST_FLEX_DO_EOF }
+<INITIAL><<EOF>>                        { AST_FLEX_DO_EOF }
 \"                                      { yylval->String = new std::string; yylloc->saveFirst(); BEGIN(str_state); }
 <str_state>{
     \"                                  yylloc->restoreFirst(); BEGIN(INITIAL); return QUOTED_WORD;
@@ -784,9 +750,7 @@ case                                    BEGIN(case_state); return TOK_CASE;
     \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
     {WS}+                               /* ignore */
     [^\/]                               { yyless(0); BEGIN(INITIAL); }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 default                                 return TOK_DEFAULT;
 inherits                                return TOK_INHERITS;
@@ -1068,17 +1032,13 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
 \/\*                                    BEGIN(block_comment1);
 <block_comment1>{
     \*                                  BEGIN(block_comment2);
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
     [^\*]                               // ignore other input
 }
 <block_comment2>{
     \/                                  BEGIN(INITIAL);
     \*                                  // ignore
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
     [^\/\*]                             BEGIN(block_comment1);
 }
 <regex_googleplex>{
@@ -1089,18 +1049,14 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
     \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
     {WSNL}+                             /* ignore whitespace */
     [^sxmt\/]                           { BEGIN(INITIAL); return NO_REGEX_AFTER_MATCH_ERROR; }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 <regex_negative_universe>{
     m\/                                 { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
     \/                                  { yylval->regex = new ASTRegexExpression; yylloc->saveFirst(); BEGIN(regex_state); }
     {WSNL}+                             /* ignore whitespace */
     [^m\/]                              { BEGIN(INITIAL); return NO_REGEX_AFTER_NOTMATCH_ERROR; }
-    <<EOF>>                             {
-                                            AST_FLEX_DO_EOF
-                                        }
+    <<EOF>>                             { AST_FLEX_DO_EOF }
 }
 =\~                                     { BEGIN(regex_googleplex); return REGEX_MATCH; }
 \!\~                                    { BEGIN(regex_negative_universe); return REGEX_NMATCH; }
