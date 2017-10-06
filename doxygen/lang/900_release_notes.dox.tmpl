@@ -5,10 +5,11 @@
     @section qore_08131 Qore 0.8.13.1
 
     @par Release Summary
-    Bugfix release
+    Bugfix release; see details below
 
     @subsection qore_08131_bug_fixes Bug Fixes in Qore
-    - AstParser module fixes:
+    - fixed a bug in \c qpp generating hashdecl code in a specific namespace (<a href="https://github.com/qorelanguage/qore/issues/2255">issue 2255</a>)
+    - \c astparser module fixes:
       - fixed memory leaks in \c AstParser::parseFile() and \c AstParser::parseString() methods (<a href="https://github.com/qorelanguage/qore/issues/2261">issue 2261</a>)
       - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
 
@@ -163,7 +164,7 @@
       - <a href="../../modules/TextWrap/html/index.html">TextWrap</a>
     - new access modifiers: <tt><b>private:internal</b></tt> (providing strong encapsulation of the following declaration(s)) and <tt><b>private:hierarchy</b></tt> (which is equivalent to <tt><b>private</b></tt>; <a href="https://github.com/qorelanguage/qore/issues/1197">issue 1197</a>)
     - new parse options and directives:
-      - @ref allow-debugger" %allow-debugger": allows running debug commands
+      - @ref allow-debugger "%allow-debugger": allows running debug commands
       - @ref no-debugging "%no-debugging": forbids debugging of the current @ref Qore::Program "Program" object
       - @ref allow-weak-references "%allow-weak-references": allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"
       - @ref broken-loop-statement "%broken-loop-statement": allows @ref continue "continue" and @ref break "break" statements to be accepted anywhere in the source and behave like a @ref return "return" statement
