@@ -691,7 +691,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                 if (subtype == "auto")
                     qc = on ? "autoHashOrNothingTypeInfo" : "autoHashTypeInfo";
                 else {
-                    int i = subtype.rfind(':');
+                    size_t i = subtype.rfind(':');
                     if (i != std::string::npos)
                         subtype.erase(0, i + 1);
                     // generate type name
