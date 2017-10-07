@@ -255,6 +255,33 @@ public namespace DebugCmdLine {
                         },
                     ),
 
+                    'cmd': (
+                        'desc': 'send a command to the server and show the output',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            #printf("path: %y args: %y\r\n", path, args);
+                            hash data;
+                            try {
+                                foreach string str in (args) {
+                                    any v = parse_to_qore_value(str);
+                                    if (v.typeCode() == NT_STRING && !data) {
+                                        data.cmd = v;
+                                        continue;
+                                    }
+                                    if (v.typeCode() != NT_HASH)
+                                        throw "CMD-ARG-ERROR", sprintf("arg must be a hash; got type %y instead", v.type());
+                                    data += v;
+                                }
+                                if (!data)
+                                    stdout.printf("syntax: cmd <hash>\r\n");
+                                else {
+                                    dcl.doCommand(data);
+                                }
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                stdout.printf("ERROR: cmd cannot be parsed: %s: %s\r\n", ex.err, ex.desc);
+                            }
+                        },
+                    ),
                     'session': (
                         'desc': 'get list of debugged programs and stopped threads',
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -656,6 +683,11 @@ public namespace DebugCmdLine {
                                         dcl.doCommand(data);
                                     },
                                 ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'thread/local//list';
+                                    data.tid = dcl.checkThreadId();
+                                    dcl.doCommand(data);
+                                },
                                 'desc': 'get/set global variable',
                             ),
                             'debug': (
@@ -1081,7 +1113,14 @@ public namespace DebugCmdLine {
                     else
                         outs = sprintf("cmd %y server-side error: %s: %s\n", data.cmd, data.result.err, data.result.desc);
                     break;
+
+                case 'thread':
+                    outs = sprintf("%y: thread %d\n", data.cmd, data.tid);
+                    if (data.result)
+                        outs += sprintf("%N\n", data.result);
+                    break;
                 }
+
                 if (!exists outs)
                     outs = sprintf("%N", data);
             } else {
