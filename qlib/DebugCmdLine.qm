@@ -282,7 +282,7 @@ public namespace DebugCmdLine {
                             }
                         },
                     ),
-                    'fr': (
+                    'frame': (
                         'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
                             hash data.cmd = 'thread/stack';
                             data.tid = dcl.checkThreadId();
@@ -826,6 +826,9 @@ public namespace DebugCmdLine {
                     'stack': (
                         'alias': 'bt',
                     ),
+                    'backtrace': (
+                        'alias': 'bt',
+                    ),
                     'bt': (
                         'desc': 'get stack for current thread',
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -1029,7 +1032,7 @@ public namespace DebugCmdLine {
             result.path = ();
             hash c = commands;
             last_param = 0;
-            while (args.size() > 0) {
+            while (args) {
                 if (findHelp && exists c."*") {
                     # skip
                     c = c."*";
@@ -1037,13 +1040,30 @@ public namespace DebugCmdLine {
                     # static enum
                     # check for partial matches
                     if (c.">" && !c.">"{args[0]}) {
-                        list pm = map $1, keys c.">", $1.substr(0, args[0].size()) == args[0];
+                        list pm;
+                        string arg;
+                        # scan through the list and see if we have one possible match
+                        foreach string k in (keys c.">") {
+                            if (k.substr(0, args[0].size()) == args[0]) {
+                                pm += k;
+                                if (!exists arg)
+                                    arg = k;
+                                else
+                                    # check if the second match is the same as the first through aliases
+                                    # and only reset the argument if it is different
+                                    if (c.">"{k}.alias != arg && c.">"{arg}.alias != k)
+                                        arg = "";
+                            }
+                        }
+
                         if (pm) {
                             # if there is only one variant, then use it immediately
-                            if (pm.size() == 1)
-                                args[0] = pm[0];
-                            else if (args.size() == 1) # only set variants on the last argument
-                                result.variants = map {$1: c.">".$1}, pm, !c.">".$1.alias;
+                            if (arg.val())
+                                args[0] = arg;
+                            else {
+                                if (args.size() == 1) # only set variants on the last argument
+                                    result.variants = map {$1: c.">".$1}, pm, !c.">".$1.alias;
+                            }
                         }
                     }
                     if (exists c.">"{args[0]}) {
