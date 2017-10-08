@@ -320,7 +320,19 @@ public namespace DebugCmdLine {
                         'desc': 'get list of debugged programs and stopped threads',
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             hash data.cmd = 'session';
-                            dcl.doCommand(data);
+                            *hash sh = dcl.doCommandImpl(data).result;
+                            if (sh) {
+                                foreach hash ph in (sh.pairIterator()) {
+                                    if (ph.value.interrupted) {
+                                        stdout.printf("+ %y (program %d, %d blocked thread%s)\r\n", ph.value.scriptName, ph.key, ph.value.interrupted.size(), ph.value.interrupted.size() == 1 ? "" : "s");
+                                        stdout.printf("  - blocked TID%s: %s\r\n", ph.value.interrupted.size() == 1 ? "" : "s", (foldl $1 + ", " + $2, ph.value.interrupted));
+                                    }
+                                    else
+                                        stdout.printf("+ %y (program %d, no blocked threads)\r\n", ph.value.scriptName, ph.key);
+                                }
+                            }
+                            else
+                                stdout.printf("no programs are currently being debugged\r\n");
                         },
                     ),
                     'program': (
@@ -756,21 +768,34 @@ public namespace DebugCmdLine {
                                         return sd.result ?? ();
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'thread/local/'+pop path+'/';
+                                        string var = pop path;
+                                        hash data.cmd = 'thread/local/'+var+'/';
                                         data.tid = dcl.checkThreadId();
                                         if (args) {
                                             data.cmd += 'set';
                                             data.value = dcl.parseValue(args);
+                                            dcl.doCommand(data);
+                                            stdout.printf("%s: value set to: %y\r\n", var, data.value);
                                         } else {
                                             data.cmd += 'get';
+                                            *hash vh = dcl.doCommandImpl(data);
+                                            if (!vh) {
+                                                stdout.printf("there is no local var %y; use \"thread local\" to list local vars in this frame\r\n", var);
+                                            }
+                                            else {
+                                                stdout.printf("%s: type %y\r\nvalue: %y\r\n", var, vh.result.type, vh.result.value);
+                                            }
                                         }
-                                        dcl.doCommand(data);
                                     },
                                 ),
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'thread/local//list';
                                     data.tid = dcl.checkThreadId();
-                                    dcl.doCommand(data);
+                                    *list tl = dcl.doCommandImpl(data).result;
+                                    if (tl)
+                                        stdout.printf("local vars: %s\r\n", (foldl $1 + ", " + $2, tl));
+                                    else
+                                        stdout.print("no local vars in this frame\r\n");
                                 },
                                 'desc': 'get/set global variable',
                             ),
@@ -1256,10 +1281,14 @@ public namespace DebugCmdLine {
                     break;
 
                 case 'thread':
+                    /*
                     outs = sprintf("%y: thread %d\n", data.cmd, data.tid);
                     if (data.result)
                         outs += sprintf("%N\n", data.result);
                     break;
+                    */
+                    # no output for "thread" messages
+                    return;
                 }
 
                 if (!exists outs)
