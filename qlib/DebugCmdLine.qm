@@ -327,8 +327,8 @@ public namespace DebugCmdLine {
                             if (sh) {
                                 foreach hash ph in (sh.pairIterator()) {
                                     if (ph.value.interrupted) {
-                                        stdout.printf("+ %y (program %d, %d blocked thread%s)\r\n", ph.value.scriptName, ph.key, ph.value.interrupted.size(), ph.value.interrupted.size() == 1 ? "" : "s");
-                                        stdout.printf("  - blocked TID%s: %s\r\n", ph.value.interrupted.size() == 1 ? "" : "s", (foldl $1 + ", " + $2, ph.value.interrupted));
+                                        stdout.printf("+ %y (program %d, %d blocked %s)\r\n", ph.value.scriptName, ph.key, ph.value.interrupted.size(), plural(ph.value.interrupted.size(), "thread"));
+                                        stdout.printf("  - blocked %s: %s\r\n", plural(ph.value.interrupted.size(), "TID"), (foldl $1 + ", " + $2, ph.value.interrupted));
                                     }
                                     else
                                         stdout.printf("+ %y (program %d, no blocked threads)\r\n", ph.value.scriptName, ph.key);
