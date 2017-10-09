@@ -181,7 +181,7 @@ public namespace DebugCmdLine {
                                 int last_param;
                                 # get full path list
                                 list fl = path + args;
-                                *hash cmd = dcl.findCmd(fl, True, \last_param);
+                                *hash cmd = dcl.findCmd(fl, True, NOTHING, \last_param);
                                 # see if we have an unknown command or option
                                 if (last_param < fl.size()) {
                                     if (!last_param)
@@ -197,9 +197,12 @@ public namespace DebugCmdLine {
                                 if (cmd.cmd) {
                                     printf("%s: %s\n", full_cmd, cmd.cmd.desc);
                                 }
+                                if (cmd.cmd.aliases) {
+                                    printf("Aliases of %s: %s\n", cmd.cmd.name, sort(cmd.cmd.aliases).join(', '));
+                                }
                                 cmd = dcl.findCmd(fl + '', True);
                                 if (cmd.variants.typeCode()==NT_HASH) {
-                                    printf("\nSubcommand list: %s\n", (foldl $1 + ", " + $2, sort(keys cmd.variants ?? ())));
+                                    printf("\nSubcommand list: %s\n", dcl.listVariantCmds(cmd.variants));
                                 }
                             },
                         ),
@@ -207,7 +210,7 @@ public namespace DebugCmdLine {
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             shift path; # remove help arg
                             *hash cmd = dcl.findCmd(list('') , True);
-                            printf("Command root list: %s\n", sort(keys cmd.variants ?? ()).join(' '));
+                            printf("Command root list: %s\n", dcl.listVariantCmds(cmd.variants));
                         },
                     ),
                     'version': (
@@ -298,7 +301,7 @@ public namespace DebugCmdLine {
                                 dcl.doCommand(data);
                             }
                             else if (args.size() > 1) {
-                                stdout.printf("\"fr\": takes maximum one arugment to set the current frame; got %d arguments\r\n", args.size());
+                                stdout.printf("\"fr\": takes maximum one argument to set the current frame; got %d arguments\r\n", args.size());
                             }
                             else {
                                 if (args[0] =~ /[^0-9]/) {
@@ -534,7 +537,7 @@ public namespace DebugCmdLine {
                                 }
                             }
                             else if (args.size() > 1) {
-                                stdout.printf("\"pgm\": takes maximum one arugment to set the current program; got %d arguments\r\n", args.size());
+                                stdout.printf("\"pgm\": takes maximum one argument to set the current program; got %d arguments\r\n", args.size());
                             }
                             else {
                                 if (args[0] =~ /[^0-9]/) {
@@ -797,7 +800,7 @@ public namespace DebugCmdLine {
                                     else
                                         stdout.print("no local vars in this frame\r\n");
                                 },
-                                'desc': 'get/set global variable',
+                                'desc': 'get/set local variable',
                             ),
                             'debug': (
                                 '*': (
@@ -835,7 +838,7 @@ public namespace DebugCmdLine {
                                 }
                             }
                             else if (args.size() > 1) {
-                                stdout.printf("\"thread\": takes maximum one arugment to set the current TID; got %d arguments\r\n", args.size());
+                                stdout.printf("\"thread\": takes maximum one argument to set the current TID; got %d arguments\r\n", args.size());
                             }
                             else {
                                 if (args[0] =~ /[^0-9]/) {
@@ -1052,7 +1055,21 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public *hash findCmd(list args, bool findHelp = False, *reference<int> last_param) {  /* public because it is needed from closure */
+        public string listVariantCmds(hash v) {
+            list r;
+            foreach string k in (sort(keys(v))) {
+                if (!exists v{k}.aliasOf) {
+                    if (v{k}.aliases) {
+                        push r, sprintf("%s (%s)", k, sort(v{k}.aliases).join(', '));
+                    } else {
+                        push r, k;
+                    }
+                }
+            }
+            return r.join(', ');
+        }
+
+        public *hash findCmd(list args, bool findHelp = False, bool expandCmd = False, *reference<int> last_param) {  /* public because it is needed from closure */
             hash result;
             result.path = ();
             hash c = commands;
@@ -1064,7 +1081,13 @@ public namespace DebugCmdLine {
                 } else if (exists c.">") {
                     # static enum
                     # check for partial matches
-                    if (c.">" && !c.">"{args[0]}) {
+                    hash aliases;
+                    foreach string k in (keys c.">") {
+                        if (c.">"{k}.alias) {
+                            aliases{c.">"{k}.alias} += (k,);
+                        }
+                    }
+                    if (!c.">"{args[0]}) {
                         list pm;
                         string arg;
                         # scan through the list and see if we have one possible match
@@ -1083,11 +1106,21 @@ public namespace DebugCmdLine {
 
                         if (pm) {
                             # if there is only one variant, then use it immediately
-                            if (arg.val())
+                            if (arg.val() && expandCmd)
                                 args[0] = arg;
                             else {
-                                if (args.size() == 1) # only set variants on the last argument
-                                    result.variants = map {$1: c.">".$1}, pm, !c.">".$1.alias;
+                                if (args.size() == 1) { # only set variants on the last argument
+                                    foreach string c2 in (pm) {
+                                        if (!exists c.">"{c2}.alias) {
+                                            result.variants{c2} = c.">"{c2};
+                                            result.variants{c2}.aliases = aliases{c2};
+                                        } else {
+                                            result.variants{c2} = c.">"{c.">"{c2}.alias};
+                                            result.variants{c2}.aliasOf = c.">"{c2}.alias;
+                                            result.variants{c2}.aliases = aliases{result.variants{c2}.aliasOf};
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1096,13 +1129,16 @@ public namespace DebugCmdLine {
                         # follow aliases
                         if (*string alias = c.">"{args[0]}.alias) {
                             c = c.">"{alias};
+                            c.name = alias;
                             push result.path, alias;
                             shift args;
                         }
                         else {
                             c = c.">"{args[0]};
+                            c.name = args[0];
                             push result.path, shift args;
                         }
+                        c.aliases = aliases{c.name};
                         result.cmd = c;
                         ++last_param;
                     } else {
@@ -1190,7 +1226,7 @@ public namespace DebugCmdLine {
                 }
                 int last_param;
                 list args = splitCmd(line);
-                *hash cmd = findCmd(args, NOTHING, \last_param);
+                *hash cmd = findCmd(args, NOTHING, True, \last_param);
                 if (cmd.cmd) {
 #                    printf("line:%y\n", line);
                     if (cmd.cmd.action) {
