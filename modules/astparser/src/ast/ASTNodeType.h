@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTNodeType.h
 
   Qore AST Parser
 
@@ -29,27 +29,18 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_ASTNODETYPE_H
+#define _QLS_AST_ASTNODETYPE_H
 
-#include "ASTParseLocation.h"
-#include "ast/ASTNodeType.h"
-
-//! Represents one node in the AST tree.
-class ASTNode {
-public:
-    //! Source location.
-    ASTParseLocation loc;
-
-    ASTNode() {}
-    ASTNode(const ASTParseLocation& l) : loc(l) {}
-
-    virtual ~ASTNode() {}
-
-    //! Return AST node type.
-    virtual ASTNodeType getNodeType() {
-        return ANT_None;
-    }
+//! Describes the AST node type.
+enum ASTNodeType {
+    ANT_None = 0,
+    ANT_Declaration = 1,
+    ANT_Expression = 2,
+    ANT_Name = 3,
+    ANT_ParseError = 4,
+    ANT_ParseOption = 5,
+    ANT_Statement = 6,
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_ASTNODETYPE_H

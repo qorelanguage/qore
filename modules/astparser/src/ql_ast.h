@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ql_ast.h
 
   Qore AST Parser
 
@@ -23,33 +23,11 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_QL_AST_H
+#define _QLS_QL_AST_H
 
-#include "ASTParseLocation.h"
-#include "ast/ASTNodeType.h"
+DLLLOCAL void init_ast_constants(QoreNamespace& ns);
 
-//! Represents one node in the AST tree.
-class ASTNode {
-public:
-    //! Source location.
-    ASTParseLocation loc;
-
-    ASTNode() {}
-    ASTNode(const ASTParseLocation& l) : loc(l) {}
-
-    virtual ~ASTNode() {}
-
-    //! Return AST node type.
-    virtual ASTNodeType getNodeType() {
-        return ANT_None;
-    }
-};
-
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_QL_AST_H

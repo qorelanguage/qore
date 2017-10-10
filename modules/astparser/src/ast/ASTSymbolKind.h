@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNode.h
+  ASTSymbolKind.h
 
   Qore AST Parser
 
@@ -29,27 +29,30 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTNODE_H
-#define _QLS_AST_ASTNODE_H
+#ifndef _QLS_AST_ASTSYMBOLKIND_H
+#define _QLS_AST_ASTSYMBOLKIND_H
 
-#include "ASTParseLocation.h"
-#include "ast/ASTNodeType.h"
-
-//! Represents one node in the AST tree.
-class ASTNode {
-public:
-    //! Source location.
-    ASTParseLocation loc;
-
-    ASTNode() {}
-    ASTNode(const ASTParseLocation& l) : loc(l) {}
-
-    virtual ~ASTNode() {}
-
-    //! Return AST node type.
-    virtual ASTNodeType getNodeType() {
-        return ANT_None;
-    }
+//! Describes the kind of symbol.
+enum ASTSymbolKind {
+    ASYK_None = 0,
+    ASYK_File = 1,
+    ASYK_Module = 2,
+    ASYK_Namespace = 3,
+    ASYK_Package = 4,
+    ASYK_Class = 5,
+    ASYK_Method = 6,
+    ASYK_Property = 7,
+    ASYK_Field = 8,
+    ASYK_Constructor = 9,
+    ASYK_Enum = 10,
+    ASYK_Interface = 11,
+    ASYK_Function = 12,
+    ASYK_Variable = 13,
+    ASYK_Constant = 14,
+    ASYK_String = 15,
+    ASYK_Number = 16,
+    ASYK_Boolean = 17,
+    ASYK_Array = 18,
 };
 
-#endif // _QLS_AST_ASTNODE_H
+#endif // _QLS_AST_ASTSYMBOLKIND_H
