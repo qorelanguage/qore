@@ -35,38 +35,43 @@
 
 class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
 OP_COMMON
-protected:
-   const QoreTypeInfo* typeInfo = nullptr;
-
-   DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-   DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
-
 public:
-   DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
-   }
+    DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+    }
 
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return typeInfo;
-   }
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return typeInfo;
+    }
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-      return copyBackgroundExplicit<QoreSquareBracketsOperatorNode>(xsink);
-   }
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+        return copyBackgroundExplicit<QoreSquareBracketsOperatorNode>(xsink);
+    }
 
-   DLLLOCAL static QoreValue doSquareBrackets(QoreValue l, QoreValue r, ExceptionSink* xsink);
+    DLLLOCAL static QoreValue doSquareBracketsListRange(QoreValue l, const QoreParseListNode* pln, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreValue doSquareBrackets(QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink);
+
+protected:
+    const QoreTypeInfo* typeInfo = nullptr;
+    // is the RHS a list with a range?
+    bool rhs_list_range = false;
+
+    DLLLOCAL void parseCheckValueTypes(const QoreParseListNode* pln);
+    DLLLOCAL void parseCheckValueTypes(const QoreListNode* ln);
+
+    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+
+    DLLLOCAL static int doString(SimpleRefHolder<QoreStringNode>& ret, QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink);
+    DLLLOCAL static int doBinary(SimpleRefHolder<BinaryNode>& ret, QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink);
 };
 
 class QoreFunctionalSquareBracketsOperator : public FunctionalOperatorInterface {
-protected:
-    ValueOptionalRefHolder left, right;
-    const QoreListNode* rl;
-    qore_offset_t offset = -1;
-
 public:
     DLLLOCAL QoreFunctionalSquareBracketsOperator(ValueEvalRefHolder& lhs, ValueEvalRefHolder& rhs, ExceptionSink* xsink)
         : left(*lhs, lhs.isTemp(), xsink),
@@ -79,6 +84,11 @@ public:
     DLLLOCAL virtual ~QoreFunctionalSquareBracketsOperator() {}
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+
+protected:
+    ValueOptionalRefHolder left, right;
+    const QoreListNode* rl;
+    qore_offset_t offset = -1;
 };
 
 #endif
