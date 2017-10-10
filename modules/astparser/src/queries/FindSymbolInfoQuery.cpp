@@ -36,59 +36,6 @@
 #include "ast/AST.h"
 #include "queries/FindNodeAndParentsQuery.h"
 
-/*void FindSymbolInfoQuery::classHoverInfo(ASTSymbolInfo& hi, ASTClassDeclaration* d) {
-    hi.loc = d->loc;
-    std::ostringstream os;
-    AstPrinter::printClassSignature(os, d);
-    hi.strings.push_back(std::move(os.str()));
-
-    // Class methods.
-    os.str("");
-    os << "__Methods:__\n\n";
-    for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
-        ASTDeclaration* inner = d->declarations[i];
-        if (inner && inner->getKind() == ASTDeclaration::Kind::ADK_Function) {
-            AstPrinter::printFunctionSignature(os, static_cast<ASTFunctionDeclaration*>(inner));
-            os << "\n\n";
-        }
-    }
-    hi.strings.push_back(std::move(os.str()));
-
-    // Class members.
-    for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
-        ASTDeclaration* inner = d->declarations[i];
-        if (inner && inner->getKind() == ASTDeclaration::Kind::ADK_MemberGroup) {
-            ASTMemberGroupDeclaration* mgd = static_cast<ASTMemberGroupDeclaration*>(inner);
-            os.str("");
-            if (mgd->modifiers.contains(AM_Public))
-                os << "__Public members:__\n\n";
-            else if (mgd->modifiers.contains(AM_Private))
-                os << "__Private members:__\n\n";
-            else if (mgd->modifiers.contains(AM_PrivateHierarchy))
-                os << "__Private:hierarchy members:__\n\n";
-            else if (mgd->modifiers.contains(AM_PrivateInternal))
-                os << "__Private:internal members:__\n\n";
-            else
-                os << "__Members:__\n\n";
-            for (size_t j = 0, mcount = mgd->members.size(); j < mcount; j++) {
-                ASTExpression* expr = mgd->members[j];
-                if (expr->getKind() == ASTExpression::Kind::AEK_Decl) {
-                    AstPrinter::printDeclExpression(os, static_cast<ASTDeclExpression*>(expr));
-                    os << "\n\n";
-                }
-                else if (expr->getKind() == ASTExpression::Kind::AEK_Assignment) {
-                    ASTExpression* left = static_cast<ASTAssignmentExpression*>(expr)->left.get();
-                    if (left->getKind() == ASTExpression::Kind::AEK_Decl) {
-                        AstPrinter::printDeclExpression(os, static_cast<ASTDeclExpression*>(left));
-                        os << "\n\n";
-                    }
-                }
-            }
-            hi.strings.push_back(std::move(os.str()));
-        }
-    }
-}*/
-
 static bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
     return expr && expr->loc.inside(line, col) && expr->getKind() == ASTExpression::Kind::AEK_Name;
 }
@@ -260,7 +207,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
         case ASTExpression::Kind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             if (exprMatches(e->value.get(), line, col))
-                return std::move(exprHoverInfo(e->value.get(), ASYK_Variable, ASUK_HashValue));
+                return std::move(exprHoverInfo(e->value.get(), ASYK_Variable, ASUK_HashElement));
             break;
         }
         case ASTExpression::Kind::AEK_ImplicitArg:
