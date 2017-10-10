@@ -32,8 +32,19 @@
 #include "ast/AST.h"
 #include "queries/FindNodeAndParentsQuery.h"
 
-void SymbolInfoFixes::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+namespace astparser_intern {
+    static std::vector<ASTNode*>* getNodes(ASTTree* tree, ASTSymbolInfo& si) {
+        return FindNodeAndParentsQuery::find(tree, si.loc.firstLine, si.loc.firstCol);
+    }
+}
+
+void SymbolInfoFixes::fixClassInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
     if (bareNames)
+        return;
+
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
         return;
 
     size_t nextNode = 0;
@@ -61,8 +72,13 @@ void SymbolInfoFixes::fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nod
     }
 }
 
-void SymbolInfoFixes::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+void SymbolInfoFixes::fixConstantInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
     if (bareNames)
+        return;
+
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
         return;
 
     size_t nextNode = 0;
@@ -92,7 +108,12 @@ void SymbolInfoFixes::fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* 
     }
 }
 
-void SymbolInfoFixes::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+void SymbolInfoFixes::fixFunctionInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
+        return;
+
     size_t nextNode = 0;
     size_t nodeCount = nodes->size();
     for (; nextNode < nodeCount; nextNode++) {
@@ -123,8 +144,13 @@ void SymbolInfoFixes::fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* 
     }
 }
 
-void SymbolInfoFixes::fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+void SymbolInfoFixes::fixHashDeclInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
     if (bareNames)
+        return;
+
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
         return;
 
     size_t nextNode = 0;
@@ -152,8 +178,13 @@ void SymbolInfoFixes::fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* 
     }
 }
 
-void SymbolInfoFixes::fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+void SymbolInfoFixes::fixHashMemberInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
     if (bareNames)
+        return;
+
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
         return;
 
     size_t nextNode = 0;
@@ -185,8 +216,13 @@ void SymbolInfoFixes::fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>
     }
 }
 
-void SymbolInfoFixes::fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames) {
+void SymbolInfoFixes::fixVariableInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames) {
     if (bareNames)
+        return;
+
+    // Target node is first, all the parents follow.
+    std::unique_ptr<std::vector<ASTNode*> > nodes(astparser_intern::getNodes(tree, si));
+    if (!nodes)
         return;
 
     size_t nextNode = 0;
@@ -231,30 +267,22 @@ void SymbolInfoFixes::fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>& 
               si.kind == ASYK_Interface))
             continue;
 
-        // Get symbol's location.
-        ASTParseLocation& loc = si.loc;
-
-        // Target node is first, all the parents follow.
-        std::unique_ptr<std::vector<ASTNode*> > nodes(FindNodeAndParentsQuery::find(tree, loc.firstLine, loc.firstCol));
-        if (!nodes)
-            continue;
-
         // Fix the symbol info.
         switch (si.kind) {
             case ASYK_Class:
-                fixClassInfo(si, nodes.get(), bareNames); break;
+                fixClassInfo(tree, si, bareNames); break;
             case ASYK_Constant:
-                fixConstantInfo(si, nodes.get(), bareNames); break;
+                fixConstantInfo(tree, si, bareNames); break;
             case ASYK_Constructor:
             case ASYK_Function:
             case ASYK_Method:
-                fixFunctionInfo(si, nodes.get(), bareNames); break;
+                fixFunctionInfo(tree, si, bareNames); break;
             case ASYK_Field:
-                fixHashMemberInfo(si, nodes.get(), bareNames); break;
+                fixHashMemberInfo(tree, si, bareNames); break;
             case ASYK_Interface:
-                fixHashDeclInfo(si, nodes.get(), bareNames); break;
+                fixHashDeclInfo(tree, si, bareNames); break;
             case ASYK_Variable:
-                fixVariableInfo(si, nodes.get(), bareNames); break;
+                fixVariableInfo(tree, si, bareNames); break;
             default:
                 break;
         }
