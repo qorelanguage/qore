@@ -2754,11 +2754,11 @@ public:
             size_t i = name.rfind(':');
             if (i != std::string::npos) {
                 ns = name.substr(0, i - 1);
-                name.erase(0, i);
+                name.erase(0, i + 1);
             }
         }
 
-        //printf("hashdecl '%s'\n", name.c_str());
+        printf("hashdecl '%s'\n", name.c_str());
 
         // skip whitespace
         while (whitespace(*p1))

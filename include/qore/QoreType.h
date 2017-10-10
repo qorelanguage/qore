@@ -188,4 +188,15 @@ DLLEXPORT const char* typeInfoGetName(const QoreTypeInfo* typeInfo);
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 
+DLLEXPORT const QoreTypeInfo* qore_get_or_nothing_type(const QoreTypeInfo* typeInfo);
+
+DLLEXPORT const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_list_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_softlist_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_softlist_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_type(const QoreTypeInfo* valueTypeInfo);
+DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+
 #endif // _QORE_QORETYPE_H
