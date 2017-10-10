@@ -42,7 +42,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("nodetype", new QoreStringNode("decl"), xsink);
+    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Declaration), xsink);
     nodeInfo->setKeyValue("loc", getLocation(decl->loc, xsink), xsink);
     switch (decl->getKind()) {
         case ASTDeclaration::Kind::ADK_Class: {
@@ -183,7 +183,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("nodetype", new QoreStringNode("expr"), xsink);
+    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Expression), xsink);
     nodeInfo->setKeyValue("loc", getLocation(expr->loc, xsink), xsink);
     switch (expr->getKind()) {
         case ASTExpression::Kind::AEK_Access: {
@@ -461,7 +461,7 @@ QoreHashNode* GetNodesInfoQuery::getName(ASTTree* tree, ASTName& name, Exception
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("nodetype", new QoreStringNode("name"), xsink);
+    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Name), xsink);
     nodeInfo->setKeyValue("loc", getLocation(name.loc, xsink), xsink);
     nodeInfo->setKeyValue("name", new QoreStringNode(name.name), xsink);
     if (*xsink)
@@ -489,7 +489,7 @@ QoreHashNode* GetNodesInfoQuery::getParseOption(ASTTree* tree, ASTParseOption* p
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("nodetype", new QoreStringNode("po"), xsink);
+    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_ParseOption), xsink);
     nodeInfo->setKeyValue("loc", getLocation(po->loc, xsink), xsink);
     std::ostringstream oss;
     AstTreePrinter::printParseOptionString(oss, po);
@@ -507,7 +507,7 @@ QoreHashNode* GetNodesInfoQuery::getStatement(ASTTree* tree, ASTStatement* stmt,
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("nodetype", new QoreStringNode("stmt"), xsink);
+    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Statement), xsink);
     nodeInfo->setKeyValue("loc", getLocation(stmt->loc, xsink), xsink);
     switch (stmt->getKind()) {
         case ASTStatement::Kind::ASK_Block: {
