@@ -543,7 +543,7 @@ void AstTreePrinter::printLocation(std::ostream& os, const ASTParseLocation& loc
         os << "\n";
 }
 
-void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly) {
+void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly, bool newline) {
     if (mods.empty())
         return;
     printIndent(os, indent);
@@ -571,7 +571,8 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
         os << "final ";
     if (mods.contains(AM_Deprecated))
         os << "deprecated ";
-    os << "\n";
+    if (newline)
+        os << "\n";
 }
 
 void AstTreePrinter::printName(std::ostream& os, ASTName& name, int indent, bool location, bool newline, const char* prefix) {
