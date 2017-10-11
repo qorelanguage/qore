@@ -549,28 +549,75 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
     printIndent(os, indent);
     if (!modsOnly)
         os << "modifiers: ";
-    if (mods.contains(AM_Abstract))
-        os << "abstract ";
-    if (mods.contains(AM_Our))
-        os << "our ";
-    if (mods.contains(AM_My))
-        os << "my ";
-    if (mods.contains(AM_Public))
-        os << "public ";
-    if (mods.contains(AM_Private))
-        os << "private ";
-    if (mods.contains(AM_PrivateHierarchy))
-        os << "private:hierarchy ";
-    if (mods.contains(AM_PrivateInternal))
-        os << "private:internal ";
-    if (mods.contains(AM_Static))
-        os << "static ";
-    if (mods.contains(AM_Synchronized))
-        os << "synchronized ";
-    if (mods.contains(AM_Final))
-        os << "final ";
-    if (mods.contains(AM_Deprecated))
-        os << "deprecated ";
+
+    bool notFirst = false;
+    if (mods.contains(AM_Abstract)) {
+        if (notFirst) {
+            os << " ";
+        os << "abstract";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Our)) {
+        if (notFirst)
+            os << " ";
+        os << "our";
+        notFirst = true;
+    }
+    if (mods.contains(AM_My)) {
+        if (notFirst)
+            os << " ";
+        os << "my";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Public)) {
+        if (notFirst)
+            os << " ";
+        os << "public";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Private)) {
+        if (notFirst)
+            os << " ";
+        os << "private";
+        notFirst = true;
+    }
+    if (mods.contains(AM_PrivateHierarchy)) {
+        if (notFirst)
+            os << " ";
+        os << "private:hierarchy";
+        notFirst = true;
+    }
+    if (mods.contains(AM_PrivateInternal)) {
+        if (notFirst)
+            os << " ";
+        os << "private:internal";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Static)) {
+        if (notFirst)
+            os << " ";
+        os << "static";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Synchronized)) {
+        if (notFirst)
+            os << " ";
+        os << "synchronized";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Final)) {
+        if (notFirst)
+            os << " ";
+        os << "final";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Deprecated)) {
+        if (notFirst)
+            os << " ";
+        os << "deprecated";
+        notFirst = true;
+    }
+
     if (newline)
         os << "\n";
 }

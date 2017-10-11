@@ -138,20 +138,24 @@ void AstPrinter::printLiteralExpression(std::ostream& os, ASTLiteralExpression* 
 void AstPrinter::printClassSignature(std::ostream& os, ASTClassDeclaration* d) {
     if (!d)
         return;
-    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    if (!d->modifiers.empty()) {
+        AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+        os << " ";
+    }
     os << "class " << d->name.name;
     size_t i = 0, count = d->inherits.size();
     if (count)
-        os << " inherits";
+        os << " inherits ";
     for (; i < count; i++) {
         ASTSuperclassDeclaration* sd = d->inherits[i];
         if (sd) {
-            if (i == 0)
-                os << " ";
-            else
+            if (i != 0)
                 os << ", ";
-            AstTreePrinter::printModifiers(os, sd->modifiers, 0, true);
-            os << " " << sd->name.name;
+            if (!sd->modifiers.empty()) {
+                AstTreePrinter::printModifiers(os, sd->modifiers, 0, true);
+                os << " ";
+            }
+            os << sd->name.name;
         }
     }
 }
@@ -159,7 +163,10 @@ void AstPrinter::printClassSignature(std::ostream& os, ASTClassDeclaration* d) {
 void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration* d) {
     if (!d)
         return;
-    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    if (!d->modifiers.empty()) {
+        AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+        os << " ";
+    }
     os << "const " << d->name.name;
     if (d->value && d->value->getKind() == ASTExpressionKind::AEK_Literal) {
         os << " = ";
@@ -171,7 +178,10 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
 void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration* d) {
     if (!d)
         return;
-    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    if (!d->modifiers.empty()) {
+        AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+        os << " ";
+    }
     if (d->returnType) {
         ASTNameExpression* ret;
         if (d->returnType->getKind() == ASTExpressionKind::AEK_Returns)
@@ -179,7 +189,7 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
         else
             ret = static_cast<ASTNameExpression*>(d->returnType.get());
         if (ret)
-            os << " " << ret->name.name << " ";
+            os << ret->name.name << " ";
     }
     os << d->name.name << "(";
     if (d->params) {
@@ -194,7 +204,10 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
 void AstPrinter::printHashDeclSignature(std::ostream& os, ASTHashDeclaration* d) {
     if (!d)
         return;
-    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    if (!d->modifiers.empty()) {
+        AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+        os << " ";
+    }
     os << "hashdecl " << d->name.name;
 }
 
@@ -209,7 +222,10 @@ void AstPrinter::printHashMemberSignature(std::ostream& os, ASTHashMemberDeclara
 void AstPrinter::printVariableSignature(std::ostream& os, ASTVariableDeclaration* d) {
     if (!d)
         return;
-    AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+    if (!d->modifiers.empty()) {
+        AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
+        os << " ";
+    }
     if (!d->typeName.name.empty())
         os << d->typeName.name;
     os << " " << d->name.name;
