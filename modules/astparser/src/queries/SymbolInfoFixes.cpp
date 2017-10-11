@@ -54,7 +54,7 @@ void SymbolInfoFixes::fixClassInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNa
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_Class) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_Class) {
             nextNode++;
             break;
         }
@@ -64,9 +64,9 @@ void SymbolInfoFixes::fixClassInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNa
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+            if (decl->getKind() == ASTDeclarationKind::ADK_Class)
                 si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace)
                 si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
         }
     }
@@ -88,7 +88,7 @@ void SymbolInfoFixes::fixConstantInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_Constant) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_Constant) {
             nextNode++;
             break;
         }
@@ -98,11 +98,11 @@ void SymbolInfoFixes::fixConstantInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+            if (decl->getKind() == ASTDeclarationKind::ADK_Function)
                 break;
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Class)
                 si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace)
                 si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
         }
     }
@@ -121,7 +121,7 @@ void SymbolInfoFixes::fixFunctionInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_Function) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_Function) {
             nextNode++;
             break;
         }
@@ -131,12 +131,12 @@ void SymbolInfoFixes::fixFunctionInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class) {
+            if (decl->getKind() == ASTDeclarationKind::ADK_Class) {
                 si.kind = (si.name == "constructor") ? ASYK_Constructor : ASYK_Method;
                 if (!bareNames)
                     si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
             }
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace) {
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace) {
                 if (!bareNames)
                     si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
             }
@@ -160,7 +160,7 @@ void SymbolInfoFixes::fixHashDeclInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_Hash) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_Hash) {
             nextNode++;
             break;
         }
@@ -170,9 +170,9 @@ void SymbolInfoFixes::fixHashDeclInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+            if (decl->getKind() == ASTDeclarationKind::ADK_Class)
                 si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace)
                 si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
         }
     }
@@ -194,7 +194,7 @@ void SymbolInfoFixes::fixHashMemberInfo(ASTTree* tree, ASTSymbolInfo& si, bool b
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_HashMember) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_HashMember) {
             nextNode++;
             break;
         }
@@ -204,13 +204,13 @@ void SymbolInfoFixes::fixHashMemberInfo(ASTTree* tree, ASTSymbolInfo& si, bool b
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+            if (decl->getKind() == ASTDeclarationKind::ADK_Function)
                 break;
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Class)
                 si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Hash)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Hash)
                 si.name.insert(0, static_cast<ASTHashDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace)
                 si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
         }
     }
@@ -232,7 +232,7 @@ void SymbolInfoFixes::fixVariableInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         if (node->getNodeType() != ANT_Declaration)
             continue;
         ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-        if (decl->getKind() == ASTDeclaration::Kind::ADK_Variable) {
+        if (decl->getKind() == ASTDeclarationKind::ADK_Variable) {
             nextNode++;
             break;
         }
@@ -242,11 +242,11 @@ void SymbolInfoFixes::fixVariableInfo(ASTTree* tree, ASTSymbolInfo& si, bool bar
         ASTNode* node = nodes->at(nextNode);
         if (node->getNodeType() == ANT_Declaration) {
             ASTDeclaration* decl = static_cast<ASTDeclaration*>(node);
-            if (decl->getKind() == ASTDeclaration::Kind::ADK_Function)
+            if (decl->getKind() == ASTDeclarationKind::ADK_Function)
                 break;
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Class)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Class)
                 si.name.insert(0, static_cast<ASTClassDeclaration*>(decl)->name.name + "::");
-            else if (decl->getKind() == ASTDeclaration::Kind::ADK_Namespace)
+            else if (decl->getKind() == ASTDeclarationKind::ADK_Namespace)
                 si.name.insert(0, static_cast<ASTNamespaceDeclaration*>(decl)->name.name + "::");
         }
     }

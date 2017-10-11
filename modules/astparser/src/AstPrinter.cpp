@@ -58,18 +58,18 @@ void AstPrinter::printAssignmentExpression(std::ostream& os, ASTAssignmentExpres
         return;
     if (!ae->left || !ae->right)
         return;
-    if (ae->left->getKind() == ASTExpression::Kind::AEK_Decl) {
+    if (ae->left->getKind() == ASTExpressionKind::AEK_Decl) {
         printDeclExpression(os, static_cast<ASTDeclExpression*>(ae->left.get()));
     }
     if (ae->weak)
         os << " := ";
     else
         os << " = ";
-    if (ae->right->getKind() == ASTExpression::Kind::AEK_Literal) {
+    if (ae->right->getKind() == ASTExpressionKind::AEK_Literal) {
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(ae->right.get());
         printLiteralExpression(os, le);
     }
-    else if (ae->right->getKind() == ASTExpression::Kind::AEK_Name) {
+    else if (ae->right->getKind() == ASTExpressionKind::AEK_Name) {
         ASTNameExpression* ne = static_cast<ASTNameExpression*>(ae->right.get());
         os << ne->name.name;
     }
@@ -82,9 +82,9 @@ void AstPrinter::printDeclExpression(std::ostream& os, ASTDeclExpression* de) {
     ASTDeclaration* decl = de->declaration.get();
     if (!decl)
         return;
-    if (decl->getKind() == ASTDeclaration::Kind::ADK_Variable)
+    if (decl->getKind() == ASTDeclarationKind::ADK_Variable)
         printVariableSignature(os, static_cast<ASTVariableDeclaration*>(decl));
-    else if (decl->getKind() == ASTDeclaration::Kind::ADK_Constant)
+    else if (decl->getKind() == ASTDeclarationKind::ADK_Constant)
         printConstantSignature(os, static_cast<ASTConstantDeclaration*>(decl));
 }
 
@@ -97,11 +97,11 @@ void AstPrinter::printListExpression(std::ostream& os, ASTListExpression* le) {
         ASTExpression* expr = le->elements[i];
         if (!expr)
             continue;
-        if (expr->getKind() == ASTExpression::Kind::AEK_Decl)
+        if (expr->getKind() == ASTExpressionKind::AEK_Decl)
             printDeclExpression(os, static_cast<ASTDeclExpression*>(expr));
-        else if (expr->getKind() == ASTExpression::Kind::AEK_List)
+        else if (expr->getKind() == ASTExpressionKind::AEK_List)
             printListExpression(os, static_cast<ASTListExpression*>(expr));
-        else if (expr->getKind() == ASTExpression::Kind::AEK_Assignment)
+        else if (expr->getKind() == ASTExpressionKind::AEK_Assignment)
             printAssignmentExpression(os, static_cast<ASTAssignmentExpression*>(expr));
     }
 }
@@ -161,7 +161,7 @@ void AstPrinter::printConstantSignature(std::ostream& os, ASTConstantDeclaration
         return;
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     os << "const " << d->name.name;
-    if (d->value && d->value->getKind() == ASTExpression::Kind::AEK_Literal) {
+    if (d->value && d->value->getKind() == ASTExpressionKind::AEK_Literal) {
         os << " = ";
         ASTLiteralExpression* le = static_cast<ASTLiteralExpression*>(d->value.get());
         printLiteralExpression(os, le);
@@ -174,7 +174,7 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
     AstTreePrinter::printModifiers(os, d->modifiers, 0, true);
     if (d->returnType) {
         ASTNameExpression* ret;
-        if (d->returnType->getKind() == ASTExpression::Kind::AEK_Returns)
+        if (d->returnType->getKind() == ASTExpressionKind::AEK_Returns)
             ret = static_cast<ASTReturnsExpression*>(d->returnType.get())->typeName.get();
         else
             ret = static_cast<ASTNameExpression*>(d->returnType.get());
@@ -183,9 +183,9 @@ void AstPrinter::printFunctionSignature(std::ostream& os, ASTFunctionDeclaration
     }
     os << d->name.name << "(";
     if (d->params) {
-        if (d->params->getKind() == ASTExpression::Kind::AEK_Decl)
+        if (d->params->getKind() == ASTExpressionKind::AEK_Decl)
             printDeclExpression(os, static_cast<ASTDeclExpression*>(d->params.get()));
-        else if (d->params->getKind() == ASTExpression::Kind::AEK_List)
+        else if (d->params->getKind() == ASTExpressionKind::AEK_List)
             printListExpression(os, static_cast<ASTListExpression*>(d->params.get()));
     }
     os << ")";

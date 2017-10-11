@@ -43,27 +43,27 @@
 
 int64_t getSymbolKind(ASTDeclaration* decl) {
     switch (decl->getKind()) {
-        case ASTDeclaration::Kind::ADK_Class:
+        case ASTDeclarationKind::ADK_Class:
             return static_cast<int64_t>(ASYK_Class);
-        case ASTDeclaration::Kind::ADK_Closure:
+        case ASTDeclarationKind::ADK_Closure:
             break;
-        case ASTDeclaration::Kind::ADK_Constant:
+        case ASTDeclarationKind::ADK_Constant:
             return static_cast<int64_t>(ASYK_Constant);
-        case ASTDeclaration::Kind::ADK_Function:
+        case ASTDeclarationKind::ADK_Function:
             return static_cast<int64_t>(ASYK_Function);
-        case ASTDeclaration::Kind::ADK_Hash:
+        case ASTDeclarationKind::ADK_Hash:
             return static_cast<int64_t>(ASYK_Interface);
-        case ASTDeclaration::Kind::ADK_HashMember:
+        case ASTDeclarationKind::ADK_HashMember:
             return static_cast<int64_t>(ASYK_Field);
-        case ASTDeclaration::Kind::ADK_MemberGroup:
+        case ASTDeclarationKind::ADK_MemberGroup:
             break;
-        case ASTDeclaration::Kind::ADK_Namespace:
+        case ASTDeclarationKind::ADK_Namespace:
             return static_cast<int64_t>(ASYK_Namespace);
-        case ASTDeclaration::Kind::ADK_Superclass:
+        case ASTDeclarationKind::ADK_Superclass:
             return static_cast<int64_t>(ASYK_Class);
-        case ASTDeclaration::Kind::ADK_Variable:
+        case ASTDeclarationKind::ADK_Variable:
             return static_cast<int64_t>(ASYK_Variable);
-        case ASTDeclaration::Kind::ADK_VarList:
+        case ASTDeclarationKind::ADK_VarList:
         default:
             break;
     }
