@@ -59,8 +59,8 @@ public:
         catchVar(cv),
         catchStmt(cs) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Try;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Try;
     }
 };
 

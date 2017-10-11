@@ -63,8 +63,8 @@ public:
 
     virtual ~ASTOnBlockExitStatement() {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_OnBlockExit;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_OnBlockExit;
     }
 };
 
