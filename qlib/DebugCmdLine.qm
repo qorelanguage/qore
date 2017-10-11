@@ -163,8 +163,9 @@ public namespace DebugCmdLine {
 
         private {
             const fcHelp = 0x01;
-            const fcExpandCmd = 0x02;
+            const fcExpandUniqueCmd = 0x02;
             const fcValidate = 0x04;
+            const fcFallback = 0x08;
 
             Qore::Thread::RWLock rwlContext();
 
@@ -176,7 +177,7 @@ public namespace DebugCmdLine {
                             'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 shift path;
                                 if (path[0] == 'help') return ();
-                                *hash cmd = dcl.findCmd(path + args, fcHelp);
+                                *hash cmd = dcl.findCmd(path + args, fcHelp | fcExpandUniqueCmd);
                                 if (!cmd.variants) return ();
                                 return keys cmd.variants;
                             },
@@ -185,7 +186,7 @@ public namespace DebugCmdLine {
                                 int last_param;
                                 # get full path list
                                 list fl = path + args;
-                                *hash cmd = dcl.findCmd(fl, fcHelp, \last_param);
+                                *hash cmd = dcl.findCmd(fl, fcHelp | fcExpandUniqueCmd, \last_param);
                                 # see if we have an unknown command or option
                                 if (last_param < fl.size()) {
                                     if (!last_param)
@@ -1101,19 +1102,18 @@ public namespace DebugCmdLine {
 
                             if (pm) {
                                 # if there is only one variant, then use it immediately
-                                if (arg.val() && (opts & fcExpandCmd))
+                                if (arg.val() && (opts & fcExpandUniqueCmd)) {
                                     args[0] = arg;
-                                else {
-                                    if (args.size() == 1) { # only set variants on the last argument
-                                        foreach string c2 in (pm) {
-                                            if (!exists c.">"{c2}.alias) {
-                                                result.variants{c2} = c.">"{c2};
-                                                result.variants{c2}.aliases = aliases{c2};
-                                            } else {
-                                                result.variants{c2} = c.">"{c.">"{c2}.alias};
-                                                result.variants{c2}.aliasOf = c.">"{c2}.alias;
-                                                result.variants{c2}.aliases = aliases{result.variants{c2}.aliasOf};
-                                            }
+                                }
+                                if (args.size() == 1) { # only set variants on the last argument
+                                    foreach string c2 in (pm) {
+                                        if (!exists c.">"{c2}.alias) {
+                                            result.variants{c2} = c.">"{c2};
+                                            result.variants{c2}.aliases = aliases{c2};
+                                        } else {
+                                            result.variants{c2} = c.">"{c.">"{c2}.alias};
+                                            result.variants{c2}.aliasOf = c.">"{c2}.alias;
+                                            result.variants{c2}.aliases = aliases{result.variants{c2}.aliasOf};
                                         }
                                     }
                                 }
@@ -1137,7 +1137,7 @@ public namespace DebugCmdLine {
                             result.cmd = c;
                             ++last_param;
                         } else {
-                            if (exists c.fallback && (opts & fcExpandCmd)) {
+                            if (exists c.fallback && (opts & fcFallback)) {
                                 list sa = args;
                                 c.fallback(self, result.path, \args);
                                 if (args != sa) {
@@ -1181,7 +1181,7 @@ public namespace DebugCmdLine {
                 if (doBreak) {
                     break;
                 }
-                if (exists c.fallback && (opts & fcExpandCmd)) {
+                if (exists c.fallback && (opts & fcFallback)) {
                     # last chance to modify args and continue
                     c.fallback(self, result.path, \args);
                 }
@@ -1200,7 +1200,7 @@ public namespace DebugCmdLine {
                     line = splice(line, -1);
                 }
             }
-            *hash cmd = findCmd(args);
+            *hash cmd = findCmd(args, fcExpandUniqueCmd);
             if (cmd.variants) {
                 *list v;
                 switch (cmd.variants.typeCode()) {
@@ -1243,7 +1243,7 @@ public namespace DebugCmdLine {
                 }
                 int last_param;
                 list args = splitCmd(line);
-                *hash cmd = findCmd(args, fcExpandCmd | fcValidate, \last_param);
+                *hash cmd = findCmd(args, fcExpandUniqueCmd | fcValidate | fcFallback, \last_param);
                 if (cmd.cmd) {
 #                    printf("line:%y\n", line);
                     if (cmd.cmd.action) {
