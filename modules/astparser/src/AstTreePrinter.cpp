@@ -552,7 +552,7 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
 
     bool notFirst = false;
     if (mods.contains(AM_Abstract)) {
-        if (notFirst) {
+        if (notFirst)
             os << " ";
         os << "abstract";
         notFirst = true;
