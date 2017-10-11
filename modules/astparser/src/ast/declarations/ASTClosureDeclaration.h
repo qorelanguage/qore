@@ -76,8 +76,8 @@ public:
         params(par),
         body(stmts) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_Closure;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_Closure;
     }
 };
 
