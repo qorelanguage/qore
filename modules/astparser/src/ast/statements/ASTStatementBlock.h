@@ -59,8 +59,8 @@ public:
         statements.push_back(stmt);
     }
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Block;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Block;
     }
 };
 

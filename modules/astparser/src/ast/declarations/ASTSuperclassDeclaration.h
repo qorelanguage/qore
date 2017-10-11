@@ -53,8 +53,8 @@ public:
         ASTDeclaration(n.loc),
         name(n) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_Superclass;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_Superclass;
     }
 };
 

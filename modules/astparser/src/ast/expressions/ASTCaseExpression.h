@@ -63,8 +63,8 @@ public:
         statements(sb),
         defaultCase(def) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Case;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Case;
     }
 };
 

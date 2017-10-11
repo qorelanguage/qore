@@ -36,8 +36,8 @@
 
 class ASTImplicitElemExpression : public ASTExpression {
 public:
-    virtual Kind getKind() const override {
-        return Kind::AEK_ImplicitElem;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_ImplicitElem;
     }
 };
 

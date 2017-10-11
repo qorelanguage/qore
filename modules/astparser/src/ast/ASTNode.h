@@ -33,16 +33,7 @@
 #define _QLS_AST_ASTNODE_H
 
 #include "ASTParseLocation.h"
-
-enum ASTNodeType {
-    ANT_None,
-    ANT_Declaration,
-    ANT_Expression,
-    ANT_Name,
-    ANT_ParseError,
-    ANT_ParseOption,
-    ANT_Statement,
-};
+#include "ast/ASTNodeType.h"
 
 //! Represents one node in the AST tree.
 class ASTNode {

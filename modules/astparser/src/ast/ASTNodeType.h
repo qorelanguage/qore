@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTStatement.h
+  ASTNodeType.h
 
   Qore AST Parser
 
@@ -29,30 +29,18 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTSTATEMENT_H
-#define _QLS_AST_ASTSTATEMENT_H
+#ifndef _QLS_AST_ASTNODETYPE_H
+#define _QLS_AST_ASTNODETYPE_H
 
-#include <memory>
-
-#include "ASTNode.h"
-#include "ASTStatementKind.h"
-
-class ASTStatement : public ASTNode {
-public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTStatement>;
-
-public:
-    ASTStatement() : ASTNode() {}
-    ASTStatement(const ASTParseLocation& l) : ASTNode(l) {}
-
-    virtual ~ASTStatement() {}
-
-    virtual ASTStatementKind getKind() const = 0;
-
-    virtual ASTNodeType getNodeType() {
-        return ANT_Statement;
-    }
+//! Describes the AST node type.
+enum ASTNodeType {
+    ANT_None = 0,
+    ANT_Declaration = 1,
+    ANT_Expression = 2,
+    ANT_Name = 3,
+    ANT_ParseError = 4,
+    ANT_ParseOption = 5,
+    ANT_Statement = 6,
 };
 
-#endif // _QLS_AST_ASTSTATEMENT_H
+#endif // _QLS_AST_ASTNODETYPE_H

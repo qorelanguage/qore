@@ -68,8 +68,8 @@ public:
 
     virtual ~ASTForStatement() {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_For;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_For;
     }
 };
 

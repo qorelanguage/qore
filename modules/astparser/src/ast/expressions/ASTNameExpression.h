@@ -49,8 +49,8 @@ public:
 public:
     ASTNameExpression(const ASTName& n) : ASTExpression(n.loc), name(n) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Name;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Name;
     }
 };
 

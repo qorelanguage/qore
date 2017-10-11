@@ -49,8 +49,8 @@ public:
 public:
     ASTCallStatement(ASTCallExpression* c) : ASTStatement(), call(c) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Call;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Call;
     }
 };
 

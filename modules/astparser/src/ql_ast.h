@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTStatement.h
+  ql_ast.h
 
   Qore AST Parser
 
@@ -23,36 +23,11 @@
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
   DEALINGS IN THE SOFTWARE.
-
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
 */
 
-#ifndef _QLS_AST_ASTSTATEMENT_H
-#define _QLS_AST_ASTSTATEMENT_H
+#ifndef _QLS_QL_AST_H
+#define _QLS_QL_AST_H
 
-#include <memory>
+DLLLOCAL void init_ast_constants(QoreNamespace& ns);
 
-#include "ASTNode.h"
-#include "ASTStatementKind.h"
-
-class ASTStatement : public ASTNode {
-public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTStatement>;
-
-public:
-    ASTStatement() : ASTNode() {}
-    ASTStatement(const ASTParseLocation& l) : ASTNode(l) {}
-
-    virtual ~ASTStatement() {}
-
-    virtual ASTStatementKind getKind() const = 0;
-
-    virtual ASTNodeType getNodeType() {
-        return ANT_Statement;
-    }
-};
-
-#endif // _QLS_AST_ASTSTATEMENT_H
+#endif // _QLS_QL_AST_H

@@ -14,6 +14,7 @@
 #include "QC_AstParser.cpp"
 #include "QC_AstTree.cpp"
 #include "QC_AstTreeSearcher.cpp"
+#include "ql_ast.cpp"
 
 #include "queries/FindMatchingSymbolsQuery.cpp"
 #include "queries/FindNodeAndParentsQuery.cpp"
