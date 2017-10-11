@@ -33,6 +33,7 @@
 
 #include "AstTreePrinter.h"
 #include "ast/AST.h"
+#include "queries/SymbolInfoFixes.h"
 
 QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* decl, ExceptionSink* xsink) {
     if (!decl)
