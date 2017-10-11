@@ -46,7 +46,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
     }
 
     switch (decl->getKind()) {
-        case ASTDeclaration::Kind::ADK_Class: {
+        case ASTDeclarationKind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             printString(os, "ClassDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -64,7 +64,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Closure: {
+        case ASTDeclarationKind::ADK_Closure: {
             ASTClosureDeclaration* d = static_cast<ASTClosureDeclaration*>(decl);
             printString(os, "ClosureDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -81,7 +81,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printStatement(os, d->body.get(), indent+2);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Constant: {
+        case ASTDeclarationKind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
             printString(os, "ConstantDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -90,7 +90,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printExpression(os, d->value.get(), indent+1);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Function: {
+        case ASTDeclarationKind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
             printString(os, "FunctionDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -114,7 +114,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Hash: {
+        case ASTDeclarationKind::ADK_Hash: {
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
             printString(os, "HashDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -127,7 +127,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_HashMember: {
+        case ASTDeclarationKind::ADK_HashMember: {
             ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
             printString(os, "HashMemberDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -141,7 +141,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_MemberGroup: {
+        case ASTDeclarationKind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             printString(os, "MemberGroupDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -155,7 +155,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Namespace: {
+        case ASTDeclarationKind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
             printString(os, "NamespaceDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -170,7 +170,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Superclass: {
+        case ASTDeclarationKind::ADK_Superclass: {
             ASTSuperclassDeclaration* d = static_cast<ASTSuperclassDeclaration*>(decl);
             printString(os, "SuperclassDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -178,7 +178,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printName(os, d->name, indent+1);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Variable: {
+        case ASTDeclarationKind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
             printString(os, "VariableDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -187,7 +187,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printName(os, d->name, indent+1);
             break;
         }
-        case ASTDeclaration::Kind::ADK_VarList: {
+        case ASTDeclarationKind::ADK_VarList: {
             ASTVarListDeclaration* d = static_cast<ASTVarListDeclaration*>(decl);
             printString(os, "VarListDecl ", indent);
             printLocation(os, d->loc, 0);
@@ -212,7 +212,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
     }
 
     switch (expr->getKind()) {
-        case ASTExpression::Kind::AEK_Access: {
+        case ASTExpressionKind::AEK_Access: {
             ASTAccessExpression* e = static_cast<ASTAccessExpression*>(expr);
             printString(os, "AccessExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -222,7 +222,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->member.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_Assignment: {
+        case ASTExpressionKind::AEK_Assignment: {
             ASTAssignmentExpression* e = static_cast<ASTAssignmentExpression*>(expr);
             printString(os, "AssignmentExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -234,14 +234,14 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             os << e->weak << "\n";
             break;
         }
-        case ASTExpression::Kind::AEK_Backquote: {
+        case ASTExpressionKind::AEK_Backquote: {
             ASTBackquoteExpression* e = static_cast<ASTBackquoteExpression*>(expr);
             printString(os, "BackquoteExpr ", indent);
             printLocation(os, e->loc, 0, false);
             os << "; cmd=`" << e->command << "`\n";
             break;
         }
-        case ASTExpression::Kind::AEK_Binary: {
+        case ASTExpressionKind::AEK_Binary: {
             ASTBinaryExpression* e = static_cast<ASTBinaryExpression*>(expr);
             printString(os, "BinaryExpr ", indent);
             printLocation(os, e->loc, 0, false);
@@ -253,7 +253,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->right.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_Call: {
+        case ASTExpressionKind::AEK_Call: {
             ASTCallExpression* e = static_cast<ASTCallExpression*>(expr);
             printString(os, "CallExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -263,7 +263,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->args.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_Case: {
+        case ASTExpressionKind::AEK_Case: {
             ASTCaseExpression* e = static_cast<ASTCaseExpression*>(expr);
             printString(os, "CaseExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -282,7 +282,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Cast: {
+        case ASTExpressionKind::AEK_Cast: {
             ASTCastExpression* e = static_cast<ASTCastExpression*>(expr);
             printString(os, "CastExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -290,14 +290,14 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->obj.get(), indent+1);
             break;
         }
-        case ASTExpression::Kind::AEK_Closure: {
+        case ASTExpressionKind::AEK_Closure: {
             ASTClosureExpression* e = static_cast<ASTClosureExpression*>(expr);
             printString(os, "ClosureExpr ", indent);
             printLocation(os, e->loc, 0);
             printDeclaration(os, e->closure.get(), indent+1);
             break;
         }
-        case ASTExpression::Kind::AEK_ConstrInit: {
+        case ASTExpressionKind::AEK_ConstrInit: {
             ASTConstrInitExpression* e = static_cast<ASTConstrInitExpression*>(expr);
             printString(os, "ConstrInitExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -307,7 +307,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_ContextMod: {
+        case ASTExpressionKind::AEK_ContextMod: {
             ASTContextModExpression* e = static_cast<ASTContextModExpression*>(expr);
             printString(os, "ContextModExpr ", indent);
             printLocation(os, e->loc, 0, false);
@@ -320,19 +320,19 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->expression.get(), indent+1);
             break;
         }
-        case ASTExpression::Kind::AEK_ContextRow: {
+        case ASTExpressionKind::AEK_ContextRow: {
             printString(os, "ContextRowExpr ", indent);
             printLocation(os, expr->loc, 0);
             break;
         }
-        case ASTExpression::Kind::AEK_Decl: {
+        case ASTExpressionKind::AEK_Decl: {
             ASTDeclExpression* e = static_cast<ASTDeclExpression*>(expr);
             printString(os, "DeclExpr ", indent);
             printLocation(os, e->loc, 0);
             printDeclaration(os, e->declaration.get(), indent+1);
             break;
         }
-        case ASTExpression::Kind::AEK_Find: {
+        case ASTExpressionKind::AEK_Find: {
             ASTFindExpression* e = static_cast<ASTFindExpression*>(expr);
             printString(os, "FindExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -344,7 +344,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->where.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_Hash: {
+        case ASTExpressionKind::AEK_Hash: {
             ASTHashExpression* e = static_cast<ASTHashExpression*>(expr);
             printString(os, "HashExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -357,7 +357,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_HashElement: {
+        case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             printString(os, "HashElementExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -367,19 +367,19 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->value.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_ImplicitArg: {
+        case ASTExpressionKind::AEK_ImplicitArg: {
             ASTImplicitArgExpression* e = static_cast<ASTImplicitArgExpression*>(expr);
             printString(os, "ImplicitArgExpr ", indent);
             printLocation(os, e->loc, 0, false);
             os << "; offset=" << e->offset << "\n";
             break;
         }
-        case ASTExpression::Kind::AEK_ImplicitElem: {
+        case ASTExpressionKind::AEK_ImplicitElem: {
             printString(os, "ImplicitElemExpr ", indent);
             printLocation(os, expr->loc, 0);
             break;
         }
-        case ASTExpression::Kind::AEK_Index: {
+        case ASTExpressionKind::AEK_Index: {
             ASTIndexExpression* e = static_cast<ASTIndexExpression*>(expr);
             printString(os, "IndexExpr ", indent);
             printLocation(os, e->loc, 0, false);
@@ -393,7 +393,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->index.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_List: {
+        case ASTExpressionKind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
             printString(os, "ListExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -406,7 +406,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Literal: {
+        case ASTExpressionKind::AEK_Literal: {
             ASTLiteralExpression* e = static_cast<ASTLiteralExpression*>(expr);
             printString(os, "LiteralExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -429,14 +429,14 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Name: {
+        case ASTExpressionKind::AEK_Name: {
             ASTNameExpression* e = static_cast<ASTNameExpression*>(expr);
             printString(os, "NameExpr ", indent);
             printLocation(os, e->loc, 0, false);
             printName(os, e->name, 0, true, true, ": ");
             break;
         }
-        case ASTExpression::Kind::AEK_Regex: {
+        case ASTExpressionKind::AEK_Regex: {
             ASTRegexExpression* e = static_cast<ASTRegexExpression*>(expr);
             printString(os, "RegexExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -458,7 +458,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             os << e->str << "\"\n";
             break;
         }
-        case ASTExpression::Kind::AEK_RegexSubst: {
+        case ASTExpressionKind::AEK_RegexSubst: {
             ASTRegexSubstExpression* e = static_cast<ASTRegexSubstExpression*>(expr);
             printString(os, "RegexSubstExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -480,7 +480,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             os << e->target << "\"\n";
             break;
         }
-        case ASTExpression::Kind::AEK_RegexTrans: {
+        case ASTExpressionKind::AEK_RegexTrans: {
             ASTRegexTransExpression* e = static_cast<ASTRegexTransExpression*>(expr);
             printString(os, "RegexTransExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -490,14 +490,14 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             os << e->target << "\"\n";
             break;
         }
-        case ASTExpression::Kind::AEK_Returns: {
+        case ASTExpressionKind::AEK_Returns: {
             ASTReturnsExpression* e = static_cast<ASTReturnsExpression*>(expr);
             printString(os, "ReturnsExpr ", indent);
             printLocation(os, e->loc, 0);
             printExpression(os, e->typeName.get(), indent+1);
             break;
         }
-        case ASTExpression::Kind::AEK_SwitchBody: {
+        case ASTExpressionKind::AEK_SwitchBody: {
             ASTSwitchBodyExpression* e = static_cast<ASTSwitchBodyExpression*>(expr);
             printString(os, "SwitchBodyExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -510,7 +510,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Ternary: {
+        case ASTExpressionKind::AEK_Ternary: {
             ASTTernaryExpression* e = static_cast<ASTTernaryExpression*>(expr);
             printString(os, "TernaryExpr ", indent);
             printLocation(os, e->loc, 0);
@@ -522,7 +522,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printExpression(os, e->exprFalse.get(), indent+2);
             break;
         }
-        case ASTExpression::Kind::AEK_Unary: {
+        case ASTExpressionKind::AEK_Unary: {
             ASTUnaryExpression* e = static_cast<ASTUnaryExpression*>(expr);
             printString(os, "UnaryExpr ", indent);
             printLocation(os, e->loc, 0, false);
@@ -543,35 +543,83 @@ void AstTreePrinter::printLocation(std::ostream& os, const ASTParseLocation& loc
         os << "\n";
 }
 
-void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly) {
+void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int indent, bool modsOnly, bool newline) {
     if (mods.empty())
         return;
     printIndent(os, indent);
     if (!modsOnly)
         os << "modifiers: ";
-    if (mods.contains(AM_Abstract))
-        os << "abstract ";
-    if (mods.contains(AM_Our))
-        os << "our ";
-    if (mods.contains(AM_My))
-        os << "my ";
-    if (mods.contains(AM_Public))
-        os << "public ";
-    if (mods.contains(AM_Private))
-        os << "private ";
-    if (mods.contains(AM_PrivateHierarchy))
-        os << "private:hierarchy ";
-    if (mods.contains(AM_PrivateInternal))
-        os << "private:internal ";
-    if (mods.contains(AM_Static))
-        os << "static ";
-    if (mods.contains(AM_Synchronized))
-        os << "synchronized ";
-    if (mods.contains(AM_Final))
-        os << "final ";
-    if (mods.contains(AM_Deprecated))
-        os << "deprecated ";
-    os << "\n";
+
+    bool notFirst = false;
+    if (mods.contains(AM_Abstract)) {
+        if (notFirst) {
+            os << " ";
+        os << "abstract";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Our)) {
+        if (notFirst)
+            os << " ";
+        os << "our";
+        notFirst = true;
+    }
+    if (mods.contains(AM_My)) {
+        if (notFirst)
+            os << " ";
+        os << "my";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Public)) {
+        if (notFirst)
+            os << " ";
+        os << "public";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Private)) {
+        if (notFirst)
+            os << " ";
+        os << "private";
+        notFirst = true;
+    }
+    if (mods.contains(AM_PrivateHierarchy)) {
+        if (notFirst)
+            os << " ";
+        os << "private:hierarchy";
+        notFirst = true;
+    }
+    if (mods.contains(AM_PrivateInternal)) {
+        if (notFirst)
+            os << " ";
+        os << "private:internal";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Static)) {
+        if (notFirst)
+            os << " ";
+        os << "static";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Synchronized)) {
+        if (notFirst)
+            os << " ";
+        os << "synchronized";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Final)) {
+        if (notFirst)
+            os << " ";
+        os << "final";
+        notFirst = true;
+    }
+    if (mods.contains(AM_Deprecated)) {
+        if (notFirst)
+            os << " ";
+        os << "deprecated";
+        notFirst = true;
+    }
+
+    if (newline)
+        os << "\n";
 }
 
 void AstTreePrinter::printName(std::ostream& os, ASTName& name, int indent, bool location, bool newline, const char* prefix) {
@@ -796,7 +844,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
     }
 
     switch (stmt->getKind()) {
-        case ASTStatement::Kind::ASK_Block: {
+        case ASTStatementKind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
             printString(os, "StmtBlock ", indent);
             printLocation(os, s->loc, 0);
@@ -809,19 +857,19 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             }
             break;
         }
-        case ASTStatement::Kind::ASK_Break: {
+        case ASTStatementKind::ASK_Break: {
             printString(os, "BreakStmt ", indent);
             printLocation(os, stmt->loc, 0);
             break;
         }
-        case ASTStatement::Kind::ASK_Call: {
+        case ASTStatementKind::ASK_Call: {
             ASTCallStatement* s = static_cast<ASTCallStatement*>(stmt);
             printString(os, "CallStmt ", indent);
             printLocation(os, s->loc, 0);
             printExpression(os, s->call.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Context: {
+        case ASTStatementKind::ASK_Context: {
             ASTContextStatement* s = static_cast<ASTContextStatement*>(stmt);
             printString(os, "ContextStmt ", indent);
             printLocation(os, s->loc, 0, false);
@@ -838,12 +886,12 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statements.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Continue: {
+        case ASTStatementKind::ASK_Continue: {
             printString(os, "ContinueStmt ", indent);
             printLocation(os, stmt->loc, 0);
             break;
         }
-        case ASTStatement::Kind::ASK_DoWhile: {
+        case ASTStatementKind::ASK_DoWhile: {
             ASTDoWhileStatement* s = static_cast<ASTDoWhileStatement*>(stmt);
             printString(os, "DoWhileStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -852,14 +900,14 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statement.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Expression: {
+        case ASTStatementKind::ASK_Expression: {
             ASTExpressionStatement* s = static_cast<ASTExpressionStatement*>(stmt);
             printString(os, "ExpressionStmt ", indent);
             printLocation(os, s->loc, 0);
             printExpression(os, s->expression.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_For: {
+        case ASTStatementKind::ASK_For: {
             ASTForStatement* s = static_cast<ASTForStatement*>(stmt);
             printString(os, "ForStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -872,7 +920,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statement.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Foreach: {
+        case ASTStatementKind::ASK_Foreach: {
             ASTForeachStatement* s = static_cast<ASTForeachStatement*>(stmt);
             printString(os, "ForeachStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -883,7 +931,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statement.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_If: {
+        case ASTStatementKind::ASK_If: {
             ASTIfStatement* s = static_cast<ASTIfStatement*>(stmt);
             printString(os, "IfStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -895,7 +943,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->stmtElse.get(), indent+2);
             break;
         }
-        case ASTStatement::Kind::ASK_OnBlockExit: {
+        case ASTStatementKind::ASK_OnBlockExit: {
             ASTOnBlockExitStatement* s = static_cast<ASTOnBlockExitStatement*>(stmt);
             printString(os, "OnBlockExitStmt ", indent);
             printLocation(os, s->loc, 0, false);
@@ -908,12 +956,12 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statement.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Rethrow: {
+        case ASTStatementKind::ASK_Rethrow: {
             printString(os, "RethrowStmt ", indent);
             printLocation(os, stmt->loc, 0);
             break;
         }
-        case ASTStatement::Kind::ASK_Return: {
+        case ASTStatementKind::ASK_Return: {
             ASTReturnStatement* s = static_cast<ASTReturnStatement*>(stmt);
             printString(os, "ReturnStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -921,7 +969,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
                 printExpression(os, s->retval.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Summarize: {
+        case ASTStatementKind::ASK_Summarize: {
             ASTSummarizeStatement* s = static_cast<ASTSummarizeStatement*>(stmt);
             printString(os, "SummarizeStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -939,7 +987,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->statements.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Switch: {
+        case ASTStatementKind::ASK_Switch: {
             ASTSwitchStatement* s = static_cast<ASTSwitchStatement*>(stmt);
             printString(os, "SwitchStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -948,19 +996,19 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printExpression(os, s->body.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_ThreadExit: {
+        case ASTStatementKind::ASK_ThreadExit: {
             printString(os, "ThreadExitStmt ", indent);
             printLocation(os, stmt->loc, 0);
             break;
         }
-        case ASTStatement::Kind::ASK_Throw: {
+        case ASTStatementKind::ASK_Throw: {
             ASTThrowStatement* s = static_cast<ASTThrowStatement*>(stmt);
             printString(os, "ThrowStmt ", indent);
             printLocation(os, s->loc, 0);
             printExpression(os, s->expression.get(), indent+1);
             break;
         }
-        case ASTStatement::Kind::ASK_Try: {
+        case ASTStatementKind::ASK_Try: {
             ASTTryStatement* s = static_cast<ASTTryStatement*>(stmt);
             printString(os, "TryStmt ", indent);
             printLocation(os, s->loc, 0);
@@ -974,7 +1022,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             printStatement(os, s->catchStmt.get(), indent+2);
             break;
         }
-        case ASTStatement::Kind::ASK_While: {
+        case ASTStatementKind::ASK_While: {
             ASTWhileStatement* s = static_cast<ASTWhileStatement*>(stmt);
             printString(os, "WhileStmt ", indent);
             printLocation(os, s->loc, 0);

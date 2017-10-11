@@ -53,8 +53,8 @@ public:
 
     virtual ~ASTThrowStatement() {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Throw;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Throw;
     }
 };
 

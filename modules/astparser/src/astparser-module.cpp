@@ -30,6 +30,7 @@
 #include "QC_AstParser.h"
 #include "QC_AstTree.h"
 #include "QC_AstTreeSearcher.h"
+#include "ql_ast.h"
 
 #ifdef HAVE_CONFIG_H
 #include "../config.h"
@@ -60,6 +61,7 @@ QoreStringNode* astparser_module_init() {
     AstParserNS.addSystemClass(initAstTreeClass(AstParserNS));
     AstParserNS.addSystemClass(initAstTreeSearcherClass(AstParserNS));
     AstParserNS.addSystemClass(initAstParserClass(AstParserNS));
+    init_ast_constants(AstParserNS);
 
     return nullptr;
 }

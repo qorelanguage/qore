@@ -57,8 +57,8 @@ public:
 
     virtual ~ASTWhileStatement() {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_While;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_While;
     }
 };
 

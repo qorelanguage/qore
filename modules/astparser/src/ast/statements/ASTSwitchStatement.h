@@ -56,8 +56,8 @@ public:
         variable(var),
         body(be) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Switch;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Switch;
     }
 };
 

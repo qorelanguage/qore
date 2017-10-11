@@ -56,8 +56,8 @@ public:
         modifiers(mods),
         variables(vars) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_VarList;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_VarList;
     }
 };
 
