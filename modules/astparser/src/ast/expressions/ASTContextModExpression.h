@@ -58,8 +58,8 @@ public:
         loc.lastCol = e->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_ContextMod;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_ContextMod;
     }
 };
 

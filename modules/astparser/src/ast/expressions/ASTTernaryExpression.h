@@ -58,8 +58,8 @@ public:
         loc.lastCol = ifFalse->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Ternary;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Ternary;
     }
 };
 

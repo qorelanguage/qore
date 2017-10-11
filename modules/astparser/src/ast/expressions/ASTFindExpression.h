@@ -52,8 +52,8 @@ public:
         data(de),
         where(we) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Find;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Find;
     }
 };
 

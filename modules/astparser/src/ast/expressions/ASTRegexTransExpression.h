@@ -47,8 +47,8 @@ public:
 public:
     ASTRegexTransExpression() : ASTExpression() {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_RegexTrans;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_RegexTrans;
     }
 };
 

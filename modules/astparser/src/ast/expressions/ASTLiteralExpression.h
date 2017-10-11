@@ -98,8 +98,8 @@ public:
             delete value.stdstr;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Literal;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Literal;
     }
 };
 

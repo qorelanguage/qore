@@ -58,8 +58,8 @@ public:
         elements.clear();
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_List;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_List;
     }
 };
 

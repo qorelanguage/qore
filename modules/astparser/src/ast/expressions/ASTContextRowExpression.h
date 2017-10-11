@@ -36,8 +36,8 @@
 
 class ASTContextRowExpression : public ASTExpression {
 public:
-    virtual Kind getKind() const override {
-        return Kind::AEK_ContextRow;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_ContextRow;
     }
 };
 
