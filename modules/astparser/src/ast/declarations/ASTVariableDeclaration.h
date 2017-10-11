@@ -77,8 +77,8 @@ public:
         ASTDeclaration(),
         name(n) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_Variable;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_Variable;
     }
 };
 

@@ -36,61 +36,8 @@
 #include "ast/AST.h"
 #include "queries/FindNodeAndParentsQuery.h"
 
-/*void FindSymbolInfoQuery::classHoverInfo(ASTSymbolInfo& hi, ASTClassDeclaration* d) {
-    hi.loc = d->loc;
-    std::ostringstream os;
-    AstPrinter::printClassSignature(os, d);
-    hi.strings.push_back(std::move(os.str()));
-
-    // Class methods.
-    os.str("");
-    os << "__Methods:__\n\n";
-    for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
-        ASTDeclaration* inner = d->declarations[i];
-        if (inner && inner->getKind() == ASTDeclaration::Kind::ADK_Function) {
-            AstPrinter::printFunctionSignature(os, static_cast<ASTFunctionDeclaration*>(inner));
-            os << "\n\n";
-        }
-    }
-    hi.strings.push_back(std::move(os.str()));
-
-    // Class members.
-    for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
-        ASTDeclaration* inner = d->declarations[i];
-        if (inner && inner->getKind() == ASTDeclaration::Kind::ADK_MemberGroup) {
-            ASTMemberGroupDeclaration* mgd = static_cast<ASTMemberGroupDeclaration*>(inner);
-            os.str("");
-            if (mgd->modifiers.contains(AM_Public))
-                os << "__Public members:__\n\n";
-            else if (mgd->modifiers.contains(AM_Private))
-                os << "__Private members:__\n\n";
-            else if (mgd->modifiers.contains(AM_PrivateHierarchy))
-                os << "__Private:hierarchy members:__\n\n";
-            else if (mgd->modifiers.contains(AM_PrivateInternal))
-                os << "__Private:internal members:__\n\n";
-            else
-                os << "__Members:__\n\n";
-            for (size_t j = 0, mcount = mgd->members.size(); j < mcount; j++) {
-                ASTExpression* expr = mgd->members[j];
-                if (expr->getKind() == ASTExpression::Kind::AEK_Decl) {
-                    AstPrinter::printDeclExpression(os, static_cast<ASTDeclExpression*>(expr));
-                    os << "\n\n";
-                }
-                else if (expr->getKind() == ASTExpression::Kind::AEK_Assignment) {
-                    ASTExpression* left = static_cast<ASTAssignmentExpression*>(expr)->left.get();
-                    if (left->getKind() == ASTExpression::Kind::AEK_Decl) {
-                        AstPrinter::printDeclExpression(os, static_cast<ASTDeclExpression*>(left));
-                        os << "\n\n";
-                    }
-                }
-            }
-            hi.strings.push_back(std::move(os.str()));
-        }
-    }
-}*/
-
 static bool exprMatches(ASTExpression* expr, ast_loc_t line, ast_loc_t col) {
-    return expr && expr->loc.inside(line, col) && expr->getKind() == ASTExpression::Kind::AEK_Name;
+    return expr && expr->loc.inside(line, col) && expr->getKind() == ASTExpressionKind::AEK_Name;
 }
 
 static ASTSymbolInfo exprHoverInfo(ASTExpression* expr, ASTSymbolKind sk, ASTSymbolUsageKind suk) {
@@ -119,40 +66,40 @@ ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, a
     if (!decl)
         return ASTSymbolInfo();
     switch (decl->getKind()) {
-        case ASTDeclaration::Kind::ADK_Class: {
+        case ASTDeclarationKind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             //classHoverInfo(hi, d);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_ClassDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Closure:
+        case ASTDeclarationKind::ADK_Closure:
             break;
-        case ASTDeclaration::Kind::ADK_Constant: {
+        case ASTDeclarationKind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Constant, ASUK_ConstantDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Function: {
+        case ASTDeclarationKind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Function, ASUK_FuncDeclName, d->name.loc, d->name.name);
             if (d->returnType && d->returnType->loc.inside(line, col)) {
-                if (d->returnType->getKind() == ASTExpression::Kind::AEK_Name) {
+                if (d->returnType->getKind() == ASTExpressionKind::AEK_Name) {
                     ASTNameExpression* name = static_cast<ASTNameExpression*>(d->returnType.get());
                     return ASTSymbolInfo(ASYK_Class, ASUK_FuncReturnType, d->returnType->loc, name->name.name);
                 }
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Hash: {
+        case ASTDeclarationKind::ADK_Hash: {
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Interface, ASUK_HashDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_HashMember: {
+        case ASTDeclarationKind::ADK_HashMember: {
             ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
             if (d->typeName.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_VarDeclTypeName, d->typeName.loc, d->typeName.name);
@@ -160,21 +107,21 @@ ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, a
                 return ASTSymbolInfo(ASYK_Field, ASUK_HashMemberName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_MemberGroup:
+        case ASTDeclarationKind::ADK_MemberGroup:
             break;
-        case ASTDeclaration::Kind::ADK_Namespace: {
+        case ASTDeclarationKind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Namespace, ASUK_NamespaceDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Superclass: {
+        case ASTDeclarationKind::ADK_Superclass: {
             ASTSuperclassDeclaration* d = static_cast<ASTSuperclassDeclaration*>(decl);
             if (d->name.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_SuperclassDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_Variable: {
+        case ASTDeclarationKind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
             if (d->typeName.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_VarDeclTypeName, d->typeName.loc, d->typeName.name);
@@ -182,7 +129,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inDeclaration(std::vector<ASTNode*>* nodes, a
                 return ASTSymbolInfo(ASYK_Variable, ASUK_VarDeclName, d->name.loc, d->name.name);
             break;
         }
-        case ASTDeclaration::Kind::ADK_VarList:
+        case ASTDeclarationKind::ADK_VarList:
         default:
             break;
     }
@@ -194,7 +141,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
     if (!expr)
         return ASTSymbolInfo();
     switch (expr->getKind()) {
-        case ASTExpression::Kind::AEK_Access: {
+        case ASTExpressionKind::AEK_Access: {
             ASTAccessExpression* e = static_cast<ASTAccessExpression*>(expr);
             if (exprMatches(e->variable.get(), line, col))
                 return std::move(exprHoverInfo(e->variable.get(), ASYK_Variable, ASUK_AccessVariable));
@@ -202,7 +149,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->member.get(), ASYK_Variable, ASUK_AccessMember));
             break;
         }
-        case ASTExpression::Kind::AEK_Assignment: {
+        case ASTExpressionKind::AEK_Assignment: {
             ASTAssignmentExpression* e = static_cast<ASTAssignmentExpression*>(expr);
             if (exprMatches(e->left.get(), line, col))
                 return std::move(exprHoverInfo(e->left.get(), ASYK_Variable, ASUK_AssignmentLeft));
@@ -210,9 +157,9 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->right.get(), ASYK_Variable, ASUK_AssignmentRight));
             break;
         }
-        case ASTExpression::Kind::AEK_Backquote:
+        case ASTExpressionKind::AEK_Backquote:
             break;
-        case ASTExpression::Kind::AEK_Binary: {
+        case ASTExpressionKind::AEK_Binary: {
             ASTBinaryExpression* e = static_cast<ASTBinaryExpression*>(expr);
             if (exprMatches(e->left.get(), line, col))
                 return std::move(exprHoverInfo(e->left.get(), ASYK_Variable, ASUK_BinaryLeft));
@@ -220,7 +167,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->right.get(), ASYK_Variable, ASUK_BinaryRight));
             break;
         }
-        case ASTExpression::Kind::AEK_Call: {
+        case ASTExpressionKind::AEK_Call: {
             ASTCallExpression* e = static_cast<ASTCallExpression*>(expr);
             if (exprMatches(e->target.get(), line, col))
                 return std::move(exprHoverInfo(e->target.get(), ASYK_Function, ASUK_CallTarget));
@@ -228,13 +175,13 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->args.get(), ASYK_Variable, ASUK_CallArgs));
             break;
         }
-        case ASTExpression::Kind::AEK_Case: {
+        case ASTExpressionKind::AEK_Case: {
             ASTCaseExpression* e = static_cast<ASTCaseExpression*>(expr);
             if (exprMatches(e->caseExpr.get(), line, col))
                 return std::move(exprHoverInfo(e->caseExpr.get(), ASYK_Constant, ASUK_CaseExpr));
             break;
         }
-        case ASTExpression::Kind::AEK_Cast: {
+        case ASTExpressionKind::AEK_Cast: {
             ASTCastExpression* e = static_cast<ASTCastExpression*>(expr);
             if (e->castType.loc.inside(line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_CastType, e->castType.loc, e->castType.name);
@@ -242,31 +189,31 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->obj.get(), ASYK_Variable, ASUK_CastObject));
             break;
         }
-        case ASTExpression::Kind::AEK_Closure:
-        case ASTExpression::Kind::AEK_ConstrInit:
-        case ASTExpression::Kind::AEK_ContextMod:
-        case ASTExpression::Kind::AEK_ContextRow:
+        case ASTExpressionKind::AEK_Closure:
+        case ASTExpressionKind::AEK_ConstrInit:
+        case ASTExpressionKind::AEK_ContextMod:
+        case ASTExpressionKind::AEK_ContextRow:
             break;
-        case ASTExpression::Kind::AEK_Decl:
+        case ASTExpressionKind::AEK_Decl:
             return std::move(nextRound(nodes, line, col));
-        case ASTExpression::Kind::AEK_Find: {
+        case ASTExpressionKind::AEK_Find: {
             ASTFindExpression* e = static_cast<ASTFindExpression*>(expr);
             if (exprMatches(e->data.get(), line, col))
                 return std::move(exprHoverInfo(e->data.get(), ASYK_Variable, ASUK_FindData));
             break;
         }
-        case ASTExpression::Kind::AEK_Hash:
+        case ASTExpressionKind::AEK_Hash:
             break;
-        case ASTExpression::Kind::AEK_HashElement: {
+        case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             if (exprMatches(e->value.get(), line, col))
-                return std::move(exprHoverInfo(e->value.get(), ASYK_Variable, ASUK_HashValue));
+                return std::move(exprHoverInfo(e->value.get(), ASYK_Variable, ASUK_HashElement));
             break;
         }
-        case ASTExpression::Kind::AEK_ImplicitArg:
-        case ASTExpression::Kind::AEK_ImplicitElem:
+        case ASTExpressionKind::AEK_ImplicitArg:
+        case ASTExpressionKind::AEK_ImplicitElem:
             break;
-        case ASTExpression::Kind::AEK_Index: {
+        case ASTExpressionKind::AEK_Index: {
             ASTIndexExpression* e = static_cast<ASTIndexExpression*>(expr);
             if (exprMatches(e->variable.get(), line, col))
                 return std::move(exprHoverInfo(e->variable.get(), ASYK_Variable, ASUK_IndexVariable));
@@ -274,7 +221,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->index.get(), ASYK_Variable, ASUK_IndexIndex));
             break;
         }
-        case ASTExpression::Kind::AEK_List: {
+        case ASTExpressionKind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
             for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 ASTExpression* le = e->elements[i];
@@ -283,23 +230,23 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Literal:
+        case ASTExpressionKind::AEK_Literal:
             break;
-        case ASTExpression::Kind::AEK_Name:
+        case ASTExpressionKind::AEK_Name:
             return std::move(nextRound(nodes, line, col));
-        case ASTExpression::Kind::AEK_Regex:
-        case ASTExpression::Kind::AEK_RegexSubst:
-        case ASTExpression::Kind::AEK_RegexTrans:
+        case ASTExpressionKind::AEK_Regex:
+        case ASTExpressionKind::AEK_RegexSubst:
+        case ASTExpressionKind::AEK_RegexTrans:
             break;
-        case ASTExpression::Kind::AEK_Returns: {
+        case ASTExpressionKind::AEK_Returns: {
             ASTReturnsExpression* e = static_cast<ASTReturnsExpression*>(expr);
             if (exprMatches(e->typeName.get(), line, col))
                 return ASTSymbolInfo(ASYK_Class, ASUK_ReturnsType, e->typeName->loc, e->typeName->name.name);
             break;
         }
-        case ASTExpression::Kind::AEK_SwitchBody:
+        case ASTExpressionKind::AEK_SwitchBody:
             break;
-        case ASTExpression::Kind::AEK_Ternary: {
+        case ASTExpressionKind::AEK_Ternary: {
             ASTTernaryExpression* e = static_cast<ASTTernaryExpression*>(expr);
             if (exprMatches(e->condition.get(), line, col))
                 return std::move(exprHoverInfo(e->condition.get(), ASYK_Variable, ASUK_TernaryCond));
@@ -309,7 +256,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
                 return std::move(exprHoverInfo(e->exprFalse.get(), ASYK_Variable, ASUK_TernaryFalse));
             break;
         }
-        case ASTExpression::Kind::AEK_Unary: {
+        case ASTExpressionKind::AEK_Unary: {
             ASTUnaryExpression* e = static_cast<ASTUnaryExpression*>(expr);
             if (exprMatches(e->expression.get(), line, col))
                 return std::move(exprHoverInfo(e->expression.get(), ASYK_Variable, ASUK_Unary));
@@ -326,11 +273,11 @@ ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast
     if (!stmt)
         return ASTSymbolInfo();
     switch (stmt->getKind()) {
-        case ASTStatement::Kind::ASK_Block:
-        case ASTStatement::Kind::ASK_Break:
-        case ASTStatement::Kind::ASK_Call:
+        case ASTStatementKind::ASK_Block:
+        case ASTStatementKind::ASK_Break:
+        case ASTStatementKind::ASK_Call:
             break;
-        case ASTStatement::Kind::ASK_Context: {
+        case ASTStatementKind::ASK_Context: {
             ASTContextStatement* s = static_cast<ASTContextStatement*>(stmt);
             if (exprMatches(s->name.get(), line, col))
                 return std::move(exprHoverInfo(s->name.get(), ASYK_Variable, ASUK_ContextStmtName));
@@ -338,21 +285,21 @@ ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast
                 return std::move(exprHoverInfo(s->data.get(), ASYK_Variable, ASUK_ContextStmtData));
             break;
         }
-        case ASTStatement::Kind::ASK_Continue:
+        case ASTStatementKind::ASK_Continue:
             break;
-        case ASTStatement::Kind::ASK_DoWhile: {
+        case ASTStatementKind::ASK_DoWhile: {
             ASTDoWhileStatement* s = static_cast<ASTDoWhileStatement*>(stmt);
             if (exprMatches(s->condition.get(), line, col))
                 return std::move(exprHoverInfo(s->condition.get(), ASYK_Variable, ASUK_DoWhileStmtCond));
             break;
         }
-        case ASTStatement::Kind::ASK_Expression: {
+        case ASTStatementKind::ASK_Expression: {
             ASTExpressionStatement* s = static_cast<ASTExpressionStatement*>(stmt);
             if (exprMatches(s->expression.get(), line, col))
                 return std::move(exprHoverInfo(s->expression.get(), ASYK_Variable, ASUK_ExprStmtExpr));
             break;
         }
-        case ASTStatement::Kind::ASK_For: {
+        case ASTStatementKind::ASK_For: {
             ASTForStatement* s = static_cast<ASTForStatement*>(stmt);
             if (exprMatches(s->init.get(), line, col))
                 return std::move(exprHoverInfo(s->init.get(), ASYK_Variable, ASUK_ForStmtInit));
@@ -362,7 +309,7 @@ ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast
                 return std::move(exprHoverInfo(s->iteration.get(), ASYK_Variable, ASUK_ForStmtIter));
             break;
         }
-        case ASTStatement::Kind::ASK_Foreach: {
+        case ASTStatementKind::ASK_Foreach: {
             ASTForeachStatement* s = static_cast<ASTForeachStatement*>(stmt);
             if (exprMatches(s->value.get(), line, col))
                 return std::move(exprHoverInfo(s->value.get(), ASYK_Variable, ASUK_ForeachStmtVal));
@@ -370,22 +317,22 @@ ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast
                 return std::move(exprHoverInfo(s->source.get(), ASYK_Variable, ASUK_ForeachStmtSrc));
             break;
         }
-        case ASTStatement::Kind::ASK_If: {
+        case ASTStatementKind::ASK_If: {
             ASTIfStatement* s = static_cast<ASTIfStatement*>(stmt);
             if (exprMatches(s->condition.get(), line, col))
                 return std::move(exprHoverInfo(s->condition.get(), ASYK_Variable, ASUK_IfStmtCond));
             break;
         }
-        case ASTStatement::Kind::ASK_OnBlockExit:
-        case ASTStatement::Kind::ASK_Rethrow:
+        case ASTStatementKind::ASK_OnBlockExit:
+        case ASTStatementKind::ASK_Rethrow:
             break;
-        case ASTStatement::Kind::ASK_Return: {
+        case ASTStatementKind::ASK_Return: {
             ASTReturnStatement* s = static_cast<ASTReturnStatement*>(stmt);
             if (exprMatches(s->retval.get(), line, col))
                 return std::move(exprHoverInfo(s->retval.get(), ASYK_Variable, ASUK_ReturnStmtVal));
             break;
         }
-        case ASTStatement::Kind::ASK_Summarize: {
+        case ASTStatementKind::ASK_Summarize: {
             ASTSummarizeStatement* s = static_cast<ASTSummarizeStatement*>(stmt);
             if (exprMatches(s->name.get(), line, col))
                 return std::move(exprHoverInfo(s->name.get(), ASYK_Variable, ASUK_SummarizeStmtName));
@@ -393,27 +340,27 @@ ASTSymbolInfo FindSymbolInfoQuery::inStatement(std::vector<ASTNode*>* nodes, ast
                 return std::move(exprHoverInfo(s->data.get(), ASYK_Variable, ASUK_SummarizeStmtData));
             break;
         }
-        case ASTStatement::Kind::ASK_Switch: {
+        case ASTStatementKind::ASK_Switch: {
             ASTSwitchStatement* s = static_cast<ASTSwitchStatement*>(stmt);
             if (exprMatches(s->variable.get(), line, col))
                 return std::move(exprHoverInfo(s->variable.get(), ASYK_Variable, ASUK_SwitchStmtVar));
             break;
         }
-        case ASTStatement::Kind::ASK_ThreadExit:
+        case ASTStatementKind::ASK_ThreadExit:
             break;
-        case ASTStatement::Kind::ASK_Throw: {
+        case ASTStatementKind::ASK_Throw: {
             ASTThrowStatement* s = static_cast<ASTThrowStatement*>(stmt);
             if (exprMatches(s->expression.get(), line, col))
                 return std::move(exprHoverInfo(s->expression.get(), ASYK_Variable, ASUK_ThrowStmtExpr));
             break;
         }
-        case ASTStatement::Kind::ASK_Try: {
+        case ASTStatementKind::ASK_Try: {
             ASTTryStatement* s = static_cast<ASTTryStatement*>(stmt);
             if (exprMatches(s->catchVar.get(), line, col))
                 return std::move(exprHoverInfo(s->catchVar.get(), ASYK_Variable, ASUK_TryStmtCatchVar));
             break;
         }
-        case ASTStatement::Kind::ASK_While: {
+        case ASTStatementKind::ASK_While: {
             ASTWhileStatement* s = static_cast<ASTWhileStatement*>(stmt);
             if (exprMatches(s->condition.get(), line, col))
                 return std::move(exprHoverInfo(s->condition.get(), ASYK_Variable, ASUK_WhileStmtCond));

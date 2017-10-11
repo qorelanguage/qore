@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTStatement.h
+  ASTSymbolKind.h
 
   Qore AST Parser
 
@@ -29,30 +29,30 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTSTATEMENT_H
-#define _QLS_AST_ASTSTATEMENT_H
+#ifndef _QLS_AST_ASTSYMBOLKIND_H
+#define _QLS_AST_ASTSYMBOLKIND_H
 
-#include <memory>
-
-#include "ASTNode.h"
-#include "ASTStatementKind.h"
-
-class ASTStatement : public ASTNode {
-public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTStatement>;
-
-public:
-    ASTStatement() : ASTNode() {}
-    ASTStatement(const ASTParseLocation& l) : ASTNode(l) {}
-
-    virtual ~ASTStatement() {}
-
-    virtual ASTStatementKind getKind() const = 0;
-
-    virtual ASTNodeType getNodeType() {
-        return ANT_Statement;
-    }
+//! Describes the kind of symbol.
+enum ASTSymbolKind {
+    ASYK_None = 0,
+    ASYK_File = 1,
+    ASYK_Module = 2,
+    ASYK_Namespace = 3,
+    ASYK_Package = 4,
+    ASYK_Class = 5,
+    ASYK_Method = 6,
+    ASYK_Property = 7,
+    ASYK_Field = 8,
+    ASYK_Constructor = 9,
+    ASYK_Enum = 10,
+    ASYK_Interface = 11,
+    ASYK_Function = 12,
+    ASYK_Variable = 13,
+    ASYK_Constant = 14,
+    ASYK_String = 15,
+    ASYK_Number = 16,
+    ASYK_Boolean = 17,
+    ASYK_Array = 18,
 };
 
-#endif // _QLS_AST_ASTSTATEMENT_H
+#endif // _QLS_AST_ASTSYMBOLKIND_H

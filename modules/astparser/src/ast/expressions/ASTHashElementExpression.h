@@ -54,8 +54,8 @@ public:
         loc.lastCol = val->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_HashElement;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_HashElement;
     }
 };
 

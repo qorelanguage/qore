@@ -59,8 +59,8 @@ public:
         loc.lastCol = re->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Binary;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Binary;
     }
 };
 

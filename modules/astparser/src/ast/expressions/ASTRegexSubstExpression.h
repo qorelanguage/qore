@@ -60,8 +60,8 @@ public:
 public:
     ASTRegexSubstExpression() : ASTExpression() {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_RegexSubst;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_RegexSubst;
     }
 };
 

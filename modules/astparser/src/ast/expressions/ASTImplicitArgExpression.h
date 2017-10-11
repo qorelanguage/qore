@@ -41,8 +41,8 @@ public:
 public:
     ASTImplicitArgExpression(int noffset = -1) : ASTExpression(), offset(noffset) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_ImplicitArg;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_ImplicitArg;
     }
 };
 

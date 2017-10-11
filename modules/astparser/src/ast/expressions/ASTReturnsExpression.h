@@ -44,8 +44,8 @@ public:
     ASTReturnsExpression() : ASTExpression() {}
     ASTReturnsExpression(ASTNameExpression* tn) : ASTExpression(tn->loc), typeName(tn) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Returns;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Returns;
     }
 };
 

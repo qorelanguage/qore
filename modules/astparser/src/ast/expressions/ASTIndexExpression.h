@@ -64,8 +64,8 @@ public:
         loc.lastCol = ie->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Index;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Index;
     }
 };
 

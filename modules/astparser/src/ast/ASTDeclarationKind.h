@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTStatement.h
+  ASTDeclarationKind.h
 
   Qore AST Parser
 
@@ -29,30 +29,23 @@
   information.
 */
 
-#ifndef _QLS_AST_ASTSTATEMENT_H
-#define _QLS_AST_ASTSTATEMENT_H
+#ifndef _QLS_AST_ASTDECLARATIONKIND_H
+#define _QLS_AST_ASTDECLARATIONKIND_H
 
-#include <memory>
-
-#include "ASTNode.h"
-#include "ASTStatementKind.h"
-
-class ASTStatement : public ASTNode {
-public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTStatement>;
-
-public:
-    ASTStatement() : ASTNode() {}
-    ASTStatement(const ASTParseLocation& l) : ASTNode(l) {}
-
-    virtual ~ASTStatement() {}
-
-    virtual ASTStatementKind getKind() const = 0;
-
-    virtual ASTNodeType getNodeType() {
-        return ANT_Statement;
-    }
+//! Describes the kind of declaration.
+enum ASTDeclarationKind {
+    ADK__reserved = 0,      // don't use
+    ADK_Class = 1,          //!< Identifies instances of \ref ASTClassDeclaration.
+    ADK_Closure = 2,        //!< Identifies instances of \ref ASTClosureDeclaration.
+    ADK_Constant = 3,       //!< Identifies instances of \ref ASTConstantDeclaration.
+    ADK_Function = 4,       //!< Identifies instances of \ref ASTFunctionDeclaration.
+    ADK_Hash = 5,           //!< Identifies instances of \ref ASTHashDeclaration.
+    ADK_HashMember = 6,     //!< Identifies instances of \ref ASTHashMemberDeclaration.
+    ADK_MemberGroup = 7,    //!< Identifies instances of \ref ASTMemberGroupDeclaration.
+    ADK_Namespace = 8,      //!< Identifies instances of \ref ASTNamespaceDeclaration.
+    ADK_Superclass = 9,     //!< Identifies instances of \ref ASTSuperclassDeclaration.
+    ADK_Variable = 10,      //!< Identifies instances of \ref ASTVariableDeclaration.
+    ADK_VarList = 11,       //!< Identifies instances of \ref ASTVarListDeclaration.
 };
 
-#endif // _QLS_AST_ASTSTATEMENT_H
+#endif // _QLS_AST_ASTDECLARATIONKIND_H

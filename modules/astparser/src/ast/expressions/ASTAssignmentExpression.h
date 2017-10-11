@@ -58,8 +58,8 @@ public:
         loc.lastCol = right->loc.lastCol;
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Assignment;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Assignment;
     }
 };
 
