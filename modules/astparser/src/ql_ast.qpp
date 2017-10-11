@@ -24,7 +24,10 @@
   DEALINGS IN THE SOFTWARE.
 */
 
+#include "ast/ASTDeclarationKind.h"
+#include "ast/ASTExpressionKind.h"
 #include "ast/ASTNodeType.h"
+#include "ast/ASTStatementKind.h"
 #include "ast/ASTSymbolKind.h"
 #include "ast/ASTSymbolUsageKind.h"
 
@@ -52,6 +55,195 @@ const ANT_ParseOption = ANT_ParseOption;
 
 //! Statement node type constant.
 const ANT_Statement = ANT_Statement;
+//@}
+
+/** @defgroup astparser_declaration_kind_constants AST Declaration Kind Constants
+ */
+//@{
+namespace astparser;
+//! Class declaration kind.
+const ADK_Class = ADK_Class;
+
+//! Closure declaration kind.
+const ADK_Closure = ADK_Closure;
+
+//! Constant declaration kind.
+const ADK_Constant = ADK_Constant;
+
+//! Function declaration kind.
+const ADK_Function = ADK_Function;
+
+//! Hash declaration kind.
+const ADK_Hash = ADK_Hash;
+
+//! Hash member declaration kind.
+const ADK_HashMember = ADK_HashMember;
+
+//! Member group declaration kind.
+const ADK_MemberGroup = ADK_MemberGroup;
+
+//! Namespace declaration kind.
+const ADK_Namespace = ADK_Namespace;
+
+//! Superclass declaration kind.
+const ADK_Superclass = ADK_Superclass;
+
+//! Variable declaration kind.
+const ADK_Variable = ADK_Variable;
+
+//! Variable list declaration kind.
+const ADK_VarList = ADK_VarList;
+//@}
+
+/** @defgroup astparser_expression_kind_constants AST Expression Kind Constants
+ */
+//@{
+namespace astparser;
+//! Variable access (dot operator) expression kind.
+const AEK_Access = AEK_Access;
+
+//! Assignment expression kind.
+const AEK_Assignment = AEK_Assignment;
+
+//! Backquote expression kind.
+const AEK_Backquote = AEK_Backquote;
+
+//! Binary expression kind.
+const AEK_Binary = AEK_Binary;
+
+//! Call expression kind.
+const AEK_Call = AEK_Call;
+
+//! Case expression kind.
+const AEK_Case = AEK_Case;
+
+//! Cast expression kind.
+const AEK_Cast = AEK_Cast;
+
+//! Closure expression kind.
+const AEK_Closure = AEK_Closure;
+
+//! Constructor initialization expression kind.
+const AEK_ConstrInit = AEK_ConstrInit;
+
+//! Context mod expression kind.
+const AEK_ContextMod = AEK_ContextMod;
+
+//! Context row expression kind.
+const AEK_ContextRow = AEK_ContextRow;
+
+//! Declaration expression kind.
+const AEK_Decl = AEK_Decl;
+
+//! Find expression kind.
+const AEK_Find = AEK_Find;
+
+//! Hash expression kind.
+const AEK_Hash = AEK_Hash;
+
+//! Hash element expression kind.
+const AEK_HashElement = AEK_HashElement;
+
+//! Implicit argument expression kind.
+const AEK_ImplicitArg = AEK_ImplicitArg;
+
+//! Implicit element expression kind.
+const AEK_ImplicitElem = AEK_ImplicitElem;
+
+//! Index access expression kind.
+const AEK_Index = AEK_Index;
+
+//! List expression kind.
+const AEK_List = AEK_List;
+
+//! Literal expression kind.
+const AEK_Literal = AEK_Literal;
+
+//! Name expression kind.
+const AEK_Name = AEK_Name;
+
+//! Regex expression kind.
+const AEK_Regex = AEK_Regex;
+
+//! Regex substitution expression kind.
+const AEK_RegexSubst = AEK_RegexSubst;
+
+//! Regex transliteration expression kind.
+const AEK_RegexTrans = AEK_RegexTrans;
+
+//! Returns expression kind.
+const AEK_Returns = AEK_Returns;
+
+//! Switch body expression kind.
+const AEK_SwitchBody = AEK_SwitchBody;
+
+//! Ternary conditional expression kind.
+const AEK_Ternary = AEK_Ternary;
+
+//! Unary expression kind.
+const AEK_Unary = AEK_Unary;
+//@}
+
+/** @defgroup astparser_declaration_kind_constants AST Statement Kind Constants
+ */
+//@{
+namespace astparser;
+//! Statement block statement kind.
+const ASK_Block = ASK_Block;
+
+//! Break statement kind.
+const ASK_Break = ASK_Break;
+
+//! Call statement kind.
+const ASK_Call = ASK_Call;
+
+//! Context statement kind.
+const ASK_Context = ASK_Context;
+
+//! Continue statement kind.
+const ASK_Continue = ASK_Continue;
+
+//! Do-while statement kind.
+const ASK_DoWhile = ASK_DoWhile;
+
+//! Expression statement kind.
+const ASK_Expression = ASK_Expression;
+
+//! For statement kind.
+const ASK_For = ASK_For;
+
+//! Foreach statement kind.
+const ASK_Foreach = ASK_Foreach;
+
+//! If statement kind.
+const ASK_If = ASK_If;
+
+//! On block exit (\c on_exit, \c on_success, \c on_error) statement kind.
+const ASK_OnBlockExit = ASK_OnBlockExit;
+
+//! Rethrow statement kind.
+const ASK_Rethrow = ASK_Rethrow;
+
+//! Return statement kind.
+const ASK_Return = ASK_Return;
+
+//! Summarize statement kind.
+const ASK_Summarize = ASK_Summarize;
+
+//! Switch statement kind.
+const ASK_Switch = ASK_Switch;
+
+//! Thread exit statement kind.
+const ASK_ThreadExit = ASK_ThreadExit;
+
+//! Throw statement kind.
+const ASK_Throw = ASK_Throw;
+
+//! Try statement kind.
+const ASK_Try = ASK_Try;
+
+//! While statement kind.
+const ASK_While = ASK_While;
 //@}
 
 /** @defgroup astparser_symbol_kind_constants AST Symbol Kind Constants

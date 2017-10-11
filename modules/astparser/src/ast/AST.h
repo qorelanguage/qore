@@ -33,7 +33,9 @@
 #define _QLS_AST_AST_H
 
 #include "ast/ASTDeclaration.h"
+#include "ast/ASTDeclarationKind.h"
 #include "ast/ASTExpression.h"
+#include "ast/ASTExpressionKind.h"
 #include "ast/ASTModifiers.h"
 #include "ast/ASTName.h"
 #include "ast/ASTNode.h"
@@ -43,6 +45,7 @@
 #include "ast/ASTParseLocation.h"
 #include "ast/ASTParseOption.h"
 #include "ast/ASTStatement.h"
+#include "ast/ASTStatementKind.h"
 #include "ast/ASTSymbolInfo.h"
 #include "ast/ASTSymbolKind.h"
 #include "ast/ASTSymbolUsageKind.h"
