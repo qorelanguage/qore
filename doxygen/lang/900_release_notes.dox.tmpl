@@ -8,6 +8,20 @@
     Bugfix release; see details below
 
     @subsection qore_08131_bug_fixes Bug Fixes in Qore
+    - added missing comparison methods in the <a href="../../modules/QUnit/html/index.html">QUnit</a> module (<a href="https://github.com/qorelanguage/qore/issues/1588">issue 1588</a>):
+      - \c Test::assertRegex()
+      - \c Test::assertNRegex()
+      - \c Test::assertNeq()
+      - \c Test::assertNeqSoft()
+      - \c Test::assertGt()
+      - \c Test::assertGtSoft()
+      - \c Test::assertGe()
+      - \c Test::assertGeSoft()
+      - \c Test::assertLt()
+      - \c Test::assertLtSoft()
+      - \c Test::assertLe()
+      - \c Test::assertLeSoft()
+      - \c Test::assertNothing()
     - fixed a bug in \c qpp generating hashdecl code in a specific namespace (<a href="https://github.com/qorelanguage/qore/issues/2255">issue 2255</a>)
     - \c astparser module fixes:
       - fixed memory leaks in \c AstParser::parseFile() and \c AstParser::parseString() methods (<a href="https://github.com/qorelanguage/qore/issues/2261">issue 2261</a>)
