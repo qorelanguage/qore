@@ -11,9 +11,9 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
-set(VERSION_PATCH 1)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 00) # Note: it must be always 2 numeric notation. E.g. 00, 01, ... to follow autotools builds
+#set(VERSION_PATCH xxx)
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
