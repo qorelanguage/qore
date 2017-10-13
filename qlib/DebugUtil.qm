@@ -166,7 +166,7 @@ public namespace DebugUtil {
         */
         public log(int verbosity, string fmt) {
             if (verbose >= verbosity) {
-                stdout.vprintf(fmt+"\n", argv);
+                stdout.vprintf(fmt+"\r\n", argv);
             }
         }
     }

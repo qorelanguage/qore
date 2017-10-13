@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires DebugUtil
+%requires(reexport) DebugUtil
 %requires linenoise
 %requires Util
 
@@ -133,24 +133,6 @@ public namespace DebugCmdLine {
                 }
             }
             pgm_args = args;
-        }
-    }
-
-    #! class that can be used for logging
-    public class DebugLogger {
-        public {
-            int verbose = DUV_NONE;
-        }
-        constructor() {}
-
-        #! implement logging
-        /**
-          @param verbosity use DPC_xxx constants
-        */
-        public log(int verbosity, string fmt) {
-            if (verbose >= verbosity) {
-                stdout.vprintf(fmt+"\n", argv);
-            }
         }
     }
 

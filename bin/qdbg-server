@@ -7,7 +7,6 @@
 
 %requires qore >= 0.8.13
 %requires HttpServer
-%requires DebugUtil
 %requires DebugProgramControl
 %requires DebugHandler
 
