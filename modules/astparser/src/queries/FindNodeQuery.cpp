@@ -282,6 +282,14 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             ASTNameExpression* e = static_cast<ASTNameExpression*>(expr);
             return &e->name;
         }
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            result = inExpression(e->left.get(), line, col);
+            if (result) return result;
+            result = inExpression(e->right.get(), line, col);
+            if (result) return result;
+            break;
+        }
         case ASTExpressionKind::AEK_Regex:
         case ASTExpressionKind::AEK_RegexSubst:
         case ASTExpressionKind::AEK_RegexTrans:

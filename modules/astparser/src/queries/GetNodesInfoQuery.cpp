@@ -330,6 +330,12 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             nodeInfo->setKeyValue("name", getName(tree, e->name, xsink), xsink);
             break;
         }
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            nodeInfo->setKeyValue("left", getExpression(tree, e->left.get(), xsink), xsink);
+            nodeInfo->setKeyValue("right", getExpression(tree, e->right.get(), xsink), xsink);
+            break;
+        }
         case ASTExpressionKind::AEK_Regex: {
             ASTRegexExpression* e = static_cast<ASTRegexExpression*>(expr);
             nodeInfo->setKeyValue("str", new QoreStringNode(e->str), xsink);

@@ -212,6 +212,12 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
         }
         case ASTExpressionKind::AEK_Literal:
         case ASTExpressionKind::AEK_Name:
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            inExpression(vec, e->left.get());
+            inExpression(vec, e->right.get());
+            break;
+        }
         case ASTExpressionKind::AEK_Regex:
         case ASTExpressionKind::AEK_RegexSubst:
         case ASTExpressionKind::AEK_RegexTrans:

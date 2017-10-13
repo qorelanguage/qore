@@ -221,6 +221,12 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
             inName(vec, e->name, name);
             break;
         }
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            inExpression(vec, e->left.get(), name);
+            inExpression(vec, e->right.get(), name);
+            break;
+        }
         case ASTExpressionKind::AEK_Regex:
         case ASTExpressionKind::AEK_RegexSubst:
         case ASTExpressionKind::AEK_RegexTrans:

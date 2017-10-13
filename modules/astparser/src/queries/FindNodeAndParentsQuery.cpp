@@ -292,6 +292,14 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpression(ASTExpression* expr
             if (result) { result->push_back(expr); return result; }
             break;
         }
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            result = inExpression(e->left.get(), line, col);
+            if (result) { result->push_back(expr); return result; }
+            result = inExpression(e->right.get(), line, col);
+            if (result) { result->push_back(expr); return result; }
+            break;
+        }
         case ASTExpressionKind::AEK_Regex:
         case ASTExpressionKind::AEK_RegexSubst:
         case ASTExpressionKind::AEK_RegexTrans:

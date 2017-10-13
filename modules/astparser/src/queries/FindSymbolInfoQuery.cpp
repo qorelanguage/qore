@@ -234,6 +234,14 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
             break;
         case ASTExpressionKind::AEK_Name:
             return std::move(nextRound(nodes, line, col));
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            if (exprMatches(e->left.get(), line, col))
+                return std::move(exprHoverInfo(e->left.get(), ASYK_Variable, ASUK_RangeLeft));
+            if (exprMatches(e->right.get(), line, col))
+                return std::move(exprHoverInfo(e->right.get(), ASYK_Variable, ASUK_RangeRight));
+            break;
+        }
         case ASTExpressionKind::AEK_Regex:
         case ASTExpressionKind::AEK_RegexSubst:
         case ASTExpressionKind::AEK_RegexTrans:
