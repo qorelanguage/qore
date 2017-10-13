@@ -166,6 +166,7 @@ public namespace DebugUtil {
         */
         public log(int verbosity, string fmt) {
             if (verbose >= verbosity) {
+                # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
                 stdout.vprintf(fmt+"\r\n", argv);
             }
         }
