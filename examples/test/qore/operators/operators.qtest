@@ -906,10 +906,13 @@ class Test inherits QUnit::Test {
         assertEq((5,1,8,7), l[2..5]);
         assertEq((7,8,1,5), l[5..2]);
         assertEq((8,7,2), l[4..]);
-        assertEq((8,7,2,NOTHING,NOTHING), l[4..8]);
+        assertEq((8,7,2,NOTHING,NOTHING),          l[4..8]);
+        assertEq((8,7,2,NOTHING,NOTHING), map  $1, l[4..8]);  # lazy evaluation
+        assertEq((8,7,2,      0,      0), map +$1, l[4..8]);  # lazy evaluation
         assertEq((NOTHING,NOTHING,2,7,8), l[8..4]);
         assertEq((7,3,5,1), l[0..3]);
         assertEq((7,3,5,1), l[..3]);
+        assertEq((16,2,10,6), map 2*$1, l[4..1]);    # lazy evaluation
         assertEq(23, foldl $1 + 2*$2, l[..2]);       # lazy evaluation
         assertEq(25, foldl $1 + 2*$2, l[2..0]);      # lazy evaluation
         assertEq(23, foldl $1 + 2*$2, l[(0..2)]);    # lazy evaluation
@@ -925,8 +928,9 @@ class Test inherits QUnit::Test {
         assertEq("asdf", "asdfzxcv"[-2..3]);
         assertEq("asdfz", "asdfzxcv"[..4]);
         assertEq("cxzf", "asdfzxcv"[6..3]);
-        assertEq(("c*", "x*", "z*", "f*"), map $1 + "*", "asdfzxcv"[6..3]);     # lazy evaluation
-        assertEq("c|x|z|f", foldl $1 + "|" + $2, "asdfzxcv"[6..3]);             # lazy evaluation
+        assertEq("v", "asdfzxcv"[16..7]);
+        assertEq("cxzf*", map $1 + "*", "asdfzxcv"[6..3]);           # map does not create a list because its second operand is a single element
+        assertEq("cxzf", foldl $1 + "|" + $2, "asdfzxcv"[6..3]);     # foldl does not do anything because its second operand is a single element
         assertEq(NOTHING, "asdfzxcv"[12]);
         assertEq("", "asdfzxcv"[12,]);
 
@@ -943,10 +947,10 @@ class Test inherits QUnit::Test {
         assertEq(binary(), b[14..]);
         assertEq(<96f1bb>, b[2..7][1..3]);
         assertEq(187, b[2..7][1..3][2]);
-        assertEq((<ad>, <96>, <f1>), map $1, b[2..4]);   # lazy evaluation
-        assertEq(<bbd473>, foldl $1 + $2, b[5..]);       # lazy evaluation
-        assertEq(<bbd473>, b[5..]);                      # 'standard' evaluation
-        assertEq(<bbd473>, foldl $1 + $2, b[(5..7)]);    # lazy evaluation
+        assertEq(<ad96f100>, map $1+<00>, b[2..4]);      # map does not create a list because its second operand is a single element
+        assertEq(<bbd473>, foldl $1 + $2, b[5..]);       # foldl does not do anything because its second operand is a single element
+        assertEq(<bbd473>, foldl $1 + $2, b[(5..7)]);    #        -"-
+        assertEq(<bbd473>, b[5..]);
         assertEq("list<int>", (1,2)[0..1].fullType());
         assertEq("list<int>", (1,2)[1..0].fullType());
         assertEq("list<*int>", (NOTHING,2)[0..1].fullType());

@@ -111,8 +111,8 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
     // if the rhs cannot be a list, see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
     if (!rti_can_be_list && !QoreTypeInfo::canConvertToScalar(rti)) {
         QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
-	    QoreTypeInfo::getThisType(rti, *edesc);
-	    edesc->concat(" and so will always evaluate to zero");
+        QoreTypeInfo::getThisType(rti, *edesc);
+        edesc->concat(" and so will always evaluate to zero");
         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
     }
 
@@ -379,7 +379,6 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     if (*xsink)
         return nullptr;
 
-
     ValueEvalRefHolder rhs(right, xsink);
     if (*xsink)
         return nullptr;
@@ -387,10 +386,16 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     // we only support functional iteration when the lhd is a list and the rhs is a list
     if (lhs->getType() == NT_LIST && rhs->getType() == NT_LIST) {
         value_type = list;
-        return new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink);
+
+        return get_node_type(right) == NT_PARSE_LIST
+            ? new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink, static_cast<const QoreParseListNode*>(right))
+            : new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink);
     }
 
-    ValueHolder res(doSquareBrackets(*lhs, *rhs, true, xsink), xsink);
+    ValueHolder res = rhs_list_range
+        ? ValueHolder(doSquareBracketsListRange(*lhs, static_cast<const QoreParseListNode*>(right), xsink), xsink)
+        : ValueHolder(doSquareBrackets(*lhs, *rhs, true, xsink), xsink);
+
     if (*xsink)
         return nullptr;
     if (res->isNothing()) {
@@ -406,10 +411,32 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
 }
 
 bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-    if ((size_t)++offset == rl->size())
-        return true;
+    if (!rangeIter) {                               // the current position is not inside a subrange
+        if ((size_t)++offset == rightList->size())  // do a step in the top-level list
+            return true;
 
-//printd(0, "QoreFunctionalSquareBracketsOperator::getNextImpl() offset: %d n: %p '%s'\n", (int)offset, rl->retrieve_entry(offset), get_type_name(rl->retrieve_entry(offset)));
-    val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*left, rl->retrieve_entry(offset), false, xsink), true);
+        // if the element on the new current top-level position (offset) is a range then get its iterator
+        const QoreRangeOperatorNode* range;
+        if (rightParseList && get_node_type(rightParseList->get(offset)) == NT_OPERATOR && (range = dynamic_cast<const QoreRangeOperatorNode*>(rightParseList->get(offset)))) {
+            FunctionalOperator::FunctionalValueType value_type;
+            rangeIter = std::unique_ptr<QoreFunctionalRangeOperator>((QoreFunctionalRangeOperator*)(range->getFunctionalIterator(value_type, xsink)));
+        }
+    }
+
+    if (*xsink)
+        return false;
+
+    if (rangeIter) {                                // the current position is inside a subrange
+        ValueOptionalRefHolder rangeVal(xsink);
+        if(rangeIter->getNext(rangeVal, xsink)) {   // use the inner range iterator to get next ...
+            rangeIter.reset();                      // ... if there's no next inner range element then reset the inner iterator ...
+            return getNextImpl(val, xsink);         // ... and get the next top-level element
+        }
+        else  // set the value using the index from the inner subrange
+            val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rangeVal.takeReferencedValue(), false, xsink), true);
+    }
+    else      // set the value using the top-level index
+        val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieve_entry(offset), false, xsink), true);
+
     return false;
 }

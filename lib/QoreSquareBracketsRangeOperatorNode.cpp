@@ -154,11 +154,23 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
     if (*xsink)
         return nullptr;
 
-    int64 start, stop, seq_size;
-    if (getEffectiveRange(*seq, start, stop, seq_size, xsink))
-        return new QoreFunctionalSquareBracketsRangeOperator(seq, start, stop, xsink);
-    else
+    if (seq->getType() == NT_LIST) {
+        int64 start, stop, seq_size;
+        if (getEffectiveRange(*seq, start, stop, seq_size, xsink))
+            return new QoreFunctionalSquareBracketsRangeOperator(seq, start, stop, xsink);
+    }
+
+    bool needs_deref;
+    ValueHolder res(evalValueImpl(needs_deref, xsink), xsink);
+
+    if (*xsink)
         return nullptr;
+    if (res->getType() == NT_LIST) {
+        value_type = list;
+        return new QoreFunctionalListOperator(true, res.release().get<QoreListNode>(), xsink);
+    }
+    value_type = single;
+    return new QoreFunctionalSingleValueOperator(res.release(), xsink);
 }
 
 bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
@@ -233,6 +245,8 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
 
         if (start < 0)
             start = 0;
+        if (seq_type != NT_LIST && stop > seq_size - 1)
+            stop = seq_size - 1;
     }
     else {
         if (stop > seq_size - 1 || start < 0)
@@ -240,6 +254,8 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
 
         if (stop < 0)
             stop = 0;
+        if (seq_type != NT_LIST && start > seq_size - 1)
+            start = seq_size - 1;
     }
     return true;
 }

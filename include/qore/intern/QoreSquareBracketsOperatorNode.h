@@ -30,8 +30,8 @@
 */
 
 #ifndef _QORE_QORESQUAREBRACKETSOPERATORNODE_H
-
 #define _QORE_QORESQUAREBRACKETSOPERATORNODE_H
+
 
 class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
 OP_COMMON
@@ -73,12 +73,13 @@ protected:
 
 class QoreFunctionalSquareBracketsOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalSquareBracketsOperator(ValueEvalRefHolder& lhs, ValueEvalRefHolder& rhs, ExceptionSink* xsink)
-        : left(*lhs, lhs.isTemp(), xsink),
-          right(*rhs, rhs.isTemp(), xsink),
-          rl(rhs->get<const QoreListNode>()) {
-       lhs.clearTemp();
-       rhs.clearTemp();
+    DLLLOCAL QoreFunctionalSquareBracketsOperator(ValueEvalRefHolder& lhs, ValueEvalRefHolder& rhs, ExceptionSink* xsink, const QoreParseListNode* rpl = nullptr)
+        : leftValue(*lhs, lhs.isTemp(), xsink),
+          rightList(rhs->get<const QoreListNode>()),
+          rightParseList(rpl)
+    {
+        lhs.clearTemp();
+        rhs.clearTemp();
     }
 
     DLLLOCAL virtual ~QoreFunctionalSquareBracketsOperator() {}
@@ -86,9 +87,11 @@ public:
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 
 protected:
-    ValueOptionalRefHolder left, right;
-    const QoreListNode* rl;
+    ValueOptionalRefHolder leftValue;
+    const QoreListNode* rightList;
+    const QoreParseListNode* rightParseList;
     qore_offset_t offset = -1;
+    std::unique_ptr<class QoreFunctionalRangeOperator> rangeIter;
 };
 
 #endif
