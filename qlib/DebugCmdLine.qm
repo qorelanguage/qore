@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires DebugUtil
+%requires(reexport) DebugUtil
 %requires linenoise
 %requires Util
 
@@ -133,24 +133,6 @@ public namespace DebugCmdLine {
                 }
             }
             pgm_args = args;
-        }
-    }
-
-    #! class that can be used for logging
-    public class DebugLogger {
-        public {
-            int verbose = DUV_NONE;
-        }
-        constructor() {}
-
-        #! implement logging
-        /**
-          @param verbosity use DPC_xxx constants
-        */
-        public log(int verbosity, string fmt) {
-            if (verbose >= verbosity) {
-                stdout.vprintf(fmt+"\n", argv);
-            }
         }
     }
 
@@ -479,7 +461,7 @@ public namespace DebugCmdLine {
                                         hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/';
                                         if (args) {
                                             data.cmd += 'set';
-                                            data.value = dcl.parseValue(args);
+                                            data.value = call_function_args(\dcl.parseValue(), args);
                                         } else {
                                             data.cmd += 'get';
                                         }
@@ -778,7 +760,7 @@ public namespace DebugCmdLine {
                                         data.tid = dcl.checkThreadId();
                                         if (args) {
                                             data.cmd += 'set';
-                                            data.value = dcl.parseValue(args);
+                                            data.value = call_function_args(\dcl.parseValue(), args);
                                             dcl.doCommand(data);
                                             stdout.printf("%s: value set to: %y\r\n", var, data.value);
                                         } else {
@@ -818,7 +800,7 @@ public namespace DebugCmdLine {
                                         data.tid = dcl.checkThreadId();
                                         if (args) {
                                             data.cmd += 'set';
-                                            data.value = dcl.parseValue(args);
+                                            data.value = call_function_args(\dcl.parseValue(), args);
                                         } else {
                                             data.cmd += 'get';
                                         }
@@ -947,8 +929,9 @@ public namespace DebugCmdLine {
                 throw "CMD-ARG-ERROR", sprintf("%s: parameter %y is not integer", path.join(' '), val[0]);
             }
         }
-        public auto parseValue(softlist args) {
-            return parse_to_qore_value(shift args);
+
+        public auto parseValue() {
+            return parse_to_qore_value(argv.lsize() == 1 ? argv[0] : argv);
         }
 
         public auto getContextValue(string key) {
@@ -1066,7 +1049,7 @@ public namespace DebugCmdLine {
         public *hash findCmd(list args, int opts = 0, *reference<int> last_param) {  /* public because it is needed from closure */
             hash result;
             result.path = ();
-            hash c = commands;
+            hash<auto> c = commands;
             last_param = 0;
             while (args) {
                 bool doBreak = False;

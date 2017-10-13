@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires DebugUtil
+%requires(reexport) DebugUtil
 
 %require-types
 %enable-all-warnings
