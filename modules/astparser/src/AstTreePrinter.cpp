@@ -436,6 +436,16 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printName(os, e->name, 0, true, true, ": ");
             break;
         }
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            printString(os, "RangeExpr ", indent);
+            printLocation(os, e->loc, 0, true);
+            printString(os, "left:\n", indent+1);
+            printExpression(os, e->left.get(), indent+2);
+            printString(os, "right:\n", indent+1);
+            printExpression(os, e->right.get(), indent+2);
+            break;
+        }
         case ASTExpressionKind::AEK_Regex: {
             ASTRegexExpression* e = static_cast<ASTRegexExpression*>(expr);
             printString(os, "RegexExpr ", indent);
@@ -770,7 +780,7 @@ void AstTreePrinter::printParseOptionString(std::ostream& os, ASTParseOption* po
     ASTParseOptionKind kind = po->getKind();
     switch (kind) {
         case APOK_ALLOW_BARE_REFS: os << "ALLOW_BARE_REFS"; break;
-        case APOK_ALLOW_DEBUGGING: os << "ALLOW_DEBUGGING"; break;
+        case APOK_ALLOW_DEBUGGER: os << "ALLOW_DEBUGGER"; break;
         case APOK_ALLOW_INJECTION: os << "ALLOW_INJECTION"; break;
         case APOK_APPEND_INCLUDE_PATH: os << "APPEND_INCLUDE_PATH"; break;
         case APOK_APPEND_MODULE_PATH: os << "APPEND_MODULE_PATH"; break;
@@ -799,6 +809,7 @@ void AstTreePrinter::printParseOptionString(std::ostream& os, ASTParseOption* po
         case APOK_NO_CLASS_DEFS: os << "NO_CLASS_DEFS"; break;
         case APOK_NO_CONSTANT_DEFS: os << "NO_CONSTANT_DEFS"; break;
         case APOK_NO_DATABASE: os << "NO_DATABASE"; break;
+        case APOK_NO_DEBUGGING: os << "NO_DEBUGGING"; break;
         case APOK_NO_EXTERNAL_PROCESS: os << "NO_EXTERNAL_PROCESS"; break;
         case APOK_NO_EXTERNAL_INFO: os << "NO_EXTERNAL_INFO"; break;
         case APOK_NO_EXTERNAL_ACCESS: os << "NO_EXTERNAL_ACCESS"; break;

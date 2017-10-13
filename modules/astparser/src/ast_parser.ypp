@@ -230,6 +230,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
+%token RANGE ".. operator"
 
 // other
 %token PARSE_OPTION_BEGIN "parse option beginning"
@@ -303,6 +304,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %left ','
 %right PLUS_EQUALS WS_PLUS_EQUALS MINUS_EQUALS WS_MINUS_EQUALS AND_EQUALS WS_AND_EQUALS OR_EQUALS WS_OR_EQUALS MODULO_EQUALS WS_MODULO_EQUALS MULTIPLY_EQUALS WS_MULTIPLY_EQUALS DIVIDE_EQUALS WS_DIVIDE_EQUALS XOR_EQUALS WS_XOR_EQUALS SHIFT_LEFT_EQUALS WS_SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS WS_SHIFT_RIGHT_EQUALS '=' WEAK_ASSIGNMENT
 %right '?' ':'
+%nonassoc RANGE
 %right NULL_COALESCING VALUE_COALESCING
 %left LOGICAL_OR WS_LOGICAL_OR
 %left LOGICAL_AND WS_LOGICAL_AND BROKEN_LOGICAL_OR WS_BROKEN_LOGICAL_OR
@@ -2326,6 +2328,23 @@ exp:
         | exp '%' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Modulo, $3); }
         | exp '/' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp '*' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
+        | exp '[' exp RANGE ']'             {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression($3, nullptr));
+            re->loc.setLast(@4);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp '[' RANGE exp ']'             {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, $4));
+            re->loc.setFirst(@3);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp '[' RANGE ']'                 {
+            yynerrs++;
+            yyerror(&@3, yyscanner, errorLog, parseTree, "illegal range without start or end expressions; at least start or end must be given for a range");
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, nullptr));
+            re->loc = @3;
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
         | exp '[' exp ']'                   {
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
@@ -2334,6 +2353,7 @@ exp:
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
+        | exp RANGE exp                     { $$ = new ASTRangeExpression($1, $3); }
         | exp '.' exp                       { $$ = new ASTAccessExpression($1, $3); }
         | exp DOT_KW_IDENTIFIER             {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);
@@ -2429,6 +2449,23 @@ exp_n:
         | exp_n '%' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Modulo, $3); }
         | exp_n '/' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp_n '*' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
+        | exp_n '[' exp RANGE ']'           {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression($3, nullptr));
+            re->loc.setLast(@4);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp_n '[' RANGE exp ']'           {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, $4));
+            re->loc.setFirst(@3);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp_n '[' RANGE ']'               {
+            yynerrs++;
+            yyerror(&@3, yyscanner, errorLog, parseTree, "illegal range without start or end expressions; at least start or end must be given for a range");
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, nullptr));
+            re->loc = @3;
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
         | exp_n '[' exp ']'                 {
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
@@ -2437,6 +2474,7 @@ exp_n:
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
+        | exp_n RANGE exp                   { $$ = new ASTRangeExpression($1, $3); }
         | exp_n '.' exp                     { $$ = new ASTAccessExpression($1, $3); }
         | exp_n DOT_KW_IDENTIFIER           {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);
