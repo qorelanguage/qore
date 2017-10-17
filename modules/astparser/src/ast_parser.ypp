@@ -1848,7 +1848,7 @@ list:
             $$->loc.set(@1, @3);
         }
         | exp ',' {
-            if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
+            if ($1 && $1->getKind() == ASTExpressionKind::AEK_List) {
                 $$ = static_cast<ASTListExpression*>($1);
             }
             else {
@@ -1867,7 +1867,7 @@ list_n:
             $$->loc.set(@1, @3);
         }
         | exp_n ',' {
-            if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
+            if ($1 && $1->getKind() == ASTExpressionKind::AEK_List) {
                 $$ = static_cast<ASTListExpression*>($1);
             }
             else {

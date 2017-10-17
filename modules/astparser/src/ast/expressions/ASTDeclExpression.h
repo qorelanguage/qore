@@ -43,8 +43,8 @@ public:
 public:
     ASTDeclExpression(ASTDeclaration* d) : ASTExpression(d->loc), declaration(d) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Decl;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Decl;
     }
 };
 

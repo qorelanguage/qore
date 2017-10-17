@@ -42,8 +42,8 @@ public:
     using Ptr = std::unique_ptr<ASTRethrowStatement>;
 
 public:
-    virtual Kind getKind() const override {
-        return Kind::ASK_Rethrow;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Rethrow;
     }
 };
 

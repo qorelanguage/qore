@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.3";
+    version = "0.3.1";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,22 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_3_1 Version 0.3.1
+    - added the following methods:
+      - @ref QUnit::Test::assertRegex()
+      - @ref QUnit::Test::assertNRegex()
+      - @ref QUnit::Test::assertNeq()
+      - @ref QUnit::Test::assertNeqSoft()
+      - @ref QUnit::Test::assertGt()
+      - @ref QUnit::Test::assertGtSoft()
+      - @ref QUnit::Test::assertGe()
+      - @ref QUnit::Test::assertGeSoft()
+      - @ref QUnit::Test::assertLt()
+      - @ref QUnit::Test::assertLtSoft()
+      - @ref QUnit::Test::assertLe()
+      - @ref QUnit::Test::assertLeSoft()
+      - @ref QUnit::Test::assertNothing()
 
     @subsection qunit_v0_3 Version 0.3
     - updated for complex types
@@ -809,6 +825,37 @@ public class QUnit::Test inherits QUnit::TestReporter {
         static QUnit::TestResultFailure RESULT_FAILURE = new QUnit::TestResultFailure();
     }
 
+    private:internal {
+        #! equality comparitor
+        const QUC_EQ = "eq";
+        #! inequality comparitor
+        const QUC_NEQ = "neq";
+        #! greater than comparitor
+        const QUC_GT = "gt";
+        #! greater than or equals comparitor
+        const QUC_GE = "ge";
+        #! greater than comparitor
+        const QUC_LT = "lt";
+        #! greater than or equals comparitor
+        const QUC_LE = "le";
+        #! regex comparitor
+        const QUC_RE = "re";
+        #! negative regex comparitor
+        const QUC_NRE = "nre";
+
+        #! comparitor info
+        const QUC_Map = (
+            QUC_EQ: NOTHING,
+            QUC_NEQ: "Not Equal",
+            QUC_GT: "Greater Than",
+            QUC_GE: "Greater Than Or Equal To",
+            QUC_LT: "Less Than",
+            QUC_LE: "Less Than Or Equal To",
+            QUC_RE: "Regular Expression Match",
+            QUC_NRE: "Negative Regular Expression Match",
+        );
+    }
+
     #! creates the object and sets the name of the test
     constructor(string name, string version, *reference<list<string>> p_argv, *hash opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
     }
@@ -876,11 +923,17 @@ addTestCase(obj);
     }
 
     #! Helper function for printing out human-readable comparison of two values.
-    private string printUnexpectedData(auto exp, auto act, *bool neg, *bool soft_comparisons) {
+    private string printUnexpectedData(auto exp, auto act, *bool neg, *bool soft_comparisons, *string comparitor) {
+        string comp = "Expected";
+        if (comparitor)
+            comp += " " + QUC_Map{comparitor};
+        else
+            comparitor = neg ? QUC_NEQ : QUC_EQ;
+
         string expected;
         string actual;
         # if values are "soft equal", then they must have different types, so we make the type differences explicit here
-        if (exp == act) {
+        if (!soft_comparisons && exp.typeCode() != act.typeCode()) {
             bool done = False;
             # if the values are strings that differ only in encodings, then show the encodings
             if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding() && exp.length() == act.length()) {
@@ -900,6 +953,7 @@ addTestCase(obj);
                 expected = sprintf("(%s) %N", exp.type(), exp);
                 actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
             }
+            comp += " (TYPE ERROR)";
         }
         else {
             if (exp.typeCode() == NT_BINARY) {
@@ -927,7 +981,7 @@ addTestCase(obj);
         if (!multiline) {
             # For some very simple values that fit on one line, just put it on one line. For values that would overflow the standard line size, do two lines.
             bool twoline = length(expected) + length(actual) > 40;
-            result += sprintf("Expected%s: %s%sActual: %s", neg ? " Not Equal" : "", expected, twoline ? "\n" : ", ", actual);
+            result += sprintf("%s: %s%sActual: %s", comp, expected, twoline ? "\n" : ", ", actual);
             # For numeric values, when really verbose or difference not visible, compute and show the difference.
             if ((m_options.verbose > 1 || sprintf("%y", exp) == sprintf("%y", act)) &&
                     inlist (exp.typeCode(), (NT_INT, NT_FLOAT, NT_NUMBER)) &&
@@ -936,7 +990,7 @@ addTestCase(obj);
             }
         } else {
             string hr = "\t--------------------\n";
-            result += sprintf("Expected%s:\n", neg ? " Not Equal" : "") + hr;
+            result += sprintf("%s:\n", comp) + hr;
             map result += sprintf("\t%s\n", $1), expectedLines;
             result += hr + "Actual:\n" + hr;
             if (neg)
@@ -1029,10 +1083,78 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
         return actual;
     }
 
+    #! Tests that a test value passes a regular expression match
+    /** @par Example:
+        @code{.py}
+assertRegex("regex string", string_function());
+        @endcode
+
+        @param regex_pattern the regular expression pattern string that the test value should match
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertRegex(string regex_pattern, string actual, *string name) {
+        TestCase tc = getTestCase("assertRegex");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (!regex(actual, regex_pattern)) {
+            throw "TEST-EXCEPTION", printUnexpectedData(regex_pattern, actual, NOTHING, NOTHING, QUC_RE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a test value does not pass a regular expression match
+    /** @par Example:
+        @code{.py}
+assertNRegex("regex string", string_function());
+        @endcode
+
+        @param regex_pattern the regular expression pattern string that the test value should not match
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertNRegex(string regex_pattern, string actual, *string name) {
+        TestCase tc = getTestCase("assertNRegex");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (regex(actual, regex_pattern)) {
+            throw "TEST-EXCEPTION", printUnexpectedData(regex_pattern, actual, NOTHING, NOTHING, QUC_NRE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests for no vlaue
+    /** @par Example:
+        @code{.py}
+assertNothing(function_that_should_not_return_a value());
+        @endcode
+
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertNothing(auto actual, *string name) {
+        TestCase tc = getTestCase("assertNothing");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (exists actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(NOTHING, actual), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
     #! Tests a value for equality to an expected value with soft comparisons (types may differ)
     /** @par Example:
         @code{.py}
-assertEqSoft("5", functionThatShouldReturnFive());
+assertEqSoft("5", function_that_should_return_five());
         @endcode
 
         @param expected the expected value
@@ -1048,17 +1170,37 @@ assertEqSoft("5", functionThatShouldReturnFive());
         if (expected != actual) {
             throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True), ("name": name, "pos": NOTHING);
         } else {
-            tc.incAssertionsOk();
-            ++num_asserts_ok;
-            if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+            assertionOk(name);
+        }
+    }
+
+    #! Tests a value for inequality to an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertNeqSoft("5", function_that_should_not_return_five());
+        @endcode
+
+        @param expected the value that should not be equal to the test value with a soft comparison
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertNeqSoft(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertNeqSoft");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected == actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, True, True), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
         }
     }
 
     #! Tests a value for equality to an expected value with hard comparisons (types and values must be identical)
     /** @par Example:
         @code{.py}
-assertEq(5, functionThatShouldReturnFive());
+assertEq(5, function_that_should_return_five());
         @endcode
 
         @param expected the expected value
@@ -1074,10 +1216,30 @@ assertEq(5, functionThatShouldReturnFive());
         if (expected !== actual) {
             throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
         } else {
-            tc.incAssertionsOk();
-            ++num_asserts_ok;
-            if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+            assertionOk(name);
+        }
+    }
+
+    #! Tests a value for inequality to an expected value with hard comparisons (types and values must be identical)
+    /** @par Example:
+        @code{.py}
+assertNeq(5, function_that_should_return_five());
+        @endcode
+
+        @param expected the value that should not be equal to the test value with a hard comparison
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertNeq(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertNeq");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected === actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, True), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
         }
     }
 
@@ -1101,10 +1263,7 @@ assertFloatEq(2.5, 2.50001, 0.001);
         if (abs(expected-actual) >= epsilon) {
             throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
         } else {
-            tc.incAssertionsOk();
-            ++num_asserts_ok;
-            if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+            assertionOk(name);
         }
     }
 
@@ -1128,11 +1287,202 @@ assertNumberEq(2.5n, 2.50001n, 0.001n);
         if (abs(expected-actual) >= epsilon) {
             throw "TEST-EXCEPTION", printUnexpectedData(expected, actual), ("name": name, "pos": NOTHING);
         } else {
-            tc.incAssertionsOk();
-            ++num_asserts_ok;
-            if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+            assertionOk(name);
         }
+    }
+
+    #! Tests that a value is greater than an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertGtSoft("5", function_that_should_rturn_a_value_greater_than_five());
+        @endcode
+
+        @param expected a value that should be less than \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertGtSoft(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertGtSoft");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected >= actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True, QUC_GT), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is greater than an expected value with hard comparisons (types may not differ)
+    /** @par Example:
+        @code{.py}
+assertGt(5, function_that_should_rturn_a_value_greater_than_five());
+        @endcode
+
+        @param expected a value that should be less than \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertGt(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertGt");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected >= actual || expected.typeCode() != actual.typeCode()) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, NOTHING, QUC_GT), ("name": name, "pos": NOTHING);
+        }
+        else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is greater than or equal to than an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertGeSoft("5", function_that_should_rturn_a_value_greater_than_or_equal_to_five());
+        @endcode
+
+        @param expected a value that should be less than or equal to \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertGeSoft(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertGeSoft");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected > actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True, QUC_GE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is greater than or equal to an expected value with hard comparisons (types may not differ)
+    /** @par Example:
+        @code{.py}
+assertGe(5, function_that_should_rturn_a_value_greater_than_or_equal_to_five());
+        @endcode
+
+        @param expected a value that should be less than or equal to \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertGe(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertGe");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected > actual || expected.typeCode() != actual.typeCode()) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, NOTHING, QUC_GE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is less than an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertLtSoft("5", function_that_should_rturn_a_value_less_than_five());
+        @endcode
+
+        @param expected a value that should be greater than \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertLtSoft(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertLtSoft");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected <= actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True, QUC_LT), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is less than an expected value with hard comparisons (types may not differ)
+    /** @par Example:
+        @code{.py}
+assertLt(5, function_that_should_rturn_a_value_less_than_five());
+        @endcode
+
+        @param expected a value that should be greater than \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertLt(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertLt");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected <= actual || expected.typeCode() != actual.typeCode()) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, NOTHING, QUC_LT), ("name": name, "pos": NOTHING);
+        }
+        else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is less than or equal to than an expected value with soft comparisons (types may differ)
+    /** @par Example:
+        @code{.py}
+assertLeSoft("5", function_that_should_rturn_a_value_less_than_or_equal_to_five());
+        @endcode
+
+        @param expected a value that should be greater than or equal to \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertLeSoft(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertLeSoft");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected < actual) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, True, QUC_LE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! Tests that a value is less than or equal to an expected value with hard comparisons (types may not differ)
+    /** @par Example:
+        @code{.py}
+assertLe(5, function_that_should_rturn_a_value_less_than_or_equal_to_five());
+        @endcode
+
+        @param expected a value that should be greater than or equal to \a actual
+        @param actual the value generated by the test
+        @param name the name or description of the assertion
+     */
+    public assertLe(auto expected, auto actual, *string name) {
+        TestCase tc = getTestCase("assertLe");
+        # increment assertion count
+        tc.incAssertions();
+        ++num_asserts;
+
+        if (expected < actual || expected.typeCode() != actual.typeCode()) {
+            throw "TEST-EXCEPTION", printUnexpectedData(expected, actual, NOTHING, NOTHING, QUC_LE), ("name": name, "pos": NOTHING);
+        } else {
+            assertionOk(name);
+        }
+    }
+
+    #! process an ok assertion
+    private assertionOk(*string name) {
+        get_thread_data("tc").incAssertionsOk();
+        ++num_asserts_ok;
+        if (m_options.verbose > 1)
+            printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
     }
 
     #! Tests a boolean value
@@ -1183,10 +1533,7 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
             call_function_args(theCode, args);
         } catch (hash<ExceptionInfo> e) {
             if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
-                tc.incAssertionsOk();
-                ++num_asserts_ok;
-                if (m_options.verbose > 1)
-                    printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+                assertionOk(name);
                 return;
             }
             throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
@@ -1429,10 +1776,7 @@ fail("Unexpected code executed");
             throw "TEST-EXCEPTION", printUnexpectedData (exp, act), ("name": name, "pos": pos);
         }
         else {
-            tc.incAssertionsOk();
-            ++num_asserts_ok;
-            if (m_options.verbose > 1)
-                printf("+ OK: %y assertion %s\n", m_name, Test::getAssertionName(name));
+            assertionOk(name);
         }
         return ret;
     }

@@ -35,6 +35,7 @@
 #include <memory>
 
 #include "ASTNode.h"
+#include "ASTExpressionKind.h"
 
 class ASTExpression : public ASTNode {
 public:
@@ -42,42 +43,10 @@ public:
     using Ptr = std::unique_ptr<ASTExpression>;
 
 public:
-    enum class Kind { // AEK == (A)st (E)xpression (K)ind
-        AEK_Access = 0,         //!< Identifies an instance of \ref ASTAccessExpression.
-        AEK_Assignment,         //!< Identifies an instance of \ref ASTAssignmentExpression.
-        AEK_Backquote,          //!< Identifies an instance of \ref ASTBackquoteExpression.
-        AEK_Binary,             //!< Identifies an instance of \ref ASTBinaryExpression.
-        AEK_Call,               //!< Identifies an instance of \ref ASTCallExpression.
-        AEK_Case,               //!< Identifies an instance of \ref ASTCaseExpression.
-        AEK_Cast,               //!< Identifies an instance of \ref ASTCastExpression.
-        AEK_Closure,            //!< Identifies an instance of \ref ASTClosureExpression.
-        AEK_ConstrInit,         //!< Identifies an instance of \ref ASTConstrInitExpression.
-        AEK_ContextMod,         //!< Identifies an instance of \ref ASTContextModExpression.
-        AEK_ContextRow,         //!< Identifies an instance of \ref ASTContextRowExpression.
-        AEK_Decl,               //!< Identifies an instance of \ref ASTDeclExpression.
-        AEK_Find,               //!< Identifies an instance of \ref ASTFindExpression.
-        AEK_Hash,               //!< Identifies an instance of \ref ASTHashExpression.
-        AEK_HashElement,        //!< Identifies an instance of \ref ASTHashElementExpression.
-        AEK_ImplicitArg,        //!< Identifies an instance of \ref ASTImplicitArgExpression.
-        AEK_ImplicitElem,       //!< Identifies an instance of \ref ASTImplicitElemExpression.
-        AEK_Index,              //!< Identifies an instance of \ref ASTIndexExpression.
-        AEK_List,               //!< Identifies an instance of \ref ASTListExpression.
-        AEK_Literal,            //!< Identifies an instance of \ref ASTLiteralExpression.
-        AEK_Name,               //!< Identifies an instance of \ref ASTNameExpression.
-        AEK_Regex,              //!< Identifies an instance of \ref ASTRegexExpression.
-        AEK_RegexSubst,         //!< Identifies an instance of \ref ASTRegexSubstExpression.
-        AEK_RegexTrans,         //!< Identifies an instance of \ref ASTRegexTransExpression.
-        AEK_Returns,            //!< Identifies an instance of \ref ASTReturnsExpression.
-        AEK_SwitchBody,         //!< Identifies an instance of \ref ASTSwitchBodyExpression.
-        AEK_Ternary,            //!< Identifies an instance of \ref ASTTernaryExpression.
-        AEK_Unary,              //!< Identifies an instance of \ref ASTUnaryExpression.
-    };
-
-public:
     ASTExpression() : ASTNode() {}
     ASTExpression(const ASTParseLocation& l) : ASTNode(l) {}
 
-    virtual Kind getKind() const = 0;
+    virtual ASTExpressionKind getKind() const = 0;
 
     virtual ASTNodeType getNodeType() {
         return ANT_Expression;

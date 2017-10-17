@@ -61,8 +61,8 @@ public:
 public:
     ASTRegexExpression(bool extract = false) : ASTExpression(), extractRegex(extract) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Regex;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Regex;
     }
 };
 

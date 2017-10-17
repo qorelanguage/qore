@@ -26,6 +26,7 @@ set(ASTPARSER_QPP_SRC
     src/QC_AstParser.qpp
     src/QC_AstTree.qpp
     src/QC_AstTreeSearcher.qpp
+    src/ql_ast.qpp
 )
 
 set(ASTPARSER_CPP_SRC

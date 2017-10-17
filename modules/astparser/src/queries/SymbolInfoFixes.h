@@ -39,6 +39,54 @@ public:
     SymbolInfoFixes() = delete;
     SymbolInfoFixes(const SymbolInfoFixes& other) = delete;
 
+    //! Fix symbol info for the passed class.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixClassInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+    
+    //! Fix symbol info for the passed constant.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixConstantInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+    
+    //! Fix symbol info for the passed function.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixFunctionInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+    
+    //! Fix symbol info for the passed hashdecl.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixHashDeclInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+    
+    //! Fix symbol info for the passed hash member.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixHashMemberInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+    
+    //! Fix symbol info for the passed variable.
+    /**
+        @param tree AST tree of the symbols
+        @param si symbol info to fix
+        @param bareNames whether to leave symbol name bare (without namespace and class prefixes)
+     */
+    static void fixVariableInfo(ASTTree* tree, ASTSymbolInfo& si, bool bareNames);
+
     //! Fix symbol infos for the passed symbol info vector.
     /**
         @param tree AST tree of the symbols
@@ -46,14 +94,6 @@ public:
         @param bareNames whether to return bare symbol names (without namespace and class prefixes)
      */
     static void fixSymbolInfos(ASTTree* tree, std::vector<ASTSymbolInfo>& vec, bool bareNames);
-
-private:
-    static void fixClassInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
-    static void fixConstantInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
-    static void fixFunctionInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
-    static void fixHashDeclInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
-    static void fixHashMemberInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
-    static void fixVariableInfo(ASTSymbolInfo& si, std::vector<ASTNode*>* nodes, bool bareNames);
 };
 
 #endif // _QLS_QUERIES_SYMBOLINFOFIXES_H

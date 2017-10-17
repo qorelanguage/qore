@@ -42,8 +42,8 @@ public:
     using Ptr = std::unique_ptr<ASTContinueStatement>;
 
 public:
-    virtual Kind getKind() const override {
-        return Kind::ASK_Continue;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Continue;
     }
 };
 

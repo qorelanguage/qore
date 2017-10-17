@@ -6,7 +6,6 @@
 
 %requires linenoise
 %requires qore >= 0.8.13
-%requires DebugUtil
 %requires DebugCmdLine
 %requires DebugProgramControl
 %allow-debugger
@@ -20,7 +19,7 @@ class DebugCommandLineLocal inherits DebugCommandLine {
         Counter counter();
         any threadData;
     }
-    constructor (DebugProgramControlLocal n_dpc): DebugCommandLine() {
+    constructor(DebugProgramControlLocal n_dpc): DebugCommandLine() {
         dpc = n_dpc;
         dpc.dcl = self;
     }

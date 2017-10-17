@@ -30,6 +30,7 @@
 %strict-args
 
 %requires SqlUtil
+%requires BulkSqlUtil
 %try-module yaml
 %define NoYaml
 %endtry
@@ -139,7 +140,7 @@ sub usage() {
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
      --export=ARG             export table data to standard output in YAML format
      --import=ARG:ARG         import YAML data into table (ARG 1) from file
-                              name (ARG 2). Batch commit per 1000 lines.
+                              name (ARG 2). Batch commit per 5000 lines.
 ", get_script_name(), LIST_OBJECTS.keys(), META_LIST_OBJECTS.keys(), DUMP_OBJECTS.keys());
     exit(1);
 }
@@ -449,13 +450,35 @@ sub main() {
         done = True;
         Table table(source, arg[0]);
 
+        hash bulk_opts = (
+                "block_size" : 5000,
+            );
+
+        BulkSqlUtil::BulkInsertOperation bulk(table, bulk_opts);
+        on_success {
+            if (opts.verbose) {
+                printf("%n: import %s: cache: %d; count: %d\n",
+                       now(), arg[0], bulk.size(), bulk.getRowCount()
+                      );
+            }
+            bulk.flush();
+        }
+
+        on_error bulk.discard();
+
         FileLineIterator it(arg[1]);
         while (it.next()) {
             hash row = parse_yaml(it.getValue());
-            table.insert(row);
+            bulk.queueData(row);
 
-            if (it.index() % 1000 == 0)
-                source.commit();
+            if (it.index() % bulk_opts.block_size == 0) {
+                if (opt.verbose) {
+                    printf("%n: import %s: cache: %d; count: %d\n",
+                           now(), arg[0], bulk.size(), bulk.getRowCount()
+                          );
+                }
+                bulk.commit();
+            }
         }
 %endif
     }

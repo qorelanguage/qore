@@ -24,7 +24,7 @@
 
 # minimum required Qore version
 %requires qore >= 0.8.13
-%requires DebugUtil
+%requires(reexport) DebugUtil
 
 %require-types
 %enable-all-warnings
@@ -225,7 +225,7 @@ public namespace DebugProgramControl {
                             on_exit rwlThread.readUnlock();
                             foreach softint tid in (keys ctxThread) {
                                 if (ctxThread{tid}.pgmId == pgmId) {
-                                    result{pgmId}.interrupted += list(tid);
+                                    result{pgmId}.interrupted += (tid,);
                                 }
                             }
                         }

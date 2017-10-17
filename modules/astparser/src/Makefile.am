@@ -18,7 +18,10 @@ QC_AstTree.cpp: QC_AstTree.qpp
 QC_AstTreeSearcher.cpp: QC_AstTreeSearcher.qpp
 	$(ASTPARSER_QPP) -V $<
 
-GENERATED_SOURCES = QC_AstParser.cpp QC_AstTree.cpp QC_AstTreeSearcher.cpp
+ql_ast.cpp: ql_ast.qpp
+	$(ASTPARSER_QPP) -V $<
+
+GENERATED_SOURCES = QC_AstParser.cpp QC_AstTree.cpp QC_AstTreeSearcher.cpp ql_ast.cpp
 CLEANFILES = $(GENERATED_SOURCES)
 ast_parser.hpp: ast_parser.cpp
 ast_parser.cpp: ast_parser.ypp

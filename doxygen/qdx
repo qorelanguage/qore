@@ -318,8 +318,8 @@ class qdx {
             line =~ s/sub //;
 
             # change hashdecl to struct
-            if (line =~ /hashdecl /) {
-                line =~ s/hashdecl /struct /g;
+            if (line =~ /[^a-zA-Z0-9_]hashdecl /) {
+                line =~ s/([^a-zA-Z0-9_])hashdecl /$1struct /g;
                 hashdecl_flag = True;
             }
 
