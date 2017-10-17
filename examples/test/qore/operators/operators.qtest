@@ -376,5 +376,7 @@ class Test inherits QUnit::Test {
         assertEq(1, b[1]);
         splice b, 2, 1, chr(b[3]);
         assertEq(<00010303>, b);
+        b = <00010203040506070809>;
+        assertEq(<00010203>, extract b, 0, 4, <b1>);
     }
 }
