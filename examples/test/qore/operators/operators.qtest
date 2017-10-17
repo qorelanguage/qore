@@ -378,5 +378,9 @@ class Test inherits QUnit::Test {
         assertEq(<00010303>, b);
         b = <00010203040506070809>;
         assertEq(<00010203>, extract b, 0, 4, <b1>);
+        b = <00010203040506070809>;
+        splice b, 1, 3, <ab>;
+        assertEq(<00ab040506070809>, b);
+
     }
 }
