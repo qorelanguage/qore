@@ -283,7 +283,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
          memmove((char*)ptr + (end - length + data_len), (char*)ptr + end, ol - end);
    }
    else if (length > (qore_offset_t)data_len) // make smaller
-      memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, len - offset - data_len);
+      memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, length - offset - data_len);
 
    memcpy((char*)ptr + offset, data, data_len);
 
