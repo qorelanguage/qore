@@ -1241,157 +1241,324 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 }
 
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
-   // get the bracket expression
-   ValueEvalRefHolder rh(op->getRight(), xsink);
-   if (*xsink)
-      return;
+    if (get_node_type(op->getRight()) == NT_PARSE_LIST) {
+        doRemove(op, static_cast<const QoreParseListNode*>(op->getRight()));
+        return;
+    }
 
-   int64 ind = 0;
-   const QoreListNode* rl = nullptr;
-   if (rh->getType() == NT_LIST) {
-      rl = rh->get<const QoreListNode>();
-   }
-   else {
-      ind = rh->getAsBigInt();
-      if (ind < 0) {
-         xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
-         return;
-      }
-   }
+    // get the bracket expression
+    ValueEvalRefHolder rh(op->getRight(), xsink);
+    if (*xsink)
+        return;
 
-   LValueHelper lvh(op->getLeft(), xsink, true);
-   if (!lvh)
-      return;
+    int64 ind = 0;
+    const QoreListNode* rl = nullptr;
+    if (rh->getType() == NT_LIST) {
+        rl = rh->get<const QoreListNode>();
+    }
+    else {
+        ind = rh->getAsBigInt();
+        if (ind < 0) {
+            xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
+            return;
+        }
+    }
 
-   switch (lvh.getType()) {
-      case NT_LIST: {
-         lvh.ensureUnique();
-         QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
-         ReferenceHolder<> v(xsink);
-         if (!rl) {
-            if (ind < (int64)l->size())
-               v = qore_list_private::get(*l)->takeExists(ind);
-         }
-         else {
+    LValueHelper lvh(op->getLeft(), xsink, true);
+    if (!lvh)
+        return;
+
+    switch (lvh.getType()) {
+        case NT_LIST: {
+            lvh.ensureUnique();
+            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+            ReferenceHolder<> v(xsink);
+            if (!rl) {
+                if (ind < (int64)l->size())
+                    v = qore_list_private::get(*l)->takeExists(ind);
+            }
+            else {
+                direct_list = true;
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                v = new QoreListNode;
+                while (li.next()) {
+                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+                    if (ind >= 0 && ind < (int64)l->size()) {
+                        iset.insert(ind);
+                        static_cast<QoreListNode*>(*v)->push(qore_list_private::get(*l)->takeExists(ind));
+                    }
+                    else
+                        static_cast<QoreListNode*>(*v)->push(nullptr);
+                }
+                // now collapse the list by rewriting it without the elements removed
+                for (auto& i : iset) {
+                    // removing NOTHING elements here
+                    l->splice(i, 1, xsink);
+                }
+            }
+            if (needs_scan(*v)) {
+                if (!qore_list_private::getScanCount(*l))
+                    lvh.setDelta(-1);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_STRING: {
+            lvh.ensureUnique();
+            QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+            SimpleRefHolder<QoreStringNode> v;
+            size_t len = str->length();
+            if (!rl) {
+                if (ind < (int64)len)
+                    v = str->substr(ind, 1, xsink);
+                else
+                    v = new QoreStringNode(str->getEncoding());
+            }
+            else {
+                v = new QoreStringNode(str->getEncoding());
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                while (li.next()) {
+                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+                    if (ind >= 0 && ind < (int64)len) {
+                        iset.insert(ind);
+                        int cp = str->getUnicodePoint(ind, xsink);
+                        if (*xsink)
+                            break;
+                        v->concatUnicode(cp, xsink);
+                        if (*xsink)
+                            break;
+                    }
+                }
+                // now collapse the string by rewriting it without the characters removed
+                for (auto& i : iset) {
+                    str->splice(i, 1, xsink);
+                    if (*xsink)
+                        break;
+                }
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_BINARY: {
+            lvh.ensureUnique();
+            BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+            SimpleRefHolder<BinaryNode> v(new BinaryNode);
+            if (!rl) {
+                if (ind < (int64)bin->size())
+                    bin->substr(**v, ind, 1);
+                }
+            else {
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                while (li.next()) {
+                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+                    if (ind >= 0 && ind < (int64)bin->size()) {
+                        iset.insert(ind);
+                        bin->substr(**v, ind, 1);
+                    }
+                }
+                // now collapse the binary object by rewriting it without the bytes removed
+                for (auto& i : iset) {
+                    bin->splice(i, 1);
+                }
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+    }
+
+    bool static_assignment = false;
+    QoreValue tmp = lvh.remove(static_assignment);
+    if (static_assignment)
+        tmp.ref();
+#ifdef DEBUG
+    assert(!rv.assignAssumeInitial(tmp));
+#else
+    rv.assignAssumeInitial(tmp);
+#endif
+}
+
+static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const QoreTypeInfo*& vtype, bool& vcommon, ind_set_t& iset, unsigned i, ExceptionSink* xsink) {
+    AbstractQoreNode* p;
+    if (ind >= 0 && ind < (int64)l.size()) {
+        iset.insert(ind);
+        p = qore_list_private::get(l)->takeExists(ind);
+    }
+    else
+        p = nullptr;
+
+    // process common type
+    if (!i) {
+        vtype = getTypeInfoForValue(p);
+        vcommon = true;
+    }
+    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p)))
+        vcommon = false;
+
+    v.push(p);
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* pln) {
+    LValueHelper lvh(op->getLeft(), xsink, true);
+    if (!lvh)
+        return;
+
+    int64 ind = 0;
+
+    switch (lvh.getType()) {
+        case NT_LIST: {
+            lvh.ensureUnique();
+            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+
+            // calculate the runtime element type if possible
+            const QoreTypeInfo* vtype = nullptr;
+            // try to find a common value type, if any
+            bool vcommon = false;
+            ReferenceHolder<QoreListNode> v(new QoreListNode, xsink);
+
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
             direct_list = true;
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
-            ConstListIterator li(rl);
-            v = new QoreListNode;
-            while (li.next()) {
-               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < (int64)l->size()) {
-                  iset.insert(ind);
-                  static_cast<QoreListNode*>(*v)->push(qore_list_private::get(*l)->takeExists(ind));
-               }
-               else
-                  static_cast<QoreListNode*>(*v)->push(nullptr);
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    return;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        do_list_value(**v, *l, exp.getAsBigInt(), vtype, vcommon, iset, i + li.index(), xsink);
+                    }
+                }
+                else {
+                    do_list_value(**v, *l, rh->getAsBigInt(), vtype, vcommon, iset, i, xsink);
+                }
             }
-            // now collapse list by rewriting it without the elements removed
-            for (auto& i : iset) {
-               // removing NOTHING elements here
-               l->splice(i, 1, xsink);
-            }
-         }
-         if (needs_scan(*v)) {
-            if (!qore_list_private::getScanCount(*l))
-                  lvh.setDelta(-1);
-         }
-#ifdef DEBUG
-         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-         assert(!rv.assignInitial(v.release()));
-#else
-         rv.assignInitial(v.release());
-#endif
-         return;
-      }
 
-      case NT_STRING: {
-         lvh.ensureUnique();
-         QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
-         SimpleRefHolder<QoreStringNode> v;
-         size_t len = str->length();
-         if (!rl) {
-            if (ind < (int64)len)
-               v = str->substr(ind, 1, xsink);
-            else
-               v = new QoreStringNode(str->getEncoding());
-         }
-         else {
-            v = new QoreStringNode(str->getEncoding());
+            if (QoreTypeInfo::hasType(vtype))
+                qore_list_private::get(**v)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+
+            // now collapse the list by rewriting it without the elements removed
+            for (auto& i : iset) {
+                // removing NOTHING elements here
+                l->splice(i, 1, xsink);
+            }
+
+            if (needs_scan(*v)) {
+                if (!qore_list_private::getScanCount(*l))
+                    lvh.setDelta(-1);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        /*
+        case NT_STRING: {
+            lvh.ensureUnique();
+            QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+            SimpleRefHolder<QoreStringNode> v(new QoreStringNode(str->getEncoding()));
+            size_t len = str->length();
+
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
             ConstListIterator li(rl);
             while (li.next()) {
-               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < (int64)len) {
-                  iset.insert(ind);
-                  int cp = str->getUnicodePoint(ind, xsink);
-                  if (*xsink)
-                     break;
-                  v->concatUnicode(cp, xsink);
-                  if (*xsink)
-                     break;
-               }
+                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+                if (ind >= 0 && ind < (int64)len) {
+                    iset.insert(ind);
+                    int cp = str->getUnicodePoint(ind, xsink);
+                    if (*xsink)
+                        break;
+                    v->concatUnicode(cp, xsink);
+                    if (*xsink)
+                        break;
+                }
             }
-            // now collapse list by rewriting it without the elements removed
+            // now collapse the string by rewriting it without the characters removed
             for (auto& i : iset) {
-               str->splice(i, 1, xsink);
-               if (*xsink)
-                  break;
+                str->splice(i, 1, xsink);
+                if (*xsink)
+                    break;
             }
-         }
 #ifdef DEBUG
-         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-         assert(!rv.assignInitial(v.release()));
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
 #else
-         rv.assignInitial(v.release());
+            rv.assignInitial(v.release());
 #endif
-         return;
-      }
+            return;
+        }
 
-      case NT_BINARY: {
-         lvh.ensureUnique();
-         BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
-         SimpleRefHolder<BinaryNode> v(new BinaryNode);
-         if (!rl) {
-            if (ind < (int64)bin->size())
-               bin->substr(**v, ind, 1);
-         }
-         else {
+        case NT_BINARY: {
+            lvh.ensureUnique();
+            BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+            SimpleRefHolder<BinaryNode> v(new BinaryNode);
+
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
             ConstListIterator li(rl);
             while (li.next()) {
-               ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-               if (ind >= 0 && ind < (int64)bin->size()) {
-                  iset.insert(ind);
-                  bin->substr(**v, ind, 1);
-               }
+                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
+                if (ind >= 0 && ind < (int64)bin->size()) {
+                    iset.insert(ind);
+                    bin->substr(**v, ind, 1);
+                }
             }
-            // now collapse list by rewriting it without the elements removed
+            // now collapse the binary object by rewriting it without the bytes removed
             for (auto& i : iset) {
-               bin->splice(i, 1);
+                bin->splice(i, 1);
             }
-         }
 #ifdef DEBUG
-         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-         assert(!rv.assignInitial(v.release()));
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
 #else
-         rv.assignInitial(v.release());
+            rv.assignInitial(v.release());
 #endif
-         return;
-      }
-   }
+            return;
+        }
+*/
+    }
 
-   bool static_assignment = false;
-   QoreValue tmp = lvh.remove(static_assignment);
-   if (static_assignment)
-      tmp.ref();
+    bool static_assignment = false;
+    QoreValue tmp = lvh.remove(static_assignment);
+    if (static_assignment)
+        tmp.ref();
 #ifdef DEBUG
-   assert(!rv.assignAssumeInitial(tmp));
+    assert(!rv.assignAssumeInitial(tmp));
 #else
-   rv.assignAssumeInitial(tmp);
+    rv.assignAssumeInitial(tmp);
 #endif
 }
 
