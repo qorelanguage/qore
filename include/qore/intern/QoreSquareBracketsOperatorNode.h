@@ -88,7 +88,6 @@ protected:
     ValueOptionalRefHolder leftValue;
     const QoreListNode* rightList;
     qore_offset_t offset = -1;
-    std::unique_ptr<class QoreFunctionalRangeOperator> rangeIter;
 };
 
 class QoreFunctionalSquareBracketsComplexOperator : public FunctionalOperatorInterface {
