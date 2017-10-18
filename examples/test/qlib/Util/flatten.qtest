@@ -1,0 +1,26 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class FlattenTest
+
+public class FlattenTest inherits QUnit::Test {
+    constructor() : Test ("FlattenTest", "1.0") {
+        addTestCase ("Tests for flatten() function", \test_flatten());
+        set_return_value(main());
+    }
+
+    test_flatten() {
+        assertEq ((), flatten ());
+        assertEq ((1,), flatten (1));
+        assertEq ((1, 2, 3, 4, 5), flatten ((1, 2, 3, 4, 5)));
+        assertEq ((1, 2, 3, 4, 5), flatten (((1, 2), (3, 4), 5)));
+        assertEq ((1, 2, 3, 4, 5), flatten ((1, (2, (3, (4, (5,)))))));
+        #assertEq ((1, 2, 3, ((4,),)), flatten ((1, (2,), (3, ((4,),))), true));
+    }
+}

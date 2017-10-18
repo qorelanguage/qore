@@ -1,0 +1,498 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class WrapTest
+
+#! Test TextWrap::TextWrapper
+public class WrapTest inherits BaseTest {
+    constructor () : BaseTest ("WrapTest", "1.0") {
+        addTestCase ("TextWrap - WrapTest - test_simple", \test_simple());
+        addTestCase ("TextWrap - WrapTest - test_empty_string", \test_empty_string());
+        addTestCase ("TextWrap - WrapTest - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
+        addTestCase ("TextWrap - WrapTest - test_whitespace", \test_whitespace());
+        addTestCase ("TextWrap - WrapTest - test_fix_sentence_endings", \test_fix_sentence_endings());
+        addTestCase ("TextWrap - WrapTest - test_wrap_short", \test_wrap_short());
+        addTestCase ("TextWrap - WrapTest - test_wrap_short_1line", \test_wrap_short_1line());
+        addTestCase ("TextWrap - WrapTest - test_hyphenated", \test_hyphenated());
+        addTestCase ("TextWrap - WrapTest - test_hyphenated_numbers", \test_hyphenated_numbers());
+        addTestCase ("TextWrap - WrapTest - test_em_dash", \test_em_dash());
+        addTestCase ("TextWrap - WrapTest - test_unix_options", \test_unix_options());
+        addTestCase ("TextWrap - WrapTest - test_funky_hyphens", \test_funky_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_punct_hyphens", \test_punct_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_funky_parens", \test_funky_parens());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false", \test_drop_whitespace_false());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only", \test_drop_whitespace_false_whitespace_only());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only_with_indent", \test_drop_whitespace_false_whitespace_only_with_indent());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only", \test_drop_whitespace_whitespace_only());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_leading_whitespace", \test_drop_whitespace_leading_whitespace());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
+        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
+        addTestCase ("TextWrap - WrapTest - test_split", \test_split());
+        addTestCase ("TextWrap - WrapTest - test_break_on_hyphens", \test_break_on_hyphens());
+        addTestCase ("TextWrap - WrapTest - test_bad_width", \test_bad_width());
+        # addTestCase ("TextWrap - WrapTest - test_no_split_at_umlaut", \test_no_split_at_umlaut());
+        # addTestCase ("TextWrap - WrapTest - test_umlaut_followed_by_dash", \test_umlaut_followed_by_dash());
+        # addTestCase ("TextWrap - WrapTest - test_non_breaking_space", \test_non_breaking_space());
+        # addTestCase ("TextWrap - WrapTest - test_narrow_non_breaking_space", \test_narrow_non_breaking_space());
+        set_return_value(main());
+    }
+
+    private {
+        string text;
+        list expect;
+    }
+
+    setUp () {
+        self.wrapper = new TextWrapper (('width': 45));
+    }
+
+    test_simple () {
+        # Simple case: just words, spaces, and a bit of punctuation
+        text = "Hello there, how are you this fine day?  I'm glad to hear it!";
+
+        self.check_wrap(text, 12,
+                        ("Hello there,",
+                         "how are you",
+                         "this fine",
+                         "day?  I'm",
+                         "glad to hear",
+                         "it!"));
+        self.check_wrap(text, 42,
+                        ("Hello there, how are you this fine day?",
+                         "I'm glad to hear it!"));
+        self.check_wrap(text, 80, (text,));
+    }
+
+    test_empty_string () {
+        # Check that wrapping the empty string returns an empty list.
+        self.check_wrap("", 6, ());
+        self.check_wrap("", 6, (), ('drop_whitespace': False));
+    }
+
+    test_empty_string_with_initial_indent () {
+        # Check that the empty string is not indented.
+        self.check_wrap("", 6, (), ('initial_indent': "++"));
+        self.check_wrap("", 6, (), ('initial_indent': "++", 'drop_whitespace': False));
+    }
+
+    test_whitespace () {
+        # Whitespace munging and end-of-sentence detection
+        TextWrapper wrapper (('width': 45, 'fix_sentence_endings': True));
+
+        text = "This is a paragraph that already has
+line breaks.  But some of its lines are much longer than the others,
+so it needs to be wrapped.
+Some lines are \ttabbed too.
+What a mess!
+";
+
+        expect = ("This is a paragraph that already has line",
+                  "breaks.  But some of its lines are much",
+                  "longer than the others, so it needs to be",
+                  "wrapped.  Some lines are  tabbed too.  What a",
+                  "mess!");
+
+        self.check(wrapper.wrap(text), expect);
+
+        self.check(wrapper.fill(text), expect.join("\n"));
+
+        text = "\tTest\tdefault\t\ttabsize.";
+        expect = ("        Test    default         tabsize.",);
+        self.check_wrap(text, 80, expect);
+
+        text = "\tTest\tcustom\t\ttabsize.";
+        expect = ("    Test    custom      tabsize.",);
+        self.check_wrap(text, 80, expect, ('tabsize': 4));
+    }
+
+    test_fix_sentence_endings () {
+        TextWrapper wrapper (('width': 60, 'fix_sentence_endings': True));
+
+        # SF #847346: ensure that fix_sentence_endings=True does the
+        # right thing even on input short enough that it doesn't need to
+        # be wrapped.
+        text = "A short line. Note the single space.";
+        expect = ("A short line.  Note the single space.",);
+        self.check(wrapper.wrap(text), expect);
+
+        # Test some of the hairy end cases that _fix_sentence_endings()
+        # is supposed to handle (the easy stuff is tested in
+        # test_whitespace() above).
+        text = "Well, Doctor? What do you think?";
+        expect = ("Well, Doctor?  What do you think?",);
+        self.check(wrapper.wrap(text), expect);
+
+        text = "Well, Doctor?\nWhat do you think?";
+        self.check(wrapper.wrap(text), expect);
+
+        text = "I say, chaps! Anyone for \"tennis?\"\nHmmph!";
+        expect = ('I say, chaps!  Anyone for "tennis?"  Hmmph!',);
+        self.check(wrapper.wrap(text), expect);
+
+        wrapper.width = 20;
+        expect = ('I say, chaps!', 'Anyone for "tennis?"', 'Hmmph!');
+        self.check(wrapper.wrap(text), expect);
+
+        text = "And she said, \"Go to hell!\"\nCan you believe that?";
+        expect = ('And she said, "Go to',
+                  'hell!"  Can you',
+                  'believe that?');
+        self.check(wrapper.wrap(text), expect);
+
+        wrapper.width = 60;
+        expect = ('And she said, "Go to hell!"  Can you believe that?',);
+        self.check(wrapper.wrap(text), expect);
+
+        text = 'File stdio.h is nice.';
+        expect = ('File stdio.h is nice.',);
+        self.check(wrapper.wrap(text), expect);
+    }
+
+    test_wrap_short () {
+        # Wrapping to make short lines longer
+        text = "This is a\nshort paragraph.";
+
+        self.check_wrap(text, 20, ("This is a short",
+                                   "paragraph."));
+        self.check_wrap(text, 40, ("This is a short paragraph.",));
+    }
+
+    test_wrap_short_1line () {
+        # Test endcases
+        text = "This is a short line.";
+
+        self.check_wrap(text, 30, ("This is a short line.",));
+        self.check_wrap(text, 30, ("(1) This is a short line.",),
+                ('initial_indent': "(1) "));
+    }
+
+    test_hyphenated () {
+        # Test breaking hyphenated words
+        text = ("this-is-a-useful-feature-for-"
+                "reformatting-posts-from-tim-peters'ly");
+
+        self.check_wrap(text, 40,
+                        ("this-is-a-useful-feature-for-",
+                         "reformatting-posts-from-tim-peters'ly"));
+        self.check_wrap(text, 41,
+                        ("this-is-a-useful-feature-for-",
+                         "reformatting-posts-from-tim-peters'ly"));
+        self.check_wrap(text, 42,
+                        ("this-is-a-useful-feature-for-reformatting-",
+                         "posts-from-tim-peters'ly"));
+        # The test tests current behavior but is not testing parts of the API.
+        expect = ("this-|is-|a-|useful-|feature-|for-|"
+                "reformatting-|posts-|from-|tim-|peters'ly").split('|');
+        self.check_wrap(text, 1, expect, ('break_long_words': False));
+        self.check_split(text, expect);
+
+        self.check_split('e-mail', ('e-mail',));
+        self.check_split('Jelly-O', ('Jelly-O',));
+        # The test tests current behavior but is not testing parts of the API.
+        self.check_split('half-a-crown', 'half-|a-|crown'.split('|'));
+    }
+
+    test_hyphenated_numbers () {
+        # Test that hyphenated numbers (eg. dates) are not broken like words.
+        text = ("Python 1.0.0 was released on 1994-01-26.  Python 1.0.1 was\n"
+                "released on 1994-02-15.");
+
+        self.check_wrap(text, 30, ('Python 1.0.0 was released on',
+                                   '1994-01-26.  Python 1.0.1 was',
+                                   'released on 1994-02-15.'));
+        self.check_wrap(text, 40, ('Python 1.0.0 was released on 1994-01-26.',
+                                   'Python 1.0.1 was released on 1994-02-15.'));
+        self.check_wrap(text, 1, wssplit(text), ('break_long_words': False));
+
+        text = "I do all my shopping at 7-11.";
+        self.check_wrap(text, 25, ("I do all my shopping at",
+                                   "7-11."));
+        self.check_wrap(text, 27, ("I do all my shopping at",
+                                   "7-11."));
+        self.check_wrap(text, 29, ("I do all my shopping at 7-11.",));
+        self.check_wrap(text, 1, wssplit(text), ('break_long_words': False));
+    }
+
+    test_em_dash () {
+        # Test text with em-dashes
+        text = "Em-dashes should be written -- thus.";
+        self.check_wrap(text, 25,
+                        ("Em-dashes should be",
+                         "written -- thus."));
+
+        # Probe the boundaries of the properly written em-dash, ie. " -- ".
+        self.check_wrap(text, 29,
+                        ("Em-dashes should be written",
+                         "-- thus."));
+        expect = ("Em-dashes should be written --",
+                  "thus.");
+        self.check_wrap(text, 30, expect);
+        self.check_wrap(text, 35, expect);
+        self.check_wrap(text, 36,
+                        ("Em-dashes should be written -- thus.",));
+
+        # The improperly written em-dash is handled too, because
+        # it's adjacent to non-whitespace on both sides.
+        text = "You can also do--this or even---this.";
+        expect = ("You can also do",
+                  "--this or even",
+                  "---this.");
+        self.check_wrap(text, 15, expect);
+        self.check_wrap(text, 16, expect);
+        expect = ("You can also do--",
+                  "this or even---",
+                  "this.");
+        self.check_wrap(text, 17, expect);
+        self.check_wrap(text, 19, expect);
+        expect = ("You can also do--this or even",
+                  "---this.");
+        self.check_wrap(text, 29, expect);
+        self.check_wrap(text, 31, expect);
+        expect = ("You can also do--this or even---",
+                  "this.");
+        self.check_wrap(text, 32, expect);
+        self.check_wrap(text, 35, expect);
+
+        # All of the above behaviour could be deduced by probing the _split() method.
+        text = "Here's an -- em-dash and--here's another---and another!";
+        expect = ("Here's", " ", "an", " ", "--", " ", "em-", "dash", " ",
+                  "and", "--", "here's", " ", "another", "---",
+                  "and", " ", "another!");
+        self.check_split(text, expect);
+
+        text = "and then--bam!--he was gone";
+        expect = ("and", " ", "then", "--", "bam!", "--",
+                  "he", " ", "was", " ", "gone");
+        self.check_split(text, expect);
+    }
+
+    test_unix_options () {
+        # Test that Unix-style command-line options are wrapped correctly.
+        # (Both Optik (OptionParser) and Docutils rely on this behaviour!)
+
+        text = "You should use the -n option, or --dry-run in its long form.";
+        self.check_wrap(text, 20,
+                        ("You should use the",
+                         "-n option, or --dry-",
+                         "run in its long",
+                         "form."));
+        self.check_wrap(text, 21,
+                        ("You should use the -n",
+                         "option, or --dry-run",
+                         "in its long form."));
+        expect = ("You should use the -n option, or",
+                  "--dry-run in its long form.");
+        self.check_wrap(text, 32, expect);
+        self.check_wrap(text, 34, expect);
+        self.check_wrap(text, 35, expect);
+        self.check_wrap(text, 38, expect);
+        expect = ("You should use the -n option, or --dry-",
+                  "run in its long form.");
+        self.check_wrap(text, 39, expect);
+        self.check_wrap(text, 41, expect);
+        expect = ("You should use the -n option, or --dry-run",
+                  "in its long form.");
+        self.check_wrap(text, 42, expect);
+
+        # Again, all of the above can be deduced from _split().
+        text = "the -n option, or --dry-run or --dryrun";
+        expect = ("the", " ", "-n", " ", "option,", " ", "or", " ",
+                  "--dry-", "run", " ", "or", " ", "--dryrun");
+        self.check_split(text, expect);
+    }
+
+    test_funky_hyphens () {
+        # Screwy edge cases cooked up by David Goodger.  All reported in SF bug #596434.
+        self.check_split("what the--hey!", ("what", " ", "the", "--", "hey!"));
+        self.check_split("what the--", ("what", " ", "the--"));
+        self.check_split("what the--.", ("what", " ", "the--."));
+        self.check_split("--text--.", ("--text--.",));
+
+        # When I first read bug #596434, this is what I thought David
+        # was talking about.  I was wrong; these have always worked
+        # fine.  The real problem is tested in test_funky_parens()
+        # below...
+        self.check_split("--option", ("--option",));
+        self.check_split("--option-opt", ("--option-", "opt"));
+        self.check_split("foo --option-opt bar",
+                         ("foo", " ", "--option-", "opt", " ", "bar"));
+    }
+
+    test_punct_hyphens () {
+        # Oh bother, SF #965425 found another problem with hyphens --
+        # hyphenated words in single quotes weren't handled correctly.
+        # In fact, the bug is that *any* punctuation around a hyphenated
+        # word was handled incorrectly, except for a leading "--", which
+        # was special-cased for Optik and Docutils.  So test a variety
+        # of styles of punctuation around a hyphenated word.
+        # (Actually this is based on an Optik bug report, #813077).
+        self.check_split("the 'wibble-wobble' widget",
+                         ('the', ' ', "'wibble-", "wobble'", ' ', 'widget'));
+        self.check_split('the "wibble-wobble" widget',
+                         ('the', ' ', '"wibble-', 'wobble"', ' ', 'widget'));
+        self.check_split("the (wibble-wobble) widget",
+                         ('the', ' ', "(wibble-", "wobble)", ' ', 'widget'));
+        self.check_split("the ['wibble-wobble'] widget",
+                         ('the', ' ', "['wibble-", "wobble']", ' ', 'widget'));
+
+        # The test tests current behavior but is not testing parts of the API.
+        self.check_split("what-d'you-call-it.",
+                         "what-d'you-|call-|it.".split('|'));
+    }
+
+    test_funky_parens () {
+        # Second part of SF bug #596434: long option strings inside parentheses.
+        self.check_split("foo (--option) bar",
+                         ("foo", " ", "(--option)", " ", "bar"));
+
+        # Related stuff -- make sure parens work in simpler contexts.
+        self.check_split("foo (bar) baz",
+                         ("foo", " ", "(bar)", " ", "baz"));
+        self.check_split("blah (ding dong), wubba",
+                         ("blah", " ", "(ding", " ", "dong),",
+                          " ", "wubba"));
+    }
+
+    test_drop_whitespace_false () {
+        # Check that drop_whitespace=False preserves whitespace.
+        # SF patch #1581073
+        text = " This is a    sentence with     much whitespace.";
+        self.check_wrap(text, 10,
+                        (" This is a", "    ", "sentence ",
+                         "with     ", "much white", "space."),
+                        ('drop_whitespace': False));
+    }
+
+    test_drop_whitespace_false_whitespace_only () {
+        # Check that drop_whitespace=False preserves a whitespace-only string.
+        self.check_wrap("   ", 6, ("   ",), ('drop_whitespace': False));
+    }
+
+    test_drop_whitespace_false_whitespace_only_with_indent () {
+        # Check that a whitespace-only string gets indented (when
+        # drop_whitespace is False).
+        self.check_wrap("   ", 6, ("     ",), ('drop_whitespace': False,
+                        'initial_indent': "  "));
+    }
+
+    test_drop_whitespace_whitespace_only () {
+        # Check drop_whitespace on a whitespace-only string.
+        self.check_wrap("  ", 6, ());
+    }
+
+    test_drop_whitespace_leading_whitespace () {
+        # Check that drop_whitespace does not drop leading whitespace (if
+        # followed by non-whitespace).
+        # SF bug #622849 reported inconsistent handling of leading
+        # whitespace; let's test that a bit, shall we?
+        text = " This is a sentence with leading whitespace.";
+        self.check_wrap(text, 50,
+                        (" This is a sentence with leading whitespace.",));
+        self.check_wrap(text, 30,
+                        (" This is a sentence with", "leading whitespace.",));
+    }
+
+    test_drop_whitespace_whitespace_line () {
+        # Check that drop_whitespace skips the whole line if a non-leading
+        # line consists only of whitespace.
+        text = "abcd    efgh";
+        # Include the result for drop_whitespace=False for comparison.
+        self.check_wrap(text, 6, ("abcd", "    ", "efgh"),
+                        ('drop_whitespace': False));
+        self.check_wrap(text, 6, ("abcd", "efgh"));
+    }
+
+    test_drop_whitespace_whitespace_only_with_indent () {
+        # Check that initial_indent is not applied to a whitespace-only
+        # string.  This checks a special case of the fact that dropping
+        # whitespace occurs before indenting.
+        self.check_wrap("  ", 6, (), ('initial_indent': "++"));
+    }
+
+    test_drop_whitespace_whitespace_indent () {
+        # Check that drop_whitespace does not drop whitespace indents.
+        # This checks a special case of the fact that dropping whitespace
+        # occurs before indenting.
+        self.check_wrap("abcd efgh", 6, ("  abcd", "  efgh"),
+                        ('initial_indent': "  ", 'subsequent_indent': "  "));
+    }
+
+    test_split () {
+        # Ensure that the standard _split() method works as advertised in the comments.
+        text = "Hello there -- you goof-ball, use the -b option!";
+
+        list result = self.wrapper._split(text);
+        self.check(result,
+             ("Hello", " ", "there", " ", "--", " ", "you", " ", "goof-",
+              "ball,", " ", "use", " ", "the", " ", "-b", " ",  "option!"));
+    }
+
+    test_break_on_hyphens () {
+        # Ensure that the break_on_hyphens attributes work.
+        text = "yaba daba-doo";
+        self.check_wrap(text, 10, ("yaba daba-", "doo"),
+                        ('break_on_hyphens': True));
+        self.check_wrap(text, 10, ("yaba", "daba-doo"),
+                        ('break_on_hyphens': False));
+    }
+
+    test_bad_width () {
+        # Ensure that width <= 0 is caught.
+        text = "Whatever, it doesn't matter.";
+        code kod = sub () { call_function_args ('wrap', argv); };
+        assertThrows ("VALUE-ERROR", kod, (text, 0));
+        assertThrows ("VALUE-ERROR", kod, (text, -1));
+    }
+
+    test_no_split_at_umlaut () {
+        text = force_encoding ("Die Empf\344nger-Auswahl", "iso-8859-1");
+        self.check_wrap(text, 13,
+                ("Die", force_encoding ("Empf\344nger-", "iso-8859-1"), "Auswahl"));
+    }
+
+    test_umlaut_followed_by_dash () {
+        text = force_encoding ("aa \344\344-\344\344", "iso-8859-1");
+        self.check_wrap(text, 7,
+                (force_encoding ("aa \344\344-", "iso-8859-1"),
+                 force_encoding ("\344\344", "iso-8859-1")));
+    }
+
+    # test_non_breaking_space () {
+    #     text = 'This is a sentence with non-breaking\N{NO-BREAK SPACE}space.';
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with non-',
+    #                      'breaking\N{NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': True));
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with',
+    #                      'non-breaking\N{NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': False));
+    # }
+
+    # test_narrow_non_breaking_space () {
+    #     text = ('This is a sentence with non-breaking'
+    #             '\N{NARROW NO-BREAK SPACE}space.');
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with non-',
+    #                      'breaking\N{NARROW NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': True));
+    #
+    #     self.check_wrap(text, 20,
+    #                     ('This is a sentence',
+    #                      'with',
+    #                      'non-breaking\N{NARROW NO-BREAK SPACE}space.'),
+    #                     ('break_on_hyphens': False));
+    # }
+}

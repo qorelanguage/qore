@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ protected:
       checkLValue(exp, pflag);
 
       // make sure left side can take an integer or floating-point value
-      check_lvalue_int_float_number(outTypeInfo, name);
+      check_lvalue_int_float_number(loc, outTypeInfo, name);
 
       // save return type
       typeInfo = outTypeInfo;
@@ -64,7 +64,11 @@ protected:
    }
 
 public:
-   DLLLOCAL QorePreIncrementOperatorNode(AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp) {
+   DLLLOCAL QorePreIncrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp) {
+   }
+
+   DLLLOCAL virtual bool hasEffect() const {
+      return true;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {

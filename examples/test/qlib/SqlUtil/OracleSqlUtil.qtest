@@ -40,9 +40,11 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
         const T_OracleTest = (
             "columns": (
-                "id": c_number(14, True),
+                "id": c_number(14, True, "an example comment with 'quotes'"),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
                 # data for test of driver specific opts merged into tolevel hash
                 "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
                                "size" : 1,
@@ -80,7 +82,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
         const Tables = (
             "oracle_test": T_OracleTest,
-            "oracle_test_semantics" : T_OracleTestSemantics,
+            # these tables are real tables without CustomColumns, so these should not be enhanced
+            #"oracle_test_semantics" : T_OracleTestSemantics,
             );
 
         const Sequences = (
@@ -109,7 +112,10 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, OracleTest::CustomColumns);
+        return doTables(Tables, OracleTest::CustomColumns) + (
+                    "oracle_test_semantics" : T_OracleTestSemantics,
+                    "test_analytic_functions" : T_TestAnalyticFunctions,
+                );
     }
 
     private *hash getSequencesImpl() {
@@ -167,9 +173,9 @@ class OracleTest inherits SqlTestBase {
                 "value": 400.95n,
             ),
             "date": 2016-01-11,
-            "timestamp": 2016-01-11T09:26:14.502134,
-            "timestamp with time zone": 2016-01-11T09:26:14.502134,
-            "timestamp with local time zone": 2016-01-11T09:26:14.502134,
+            "timestamp": 2016-02-11T09:26:14.502134,
+            "timestamp with time zone": 2016-02-11T09:26:14.502134,
+            "timestamp with local time zone": 2016-02-11T09:26:14.502134,
             #"interval year to month": 2Y + 6M,
             #"interval day to second": 2D + 3h + 4m + 1s,
             "clob": "test",
@@ -204,6 +210,12 @@ class OracleTest inherits SqlTestBase {
 
             initTestData(CustomColumns);
 
+            { # Make sure the DB is clear before doing the tests.
+                OracleTable t = new OracleTable(ds, "oracle_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
             # create the test schema
             schema = new OracleTestSchema(ds);
 
@@ -219,6 +231,7 @@ class OracleTest inherits SqlTestBase {
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
             addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
         }
 
         set_return_value(main());
@@ -329,6 +342,10 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         *hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRIVER");
         assertEq(True, exists c, "column 'driver' must exist in the table");
+    }
+
+    private string getResultSetSql() {
+        return "begin open :rs for select id, def_test1, def_test2 from oracle_test; end;";
     }
 
     private usageIntern() {

@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,6 +113,10 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
+    @subsection freetdssqlutilv12 FreetdsSqlUtil v1.2
+    - fixed a bug where @ref SqlUtil::BLOB columns were created as \c VARBINARY columns instead of \c VARBINARY(MAX) (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+
     @subsection freetdssqlutilv11 FreetdsSqlUtil v1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
@@ -132,7 +136,7 @@ public namespace FreetdsSqlUtil {
         return new FreetdsDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -251,7 +255,7 @@ public namespace FreetdsSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-my list $l = $col.getAddColumnSql($t);
+list l = col.getAddColumnSql(t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
@@ -263,13 +267,14 @@ my list $l = $col.getAddColumnSql($t);
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code{.py}
-my list $l = $col.getModifySql($t, $newcol);
+list l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
 
             @param t the SqlUtil::AbstractTable object to modify
             @param col the new column definition
+            @param opt column modification options (none are supported in this class)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -308,7 +313,7 @@ my list $l = $col.getModifySql($t, $newcol);
         #! returns a string that can be used to rename the column
         /** @par Example:
             @code{.py}
-my string $str = $col.getRenameSql($t, "new_name");
+string str = col.getRenameSql(t, "new_name");
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
@@ -375,7 +380,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         }
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
         }
 
@@ -403,7 +408,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -464,7 +469,7 @@ my any $v = $c.name;
         #! returns the FreetdsColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+any v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -633,6 +638,195 @@ my any $v = $c.name;
 
             #! Options for reclaimSpace()
             const FreetdsReclaimSpaceOptions = ReclaimSpaceOptions;
+
+            #! hash of reserved words
+            const FreetdsReservedWords = (
+                "add": True,
+                "all": True,
+                "alter": True,
+                "and": True,
+                "any": True,
+                "as": True,
+                "asc": True,
+                "authorization": True,
+                "backup": True,
+                "begin": True,
+                "between": True,
+                "break": True,
+                "browse": True,
+                "bulk": True,
+                "by": True,
+                "cascade": True,
+                "case": True,
+                "check": True,
+                "checkpoint": True,
+                "close": True,
+                "clustered": True,
+                "coalesce": True,
+                "collate": True,
+                "column": True,
+                "commit": True,
+                "compute": True,
+                "constraint": True,
+                "contains": True,
+                "containstable": True,
+                "continue": True,
+                "convert": True,
+                "create": True,
+                "cross": True,
+                "current": True,
+                "current_date": True,
+                "current_time": True,
+                "current_timestamp": True,
+                "current_user": True,
+                "cursor": True,
+                "database": True,
+                "dbcc": True,
+                "deallocate": True,
+                "declare": True,
+                "default": True,
+                "delete": True,
+                "deny": True,
+                "desc": True,
+                "disk": True,
+                "distinct": True,
+                "distributed": True,
+                "double": True,
+                "drop": True,
+                "dump": True,
+                "else": True,
+                "end": True,
+                "errlvl": True,
+                "escape": True,
+                "except": True,
+                "exec": True,
+                "execute": True,
+                "exists": True,
+                "exit": True,
+                "external": True,
+                "fetch": True,
+                "file": True,
+                "fillfactor": True,
+                "for": True,
+                "foreign": True,
+                "freetext": True,
+                "freetexttable": True,
+                "from": True,
+                "full": True,
+                "function": True,
+                "goto": True,
+                "grant": True,
+                "group": True,
+                "having": True,
+                "holdlock": True,
+                "identity": True,
+                "identity_insert": True,
+                "identitycol": True,
+                "if": True,
+                "in": True,
+                "index": True,
+                "inner": True,
+                "insert": True,
+                "intersect": True,
+                "into": True,
+                "is": True,
+                "join": True,
+                "key": True,
+                "kill": True,
+                "left": True,
+                "like": True,
+                "lineno": True,
+                "load": True,
+                "merge": True,
+                "national": True,
+                "nocheck": True,
+                "nonclustered": True,
+                "not": True,
+                "null": True,
+                "nullif": True,
+                "of": True,
+                "off": True,
+                "offsets": True,
+                "on": True,
+                "open": True,
+                "opendatasource": True,
+                "openquery": True,
+                "openrowset": True,
+                "openxml": True,
+                "option": True,
+                "or": True,
+                "order": True,
+                "outer": True,
+                "over": True,
+                "percent": True,
+                "pivot": True,
+                "plan": True,
+                "precision": True,
+                "primary": True,
+                "print": True,
+                "proc": True,
+                "procedure": True,
+                "public": True,
+                "raiserror": True,
+                "read": True,
+                "readtext": True,
+                "reconfigure": True,
+                "references": True,
+                "replication": True,
+                "restore": True,
+                "restrict": True,
+                "return": True,
+                "revert": True,
+                "revoke": True,
+                "right": True,
+                "rollback": True,
+                "rowcount": True,
+                "rowguidcol": True,
+                "rule": True,
+                "save": True,
+                "schema": True,
+                "securityaudit": True,
+                "select": True,
+                "semantickeyphrasetable": True,
+                "semanticsimilaritydetailstable": True,
+                "semanticsimilaritytable": True,
+                "session_user": True,
+                "set": True,
+                "setuser": True,
+                "shutdown": True,
+                "some": True,
+                "statistics": True,
+                "system_user": True,
+                "table": True,
+                "tablesample": True,
+                "textsize": True,
+                "then": True,
+                "to": True,
+                "top": True,
+                "tran": True,
+                "transaction": True,
+                "trigger": True,
+                "truncate": True,
+                "try_convert": True,
+                "tsequal": True,
+                "union": True,
+                "unique": True,
+                "unpivot": True,
+                "update": True,
+                "updatetext": True,
+                "use": True,
+                "user": True,
+                "values": True,
+                "varying": True,
+                "view": True,
+                "waitfor": True,
+                "when": True,
+                "where": True,
+                "while": True,
+                "with": True,
+                "within group": True,
+                "writetext": True,
+            );
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
@@ -795,24 +989,24 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return FreetdsDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return FreetdsDatabase::tryExecRaw(ds, sql);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
             ds.exec("save tran " + FreeTDS_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.vexec(sql, args);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
                 rethrow;
             }
@@ -820,14 +1014,14 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecRaw(AbstractDatasource ds, string sql) {
+        static auto tryExecRaw(AbstractDatasource ds, string sql) {
             ds.exec("save tran " + FreeTDS_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.execRaw(sql);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback transaction " + FreeTDS_TempSavepoint);
                 rethrow;
             }
@@ -882,6 +1076,7 @@ my any $v = $c.name;
                 "binary": ("qore": Type::Binary, "size": SZ_OPT),
                 "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
                 "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary(max)": ("qore": Type::Binary,),
 
                 # The following are used in Sybase, supported & deprecated in MS SQL
                 "text": ("qore": Type::String,), # domain, implemented as "long varchar"
@@ -891,7 +1086,7 @@ my any $v = $c.name;
                 "long varchar": ("qore": Type::String,),
                 );
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to DB type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "float",
@@ -902,8 +1097,15 @@ my any $v = $c.name;
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",
                 SqlUtil::CLOB: "text",
-                SqlUtil::BLOB: "varbinary",
                 );
+
+            #! maps qore type names to MS SQL Server type names
+            const MsQoreTypeMap = QoreTypeMap + (
+                SqlUtil::BLOB: "varbinary(max)",
+                );
+
+            #! maps qore type names to Sybase/SAP type names
+            const SybaseQoreTypeMap = QoreTypeMap;
 
             #! equal to @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
             const FreetdsTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions;
@@ -944,7 +1146,7 @@ my any $v = $c.name;
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1004,41 +1206,30 @@ my any $v = $c.name;
                         return sprintf("substring(%s,%d,%d)", cve, args[0], args[1]);
                     },
                 ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
-                    },
-                ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("substring(convert(varchar, dt, 120), 1, 4)", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("substring(convert(varchar, dt, 120), 1, 7)", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("substring(convert(varchar, dt, 120), 1, 10)", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("substring(convert(varchar, dt, 120), 1, 13)", arg1);
                     }
                 ),
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("next value for %s", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1054,10 +1245,33 @@ my any $v = $c.name;
                     }
                 ),
                 COP_LENGTH: (
-                    "code": string sub (string cve, any arg) {
+                    "code": string sub (string cve, auto arg) {
                         return sprintf("len(%s)", cve);
                     },
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!FreetdsTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, FreetdsTruncDate.keys());
+                        }
+                        string cmd = FreetdsTruncDate{arg};
+                        return replace(cmd, "%s", arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            /*  Impl. note here. There is shorter workaround for this, but it does not work with seconds
+                and with dates older than 1.1.1970. (minutes will overflow later too etc.).
+                So no usage for: dateadd(ss, datediff(ss, 0, %s), 0) for example
+             */
+            const FreetdsTruncDate = (
+                    DT_YEAR     : "datetimefromparts(datepart(year, %s), 1, 1, 0, 0, 0, 0)",
+                    DT_MONTH    : "datetimefromparts(datepart(year, %s), datepart(month, %s), 1, 0, 0, 0, 0)",
+                    DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), 0, 0, 0, 0)",
+                    DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), 0, 0, 0)",
+                    DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), 0, 0)",
+                    DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
                 );
 
             #! a hash of default value operator descriptions for FreeTDS
@@ -1525,7 +1739,7 @@ order by
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name.lwr());
+                    reference<hash> c = \ch.(row.constraint_name.lwr());
                     row.source_column = row.source_column.lwr();
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table.lwr();
@@ -1573,7 +1787,7 @@ order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name.lwr());
+                reference<FreetdsUniqueConstraint> ch = \rv.(row.constraint_name.lwr());
                 if (!ch)
                     ch = new FreetdsUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 row.column_name = row.column_name.lwr();
@@ -1654,7 +1868,7 @@ order by
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
                 rethrow;
@@ -1663,7 +1877,7 @@ order by
         }
 
         private hash getQoreTypeMapImpl() {
-            return QoreTypeMap;
+            return is_sybase ? SybaseQoreTypeMap : MsQoreTypeMap;
         }
 
         private hash getTypeMapImpl() {
@@ -1671,7 +1885,7 @@ order by
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1688,6 +1902,16 @@ order by
 
                 case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
             }
+        }
+
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return FreetdsDatabase::FreetdsReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return map getColumnSqlName($1), cols;
         }
 
         private bool emptyImpl() {
@@ -1717,7 +1941,7 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
             if (!qh.limit)
                 return;
 
@@ -1729,17 +1953,17 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             throw "UNIMPLEMENTED", "offset not yet implemented";
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return FreetdsDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return FreetdsDatabase::tryExecRaw(ds, sql);
         }
 
@@ -1747,9 +1971,9 @@ order by
         private copyImpl(AbstractTable old) {
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
-            foreach any v in (opt.returning) {
+            foreach auto v in (opt.returning) {
                 hash rh;
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;
@@ -1775,7 +1999,7 @@ order by
 
         private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
             list args = row{updc}.values() + row{cols.keys()}.values();
-            any x = ds.vexec(sql, args);
+            auto x = ds.vexec(sql, args);
             return x.typeCode() == NT_HASH ? x.firstValue() : x;
         }
     }

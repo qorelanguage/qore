@@ -1,0 +1,466 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file ql_ast.qpp astparser constants definition */
+/*
+  Qore AST Parser
+
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+*/
+
+#include "qore/Qore.h"
+
+#include "ast/ASTDeclarationKind.h"
+#include "ast/ASTExpressionKind.h"
+#include "ast/ASTNodeType.h"
+#include "ast/ASTStatementKind.h"
+#include "ast/ASTSymbolKind.h"
+#include "ast/ASTSymbolUsageKind.h"
+
+/** @defgroup astparser_node_type_constants AST Node Type Constants
+ */
+//@{
+namespace astparser;
+//! None/null node type constant.
+const ANT_None = ANT_None;
+
+//! Declaration node type constant.
+const ANT_Declaration = ANT_Declaration;
+
+//! Expression node type constant.
+const ANT_Expression = ANT_Expression;
+
+//! Name node type constant.
+const ANT_Name = ANT_Name;
+
+//! Parse error node type constant.
+const ANT_ParseError = ANT_ParseError;
+
+//! Parse option node type constant.
+const ANT_ParseOption = ANT_ParseOption;
+
+//! Statement node type constant.
+const ANT_Statement = ANT_Statement;
+//@}
+
+/** @defgroup astparser_declaration_kind_constants AST Declaration Kind Constants
+ */
+//@{
+namespace astparser;
+//! Class declaration kind.
+const ADK_Class = ADK_Class;
+
+//! Closure declaration kind.
+const ADK_Closure = ADK_Closure;
+
+//! Constant declaration kind.
+const ADK_Constant = ADK_Constant;
+
+//! Function declaration kind.
+const ADK_Function = ADK_Function;
+
+//! Hash declaration kind.
+const ADK_Hash = ADK_Hash;
+
+//! Hash member declaration kind.
+const ADK_HashMember = ADK_HashMember;
+
+//! Member group declaration kind.
+const ADK_MemberGroup = ADK_MemberGroup;
+
+//! Namespace declaration kind.
+const ADK_Namespace = ADK_Namespace;
+
+//! Superclass declaration kind.
+const ADK_Superclass = ADK_Superclass;
+
+//! Variable declaration kind.
+const ADK_Variable = ADK_Variable;
+
+//! Variable list declaration kind.
+const ADK_VarList = ADK_VarList;
+//@}
+
+/** @defgroup astparser_expression_kind_constants AST Expression Kind Constants
+ */
+//@{
+namespace astparser;
+//! Variable access (dot operator) expression kind.
+const AEK_Access = AEK_Access;
+
+//! Assignment expression kind.
+const AEK_Assignment = AEK_Assignment;
+
+//! Backquote expression kind.
+const AEK_Backquote = AEK_Backquote;
+
+//! Binary expression kind.
+const AEK_Binary = AEK_Binary;
+
+//! Call expression kind.
+const AEK_Call = AEK_Call;
+
+//! Case expression kind.
+const AEK_Case = AEK_Case;
+
+//! Cast expression kind.
+const AEK_Cast = AEK_Cast;
+
+//! Closure expression kind.
+const AEK_Closure = AEK_Closure;
+
+//! Constructor initialization expression kind.
+const AEK_ConstrInit = AEK_ConstrInit;
+
+//! Context mod expression kind.
+const AEK_ContextMod = AEK_ContextMod;
+
+//! Context row expression kind.
+const AEK_ContextRow = AEK_ContextRow;
+
+//! Declaration expression kind.
+const AEK_Decl = AEK_Decl;
+
+//! Find expression kind.
+const AEK_Find = AEK_Find;
+
+//! Hash expression kind.
+const AEK_Hash = AEK_Hash;
+
+//! Hash element expression kind.
+const AEK_HashElement = AEK_HashElement;
+
+//! Implicit argument expression kind.
+const AEK_ImplicitArg = AEK_ImplicitArg;
+
+//! Implicit element expression kind.
+const AEK_ImplicitElem = AEK_ImplicitElem;
+
+//! Index access expression kind.
+const AEK_Index = AEK_Index;
+
+//! List expression kind.
+const AEK_List = AEK_List;
+
+//! Literal expression kind.
+const AEK_Literal = AEK_Literal;
+
+//! Name expression kind.
+const AEK_Name = AEK_Name;
+
+//! Regex expression kind.
+const AEK_Regex = AEK_Regex;
+
+//! Regex substitution expression kind.
+const AEK_RegexSubst = AEK_RegexSubst;
+
+//! Regex transliteration expression kind.
+const AEK_RegexTrans = AEK_RegexTrans;
+
+//! Returns expression kind.
+const AEK_Returns = AEK_Returns;
+
+//! Switch body expression kind.
+const AEK_SwitchBody = AEK_SwitchBody;
+
+//! Ternary conditional expression kind.
+const AEK_Ternary = AEK_Ternary;
+
+//! Unary expression kind.
+const AEK_Unary = AEK_Unary;
+//@}
+
+/** @defgroup astparser_declaration_kind_constants AST Statement Kind Constants
+ */
+//@{
+namespace astparser;
+//! Statement block statement kind.
+const ASK_Block = ASK_Block;
+
+//! Break statement kind.
+const ASK_Break = ASK_Break;
+
+//! Call statement kind.
+const ASK_Call = ASK_Call;
+
+//! Context statement kind.
+const ASK_Context = ASK_Context;
+
+//! Continue statement kind.
+const ASK_Continue = ASK_Continue;
+
+//! Do-while statement kind.
+const ASK_DoWhile = ASK_DoWhile;
+
+//! Expression statement kind.
+const ASK_Expression = ASK_Expression;
+
+//! For statement kind.
+const ASK_For = ASK_For;
+
+//! Foreach statement kind.
+const ASK_Foreach = ASK_Foreach;
+
+//! If statement kind.
+const ASK_If = ASK_If;
+
+//! On block exit (\c on_exit, \c on_success, \c on_error) statement kind.
+const ASK_OnBlockExit = ASK_OnBlockExit;
+
+//! Rethrow statement kind.
+const ASK_Rethrow = ASK_Rethrow;
+
+//! Return statement kind.
+const ASK_Return = ASK_Return;
+
+//! Summarize statement kind.
+const ASK_Summarize = ASK_Summarize;
+
+//! Switch statement kind.
+const ASK_Switch = ASK_Switch;
+
+//! Thread exit statement kind.
+const ASK_ThreadExit = ASK_ThreadExit;
+
+//! Throw statement kind.
+const ASK_Throw = ASK_Throw;
+
+//! Try statement kind.
+const ASK_Try = ASK_Try;
+
+//! While statement kind.
+const ASK_While = ASK_While;
+//@}
+
+/** @defgroup astparser_symbol_kind_constants AST Symbol Kind Constants
+ */
+//@{
+namespace astparser;
+//! None/null symbol kind (default).
+const ASYK_None = ASYK_None;
+
+//! Symbol kind constant for files.
+const ASYK_File = ASYK_File;
+
+//! Symbol kind constant for modules.
+const ASYK_Module = ASYK_Module;
+
+//! Symbol kind constant for namespaces.
+const ASYK_Namespace = ASYK_Namespace;
+
+//! Symbol kind constant for packages.
+const ASYK_Package = ASYK_Package;
+
+//! Symbol kind constant for classes.
+const ASYK_Class = ASYK_Class;
+
+//! Symbol kind constant for class methods.
+const ASYK_Method = ASYK_Method;
+
+//! Symbol kind constant for properties.
+const ASYK_Property = ASYK_Property;
+
+//! Symbol kind constant for field (used for hash members in Qore context).
+const ASYK_Field = ASYK_Field;
+
+//! Symbol kind constant for constructor.
+const ASYK_Constructor = ASYK_Constructor;
+
+//! Symbol kind constant for enums.
+const ASYK_Enum = ASYK_Enum;
+
+//! Symbol kind constant for interface (used for hashdecls in Qore context).
+const ASYK_Interface = ASYK_Interface;
+
+//! Symbol kind constant for functions.
+const ASYK_Function = ASYK_Function;
+
+//! Symbol kind constant for variables.
+const ASYK_Variable = ASYK_Variable;
+
+//! Symbol kind constant for constants.
+const ASYK_Constant = ASYK_Constant;
+
+//! Symbol kind constant for strings.
+const ASYK_String = ASYK_String;
+
+//! Symbol kind constant for numbers.
+const ASYK_Number = ASYK_Number;
+
+//! Symbol kind constant for booleans.
+const ASYK_Boolean = ASYK_Boolean;
+
+//! Symbol kind constant for arrays.
+const ASYK_Array = ASYK_Array;
+//@}
+
+/** @defgroup astparser_symbol_usage_kind_constants AST Symbol Usage Kind Constants
+ */
+//@{
+namespace astparser;
+//! None/null symbol usage kind (default).
+const ASUK_None = ASUK_None;
+
+
+//! Symbol usage kind for class names in declarations.
+const ASUK_ClassDeclName = ASUK_ClassDeclName;
+
+//! Symbol usage kind for constant names in declarations.
+const ASUK_ConstantDeclName = ASUK_ConstantDeclName;
+
+//! Symbol usage kind for function names in declarations.
+const ASUK_FuncDeclName = ASUK_FuncDeclName;
+
+//! Symbol usage kind for function return types.
+const ASUK_FuncReturnType = ASUK_FuncReturnType;
+
+//! Symbol usage kind for namespace names in declarations.
+const ASUK_NamespaceDeclName = ASUK_NamespaceDeclName;
+
+//! Symbol usage kind for superclass names in declarations.
+const ASUK_SuperclassDeclName = ASUK_SuperclassDeclName;
+
+//! Symbol usage kind for variable names in declarations.
+const ASUK_VarDeclName = ASUK_VarDeclName;
+
+//! Symbol usage kind for variable types.
+const ASUK_VarDeclTypeName = ASUK_VarDeclTypeName;
+
+//! Symbol usage kind for hashdecl names in declarations.
+const ASUK_HashDeclName = ASUK_HashDeclName;
+
+//! Symbol usage kind for hash members in declarations.
+const ASUK_HashMemberName = ASUK_HashMemberName;
+
+
+//! Symbol usage kind for variables whose members are accessed by the dot operator.
+const ASUK_AccessVariable = ASUK_AccessVariable;
+
+//! Symbol usage kind for members accessed by the dot operator.
+const ASUK_AccessMember = ASUK_AccessMember;
+
+//! Symbol usage kind for left-values in assignments.
+const ASUK_AssignmentLeft = ASUK_AssignmentLeft;
+
+//! Symbol usage kind for right-values in assignments.
+const ASUK_AssignmentRight = ASUK_AssignmentRight;
+
+//! Symbol usage kind for left values in binary operations.
+const ASUK_BinaryLeft = ASUK_BinaryLeft;
+
+//! Symbol usage kind for right values in binary operations.
+const ASUK_BinaryRight = ASUK_BinaryRight;
+
+//! Symbol usage kind for call target expressions.
+const ASUK_CallTarget = ASUK_CallTarget;
+
+//! Symbol usage kind for call arguments expressions.
+const ASUK_CallArgs = ASUK_CallArgs;
+
+//! Symbol usage kind for case constant expressions.
+const ASUK_CaseExpr = ASUK_CaseExpr;
+
+//! Symbol usage kind for types used in \c cast expressions.
+const ASUK_CastType = ASUK_CastType;
+
+//! Symbol usage kind for casted objects in \c cast expressions.
+const ASUK_CastObject = ASUK_CastObject;
+
+//! Symbol usage kind for data expressions in \c find expressions.
+const ASUK_FindData = ASUK_FindData;
+
+//! Symbol usage kind for hash elements in hash expressions.
+const ASUK_HashElement = ASUK_HashElement;
+
+//! Symbol usage kind for accessed variables in index access expressions.
+const ASUK_IndexVariable = ASUK_IndexVariable;
+
+//! Symbol usage kind for indices in index access expressions.
+const ASUK_IndexIndex = ASUK_IndexIndex;
+
+//! Symbol usage kind for list elements in list expressions.
+const ASUK_ListElement = ASUK_ListElement;
+
+//! Symbol usage kind for return type in \c returns expression.
+const ASUK_ReturnsType = ASUK_ReturnsType;
+
+//! Symbol usage kind for conditions in ternary conditional operator expressions.
+const ASUK_TernaryCond = ASUK_TernaryCond;
+
+//! Symbol usage kind for "true" options in ternary conditional operator expressions.
+const ASUK_TernaryTrue = ASUK_TernaryTrue;
+
+//! Symbol usage kind for "false" options in ternary conditional operator expressions.
+const ASUK_TernaryFalse = ASUK_TernaryFalse;
+
+//! Symbol usage kind for operands in unary operator expressions.
+const ASUK_Unary = ASUK_Unary;
+
+
+//! Symbol usage kind for names in context statements.
+const ASUK_ContextStmtName = ASUK_ContextStmtName;
+
+//! Symbol usage kind for data in context statements.
+const ASUK_ContextStmtData = ASUK_ContextStmtData;
+
+//! Symbol usage kind for conditions in \c do-while statements.
+const ASUK_DoWhileStmtCond = ASUK_DoWhileStmtCond;
+
+//! Symbol usage kind for expressions in expression statements.
+const ASUK_ExprStmtExpr = ASUK_ExprStmtExpr;
+
+//! Symbol usage kind for source variables in \c foreach statements.
+const ASUK_ForeachStmtSrc = ASUK_ForeachStmtSrc;
+
+//! Symbol usage kind for value variables in \c foreach statements.
+const ASUK_ForeachStmtVal = ASUK_ForeachStmtVal;
+
+//! Symbol usage kind for conditions in \c for statements.
+const ASUK_ForStmtCond = ASUK_ForStmtCond;
+
+//! Symbol usage kind for initialization expressions in \c for statements.
+const ASUK_ForStmtInit = ASUK_ForStmtInit;
+
+//! Symbol usage kind for iteration expressions in \c for statements.
+const ASUK_ForStmtIter = ASUK_ForStmtIter;
+
+//! Symbol usage kind for conditions in \c if statements.
+const ASUK_IfStmtCond = ASUK_IfStmtCond;
+
+//! Symbol usage kind for returned values in \c return statements.
+const ASUK_ReturnStmtVal = ASUK_ReturnStmtVal;
+
+//! Symbol usage kind for names in \c summarize statements.
+const ASUK_SummarizeStmtName = ASUK_SummarizeStmtName;
+
+//! Symbol usage kind for data in \c summarize statements.
+const ASUK_SummarizeStmtData = ASUK_SummarizeStmtData;
+
+//! Symbol usage kind for condition variables in \c switch statements.
+const ASUK_SwitchStmtVar = ASUK_SwitchStmtVar;
+
+//! Symbol usage kind for expressions in \c throw statements.
+const ASUK_ThrowStmtExpr = ASUK_ThrowStmtExpr;
+
+//! Symbol usage kind for catched variables in \c try-catch statements.
+const ASUK_TryStmtCatchVar = ASUK_TryStmtCatchVar;
+
+//! Symbol usage kind for conditions in \c while statements.
+const ASUK_WhileStmtCond = ASUK_WhileStmtCond;
+//@}
