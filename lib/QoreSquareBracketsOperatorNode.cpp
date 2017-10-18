@@ -379,22 +379,36 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     if (*xsink)
         return nullptr;
 
-    ValueEvalRefHolder rhs(right, xsink);
-    if (*xsink)
-        return nullptr;
+    ValueEvalRefHolder rhs(xsink);
 
-    // we only support functional iteration when the lhd is a list and the rhs is a list
-    if (lhs->getType() == NT_LIST && rhs->getType() == NT_LIST) {
-        value_type = list;
+    // do not evaluate the RHS if the RHS is a list with ranges
+    if (rhs_list_range) {
+        if (lhs->getType() == NT_LIST) {
+            value_type = list;
+            return new QoreFunctionalSquareBracketsComplexOperator(lhs, static_cast<const QoreParseListNode*>(right), xsink);
+        }
+    }
+    else {
+        if (rhs.eval(right))
+            return nullptr;
 
-        return get_node_type(right) == NT_PARSE_LIST
-            ? new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink, static_cast<const QoreParseListNode*>(right))
-            : new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink);
+        // we only support functional iteration when the lhd is a list and the rhs is a list
+        if (lhs->getType() == NT_LIST && rhs->getType() == NT_LIST) {
+            ValueEvalRefHolder rhs(right, xsink);
+            if (*xsink)
+                return nullptr;
+
+            value_type = list;
+            return new QoreFunctionalSquareBracketsOperator(lhs, rhs, xsink);
+        }
     }
 
-    ValueHolder res = rhs_list_range
-        ? ValueHolder(doSquareBracketsListRange(*lhs, static_cast<const QoreParseListNode*>(right), xsink), xsink)
-        : ValueHolder(doSquareBrackets(*lhs, *rhs, true, xsink), xsink);
+    ValueHolder res(xsink);
+
+    if (rhs_list_range)
+        res = doSquareBracketsListRange(*lhs, static_cast<const QoreParseListNode*>(right), xsink);
+    else
+        res = doSquareBrackets(*lhs, *rhs, true, xsink);
 
     if (*xsink)
         return nullptr;
@@ -411,32 +425,48 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
 }
 
 bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
+    if ((size_t)++offset == rightList->size())  // do a step in the top-level list
+        return true;
+
+    val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieve_entry(offset), false, xsink), true);
+
+    return false;
+}
+
+bool QoreFunctionalSquareBracketsComplexOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
     if (!rangeIter) {                               // the current position is not inside a subrange
-        if ((size_t)++offset == rightList->size())  // do a step in the top-level list
+        if ((size_t)++offset == rightParseList->size())  // do a step in the top-level list
             return true;
 
         // if the element on the new current top-level position (offset) is a range then get its iterator
         const QoreRangeOperatorNode* range;
-        if (rightParseList && get_node_type(rightParseList->get(offset)) == NT_OPERATOR && (range = dynamic_cast<const QoreRangeOperatorNode*>(rightParseList->get(offset)))) {
+        const AbstractQoreNode* n = rightParseList->get(offset);
+        if (get_node_type(n) == NT_OPERATOR && (range = dynamic_cast<const QoreRangeOperatorNode*>(n))) {
             FunctionalOperator::FunctionalValueType value_type;
             rangeIter = std::unique_ptr<QoreFunctionalRangeOperator>((QoreFunctionalRangeOperator*)(range->getFunctionalIterator(value_type, xsink)));
         }
-    }
 
-    if (*xsink)
-        return false;
+        if (*xsink)
+            return false;
+    }
 
     if (rangeIter) {                                // the current position is inside a subrange
         ValueOptionalRefHolder rangeVal(xsink);
-        if(rangeIter->getNext(rangeVal, xsink)) {   // use the inner range iterator to get next ...
+        if (rangeIter->getNext(rangeVal, xsink)) {   // use the inner range iterator to get next ...
             rangeIter.reset();                      // ... if there's no next inner range element then reset the inner iterator ...
             return getNextImpl(val, xsink);         // ... and get the next top-level element
         }
         else  // set the value using the index from the inner subrange
             val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rangeVal, false, xsink), true);
     }
-    else      // set the value using the top-level index
-        val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieve_entry(offset), false, xsink), true);
+    else {
+        ValueEvalRefHolder rh(rightParseList->get(offset), xsink);
+        if (*xsink)
+            return false;
+
+        // set the value using the top-level index
+        val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rh, false, xsink), true);
+    }
 
     return false;
 }
