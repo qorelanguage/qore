@@ -98,9 +98,6 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
 
     switch (seq_type) {
         case NT_LIST: {
-            if (empty)
-                return new QoreListNode;
-
             const QoreListNode* l = seq->get<const QoreListNode>();
             ReferenceHolder<QoreListNode> rv(new QoreListNode(l->getValueTypeInfo()), xsink);
             if (start < stop) {

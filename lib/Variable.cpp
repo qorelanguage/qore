@@ -1617,8 +1617,40 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
    int64 start, stop, seq_size;
    {
        QoreValue tmp(lvh.getValue());
-       if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink))
-           return;
+       if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink)) {
+          if (!*xsink) {
+             AbstractQoreNode* v;
+             switch (lvh.getType()) {
+                case NT_LIST: {
+                    v = new QoreListNode;
+                    int d = stop - start;
+                    if (d < 0)
+                        d = -d;
+                    ++d;
+                    while (d--) {
+                        static_cast<QoreListNode*>(v)->push(nullptr);
+                    }
+                    break;
+                }
+                case NT_STRING:
+                    v = new QoreStringNode;
+                    break;
+                case NT_BINARY:
+                    v = new BinaryNode;
+                    break;
+                default:
+                    v = nullptr;
+                    break;
+             }
+#ifdef DEBUG
+             // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+             assert(!rv.assignInitial(v));
+#else
+             rv.assignInitial(v);
+#endif
+          }
+          return;
+       }
    }
 
    bool reverse;
