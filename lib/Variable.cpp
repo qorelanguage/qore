@@ -1240,6 +1240,45 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 #endif
 }
 
+static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const QoreTypeInfo*& vtype, bool& vcommon, ind_set_t& iset, unsigned i) {
+    AbstractQoreNode* p;
+    if (ind >= 0 && ind < (int64)l.size()) {
+        iset.insert(ind);
+        p = l.get_referenced_entry(ind);
+    }
+    else
+        p = nullptr;
+
+    // process common type
+    if (!i) {
+        vtype = getTypeInfoForValue(p);
+        vcommon = true;
+    }
+    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p)))
+        vcommon = false;
+
+    v.push(p);
+}
+
+static int do_string_value(QoreStringNode& v, QoreStringNode& str, int64 ind, ind_set_t& iset, size_t len, ExceptionSink* xsink) {
+    if (ind >= 0 && ind < (int64)len) {
+        iset.insert(ind);
+        int cp = str.getUnicodePoint(ind, xsink);
+        if (*xsink)
+            return -1;
+        if (v.concatUnicode(cp, xsink))
+            return -1;
+    }
+    return 0;
+}
+
+static void do_binary_value(BinaryNode& v, BinaryNode& bin, int64 ind, ind_set_t& iset) {
+    if (ind >= 0 && ind < (int64)bin.size()) {
+        iset.insert(ind);
+        bin.substr(v, ind, 1);
+    }
+}
+
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
     if (get_node_type(op->getRight()) == NT_PARSE_LIST) {
         doRemove(op, static_cast<const QoreParseListNode*>(op->getRight()));
@@ -1279,22 +1318,23 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
             }
             else {
                 direct_list = true;
+                // calculate the runtime element type if possible
+                const QoreTypeInfo* vtype = nullptr;
+                // try to find a common value type, if any
+                bool vcommon = false;
                 // keep a set of offsets removed to remove them from the list in reverse order
                 ind_set_t iset;
                 ConstListIterator li(rl);
                 v = new QoreListNode;
                 while (li.next()) {
-                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-                    if (ind >= 0 && ind < (int64)l->size()) {
-                        iset.insert(ind);
-                        static_cast<QoreListNode*>(*v)->push(qore_list_private::get(*l)->takeExists(ind));
-                    }
-                    else
-                        static_cast<QoreListNode*>(*v)->push(nullptr);
+                    do_list_value(*static_cast<QoreListNode*>(*v), *l, li.getValue() ? li.getValue()->getAsBigInt() : 0, vtype, vcommon, iset, li.index());
                 }
+
+                if (QoreTypeInfo::hasType(vtype))
+                    qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+
                 // now collapse the list by rewriting it without the elements removed
                 for (auto& i : iset) {
-                    // removing NOTHING elements here
                     l->splice(i, 1, xsink);
                 }
             }
@@ -1328,22 +1368,21 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 ind_set_t iset;
                 ConstListIterator li(rl);
                 while (li.next()) {
-                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-                    if (ind >= 0 && ind < (int64)len) {
-                        iset.insert(ind);
-                        int cp = str->getUnicodePoint(ind, xsink);
-                        if (*xsink)
-                            break;
-                        v->concatUnicode(cp, xsink);
-                        if (*xsink)
+                    if (do_string_value(**v, *str, li.getValue() ? li.getValue()->getAsBigInt() : 0, iset, len, xsink))
+                        break;
+                }
+
+                // now collapse the string by rewriting it without the characters removed
+                // we need to ensure that any exception above does not affect this operation
+                {
+                    ExceptionSink xsink2;
+                    for (auto& i : iset) {
+                        str->splice(i, 1, &xsink2);
+                        if (xsink2)
                             break;
                     }
-                }
-                // now collapse the string by rewriting it without the characters removed
-                for (auto& i : iset) {
-                    str->splice(i, 1, xsink);
-                    if (*xsink)
-                        break;
+                    if (xsink2)
+                        xsink->assimilate(xsink2);
                 }
             }
 #ifdef DEBUG
@@ -1368,11 +1407,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 ind_set_t iset;
                 ConstListIterator li(rl);
                 while (li.next()) {
-                    ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-                    if (ind >= 0 && ind < (int64)bin->size()) {
-                        iset.insert(ind);
-                        bin->substr(**v, ind, 1);
-                    }
+                    do_binary_value(**v, *bin, li.getValue() ? li.getValue()->getAsBigInt() : 0, iset);
                 }
                 // now collapse the binary object by rewriting it without the bytes removed
                 for (auto& i : iset) {
@@ -1400,32 +1435,10 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
 #endif
 }
 
-static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const QoreTypeInfo*& vtype, bool& vcommon, ind_set_t& iset, unsigned i, ExceptionSink* xsink) {
-    AbstractQoreNode* p;
-    if (ind >= 0 && ind < (int64)l.size()) {
-        iset.insert(ind);
-        p = qore_list_private::get(l)->takeExists(ind);
-    }
-    else
-        p = nullptr;
-
-    // process common type
-    if (!i) {
-        vtype = getTypeInfoForValue(p);
-        vcommon = true;
-    }
-    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p)))
-        vcommon = false;
-
-    v.push(p);
-}
-
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* pln) {
     LValueHelper lvh(op->getLeft(), xsink, true);
     if (!lvh)
         return;
-
-    int64 ind = 0;
 
     switch (lvh.getType()) {
         case NT_LIST: {
@@ -1446,7 +1459,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             for (unsigned i = 0; i < vl.size(); ++i) {
                 ValueEvalRefHolder rh(vl[i], xsink);
                 if (*xsink)
-                    return;
+                    break;
                 bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
                 if (is_range) {
                     const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
@@ -1454,11 +1467,11 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                     ConstListIterator li(rh->get<const QoreListNode>());
                     while (li.next()) {
                         QoreValue exp(li.getValue());
-                        do_list_value(**v, *l, exp.getAsBigInt(), vtype, vcommon, iset, i + li.index(), xsink);
+                        do_list_value(**v, *l, exp.getAsBigInt(), vtype, vcommon, iset, i + li.index());
                     }
                 }
                 else {
-                    do_list_value(**v, *l, rh->getAsBigInt(), vtype, vcommon, iset, i, xsink);
+                    do_list_value(**v, *l, rh->getAsBigInt(), vtype, vcommon, iset, i);
                 }
             }
 
@@ -1467,7 +1480,6 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 
             // now collapse the list by rewriting it without the elements removed
             for (auto& i : iset) {
-                // removing NOTHING elements here
                 l->splice(i, 1, xsink);
             }
 
@@ -1484,33 +1496,50 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             return;
         }
 
-        /*
         case NT_STRING: {
             lvh.ensureUnique();
             QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
             SimpleRefHolder<QoreStringNode> v(new QoreStringNode(str->getEncoding()));
             size_t len = str->length();
 
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
-            ConstListIterator li(rl);
-            while (li.next()) {
-                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-                if (ind >= 0 && ind < (int64)len) {
-                    iset.insert(ind);
-                    int cp = str->getUnicodePoint(ind, xsink);
-                    if (*xsink)
-                        break;
-                    v->concatUnicode(cp, xsink);
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    break;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        if (do_string_value(**v, *str, exp.getAsBigInt(), iset, len, xsink))
+                            break;
+                    }
                     if (*xsink)
                         break;
                 }
+                else {
+                    if (do_string_value(**v, *str, rh->getAsBigInt(), iset, len, xsink))
+                        break;
+                }
             }
+
             // now collapse the string by rewriting it without the characters removed
-            for (auto& i : iset) {
-                str->splice(i, 1, xsink);
-                if (*xsink)
-                    break;
+            // we need to ensure that any exception above does not affect this operation
+            {
+                ExceptionSink xsink2;
+                for (auto& i : iset) {
+                    str->splice(i, 1, &xsink2);
+                    if (xsink2)
+                        break;
+                }
+                if (xsink2)
+                    xsink->assimilate(xsink2);
             }
 #ifdef DEBUG
             // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
@@ -1526,16 +1555,28 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
             SimpleRefHolder<BinaryNode> v(new BinaryNode);
 
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
-            ConstListIterator li(rl);
-            while (li.next()) {
-                ind = li.getValue() ? li.getValue()->getAsBigInt() : 0;
-                if (ind >= 0 && ind < (int64)bin->size()) {
-                    iset.insert(ind);
-                    bin->substr(**v, ind, 1);
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    break;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        do_binary_value(**v, *bin, exp.getAsBigInt(), iset);
+                    }
                 }
+                else
+                    do_binary_value(**v, *bin, rh->getAsBigInt(), iset);
             }
+
             // now collapse the binary object by rewriting it without the bytes removed
             for (auto& i : iset) {
                 bin->splice(i, 1);
@@ -1548,7 +1589,6 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 #endif
             return;
         }
-*/
     }
 
     bool static_assignment = false;

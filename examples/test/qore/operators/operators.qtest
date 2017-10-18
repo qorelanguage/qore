@@ -139,7 +139,7 @@ class Test inherits QUnit::Test {
         testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
 
         # create a sinple closure to subtract the second argument from the first
-        c = any sub(any x, any y) { return x - y; };
+        c = any sub(auto x, auto y) { return x - y; };
 
         # left fold function on list using closure
         testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
@@ -212,7 +212,7 @@ class Test inherits QUnit::Test {
         assertEq(False, stdout instanceof Mutex);
         assertEq(False, 1 instanceof File);
         {
-            any x = stdout;
+            auto x = stdout;
             assertEq(True, x instanceof File);
             assertEq(False, x instanceof Mutex);
             x = 1;
@@ -331,7 +331,7 @@ class Test inherits QUnit::Test {
         assertNumberEq(123.456, --n);
         assertNumberEq(123.456, n);
 
-        any x = 1;
+        auto x = 1;
         assertEq(1, x++);
         assertEq(2, x);
         assertEq(2, x--);
@@ -372,7 +372,7 @@ class Test inherits QUnit::Test {
         softnumber sn;
         softstring ss;
 
-        any x = {};
+        auto x = {};
         assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
@@ -687,22 +687,22 @@ class Test inherits QUnit::Test {
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@; int i = x <=> 1.0;", "");
+            p.parse("auto x = @nan@; int i = x <=> 1.0;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@; int i = 1.0 <=> x;", "");
+            p.parse("auto x = @nan@; int i = 1.0 <=> x;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@n; int i = x <=> 1n;", "");
+            p.parse("auto x = @nan@n; int i = x <=> 1n;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@n; int i = 1n <=> x;", "");
+            p.parse("auto x = @nan@n; int i = 1n <=> x;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
     }
@@ -985,6 +985,13 @@ class Test inherits QUnit::Test {
         {
             string str = "abcdef";
             assertEq("adef", str[0,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq("adeaf", str[0,45,3..4,x,5]);
+                string str0 = str;
+                assertEq("bdeaf", remove str0[1,45,3..4,x,5]);
+                assertEq("c", str0);
+            }
             string str0 = remove str[1,45,3,5,3];
             assertEq("bdfd", str0);
             assertEq("ace", str);
@@ -1003,6 +1010,13 @@ class Test inherits QUnit::Test {
         {
             binary bin = <abcdef0123457890>;
             assertEq(<ab012345>, bin[0,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq(<ab0123ab45>, bin[0,45,3..4,x,5]);
+                binary bin0 = bin;
+                assertEq(<ab0123ab45>, remove bin0[0,45,3..4,x,5]);
+                assertEq(<cdef7890>, bin0);
+            }
             binary bin0 = remove bin[1,45,3,5,3];
             assertEq(<cd014501>, bin0);
             assertEq(<abef237890>, bin);
@@ -1021,8 +1035,15 @@ class Test inherits QUnit::Test {
         {
             list l0 = (1,2,3,4,5,6,7);
             assertEq((2,NOTHING,4,5,6), l0[1,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq((1,NOTHING,4,5,1,6), l0[0,45,3..4,x,5]);
+                list<auto> l1 = l0;
+                assertEq((1,NOTHING,4,5,1,6), remove l1[0,45,3..4,x,5]);
+                assertEq((2,3,7), l1);
+            }
             list l1 = remove l0[1,45,3,5,3];
-            assertEq((2,NOTHING,4,6,NOTHING), l1);
+            assertEq((2,NOTHING,4,6,4), l1);
             assertEq((1,3,5,7), l0);
             l1 = remove l0[1..2];
             assertEq((3,5), l1);
@@ -1047,9 +1068,18 @@ class Test inherits QUnit::Test {
             list<auto> l1 = l0;
             assertEq((1, 2), remove l1[0..1]);
             l1 = l0;
+            assertEq("list<int>", (remove l1[0..1]).fullType());
+            assertEq((3, 4), l1);
+            l1 = l0;
             assertEq((1, 2), remove l1[0,1]);
+            assertEq((3, 4), l1);
+            l1 = l0;
+            assertEq("list<int>", (remove l1[0,1]).fullType());
             l1 = l0;
             assertEq((1, 2, 3), remove l1[0,1..2]);
+            assertEq((4,), l1);
+            l1 = l0;
+            assertEq("list<int>", (remove l1[0,1..2]).fullType());
 
             assertEq((1, 2), l0[0..1]);
             assertEq((1, 2), l0[0,1]);
@@ -1057,14 +1087,23 @@ class Test inherits QUnit::Test {
             assertEq((1, 2), map $1, l0[0..1]);
             assertEq((1, 2), map $1, l0[0,1]);
             assertEq((1, 2, 3), map $1, l0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq((1, 2, 3, 1), l0[0,1..2,x]);
+                assertEq((1, 2, 3, 1), map $1, l0[0,1..2,x]);
+            }
 
             string s0 = "1234";
             string s1 = s0;
             assertEq("12", remove s1[0..1]);
+            assertEq("34", s1);
             s1 = s0;
             assertEq("12", remove s1[0,1]);
-            #s1 = s0;
-            #assertEq("123", remove s1[0,1..2]);
+            assertEq("34", s1);
+            s1 = s0;
+            assertEq("123", remove s1[0,1..2]);
+            assertEq("4", s1);
 
             assertEq("12", s0[0..1]);
             assertEq("12", s0[0,1]);
@@ -1072,14 +1111,23 @@ class Test inherits QUnit::Test {
             assertEq("12", map $1, s0[0..1]);
             assertEq("12", map $1, s0[0,1]);
             assertEq("123", map $1, s0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq("1231", s0[0,1..2,x]);
+                assertEq("1231", map $1, s0[0,1..2,x]);
+            }
 
             binary b0 = <01020304>;
             binary b1 = b0;
             assertEq(<0102>, remove b1[0..1]);
+            assertEq(<0304>, b1);
             b1 = b0;
             assertEq(<0102>, remove b1[0,1]);
-            #b1 = b0;
-            #assertEq(<010203>, remove b1[0,1..2]);
+            assertEq(<0304>, b1);
+            b1 = b0;
+            assertEq(<010203>, remove b1[0,1..2]);
+            assertEq(<04>, b1);
 
             assertEq(<0102>, b0[0..1]);
             assertEq(<0102>, b0[0,1]);
@@ -1087,6 +1135,12 @@ class Test inherits QUnit::Test {
             assertEq(<0102>, map $1, b0[0..1]);
             assertEq(<0102>, map $1, b0[0,1]);
             assertEq(<010203>, map $1, b0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq(<01020301>, b0[0,1..2,x]);
+                assertEq(<01020301>, map $1, b0[0,1..2,x]);
+            }
         }
 
         # check range operator precedence
@@ -1140,6 +1194,17 @@ class Test inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { list l = (0, 1); l[0..1] = (2,3); }", ""));
+        }
+
+        {
+            # test invalid types in complex [] operations
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { list l = (0, 1); auto v = l[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { list l = (0, 1); auto v = l[0..(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { string str = '01'; auto v = str[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { string str = '01'; auto v = str[0..(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { binary bin = <0102>; auto v = bin[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { binary bin = <0102>; auto v = bin[0..(0,1)]; }", ""));
         }
     }
 }
