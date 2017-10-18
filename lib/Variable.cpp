@@ -1462,7 +1462,6 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                     break;
                 bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
                 if (is_range) {
-                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
                     assert(rh->getType() == NT_LIST);
                     ConstListIterator li(rh->get<const QoreListNode>());
                     while (li.next()) {
@@ -1512,7 +1511,6 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                     break;
                 bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
                 if (is_range) {
-                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
                     assert(rh->getType() == NT_LIST);
                     ConstListIterator li(rh->get<const QoreListNode>());
                     while (li.next()) {
@@ -1565,7 +1563,6 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                     break;
                 bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
                 if (is_range) {
-                    const QoreRangeOperatorNode* ron = static_cast<const QoreRangeOperatorNode*>(vl[i]);
                     assert(rh->getType() == NT_LIST);
                     ConstListIterator li(rh->get<const QoreListNode>());
                     while (li.next()) {
