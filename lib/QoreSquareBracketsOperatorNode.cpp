@@ -189,7 +189,7 @@ QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, Excep
     return doSquareBrackets(*lh, *rh, true, xsink);
 }
 
-QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(QoreValue l, const QoreParseListNode* pln, ExceptionSink* xsink) {
+QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreValue l, const QoreParseListNode* pln, ExceptionSink* xsink) {
     switch (l.getType()) {
         case NT_LIST: {
             // calculate the runtime element type if possible
@@ -268,7 +268,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(QoreValue l,
     return QoreValue();
 }
 
-int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& ret, QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink) {
+int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& ret, const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
     ValueHolder entry(doSquareBrackets(l, r, list_ok, xsink), xsink);
     if (*xsink)
         return -1;
@@ -277,7 +277,7 @@ int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& re
     return 0;
 }
 
-int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink) {
+int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
     ValueHolder entry(doSquareBrackets(l, r, list_ok, xsink), xsink);
     if (*xsink)
         return -1;
@@ -298,7 +298,7 @@ int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, Q
     return 0;
 }
 
-QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(QoreValue l, QoreValue r, bool list_ok, ExceptionSink* xsink) {
+QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
     qore_type_t left_type = l.getType();
     qore_type_t right_type = r.getType();
 
@@ -433,7 +433,7 @@ bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& v
             return getNextImpl(val, xsink);         // ... and get the next top-level element
         }
         else  // set the value using the index from the inner subrange
-            val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rangeVal.takeReferencedValue(), false, xsink), true);
+            val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rangeVal, false, xsink), true);
     }
     else      // set the value using the top-level index
         val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieve_entry(offset), false, xsink), true);
