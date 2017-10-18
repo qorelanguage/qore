@@ -45,6 +45,7 @@
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <memory>
 #include <utility>
