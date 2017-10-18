@@ -487,12 +487,19 @@ public:
    DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
 
    //! creates the object with with no evaluation
+   /** @since %Qore 0.8.13.1
+   */
    DLLEXPORT ValueEvalRefHolder(ExceptionSink* xs);
 
-   //! evalutes the argument, returns -1 for error, 0 = OK
+   //! evaluates the argument, returns -1 for error, 0 = OK
+   /** @since %Qore 0.8.13.1
+   */
    DLLEXPORT int eval(const AbstractQoreNode* exp);
 
 protected:
+   //! evaluates the argument, returns -1 for error, 0 = OK
+   /** @since %Qore 0.8.13.1
+   */
    DLLLOCAL void evalIntern(const AbstractQoreNode* exp);
 };
 
