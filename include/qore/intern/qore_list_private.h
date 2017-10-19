@@ -32,6 +32,8 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
+#include <string.h>
+
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 
 inline QoreListNode* do_args(AbstractQoreNode* e1, AbstractQoreNode* e2) {
@@ -210,6 +212,31 @@ struct qore_list_private {
    }
 
    DLLLOCAL AbstractQoreNode** getExistingEntryPtr(qore_size_t num);
+
+   // does not zero new memory; list has size + num afterwards
+   DLLLOCAL void insert(size_t num) {
+      size_t oldlen = length;
+      resize(length + num);
+      if (oldlen)
+         memmove(entry + num, entry, sizeof(AbstractQoreNode*) * oldlen);
+   }
+
+   // zeros new memory; list has size + num afterwards
+   DLLLOCAL void insertClear(size_t num) {
+      insert(num);
+      // zero memory
+      memset(entry, 0, sizeof(AbstractQoreNode*) * num);
+   }
+
+   DLLLOCAL void enlargeIntern(size_t num) {
+      assert(num >= allocated);
+      qore_size_t d = num >> 2;
+      // when enlarging we need to zero memory from allocated -> new allocated only
+      size_t old_allocated = allocated;
+      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
+      entry = (AbstractQoreNode**)realloc(entry, sizeof (AbstractQoreNode*) * allocated);
+      memset(entry + old_allocated, 0, sizeof (AbstractQoreNode*) * (allocated - old_allocated));
+   }
 
    DLLLOCAL void resize(size_t num);
 

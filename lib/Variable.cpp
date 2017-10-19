@@ -1670,7 +1670,12 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
        case NT_LIST: {
            lvh.ensureUnique();
            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+           size_t orig_size = l->size();
            QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
+           // add additional elements if necessary
+           //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
+           if (stop >= orig_size)
+              qore_list_private::get(*nl)->resize(nl->size() + stop - orig_size + 1);
            v = nl;
            if (*xsink)
                return;
