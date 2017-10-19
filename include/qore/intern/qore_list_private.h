@@ -221,13 +221,6 @@ struct qore_list_private {
          memmove(entry + num, entry, sizeof(AbstractQoreNode*) * oldlen);
    }
 
-   // zeros new memory; list has size + num afterwards
-   DLLLOCAL void insertClear(size_t num) {
-      insert(num);
-      // zero memory
-      memset(entry, 0, sizeof(AbstractQoreNode*) * num);
-   }
-
    DLLLOCAL void enlargeIntern(size_t num) {
       assert(num >= allocated);
       qore_size_t d = num >> 2;
