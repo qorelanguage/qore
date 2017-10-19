@@ -654,6 +654,7 @@ private:
    DLLLOCAL void* operator new(size_t);
 
    DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op);
+   DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* l);
    DLLLOCAL void doRemove(const QoreSquareBracketsRangeOperatorNode* op);
 
 protected:

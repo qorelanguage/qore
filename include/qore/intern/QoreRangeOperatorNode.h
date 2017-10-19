@@ -36,7 +36,6 @@
 #include "qore/intern/FunctionalOperator.h"
 #include "qore/intern/FunctionalOperatorInterface.h"
 
-
 class QoreRangeOperatorNode : public QoreIntBinaryOperatorNode, public FunctionalOperator {
 OP_COMMON
 protected:
@@ -61,7 +60,6 @@ public:
         return copyBackgroundExplicit<QoreRangeOperatorNode>(xsink);
     }
 };
-
 
 class QoreFunctionalRangeOperator : public FunctionalOperatorInterface, public RangeIterator {
 protected:

@@ -482,11 +482,25 @@ public:
 
 //! evaluates an AbstractQoreNode and dereferences the stored value in the destructor
 class ValueEvalRefHolder : public ValueOptionalRefHolder {
-protected:
-
 public:
    //! evaluates the AbstractQoreNode argument
    DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
+
+   //! creates the object with with no evaluation
+   /** @since %Qore 0.8.13.1
+   */
+   DLLEXPORT ValueEvalRefHolder(ExceptionSink* xs);
+
+   //! evaluates the argument, returns -1 for error, 0 = OK
+   /** @since %Qore 0.8.13.1
+   */
+   DLLEXPORT int eval(const AbstractQoreNode* exp);
+
+protected:
+   //! evaluates the argument, returns -1 for error, 0 = OK
+   /** @since %Qore 0.8.13.1
+   */
+   DLLLOCAL void evalIntern(const AbstractQoreNode* exp);
 };
 
 #endif
