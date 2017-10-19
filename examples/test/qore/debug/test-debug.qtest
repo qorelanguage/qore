@@ -668,7 +668,7 @@ class DebugTest inherits QUnit::Test {
         testAssertionValue(name+'findStatementId("label-f1", 8)', sid > 0, True);
         testAssertionValue(name+'findStatementId("label-f1", 11) multiline', pp.findStatementId("label-f1", 11), sid);
         info = pp.getStatementIdInfo(sid);
-        #testAssertionValue(name+'getStatementIdInfo("label-f1", 11)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 8, 'end_line': 12) );
+        testAssertionValue(name+'getStatementIdInfo("label-f1", 11)', info, ('file': 'label-f1', 'source': '/usr/lib/my-source.q', 'offset': 10, 'start_line': 8, 'end_line': 12) );
 
         sid = pp.findStatementId("label-sleep", 2);
         testAssertionValue(name+'findStatementId("label-sleep", 2)', sid > 0, True);
