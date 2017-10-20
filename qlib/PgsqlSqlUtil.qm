@@ -1369,7 +1369,7 @@ auto v = c.name;
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
             #! column operator specializations for PostgreSQL
-            const PgsqlCopMap = DefaultCopMap + (
+            const PgsqlCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1579,7 +1579,7 @@ auto v = c.name;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return PgsqlCopMap;
         }
 

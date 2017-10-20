@@ -1219,7 +1219,7 @@ end";
             const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
 
             #! column operator specializations for MySQL
-            const MysqlCopMap = DefaultCopMap + (
+            const MysqlCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1350,7 +1350,7 @@ end";
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return MysqlCopMap;
         }
 
