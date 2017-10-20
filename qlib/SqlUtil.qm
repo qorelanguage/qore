@@ -14622,7 +14622,8 @@ string sql = table.getAlignSqlString(table2);
         }
 
         #! Reimplement in subclasses to provide driver specific column operators
-        abstract private *hash getColumnOperatorMapImpl();
+        private *hash getColumnOperatorMapImpl() {
+        }
 
         #! register custom user column operator for this table object
         /** This method allows to register custom operators for select
