@@ -533,6 +533,13 @@ void ValueOptionalRefHolder::sanitize() {
 }
 
 ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs) : ValueOptionalRefHolder(xs) {
+   evalIntern(exp);
+}
+
+ValueEvalRefHolder::ValueEvalRefHolder(ExceptionSink* xs) : ValueOptionalRefHolder(xs) {
+}
+
+void ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
    if (!exp)
       return;
 
@@ -545,3 +552,8 @@ ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSin
    v = exp->eval(needs_deref, xsink);
 }
 
+int ValueEvalRefHolder::eval(const AbstractQoreNode* exp) {
+   v.discard(xsink);
+   evalIntern(exp);
+   return *xsink ? -1 : 0;
+}
