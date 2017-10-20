@@ -106,6 +106,7 @@ module SqlUtil {
     - updated to support complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
     - implemented analytic/window functions: new functions [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2202</a>]
     - implemented analytic/window functions: cop_over full support including ORDER BY [<a href="https://github.com/qorelanguage/qore/issues/2203">issue 2203</a>]
+    - implemented support for user custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
     @subsection sqlutilv1_3_4 SqlUtil v1.3.4
     - fixed a bug in with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
@@ -14614,7 +14615,7 @@ string sql = table.getAlignSqlString(table2);
         }
 
         #! returns the column operator map for this object
-        /** subclasses has to implement getColumnOperatorMapImpl() to return driver-specific options
+        /** subclasses should to implement getColumnOperatorMapImpl() to return driver-specific options
         */
         private hash getColumnOperatorMap() {
             return DefaultCopMap + getColumnOperatorMapImpl()
