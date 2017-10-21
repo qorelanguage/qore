@@ -84,8 +84,8 @@ class ExceptionLocationTest inherits QUnit::Test {
             assertEq("<run-time-loaded: K>", ex.file);
 
             ex = getEx(\p.parse(), "class B1 {\n} class B inherits\nB1, private B1 {}\n", "L");
-            assertEq(1, ex.line);
-            assertEq(2, ex.endline);
+            assertEq(2, ex.line);
+            assertEq(3, ex.endline);
             assertEq("<run-time-loaded: L>", ex.file);
 
             ex = getEx(\p.parse(), "class B1 {\n} class B inherits\nB1 {constructor() : B1(int i = \n2) {}}\n", "M");

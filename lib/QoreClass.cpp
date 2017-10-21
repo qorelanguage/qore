@@ -1812,8 +1812,17 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 }
 
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
+   // issue #2318 must check for duplicate base classes here
    // sclass may be 0 in case of a parse exception
-   return sclass ? sclass->priv->addBaseClassesToSubclass(child, is_virtual) : 0;
+   if (!sclass)
+      return 0;
+
+   if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*child->priv)) {
+       parse_error(loc, "OOPS %s", child->getName());
+       return -1;
+   }
+
+   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
 }
 
 void BCNode::initializeBuiltin() {
@@ -1854,14 +1863,11 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
 
 int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this: %p empty: %d\n", cls->getName(), this, empty());
-   for (bclist_t::iterator i = begin(), e = end(); i != e;) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
-         valid = false;
-         delete *i;
-         erase(i++);
-         continue;
+         if (valid)
+            valid = false;
       }
-      ++i;
    }
 
    // compare each class in the list to ensure that there are no duplicates
@@ -1871,8 +1877,11 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          while (++j != e) {
             if (!(*j)->sclass)
                continue;
-            if ((*i)->sclass->getID() == (*j)->sclass->getID())
+            if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
                parse_error(cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+               if (valid)
+                  valid = false;
+            }
          }
       }
    }
@@ -2410,7 +2419,6 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
-      //qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
 }
 
