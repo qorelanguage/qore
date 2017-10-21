@@ -1160,7 +1160,7 @@ any v = c.name;
             );
 
             #! column operator specializations for FreeTDS
-            const FreetdsCopMap = DefaultCopMap + (
+            const FreetdsCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1469,7 +1469,7 @@ any v = c.name;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return FreetdsCopMap;
         }
 
