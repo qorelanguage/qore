@@ -39,6 +39,7 @@
       - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
     - made C++ APIs for complex types for modules public (<a href="https://github.com/qorelanguage/qore/issues/2271">issue 2271</a>)
     - fixed inconsistencies in the behavior of the @ref range_operator "range operator (..)" and the @ref list_element_operator "square brackets operator []" with lists and ranges between immediate evaluation and lazy functional evaluation and aligned the behavior of the operators among supported data types with the @ref remove "remove" and @ref delete "delete" operators (<a href="https://github.com/qorelanguage/qore/issues/2260">issue 2260</a>)
+    - fixed too-agressive class hierachy checks that disallowed legal hierarchies where the same base class appears more than once in the hierarchy (<a href="https://github.com/qorelanguage/qore/issues/2317">issue 2317</a>)
 
     @section qore_0813 Qore 0.8.13
 
