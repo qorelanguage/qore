@@ -33,6 +33,10 @@
       - \c Test::assertLeSoft()
       - \c Test::assertNothing()
     - fixed a bug in \c qpp generating hashdecl code in a specific namespace (<a href="https://github.com/qorelanguage/qore/issues/2255">issue 2255</a>)
+    - fixed an error in a @ref hashdecl "hashdecl" documentation example (<a href="https://github.com/qorelanguage/qore/issues/2299">issue 2299</a>)
+    - \c astparser module fixes:
+      - fixed memory leaks in \c AstParser::parseFile() and \c AstParser::parseString() methods (<a href="https://github.com/qorelanguage/qore/issues/2261">issue 2261</a>)
+      - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
     - made C++ APIs for complex types for modules public (<a href="https://github.com/qorelanguage/qore/issues/2271">issue 2271</a>)
     - fixed inconsistencies in the behavior of the @ref range_operator "range operator (..)" and the @ref list_element_operator "square brackets operator []" with lists and ranges between immediate evaluation and lazy functional evaluation and aligned the behavior of the operators among supported data types with the @ref remove "remove" and @ref delete "delete" operators (<a href="https://github.com/qorelanguage/qore/issues/2260">issue 2260</a>)
 
