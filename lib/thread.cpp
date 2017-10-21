@@ -1452,7 +1452,7 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) {
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) : xsink(xsink) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
    td->current_code = code;
