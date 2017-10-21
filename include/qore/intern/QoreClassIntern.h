@@ -1483,6 +1483,8 @@ public:
    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
 
+   DLLLOCAL const QoreClass* findInHierarchy(const qore_class_private& qc);
+
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
@@ -1573,6 +1575,8 @@ public:
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const;
 
    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
+
+   DLLLOCAL const QoreClass* findInHierarchy(const qore_class_private& qc);
 
    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
@@ -2758,10 +2762,17 @@ public:
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClass(const qore_class_private& oc) const;
    DLLLOCAL qore_type_result_e runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const;
 
+   // find the given class anywhere in the hierarchy regardless of access permissions or location
+   DLLLOCAL const QoreClass* findInHierarchy(const qore_class_private& qc) {
+      if (equal(qc))
+          return cls;
+      return scl ? scl->findInHierarchy(qc) : nullptr;
+   }
+
    DLLLOCAL const QoreClass* getClassIntern(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
       if (cid == classID)
          return cls;
-      return scl ? scl->getClass(cid, n_access, toplevel) : 0;
+      return scl ? scl->getClass(cid, n_access, toplevel) : nullptr;
    }
 
    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access) const {

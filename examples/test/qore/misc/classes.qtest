@@ -420,6 +420,17 @@ public class ClassesTest inherits QUnit::Test {
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::copy();}}", ""));
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+
+            # ensure that circular references in class hierarchies are found
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B; class A inherits C;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B, A; class A inherits C;", ""));
+        }
+
+        {
+            # ensure that multiple inheritance allows the case when a single class is inherited more than once
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("class A; class B inherits A; class E inherits A, B;", "");
+            assertTrue(True);
         }
     }
 

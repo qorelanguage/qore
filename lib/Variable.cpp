@@ -1674,7 +1674,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
            QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
            // add additional elements if necessary
            //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
-           if (stop >= orig_size)
+           if (stop >= (int64)orig_size)
               qore_list_private::get(*nl)->resize(nl->size() + stop - orig_size + 1);
            v = nl;
            if (*xsink)
