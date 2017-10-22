@@ -1326,3 +1326,22 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
 nothing Datasource::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
 }
+
+//! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
+/** @par Example:
+    @code{.py}
+AbstractSQLStatement stmt = ds.getSQLStaement();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
+
+    @since Qore 0.9.0
+*/
+AbstractSQLStatement Datasource::getSQLStatement() {
+    if (!ds->getDriver()->hasStatementAPI()) {
+        xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API", ds->getDriver()->getName());
+        return QoreValue();
+     }
+
+    return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(ds));
+}

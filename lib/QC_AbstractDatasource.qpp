@@ -413,3 +413,15 @@ bool AbstractDatasource::currentThreadInTransaction() {
    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
    return false;
 }
+
+//! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
+/** @note
+    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStaement() "Datasource::getSQLStaement()" and @ref Qore::SQL::DatasourcePool::getSQLStaement() "DatasourcePool::getSQLStaement()"
+    - this method was added as a non-abstract method in Qore 0.9.0 to avoid breaking existing subclasses of AbstractDatasource
+
+    @since Qore 0.9.0
+*/
+AbstractSQLStatement AbstractDatasource::getSQLStatement() {
+    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
+    return QoreValue();
+}
