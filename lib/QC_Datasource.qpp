@@ -32,7 +32,9 @@
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
+DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;
 
 static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
