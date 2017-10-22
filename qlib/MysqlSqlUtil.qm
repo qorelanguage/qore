@@ -26,7 +26,7 @@
 %requires qore >= 0.8.13
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.0
+%requires SqlUtil >= 1.4.1
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,9 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv121 MysqlSqlUtil v1.2.1
+    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
     @subsection mysqlsqlutilv12 MysqlSqlUtil v1.2
     - added support for complex types
