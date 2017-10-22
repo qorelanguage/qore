@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.5";
+    version = "1.4.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,7 +100,7 @@ module SqlUtil {
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
-    @subsection sqlutilv1_5 SqlUtil v1.5
+    @subsection sqlutilv1_4_1 SqlUtil v1.4.1
     - implemented support for user custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
     @subsection sqlutilv1_4 SqlUtil v1.4
