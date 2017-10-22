@@ -32,6 +32,8 @@
 
 class AbstractDatasource {};
 
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
+
 //! This class defines an abstract interface for database access, inherited by both the Datasource and DatasourcePool classes
 /**
  */
