@@ -1540,10 +1540,14 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    // recursively add base classes to special method list
    if (sclass) {
       if (!qcp_set.insert(sclass->priv).second) {
-         parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
-         if (sclass->priv->scl)
-            sclass->priv->scl->valid = false;
-         return -1;
+         // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
+         if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
+            parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
+            if (sclass->priv->scl)
+               sclass->priv->scl->valid = false;
+            return -1;
+         }
+         return 0;
       }
 
       rc = sclass->priv->initializeIntern(qcp_set);
@@ -1693,6 +1697,11 @@ const QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_priva
    return vi;
 }
 
+const QoreClass* BCNode::findInHierarchy(const qore_class_private& qc) {
+   // sclass can be 0 if the class could not be found during parse initialization
+   return sclass ? sclass->priv->findInHierarchy(qc) : nullptr;
+}
+
 const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
@@ -1803,8 +1812,17 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 }
 
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
+   // issue #2318 must check for duplicate base classes here
    // sclass may be 0 in case of a parse exception
-   return sclass ? sclass->priv->addBaseClassesToSubclass(child, is_virtual) : 0;
+   if (!sclass)
+      return 0;
+
+   if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*child->priv)) {
+       parse_error(loc, "OOPS %s", child->getName());
+       return -1;
+   }
+
+   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
 }
 
 void BCNode::initializeBuiltin() {
@@ -1845,14 +1863,11 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
 
 int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this: %p empty: %d\n", cls->getName(), this, empty());
-   for (bclist_t::iterator i = begin(), e = end(); i != e;) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
-         valid = false;
-         delete *i;
-         erase(i++);
-         continue;
+         if (valid)
+            valid = false;
       }
-      ++i;
    }
 
    // compare each class in the list to ensure that there are no duplicates
@@ -1862,8 +1877,11 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          while (++j != e) {
             if (!(*j)->sclass)
                continue;
-            if ((*i)->sclass->getID() == (*j)->sclass->getID())
+            if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
                parse_error(cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+               if (valid)
+                  valid = false;
+            }
          }
       }
    }
@@ -2135,26 +2153,36 @@ void BCList::resolveCopy() {
 
 AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
    if (!valid)
-      return 0;
+      return nullptr;
 
    for (auto& i : *this) {
       AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, class_ctx, allow_internal);
       if (rv)
          return rv;
    }
-   return 0;
+   return nullptr;
 }
 
 QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const {
    if (!valid)
-      return 0;
+      return nullptr;
 
    for (auto& i : *this) {
       QoreVarInfo* vi = (*i).parseFindStaticVar(vname, qc, access, check, toplevel);
       if (vi)
          return vi;
    }
-   return 0;
+   return nullptr;
+}
+
+const QoreClass* BCList::findInHierarchy(const qore_class_private& qc) {
+   for (auto& i : *this) {
+      const QoreClass* rv = (*i).findInHierarchy(qc);
+      if (rv)
+         return rv;
+   }
+
+   return nullptr;
 }
 
 const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
@@ -2164,7 +2192,7 @@ const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, boo
          return qc;
    }
 
-   return 0;
+   return nullptr;
 }
 
 const QoreClass* BCList::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
@@ -2391,7 +2419,6 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
-      //qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
 }
 

@@ -88,18 +88,14 @@ int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove,
 
 void qore_list_private::resize(size_t num) {
    if (num < length) { // make smaller
-      //priv->entry = (AbstractQoreNode** )realloc(priv->entry, sizeof (AbstractQoreNode** ) * num);
+      // do not reallocate to make the memory region smaller
       length = num;
       return;
    }
    // make larger
-   if (num >= allocated) {
-      qore_size_t d = num >> 2;
-      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-      entry = (AbstractQoreNode**)realloc(entry, sizeof (AbstractQoreNode*) * allocated);
-      for (qore_size_t i = length; i < allocated; ++i)
-         entry[i] = nullptr;
-   }
+   if (num >= allocated)
+      enlargeIntern(num);
+
    length = num;
 }
 
@@ -107,13 +103,8 @@ void qore_list_private::reserve(size_t num) {
    if (num < length)
       return;
    // make larger
-   if (num >= allocated) {
-      qore_size_t d = num >> 2;
-      allocated = num + (d < LIST_PAD ? LIST_PAD : d);
-      entry = (AbstractQoreNode**)realloc(entry, sizeof (AbstractQoreNode*) * allocated);
-      for (qore_size_t i = length; i < allocated; ++i)
-         entry[i] = nullptr;
-   }
+   if (num >= allocated)
+      enlargeIntern(num);
 }
 
 AbstractQoreNode** qore_list_private::getExistingEntryPtr(qore_size_t num) {
@@ -495,9 +486,7 @@ void QoreListNode::pop_entry(qore_size_t ind, ExceptionSink* xsink) {
 
 void QoreListNode::insert(AbstractQoreNode* val) {
    assert(reference_count() == 1);
-   resize(priv->length + 1);
-   if (priv->length - 1)
-      memmove(priv->entry + 1, priv->entry, sizeof(AbstractQoreNode* ) * (priv->length - 1));
+   priv->insert(1);
    priv->entry[0] = val;
    if (needs_scan(val))
       priv->incScanCount(1);

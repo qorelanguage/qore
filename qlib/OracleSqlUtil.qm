@@ -1904,7 +1904,7 @@ auto v = c.name;
             );
 
             #! column operator specializations for Oracle
-            const OracleCopMap = DefaultCopMap + (
+            const OracleCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -2704,7 +2704,7 @@ auto v = c.name;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return OracleCopMap;
         }
 
