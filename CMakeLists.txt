@@ -12,8 +12,7 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
-set(VERSION_SUB 00) # Note: it must be always 2 numeric notation. E.g. 00, 01, ... to follow autotools builds
-#set(VERSION_PATCH xxx)
+set(VERSION_SUB 0)
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
@@ -103,6 +102,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_InputStreamLineIterator.qpp
     lib/QC_SingleValueIterator.qpp
     lib/QC_AbstractDatasource.qpp
+    lib/QC_AbstractSQLStatement.qpp
     lib/QC_RangeIterator.qpp
     lib/QC_Datasource.qpp
     lib/QC_DatasourcePool.qpp

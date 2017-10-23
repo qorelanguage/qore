@@ -11,7 +11,15 @@
     WIP
 
     @subsection qore_09_new_features New Features in Qore
-    WIP
+    - new classes:
+      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
+    - new and updated methods in existing classes:
+      - @ref Qore::SQL::AbstractDatasource::getSQLStaement() "AbstractDatasource::getSQLStaement()"
+      - @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()"
+      - @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
+    - module updates
+      - <q href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes
+        - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     WIP
