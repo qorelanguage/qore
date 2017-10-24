@@ -163,7 +163,7 @@ class SQLStatementTest inherits QUnit::Test {
             stmt.exec();
             q.push("NO-ERROR");
         }
-        catch (hash<ExceptionInfo> ex) {
+        catch (hash ex) {
             q.push(ex.err);
         }
     }
