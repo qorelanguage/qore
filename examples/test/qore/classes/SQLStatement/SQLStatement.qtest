@@ -89,7 +89,7 @@ class SQLStatementTest inherits QUnit::Test {
 
         Queue q();
 
-        AbstractSQLStatement stmt = dsp.getSQLStatement();
+        SQLStatement stmt(dsp);
         on_error dsp.rollback();
         on_success dsp.commit();
 
@@ -157,7 +157,7 @@ class SQLStatementTest inherits QUnit::Test {
         }
     }
 
-    private del(AbstractSQLStatement stmt, Queue  q) {
+    private del(SQLStatement stmt, Queue  q) {
         # this will cause a crash without the fix for #2334
         try {
             stmt.exec();
