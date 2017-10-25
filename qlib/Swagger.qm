@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "0.1";
+    version = "1.0.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -151,6 +151,9 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_1_0_1 Swagger v1.0.1
+    - made it possible for Info Object version attribute to have a float or int datatype (<a href="https://github.com/qorelanguage/qore/issues/2338">issue 2338</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -1453,7 +1456,7 @@ public class InfoObject inherits ObjectBase {
         *string termsOfService;
 
         #! Required. Provides the version of the application API (not to be confused with the specification version).
-        string version;
+        any version;
 
         #! The contact information for the exposed API.
         *ContactObject contact;
@@ -1472,7 +1475,9 @@ public class InfoObject inherits ObjectBase {
     public constructor(hash oh) : ObjectBase(oh) {
         string objType = "Info";
         required_field(objType, oh, "title", NT_STRING, \title);
-        required_field(objType, oh, "version", NT_STRING, \version);
+        required_field(objType, oh, "version", (NT_STRING: True, NT_FLOAT: True, NT_INT: True), \version);
+        if (version.typeCode() != NT_STRING)
+            version = string(version);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
         optional_field(objType, oh, "termsOfService", NT_STRING, \termsOfService);
 
@@ -3646,6 +3651,27 @@ namespace Priv {
         any val = oh{name};
         check_type_code(objType, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
+    }
+
+    #! Check and assign a required field.
+    /**
+        @param objType type of object (e.g. "External Documentation")
+        @param oh Object hash
+        @param name field name
+        @param typeCodes possible field typeCodes
+        @param target where to assign the field's value
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+    */
+    sub required_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<any> target) {
+        if (!oh.hasKey(name))
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
+        any val = oh{name};
+
+        if (!typeCodes{val.typeCode()})
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
+        get_value(objType, name, val.typeCode(), val, \target);
     }
 
     #! Check and assign a field.
