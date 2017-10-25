@@ -35,6 +35,7 @@
 #include "qore/intern/sql_statement_private.h"
 #include "qore/intern/qore_ds_private.h"
 #include "qore/intern/qore_dbi_private.h"
+#include "qore/intern/DatasourcePool.h"
 
 const char* QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
