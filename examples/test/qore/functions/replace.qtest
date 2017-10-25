@@ -1,0 +1,28 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ReplaceTest
+
+public class ReplaceTest inherits QUnit::Test {
+    constructor() : Test("ReplaceTest", "1.0") {
+        addTestCase("replace() tests", \replaceTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    replaceTest() {
+        assertEq("axyd", replace("abcd", "bc", "xy"));
+        assertEq("axyd 123 uxyp", replace("abcd 123 ubcp", "bc", "xy"));
+        assertEq("qaz", replace("qaz", "\0", "A"));
+        assertEq("qaz", replace("qaz", "\0xyz", "A"));
+        assertEq("qaz", replace("qaz", "", "A"));
+    }
+}

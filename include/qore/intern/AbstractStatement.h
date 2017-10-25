@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,21 +45,36 @@
 #define PF_FOR_ASSIGNMENT        (1 << 3)
 #define PF_CONST_EXPRESSION      (1 << 4)
 #define PF_TOP_LEVEL             (1 << 5) //!< parsing at the top-level of the program
+#define PF_BREAK_OK              (1 << 6)
+#define PF_CONTINUE_OK           (1 << 7)
+#define PF_NO_TOP_LEVEL_LVARS    (1 << 8)
 
 // all definitions in this file are private to the library and subject to change
+class QoreBreakpoint;
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class AbstractStatement {
 private:
+   volatile bool breakpointFlag;  // fast access to check if breakpoints are non-empty
+   QoreBreakpointList_t *breakpoints;
+
    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
+
+   friend class qore_program_private;
+   // executed when qore_program_private::lck_breakpoint lock is acquired
+   DLLLOCAL QoreBreakpoint* getBreakpoint() const;
+
+   friend class QoreBreakpoint;
+   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
+   DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
 
 public:
    QoreProgramLocation loc;
    struct ParseWarnOptions pwo;
 
    DLLLOCAL AbstractStatement(int sline, int eline);
-
-   DLLLOCAL virtual ~AbstractStatement() {}
+   DLLLOCAL virtual ~AbstractStatement();
 
    DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
@@ -83,6 +98,11 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return false;
    }
+
+   DLLLOCAL inline bool getBreakpointFlag() const {
+      return breakpointFlag;
+   }
+
 };
 
 DLLLOCAL void push_cvar(const char* name);
@@ -91,7 +111,19 @@ DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
 DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_arg = true, int n_refs = 0, bool top_level = false);
+
+// push a local variable on the stack at parse time
+/** @param name the name of the var
+    @param loc the location of the declaration
+    @param typeInfo the declared type of the variable
+    @param is_auto true if it's an automatic variable (already assigned - ex: parameter var or "self"/"argv")
+    @param n_refs reference count
+    @param pflag parse flags
+
+    @return the LocalVar ptr (caller owns the pointer returned)
+*/
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
+
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 
 #endif // _QORE_ABSTRACTSTATEMENT_H

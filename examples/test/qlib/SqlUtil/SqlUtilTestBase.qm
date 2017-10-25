@@ -20,6 +20,18 @@ module SqlUtilTestBase {
 %requires ../../../../qlib/Schema.qm
 
 public class SqlUtilTestSchema inherits AbstractSchema {
+    private {
+        # see testAnalyticFunctions() for more info.
+        # the table is the same everywhere
+        const T_TestAnalyticFunctions = (
+            "columns" : (
+                    "id" : c_number(),
+                    "row_type" : c_varchar(10),
+                    "row_value" : c_number(),
+                ),
+        );
+    }
+
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
@@ -80,15 +92,20 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Offset / Limit", \offsetLimitTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
+
+        # Cannot delete because additional tests in the module-specific .qtest files
+        # are too inter-connected (tightly coupled) to these tests' DB modifications.
         addTestCase("BulkInsert", \bulkInsertTest());
         addTestCase("BulkUpsert", \bulkUpsertTest());
         addTestCase("fetchColumns", \fetchColumnsTest());
+        addTestCase("Delete", \deleteTest());
+        addTestCase("result set placeholder", \resultSetPlaceholderTest());
     }
 
     globalTearDown() {
         # drop the test schema
         if (schema)
-            schema.drop(False, m_options.verbose);
+            schema.drop(True, m_options.verbose);
     }
 
     insertTest() {
@@ -314,6 +331,8 @@ public class SqlTestBase inherits QUnit::Test {
                 # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
                 # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
                 # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                cop_as(cop_value(1), "cop_as_ok"), # cop_as with any word
+                cop_as(cop_value(1), "from"), # cop_as with reserved word
             ),
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
             );
@@ -335,6 +354,8 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_multiply": 4,
             "cop_coalesce": "hello",
             "cop_length": 2,
+            "cop_as_ok": 1,
+            "from": 1,
             );
 
         foreach hash e in (expect.pairIterator())
@@ -365,6 +386,40 @@ public class SqlTestBase inherits QUnit::Test {
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+
+
+        # feature #2032: sqlutil: new operator to allow transparent datetime truncation across various DBMS
+        # negative args first
+        try {
+            cop_trunc_date("dt", "foobar");
+            assertEq(False, True, "The call above must throw and exception");
+        }
+        catch (hash ex) {
+            assertEq("COP-TRUNC-DATE-ERROR", ex.err, "Excaption COP-TRUNC-DATE-ERROR is expected here");
+            assertEq(True, ex.desc =~ /Not allowed format argument: "foobar"/, "Expected ex description must be received");
+        }
+
+        # real data test - using timestamp (timestamp_f) from driver's test
+        hash test_cases = (
+                DT_YEAR     : 2016-01-01T00:00:00,
+                DT_MONTH    : 2016-02-01T00:00:00,
+                DT_DAY      : 2016-02-11T00:00:00,
+                DT_HOUR     : 2016-02-11T09:00:00,
+                DT_MINUTE   : 2016-02-11T09:26:00,
+                DT_SECOND   : 2016-02-11T09:26:14,
+            );
+
+        HashIterator it(test_cases);
+        while (it.next()) {
+            hash sh = (
+                    "columns" : cop_as(cop_trunc_date("timestamp_f", it.getKey()), "ret"),
+                    "where" : ( "id" : 1),
+                );
+            date r = table.selectRow(sh, \sql).ret;
+            assertEq(it.getValue(), r, sprintf("cop_trunc_date for mask: '%s'", it.getKey()));
+        }
+        # end of feature #2032
+
     }
 
     updateOperatorTest() {
@@ -718,11 +773,11 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     offsetLimitTest() {
+        if (!table) testSkip("no DB connection");
+
         # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
         if (self.className() == "FreetdsTest")
             testSkip("FreetdsSqlUtil does not support offset (yet)");
-
-        if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
@@ -804,7 +859,215 @@ public class SqlTestBase inherits QUnit::Test {
             else
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
         }
-        insert_data = (("id": 1, "id_": 2, "null_f": "abc") + row, ("id": 2, "id_": 2, "null_f": NULL) + row,);
-        upsert_data = (("id": 2, "id_": 2, "null_f": "abc") + row, ("id": 3, "id_": 2, "null_f": NULL) + row,);
+        insert_data = (("id": 1, "id_": 2, "null_f": "abc", "blob_f": <cafe01>, "clob_f": "test1") + row, ("id": 2, "id_": 2, "null_f": NULL, "blob_f": <cafe02>, "clob_f": "test2") + row,);
+        upsert_data = (("id": 2, "id_": 2, "null_f": "abc", "blob_f": <cafe02>, "clob_f": "test2") + row, ("id": 3, "id_": 2, "null_f": NULL, "blob_f": <cafe03>, "clob_f": "test3") + row,);
     }
+
+    deleteTest() {
+        if (!table) testSkip("no DB connection");
+
+        int count = table.del();
+        assertEq (insert_data.size(), count, "del()");
+
+        map table.insert($1), insert_data;
+
+        count = table.del({});
+        assertEq (insert_data.size(), count, "del({})");
+
+        table.del();
+        map table.insert($1), insert_data;
+
+        count = table.del(("id" : 1));
+        assertEq (insert_data.size() - 1, count, "del(('id' : 1))");
+        table.del();
+
+        map table.insert($1), insert_data;
+
+        count = table.del(("id" : -1));
+        assertEq (0, count, "del(('id' : -1))");
+    }
+
+    private abstract string getResultSetSql();
+
+    resultSetPlaceholderTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        if (!(dbi_get_driver_capabilities(table.getDriverName()) & DBI_CAP_HAS_RESULTSET_OUTPUT))
+            testSkip("does not support result set output binds");
+
+        # test with a Datasource
+        Datasource ds = table.getDatasource();
+        ds.commit();
+
+        placeholderTest(ds, "DATASOURCE-TRANSACTION-EXCEPTION");
+
+        # repeat tests with a DatasourcePool
+        DatasourcePool dsp;
+        {
+            # create the pool with min = max = 1
+            hash ch = ds.getConfigHash();
+            ch.options += (
+                "min": 1,
+                "max": 1,
+            );
+            dsp = new DatasourcePool(ch);
+        }
+
+        placeholderTest(dsp, "DATASOURCEPOOL-LOCK-EXCEPTION");
+    }
+
+    private placeholderTest(AbstractDatasource ds, string err) {
+        string resultSetSql = getResultSetSql();
+
+        # test capabilities
+        assertEq(DBI_CAP_HAS_RESULTSET_OUTPUT, dbi_get_driver_capabilities(ds.getDriverName()) & DBI_CAP_HAS_RESULTSET_OUTPUT);
+        assertEq("HasResultsetOutput", (map $1, dbi_get_driver_capability_list(ds.getDriverName()), $1 == "HasResultsetOutput")[0]);
+
+        assertEq(False, ds.currentThreadInTransaction());
+        {
+            hash h = ds.select(resultSetSql, RESULTSET);
+            assertEq(Type::Object, h.rs.type());
+            # make sure we got an SQLStatement output variable
+            assertEq(True, h.rs instanceof SQLStatement);
+            # make sure the transaction lock has been acquired
+            assertEq(True, ds.currentThreadInTransaction());
+            # make sure the statement is marked active
+            assertEq(True, h.rs.active());
+            # make sure a thread resource has been acquired
+            assertThrows(err, \throw_thread_resource_exceptions());
+        }
+
+        {
+            on_exit ds.rollback();
+
+            SQLStatement stmt = ds.select(resultSetSql, RESULTSET).rs;
+            # make sure there is no output
+            assertEq({}, stmt.getOutput());
+            list l = stmt.fetchRows();
+            # test output of select
+            assertEq(2, l.size());
+            # verify that no SQL is present for the statement
+            assertEq(NOTHING, stmt.getSQL());
+            # cannot get output - status = "defined"
+            assertThrows("SQLSTATEMENT-ERROR", \stmt.getOutput());
+            # cannot execute such a statement again; there is no SQL
+            assertThrows("SQLSTATEMENT-ERROR", \stmt.exec());
+        }
+
+        {
+            on_exit ds.rollback();
+
+            SQLStatement stmt = ds.select(resultSetSql, RESULTSET).rs;
+            # check iterator
+            int cnt = foldl $1 + $2, (map $1.id.toInt(), stmt);
+            assertEq(3, cnt);
+            # ensure that statement is active
+            assertEq(True, stmt.active());
+            # ensure that the statement is registered with the datasource and is closed when the transaction is committed
+            ds.commit();
+            assertEq(False, stmt.active());
+        }
+    }
+
+    # analytic/window functions should behave exactly the same across various DB server implementations.
+    # That's the reason why is the test here, in the base class, called only from child classes
+    # on demand.
+    testAnalyticFunctions() {
+        # prepare data
+        list data = (
+                ( "id": 1, "row_type": "type1", "row_value": 10, "cume_dist": 0.1n, "dense_rank": 1, "first_value": 10, "last_value": 10, "ntile": 1, "percent_rank": 0, "rank": 1, "row_number": 1, ),
+                ( "id": 2, "row_type": "type1", "row_value": 20, "cume_dist": 0.2n, "dense_rank": 2, "first_value": 10, "last_value": 20, "ntile": 2, "percent_rank": 0.1111111111111111111111111111111111111111n, "rank": 2, "row_number": 2, ),
+                ( "id": 3, "row_type": "type1", "row_value": 30, "cume_dist": 0.3n, "dense_rank": 3, "first_value": 10, "last_value": 30, "ntile": 3, "percent_rank": 0.2222222222222222222222222222222222222222n, "rank": 3, "row_number": 3, ),
+                ( "id": 4, "row_type": "type1", "row_value": 40,"cume_dist": 0.4n, "dense_rank": 4, "first_value": 10, "last_value": 40, "ntile": 4, "percent_rank": 0.3333333333333333333333333333333333333333n, "rank": 4, "row_number": 4, ),
+                ( "id": 5, "row_type": "type1", "row_value": 50, "cume_dist": 0.5n, "dense_rank": 5, "first_value": 10, "last_value": 50, "ntile": 5, "percent_rank": 0.4444444444444444444444444444444444444444n, "rank": 5, "row_number": 5, ),
+                ( "id": 6, "row_type": "type1", "row_value": 60, "cume_dist": 0.6n, "dense_rank": 6, "first_value": 10, "last_value": 60, "ntile": 6, "percent_rank": 0.5555555555555555555555555555555555555556n, "rank": 6, "row_number": 6, ),
+                ( "id": 7, "row_type": "type1", "row_value": 70, "cume_dist": 0.7n, "dense_rank": 7, "first_value": 10, "last_value": 70, "ntile": 7, "percent_rank": 0.6666666666666666666666666666666666666667n, "rank": 7, "row_number": 7, ),
+                ( "id": 8, "row_type": "type1", "row_value": 80, "cume_dist": 0.8n, "dense_rank": 8, "first_value": 10, "last_value": 80, "ntile": 8, "percent_rank": 0.7777777777777777777777777777777777777778n, "rank": 8, "row_number": 8, ),
+                ( "id": 9, "row_type": "type1", "row_value": 90, "cume_dist": 0.9n, "dense_rank": 9, "first_value": 10, "last_value": 90, "ntile": 9, "percent_rank": 0.8888888888888888888888888888888888888889n, "rank": 9, "row_number": 9, ),
+                ( "id": 10, "row_type": "type1", "row_value": 100, "cume_dist": 1, "dense_rank": 10, "first_value": 10, "last_value": 100, "ntile": 10, "percent_rank": 1,                 "rank": 10, "row_number": 10, ),
+                ( "id": 11, "row_type": "type2", "row_value": 10, "cume_dist": 0.05n, "dense_rank": 1, "first_value": 10, "last_value": 10, "ntile": 1, "percent_rank": 0,                 "rank": 1, "row_number": 1, ),
+                ( "id": 12, "row_type": "type2", "row_value": 20, "cume_dist": 0.1n, "dense_rank": 2, "first_value": 10, "last_value": 20, "ntile": 1, "percent_rank": 0.0526315789473684210526315789473684210526n, "rank": 2, "row_number": 2, ),
+                ( "id": 13, "row_type": "type2", "row_value": 30, "cume_dist": 0.15n, "dense_rank": 3, "first_value": 10, "last_value": 30, "ntile": 2, "percent_rank": 0.1052631578947368421052631578947368421053n, "rank": 3, "row_number": 3, ),
+                ( "id": 14, "row_type": "type2", "row_value": 40, "cume_dist": 0.2n, "dense_rank": 4, "first_value": 10, "last_value": 40, "ntile": 2, "percent_rank": 0.1578947368421052631578947368421052631579n, "rank": 4, "row_number": 4, ),
+                ( "id": 15, "row_type": "type2", "row_value": 50, "cume_dist": 0.25n, "dense_rank": 5, "first_value": 10, "last_value": 50, "ntile": 3, "percent_rank": 0.2105263157894736842105263157894736842105n, "rank": 5, "row_number": 5, ),
+                ( "id": 16, "row_type": "type2", "row_value": 60, "cume_dist": 0.3n, "dense_rank": 6, "first_value": 10, "last_value": 60, "ntile": 3, "percent_rank": 0.2631578947368421052631578947368421052632n, "rank": 6, "row_number": 6, ),
+                ( "id": 17, "row_type": "type2", "row_value": 70, "cume_dist": 0.35n, "dense_rank": 7, "first_value": 10, "last_value": 70, "ntile": 4, "percent_rank": 0.3157894736842105263157894736842105263158n, "rank": 7, "row_number": 7, ),
+                ( "id": 18, "row_type": "type2", "row_value": 80, "cume_dist": 0.4n, "dense_rank": 8, "first_value": 10, "last_value": 80, "ntile": 4, "percent_rank": 0.3684210526315789473684210526315789473684n, "rank": 8, "row_number": 8, ),
+                ( "id": 19, "row_type": "type2", "row_value": 90, "cume_dist": 0.45n, "dense_rank": 9, "first_value": 10, "last_value": 90, "ntile": 5, "percent_rank": 0.4210526315789473684210526315789473684211n, "rank": 9, "row_number": 9, ),
+                ( "id": 20, "row_type": "type2", "row_value": 100, "cume_dist": 0.5n, "dense_rank": 10, "first_value": 10, "last_value": 100, "ntile": 5, "percent_rank": 0.4736842105263157894736842105263157894737n, "rank": 10, "row_number": 10, ),
+                ( "id": 21, "row_type": "type2", "row_value": 110, "cume_dist": 0.55n, "dense_rank": 11, "first_value": 10, "last_value": 110, "ntile": 6, "percent_rank": 0.5263157894736842105263157894736842105263n, "rank": 11, "row_number": 11, ),
+                ( "id": 22, "row_type": "type2", "row_value": 120, "cume_dist": 0.6n, "dense_rank": 12, "first_value": 10, "last_value": 120, "ntile": 6, "percent_rank": 0.5789473684210526315789473684210526315789n, "rank": 12, "row_number": 12, ),
+                ( "id": 23, "row_type": "type2", "row_value": 130, "cume_dist": 0.65n, "dense_rank": 13, "first_value": 10, "last_value": 130, "ntile": 7, "percent_rank": 0.6315789473684210526315789473684210526316n, "rank": 13, "row_number": 13, ),
+                ( "id": 24, "row_type": "type2", "row_value": 140, "cume_dist": 0.7n, "dense_rank": 14, "first_value": 10, "last_value": 140, "ntile": 7, "percent_rank": 0.6842105263157894736842105263157894736842n, "rank": 14, "row_number": 14, ),
+                ( "id": 25, "row_type": "type2", "row_value": 150, "cume_dist": 0.75n, "dense_rank": 15, "first_value": 10, "last_value": 150, "ntile": 8, "percent_rank": 0.7368421052631578947368421052631578947368n, "rank": 15, "row_number": 15, ),
+                ( "id": 26, "row_type": "type2", "row_value": 160, "cume_dist": 0.8n, "dense_rank": 16, "first_value": 10, "last_value": 160, "ntile": 8, "percent_rank": 0.7894736842105263157894736842105263157895n, "rank": 16, "row_number": 16, ),
+                ( "id": 27, "row_type": "type2", "row_value": 170, "cume_dist": 0.85n, "dense_rank": 17, "first_value": 10, "last_value": 170, "ntile": 9, "percent_rank": 0.8421052631578947368421052631578947368421n, "rank": 17, "row_number": 17, ),
+                ( "id": 28, "row_type": "type2", "row_value": 180, "cume_dist": 0.9n, "dense_rank": 18, "first_value": 10, "last_value": 180, "ntile": 9, "percent_rank": 0.8947368421052631578947368421052631578947n, "rank": 18, "row_number": 18, ),
+                ( "id": 29, "row_type": "type2", "row_value": 190, "cume_dist": 0.95n, "dense_rank": 19, "first_value": 10, "last_value": 190, "ntile": 10, "percent_rank": 0.9473684210526315789473684210526315789474n, "rank": 19, "row_number": 19, ),
+                ( "id": 30, "row_type": "type2", "row_value": 100, "cume_dist": 1, "dense_rank": 20, "first_value": 10, "last_value": 100, "ntile": 10, "percent_rank": 1, "rank": 20, "row_number": 20, ),
+            );
+
+        Table t(table.getDatasource(), "test_analytic_functions");
+
+        {
+            ListIterator it(data);
+            while (it.next()) {
+                t.insert(it.getValue().("id", "row_type", "row_value"));
+            }
+            t.commit();
+        }
+
+        # real tests
+        hash sh = (
+                "columns" : (
+                        "id", "row_type", "row_value",
+                        cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"),
+                        cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"),
+                        cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"),
+                        cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"),
+                        cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"),
+                        cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"),
+                        cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"),
+                        cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"),
+                    ),
+                "orderby" : "id",
+            );
+        string sql;
+        list res = t.selectRows(sh, \sql);
+
+        ListIterator it(res);
+        int ix = 0; # teh current list index (id is 'ix + 1')
+        while (it.next()) {
+            hash line = it.getValue();
+            hash ref = data[ix];
+
+            foreach string i in (line.keys()) {
+                switch (line{i}.typeCode()) {
+                    case NT_FLOAT:
+                    case NT_NUMBER:
+                        assertNumberEq(ref{i}, line{i}, 0.0000000001, sprintf("Comparing column '%s' for index '%d'", i, ix));
+                        break;
+                    default:
+                        assertEq(ref{i}, line{i}, sprintf("Comparing column '%s' for index '%d'", i, ix));
+                        break;
+                }
+            }
+
+            ix++;
+        }
+
+        # 2227: sqlutil: cop_over is broken in statements with join
+        # or superquery. partitionby and orderby clauses are not
+        # expanded to fully qualified column names
+        hash sh2227 = (
+                "columns" : ("row_value",
+                             cop_as(cop_over(cop_max("row_value"), "row_type"), "max_value"),
+                       ),
+                "join" : join_inner("test_analytic_functions", "t1", ("id" : "id")),
+            );
+        any res2227 = t.select(sh2227, \sql);
+        assertEq(True, res2227.firstValue().size() > 0, "bug 2227 test must return some data");
+    }
+
 }

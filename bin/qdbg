@@ -1,0 +1,169 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%enable-all-warnings
+%new-style
+
+%requires linenoise
+%requires qore >= 0.8.13
+%requires DebugCmdLine
+%requires DebugProgramControl
+%allow-debugger
+%no-debugging
+
+%exec-class DebugWrapper
+
+class DebugCommandLineLocal inherits DebugCommandLine {
+    public {
+        DebugProgramControlLocal dpc;
+        Counter counter();
+        any threadData;
+    }
+    constructor(DebugProgramControlLocal n_dpc): DebugCommandLine() {
+        dpc = n_dpc;
+        dpc.dcl = self;
+    }
+    public *hash doCommandImpl(hash data) {
+        if (exists data.tid) {
+            while (counter.getCount() > 0) {
+                counter.dec();
+            }
+            counter.inc();
+            threadData = NOTHING;
+        }
+        *hash ret = dpc.processCommand(DebugProgramControlLocal::CX, data);
+        if (ret.type == 'thread') {
+            while (counter.getCount() > 0) {
+                counter.dec();
+            }
+            if (counter.waitForZero(200)) {
+                return NOTHING;
+            } else {
+                return threadData;
+            }
+        } else {
+            return ret;
+        }
+    }
+}
+
+class DebugProgramControlLocal inherits DebugProgramControl {
+    public {
+        DebugCommandLineLocal dcl;
+    }
+    const CX = ('id': 1);
+    constructor () : DebugProgramControl(QORE_ARGV[0]) {
+        registerConnection(CX);
+    }
+    destructor() {
+        unregisterConnection(CX);
+    }
+    public nothing sendDataImpl(hash cx, any data) {    # TODO: nothing needed. why? I cannot reproduce in simple case to report issue
+        if (dcl.counter.getCount() > 0) {
+            dcl.threadData = data;
+            dcl.counter.dec();
+        } else {
+            dcl.printData(data);
+        }
+    }
+    public nothing broadcastDataImpl(any data) {
+        dcl.printData(data);
+    }
+}
+
+class DebugWrapper {
+    private {
+        hash opts = (
+            'help': 'h,help',
+            'verbose': 'v,verbose:+',
+            'run': 'r,run',
+            "parse_option": "p,set-parse-option=s@",
+            #"charset": "c,charset=s",
+            "define": "D,define=s@",
+            "time_zone": "z,time.zone=s",
+            #"exec_class": "x,exec-class:s",
+        );
+        DebugCommandLineLocal dcl;
+        DebugLogger logger;
+    }
+
+    constructor() {
+        WrapperGetOpt g(opts);
+        # first we need split debug args and program args, 'qore-dbg debug-args program-name program-args'
+        # it is not trivial, e.g.
+        #    qore-dbg -v -l xxx xxx         #the second xxx is program name
+        #    qore-dbg -v -h xxx xxx         #the first xxx is program name
+        #    qore-dbg -v --listen=xxx xxx   #the second xxx is program name
+        #    qore-dbg -v --listen xxx xxx   #the second xxx is program name
+        # GetOpt does not support such a parse function
+        #
+        list dargs;
+        hash opt;
+        *string fileName;
+        g.split(cast<list<string>>(ARGV), \dargs, \fileName, \ARGV);
+
+        try {
+            opt = g.parse2(\dargs);
+        } catch (hash ex) {
+            stderr.printf("%s: %s\n", ex.err, ex.desc);
+            help(-1);
+        }
+
+        if (opt.help) {
+            help();
+        }
+        logger = new DebugLogger();
+        if (opt.verbose) {
+            logger.verbose = opt.verbose;
+        }
+        dcl = new DebugCommandLineLocal(new DebugProgramControlLocal());
+        dcl.logger = logger;
+        dcl.dpc.logger = logger;
+        try {
+            if (exists fileName) {
+                Program pgm = dcl.dpc.createProgram(fileName, opt, ARGV);
+                logger.log(DUV_INFO, "run program");
+                background pgm.run();
+                # Seems workaround no more needed
+                #sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
+            }
+
+            dcl.runCmdLine();
+
+        } catch (hash e) {
+            stderr.printf("%s: %s\n", e.err, e.desc);
+            exit(-1);
+        }
+
+    }
+
+    private help(int exCode=1) {
+        printf("usage: %s [options] <program> [<program params> ...]\n"
+            "  where <program> is the program to debug, use \"--\" to get code from stdin\n"
+            "  -v     verbose\n"
+            "  -h     help\n"
+            #"  -c, --charset=arg            sets default character set encoding\n"
+            "  -D, --define=arg             sets the value of a parse define\n"
+            "  -p, --set-parse-option=arg   set parse option (ex: -pno-database)\n"
+            #"  -x, --exec-class[=arg]       instantiate class with same name as file name\n"
+            #"                               (override with arg, also sets --no-top-level)\n"
+            "  -z, --time-zone=arg          sets the time zone from the argument; can be\n"
+            "                               either a region name (ex: 'Europe/Prague') or a\n"
+            "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -  TODO\n"
+
+            "\n"
+            "Example:\n"
+            "  %s -v myfile.q -my -program params\n"
+            "\n"
+            ,
+            get_script_name(),
+            get_script_name()
+
+        );
+        exit(exCode);
+    }
+
+
+    public dummy() {
+    }
+}

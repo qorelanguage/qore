@@ -33,7 +33,7 @@
 
 #define _QORE_STATEMENT_BLOCK_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 #include <qore/safe_dslist>
 
 #include <set>
@@ -117,17 +117,13 @@ protected:
 
    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
 
-   DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
-   }
+   DLLLOCAL StatementBlock();
 
 public:
-   DLLLOCAL StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
-   }
+   DLLLOCAL StatementBlock(int sline, int eline);
 
    // line numbers on statement blocks are set later
-   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
-      addStatement(s);
-   }
+   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s);
 
    DLLLOCAL virtual ~StatementBlock() {
       del();

@@ -1,0 +1,207 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugUtil.qm Debug common code
+
+/*  DebugUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-debugging
+
+module DebugUtil {
+    version = "0.1";
+    desc = "user module providing common debug stuff";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugUtil Module
+
+    @tableofcontents
+
+    @section debugutilintro Introduction to the DebugUtil Module
+
+    The %DebugUtil module provides common functionality for implementing debugger utilities
+
+    @subsection du_v0_1 v0.1
+    - the initial version of the DebugUtil module
+*/
+
+#! the DebugUtil namespace contains all the definitions in the DebugUtil module
+public namespace DebugUtil {
+    #! class supporting argument parsing for executing programs to debug
+    /**
+        When implementing a wrapper that executes a program whose name is passed on the command line, we can divide
+        the arguments usually into 3 groups:
+        - internal wrapper arguments
+        - target program filename
+        - program arguments
+
+        The class support argument parsing for such a case.
+
+        Examples:
+        @verbatim
+            (   # GetOpt options
+                'help': 'h,help',
+                'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+            wrapper-prog -v -l xxx xxx -v -l    # the second xxx is target program name
+            wrapper-prog -v -h xxx xxx          # the first xxx is target program name
+            wrapper-prog -v --listen=xxx xxx    # the second xxx is target program name
+            wrapper-prog -v --listen xxx xxx    # the second xxx is target program name
+        @endverbatim
+    **/
+    public class WrapperGetOpt inherits GetOpt {
+        public constructor(hash options): GetOpt(options) {
+        }
+
+        #! Parses input arguments until a standalone argument is found.
+        /**
+            @param args @ref list of arguments passed to wrapper, typically ARGV
+            @param wrp_args returns list of wrapper arguments
+            @param pgm_name returns target program filename. "" is considered as special file name (stdin), NOTHING when no name provided
+            @param pgm_args return @ref list of target program arguments
+
+            @par Example:
+            @code{.py}
+            hash opts = (
+    		    'help': 'h,help',
+    	    	'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+    		WrapperGetOpt g(opts);
+		    list dargs;
+    		hash opt;
+            *string fileName;
+		    g.split(ARGV, \dargs, \fileName, \ARGV);
+
+            try {
+                opt = g.parse2(\dargs);
+            } catch (hash ex) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                help(-1);
+            }
+
+            if (exists fileName) {
+                stderr.print("No input file\n");
+                exit(-1);
+            }
+            @endcode
+        **/
+        public split(list<string> args, reference<list<string>> wrp_args, reference<*string> pgm_name, reference<list<string>> pgm_args) {
+            pgm_name = NOTHING;
+            wrp_args = new list<string>();
+            pgm_args = new list<string>();
+            while (args) {
+                string s = shift args;
+                push wrp_args, s;
+                if (s !~ /^\-/ ) {
+                    list a = wrp_args;
+                    parse(\a);
+                    if (a) {
+                        # last arg is filename
+                        pgm_name = s;
+                        pop wrp_args;
+                        break;
+                    }
+                } else if (s == '--') {
+                    pgm_name = '';
+                    pop wrp_args;
+                    break;
+                }
+            }
+            pgm_args = args;
+        }
+    }
+
+    #! The HTTP header string for the %Qore debug protocol version
+    public const QoreDebugWsProtocolHeader = "QoreDebugWsProtocol";
+
+    #! The debug protocol version implemented
+    public const QoreDebugProtocolVersion = "0.1";
+
+    #! logging constant: no logging
+    public const DUV_NONE = 0;
+    #! logging constant: info messages
+    public const DUV_INFO = 1;
+    #! logging constant: debug messages
+    public const DUV_DEBUG = 2;
+    #! logging constant: detailed debug messages
+    public const DUV_DEBUG_1 = 3;
+
+    #! class that can be used for logging
+    public class DebugLogger {
+        public {
+            int verbose = DUV_NONE;
+        }
+        constructor() {}
+
+        #! implement logging
+        /**
+          @param verbosity use DPC_xxx constants
+        */
+        public log(int verbosity, string fmt) {
+            if (verbose >= verbosity) {
+                # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
+                stdout.vprintf(fmt+"\r\n", argv);
+            }
+        }
+    }
+
+    #! base class for controlling debugging
+    public class AbstractDebugControl {
+        public {
+            DebugLogger logger;
+            #! for debugging of debug library to see where exception is raised
+            bool showFullException = False;
+
+            const runStateStrings = ('detach': DebugDetach, 'run': DebugRun, 'step': DebugStep, 'stepover': DebugStepOver, 'untilreturn': DebugUntilReturn);
+            const flowStrings = ('none': 0, 'return': DebugFlowReturn, 'break': DebugFlowBreak, 'continue': DebugFlowContinue);
+            const boolStrings = ('false': False, 'true': True);
+            const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
+        }
+
+        static public list enumFilter(softlist items, *string path) {
+            if (path.size() == 0) {
+                return items;
+            }
+            return map $1, items, AbstractDebugControl::evalCondition($1, path);
+        }
+
+        static public bool evalCondition(softstring value, *string cond) {
+            if (!cond.val())
+                return True;
+            if (cond =~ /^=/) {
+                return substr(cond, 1) == value;
+            } else {
+                # default is matching prefix
+                return bindex(value, cond) == 0;
+            }
+        }
+    }
+
+}

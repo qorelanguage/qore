@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -68,10 +68,10 @@ DLLEXPORT bool is_valid_qore_thread();
 DLLEXPORT int gettid();
 
 //! returns the current QoreProgram
-DLLEXPORT QoreProgram *getProgram();
+DLLEXPORT QoreProgram* getProgram();
 
 //! returns the current local time zone, note that if 0 = UTC
-DLLEXPORT const AbstractQoreZoneInfo *currentTZ();
+DLLEXPORT const AbstractQoreZoneInfo* currentTZ();
 
 //! save a resource against a thread for thread resource handling
 /** @param atr a pointer to the thread resource to save

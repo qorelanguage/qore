@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2016 Qore Technologies, s.r.o.
+/*  MysqlSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.0
+%requires SqlUtil >= 1.4.1
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.1";
+    version = "1.2.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -58,7 +58,7 @@ module MysqlSqlUtil {
 
     All the public symbols in the module are defined in the MysqlSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/16-mysql-module">mysql</a> binary module for communication with MySQL databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-mysql">mysql</a> binary module for communication with MySQL databases
 
     @section mysql_schema_management Schema Management on MySQL
 
@@ -91,8 +91,15 @@ module MysqlSqlUtil {
 
     @section mysql_relnotes Release Notes
 
+    @subsection mysqlsqlutilv121 MysqlSqlUtil v1.2.1
+    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+
+    @subsection mysqlsqlutilv12 MysqlSqlUtil v1.2
+    - added support for complex types
+
     @subsection mysqlsqlutilv111 MysqlSqlUtil v1.1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection mysqlsqlutilv11 MysqlSqlUtil v1.1
     - corrected support for the \c varbinary type (<a href="https://github.com/qorelanguage/qore/issues/403">bug 403</a>)
@@ -117,7 +124,7 @@ public namespace MysqlSqlUtil {
         return new MysqlDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<*string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -234,6 +241,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the AbstractTable object to modify
             @param col the new column definition
+            @param opt column modification options (none are supported in this class)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -326,7 +334,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         abstract AbstractIterator keyIterator();
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
         }
     }
@@ -338,7 +346,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -392,7 +400,7 @@ my any $v = $c.name;
         #! returns the MysqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -627,6 +635,241 @@ end";
             const MysqlReclaimSpaceOptions = ReclaimSpaceOptions + (
                 "no-binlog"         : Type::Boolean,
                 );
+
+            #! hash of reserved words
+            const MysqlReservedWords = (
+                "accessible" : True,
+                "add" : True,
+                "all" : True,
+                "alter" : True,
+                "analyze" : True,
+                "and" : True,
+                "as" : True,
+                "asc" : True,
+                "asensitive" : True,
+                "before" : True,
+                "between" : True,
+                "bigint" : True,
+                "binary" : True,
+                "blob" : True,
+                "both" : True,
+                "by" : True,
+                "call" : True,
+                "cascade" : True,
+                "case" : True,
+                "change" : True,
+                "char" : True,
+                "character" : True,
+                "check" : True,
+                "collate" : True,
+                "column" : True,
+                "condition" : True,
+                "constraint" : True,
+                "continue" : True,
+                "convert" : True,
+                "create" : True,
+                "cross" : True,
+                "current_date" : True,
+                "current_time" : True,
+                "current_timestamp" : True,
+                "current_user" : True,
+                "cursor" : True,
+                "database" : True,
+                "databases" : True,
+                "day_hour" : True,
+                "day_microsecond" : True,
+                "day_minute" : True,
+                "day_second" : True,
+                "dec" : True,
+                "decimal" : True,
+                "declare" : True,
+                "default" : True,
+                "delayed" : True,
+                "delete" : True,
+                "desc" : True,
+                "describe" : True,
+                "deterministic" : True,
+                "distinct" : True,
+                "distinctrow" : True,
+                "div" : True,
+                "double" : True,
+                "drop" : True,
+                "dual" : True,
+                "each" : True,
+                "else" : True,
+                "elseif" : True,
+                "enclosed" : True,
+                "escaped" : True,
+                "exists" : True,
+                "exit" : True,
+                "explain" : True,
+                "false" : True,
+                "fetch" : True,
+                "float" : True,
+                "float4" : True,
+                "float8" : True,
+                "for" : True,
+                "force" : True,
+                "foreign" : True,
+                "from" : True,
+                "fulltext" : True,
+                "get" : True,
+                "grant" : True,
+                "group" : True,
+                "having" : True,
+                "high_priority" : True,
+                "hour_microsecond" : True,
+                "hour_minute" : True,
+                "hour_second" : True,
+                "if" : True,
+                "ignore" : True,
+                "in" : True,
+                "index" : True,
+                "infile" : True,
+                "inner" : True,
+                "inout" : True,
+                "insensitive" : True,
+                "insert" : True,
+                "int" : True,
+                "int1" : True,
+                "int2" : True,
+                "int3" : True,
+                "int4" : True,
+                "int8" : True,
+                "integer" : True,
+                "interval" : True,
+                "into" : True,
+                "io_after_gtids" : True,
+                "io_before_gtids" : True,
+                "is" : True,
+                "iterate" : True,
+                "join" : True,
+                "key" : True,
+                "keys" : True,
+                "kill" : True,
+                "leading" : True,
+                "leave" : True,
+                "left" : True,
+                "like" : True,
+                "limit" : True,
+                "linear" : True,
+                "lines" : True,
+                "load" : True,
+                "localtime" : True,
+                "localtimestamp" : True,
+                "lock" : True,
+                "long" : True,
+                "longblob" : True,
+                "longtext" : True,
+                "loop" : True,
+                "low_priority" : True,
+                "master_bind" : True,
+                "master_ssl_verify_server_cert" : True,
+                "match" : True,
+                "maxvalue" : True,
+                "mediumblob" : True,
+                "mediumint" : True,
+                "mediumtext" : True,
+                "middleint" : True,
+                "minute_microsecond" : True,
+                "minute_second" : True,
+                "mod" : True,
+                "modifies" : True,
+                "natural" : True,
+                "not" : True,
+                "no_write_to_binlog" : True,
+                "null" : True,
+                "numeric" : True,
+                "on" : True,
+                "optimize" : True,
+                "option" : True,
+                "optionally" : True,
+                "or" : True,
+                "order" : True,
+                "out" : True,
+                "outer" : True,
+                "outfile" : True,
+                "partition" : True,
+                "precision" : True,
+                "primary" : True,
+                "procedure" : True,
+                "purge" : True,
+                "range" : True,
+                "read" : True,
+                "reads" : True,
+                "read_write" : True,
+                "real" : True,
+                "references" : True,
+                "regexp" : True,
+                "release" : True,
+                "rename" : True,
+                "repeat" : True,
+                "replace" : True,
+                "require" : True,
+                "resignal" : True,
+                "restrict" : True,
+                "return" : True,
+                "revoke" : True,
+                "right" : True,
+                "rlike" : True,
+                "schema" : True,
+                "schemas" : True,
+                "second_microsecond" : True,
+                "select" : True,
+                "sensitive" : True,
+                "separator" : True,
+                "set" : True,
+                "show" : True,
+                "signal" : True,
+                "smallint" : True,
+                "spatial" : True,
+                "specific" : True,
+                "sql" : True,
+                "sqlexception" : True,
+                "sqlstate" : True,
+                "sqlwarning" : True,
+                "sql_big_result" : True,
+                "sql_calc_found_rows" : True,
+                "sql_small_result" : True,
+                "ssl" : True,
+                "starting" : True,
+                "straight_join" : True,
+                "table" : True,
+                "terminated" : True,
+                "then" : True,
+                "tinyblob" : True,
+                "tinyint" : True,
+                "tinytext" : True,
+                "to" : True,
+                "trailing" : True,
+                "trigger" : True,
+                "true" : True,
+                "undo" : True,
+                "union" : True,
+                "unique" : True,
+                "unlock" : True,
+                "unsigned" : True,
+                "update" : True,
+                "usage" : True,
+                "use" : True,
+                "using" : True,
+                "utc_date" : True,
+                "utc_time" : True,
+                "utc_timestamp" : True,
+                "values" : True,
+                "varbinary" : True,
+                "varchar" : True,
+                "varcharacter" : True,
+                "varying" : True,
+                "when" : True,
+                "where" : True,
+                "while" : True,
+                "with" : True,
+                "write" : True,
+                "xor" : True,
+                "year_month" : True,
+                "zerofill" : True,
+            );
         }
 
         private {
@@ -979,7 +1222,7 @@ end";
             const MysqlAlignTableOptions = AbstractTable::AlignTableOptions + MysqlTableCreationOptions;
 
             #! column operator specializations for MySQL
-            const MysqlCopMap = DefaultCopMap + (
+            const MysqlCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1020,25 +1263,43 @@ end";
                     },
                 ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("date_format(%s, '%%Y-%%m-%%e %%k')", arg1);
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!MysqlTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, MysqlTruncDate.keys());
+                        }
+                        return sprintf("cast(date_format(%s, %s) as datetime)", arg1, MysqlTruncDate{arg});
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
+            const MysqlTruncDate = (
+                    DT_YEAR     : "'%Y-01-01 00:00:00'",
+                    DT_MONTH    : "'%Y-%m-01 00:00:00'",
+                    DT_DAY      : "'%Y-%m-%d 00:00:00'",
+                    DT_HOUR     : "'%Y-%m-%d %H:00:00'",
+                    DT_MINUTE   : "'%Y-%m-%d %H:%i:00'",
+                    DT_SECOND   : "'%Y-%m-%d %H:%i:%s'",
                 );
         }
 
@@ -1092,7 +1353,7 @@ end";
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return MysqlCopMap;
         }
 
@@ -1144,7 +1405,7 @@ end";
                 }
 
                 MysqlColumn c;
-                any defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                auto defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
                 if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
@@ -1155,10 +1416,11 @@ end";
                             try {
                                 defval = date(defval);
                             }
-                            catch () {
-                                # ignore exceptions (ex: "CURRENT_TIMESTAMP")
+                            catch (hash<ExceptionInfo> ex) {
+                                # ignore INVALID-DATE; keep text (ex: "CURRENT_TIMESTAMP")
+                                if (ex.err != "INVALID-DATE")
+                                    rethrow;
                             }
-                            break;
                         }
                         # don't know what to do with Type::Binary ???
                         default: break;
@@ -1247,7 +1509,7 @@ end";
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name);
+                    reference<hash> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
@@ -1274,7 +1536,7 @@ end";
             my *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name);
+                reference<MysqlUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new MysqlUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
@@ -1430,7 +1692,7 @@ end";
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /^Duplicate entry /)
                     return False;
                 rethrow;
@@ -1447,12 +1709,12 @@ end";
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             return MysqlTable::getSqlValueIntern(v);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private static *string getSqlValueIntern(any v) {
+        private static *string getSqlValueIntern(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1471,6 +1733,16 @@ end";
             }
         }
 
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return MysqlDatabase::MysqlReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return map getColumnSqlName($1), cols;
+        }
+
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code{.py}
@@ -1483,7 +1755,7 @@ my string $str = $table.getSqlValue($date);
 
             @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
-        static *string getSqlValue(any v) {
+        static *string getSqlValue(auto v) {
            *string str = MysqlTable::getSqlValueIntern(v);
             if (!exists str)
                 throw "VALUE-ERROR", sprintf("class MysqlTable cannot convert type %y to an SQL string (value: %y)", v.type(), v);
@@ -1494,7 +1766,7 @@ my string $str = $table.getSqlValue($date);
             return True;
         }
 
-        private preSetupTableImpl(reference desc, *hash opt) {
+        private preSetupTableImpl(reference<hash> desc, *hash opt) {
             # see if there is an auto-increment column and set the primary key flag if it matches the primary key declaraion
             foreach string k in (desc.columns.keyIterator()) {
                 if (desc.columns{k}.auto_increment) {
@@ -1532,13 +1804,13 @@ my string $str = $table.getSqlValue($date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
            sql += " limit %v";
            args += qh.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
@@ -1556,13 +1828,13 @@ my string $str = $table.getSqlValue($date);
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
         }
 
         private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)
