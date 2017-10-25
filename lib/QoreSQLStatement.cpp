@@ -35,6 +35,7 @@
 #include "qore/intern/sql_statement_private.h"
 #include "qore/intern/qore_ds_private.h"
 #include "qore/intern/qore_dbi_private.h"
+#include "qore/intern/DatasourcePool.h"
 
 const char* QoreSQLStatement::stmt_statuses[] = { "idle", "prepared", "executed", "defined" };
 
@@ -48,6 +49,17 @@ public:
 
    DLLLOCAL DBActionHelper(QoreSQLStatement& n_stmt, ExceptionSink* n_xsink, char n_cmd = DAH_NOCHANGE) : stmt(n_stmt), xsink(n_xsink), valid(false), cmd(n_cmd), nt(false) {
       Datasource* newds = stmt.dsh->helperStartAction(xsink, nt);
+      // issue #2334
+      if (newds && stmt.priv->ds && newds != stmt.priv->ds) {
+         // can only happen with a DatasourcePool, otherwise the action above will block
+         assert(dynamic_cast<DatasourcePool*>(stmt.dsh));
+         // raise an exception if we are trying to execute something in another thread
+         xsink->raiseException("SQLSTATEMENT-ERROR", "cannot execute an action in another thread with an allocated connection from a DatasourcePool");
+         // release the connection back to the pool
+         stmt.dsh->helperEndAction(DAH_RELEASE, nt, xsink);
+         valid = false;
+         return;
+      }
       assert(!newds || !stmt.priv->ds || (newds == stmt.priv->ds));
       assert(newds || *xsink);
       if (newds && !stmt.priv->ds)
