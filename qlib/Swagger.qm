@@ -349,7 +349,7 @@ class SchemaBase {
                         case "binary": return parse_hex_string(rv);
                         case "date":
                         case "date-time":
-                            return string(rv);
+                            return date(rv);
                     }
                 }
             }
@@ -360,8 +360,8 @@ class SchemaBase {
                 switch (format) {
                     case "byte":
                     case "binary": return <feedface>;
-                    case "date": return "1987-05-23";
-                    case "date-time": return "1987-05-23T07:45:30Z";
+                    case "date": return 1987-05-23;
+                    case "date-time": return 1987-05-23T07:45:30Z;
                     default:
                         return "value";
                 }
@@ -3234,7 +3234,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
             str += "{\n";
             foreach hash h in (properties.pairIterator()) {
-                string pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
+                string pstr;
+                if (h.value.type == "string" && (h.value.format =~ /date(-time)?/))
+                    pstr = sprintf("%y: date(%s)", h.key, h.value.getQoreExample(\rv, h.key, False));
+                else
+                    pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
                 # add 4 spaces to the beginning of each line
                 str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
                 str += ",\n";
@@ -3769,7 +3773,7 @@ namespace Priv {
                         return "binary";
                     case "date":
                     case "date-time":
-                        return "string";
+                        return "date";
                 }
                 return "string";
             }
