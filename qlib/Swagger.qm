@@ -3772,7 +3772,7 @@ namespace Priv {
                         return "binary";
                     case "date":
                     case "date-time":
-                        return "date";
+                        return "string";
                 }
                 return "string";
             }
