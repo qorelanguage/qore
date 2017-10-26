@@ -155,6 +155,7 @@ RestHandler handler(NOTHING, swagger);
     @subsection swagger_1_0_1 Swagger v1.0.1
     - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
     - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
+    - fixed serialization of date/time values (<a href="https://github.com/qorelanguage/qore/issues/2349">issue 2349</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -393,20 +394,12 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private check(bool serialize, bool request, string type, *SchemaObject items, string path, string method, string name, reference value) {
+    private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path, string method, string name, reference value) {
         # accept a single value for an array (= one-element list)
         if (type == "array")
             checkArrayParam(serialize, request, items, path, method, name, \value);
         else
-            checkIntern(serialize, request, type, path, method, name, value, \value);
-    }
-
-    #! validates string values
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, string v, reference<string> value) {
-        if (type != "string")
-            throwInvalidType(name, "string", type);
-
-        checkStringIntern(path, method, name, value);
+            checkIntern(serialize, request, type, format, path, method, name, value, \value);
     }
 
     private checkStringIntern(string path, string method, string name, data value) {
@@ -428,7 +421,7 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, int v, reference<int> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<int> value) {
         if (type != "integer")
             throwInvalidType(name, "integer", type);
         if (exists maximum) {
@@ -468,7 +461,7 @@ class SchemaBase {
     }
 
     # NOTE: "number" also accepts "float"
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, number v, reference<number> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, number v, reference<number> value) {
         if (type != "number")
             throwInvalidType(name, "number", type);
         if (exists maximum) {
@@ -507,12 +500,101 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, bool v, reference<bool> value) {
+    #! converts binary values to strings for supported formats
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, binary v, reference value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (serialize) {
+            switch (format) {
+                case "byte":
+                    value = make_base64_string(v);
+                    break;
+                case "binary":
+                    value = make_hex_string(v);
+                    break;
+                default:
+                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
+            }
+        }
+        # already-serialized data must be a string
+        else
+            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
+
+        checkStringIntern(path, method, name, value);
+    }
+
+    #! validates string values
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, string v, reference value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (serialize) {
+            switch (format) {
+                case "byte":
+                    value = make_base64_string(v);
+                    break;
+                case "binary":
+                    value = make_hex_string(v);
+                    break;
+                case "date":
+                case "date-time":
+                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a string value to a string value with format %y; a date/time value is required", method.upr(), path, name, format);
+            }
+            checkStringIntern(path, method, name, value);
+        }
+        else {
+            switch (format) {
+                # NOTE: deserializes to a binary object
+                case "byte":
+                    value = parse_base64_string(v);
+                    break;
+                # NOTE: deserializes to a binary object
+                case "binary":
+                    value = parse_hex_string(v);
+                    break;
+                # NOTE: deserializes to a date/time value
+                case "date":
+                case "date-time":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = date(v);
+                    break;
+            }
+        }
+    }
+
+    #! converts strings to/from date/time values for supported formats
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference<string> value) {
+        if (type != "string")
+            throwInvalidType(name, "string", type);
+
+        if (serialize) {
+            switch (format) {
+                case "date":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = v.format("YYYY-MM-DD");
+                    break;
+                case "date-time":
+                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                    value = v.format("YYYY-MM-DD HH:mm:SS.y Z");
+                    break;
+                default:
+                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
+            }
+        }
+        # already-serialized data must be a string
+        else
+            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
+
+        checkStringIntern(path, method, name, value);
+    }
+
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, bool v, reference<bool> value) {
         if (type != "boolean")
             throwInvalidType(name, "boolean", type);
     }
 
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, nothing v, reference<nothing> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, nothing v, reference<nothing> value) {
         if (type != "null")
             throw "INVALID-PARAMETER-VALUE", sprintf("Parameter %y for path %y and method %y is null, but the expected type is %y", name, path, method, type);
     }
@@ -2574,7 +2656,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
     #! validates the value against the schema definition
     check(bool serialize, bool request, string path, string method, string name, reference value) {
-        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
+        SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
         switch (value.typeCode()) {
             case NT_NOTHING:
                 if (!allowEmptyValue)
@@ -2594,92 +2676,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         if (exists defaultVal)
             return defaultVal;
         return getExampleValue(type, format);
-    }
-
-    #! validates string values
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, string v, reference value) {
-        if (type != "string")
-            throwInvalidType(name, "string", type);
-
-        if (serialize) {
-            switch (format) {
-                case "byte":
-                    value = make_base64_string(v);
-                    break;
-                case "binary":
-                    value = make_hex_string(v);
-                    break;
-            }
-        }
-        else {
-            switch (format) {
-                # NOTE: deserializes to a binary object
-                case "byte":
-                    value = parse_base64_string(v);
-                    break;
-                # NOTE: deserializes to a binary object
-                case "binary":
-                    value = parse_hex_string(v);
-                    break;
-                # NOTE: deserializes to a date/time value
-                case "date":
-                case "date-time":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = date(v);
-                    break;
-            }
-        }
-        checkStringIntern(path, method, name, value);
-    }
-
-    #! converts binary values to strings for supported formats
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, binary v, reference value) {
-        if (type != "string")
-            throwInvalidType(name, "string", type);
-
-        if (serialize) {
-            switch (format) {
-                case "byte":
-                    value = make_base64_string(v);
-                    break;
-                case "binary":
-                    value = make_hex_string(v);
-                    break;
-                default:
-                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
-            }
-        }
-        # already-serialized dataa must be a string
-        else
-            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
-
-        checkStringIntern(path, method, name, value);
-    }
-
-    #! converts strings to/from date/time values for supported formats
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, date v, reference value) {
-        if (type != "string")
-            throwInvalidType(name, "string", type);
-
-        if (serialize) {
-            switch (format) {
-                case "date":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = v.format("YYYY-MM-DD");
-                    break;
-                case "date-time":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = v.format("YYYY-MM-DD HH:mm:SS.y Z");
-                    break;
-                default:
-                    throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
-            }
-        }
-        # already-serialized data must be a string
-        else
-            throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
-
-        checkStringIntern(path, method, name, value);
     }
 
     #! validates default values
@@ -3280,7 +3276,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (request && readOnly)
             throw "READONLY-PROPERTY-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
 
-        SchemaBase::check(serialize, request, type, items, path, method, name, \value);
+        SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
     }
 
     private checkObjectProperty(string name, string prop) {
@@ -3289,12 +3285,12 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates a schema object against a value
-    private checkIntern(bool serialize, bool request, string type, string path, string method, string name, hash v, reference<hash> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
         if (type != "object")
             throwInvalidType(name, "object", type);
 
         # check "allOf" schemas, if any
-        map $1.checkIntern(serialize, request, type, path, method, name, v, \value), allOf;
+        map $1.checkIntern(serialize, request, type, NOTHING, path, method, name, v, \value), allOf;
 
         /*
         If additionalProperties is set to true, any number of additionalProperties may be present of any data type.
