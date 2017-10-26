@@ -153,7 +153,6 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_1_0_1 Swagger v1.0.1
-    - made it possible for Info Object version attribute to have a float or int datatype (<a href="https://github.com/qorelanguage/qore/issues/2338">issue 2338</a>)
     - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
     - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
 
@@ -1458,7 +1457,7 @@ public class InfoObject inherits ObjectBase {
         *string termsOfService;
 
         #! Required. Provides the version of the application API (not to be confused with the specification version).
-        any version;
+        string version;
 
         #! The contact information for the exposed API.
         *ContactObject contact;
@@ -1477,9 +1476,7 @@ public class InfoObject inherits ObjectBase {
     public constructor(hash oh) : ObjectBase(oh) {
         string objType = "Info";
         required_field(objType, oh, "title", NT_STRING, \title);
-        required_field(objType, oh, "version", (NT_STRING: True, NT_FLOAT: True, NT_INT: True), \version);
-        if (version.typeCode() != NT_STRING)
-            version = string(version);
+        required_field(objType, oh, "version", NT_STRING, \version);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
         optional_field(objType, oh, "termsOfService", NT_STRING, \termsOfService);
 

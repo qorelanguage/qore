@@ -651,11 +651,9 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("REQUIRED-FIELD-MISSING", "\"version\".*missing", loadyaml, my_make_yaml(base + {"info": {"title": "a"}}));
         assertThrows("REQUIRED-FIELD-MISSING", "\"title\".*missing", loadyaml, my_make_yaml(base + {"info": {"version": "a"}}));
         assertThrows("INVALID-FIELD-TYPE", "title", loadyaml, my_make_yaml(base + {"info": {"title": 5, "version": "a"}}));
-        assertThrows("INVALID-FIELD-TYPE", "version", loadyaml, my_make_yaml(base + {"info": {"title": "a", "version": {}}}));
+        assertThrows("INVALID-FIELD-TYPE", "version", loadyaml, my_make_yaml(base + {"info": {"title": "a", "version": 1.0}}));
         loadyaml(my_make_yaml(base + {"info": {"title": "a", "version": "1.0.0"}}));
         loadyaml(my_make_yaml(base + {"info": {"title": "a", "version": "1.0"}}));
-        loadyaml(my_make_yaml(base + {"info": {"title": "a", "version": 1.0}}));
-        loadyaml(my_make_yaml(base + {"info": {"title": "a", "version": 1}}));
 
         info = ValidInfoObject + {"description": 5};
         assertThrows("INVALID-FIELD-TYPE", loadyaml, my_make_yaml(base + {"info": info}));
