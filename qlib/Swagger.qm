@@ -348,7 +348,7 @@ class SchemaBase {
                         case "binary": return parse_hex_string(rv);
                         case "date":
                         case "date-time":
-                            return date(rv);
+                            return string(rv);
                     }
                 }
             }
@@ -358,9 +358,9 @@ class SchemaBase {
             case "string": {
                 switch (format) {
                     case "byte":
-                    case "binary": return "<deadbeef>";
-                    case "date": return now_us();
-                    case "date-time": return now_us();
+                    case "binary": return <feedface>;
+                    case "date": return "1987-05-23";
+                    case "date-time": return "1987-05-23T07:45:30Z";
                     default:
                         return "value";
                 }
