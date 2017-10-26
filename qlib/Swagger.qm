@@ -154,6 +154,8 @@ RestHandler handler(NOTHING, swagger);
 
     @subsection swagger_1_0_1 Swagger v1.0.1
     - made it possible for Info Object version attribute to have a float or int datatype (<a href="https://github.com/qorelanguage/qore/issues/2338">issue 2338</a>)
+    - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
+    - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
