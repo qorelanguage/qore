@@ -361,7 +361,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         {
             Swagger::SwaggerSchema so;
-            string basePath = getcwd() + DirSep + dirname(get_script_path()) + DirSep;
+            string basePath = normalize_dir(dirname(get_script_path())) + DirSep;
 
             # Should not throw.
             so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.json");
@@ -1905,6 +1905,24 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(200, res.code);
             assertEq(MimeTypeJson, res.hdr."Content-Type");
             assertEq("\"OK\"", res.body);
+        }
+
+        {
+            # let's check our order for 400 of the same pet
+            hash body = (
+                "id": 1,
+                "petId": 2,
+                "quantity": 400,
+                "shipDate": now_us(),
+                "status": "approved",
+                "complete": True,
+            );
+            hash<HttpResponseInfo> res = so.processResponse("post", "/store/order", 200, body, NOTHING, MimeTypeJson);
+            assertEq(200, res.code);
+            assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+            body.shipDate = "1990-01-01";
+            assertThrows("INVALID-PARAMETER-VALUE", "body.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
         }
     }
 
