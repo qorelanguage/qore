@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "0.1";
+    version = "1.0.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_1_0_1 Swagger v1.0.1
+    - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
+    - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -355,9 +359,9 @@ class SchemaBase {
             case "string": {
                 switch (format) {
                     case "byte":
-                    case "binary": return "<deadbeef>";
-                    case "date": return now_us();
-                    case "date-time": return now_us();
+                    case "binary": return <feedface>;
+                    case "date": return 1987-05-23;
+                    case "date-time": return 1987-05-23T07:45:30Z;
                     default:
                         return "value";
                 }
@@ -3230,7 +3234,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
             str += "{\n";
             foreach hash h in (properties.pairIterator()) {
-                string pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
+                string pstr;
+                if (h.value.type == "string" && (h.value.format =~ /date(-time)?/))
+                    pstr = sprintf("%y: date(%s)", h.key, h.value.getQoreExample(\rv, h.key, False));
+                else
+                    pstr = sprintf("%y: %s", h.key, h.value.getQoreExample(\rv, h.key, False));
                 # add 4 spaces to the beginning of each line
                 str += foldl $1 + "\n" + $2, (map "    " + $1, pstr.split("\n"));
                 str += ",\n";
@@ -3646,6 +3654,27 @@ namespace Priv {
         any val = oh{name};
         check_type_code(objType, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
+    }
+
+    #! Check and assign a required field.
+    /**
+        @param objType type of object (e.g. "External Documentation")
+        @param oh Object hash
+        @param name field name
+        @param typeCodes possible field typeCodes
+        @param target where to assign the field's value
+
+        @throws INVALID-FIELD-TYPE field has invalid type
+        @throws REQUIRED-FIELD-MISSING required field is missing
+    */
+    sub required_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<any> target) {
+        if (!oh.hasKey(name))
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
+        any val = oh{name};
+
+        if (!typeCodes{val.typeCode()})
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
+        get_value(objType, name, val.typeCode(), val, \target);
     }
 
     #! Check and assign a field.
