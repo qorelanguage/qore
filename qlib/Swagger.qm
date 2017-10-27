@@ -576,7 +576,10 @@ class SchemaBase {
                     break;
                 case "date-time":
                     # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = v.format("YYYY-MM-DD HH:mm:SS.y Z");
+                    if (v.milliseconds() != 0)
+                        value = v.format("YYYY-MM-DDTHH:mm:SS.yZ");
+                    else
+                        value = v.format("YYYY-MM-DDTHH:mm:SSZ");
                     break;
                 default:
                     throw "INVALID-PARAMETER-VALUE", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
