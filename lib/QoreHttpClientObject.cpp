@@ -289,6 +289,52 @@ struct qore_httpclient_priv {
        additional_methods_map.insert(method_map_t::value_type(method, enable));
    }
 
+    // issue #2340: duplicate headers are concatenated; duplicate headers are checked with a case-insensitive search
+    // the first header that matches is used for sending
+    DLLLOCAL static QoreStringNode* getHeaderString(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, ExceptionSink* xsink) {
+        QoreStringNode* str;
+        strcase_set_t::iterator i = hdrs.find(key);
+        if (i == hdrs.end()) {
+            str = new QoreStringNode;
+            hdrs.insert(i, key);
+            nh.setKeyValue(key, str, xsink);
+            assert(!*xsink);
+        }
+        else {
+            str = static_cast<QoreStringNode*>(nh.getKeyValue((*i).c_str()));
+            assert(str);
+            assert(dynamic_cast<QoreStringNode*>(str));
+            if (!str->is_unique())
+                str = str->copy();
+        }
+        return str;
+    }
+
+   DLLLOCAL static void addAppendHeader(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, const AbstractQoreNode* v, ExceptionSink* xsink) {
+      assert(v);
+
+      if (v->getType() == NT_LIST) {
+          QoreStringNode* str = getHeaderString(hdrs, nh, key, xsink);
+          ConstListIterator li(static_cast<const QoreListNode*>(v));
+          while (li.next()) {
+             QoreStringNodeValueHelper vh(li.getValue());
+             if (!vh->empty()) {
+                 if (!str->empty())
+                    str->concat(',');
+                 str->concat(*vh);
+             }
+          }
+          return;
+      }
+
+      QoreStringNodeValueHelper vh(v);
+      if (!vh->empty()) {
+         QoreStringNode* str = getHeaderString(hdrs, nh, key, xsink);
+         if (!str->empty())
+            str->concat(',');
+         str->concat(*vh);
+      }
+   }
 
    // always generate a Host header pointing to the host hosting the resource, not the proxy
    // (RFC 2616 is not totally clear on this, but other clients do it this way)
@@ -882,7 +928,7 @@ static const QoreStringNode* get_string_header_node(ExceptionSink* xsink, QoreHa
 
 static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, const char* header, bool allow_multiple = false) {
    const QoreStringNode* str = get_string_header_node(xsink, h, header, allow_multiple);
-   return str && !str->empty() ? str->getBuffer() : 0;
+   return str && !str->empty() ? str->c_str() : nullptr;
 }
 
 QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
@@ -896,7 +942,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
        i = additional_methods_map.find(meth);
        if (i == additional_methods_map.end()) {
           xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
-          return 0;
+          return nullptr;
        }
    }
 
@@ -917,6 +963,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    bool transfer_encoding = false;
 
    if (headers) {
+      // issue #2340 track headers in a case-insensitive way
+      strcase_set_t hdrs;
       ConstHashIterator hi(headers);
       while (hi.next()) {
          // if one of the mandatory headers is found, then ignore it
@@ -930,7 +978,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (!strcasecmp(hi.getKey(), "transfer-encoding"))
                transfer_encoding = true;
 
-            nh->setValueKeyValue(hi.getKey(), n->refSelf(), xsink);
+            addAppendHeader(hdrs, **nh, hi.getKey(), hi.getValue(), xsink);
 
             if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
                const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);
