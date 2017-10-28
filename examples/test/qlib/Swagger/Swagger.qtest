@@ -513,13 +513,13 @@ public class SwaggerTest inherits QUnit::Test {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": "Test");
                 assertEq(Type::Hash, so.processRequest("get", uri_path, NOTHING, hdr).type());
-                assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", uri_path));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", uri_path));
             }
 
             {
                 string uri_path = "/test";
                 hash hdr = ("Test-Header": 1);
-                assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", uri_path, NOTHING, hdr));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", uri_path, NOTHING, hdr));
             }
         }
 
@@ -604,7 +604,7 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 SwaggerSchema so(soh);
 
-                assertThrows("INVALID-PARAMETER-TYPE", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
 
                 hash body = (
                     "a": "hi",
@@ -629,7 +629,7 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, res.hdr."Content-Type");
                 assertEq("\"ERR\"", res.body);
 
-                assertThrows("INVALID-PROPERTY", \so.processResponse(), ("get", "/test", 200, ("x": 2), NOTHING, MimeTypeJson));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, ("x": 2), NOTHING, MimeTypeJson));
                 #printf("res: %N\n", res);
 
                 cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
@@ -1728,7 +1728,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             SwaggerSchema so(b);
 
-            assertThrows("READONLY-PROPERTY-ERROR", \so.processRequest(), ("get", "/api/smtg", ("a": "a")));
+            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/api/smtg", ("a": "a")));
 
             b.definitions.a.properties.a.readOnly = False;
             so = new SwaggerSchema(b);
@@ -1749,7 +1749,7 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 hash hdr = ("content-type": h.content);
                 h.body = "b=a";
-                assertThrows("INVALID-PROPERTY", \so.parseRequest(), ("get", h.uri_path, h.body, \hdr));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("get", h.uri_path, h.body, \hdr));
             }
 
             assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
@@ -1785,21 +1785,21 @@ public class SwaggerTest inherits QUnit::Test {
             hash h = rc.get("/user/login?username=user;password=pass");
             assertEq("OK", h.body);
 
-            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
-            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
+            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/user/login?x=y");
+            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/something?x=y");
         }
     }
 
     private testValidation(SwaggerSchema so) {
         so.processRequest("get", "/user/login?username=user;password=pass");
-        assertThrows("MISSING-PARAMETER", \so.processRequest(), ("get", "/user/login"));
-        assertThrows("INVALID-PARAMETER-NAME", \so.processRequest(), ("post", "/pet?username=user"));
-        assertThrows("INVALID-PARAMETER-TYPE", \so.processRequest(), ("get", "/user/login?username;password=pass"));
+        assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/user/login"));
+        assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("post", "/pet?username=user"));
+        assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/user/login?username;password=pass"));
 
         so.parseResponse("get", "/user/login", 200, "\"string\"", ("content-type": MimeTypeJson));
 
         so.processRequest("get", "/pet/findByStatus?status=available");
-        assertThrows("INVALID-PARAMETER-VALUE", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
+        assertThrows("SCHEMA-VALIDATION-ERROR", "status.*happy", \so.processRequest(), ("get", "/pet/findByStatus?status=happy"));
 
         # test arrays in parameters
         {
@@ -1876,7 +1876,7 @@ public class SwaggerTest inherits QUnit::Test {
             assertThrows("SERIALIZATION-ERROR", MimeTypeOctetStream, \so.processRequest(), ("POST", "/pet", body, hdr, MimeTypeOctetStream));
 
             delete body.body.photoUrls;
-            assertThrows("MISSING-PROPERTY", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
         }
 
         {
@@ -1896,8 +1896,8 @@ public class SwaggerTest inherits QUnit::Test {
             hash h = rc.get("/user/login?username=user;password=pass");
             assertEq("OK", h.body);
 
-            assertThrows("INVALID-PARAMETER-NAME", \rc.get(), "/user/login?x=y");
-            assertThrows("INVALID-PATH", \rc.get(), "/something?x=y");
+            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/user/login?x=y");
+            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/something?x=y");
         }
 
         {
@@ -1922,7 +1922,7 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(MimeTypeJson, res.hdr."Content-Type");
 
             body.shipDate = "1990-01-01";
-            assertThrows("INVALID-PARAMETER-VALUE", "body.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "body.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
         }
     }
 
