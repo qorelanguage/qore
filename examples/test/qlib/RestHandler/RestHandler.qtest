@@ -41,6 +41,10 @@ class TestRestClass inherits AbstractRestClass {
     hash putEcho(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
+
+    hash put(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, cx.body);
+    }
 }
 
 class MyRestHandler inherits RestHandler {
@@ -49,20 +53,9 @@ class MyRestHandler inherits RestHandler {
     }
 }
 
-class SwaggerRestClass inherits AbstractRestClass {
-    string name() {
-        return "swagger";
-    }
-
-    *AbstractRestClass subClass(string arg, hash cx, *hash ah) {
-        if (arg == "test")
-            return new TestRestClass();
-    }
-}
-
 class SwaggerRestHandler inherits RestHandler {
     constructor(AbstractRestSchemaValidator validator) : RestHandler(NOTHING, validator) {
-        addClass(new SwaggerRestClass());
+        addClass(new TestRestClass());
     }
 }
 
@@ -128,10 +121,14 @@ public class RestHandlerTest inherits QUnit::Test {
                             ),
                         ),
                     ),
-                    "responses": (
-                        "200": (
-                            "schema": (
-                                "$ref": "#/definitions/Any",
+                    "put": (
+                        "produces": (MimeTypeJson,),
+                        "responses": (
+                            "200": (
+                                "description": "",
+                                "schema": (
+                                    "$ref": "#/definitions/Any",
+                                ),
                             ),
                         ),
                     ),
@@ -140,7 +137,7 @@ public class RestHandlerTest inherits QUnit::Test {
             "definitions": (
                 "Any": (
                     "type": "object",
-                    "additionalParameters": (
+                    "additionalProperties": (
                         "type": "string",
                     ),
                 ),
@@ -163,9 +160,9 @@ public class RestHandlerTest inherits QUnit::Test {
 
     globalSetUp() {
         mServer = new HttpServer(\log(), \log());
-        mServer.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler);
+        mServer.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler, NOTHING, False);
 %ifndef NoJson
-        mServer.setHandler("swagger-handler", "/swagger", MimeTypeJson, swaggerHandler);
+        mServer.setHandler("swagger-handler", "/swagger", MimeTypeJson, swaggerHandler, NOTHING, False);
 %endif
         mServer.setDefaultHandler("rest-handler", mHandler);
         port = mServer.addListener(0).port;
@@ -195,7 +192,7 @@ public class RestHandlerTest inherits QUnit::Test {
 %ifdef NoXml
 %ifdef NoJson
         # cannot test serialization with no binary modules present
-        testSkip("no xml module present");
+        testSkip("no serialization modules present");
 %endif
 %endif
 %endif
@@ -255,15 +252,27 @@ public class RestHandlerTest inherits QUnit::Test {
         testSkip("no json module present");
 %endif
 
-        # test direct interface
-        any val = swaggerHandler.handleExternalRequest("GET", "/swagger/test?action=echo", LargerHashValue);
+        # test direct interface (no Swagger validation performed); base path must be removed
+        auto val = swaggerHandler.handleExternalRequest("GET", "/test?action=echo", LargerHashValue);
         assertEq(LargerHashValue, val);
-        val = swaggerHandler.handleExternalRequest("PUT", "/swagger/test?action=echo", LargerHashValue);
+        val = swaggerHandler.handleExternalRequest("PUT", "/test?action=echo", LargerHashValue);
         assertEq(LargerHashValue, val);
-        val = swaggerHandler.handleExternalRequest("GET", "/swagger/test?action=echo", HashValue);
+        val = swaggerHandler.handleExternalRequest("GET", "/test?action=echo", HashValue);
         assertEq(HashValue, val);
-        val = swaggerHandler.handleExternalRequest("PUT", "/swagger/test?action=echo", HashValue);
+        val = swaggerHandler.handleExternalRequest("PUT", "/test?action=echo", HashValue);
         assertEq(HashValue, val);
+
+        {
+            mClient.setSerialization("json");
+            hash info;
+            {
+                on_error printf("info: %N\n", info);
+                hash h = mClient.put("/swagger/test?action=echo", SimpleHashValue, \info);
+                assertEq(SimpleHashValue, h.body);
+                assertThrows("REST-RESPONSE-ERROR", \mClient.put(), ("/swagger/test?invalid=sdf", SimpleHashValue, \info));
+            }
+            assertEq(400, info."response-code");
+        }
     }
 
     urlTest() {
