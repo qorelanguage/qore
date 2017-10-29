@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.0";
+    version = "1.0.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +69,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_0_1 RestSchemaValidator v1.0.1
+
+    - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
 
     @subsection restschemavalidator_1_0 RestSchemaValidator v1.0
 
@@ -171,12 +175,14 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
             return parseRequestImpl(method, path, http_body, \headers);
@@ -308,12 +314,14 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         private abstract hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers);
 
@@ -518,12 +526,14 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
             hash<UriQueryInfo> h = parse_uri_query(path);
