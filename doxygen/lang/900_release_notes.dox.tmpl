@@ -14,10 +14,17 @@
         - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
       - <a href="../../modules/DebugCmdLine/html/index.html">DebugCmdLine</a> module fixes:
         - fixed value setting to process all remaining arguments on the command line (<a href="https://github.com/qorelanguage/qore/issues/2294">issue 2294</a>)
-      - <a href="../../modules/Qdx/html/index.html">Qdx</a> module fixes
+      - <a href="../../modules/Qdx/html/index.html">Qdx</a> module fixes:
         - fixed a bug in documentation post-processing for @ref hashdecl "hashdecl" declarations (<a href="https://github.com/qorelanguage/qore/issues/2298">issue 2298</a>)
+      - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
+        - updated to return a 400 Bad Request error when REST schema validation fails on messages received <a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
       - <q href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes
-        - implemented support for user custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+        - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a> module fixes:
+        - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
+        - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
+        - fixed serialization of date/time values (<a href="https://github.com/qorelanguage/qore/issues/2349">issue 2349</a>)
+        - updated to return a 400 Bad Request error when REST schema validation fails on messages received <a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
     - added missing comparison methods in the <a href="../../modules/QUnit/html/index.html">QUnit</a> module (<a href="https://github.com/qorelanguage/qore/issues/1588">issue 1588</a>):
       - \c Test::assertRegex()
       - \c Test::assertNRegex()
@@ -38,6 +45,7 @@
     - fixed inconsistencies in the behavior of the @ref range_operator "range operator (..)" and the @ref list_element_operator "square brackets operator []" with lists and ranges between immediate evaluation and lazy functional evaluation and aligned the behavior of the operators among supported data types with the @ref remove "remove" and @ref delete "delete" operators (<a href="https://github.com/qorelanguage/qore/issues/2260">issue 2260</a>)
     - fixed a bug handling statement indices with parse errors (<a href="https://github.com/qorelanguage/qore/issues/2312">issue 2312</a>)
     - fixed too-agressive class hierachy checks that disallowed legal hierarchies where the same base class appears more than once in the hierarchy (<a href="https://github.com/qorelanguage/qore/issues/2317">issue 2317</a>)
+    - fixed a crashing bug in the background operator when the object in context goes out of scope with the thread and an exception is thrown (<a href="https://github.com/qorelanguage/qore/issues/2319">issue 2319</a>)
 
     @section qore_0813 Qore 0.8.13
 
@@ -445,6 +453,7 @@
     - fixed binding more than one wilcard port on a specific address in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module (<a href="https://github.com/qorelanguage/qore/issues/2155">issue 2155</a>)
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
     - fixed a memory bug in the @ref splice "splice" operator with a binary operand (<a href="https://github.com/qorelanguage/qore/issues/2303">issue 2303</a>)
+    - fixed a bug where calling any @ref Qore::SQL::SQLStatement "SQLStatement" method in another thread with an active connection from a @ref Qore::SQL::DatasourcePool "DatasourcePool" causes a crash (<a href="https://github.com/qorelanguage/qore/issues/2334">issue 2334</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
