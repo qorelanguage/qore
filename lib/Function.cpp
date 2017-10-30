@@ -1007,7 +1007,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
          }
 
          // skip variants with signatures a different number of arguments than provided
-         if ((size_t)sig->numParams() != args.size())
+         if (sig->numParams() != args.size())
             continue;
 
          bool ok = true;
