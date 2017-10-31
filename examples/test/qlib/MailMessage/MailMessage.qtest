@@ -99,5 +99,13 @@ lorem ipsum\r
             assertEq(refstr.split("\r\n"), r.split("\r\n"));
             #assertEq(refstr, r);
         }
+        {
+            # test issue #2360
+            Message msg(Sender, Subject);
+            msg.addBody("body");
+            msg.addTO(To);
+            string r = msg.serialize();
+            assertRegex("Content-Transfer-Encoding: quoted-printable", r);
+        }
     }
 }
