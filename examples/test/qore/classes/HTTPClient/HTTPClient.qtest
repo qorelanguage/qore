@@ -267,7 +267,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something", ("Test-Header": "test1", "test-HEADER": "test2", "teST-HeAdEr": ("test3","test4")));
             assertEq(TestMessage, str);
-            assertEq("test1,test2,test3,test4", serv.getHeader()."test-header");
+            assertEq("test3,test4", serv.getHeader()."test-header");
         }
 
         {
