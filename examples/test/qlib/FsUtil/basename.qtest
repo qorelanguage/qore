@@ -18,8 +18,12 @@ public class BasenameTest inherits QUnit::Test {
     }
 
     test_basename() {
-        # assumes testing on Unix, won't work on Windows
-        assertEq("file.txt", basename("/path/to/file.txt"));
+        string path;
+        if (Platform.Windows)
+            path = 'C:\path\to\file.txt';
+        else
+            path = "/path/to/file.txt";
+        assertEq("file.txt", basename(path));
     }
 
     test_basename_posix() {
