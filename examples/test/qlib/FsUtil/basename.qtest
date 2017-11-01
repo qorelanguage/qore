@@ -11,12 +11,23 @@
 
 public class BasenameTest inherits QUnit::Test {
     constructor() : Test ("BasenameTest", "1.0") {
-        addTestCase ("Basename test", \testBasename());
+        addTestCase ("Basename test", \test_basename());
+        addTestCase ("Basename test Posix", \test_basename_posix());
+        addTestCase ("Basename test Windows", \test_basename_win());
         set_return_value(main());
     }
 
-    testBasename() {
+    test_basename() {
+        # assumes testing on Unix, won't work on Windows
         assertEq("file.txt", basename("/path/to/file.txt"));
+    }
+
+    test_basename_posix() {
+        assertEq("file.txt", new PosixPathHandler().basename("/path/to/file.txt"));
+    }
+
+    test_basename_win() {
+        assertEq("file.txt", new WinPathHandler().basename('C:\path\to\file.txt'));
     }
 
 }

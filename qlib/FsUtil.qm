@@ -65,15 +65,13 @@ module FsUtil {
 */
 
 namespace Init {
-    const PathDelimWin = "\\";
-    const PathDelimUnix = "/";
 
     sub init() {
-        our string path_delim;
+        our FsUtil::PathHandler local_handler;
         if (Platform.Windows)
-            path_delim = PathDelimWin;
+            local_handler = new FsUtil::WinPathHandler();
         else if (Platform.Unix)
-            path_delim = PathDelimUnix;
+            local_handler = new FsUtil::PosixPathHandler();
         else
             throw "UNKNOWN-PLATFORM-ERROR",
                   sprintf("Unknown platform: %s.\n", PlatformOS);
@@ -83,10 +81,34 @@ namespace Init {
 #! the FsUtil namespace contains all the objects in the FsUtil module
 public namespace FsUtil {
 
-    public string sub basename(string path) {
-        int index = path.rfind(path_delim) + 1;
-        return path[index];
+    class PathHandler {
+        public {
+            string Delimiter;
+        }
+
+        public string basename(string path) {
+            int index = path.rfind(self.Delimiter) + 1;
+            return path.substr(index);
+        }
+
     }
+
+    public class WinPathHandler inherits PathHandler {
+        constructor() {
+            Delimiter = '\';
+        }
+    }
+
+    public class PosixPathHandler inherits PathHandler {
+        constructor() {
+            Delimiter = "/";
+        }
+    }
+
+    public string sub basename(string path) {
+        return local_handler.basename(path);
+    }
+
 
 
 } # FsUtil namespace
