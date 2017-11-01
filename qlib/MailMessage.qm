@@ -40,7 +40,7 @@
 %enable-all-warnings
 
 module MailMessage {
-    version = "1.3";
+    version = "1.3.1";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -73,6 +73,9 @@ msg.addTO("My Best Friend <you@friend.com>");
     @endcode
 
     @section mailmessage_relnotes MailMessage Release Notes
+
+    @subsection mailmessage_v1_3_1
+    - fixed @ref MailMessage::Message::addBody() "Message::addBody()" with no body present (issue <a href="https://github.com/qorelanguage/qore/issues/2360">issue 2360</a>)
 
     @subsection mailmessage_v1_3
     - added support for complex types
@@ -577,6 +580,10 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         addBody(string str) {
             if (body.typeCode() == NT_BINARY)
                 throw "BODY-ERROR", sprintf("cannot concatenate a string to a binary body");
+            # issue #2360 check if encoding is set
+            if (bodyEncoding == EncDefault)
+                bodyEncoding = EncQuotedPrintable;
+
             body += str;
         }
 
@@ -588,6 +595,9 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         addBody(binary bin) {
             if (body.typeCode() == NT_STRING)
                 throw "BODY-ERROR", sprintf("cannot concatenate a binary object to a string body");
+            # issue #2360 check if encoding is set
+            if (bodyEncoding == EncDefault)
+                bodyEncoding = EncBase64;
             body += bin;
         }
 
