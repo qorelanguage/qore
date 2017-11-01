@@ -91,11 +91,17 @@ public namespace FsUtil {
             return path.substr(index);
         }
 
+        abstract public bool is_absolute(string path);
+
     }
 
     public class WinPathHandler inherits PathHandler {
         constructor() {
             Delimiter = '\';
+        }
+
+        public bool is_absolute(string path) {
+            return path[0] == Delimiter || regex(path, '^[a-zA-Z]:\\');
         }
     }
 
@@ -103,12 +109,18 @@ public namespace FsUtil {
         constructor() {
             Delimiter = "/";
         }
+
+        public bool is_absolute(string path) {
+            return path[0] == Delimiter;
+        }
     }
 
     public string sub basename(string path) {
         return local_handler.basename(path);
     }
 
-
+    public bool sub is_absolute(string path) {
+        return local_handler.is_absolute(path);
+    }
 
 } # FsUtil namespace

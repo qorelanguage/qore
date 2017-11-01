@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class IsAbsoluteTest
+
+public class IsAbsoluteTest inherits QUnit::Test {
+    constructor() : Test ("IsAbsoluteTest", "1.0") {
+        #addTestCase ("Is Absolute test", \test_is_absolute());
+        addTestCase ("Is Absolute test Posix", \test_is_absolute_posix());
+        addTestCase ("Is Absolute test Windows", \test_is_absolute_win());
+        set_return_value(main());
+    }
+
+    #test_is_absolute() {
+    #    string path;
+    #    if (Platform.Windows)
+    #        path = 'C:\path\to\file.txt';
+    #    else
+    #        path = "/path/to/file.txt";
+    #    assertEq("file.txt", is_absolute(path));
+    #}
+
+    test_is_absolute_posix() {
+        PosixPathHandler handler  = new PosixPathHandler();
+        assertTrue(handler.is_absolute("/path/to/file.txt"));
+        assertFalse(handler.is_absolute("relative/path/to/file.txt"));
+        assertFalse(handler.is_absolute("../file.txt"));
+        assertFalse(handler.is_absolute("../../file.txt"));
+        assertFalse(handler.is_absolute("./file.txt"));
+        assertFalse(handler.is_absolute("file.txt"));
+    }
+
+    test_is_absolute_win() {
+        WinPathHandler handler  = new WinPathHandler();
+        assertTrue(handler.is_absolute('C:\path\to\file.txt'));
+        assertTrue(handler.is_absolute('d:\path\to\file.txt'));
+        assertTrue(handler.is_absolute('\path\to\file.txt'));
+        assertTrue(handler.is_absolute('\\path\to\file.txt'));
+        assertFalse(handler.is_absolute('path\to\file.txt'));
+        assertFalse(handler.is_absolute('C:file.txt'));
+        assertFalse(handler.is_absolute('e:path\to\file.txt'));
+        assertFalse(handler.is_absolute('..\tmp.txt'));
+        assertFalse(handler.is_absolute('..\..\tmp.txt'));
+        assertFalse(handler.is_absolute(''));
+    }
+
+}
