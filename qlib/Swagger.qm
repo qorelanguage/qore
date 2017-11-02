@@ -159,6 +159,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed handling of non-string enum types (<a href="https://github.com/qorelanguage/qore/issues/2364">issue 2364</a>)
     - fixed confusing error messages with invalid parameter types (<a href="https://github.com/qorelanguage/qore/issues/2365">issue 2365</a>)
     - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
+    - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -2543,6 +2544,10 @@ public class BodyParameter inherits AbstractParameterObject {
 
     #! verifies the parameter in an actual REST API call
     check(bool serialize, bool request, string path, string method, string name, reference value) {
+        # issue #2369 ignore the parameter if it's not required
+        if (!exists value && !required)
+            return;
+
         return schema.check(serialize, request, path, method, name, \value);
     }
 
