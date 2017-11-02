@@ -42,6 +42,7 @@ public class IsAbsoluteTest inherits QUnit::Test {
         rel_win = ('path\to\file.txt',
                    'C:file.txt',
                    'e:path\to\file.txt',
+                   'F:..\file.txt',
                    '..\tmp.txt',
                    '..\..\tmp.txt',
                    "..");
@@ -64,7 +65,7 @@ public class IsAbsoluteTest inherits QUnit::Test {
     }
 
     test_is_absolute_posix() {
-        PosixPathHandler handler  = new PosixPathHandler();
+        PosixPathHandler handler = new PosixPathHandler();
 
         foreach string path in (abs_posix)
             assertTrue(handler.is_absolute(path));
@@ -74,7 +75,7 @@ public class IsAbsoluteTest inherits QUnit::Test {
     }
 
     test_is_absolute_win() {
-        WinPathHandler handler  = new WinPathHandler();
+        WinPathHandler handler = new WinPathHandler();
 
         foreach string path in (abs_win)
             assertTrue(handler.is_absolute(path));
@@ -82,5 +83,4 @@ public class IsAbsoluteTest inherits QUnit::Test {
         foreach string path in (rel_win)
             assertFalse(handler.is_absolute(path));
     }
-
 }
