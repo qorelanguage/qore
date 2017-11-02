@@ -156,6 +156,9 @@ RestHandler handler(NOTHING, swagger);
     - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
     - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
     - fixed serialization of date/time values (<a href="https://github.com/qorelanguage/qore/issues/2349">issue 2349</a>)
+    - fixed handling of non-string enum types (<a href="https://github.com/qorelanguage/qore/issues/2364">issue 2364</a>)
+    - fixed confusing error messages with invalid parameter types (<a href="https://github.com/qorelanguage/qore/issues/2365">issue 2365</a>)
+    - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -196,7 +199,7 @@ public const MimeDataTypes = {
 %ifndef NoJson
     MimeTypeJson: (
         "serialize": \make_json(),
-        "serialize_verbose": string sub (any val) {return make_json(val, JGF_ADD_FORMATTING);},
+        "serialize_verbose": string sub (auto val) {return make_json(val, JGF_ADD_FORMATTING);},
         "deserialize": \parse_json(),
         "module": "json",
     ),
@@ -204,7 +207,7 @@ public const MimeDataTypes = {
 %ifndef NoYaml
     MimeTypeYamlRpc: (
         "serialize": \make_yaml(),
-        "serialize_verbose": string sub (any val) {return make_yaml(val, BlockStyle);},
+        "serialize_verbose": string sub (auto val) {return make_yaml(val, BlockStyle);},
         "deserialize": \parse_yaml(),
         "module": "yaml",
     ),
@@ -324,7 +327,7 @@ class SchemaBase {
         optional_field(objType, oh, "maxItems", NT_INT, \maxItems);
         optional_field(objType, oh, "minItems", NT_INT, \minItems);
         optional_field(objType, oh, "uniqueItems", NT_BOOLEAN, \uniqueItems);
-        optional_field(objType, oh, "enum", SwaggerListToSet, \enum);
+        optional_field(objType, oh, "enum", SwaggerListToAnySet, \enum);
         optional_field(objType, oh, "multipleOf", (NT_FLOAT: True, NT_INT: True), \multipleOf);
     }
 
@@ -337,9 +340,9 @@ class SchemaBase {
     }
 
     #! returns an example value for the given type
-    private any getExampleValue(string type, *string format) {
+    private auto getExampleValue(string type, *string format) {
         if (enum) {
-            any rv = enum.firstKey();
+            auto rv = enum.firstKey();
             switch (type) {
                 case "integer": rv = rv.toInt(); break;
                 case "number": rv = (format && ValidNumberFormatsHash{format} ? rv.toFloat() : rv.toNumber()); break;
@@ -618,7 +621,7 @@ class SchemaBase {
             # hash for checking uniqueness if uniqueItems is true
             #printf("v: %y self: %N\n", value, self);
             hash h;
-            foreach any v in (\value) {
+            foreach auto v in (\value) {
                 items.check(serialize, request, path, method, name, \v);
                 if (uniqueItems) {
                     if (h{v})
@@ -630,7 +633,7 @@ class SchemaBase {
         else {
             # perform slow array uniqueness check
             list uniqueItems = ();
-            foreach any val in (\value) {
+            foreach auto val in (\value) {
                 items.check(serialize, request, path, method, name, \val);
                 if (uniqueItems.contains(val))
                     throw "SCHEMA-VALIDATION-ERROR",
@@ -971,15 +974,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         if (oh.schemes) {
-            optional_field(objType, oh, "schemes", SwaggerListToSet, \schemes);
+            optional_field(objType, oh, "schemes", SwaggerListToStringSet, \schemes);
             # check for invalid schemes
             if ((hash h = (schemes - ValidSchemes)))
                 throw "INVALID-FIELD-VALUE", sprintf("Swagger Object: invalid transfer protocol scheme%s: %y", h.size() == 1 ? "" : "s", keys h);
         }
 
-        optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes);
+        optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes);
 
-        optional_field(objType, oh, "produces", SwaggerListToSet, \produces);
+        optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces);
 
         {
             hash obj;
@@ -1003,7 +1006,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         {
             list lobj = ();
             optional_field(objType, oh, "tags", NT_LIST, \lobj);
-            foreach any val in (lobj) {
+            foreach auto val in (lobj) {
                 if (val.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid tag datatype: " + val.type();
                 tags += new TagObject(val);
@@ -1113,7 +1116,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
-    private hash<RestSchemaValidator::RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+    private hash<RestSchemaValidator::RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash headers, *softlist<string> content_types) {
         return processRequestIntern(method, path, body, headers, content_types, compact_serialization);
     }
 
@@ -1140,7 +1143,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 if (!ds)
                     throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
 
-                any any_body = ds(http_body);
+                auto any_body = ds(http_body);
                 if (exists any_body) {
                     if (any_body.typeCode() != NT_HASH)
                         throw "DESERIALIZATION-ERROR", sprintf("%s %s: message body serialized to %y; expecting \"hash\"", method.upr(), path, any_body.type());
@@ -1186,7 +1189,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
         an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
-    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
         return processResponseIntern(method, path, code, response_body, headers, content_types, compact_serialization);
     }
 
@@ -1297,7 +1300,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
 
-        any body;
+        auto body;
         hash<RestExampleRequestInfo> rv = op.getExampleRequest(method, path, pio, self, \body);
         if (exists body) {
             # serialize example body
@@ -1345,7 +1348,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
 
-        any body;
+        auto body;
         hash<RestExampleResponseInfo> rv = op.getExampleResponse(method, path, code, \body);
         if (exists body) {
             # serialize example body
@@ -1399,7 +1402,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @throws SERIALIZATION-ERROR unsupported path, message body MIME type requested, or missing serialization module
     */
-    private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, any body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
+    private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, auto body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
         hash<string, bool> mime_types;
 
         # remove basePath if present
@@ -1484,7 +1487,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
         an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
-    private:internal hash<HttpResponseInfo> processResponseIntern(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
+    private:internal hash<HttpResponseInfo> processResponseIntern(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
@@ -1856,7 +1859,7 @@ public class PathItemObject inherits ObjectBase {
 
         *list params;
         if (optional_field(objType, oh, "parameters", NT_LIST, \params)) {
-            foreach any param in (params) {
+            foreach auto param in (params) {
                 if (param.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE",
                         sprintf("Path Item Object: 'parameters' list value has invalid type %y",
@@ -2008,7 +2011,7 @@ public class OperationObject inherits ObjectBase {
         string objType = "Operation";
         *list tagsObj;
         if (optional_field(objType, oh, "tags", NT_LIST, \tagsObj)) {
-            foreach any tag in (tagsObj) {
+            foreach auto tag in (tagsObj) {
                 if (tag.typeCode() == NT_STRING)
                     tags += tag;
                 else if (tag.typeCode() == NT_HASH)
@@ -2030,17 +2033,17 @@ public class OperationObject inherits ObjectBase {
         # TODO check operationId uniqueness as per docs
 
         # use the global "consumes" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "consumes", SwaggerListToSet, \consumes) && swagger.consumes)
+        if (!optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes) && swagger.consumes)
             consumes = swagger.consumes;
 
         # use the global "produces" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "produces", SwaggerListToSet, \produces) && swagger.produces)
+        if (!optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces) && swagger.produces)
             produces = swagger.produces;
 
         {
             list listObj;
             optional_field(objType, oh, "parameters", NT_LIST, \listObj);
-            foreach any p in (listObj) {
+            foreach auto p in (listObj) {
                 if (p.typeCode() != NT_HASH)
                     error("INVALID-FIELD-TYPE", "invalid 'parameters' list value datatype %y; expecing \"hash\"", p.type());
                 AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
@@ -2061,7 +2064,7 @@ public class OperationObject inherits ObjectBase {
         {
             list schemesList;
             optional_field(objType, oh, "schemes", NT_LIST, \schemesList);
-            foreach any val in (schemesList) {
+            foreach auto val in (schemesList) {
                 if (val.typeCode() != NT_STRING)
                     error("INVALID-FIELD-TYPE", "invalid 'schemes' list value datatype %y; expecting \"string\"", val.type());
                 if (!ValidSchemesHash{val})
@@ -2073,7 +2076,7 @@ public class OperationObject inherits ObjectBase {
         {
             list securityList;
             optional_field(objType, oh, "security", NT_LIST, \securityList);
-            foreach any val in (securityList) {
+            foreach auto val in (securityList) {
                 if (val.typeCode() != NT_HASH)
                     error("INVALID-FIELD-TYPE", "invalid 'security' list value datatype %y; expecting \"hash\"", val.type());
                 hash h = val;
@@ -2102,7 +2105,7 @@ public class OperationObject inherits ObjectBase {
 
         @throws SCHEMA-VALIDATION-ERROR invalid parameter name or location, missing parameter and parameter has no default value
     */
-    validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> body, reference<hash> headers, *reference<hash<string, bool>> mime_types) {
+    validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body, reference<hash> headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach string key in (keys h.params) {
             # find URI parameter object
@@ -2153,7 +2156,7 @@ public class OperationObject inherits ObjectBase {
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
-    parseRequest(PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<hash> body, reference<hash> headers) {
+    parseRequest(PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body, reference<hash> headers) {
         # validate message
         validateRequest(False, pio, \h, \body, \headers);
 
@@ -2163,7 +2166,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! validates a response against the response definition, if any
-    validateResponse(string method, string path, PathItemObject pio, int code, any response_body, reference<hash<string, bool>> mime_types) {
+    validateResponse(string method, string path, PathItemObject pio, int code, auto response_body, reference<hash<string, bool>> mime_types) {
         *ResponseObject res = getResponse(code);
         if (res.schema)
             res.schema.check(True, False, path, method, "response body", \response_body);
@@ -2310,7 +2313,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! add default parameters
-    private doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<hash> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+    private doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<auto> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
             if (child_params{ph.key} || ph.value.inLoc == "body")
@@ -2336,7 +2339,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! checks for missing params
-    private checkMissingParams(hash<UriQueryInfo> h, *hash headers, *hash body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+    private checkMissingParams(hash<UriQueryInfo> h, *hash headers, auto body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked
             if (child_params{ph.key} || ph.value.inLoc == "body")
@@ -2499,7 +2502,7 @@ public class AbstractParameterObject inherits ObjectBase {
     abstract check(bool serialize, bool request, string path, string method, string name, reference value);
 
     #! returns the default value of the parameter (default: @ref nothing)
-    any getDefaultValue() {
+    auto getDefaultValue() {
     }
 
     #! gets a concrete instance of an AbstractParameterObject
@@ -2549,7 +2552,7 @@ public class BodyParameter inherits AbstractParameterObject {
     }
 
     # returns an example value for a REST API call
-    any getExampleValue() {
+    auto getExampleValue() {
         return schema.getExampleValue();
     }
 }
@@ -2607,7 +2610,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
             Unlike JSON Schema this value MUST conform to the defined type for this parameter.
          */
-        any defaultVal;
+        auto defaultVal;
 
         #! valid parameter types
         const ParameterTypes = SchemaObject::ScalarTypes + (
@@ -2675,19 +2678,19 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! returns the default value of the parameter (default: @ref nothing)
-    any getDefaultValue() {
+    auto getDefaultValue() {
         return defaultVal;
     }
 
     #! returns an example value of the parameter (default: @ref nothing)
-    any getExampleValue() {
+    auto getExampleValue() {
         if (exists defaultVal)
             return defaultVal;
         return getExampleValue(type, format);
     }
 
     #! validates default values
-    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
@@ -2860,7 +2863,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
             Unlike JSON Schema this value MUST conform to the defined
             @ref HeaderObject::type "type" for the header.
          */
-        any defaultVal;
+        auto defaultVal;
     }
 
     #! Constructor.
@@ -2907,7 +2910,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates default values
-    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
@@ -2980,7 +2983,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         *SchemaObject items;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-6.2.
-        any defaultVal;
+        auto defaultVal;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.1.
         *int maxProperties;
@@ -3000,7 +3003,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             MUST be a bool or an object. If it is an object, it MUST also be
             a valid JSON Schema (@ref SchemaObject).
          */
-        any additionalProperties;
+        auto additionalProperties;
 
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.3.
         /**
@@ -3064,7 +3067,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         *ExternalDocumentationObject externalDocs;
 
         #! A free-form property to include an example of an instance for this schema.
-        any example;
+        auto example;
 
         #! valid scalar types
         const ScalarTypes = (
@@ -3136,7 +3139,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (optional_field(objType, oh, "properties", NT_HASH, \props)) {
                 checkObjectProperty(name, "properties");
                 foreach string k in (keys props) {
-                    any val = props{k};
+                    auto val = props{k};
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
                     properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
@@ -3151,7 +3154,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         }
 
         # process "required"
-        if (optional_field(objType, oh, "required", SwaggerListToSet, \required)) {
+        if (optional_field(objType, oh, "required", SwaggerListToStringSet, \required)) {
             if (!required)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
         }
@@ -3168,7 +3171,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (optional_field(objType, oh, "allOf", NT_LIST, \allOfList)) {
                 if (allOfList.size() < 1)
                     throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'allOf' is an empty list", name);
-                foreach any val in (allOfList) {
+                foreach auto val in (allOfList) {
                     if (val.typeCode() != NT_HASH)
                         throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
                     allOf += SchemaObject::newSchemaObject(name + "AllOf", val, swagger);
@@ -3199,7 +3202,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         }
 
         if (type != "object") {
-            any val = getExampleValue();
+            auto val = getExampleValue();
             string example;
             switch (val.typeCode()) {
                 case NT_DATE:
@@ -3262,7 +3265,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     # returns an example value for a REST API call
-    any getExampleValue() {
+    auto getExampleValue() {
         if (exists example)
             return example;
         if (exists defaultVal)
@@ -3314,7 +3317,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                     if (!prop)
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("property %y is not valid for object %y", key, name);
                 }
-                prop.check(serialize, request, path, method, name, \value{key});
+                prop.check(serialize, request, path, method, key, \value{key});
             }
         }
         # check for missing required properties
@@ -3326,7 +3329,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates default values
-    private static checkValueType(any value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
@@ -3363,7 +3366,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     #! throws an \c "INVALID-FIELD-TYPE" exception
     /** @throws INVALID-FIELD-TYPE due to a type error in the call
     */
-    static SchemaObject newSchemaObject(string name, any error, SwaggerSchema swagger) {
+    static SchemaObject newSchemaObject(string name, auto error, SwaggerSchema swagger) {
         throw "INVALID-FIELD-TYPE", sprintf("invalid field type %y for key %y; expecting \"hash\"", error.type(), name);
     }
 }
@@ -3435,7 +3438,7 @@ public class ParameterItemsSchemaObject inherits SchemaObject {
     #! throws an \c "INVALID-FIELD-TYPE" exception
     /** @throws INVALID-FIELD-TYPE due to a type error in the call
     */
-    static ParameterItemsSchemaObject newSchemaObject(string name, any error, SwaggerSchema swagger) {
+    static ParameterItemsSchemaObject newSchemaObject(string name, auto error, SwaggerSchema swagger) {
         throw "INVALID-FIELD-TYPE", sprintf("invalid field type %y for key %y; expecting \"hash\"", error.type(), name);
     }
 }
@@ -3627,8 +3630,11 @@ public class ScopesObject inherits ObjectBase {
 
 # private namespace for internal definitions
 namespace Priv {
-    const SwaggerListToSet = -1;
-    const SwaggerListToHashOfStrings = -2;
+    # a set of string values
+    const SwaggerListToStringSet = -1;
+    # a set of any type that can be converted to a string
+    const SwaggerListToAnySet = -2;
+    const SwaggerListToHashOfStrings = -3;
 
     const TypeMap = (
         NT_INT: "int",
@@ -3638,7 +3644,8 @@ namespace Priv {
         NT_HASH: "hash",
         NT_NOTHING: "nothing",
         NT_BOOLEAN: "bool",
-        SwaggerListToSet: "list<string>",
+        SwaggerListToStringSet: "list<string>",
+        SwaggerListToAnySet: "list<auto>",
     );
 
     #! Check and assign a required field.
@@ -3652,10 +3659,10 @@ namespace Priv {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    sub required_field(string objType, hash oh, string name, int typeCode, reference<any> target) {
+    sub required_field(string objType, hash oh, string name, int typeCode, reference<auto> target) {
         if (!oh.hasKey(name))
             throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
-        any val = oh{name};
+        auto val = oh{name};
         check_type_code(objType, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
     }
@@ -3671,10 +3678,10 @@ namespace Priv {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    sub required_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<any> target) {
+    sub required_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<auto> target) {
         if (!oh.hasKey(name))
             throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
-        any val = oh{name};
+        auto val = oh{name};
 
         if (!typeCodes{val.typeCode()})
             throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
@@ -3693,10 +3700,10 @@ namespace Priv {
 
         @throws INVALID-FIELD-TYPE field has invalid type
     */
-    bool sub optional_field(string objType, hash oh, string name, int typeCode, reference<any> target) {
+    bool sub optional_field(string objType, hash oh, string name, int typeCode, reference<auto> target) {
         if (!oh.hasKey(name))
             return False;
-        any val = oh{name};
+        auto val = oh{name};
         check_type_code(objType, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
         return True;
@@ -3714,10 +3721,10 @@ namespace Priv {
 
         @throws INVALID-FIELD-TYPE field has invalid type
     */
-    bool sub optional_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<any> target) {
+    bool sub optional_field(string objType, hash oh, string name, hash<string, bool> typeCodes, reference<auto> target) {
         if (!oh.hasKey(name))
             return False;
-        any val = oh{name};
+        auto val = oh{name};
         if (!typeCodes{val.typeCode()})
             throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
         get_value(objType, name, val.typeCode(), val, \target);
@@ -3725,25 +3732,32 @@ namespace Priv {
     }
 
     #! verifies the type of a field
-    sub check_type_code(string objType, string name, any val, int typeCode) {
+    sub check_type_code(string objType, string name, auto val, int typeCode) {
         int vtc = val.typeCode();
-        if ((typeCode == SwaggerListToSet || typeCode == SwaggerListToHashOfStrings) && vtc == NT_LIST)
+        if ((typeCode == SwaggerListToStringSet || typeCode == SwaggerListToAnySet || typeCode == SwaggerListToHashOfStrings) && vtc == NT_LIST)
             return;
         if (vtc != typeCode)
             throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y; expecting %y", objType, name, val.type(), TypeMap{typeCode});
     }
 
     #! assigns a value to a field
-    sub get_value(string objType, string name, int typeCode, any val, reference<any> target) {
-        if (typeCode == SwaggerListToSet) {
-            foreach any v in (val) {
+    sub get_value(string objType, string name, int typeCode, auto val, reference<auto> target) {
+        if (typeCode == SwaggerListToStringSet) {
+            foreach auto v in (val) {
                 if (v.typeCode() != NT_STRING)
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in %y list value has type %y; expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y; expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
+                target{v} = True;
+            }
+        }
+        else if (typeCode == SwaggerListToAnySet) {
+            foreach auto v in (val) {
+                if (!v.strp())
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y which cannot be converted to a string; the Swagger module only supports types that can be converted to a string for this field", objType, name, $# + 1, val.size(), v.type());
                 target{v} = True;
             }
         }
         else if (typeCode == SwaggerListToHashOfStrings) {
-            foreach any v in (val) {
+            foreach auto v in (val) {
                 int pos = $# + 1;
                 if (v.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d value has type %y; expecting \"hash\"", objType, name, pos, val.size(), v.type());
@@ -3752,7 +3766,7 @@ namespace Priv {
                 string key = v.firstKey();
                 if (target.hasKey(key))
                     throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d has duplicate key %y", objType, name, pos, val.size(), key);
-                foreach any fv in (v.firstValue()) {
+                foreach auto fv in (v.firstValue()) {
                     if (fv.typeCode() != NT_STRING)
                         throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in %y list value has type %y in position %d/%d; expecting \"string\"", objType, name, pos, val.size(), key, fv.type(), $# + 1, fv.lsize());
                 }
