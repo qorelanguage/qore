@@ -50,8 +50,11 @@ extern QoreHashNode* ENV;
 #include <errno.h>
 
 #include <map>
+#include <vector>
 
 typedef std::map<int, unsigned> ptid_map_t;
+
+typedef std::vector<AbstractStatement*> stmt_vec_t;
 
 class QoreParseLocationHelper {
 public:
@@ -98,7 +101,6 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 
 #include "qore/intern/ThreadLocalVariableData.h"
 #include "qore/intern/ThreadClosureVariableStack.h"
-
 
 struct ThreadLocalProgramData {
 private:
@@ -362,7 +364,7 @@ public:
         only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
         requires_exception(false), tclear(0),
         exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
-        thr_init(0), exec_class_rv(nullptr), pgm(n_pgm) {
+        thr_init(nullptr), exec_class_rv(nullptr), pgm(n_pgm) {
       printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
 #ifdef DEBUG
@@ -2106,57 +2108,8 @@ public:
          return true;
    }
 
-   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs) {
-      // index is being built when parsing
-      if (!statement)
-         return;
-      sline_statement_multimap_t *ssm;
-      std::map<const char*, sline_statement_multimap_t*>::iterator it = statementIndex->find(key);
-      if (it == statementIndex->end()) {
-         printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) key not found, this: %p\n", key, offs, this);
-         ssm = new sline_statement_multimap_t();
-         statementIndex->insert(std::pair<const char*, sline_statement_multimap_t*>(key, ssm));
-      } else {
-         ssm = it->second;
-         std::map<int, AbstractStatement*>::iterator li = ssm->find(statement->loc.start_line+offs);
-         while (li != ssm->end() && li->first == statement->loc.start_line+offs) {
-            if (li->second->loc.end_line == statement->loc.end_line) {
-               // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
-               printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) skipping line (%d-%d), this: %p\n", key, offs, statement->loc.start_line, statement->loc.end_line, this);
-               return;
-            }
-            ++li;
-         }
-      }
-      printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) insert line %d (%d-%d), this: %p\n", key, offs, statement->loc.start_line+offs, statement->loc.start_line, statement->loc.end_line, this);
-      ssm->insert(std::pair<int, AbstractStatement*>(statement->loc.start_line+offs, statement));
-   }
-
-   DLLLOCAL static void addStatementToIndex(QoreProgram* pgm, AbstractStatement *statement) {
-      // index is being built when parsing
-      if (!statement)
-         return;
-      AutoLocker al(&pgm->priv->plock);
-      if (statement->loc.source) {
-         printd(5, "qore_program_private::addStatementToIndex(file+source), this: %p, statement: %p\n", pgm->priv, statement);
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset);
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement, 0);
-      } else {
-         printd(5, "qore_program_private::addStatementToIndex(file), this: %p, statement: %p\n", pgm->priv, statement);
-         pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/);
-      }
-   }
-   DLLLOCAL static void registerStatement(QoreProgram* pgm, AbstractStatement *statement) {
-      if (pgm) {
-         // allocate unique id for statement
-         AutoLocker al(&pgm->priv->plock);
-         ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
-         if (i == pgm->priv->reverseStatementIds.end()) {
-            pgm->priv->statementIds.push_back(statement);
-            pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
-         }
-      }
-   }
+   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs);
+   DLLLOCAL static void registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex);
 
    DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d), this: %p, file#: %d, label#: %d\n", name, line, this, statementByFileIndex.size(), statementByLabelIndex.size());

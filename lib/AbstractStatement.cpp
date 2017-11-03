@@ -106,3 +106,7 @@ void AbstractStatement::unassignBreakpoint(QoreBreakpoint *bkpt) {
       breakpointFlag = !breakpoints->empty();
    }
 }
+
+void AbstractStatement::parseCommit(QoreProgram* pgm) {
+   qore_program_private::registerStatement(pgm, this, true);
+}

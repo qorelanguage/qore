@@ -103,6 +103,8 @@ public:
       return breakpointFlag;
    }
 
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+
 };
 
 DLLLOCAL void push_cvar(const char* name);

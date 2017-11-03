@@ -34,6 +34,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/QoreParseListNode.h"
+#include "qore/intern/StatementBlock.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -1706,6 +1707,11 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, Qor
    return evalIntern(uveh.getArgv(), self, xsink);
 }
 
+void UserVariantBase::parseCommit() {
+   if (statements)
+      statements->parseCommit(getProgram());
+}
+
 int QoreFunction::parseCheckDuplicateSignatureCommitted(UserSignature* sig) {
    const AbstractFunctionSignature* vs = 0;
    int rc = parseCompareResolvedSignature(vlist, sig, vs);
@@ -2010,6 +2016,8 @@ void QoreFunction::parseCommit() {
       }
       else if (!has_builtin)
          has_builtin = true;
+
+      (*i)->parseCommit();
    }
    pending_vlist.clear();
 

@@ -142,3 +142,14 @@ bool TryStatement::hasFinalReturn() const {
    // because throwing an exception trumpts any return statement
    return try_block && try_block->hasFinalReturn() && catch_block && catch_block->hasFinalReturn();
 }
+
+void TryStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (try_block) {
+      try_block->parseCommit(pgm);
+   }
+   if (catch_block) {
+      catch_block->parseCommit(pgm);
+   }
+}
+
