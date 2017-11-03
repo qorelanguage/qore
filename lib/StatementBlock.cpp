@@ -575,15 +575,21 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 }
 
 void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
-   if (hwm != statement_list.end()) {
-      statement_list_t::iterator i = hwm;
-      i++;
-      for (statement_list_t::iterator e = statement_list.end(); i != e; ++i) {
-         // register and add statements
-         (*i)->parseCommit(pgm);
-      }
-      hwm = statement_list.last();
+   //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+   statement_list_t::iterator start = hwm;
+   if (start != statement_list.end()) {
+      ++start;
+   } else {
+      start = statement_list.begin();
    }
+
+   while (start != statement_list.end()) {
+      //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
+      // register and add statements
+      (*start)->parseCommit(pgm);
+      start++;
+   }
+   hwm = statement_list.last();
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
