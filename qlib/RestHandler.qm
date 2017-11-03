@@ -642,7 +642,7 @@ public namespace RestHandler {
                 rsh = call_object_method_args(self, sn, (cx, ah));
             }
             catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "METHOD-DOES-NOT-EXIST") {
+                if (ex.err == "METHOD-DOES-NOT-EXIST" && ex.desc.find(sn) != -1) {
                     if (cx.hdr."transfer-encoding" == "chunked")
                         cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
 
