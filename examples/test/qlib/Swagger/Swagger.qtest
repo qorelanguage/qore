@@ -97,6 +97,9 @@ public class SwaggerTest inherits QUnit::Test {
         const ValidPathsObject = {
             "/api/smtg": {
                 "parameters": ( {"$ref": "#/parameters/a"}, )
+            },
+            "/api/enum": {
+                "parameters": ( {"$ref": "#/parameters/enum"}, )
             }
         };
         const ValidSwaggerSchema = {
@@ -110,6 +113,16 @@ public class SwaggerTest inherits QUnit::Test {
                     "description": "desc",
                     "required": False,
                     "type": "string",
+                ),
+                "enum": (
+                    "name": "enum",
+                    "in": "body",
+                    "description": "desc",
+                    "required": False,
+                    "schema": (
+                        "type": "integer",
+                        "enum": (1, 2, 3),
+                    ),
                 ),
             ),
         };
@@ -713,7 +726,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         p = {};
         assertTrue(loadyaml(my_make_yaml(base + {"paths": p})));
-        p = {"a": {}};
+        p = base.parameters + {"a": {}};
         assertThrows("INVALID-FIELD-FORMAT", loadyaml, my_make_yaml(base + {"paths": p}));
     }
 
@@ -879,149 +892,149 @@ public class SwaggerTest inherits QUnit::Test {
         hash p;
 
         # name and in checks
-        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"in": "query", "type": "string"}};
+        p = base.parameters + {"a": {"in": "query", "type": "string"}};
         assertThrows("REQUIRED-FIELD-MISSING", "\"name\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "type": "string"}};
         assertThrows("REQUIRED-FIELD-MISSING", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": 5, "in": "query", "type": "string"}};
+        p = base.parameters + {"a": {"name": 5, "in": "query", "type": "string"}};
         assertThrows("INVALID-FIELD-TYPE", "name", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": 5, "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": 5, "type": "string"}};
         assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "a", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "a", "type": "string"}};
         assertThrows("INVALID-FIELD-VALUE", "in", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # description checks
-        p = {"a": {"name": "a", "in": "query", "type": "string", "description": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "description": 5}};
         assertThrows("INVALID-FIELD-TYPE", "description", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # TODO - body location parameter - have to do SchemaObject first
 
         # in (location) checks
-        p = {"a": {"name": "a", "in": "formData", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "formData", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "header", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "header", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # "required" checks
-        p = {"a": {"name": "a", "in": "path", "type": "string", "required": False}};
+        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string", "required": False}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "path", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string"}};
         assertThrows("REQUIRED-FIELD-MISSING", "\"required\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "path", "type": "string", "required": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "path", "type": "string", "required": "a"}};
         assertThrows("INVALID-FIELD-TYPE", "required", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # type checks
-        p = {"a": {"name": "a", "in": "query"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query"}};
         assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "query", "type": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": 5}};
         assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "query", "type": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "a"}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "boolean"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "file"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "integer"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "number"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # format checks
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": 5}};
         assertThrows("INVALID-FIELD-TYPE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "int32"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "int32"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "int64"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "int64"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "integer", "format": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "format": "a"}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "double"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "double"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "float"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "float"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "number", "format": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "format": "a"}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "binary"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "binary"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "byte"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "byte"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "date"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "date"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "date-time"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "date-time"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "password"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "password"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "format": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "a"}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # allowEmptyValue checks
-        p = {"a": {"name": "a", "in": "query", "type": "string", "allowEmptyValue": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "allowEmptyValue": 5}};
         assertThrows("INVALID-FIELD-TYPE", "allowEmptyValue", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # collectionFormat checks
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": 5, "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": 5, "items": {"type": "string"}}};
         assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "a", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "collectionFormat": "a", "items": {"type": "string"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": {"name": "a", "in": "header", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
+        p = base.parameters + {"a": {"name": "a", "in": "header", "type": "array", "collectionFormat": "multi", "items": {"type": "string"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # default checks
 
         # TODO
-        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        /*p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));*/
 
-        p = {"a": {"name": "a", "in": "query", "type": "boolean", "default": True}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": True}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "boolean", "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # TODO
-        /*p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        /*p = base.parameters + {"a": {"name": "a", "in": "query", "type": "file"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "file"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "file"}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));*/
 
-        p = {"a": {"name": "a", "in": "query", "type": "integer", "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "default": 5}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "integer", "default": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "integer", "default": "a"}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "number", "default": 2.0}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "default": 2.0}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "number", "default": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "number", "default": "a"}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": {"name": "a", "in": "query", "type": "string", "default": "a"}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "default": "a"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "string", "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
     }
 
@@ -1033,97 +1046,97 @@ public class SwaggerTest inherits QUnit::Test {
         hash p;
 
         # type checks
-        p = {"a": paramBase + {"items": {}}};
+        p = base.parameters + {"a": paramBase + {"items": {}}};
         assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": paramBase + {"items": {"type": 5}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": 5}}};
         assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": paramBase + {"items": {"type": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "a"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # TODO array of array
-        /*p = {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        /*p = base.parameters + {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));*/
-        p = {"a": paramBase + {"items": {"type": "boolean"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "boolean"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "integer"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "number"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # format checks
-        p = {"a": paramBase + {"items": {"type": "string", "format": 5}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": 5}}};
         assertThrows("INVALID-FIELD-TYPE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "integer", "format": "int32"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "format": "int32"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "integer", "format": "int64"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "format": "int64"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "integer", "format": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "format": "a"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "number", "format": "double"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "double"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "number", "format": "float"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "float"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "number", "format": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number", "format": "a"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "string", "format": "binary"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "binary"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "format": "byte"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "byte"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "format": "date"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "date"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "format": "date-time"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "date-time"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "format": "password"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "password"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "format": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "a"}}};
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # collectionFormat checks
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "ssv", "items": {"type": "string"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "tsv", "items": {"type": "string"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "pipes", "items": {"type": "string"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": 5, "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": 5, "items": {"type": "string"}}}};
         assertThrows("INVALID-FIELD-TYPE", "collectionFormat", loadyaml, my_make_yaml(base + {"parameters": p}));
-        p = {"a": paramBase + {"items": {"type": "array", "collectionFormat": "a", "items": {"type": "string"}}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "a", "items": {"type": "string"}}}};
         assertThrows("INVALID-FIELD-VALUE", "collectionFormat", loadyaml, my_make_yaml(base + {"parameters": p}));
 
         # default checks
 
         # TODO array of array
-        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        /*p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));*/
 
-        p = {"a": paramBase + {"items": {"type": "boolean", "default": True}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "boolean", "default": True}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "boolean", "default": 5}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "boolean", "default": 5}}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "integer", "default": 5}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "default": 5}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "integer", "default": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "integer", "default": "a"}}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "number", "default": 2.0}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number", "default": 2.0}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "number", "default": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "number", "default": "a"}}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
 
-        p = {"a": paramBase + {"items": {"type": "string", "default": "a"}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "default": "a"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
-        p = {"a": paramBase + {"items": {"type": "string", "default": 5}}};
+        p = base.parameters + {"a": paramBase + {"items": {"type": "string", "default": 5}}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
     }
 
@@ -1246,9 +1259,9 @@ public class SwaggerTest inherits QUnit::Test {
         # default checks
 
         # TODO array of array
-        /*p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        /*p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
-        p = {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"responses": r}));*/
 
         r = {"a": {"description": "a", "headers": {"a": {"type": "boolean", "default": True}}}};
@@ -1320,7 +1333,7 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
 
         # TODO array of array
-        /*p = {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
+        /*p = base.parameters + {"a": {"name":"a", "in": "query", "type": "array", "items": {"type": "string"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));*/
         s = {"type": "boolean"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
@@ -1698,6 +1711,7 @@ public class SwaggerTest inherits QUnit::Test {
             b.parameters.a += (
                 "in": "body",
                 "name": "body",
+                "required": True,
                 "schema": (
                     "$ref": "#/definitions/a",
                 ),
@@ -1706,6 +1720,26 @@ public class SwaggerTest inherits QUnit::Test {
                 "get": (
                     "parameters": ((
                         "$ref": "#/parameters/a",
+                    ),),
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                        MimeTypeFormUrlEncoded,
+                        MimeTypeMultipartFormData,
+                    ),
+                    "produces": (
+                        MimeTypeJson,
+                        MimeTypeYamlRpc,
+                    ),
+                ),
+                "put": (
+                    "parameters": ((
+                        "$ref": "#/parameters/enum",
                     ),),
                     "responses": (
                         "200": (
@@ -1732,7 +1766,24 @@ public class SwaggerTest inherits QUnit::Test {
 
             b.definitions.a.properties.a.readOnly = False;
             so = new SwaggerSchema(b);
-            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
+
+            # issue #2369
+            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/api/smtg"));
+
+            b.parameters.a.required = False;
+            so = new SwaggerSchema(b);
+            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg");
+            assertEq("/api/smtg", h.uri_path);
+            assertNothing(h.body);
+
+            # by default, parameters are optional
+            remove b.parameters.a.required;
+            so = new SwaggerSchema(b);
+            h = so.processRequest("get", "/api/smtg");
+            assertEq("/api/smtg", h.uri_path);
+            assertNothing(h.body);
+
+            h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
             assertEq("/api/smtg", h.uri_path);
             assertEq("a=a", h.body);
             assertEq(MimeTypeFormUrlEncoded, h.content);
@@ -1752,6 +1803,9 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("get", h.uri_path, h.body, \hdr));
             }
 
+            # test for issue #2365
+            assertThrows("SCHEMA-VALIDATION-ERROR", "Parameter \"a\".*invalid type", \so.processRequest(), ("get", "/api/smtg", ("a": 1)));
+
             assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
 
             h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
@@ -1766,6 +1820,14 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("/api/smtg", sh.path);
                 assertEq("a", sh.body.a);
             }
+
+            # issue #2364 enum check
+            h = so.processRequest("put", "/api/smtg", 1);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "enum.*values", \so.processRequest(), ("put", "/api/smtg", 4));
         }
 
         {
@@ -1922,7 +1984,7 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(MimeTypeJson, res.hdr."Content-Type");
 
             body.shipDate = "1990-01-01";
-            assertThrows("SCHEMA-VALIDATION-ERROR", "body.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "shipDate.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
         }
     }
 
