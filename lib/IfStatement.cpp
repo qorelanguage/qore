@@ -84,3 +84,13 @@ int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
+
+void IfStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (if_code) {
+      if_code->parseCommit(pgm);
+   }
+   if (else_code) {
+      else_code->parseCommit(pgm);
+   }
+}

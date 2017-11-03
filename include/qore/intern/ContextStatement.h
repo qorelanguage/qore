@@ -77,6 +77,7 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return false;
    }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

@@ -420,25 +420,12 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
    return lvids;
 }
 
-DLLLOCAL void StatementBlock::parseCommitIntern(statement_list_t::iterator start) {
-   if (start != statement_list.end())
-      ++start;
-   else
-      start = statement_list.begin();
-
-   // commit the block to the Program object
-   qore_program_private* p = qore_program_private::get(*getProgram());
-   p->registerStatement(this);
-
-   //printd(5, "StatementBlock::parseCommitIntern() this: %p start: %d empty: %d\n", this, start == statement_list.begin(), statement_list.empty());
-
-   for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i) {
+void StatementBlock::parseCommit(QoreProgram* pgm) {
+   // add block to the list only when no statements inside
+   qore_program_private::registerStatement(pgm, this, statement_list.empty());
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
       // register and add statements
-      p->registerStatement(*i);
-      p->addStatementToIndex(*i);
-      StatementBlock* b = dynamic_cast<StatementBlock*>(*i);
-      if (b)
-         b->parseCommit();
+      (*i)->parseCommit(pgm);
    }
 }
 
@@ -587,9 +574,16 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    return;
 }
 
-DLLLOCAL void TopLevelStatementBlock::parseCommit() {
-   parseCommitIntern(hwm);
-   hwm = statement_list.last();
+void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
+   if (hwm != statement_list.end()) {
+      statement_list_t::iterator i = hwm;
+      i++;
+      for (statement_list_t::iterator e = statement_list.end(); i != e; ++i) {
+         // register and add statements
+         (*i)->parseCommit(pgm);
+      }
+      hwm = statement_list.last();
+   }
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {

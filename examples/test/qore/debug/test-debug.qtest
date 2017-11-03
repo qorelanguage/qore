@@ -477,7 +477,7 @@ class DebugTest inherits QUnit::Test {
         );
         list action3 = list(DebugRun, ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
         b2.setEnabled(False);
-        checkProgram("breakpoint b1(enable), b2(dísable)", action3, traceLog3, "DIVISION-BY-ZERO");
+        checkProgram("breakpoint b1(enable), b2(disable)", action3, traceLog3, "DIVISION-BY-ZERO");
         b2.setEnabled(True);
         b2.setPolicy(BreakpointPolicyReject);
         checkProgram("breakpoint b1(enable), b2(reject)", action3, traceLog3, "DIVISION-BY-ZERO");
