@@ -1709,7 +1709,7 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, Qor
 
 void UserVariantBase::parseCommit() {
    if (statements)
-      statements->parseCommit();
+      statements->parseCommit(getProgram());
 }
 
 int QoreFunction::parseCheckDuplicateSignatureCommitted(UserSignature* sig) {

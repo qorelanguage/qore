@@ -150,9 +150,7 @@ public:
    // initialize closure blocks
    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
 
-   DLLLOCAL void parseCommit() {
-      parseCommitIntern(statement_list.end());
-   }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
    DLLLOCAL void exec();
 
@@ -193,7 +191,7 @@ public:
    using StatementBlock::parseInit;
    DLLLOCAL void parseInit(int64 po);
 
-   DLLLOCAL void parseCommit();
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
    DLLLOCAL void parseRollback() {
       // delete all statements after the high water mark (hwm) to the end of the list
