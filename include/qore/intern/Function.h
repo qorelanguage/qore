@@ -416,7 +416,11 @@ public:
    // the default implementation of this function does nothing
    DLLLOCAL virtual void parseInit(QoreFunction* f) {
    }
-};
+
+   // the default implementation of this function does nothing
+   DLLLOCAL virtual void parseCommit() {
+   }
+ };
 
 class VRMutex;
 class UserVariantExecHelper;
@@ -471,6 +475,8 @@ public:
    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
 
    DLLLOCAL void parseInitPopLocalVars();
+
+   DLLLOCAL void parseCommit();
 };
 
 // the following defines the pure virtual functions that are common to all user variants
@@ -479,7 +485,8 @@ public:
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() { return static_cast<UserVariantBase*>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature*>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
-   DLLLOCAL virtual void setRecheck() { recheck = true; }
+   DLLLOCAL virtual void setRecheck() { recheck = true; } \
+   DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); }
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {

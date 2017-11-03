@@ -190,3 +190,11 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
+
+void ContextStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (code) {
+      code->parseCommit(pgm);
+   }
+}
+

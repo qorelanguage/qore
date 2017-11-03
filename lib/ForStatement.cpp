@@ -112,3 +112,11 @@ int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
+
+void ForStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (code) {
+      code->parseCommit(pgm);
+   }
+}
+

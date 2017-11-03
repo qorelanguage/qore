@@ -51,3 +51,10 @@ int OnBlockExitStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
+
+void OnBlockExitStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (code) {
+      code->parseCommit(pgm);
+   }
+}
