@@ -1711,6 +1711,7 @@ public class SwaggerTest inherits QUnit::Test {
             b.parameters.a += (
                 "in": "body",
                 "name": "body",
+                "required": True,
                 "schema": (
                     "$ref": "#/definitions/a",
                 ),
@@ -1765,7 +1766,24 @@ public class SwaggerTest inherits QUnit::Test {
 
             b.definitions.a.properties.a.readOnly = False;
             so = new SwaggerSchema(b);
-            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
+
+            # issue #2369
+            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/api/smtg"));
+
+            b.parameters.a.required = False;
+            so = new SwaggerSchema(b);
+            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg");
+            assertEq("/api/smtg", h.uri_path);
+            assertNothing(h.body);
+
+            # by default, parameters are optional
+            remove b.parameters.a.required;
+            so = new SwaggerSchema(b);
+            h = so.processRequest("get", "/api/smtg");
+            assertEq("/api/smtg", h.uri_path);
+            assertNothing(h.body);
+
+            h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
             assertEq("/api/smtg", h.uri_path);
             assertEq("a=a", h.body);
             assertEq(MimeTypeFormUrlEncoded, h.content);
