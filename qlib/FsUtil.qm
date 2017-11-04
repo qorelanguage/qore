@@ -101,7 +101,7 @@ public namespace FsUtil {
         }
 
         public bool is_absolute(string path) {
-            return path[0] == Delimiter || regex(path, '^[a-zA-Z]:\\');
+            return Qore::absolute_path_windows(path);
         }
     }
 
@@ -111,7 +111,7 @@ public namespace FsUtil {
         }
 
         public bool is_absolute(string path) {
-            return path[0] == Delimiter;
+            return Qore::absolute_path_unix(path);
         }
     }
 
