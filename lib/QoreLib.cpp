@@ -1904,7 +1904,7 @@ bool q_absolute_path_windows(const char* path) {
    // note that '\' and '/' are both accepted as path separator characters on Windows
    if (path[0] == '\\' || path[0] == '/')
       return true;
-   if (isalpha(path[0]) && path[1] == ':' && path[2] == '\\')
+   if (isalpha(path[0]) && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
       return true;
    return false;
 }
