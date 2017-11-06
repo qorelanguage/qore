@@ -219,6 +219,7 @@ class OracleTest inherits SqlTestBase {
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
             addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("issue 2163", \issue2163());
         }
 
         set_return_value(main());
@@ -329,6 +330,29 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         *hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRIVER");
         assertEq(True, exists c, "column 'driver' must exist in the table");
+    }
+
+    issue2163() {
+        if (!table)
+            testSkip("no DB connection");
+
+        string sql;
+        on_error printf("SQL: %s\n", sql);
+
+        Columns cols = table.describe();
+        list cl = cols.keys();
+
+        string col1 = cl[0];
+        string col2 = cl[1];
+        hash sh = (
+            "columns": (col1, col2, cop_as(cop_over(cop_max(col2), col1), "max_val")),
+            "superquery": (
+                "columns": (cop_distinct(col1), col2),
+                "where": ("max_val": op_ceq(col2)),
+            ),
+            );
+
+        assertEq(Type::List, table.selectRows(sh, \sql).type());
     }
 
     private usageIntern() {
