@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_QORELOGICALEQUALSOPERATORNODE_H
 
-class QoreLogicalEqualsOperatorNode : public QoreBinaryOperatorNode<QoreOperatorNode> {
+class QoreLogicalEqualsOperatorNode : public QoreBinaryOperatorNode<> {
 protected:
    // type of pointer to optimized versions depending on arguments found at parse-time
    typedef bool(QoreLogicalEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
@@ -55,7 +55,7 @@ protected:
    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(n_left, n_right), pfunc(0) {
+   DLLLOCAL QoreLogicalEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, n_left, n_right), pfunc(nullptr) {
    }
 
    DLLLOCAL ~QoreLogicalEqualsOperatorNode() {
@@ -75,10 +75,6 @@ public:
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const {
       return logical_equals_str.getBuffer();
-   }
-
-   DLLLOCAL virtual bool hasEffect() const {
-      return false;
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

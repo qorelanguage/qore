@@ -33,7 +33,7 @@
 
 #define _QORE_WHILESTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class WhileStatement : public AbstractStatement {
 protected:
@@ -52,6 +52,7 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return true;
    }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

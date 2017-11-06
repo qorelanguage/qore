@@ -33,7 +33,7 @@
 
 #define _QORE_FORSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class StatementBlock;
 class LVList;
@@ -55,6 +55,7 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return true;
    }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

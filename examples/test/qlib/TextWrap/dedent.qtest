@@ -1,0 +1,131 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class DedentTest
+
+#! Test TextWrap::dedent()
+public class DedentTest inherits QUnit::Test {
+    constructor () : Test ("DedentTest", "1.0") {
+        addTestCase ("TextWrap - test_dedent_nomargin", \test_dedent_nomargin());
+        addTestCase ("TextWrap - test_dedent_even", \test_dedent_even());
+        addTestCase ("TextWrap - test_dedent_uneven", \test_dedent_uneven());
+        addTestCase ("TextWrap - test_dedent_preserve_internal_tabs", \test_dedent_preserve_internal_tabs());
+        addTestCase ("TextWrap - test_dedent_preserve_margin_tabs", \test_dedent_preserve_margin_tabs());
+        set_return_value(main());
+    }
+
+    private {
+        string text;
+        string expect;
+    }
+
+    #! Assert that dedent() has no effect on 'text'
+    assertUnchanged (string text) {
+        assertEq (text, dedent(text));
+    }
+
+    test_dedent_nomargin () {
+        # No lines indented.
+        text = "Hello there.\nHow are you?\nOh good, I'm glad.";
+        self.assertUnchanged(text);
+
+        # Similar, with a blank line.
+        text = "Hello there.\n\nBoo!";
+        self.assertUnchanged(text);
+
+        # Some lines indented, but overall margin is still zero.
+        text = "Hello there.\n  This is indented.";
+        self.assertUnchanged(text);
+
+        # Again, add a blank line.
+        text = "Hello there.\n\n  Boo!\n";
+        self.assertUnchanged(text);
+    }
+
+    test_dedent_even () {
+        # All lines indented by two spaces.
+        text = "  Hello there.\n  How are ya?\n  Oh good.";
+        expect = "Hello there.\nHow are ya?\nOh good.";
+        assertEq (expect, dedent(text));
+
+        # Same, with blank lines.
+        text = "  Hello there.\n\n  How are ya?\n  Oh good.\n";
+        expect = "Hello there.\n\nHow are ya?\nOh good.\n";
+        assertEq (expect, dedent(text));
+
+        # Now indent one of the blank lines.
+        text = "  Hello there.\n  \n  How are ya?\n  Oh good.\n";
+        expect = "Hello there.\n\nHow are ya?\nOh good.\n";
+        assertEq (expect, dedent(text));
+    }
+
+    test_dedent_uneven () {
+        # Lines indented unevenly.
+        text = "        def foo():
+            while 1:
+                return foo
+        ";
+        expect = "def foo():
+    while 1:
+        return foo
+";
+        assertEq (expect, dedent(text));
+
+        # Uneven indentation with a blank line.
+        text = "  Foo\n    Bar\n\n   Baz\n";
+        expect = "Foo\n  Bar\n\n Baz\n";
+        assertEq (expect, dedent(text));
+
+        # Uneven indentation with a whitespace-only line.
+        text = "  Foo\n    Bar\n \n   Baz\n";
+        expect = "Foo\n  Bar\n\n Baz\n";
+        assertEq (expect, dedent(text));
+    }
+
+    # dedent() should not mangle internal tabs
+    test_dedent_preserve_internal_tabs () {
+        text = "  hello\tthere\n  how are\tyou?";
+        expect = "hello\tthere\nhow are\tyou?";
+        assertEq (expect, dedent(text));
+
+        # make sure that it preserves tabs when it's not making any changes at all
+        assertEq (expect, dedent(expect));
+    }
+
+    # dedent() should not mangle tabs in the margin (i.e.
+    # tabs and spaces both count as margin, but are *not*
+    # considered equivalent)
+    test_dedent_preserve_margin_tabs () {
+        text = "  hello there\n\thow are you?";
+        self.assertUnchanged(text);
+
+        # same effect even if we have 8 spaces
+        text = "        hello there\n\thow are you?";
+        self.assertUnchanged(text);
+
+        # dedent() only removes whitespace that can be uniformly removed!
+        text = "\thello there\n\thow are you?";
+        expect = "hello there\nhow are you?";
+        assertEq (expect, dedent(text));
+
+        text = "  \thello there\n  \thow are you?";
+        assertEq (expect, dedent(text));
+
+        text = "  \t  hello there\n  \t  how are you?";
+        assertEq (expect, dedent(text));
+
+        text = "  \thello there\n  \t  how are you?";
+        expect = "hello there\n  how are you?";
+        assertEq (expect, dedent(text));
+
+        # test margin is smaller than smallest indent
+        text = "  \thello there\n   \thow are you?\n \tI'm fine, thanks";
+        expect = " \thello there\n  \thow are you?\n\tI'm fine, thanks";
+        assertEq (expect, dedent(text));
+    }
+}

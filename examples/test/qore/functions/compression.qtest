@@ -19,6 +19,9 @@ public class CompressionTest inherits QUnit::Test {
         # Binary formatted as string. Has the ability to crash the underlying bzip2 library.
         const BadBzip2 = binary("BZh91AY&SYwcUC^@^@^Có<80>^@^P^@@@^@^D^@ å<9c>@ ^@!©<90>Ð7©\n`^@^Z<85>^ZY<8f>-<97>ë^RS¬Igø»<92>)Â<84><83>»^Zª^X");
 
+        const CompressedData = <789c0bc9c82c5600a244859cfcbc7485e292a24c205581070000ef8814dd>;
+        const GzippedData = <1f8b08000000000000030bc9c82c5600a244859cfcbc7485e292a24c20558107000048db40a932000000>;
+
         const UncompressedString = "This is a long string xxxxxxxxxxxxxxxxxxxxxxxxxxxx";
         const UncompressedBinary = binary(UncompressedString);
 
@@ -31,32 +34,31 @@ public class CompressionTest inherits QUnit::Test {
     }
 
     constructor() : Test("CompressionTest", "1.0") {
-        addTestCase("gzip tests", \gzipTest(), NOTHING);
-        addTestCase("bzip compression test", \testCompress(), NOTHING);
-        addTestCase("bzip decompression test", \testDecompress(), NOTHING);
-        addTestCase("bzip bad data decompression test", \testBad(), NOTHING);
+        addTestCase("zlib tests", \zlibTest());
+        addTestCase("bzip compression test", \bzip2Test());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
 
-    testCompress() {
-        testAssertion("test compressing string", \bzip2(), (UncompressedString,), new TestResultValue(Bzip2CompressedString));
-        testAssertion("test compressing binary", \bzip2(), (UncompressedBinary,), new TestResultValue(Bzip2CompressedString));
-    }
+    zlibTest() {
+        assertEq(UncompressedString, uncompress_to_string(CompressedString));
+        assertEq(UncompressedBinary, uncompress_to_binary(CompressedString));
 
-    testDecompress() {
-        testAssertion("test decompressing into string", \bunzip2_to_string(), (Bzip2CompressedString,), new TestResultValue(UncompressedString));
-        testAssertion("test decompressing into binary", \bunzip2_to_binary(), (Bzip2CompressedString,), new TestResultValue(UncompressedBinary));
-    }
+        assertEq(UncompressedString, gunzip_to_string(GzippedString));
+        assertEq(UncompressedBinary, gunzip_to_binary(GzippedString));
 
-    testBad() {
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadBzip2);
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadBzip2);
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadGzip);
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadGzip);
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadDeflate);
-        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadDeflate);
+        assertEq(CompressedData, compress(UncompressedString));
+        assertEq(UncompressedString, uncompress_to_string(CompressedData));
+        assertEq(binary(UncompressedString), uncompress_to_binary(CompressedData));
+
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { uncompress_to_binary(CompressedData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { uncompress_to_binary(CompressedData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { uncompress_to_binary(GzippedData); });
+        assertThrows("ZLIB-ERROR", "Unexpected end", sub() { uncompress_to_string(CompressedData.substr(0, 20)); });
+        assertThrows("ZLIB-ERROR", "Unexpected bytes", sub() { uncompress_to_string(CompressedData + <01>); });
+        assertThrows("ZLIB-ERROR", "corrupted", sub() { uncompress_to_string(GzippedData); });
+
         assertThrows("ZLIB-ERROR", \gunzip_to_binary(), BadGzip);
         assertThrows("ZLIB-ERROR", \gunzip_to_string(), BadGzip);
         assertThrows("ZLIB-ERROR", \gunzip_to_binary(), BadBzip2);
@@ -71,11 +73,20 @@ public class CompressionTest inherits QUnit::Test {
         assertThrows("ZLIB-ERROR", \uncompress_to_string(), BadGzip);
     }
 
-    gzipTest() {
-        assertEq(UncompressedString, uncompress_to_string(CompressedString));
-        assertEq(UncompressedBinary, uncompress_to_binary(CompressedString));
+    bzip2Test() {
+        assertEq(Bzip2CompressedString, bzip2(UncompressedString));
+        assertEq(Bzip2CompressedString, bzip2(UncompressedBinary));
 
-        assertEq(UncompressedString, gunzip_to_string(GzippedString));
-        assertEq(UncompressedBinary, gunzip_to_binary(GzippedString));
+        assertEq(UncompressedString, bunzip2_to_string(Bzip2CompressedString));
+        assertEq(UncompressedBinary, bunzip2_to_binary(Bzip2CompressedString));
+
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadBzip2);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadBzip2);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadGzip);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadGzip);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_binary(), BadDeflate);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", \bunzip2_to_string(), BadDeflate);
+        assertThrows("BZIP2-DECOMPRESS-ERROR", sub() { bunzip2_to_binary(Bzip2CompressedString.substr(0, 20)); });
+        assertThrows("BZIP2-DECOMPRESS-ERROR", sub() { bunzip2_to_binary(Bzip2CompressedString + <01>); });
     }
 }

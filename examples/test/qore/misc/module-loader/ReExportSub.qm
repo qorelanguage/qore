@@ -3,7 +3,7 @@
 %new-style
 
 %requires(reexport) ./A.qm
-#/;
+%requires(reexport) ./B.qm
 
 module ReExportSub {
     version = "1.0";

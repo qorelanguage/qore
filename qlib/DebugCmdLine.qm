@@ -1,0 +1,1372 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugCmdLine.qm Debug common code
+
+/*  DebugCmdLine.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires(reexport) DebugUtil
+%requires linenoise
+%requires Util
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-debugging
+
+module DebugCmdLine {
+    version = "0.1";
+    desc = "user module providing common command line debug stuff";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugCmdLine Module
+
+    @tableofcontents
+
+    @section debugcmdlineintro Introduction to the DebugCmdLine Module
+
+    The %DebugCmdLine module provides common functionality for implementing debugger client utilities
+
+    @subsection dcl_v0_1 v0.1
+    - the initial version of the DebugCommandLine module
+*/
+
+#! the DebugCmdLine namespace contains all the definitions in the DebugCmdLine module
+public namespace DebugCmdLine {
+
+    /**
+        When implementing a wrapper which executes program whose name is passed at command line then we can divide
+        arguments usually into 3 groups, internal wrapper arguments, target program filename and program arguments.
+        The class support argument parsing for such a case.
+
+        Examples:
+            (   # GetOpt options
+                'help': 'h,help',
+                'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+            wrapper-prog -v -l xxx trg -v -l    # trg is the target program name
+            wrapper-prog -v -h trg xxx          # trg is the target program name
+            wrapper-prog -v --listen=xxx trg    # trg is the target program name
+            wrapper-prog -v --listen xxx trg    # trg is the target program name
+        **/
+    public class WrapperGetOpt inherits GetOpt {
+        #! create the object with the given @ref Qore::GetOpt "GetOpt" option hash
+        public constructor(hash options) : GetOpt(options) {
+        }
+
+        #! Parses input arguments until a standalone argument is found.
+        /**
+            @param args @ref list of arguments passed to wrapper, typically ARGV
+            @param wrp_args returns list of wrapper arguments
+            @param pgm_name returns the target program filename; "" is considered a special file name (meaning \c stdin), NOTHING when no name provided
+            @param pgm_args return @ref list of target program arguments
+
+            @par Example:
+            @code{.py}
+            hash opts = (
+                'help': 'h,help',
+                'verbose': 'v,verbose',
+                'listen': 'l,listen=s@',
+            );
+            WrapperGetOpt g(opts);
+            list dargs;
+            hash opt;
+            *string fileName;
+            g.split(ARGV, \dargs, \fileName, \ARGV);
+
+            try {
+                opt = g.parse2(\dargs);
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                help(-1);
+            }
+
+            if (exists fileName) {
+                stderr.print("No input file\n");
+                exit(-1);
+            }
+            @endcode
+        **/
+        public split(list<string> args, reference<list<string>> wrp_args, reference<*string> pgm_name, reference<list<string>> pgm_args) {
+            pgm_name = NOTHING;
+            wrp_args = new list<string>();
+            pgm_args = new list<string>();
+            while (args) {
+                string s = shift args;
+                push wrp_args, s;
+                if (s !~ /^\-/ ) {
+                    list a = wrp_args;
+                    parse(\a);
+                    if (a) {
+                        # last arg is filename
+                        pgm_name = s;
+                        pop wrp_args;
+                        break;
+                    }
+                } else if (s == '--') {
+                    pgm_name = '';
+                    pop wrp_args;
+                    break;
+                }
+            }
+            pgm_args = args;
+        }
+    }
+
+    #! debug command line class
+    public class DebugCommandLine inherits AbstractDebugControl {
+        public {
+            string ln_prompt = 'qdbg> ';
+            hash cx;
+        }
+
+        private {
+            const fcHelp = 0x01;
+            const fcExpandUniqueCmd = 0x02;
+            const fcValidate = 0x04;
+            const fcFallback = 0x08;
+
+            Qore::Thread::RWLock rwlContext();
+
+            hash commands = (
+                '>': (
+                    'help': (
+                        '**': (
+                            'desc': 'help/*',
+                            'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                shift path;
+                                if (path[0] == 'help') return ();
+                                *hash cmd = dcl.findCmd(path + args, fcHelp | fcExpandUniqueCmd);
+                                if (!cmd.variants) return ();
+                                return keys cmd.variants;
+                            },
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                shift path; # remove help arg
+                                int last_param;
+                                # get full path list
+                                list fl = path + args;
+                                *hash cmd = dcl.findCmd(fl, fcHelp | fcExpandUniqueCmd, \last_param);
+                                # see if we have an unknown command or option
+                                if (last_param < fl.size()) {
+                                    if (!last_param)
+                                        printf("%s: unknown command; try \"help\"\n", fl[0]);
+                                    else {
+                                        string ctxt = fl[0..(last_param - 1)].join(' ');
+                                        printf("%s: unknown argument %y; try \"help %s\"\n", ctxt, fl[last_param], ctxt);
+                                    }
+                                    return;
+                                }
+                                string full_cmd = fl[0..(last_param - 1)].join(" ");
+                                #printf("fl: %y lp: %y full_cmd: %N\n", fl, last_param, full_cmd);
+                                if (cmd.cmd) {
+                                    printf("%s: %s\n", full_cmd, cmd.cmd.desc);
+                                }
+                                if (cmd.cmd.aliases) {
+                                    printf("Aliases of %s: %s\n", cmd.cmd.name, sort(cmd.cmd.aliases).join(', '));
+                                }
+                                cmd = dcl.findCmd(fl + '', fcHelp);
+                                if (cmd.variants.typeCode()==NT_HASH) {
+                                    printf("\nSubcommand list: %s\n", dcl.listVariantCmds(cmd.variants));
+                                }
+                            },
+                        ),
+                        'desc': 'get help about command',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            shift path; # remove help arg
+                            *hash cmd = dcl.findCmd(list('') , fcHelp);
+                            printf("Command root list: %s\n", dcl.listVariantCmds(cmd.variants));
+                        },
+                    ),
+                    'version': (
+                        'desc': 'get version info',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash res.client = (
+                                'class': dcl.className(),
+                            );
+                            try {
+                                hash data.cmd = 'version';
+                                res.host = dcl.doCommandImpl(data).result;
+                            } catch (hash<ExceptionInfo> ex) {
+                            }
+                            dcl.printData(res);
+                        },
+                    ),
+                    'history': (
+                        '>': (
+                            'load': (
+                                'desc': 'load history from file',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        Linenoise::history_load(fn);
+                                    }
+                                },
+                            ),
+                            'save': (
+                                'desc': 'save history to file',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    *string fn = shift args;
+                                    if (exists fn) {
+                                        Linenoise::history_save(fn);
+                                    }
+                                },
+                            ),
+
+                        ),
+                        'desc': 'load or save history to file',
+                    ),
+                    'quit': (
+                        'desc': 'quit debugger',
+                        'action': bool sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            return True;
+                        },
+                    ),
+
+                    'cmd': (
+                        'desc': 'send a command to the server and show the output',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            #printf("path: %y args: %y\r\n", path, args);
+                            hash data;
+                            try {
+                                foreach string str in (args) {
+                                    any v = parse_to_qore_value(str);
+                                    if (v.typeCode() == NT_STRING && !data) {
+                                        data.cmd = v;
+                                        continue;
+                                    }
+                                    if (v.typeCode() != NT_HASH)
+                                        throw "CMD-ARG-ERROR", sprintf("arg must be a hash; got type %y instead", v.type());
+                                    data += v;
+                                }
+                                if (!data)
+                                    stdout.printf("syntax: cmd <hash>\r\n");
+                                else {
+                                    dcl.doCommand(data);
+                                }
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                stdout.printf("ERROR: cmd cannot be parsed: %s: %s\r\n", ex.err, ex.desc);
+                            }
+                        },
+                    ),
+                    'frame': (
+                        '>': {
+                            'set': (
+                                'desc': 'set current frame, arg: frameId',
+                                '*': (
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/stack';
+                                        data.tid = dcl.checkThreadId();
+                                        *hash th = dcl.doCommandImpl(data);
+                                        return th.result.size() > 1 ? range(0, th.result.size()-2) : ();   # TODO: is removing bottom item reliable rule ?
+                                    },
+                                    'validate': \DebugCommandLine::validateInt(),
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data = (
+                                            "cmd": "thread/debug/frame/set",
+                                            "tid": dcl.checkThreadId(),
+                                            "value": pop path,
+                                        );
+                                        dcl.doCommand(data);
+                                        stdout.printf("frameId set to %y\r\n", data.value);
+                                    },
+                                ),
+                            ),
+                            'get': (
+                                'desc': 'get current frame',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data = (
+                                        "cmd": "thread/debug/frame/get",
+                                        "tid": dcl.checkThreadId(),
+                                    );
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                        },
+                        'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
+                            switch (args[0] ?? '') {
+                            case '':
+                                unshift args, 'get';
+                                break;
+                            case /^[0-9]+$/:
+                                unshift args, 'set';
+                                break;
+                            }
+                        },
+                        'desc': 'frame related commands',
+                    ),
+                    'session': (
+                        'desc': 'get list of debugged programs and stopped threads',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'session';
+                            *hash sh = dcl.doCommandImpl(data).result;
+                            if (sh) {
+                                foreach hash ph in (sh.pairIterator()) {
+                                    if (ph.value.interrupted) {
+                                        stdout.printf("+ %y (program %d, %d blocked %s)\r\n", ph.value.scriptName, ph.key, ph.value.interrupted.size(), plural(ph.value.interrupted.size(), "thread"));
+                                        stdout.printf("  - blocked %s: %s\r\n", plural(ph.value.interrupted.size(), "TID"), (foldl $1 + ", " + $2, ph.value.interrupted));
+                                    }
+                                    else
+                                        stdout.printf("+ %y (program %d, no blocked threads)\r\n", ph.value.scriptName, ph.key);
+                                }
+                            }
+                            else
+                                stdout.printf("no programs are currently being debugged\r\n");
+                        },
+                    ),
+                    'program': (
+                        'alias': 'pgm',
+                    ),
+                    'pgm': (
+                        '>': (
+                            'load': (
+                                'desc': 'load and run script, filename [args..]',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program//create';
+                                    data.filename = shift args;
+                                    if (!exists data.filename)
+                                        throw "DEBUG-COMMAND", "Missing file name";
+                                    data.args = args;
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'search': (
+                                'desc': 'regex search for a program',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    if (!args[0].val()) {
+                                        stdout.printf("usage: pgm search <regex>\n");
+                                        return;
+                                    }
+                                    hash data.cmd = 'program//list';
+                                    *hash pgm_info = dcl.doCommandImpl(data);
+                                    hash rh;
+                                    foreach hash h in (pgm_info.result.pairIterator()) {
+                                        if (regex(h.value.scriptName ?? "", args[0]))
+                                            rh{h.key} = h.value;
+                                    }
+                                    if (!rh)
+                                        stdout.printf("no program matching %y found out of %d programs\r\n", args[0], pgm_info.result.size());
+                                    else {
+                                        DebugCommandLine::showPrograms(rh);
+                                    }
+                                },
+                            ),
+                            'list': (
+                                '>': (
+                                    'full': (
+                                        'desc': 'verbose program listing',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            hash data.cmd = 'program//list';
+                                            dcl.doCommand(data);
+                                        },
+                                    ),
+                                ),
+                                'desc': 'list programs, [full] for a verbose listing',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program//list';
+                                    *hash pgm_info = dcl.doCommandImpl(data);
+                                    if (pgm_info.result)
+                                        DebugCommandLine::showPrograms(pgm_info.result);
+                                    else
+                                        stdout.printf("no results returned from server\n\r");
+                                },
+                            ),
+                            'set': (
+                                'desc': 'set current program, arg: programId',
+                                '*': (
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        if (sd.result) {
+                                            return keys sd.result;
+                                        } else {
+                                            return ();
+                                        }
+                                    },
+                                    'validate': \DebugCommandLine::validateInt(),
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        string val = pop path;
+                                        dcl.setContextValue('programId', val);
+                                        stdout.printf("remote program context set to %y\r\n", val);
+                                    },
+                                ),
+                            ),
+                            'get': (
+                                'desc': 'get current program',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    auto v = dcl.getContextValue('programId');
+                                    if (!exists v)
+                                        stdout.printf("no current program set (pgm set <id> to set)\r\n");
+                                    else
+                                        dcl.printData(v);
+                                },
+                            ),
+                            'add': (
+                                'desc': 'add current program for debugging',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/add';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'remove': (
+                                'desc': 'remove current program from debugging',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/remove';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'stop': (
+                                'desc': 'stop current program, args: [threadId] to stop particular thread',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId();
+                                    if (exists args[0]) {
+                                        data.cmd += '/thread/'+args[0];
+                                    }
+                                    data.cmd += '/stop';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'global': (
+                                '*': (
+                                    'desc': 'get/set global variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/';
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = call_function_args(\dcl.parseValue(), args);
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get/set global variable',
+                            ),
+                            'define': (
+                                '*': (
+                                    'desc': 'get defines',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return keys sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/define/'+pop path+'/get';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/define//list';
+                                    dcl.doCommand(data);
+                                },
+                                'desc': 'get defines',
+                            ),
+                            'options': (
+                                'desc': 'list parse options',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/options';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'info': (
+                                'desc': 'get info about current program and list threads',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/='+dcl.checkProgramId()+'/list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                        ),
+                        'desc': 'program related commands',
+                        /* TODO: what is intended enumeration ?
+                        'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'program//list';
+                            *hash pgm_info = dcl.doCommandImpl(data);
+                            list rv = ();
+                            *string p = shift path;
+                            bool id = p =~ /^[0-9]+$/;
+                            foreach hash h in (pgm_info.pairIterator()) {
+                                if (!p.val())
+                                    rv += h.key.toInt();
+                                else {
+                                    if (id) {
+                                        if (regex(h.key, "^" + p))
+                                            rv += h.key.toInt();
+                                    }
+                                    else if (h.value.scriptName.val() && regex(h.value.scriptName, "^" + p))
+                                        rv += h.value.scriptName();
+                                }
+                            }
+                            return rv;
+                        },
+                        */
+                        'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
+                            switch (args[0] ?? '') {
+                            case '':
+                                unshift args, 'info';
+                                break;
+                            case /^[0-9]+$/:
+                                unshift args, 'set';
+                                break;
+                            }
+                        },
+                    ),
+                    'break': (
+                        '>': (
+                            'list': (
+                                'desc': 'list breakpoints',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'create': (
+                                'desc': 'create breakpoint',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//create';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'delete': (
+                                '*': (
+                                    'desc': 'delete breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/delete';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get breakpoint',
+                            ),
+                            'enable': (
+                                '*': (
+                                    'desc': 'enable breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/enable';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'enable breakpoint',
+                            ),
+                            'disable': (
+                                '*': (
+                                    'desc': 'disable breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/disable';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'disable breakpoint',
+                            ),
+                            'policy': (
+                                '*': (
+                                    'desc': 'get breakpoint policy',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    '*': (
+                                        'desc': 'set breakpoint policy',
+                                        'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            return DebugCommandLine::enumFilter(keys policyStrings, pop path);
+                                        },
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+path[path.size()-2]+'/policy/set';
+                                            data.value = pop path;
+                                            dcl.doCommand(data);
+                                        },
+                                    ),
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/policy/get';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'breakpoint policy',
+                            ),
+                            'thread': (
+                                '*': (
+                                    'desc': 'get/set threads assigned to breakpoint, args: "+"/"-" threadId | threadId ..',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/';
+
+                                        if (args) {
+                                            string a = shift args;
+                                            if (a == '+') {
+                                                data.cmd += 'add';
+                                                data.value = int(shift args);
+                                            } else if (a == '-') {
+                                                data.cmd += 'remove';
+                                                data.value = int(shift args);
+                                            } else {
+                                                data.value = ();
+                                                push data.value, int(a);
+                                                map (push data.value, int($1)), args;
+                                                data.cmd += 'set';
+                                            }
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get thread handled by breakpoint',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/get';
+                                        dcl.doCommand(data);
+                                },
+                            ),
+                            'statement': (
+                                '*': (
+                                    'desc': 'get statement list assigned to breakpoint',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'statement stuff',
+                            ),
+                        ),
+                        'desc': 'breakpoint related commands',
+                    ),
+                    'statement': (
+                        'alias': 'stmt',
+                    ),
+                    'stmt': (
+                        '>': (
+                            'list': (
+                                'desc': 'list statements', # duplicate to breakpoint/statement
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                    dcl.doCommand(data);
+                                },
+                            ),
+                            'assign': (
+                                '*': (
+                                    'desc': 'assign statement to breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/assign';
+                                        data.value = dcl.getStatementValue(args);
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'assign statement to breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                            ),
+                            'unassign': (
+                                '*': (
+                                    'desc': 'unassign statement from breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/unassign';
+                                        data.value = dcl.getStatementValue(args);
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'unassign statement from breakpoint, args: breakpoint [function([args, ...]] | [file] lineno',
+                            ),
+                        ),
+                        'desc': 'statement related commands',
+                    ),
+
+                    'thread': (
+                        '>': (
+                            'set': (
+                                '*': (
+                                    'desc': 'set current thread, arg: threadId',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/='+dcl.checkProgramId()+'/list';
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        if (sd.result) {
+                                            return DebugCommandLine::enumFilter(sd.result{dcl.checkProgramId()}.threads, pop path);
+                                        } else {
+                                            return ();
+                                        }
+                                    },
+                                    'validate': \DebugCommandLine::validateInt(),
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        softint val = pop path;
+                                        dcl.setContextValue('threadId', val);
+                                        stdout.printf("remote thread context set to TID %y\r\n", val);
+                                    },
+                                ),
+                            ),
+                            'get': (
+                                'desc': 'get current thread',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    *softint threadId = dcl.getContextValue('threadId');
+                                    if (!exists threadId)
+                                        stdout.printf("no current thread set, (\"pgm info\" to list threads and \"thread set\"\n");
+                                    else
+                                        printf("TID context: %d\r\n", threadId);
+                                },
+                            ),
+                            'local': (
+                                '*': (
+                                    'desc': 'get/set local variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/local/'+pop path+'/list';
+                                        data.tid = dcl.checkThreadId();
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        string var = pop path;
+                                        hash data.cmd = 'thread/local/'+var+'/';
+                                        data.tid = dcl.checkThreadId();
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = call_function_args(\dcl.parseValue(), args);
+                                            dcl.doCommand(data);
+                                            stdout.printf("%s: value set to: %y\r\n", var, data.value);
+                                        } else {
+                                            data.cmd += 'get';
+                                            *hash vh = dcl.doCommandImpl(data);
+                                            if (!vh) {
+                                                stdout.printf("there is no local var %y; use \"thread local\" to list local vars in this frame\r\n", var);
+                                            }
+                                            else {
+                                                stdout.printf("%s: type %y\r\nvalue: %y\r\n", var, vh.result.type, vh.result.value);
+                                            }
+                                        }
+                                    },
+                                ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'thread/local//list';
+                                    data.tid = dcl.checkThreadId();
+                                    *list tl = dcl.doCommandImpl(data).result;
+                                    if (tl)
+                                        stdout.printf("local vars: %s\r\n", (foldl $1 + ", " + $2, tl));
+                                    else
+                                        stdout.print("no local vars in this frame\r\n");
+                                },
+                                'desc': 'get/set local variable',
+                            ),
+                            'debug': (
+                                '*': (
+                                    'desc': 'get/set special debug variable',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/debug/'+pop path+'/list';
+                                        data.tid = dcl.checkThreadId();
+                                        *hash sd = dcl.doCommandImpl(data);
+                                        return sd.result ?? ();
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'thread/debug/'+pop path+'/';
+                                        data.tid = dcl.checkThreadId();
+                                        if (args) {
+                                            data.cmd += 'set';
+                                            data.value = call_function_args(\dcl.parseValue(), args);
+                                        } else {
+                                            data.cmd += 'get';
+                                        }
+                                        dcl.doCommand(data);
+                                    },
+                                ),
+                                'desc': 'get/set special debug variable',
+                            ),
+                        ),
+                        'desc': 'thread related commands',
+                        'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
+                            switch (args[0] ?? '') {
+                            case '':
+                                unshift args, 'get';
+                                break;
+                            case /^[0-9]+$/:
+                                unshift args, 'set';
+                                break;
+                            }
+                        },
+                    ),
+                    'stack': (
+                        'alias': 'bt',
+                    ),
+                    'backtrace': (
+                        'alias': 'bt',
+                    ),
+                    'bt': (
+                        'desc': 'get stack for current thread',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'thread/stack';
+                            data.tid = dcl.checkThreadId();
+                            *hash th = dcl.doCommandImpl(data);
+                            if (th) {
+                                stdout.printf("TID %d call stack:\r\n", th.tid);
+                                foreach hash lh in (th.result[1..]) {
+                                    string str = sprintf(" - %d: ", $#);
+                                    if (lh.function.val())
+                                        str += sprintf("%s()", lh.function);
+                                    else
+                                        str += "<unknown function>";
+                                    str += " (";
+                                    string loc;
+                                    if (lh.source)
+                                        loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
+                                    else {
+                                        loc += sprintf("%s", lh.file ?? "<unknown>");
+                                        if (lh.line > 0)
+                                            loc += sprintf(":%d", lh.line);
+                                    }
+                                    if (lh.endline > 0)
+                                        loc += sprintf("-%d", lh.endline + lh.offset);
+                                    if (loc)
+                                        str += loc + " ";
+                                    str += lh.type;
+                                    str += ")";
+                                    stdout.print(str + "\r\n");
+                                }
+                            }
+                            else
+                                stdout.print("server returned no response\r\n");
+                        },
+                    ),
+                    'go': (
+                        '*': (
+                            'desc': 'go thread with specified runstate, arg: runstate',
+                            'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                return DebugCommandLine::enumFilter(keys runStateStrings, pop path);
+                            },
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                hash data.cmd = 'thread/go/'+pop path;
+                                data.tid = dcl.checkThreadId();
+                                dcl.doCommand(data);
+                            },
+                        ),
+                        'desc': 'go thread with default runstate',
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'thread/go';
+                            data.tid = dcl.checkThreadId();
+                            dcl.doCommand(data);
+                        },
+                    ),
+                ),
+            );
+        }
+
+        constructor() {
+        }
+
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl)
+        abstract public *hash doCommandImpl(hash data);
+
+        public doCommand(hash data) {
+            *hash ret = doCommandImpl(data);
+            if (ret) {
+                printData(ret);
+            }
+        }
+
+        static showPrograms(hash ph) {
+            # get max name width
+            int max = 1;
+            foreach hash h in (ph.pairIterator()) {
+                if (!h.value.scriptName.val()) {
+                    #stdout.printf("MISSING: %y = %y\r\n", h.key, h.value);
+                    delete ph{h.key};
+                    continue;
+                }
+                int len;
+                if (!h.value.scriptName.val())
+                    len = (ph{h.key}.scriptName = sprintf("n/a path %y", h.value.scriptPath)).length();
+                else
+                    len = h.value.scriptName.length();
+                if (len > max)
+                    max = len;
+            }
+            string fmt = sprintf(" %%4d: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+            foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
+                stdout.printf(fmt,
+                    id, ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+            }
+        }
+
+        static public validateInt(DebugCommandLine dcl, softlist path, softlist val) {
+            if (val[0] =~ /[^0-9]/) {
+                throw "CMD-ARG-ERROR", sprintf("%s: parameter %y is not integer", path.join(' '), val[0]);
+            }
+        }
+
+        public auto parseValue() {
+            return parse_to_qore_value(argv.lsize() == 1 ? argv[0] : argv);
+        }
+
+        public auto getContextValue(string key) {
+            rwlContext.readLock();
+            on_exit rwlContext.readUnlock();
+            return cx{key};
+        }
+
+        public setContextValue(string key, auto value) {
+            rwlContext.writeLock();
+            on_exit rwlContext.writeUnlock();
+            cx{key} = value;
+        }
+
+        public hash getStatementValue(list args) {
+            if (!args)
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Statement description is missing");
+            string s;
+            s = trim(shift args);
+            if (s =~ /^[0-9]+$/) {
+                return ('file': '', 'lineno': int(s));
+            }
+            *list l = s =~ x/^(.+)\((.*)\)$/;
+            if (l) {
+                l[1] =~ tr/ //;
+                return ('function': l[0], 'args': split(',', l[1]));
+            }
+            if (args[0] =~ /^[0-9]+$/) {
+                return ('file': s, 'lineno': int(args[0]));
+            }
+            return ('id': s);
+        }
+
+        private list splitCmd(string line) {
+            list ret = ();
+            int i = 0;
+            int q = 0;
+            string s = '';
+            while (i < line.size()) {
+                switch (line[i]) {
+                case ' ':
+                    if (q == 0) {
+                        if (s != '') {
+                            push ret, s;
+                            s = '';
+                        }
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case "'":
+                    if (q == 0) {
+                        q = 1;
+                    } else if (q == 1) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '"':
+                    if (q == 0) {
+                        q = 2;
+                    } else if (q == 2) {
+                        q = 0;
+                    } else {
+                        s += line[i];
+                    }
+                    break;
+                case '\':
+                    i++;
+                    switch (line[i]) {
+                    case 'n':
+                        s += "\n";
+                        break;
+                    case 'r':
+                        s += "\r";
+                        break;
+                    case 't':
+                        s += "\t";
+                        break;
+                    case '0':
+                        s += "\0";
+                        break;
+                    default:
+                        s += line[i];
+                    }
+                    break;
+                default:
+                    s += line[i];
+                }
+                i++;
+            }
+            if (q != 0)
+                throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
+            if (s != '') {
+                push ret, s;
+            }
+            return ret;
+        }
+
+        public string listVariantCmds(hash v) {
+            list r;
+            foreach string k in (sort(keys(v))) {
+                if (!exists v{k}.aliasOf) {
+                    if (v{k}.aliases) {
+                        push r, sprintf("%s (%s)", k, sort(v{k}.aliases).join(', '));
+                    } else {
+                        push r, k;
+                    }
+                }
+            }
+            return r.join(', ');
+        }
+
+        public *hash findCmd(list args, int opts = 0, *reference<int> last_param) {  /* public because it is needed from closure */
+            hash result;
+            result.path = ();
+            hash<auto> c = commands;
+            last_param = 0;
+            while (args) {
+                bool doBreak = False;
+                while (args) {
+                    if ((opts & fcHelp) && exists c."*") {
+                        # skip
+                        c = c."*";
+                    } else if (exists c.">") {
+                        # static enum
+                        # check for partial matches
+                        hash aliases;
+                        foreach string k in (keys c.">") {
+                            if (c.">"{k}.alias) {
+                                aliases{c.">"{k}.alias} += (k,);
+                            }
+                        }
+                        if (!c.">"{args[0]}) {
+                            list pm;
+                            string arg;
+                            # scan through the list and see if we have one possible match
+                            foreach string k in (keys c.">") {
+                                if (k.substr(0, args[0].size()) == args[0]) {
+                                    pm += k;
+                                    if (!exists arg)
+                                        arg = k;
+                                    else
+                                        # check if the second match is the same as the first through aliases
+                                        # and only reset the argument if it is different
+                                        if (c.">"{k}.alias != arg && c.">"{arg}.alias != k)
+                                            arg = "";
+                                }
+                            }
+
+                            if (pm) {
+                                # if there is only one variant, then use it immediately
+                                if (arg.val() && (opts & fcExpandUniqueCmd)) {
+                                    args[0] = arg;
+                                }
+                                if (args.size() == 1) { # only set variants on the last argument
+                                    foreach string c2 in (pm) {
+                                        if (!exists c.">"{c2}.alias) {
+                                            result.variants{c2} = c.">"{c2};
+                                            result.variants{c2}.aliases = aliases{c2};
+                                        } else {
+                                            result.variants{c2} = c.">"{c.">"{c2}.alias};
+                                            result.variants{c2}.aliasOf = c.">"{c2}.alias;
+                                            result.variants{c2}.aliases = aliases{result.variants{c2}.aliasOf};
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (exists c.">"{args[0]}) {
+                            #remove result.cmd.">";
+                            # follow aliases
+                            if (*string alias = c.">"{args[0]}.alias) {
+                                c = c.">"{alias};
+                                c.name = alias;
+                                push result.path, alias;
+                                shift args;
+                            }
+                            else {
+                                c = c.">"{args[0]};
+                                c.name = args[0];
+                                push result.path, shift args;
+                            }
+                            c.aliases = aliases{c.name};
+                            result.cmd = c;
+                            ++last_param;
+                        } else {
+                            if (exists c.fallback && (opts & fcFallback)) {
+                                list sa = args;
+                                c.fallback(self, result.path, \args);
+                                if (args != sa) {
+                                    continue;  # reprocess
+                                }
+                            }
+                            if (exists result.variants) {
+                                push result.path, shift args;
+                                ++last_param;
+                            }
+                            doBreak = True;
+                            break;
+                        }
+                    } else if (exists c."*") {
+                        # dynamically enumerated
+                        c = c."*";
+                        if (args[0] != "" && exists c.validate && (opts & fcValidate)) {
+                            c.validate(self, result.path, args);
+                        }
+                        if (args.size() == 1 && exists c.enum) {
+                            result.variants = c.enum;
+                        }
+                        push result.path, shift args;
+                        ++last_param;
+                        result.cmd = c;
+                    } else if (exists c."**") {
+                        c = c."**";
+                        if (exists c.enum) {
+                            result.variants = c.enum;
+                        }
+                        push result.path, shift args;
+                        ++last_param;
+                        result.cmd = c;
+                        doBreak = True;
+                        break;
+                    } else {
+                        doBreak = True;
+                        break;
+                    }
+                }
+                if (doBreak) {
+                    break;
+                }
+                if (exists c.fallback && (opts & fcFallback)) {
+                    # last chance to modify args and continue
+                    c.fallback(self, result.path, \args);
+                }
+            }
+            result.args = args;
+            return result;
+        }
+
+        private list ln_callback(string line) {
+            list args = splitCmd(line);
+            if (line =~ / $/ || line == '') {
+                args += '';
+            } else {
+                # strip last args
+                while (line != '' && line[line.size()-1] != ' ') {
+                    line = splice(line, -1);
+                }
+            }
+            *hash cmd = findCmd(args, fcExpandUniqueCmd);
+            if (cmd.variants) {
+                *list v;
+                switch (cmd.variants.typeCode()) {
+                case NT_CLOSURE:
+                case NT_CALLREF:
+                    try {
+                        v = cmd.variants(self, cmd.path, cmd.args);
+                    } catch (hash<ExceptionInfo> ex) {
+                    }
+                    break;
+                default:
+                    v = keys cmd.variants;
+                }
+                list res = ();
+                map (push res, line+$1), sort(v);
+                return res;
+            } else {
+                return ();
+            }
+        }
+
+        public runCmdLine() {
+            # Linenoise::history_load('history.txt');
+            # Linenoise::history_set_max_len(256);
+            Linenoise::set_callback(\ln_callback());
+            string lastLine = '';
+            while (True) {
+                *string line = Linenoise::line(ln_prompt);
+                if (!exists line) {
+                    printf("\n^C signal caught. Exiting.\n");
+                        break;
+                }
+                if (line != '') {
+                    if (line !~ /^ /) {
+                        Linenoise::history_add(line);
+                    }
+                    lastLine = line;
+                } else {
+                    line = lastLine;
+                }
+                int last_param;
+                list args = splitCmd(line);
+                *hash cmd = findCmd(args, fcExpandUniqueCmd | fcValidate | fcFallback, \last_param);
+                if (cmd.cmd) {
+#                    printf("line:%y\n", line);
+                    if (cmd.cmd.action) {
+#                    printf("exec:%y\n", cmd);
+                        try {
+                            auto rc = cmd.cmd.action(self, cmd.path, cmd.args);
+                            if (rc) break;
+                        } catch (hash<ExceptionInfo> ex) {
+                            showFullException ? printf("%y\n", ex) : printf("%s: %s\n", ex.err, ex.desc);
+                        }
+                    } else {
+                        if (cmd.variants.size() > 1) {
+                            printf("%y: Ambiguous subcommand, use more characters to specify among (%y)\n", args[0], keys cmd.variants);
+                        } else if (last_param < args.size())
+                            printf("%y: Unknown parameter %y; use <TAB> or \"help %s\" for more info\n", args[0], args[last_param], (foldl $1 + " " + $2, (map $1, args, $# < last_param)));
+                        else {
+                            string cmdstr = args.join(" ");
+                            printf("%y: missing required parameter; use <TAB> or \"help %s\" for more info\n", cmdstr, cmdstr);
+                        }
+                    }
+                } else {
+                    if (cmd.variants.size() > 1) {
+                        printf("%y: Ambiguous commmand, use more characters to specify among (%y)\n", args[0], keys cmd.variants);
+                    } else {
+                        printf("%y: Unknown command, use <TAB> key or \"help\" to get list of commands\n", args[0]);
+                    }
+                }
+            }
+            # Linenoise::history_save('history.txt');
+        }
+
+        public printData(auto data) {
+            string outs;
+            if (data.typeCode() == NT_HASH) {
+                switch (data.type) {
+                case 'response':
+                    switch (data.result.typeCode()) {
+                    case NT_HASH:
+                    case NT_LIST:
+                        outs = sprintf("%N", data.result);
+                        break;
+                    case NT_STRING:
+                        outs = data.result;
+                        break;
+                    default:
+                        outs = sprintf("%y", data.result);
+                        break;
+                    }
+                    break;
+                case 'event':
+                    outs = sprintf("%s: server event", data.stamp.format("YYYY-MM-DD HH:mm:SS.xx"));
+                    if (data.pgmid)
+                        outs += sprintf(": pgm %d", data.pgmid);
+                    if (data.tid)
+                        outs += sprintf(": tid %d", data.tid);
+                    if (data.file || data.line || data.statementid) {
+                        outs += " (";
+                        if (data.line) {
+                            if (!data.file.val())
+                                data.file = "<unknown>";
+                            outs += sprintf("%s:%d", data.file, data.line);
+                        }
+                        else if (data.file)
+                            outs += data.file;
+                        if (data.statementid) {
+                            if (data.line || data.file.val())
+                                outs += " ";
+                            outs += sprintf("stmtid %d", data.statementid);
+                        }
+                        outs += ")";
+                    }
+                    outs += sprintf(": cmd %y: action %y: run %y", data.cmd, data.func, data.runstate);
+                    switch (data.cmd) {
+                        case 'interrupt': {
+                            if (!exists getContextValue('programId')) {
+                                setContextValue('programId', data.pgmid);
+                                outs += " [pgm ctx set]";
+                            }
+                            if (!exists getContextValue('threadId')) {
+                                setContextValue('threadId', data.tid);
+                                outs += " [thread ctx set]";
+                            }
+                        }
+                        break;
+                    }
+                    outs += "\n";
+                    break;
+
+                case 'error':
+                    if (data.result.ex)
+                        outs = sprintf("cmd %y server-side error: %s\n", data.cmd, get_exception_string(data.result.ex));
+                    else
+                        outs = sprintf("cmd %y server-side error: %s: %s\n", data.cmd, data.result.err, data.result.desc);
+                    break;
+
+                case 'thread':
+                    /*
+                    outs = sprintf("%y: thread %d\n", data.cmd, data.tid);
+                    if (data.result)
+                        outs += sprintf("%N\n", data.result);
+                    break;
+                    */
+                    # no output for "thread" messages
+                    return;
+                }
+
+                if (!exists outs)
+                    outs = sprintf("%N", data);
+            } else {
+                outs = sprintf("%y", data);
+            }
+            if (exists outs) {
+                # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
+                stdout.print(replace(outs, "\n", "\r\n"));
+                if (outs !~ /\n$/)
+                    stdout.print("\r\n");
+                # TODO: how refresh linenoise command line ?
+            }
+        }
+
+        public int checkProgramId() {
+            *softint pgmId = getContextValue('programId');
+            if (!exists pgmId) {
+                throw "DEBUG-COMMAND", "Program is not set (try: \"pgm list\", \"pgm search <regex>\", \"pgm set [id]\")";
+            }
+            return pgmId;
+        }
+
+        public int checkThreadId() {
+            *softint threadId = getContextValue('threadId');
+            if (!exists threadId) {
+                throw "DEBUG-COMMAND", "Thread context is not set (try: \"thread set [id]\")";
+            }
+            return threadId;
+        }
+
+        static public softlist enumBreakpointId(DebugCommandLine dcl, softlist path, softlist args) {
+            hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/list';
+            *hash sd = dcl.doCommandImpl(data);
+            return map $1.id, sd.result;
+        }
+    }
+}

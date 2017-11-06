@@ -1,0 +1,85 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class ShortenTest
+
+#! Test TextWrap::shorten()
+public class ShortenTest inherits BaseTest {
+    constructor () : BaseTest ("ShortenTest", "1.0") {
+        addTestCase ("TextWrap - ShortenTest - test_simple", \test_simple());
+        addTestCase ("TextWrap - ShortenTest - test_placeholder", \test_placeholder());
+        addTestCase ("TextWrap - ShortenTest - test_empty_string", \test_empty_string());
+        addTestCase ("TextWrap - ShortenTest - test_whitespace", \test_whitespace());
+        addTestCase ("TextWrap - ShortenTest - test_width_too_small_for_placeholder", \test_width_too_small_for_placeholder());
+        addTestCase ("TextWrap - ShortenTest - test_first_word_too_long_but_placeholder_fits", \test_first_word_too_long_but_placeholder_fits());
+        set_return_value(main());
+    }
+
+    check_shorten (string text, int width, string expect, *hash kwargs) {
+        string result = TextWrap::shorten (text, width, kwargs);
+        self.check (result, expect);
+    }
+
+    #! Simple case: just words, spaces, and a bit of punctuation
+    test_simple () {
+        string text = "Hello there, how are you this fine day? I'm glad to hear it!";
+
+        self.check_shorten(text, 18, "Hello there, [...]");
+        self.check_shorten(text, text.length(), text);
+        self.check_shorten(text, text.length() - 1,
+                "Hello there, how are you this fine day? "
+                "I'm glad to [...]");
+    }
+
+    test_placeholder () {
+        string text = "Hello there, how are you this fine day? I'm glad to hear it!";
+
+        self.check_shorten(text, 17, "Hello there,$$", ('placeholder': '$$'));
+        self.check_shorten(text, 18, "Hello there, how$$", ('placeholder': '$$'));
+        self.check_shorten(text, 18, "Hello there, $$", ('placeholder': ' $$'));
+        self.check_shorten(text, text.length(), text, ('placeholder': '$$'));
+        self.check_shorten(text, text.length() - 1,
+                "Hello there, how are you this fine day? "
+                "I'm glad to hear$$", ('placeholder': '$$'));
+    }
+
+    test_empty_string () {
+        self.check_shorten("", 6, "");
+    }
+
+    #! Whitespace collapsing
+    test_whitespace () {
+        string text = "
+            This is a  paragraph that  already has
+            line breaks and \t tabs too.";
+        self.check_shorten(text, 62,
+                "This is a paragraph that already has line "
+                "breaks and tabs too.");
+        self.check_shorten(text, 61,
+                "This is a paragraph that already has line "
+                "breaks and [...]");
+
+        self.check_shorten("hello      world!  ", 12, "hello world!");
+        self.check_shorten("hello      world!  ", 11, "hello [...]");
+        # The leading space is trimmed from the placeholder
+        # (it would be ugly otherwise).
+        self.check_shorten("hello      world!  ", 10, "[...]");
+    }
+
+    test_width_too_small_for_placeholder () {
+        TextWrap::shorten (strmul("x", 20), 8, ('placeholder': "(......)"));
+        code kod = sub () {
+            TextWrap::shorten (strmul("x", 20), 8, ('placeholder': "(.......)"));
+        };
+        assertThrows ("VALUE-ERROR", kod, ());
+    }
+
+    test_first_word_too_long_but_placeholder_fits () {
+        self.check_shorten("Helloo", 5, "[...]");
+    }
+}

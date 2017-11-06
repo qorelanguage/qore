@@ -1,7 +1,7 @@
 " Vim syntax file for Qore * mato [25-oct-2015]
 " Language:	Qore
 " Maintainer:	Martin Otto <martin@qore.org>
-" Last Change:	2016 May 26
+" Last Change:	2017 October 2
 
 if version < 600
   syntax clear
@@ -21,7 +21,7 @@ syn keyword qoreKeyword		inherits
 syn keyword qoreKeyword		module
 syn keyword qoreKeyword		namespace
 syn keyword qoreStorageClass 	my our
-syn keyword qoreAccess		private
+syn keyword qoreAccess		private hierarchy internal
 syn keyword qoreAccess		public
 syn keyword qoreStorageClass 	static
 syn keyword qoreKeyword		sub returns
@@ -54,7 +54,7 @@ syn keyword qoreOperator unshift
 syn keyword qoreConditional	if else
 syn keyword qoreConditional	switch
 syn keyword qoreLabel		case default
-syn keyword qoreRepeat		for foreach in 
+syn keyword qoreRepeat		for foreach in
 syn keyword qoreRepeat		find in
 syn keyword qoreRepeat		while do
 syn keyword qoreStatement	break continue
@@ -77,9 +77,10 @@ syn keyword qoreType string softstring
 syn keyword qoreType timeout
 
 syn keyword qoreType any
+syn keyword qoreType auto
 syn keyword qoreType code
 syn keyword qoreType data
-syn keyword qoreType hash
+syn keyword qoreType hash hashdecl
 syn keyword qoreType list softlist
 syn keyword qoreType nothing
 syn keyword qoreType object
@@ -103,13 +104,28 @@ syn match qoreParseInclude "^%include\>"
 syn match qoreParseInclude "^%module-cmd\>"
 syn match qoreParseInclude "^%requires\>"
 syn match qoreParseInclude "^%try-module\>"
+syn match qoreParseInclude "^%try-reexport-module\>"
 
 syn match qoreParseDirective "^%allow-bare-refs\>"
+syn match qoreParseDirective "^%allow-debugger\>"
 syn match qoreParseDirective "^%allow-injection\>"
+syn match qoreParseDirective "^%allow-weak-references\>"
 syn match qoreParseDirective "^%append-include-path\>"
 syn match qoreParseDirective "^%append-module-path\>"
 syn match qoreParseDirective "^%assume-global\>"
 syn match qoreParseDirective "^%assume-local\>"
+syn match qoreParseDirective "^%broken-int-assignments\>"
+syn match qoreParseDirective "^%broken-list-parsing\>"
+syn match qoreParseDirective "^%broken-logic-precedence\>"
+syn match qoreParseDirective "^%broken-loop-statement\>"
+syn match qoreParseDirective "^%broken-operators\>"
+syn match qoreParseDirective "^%broken-references\>"
+syn match qoreParseDirective "^%correct-int-assignments\>"
+syn match qoreParseDirective "^%correct-list-parsing\>"
+syn match qoreParseDirective "^%correct-logic-precedence\>"
+syn match qoreParseDirective "^%correct-loop-statement\>"
+syn match qoreParseDirective "^%correct-operators\>"
+syn match qoreParseDirective "^%correct-references\>"
 syn match qoreParseDirective "^%disable-all-warnings\>"
 syn match qoreParseDirective "^%disable-warning\>"
 syn match qoreParseDirective "^%enable-all-warnings\>"
@@ -119,11 +135,13 @@ syn match qoreParseDirective "^%exec-class\>"
 syn match qoreParseDirective "^%lockdown\>"
 syn match qoreParseDirective "^%lock-options\>"
 syn match qoreParseDirective "^%lock-warnings\>"
+syn match qoreParseDirective "^%loose-args\>"
 syn match qoreParseDirective "^%new-style\>"
 syn match qoreParseDirective "^%no-class-defs\>"
 syn match qoreParseDirective "^%no-child-restrictions\>"
 syn match qoreParseDirective "^%no-constant-defs\>"
 syn match qoreParseDirective "^%no-database\>"
+syn match qoreParseDirective "^%no-debugging\>"
 syn match qoreParseDirective "^%no-external-access\>"
 syn match qoreParseDirective "^%no-external-info\>"
 syn match qoreParseDirective "^%no-external-process\>"
@@ -144,6 +162,7 @@ syn match qoreParseDirective "^%no-thread-control\>"
 syn match qoreParseDirective "^%no-thread-info\>"
 syn match qoreParseDirective "^%no-threads\>"
 syn match qoreParseDirective "^%no-top-level\>"
+syn match qoreParseDirective "^%no-uncontrolled-apis\>"
 syn match qoreParseDirective "^%old-style\>"
 syn match qoreParseDirective "^%perl-bool-eval\>"
 syn match qoreParseDirective "^%push-parse-options\>"
@@ -154,11 +173,19 @@ syn match qoreParseDirective "^%require-types\>"
 syn match qoreParseDirective "^%set-time-zone\>"
 syn match qoreParseDirective "^%strict-args\>"
 syn match qoreParseDirective "^%strict-bool-eval\>"
+syn match qoreParseDirective "^%strong-encapsulation\>"
 
 " Qore supplied modules
 syn keyword qoreModule BulkSqlUtil
+syn keyword qoreModule ConnectionProvider
 syn keyword qoreModule CsvUtil
+syn keyword qoreModule DatasourceProvider
+syn keyword qoreModule DebugCmdLine
+syn keyword qoreModule DebugHandler
+syn keyword qoreModule DebugProgramControl
+syn keyword qoreModule DebugUtil
 syn keyword qoreModule Diff
+syn keyword qoreModule FilePoller
 syn keyword qoreModule FixedLengthUtil
 syn keyword qoreModule FreetdsSqlUtil
 syn keyword qoreModule HttpServer
@@ -170,15 +197,21 @@ syn keyword qoreModule MysqlSqlUtil
 syn keyword qoreModule OracleSqlUtil
 syn keyword qoreModule PgsqlSqlUtil
 syn keyword qoreModule Pop3Client
-syn keyword qoreModule QUnit
+syn keyword qoreModule Qdx
 syn keyword qoreModule Qorize
+syn keyword qoreModule QUnit
 syn keyword qoreModule RestClient
 syn keyword qoreModule RestHandler
+syn keyword qoreModule RestSchemaValidator
+syn keyword qoreModule SalesforceRestClient
 syn keyword qoreModule Schema
+syn keyword qoreModule SchemaReverse
 syn keyword qoreModule SmtpClient
 syn keyword qoreModule SqlUtil
+syn keyword qoreModule Swagger
 syn keyword qoreModule TableMapper
 syn keyword qoreModule TelnetClient
+syn keyword qoreModule TextWrap
 syn keyword qoreModule UnitTest
 syn keyword qoreModule Util
 syn keyword qoreModule WebSocketClient

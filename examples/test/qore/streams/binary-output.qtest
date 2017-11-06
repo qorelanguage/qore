@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class BinaryOutputStreamTest
+
+public class BinaryOutputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("BinaryOutputStreamTest", "1.0") {
+        addTestCase("write", \write());
+        addTestCase("close", \close());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    close() {
+        BinaryOutputStream bos();
+        bos.close();
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { bos.close(); });
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { bos.write(<0203>); });
+    }
+
+    write() {
+        BinaryOutputStream bos();
+        bos.write(<AABB>);
+        bos.write(binary());
+        bos.write(<01>);
+        assertEq(<AABB01>, bos.getData());
+    }
+}

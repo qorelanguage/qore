@@ -30,27 +30,27 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/ql_time.h>
-#include <qore/intern/ql_lib.h>
-#include <qore/intern/ql_math.h>
-#include <qore/intern/ql_type.h>
-#include <qore/intern/ql_env.h>
-#include <qore/intern/ql_string.h>
-#include <qore/intern/ql_pwd.h>
-#include <qore/intern/ql_misc.h>
-#include <qore/intern/ql_list.h>
-#include <qore/intern/ql_thread.h>
-#include <qore/intern/ql_crypto.h>
-#include <qore/intern/ql_object.h>
-#include <qore/intern/ql_file.h>
-#include <qore/intern/ql_compression.h>
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/ql_time.h"
+#include "qore/intern/ql_lib.h"
+#include "qore/intern/ql_math.h"
+#include "qore/intern/ql_type.h"
+#include "qore/intern/ql_env.h"
+#include "qore/intern/ql_string.h"
+#include "qore/intern/ql_pwd.h"
+#include "qore/intern/ql_misc.h"
+#include "qore/intern/ql_list.h"
+#include "qore/intern/ql_thread.h"
+#include "qore/intern/ql_crypto.h"
+#include "qore/intern/ql_object.h"
+#include "qore/intern/ql_file.h"
+#include "qore/intern/ql_compression.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #ifdef DEBUG
-#include <qore/intern/ql_debug.h>
+#include "qore/intern/ql_debug.h"
 #endif // DEBUG
 
-#include <qore/intern/QoreNamespaceIntern.h>
+#include "qore/intern/QoreNamespaceIntern.h"
 
 #include <string.h>
 #include <assert.h>

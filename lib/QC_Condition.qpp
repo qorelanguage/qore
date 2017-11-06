@@ -30,8 +30,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_Condition.h>
-#include <qore/intern/QC_AbstractSmartLock.h>
+#include "qore/intern/QC_Condition.h"
+#include "qore/intern/QC_AbstractSmartLock.h"
 #include <qore/ReferenceHolder.h>
 
 #include <errno.h>
