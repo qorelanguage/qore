@@ -186,6 +186,29 @@ class Issue1576 {
     public {}
 }
 
+# https://github.com/qorelanguage/qore/issues/2380
+class Issue2380 {
+    private:internal int x() {
+        return 1;
+    }
+
+    int y(int i) {
+        return x();
+    }
+
+    z() {}
+}
+
+class Issue2380Child inherits Issue2380 {
+    int z() {
+        return y(1);
+    }
+
+    int y(string str) {
+        return 2;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
@@ -195,9 +218,15 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Built-in class w/o methods", \builtinNoMethods());
         addTestCase("Base class tests", \baseClassTests());
         addTestCase("misc tests", \miscTests());
+        addTestCase("issue 2380", \issue2380());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2380() {
+        Issue2380Child c();
+        assertEq(1, c.z());
     }
 
     classLibraryTest() {
