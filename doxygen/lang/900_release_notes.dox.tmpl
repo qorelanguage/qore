@@ -58,6 +58,7 @@
     - fixed too-agressive class hierachy checks that disallowed legal hierarchies where the same base class appears more than once in the hierarchy (<a href="https://github.com/qorelanguage/qore/issues/2317">issue 2317</a>)
     - fixed a crashing bug in the background operator when the object in context goes out of scope with the thread and an exception is thrown (<a href="https://github.com/qorelanguage/qore/issues/2319">issue 2319</a>)
     - fixed sending duplicate headers when header hash keys differ only in case; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search (<a href="https://github.com/qorelanguage/qore/issues/2340">issue 2340</a>)
+    - fixed \c q_absolute_path_windows to correctly recognize relative Windows paths beginning with a drive letter (<a href="https://github.com/qorelanguage/qore/issues/2377">issue 2377</a>)
 
     @section qore_0813 Qore 0.8.13
 
