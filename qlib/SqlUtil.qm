@@ -2244,8 +2244,12 @@ public namespace SqlUtil {
         COP_AS: (
             "arg": Type::String,
             "withalias": True,
-            "code": string sub (string cve, string arg, reference<hash> psch) {
-                psch{arg} = cve;
+            "code": string sub (string cve, string arg, reference psch) {
+                # issue #2163: make sure the unquoted alias is inserted in the map
+                if (arg =~ /^".*"$/)
+                    psch{arg.substr(1, -1)} = cve;
+                else
+                    psch{arg} = cve;
                 return sprintf("%s as %s", cve, arg);
             },
         ),
@@ -12738,16 +12742,16 @@ string sql = table.getSelectSql(sh, \args);
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             if (cmd.withalias) {
-                # get escaped AS alias only when required (a reserved word)
-                switch (arg.typeCode()) {
-                    case NT_STRING: arg = getColumnSqlName(arg); break;
-                    case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
-                }
-                return cmd.code(cve, arg, \psch_ref);
-            }
-            else {
-                return cmd.code(cve, arg);
-            }
+                 # get escaped AS alias only when required (a reserved word)
+                 switch (arg.typeCode()) {
+                     case NT_STRING: arg = getColumnSqlName(arg); break;
+                     case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
+                 }
+                 return cmd.code(cve, arg, \psch_ref);
+             }
+             else {
+                 return cmd.code(cve, arg);
+             }
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
