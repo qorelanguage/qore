@@ -90,18 +90,11 @@ public namespace FsUtil {
             int index = path.rfind(self.Delimiter) + 1;
             return path.substr(index);
         }
-
-        abstract public bool is_absolute(string path);
-
     }
 
     public class WinPathHandler inherits PathHandler {
         constructor() {
             Delimiter = '\';
-        }
-
-        public bool is_absolute(string path) {
-            return Qore::absolute_path_windows(path);
         }
     }
 
@@ -109,18 +102,10 @@ public namespace FsUtil {
         constructor() {
             Delimiter = "/";
         }
-
-        public bool is_absolute(string path) {
-            return Qore::absolute_path_unix(path);
-        }
     }
 
     public string sub basename(string path) {
         return local_handler.basename(path);
-    }
-
-    public bool sub is_absolute(string path) {
-        return local_handler.is_absolute(path);
     }
 
 } # FsUtil namespace
