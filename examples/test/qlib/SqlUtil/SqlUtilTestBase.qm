@@ -128,11 +128,12 @@ public class SqlTestBase inherits QUnit::Test {
         string col = table.describe().firstKey();
         hash sh = (
             "columns": (cop_as(col, "table"), "*"),
+            # issue #2163: make sure we can reference aliases that are keywords
+            "where": ("table": op_ceq(col)),
             "limit": 1,
             );
 
         assertEq(Type::Hash, table.selectRow(sh, \sql).type());
-
         sh = (
             "join": join_inner(table, "t", ("id": "id")),
             "limit": 1,
