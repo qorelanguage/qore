@@ -55,7 +55,7 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
    stop = internal_access && (*aqfi).access == Internal;
 
    QoreFunction* rv = (!last_class || ((*aqfi).access == Public) || stop
-                       || (class_ctx && (*aqfi).access == Private)) ? (*aqfi).func : 0;
+                       || (class_ctx && (*aqfi).access == Private)) ? (*aqfi).func : nullptr;
 
    if (rv) {
       const QoreClass* fc = rv->getClass();
@@ -152,9 +152,9 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    OptionalClassObjSubstitutionHelper osh(cctx);
 
    if (!variant) {
-      const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
+      const qore_class_private* class_ctx = qc ? runtime_get_class() : nullptr;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
-         class_ctx = 0;
+         class_ctx = nullptr;
 
       variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx);
       if (!variant) {
@@ -196,7 +196,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    OptionalClassObjSubstitutionHelper osh(cctx);
 
    if (!variant) {
-      const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
+      const qore_class_private* class_ctx = qc ? runtime_get_class() : nullptr;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
@@ -228,7 +228,7 @@ CodeEvaluationHelper::~CodeEvaluationHelper() {
    if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
    if (ct != CT_UNUSED && xsink->isException())
-      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : 0, name, loc);
+      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, loc);
 }
 
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
@@ -340,8 +340,8 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode* arg) 
 }
 
 UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po) :
-   AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0),
-   parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0),
+   AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
+   parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
    loc(first_line, last_line),
    lv(0), argvid(0), selfid(0), resolved(false) {
 
@@ -717,7 +717,7 @@ QoreValueList* QoreFunction::runtimeGetCallVariants() const {
 
       // ignore "runtime noop" variants if necessary
       if (strict_args && (vflags & QC_RUNTIME_NOOP)) {
-         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip runtime noop, vflags: 0x%x\n", this, vflags);
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip runtime noop, vflags: %p\n", this, vflags);
          continue;
       }
 
@@ -726,7 +726,7 @@ QoreValueList* QoreFunction::runtimeGetCallVariants() const {
       if ((vfflags & po & ~PO_POSITIVE_OPTIONS)
           || ((vfflags & PO_POSITIVE_OPTIONS)
               && (((vfflags & PO_POSITIVE_OPTIONS) & po) != (vfflags & PO_POSITIVE_OPTIONS)))) {
-         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip functionality, vfflags: 0x%x\n", this, vfflags);
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip functionality, vfflags: %p\n", this, vfflags);
          continue;
       }
 
@@ -1575,7 +1575,7 @@ UserVariantExecHelper::~UserVariantExecHelper() {
 }
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced)
-   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : 0),
+   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : nullptr),
      pgm(getProgram()), recheck(false), init(false) {
    //printd(5, "UserVariantBase::UserVariantBase() this: %p params: %p rv: %p b: %p synced: %d\n", params, rv, b, synced);
 }
@@ -1639,7 +1639,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
          signature.selfid->instantiateSelf(self);
 
       // instantiate argv and push id on stack
-      signature.argvid->instantiate(argv ? argv->refSelf() : 0);
+      signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
 
       {
          ArgvContextHelper argv_helper(argv.release(), xsink);
