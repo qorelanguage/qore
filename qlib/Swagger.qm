@@ -587,12 +587,6 @@ class SchemaBase {
             }
             checkStringIntern(path, method, name, value);
         }
-
-        if (value.typeCode() == NT_STRING && value.type() != "string")
-            throw "ERR", sprintf("value: %y %y %d", value, value.type(), value.typeCode());
-        #if (value.typeCode() == NT_STRING) {
-            #printf("s: %y r: %y value: %y tc: %y %y\n", serialize, request, value, value.typeCode(), value.type());
-        #}
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, bool v, reference<bool> value) {
