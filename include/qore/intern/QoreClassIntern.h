@@ -2731,7 +2731,7 @@ public:
 
       const qore_class_private* class_ctx = runtime_get_class();
       if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx))
-         class_ctx = 0;
+         class_ctx = nullptr;
       ClassAccess access;
       if (!(w = runtimeFindCommittedMethod(nme, access, class_ctx))) {
          qore_type_t t = n.getType();
