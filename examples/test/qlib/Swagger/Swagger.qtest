@@ -98,9 +98,6 @@ public class SwaggerTest inherits QUnit::Test {
             "/api/smtg": {
                 "parameters": ( {"$ref": "#/parameters/a"}, )
             },
-            "/api/enum": {
-                "parameters": ( {"$ref": "#/parameters/enum"}, )
-            }
         };
         const ValidSwaggerSchema = {
             "swagger": "2.0",
@@ -123,6 +120,37 @@ public class SwaggerTest inherits QUnit::Test {
                         "type": "integer",
                         "enum": (1, 2, 3),
                     ),
+                ),
+                "int": (
+                    "name": "int",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "integer",
+                ),
+                "date": (
+                    "name": "date",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                    "format": "date",
+                ),
+                "bin": (
+                    "name": "bin",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                    "format": "binary",
+                ),
+                "byte": (
+                    "name": "byte",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                    "format": "byte",
                 ),
             ),
         };
@@ -569,7 +597,7 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 SwaggerSchema so(soh);
 
-                string uri_path = "/test?bin=abc";
+                string uri_path = "/test?bin=YWJj";
                 hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
                 assertEq(Type::Hash, h.type());
                 assertEq("/test?bin=YWJj", h.uri_path);
@@ -1738,9 +1766,13 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
                 "put": (
-                    "parameters": ((
-                        "$ref": "#/parameters/enum",
-                    ),),
+                    "parameters": (
+                        ("$ref": "#/parameters/enum",),
+                        ("$ref": "#/parameters/int",),
+                        ("$ref": "#/parameters/date",),
+                        ("$ref": "#/parameters/bin",),
+                        ("$ref": "#/parameters/byte",),
+                    ),
                     "responses": (
                         "200": (
                             "description": "successful response",
@@ -1828,6 +1860,38 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(Type::String, h.body.type());
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "enum.*values", \so.processRequest(), ("put", "/api/smtg", 4));
+
+            # issue #2388 int parameter check
+            h = so.processRequest("put", "/api/smtg?int=1", 2);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?int=1", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "integer", \so.processRequest(), ("put", "/api/smtg?int=sdf", 2));
+
+            # issue #2388 date parameter check
+            h = so.processRequest("put", "/api/smtg?date=2017-01-01", 2);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?date=2017-01-01", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "date", \so.processRequest(), ("put", "/api/smtg?date=sdf", 2));
+
+            # issue #2388 bin parameter check
+            h = so.processRequest("put", "/api/smtg?bin=abcd", 3);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?bin=abcd", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "binary", \so.processRequest(), ("put", "/api/smtg?bin=xyz", 3));
+
+            # issue #2388 byte parameter check
+            h = so.processRequest("put", "/api/smtg?byte=YWJj", 3);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?byte=YWJj", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "byte.*base64", \so.processRequest(), ("put", "/api/smtg?byte=123", 3));
         }
 
         {
