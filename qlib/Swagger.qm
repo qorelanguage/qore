@@ -521,12 +521,8 @@ class SchemaBase {
                 default:
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
             }
+            checkStringIntern(path, method, name, value);
         }
-        # already-serialized data must be a string
-        else
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
-
-        checkStringIntern(path, method, name, value);
     }
 
     #! validates string values
@@ -589,12 +585,14 @@ class SchemaBase {
                 default:
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
             }
+            checkStringIntern(path, method, name, value);
         }
-        # already-serialized data must be a string
-        else
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
 
-        checkStringIntern(path, method, name, value);
+        if (value.typeCode() == NT_STRING && value.type() != "string")
+            throw "ERR", sprintf("value: %y %y %d", value, value.type(), value.typeCode());
+        #if (value.typeCode() == NT_STRING) {
+            #printf("s: %y r: %y value: %y tc: %y %y\n", serialize, request, value, value.typeCode(), value.type());
+        #}
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, bool v, reference<bool> value) {
@@ -1133,7 +1131,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throw DESERIALIZATION-ERROR the path does not match the basePath or the request body could not be deserialized
     */
     private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
-        hash body;
+        auto body;
         # deserialize body according to Content-Type
         if (exists http_body) {
             if (headers."content-type" =~ /^multipart\/form-data/) {
@@ -1146,11 +1144,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
 
                 auto any_body = ds(http_body);
-                if (exists any_body) {
-                    if (any_body.typeCode() != NT_HASH)
-                        throw "DESERIALIZATION-ERROR", sprintf("%s %s: message body serialized to %y; expecting \"hash\"", method.upr(), path, any_body.type());
+                if (exists any_body)
                     body = any_body;
-                }
             }
         }
 

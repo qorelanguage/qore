@@ -1869,6 +1869,15 @@ public class SwaggerTest inherits QUnit::Test {
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "integer", \so.processRequest(), ("put", "/api/smtg?int=sdf", 2));
 
+            {
+                hash hdr."content-type" = "application/json";
+                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
+                #printf("sh: %y\n", sh);
+                assertEq("/api/smtg", sh.path);
+                assertEq(1, sh.query.int);
+                assertEq(2, sh.body);
+            }
+
             # issue #2388 date parameter check
             h = so.processRequest("put", "/api/smtg?date=2017-01-01", 2);
             #printf("h: %y\n", h);
@@ -1876,6 +1885,15 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(Type::String, h.body.type());
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "date", \so.processRequest(), ("put", "/api/smtg?date=sdf", 2));
+
+            {
+                hash hdr."content-type" = "application/json";
+                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
+                #printf("sh: %y\n", sh);
+                assertEq("/api/smtg", sh.path);
+                assertEq(2017-01-01, sh.query.date);
+                assertEq(2, sh.body);
+            }
 
             # issue #2388 bin parameter check
             h = so.processRequest("put", "/api/smtg?bin=abcd", 3);
@@ -1885,6 +1903,15 @@ public class SwaggerTest inherits QUnit::Test {
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "binary", \so.processRequest(), ("put", "/api/smtg?bin=xyz", 3));
 
+            {
+                hash hdr."content-type" = "application/json";
+                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
+                #printf("sh: %y\n", sh);
+                assertEq("/api/smtg", sh.path);
+                assertEq(<abcd>, sh.query.bin);
+                assertEq(3, sh.body);
+            }
+
             # issue #2388 byte parameter check
             h = so.processRequest("put", "/api/smtg?byte=YWJj", 3);
             #printf("h: %y\n", h);
@@ -1892,6 +1919,15 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(Type::String, h.body.type());
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "byte.*base64", \so.processRequest(), ("put", "/api/smtg?byte=123", 3));
+
+            {
+                hash hdr."content-type" = "application/json";
+                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
+                #printf("sh: %y\n", sh);
+                assertEq("/api/smtg", sh.path);
+                assertEq(<616263>, sh.query.byte);
+                assertEq(3, sh.body);
+            }
         }
 
         {
