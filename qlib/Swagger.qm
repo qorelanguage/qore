@@ -160,6 +160,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed confusing error messages with invalid parameter types (<a href="https://github.com/qorelanguage/qore/issues/2365">issue 2365</a>)
     - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
     - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
+    - fixed handling of non-string query parameters (<a href="https://github.com/qorelanguage/qore/issues/2388">issue 2388</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -520,12 +521,8 @@ class SchemaBase {
                 default:
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
             }
+            checkStringIntern(path, method, name, value);
         }
-        # already-serialized data must be a string
-        else
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot deserialize a binary value to a string value with format %y", method.upr(), path, name, format);
-
-        checkStringIntern(path, method, name, value);
     }
 
     #! validates string values
@@ -568,7 +565,7 @@ class SchemaBase {
     }
 
     #! converts strings to/from date/time values for supported formats
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference<string> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
@@ -588,12 +585,8 @@ class SchemaBase {
                 default:
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a date/time value to a string value with format %y", method.upr(), path, name, format);
             }
+            checkStringIntern(path, method, name, value);
         }
-        # already-serialized data must be a string
-        else
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot deserialize a date/time value to a string value with format %y", method.upr(), path, name, format);
-
-        checkStringIntern(path, method, name, value);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, bool v, reference<bool> value) {
@@ -1132,7 +1125,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throw DESERIALIZATION-ERROR the path does not match the basePath or the request body could not be deserialized
     */
     private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
-        hash body;
+        auto body;
         # deserialize body according to Content-Type
         if (exists http_body) {
             if (headers."content-type" =~ /^multipart\/form-data/) {
@@ -1145,11 +1138,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
 
                 auto any_body = ds(http_body);
-                if (exists any_body) {
-                    if (any_body.typeCode() != NT_HASH)
-                        throw "DESERIALIZATION-ERROR", sprintf("%s %s: message body serialized to %y; expecting \"hash\"", method.upr(), path, any_body.type());
+                if (exists any_body)
                     body = any_body;
-                }
             }
         }
 
@@ -2672,6 +2662,48 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
     #! validates the value against the schema definition
     check(bool serialize, bool request, string path, string method, string name, reference value) {
+        # issue #2388 ensure that query parameters are converted to their target type first
+        if (inLoc == "query") {
+            switch (type) {
+                case "integer":
+                    if (value !~ /^([+-])?[0-9]+$/)
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"integer\" is invalid; value provided: %y", name, path, method, value);
+                    value = value.toInt();
+                    break;
+                case "number":
+                    value = value.toNumber();
+                    break;
+                case "string":
+                    switch (format) {
+                        case "date":
+                        case "date-time":
+                            try {
+                                value = date(value);
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"date\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                            }
+                            break;
+                        case "binary":
+                            try {
+                                value = parse_hex_string(value);
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                            }
+                            break;
+                        case "byte":
+                            try {
+                                value = parse_base64_string(value);
+                            }
+                            catch (hash<ExceptionInfo> ex) {
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                            }
+                            break;
+                    }
+                    break;
+            }
+        }
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
         switch (value.typeCode()) {
             case NT_NOTHING:
