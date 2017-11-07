@@ -1,0 +1,81 @@
+#!/usr/bin/env qore
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class AbsolutePathTest
+
+public class AbsolutePathTest inherits QUnit::Test {
+
+    private {
+        list abs_unix;
+        list abs_win;
+        list rel_unix;
+        list rel_win;
+    }
+
+    constructor() : Test ("AbsolutePathTest", "1.0") {
+        addTestCase("AbsolutePathTest", \test_absolute_path());
+        addTestCase("AbsolutePathUnixTest", \test_absolute_path_unix());
+        addTestCase("AbsolutePathWindowsTest", \test_absolute_path_win());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        abs_unix = ("/path/to/file.txt",
+                     "/");
+        rel_unix = (".",
+                     "..",
+                     "relative/path/to/file.txt",
+                     "../file.txt",
+                     "../../file.txt",
+                     "./file.txt",
+                     "file.txt");
+        abs_win = ('C:\path\to\file.txt',
+                   'd:\path\to\file.txt',
+                   '\path\to\file.txt',
+                   '\\path\to\file.txt');
+        rel_win = ('path\to\file.txt',
+                   'C:file.txt',
+                   'e:path\to\file.txt',
+                   'F:..\file.txt',
+                   '..\tmp.txt',
+                   '..\..\tmp.txt',
+                   "..");
+    }
+
+    test_absolute_path() {
+        if (Platform.Windows) {
+            foreach string path in (abs_win)
+                assertTrue(absolute_path(path));
+
+            foreach string path in (rel_win)
+                assertFalse(absolute_path(path));
+        } else {
+            foreach string path in (abs_unix)
+                assertTrue(absolute_path(path));
+
+            foreach string path in (rel_unix)
+                assertFalse(absolute_path(path));
+        }
+    }
+
+    test_absolute_path_unix() {
+        foreach string path in (abs_unix)
+            assertTrue(absolute_path_unix(path));
+
+        foreach string path in (rel_unix)
+            assertFalse(absolute_path_unix(path));
+    }
+
+    test_absolute_path_win() {
+        foreach string path in (abs_win)
+            assertTrue(absolute_path_windows(path));
+
+        foreach string path in (rel_win)
+            assertFalse(absolute_path_windows(path));
+    }
+}
