@@ -3099,7 +3099,7 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
       return qore_method_private::eval(*w, xsink, self, args);
 
    // first see if there is a pseudo-method for this
-   QoreClass* qc = 0;
+   QoreClass* qc = nullptr;
    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
    if (w)
       return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
