@@ -328,7 +328,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
    if (oflag) {
       const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
 
-      AbstractQoreNode* n = 0;
+      AbstractQoreNode* n = nullptr;
       if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
          n = new SelfVarrefNode(loc, takeName());
       }
@@ -338,7 +338,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       }
       else {
          // check for class static var reference
-         const QoreClass* oqc = 0;
+         const QoreClass* oqc = nullptr;
          ClassAccess access;
          QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
          if (vi) {
@@ -355,7 +355,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
       }
 
       if (abr) {
-         SelfFunctionCallNode* sfcn = 0;
+         SelfFunctionCallNode* sfcn = nullptr;
          if (!strcmp(c_str, "copy")) {
             if (args) {
                parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
@@ -386,7 +386,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 
    bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-   AbstractQoreNode* n = 0;
+   AbstractQoreNode* n = nullptr;
 
    // try to resolve a global var
    if (abr) {
@@ -411,7 +411,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
    // resolves the function
    func = qore_root_ns_private::parseResolveFunction(loc, c_str);
    free(c_str);
-   c_str = 0;
+   c_str = nullptr;
 
    if (func)
       parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
@@ -554,7 +554,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
          }
       }
 
-      AbstractQoreNode* n = 0;
+      AbstractQoreNode* n = nullptr;
 
       if (abr) {
          Var* v = qore_root_ns_private::parseFindGlobalVar(*scope);
