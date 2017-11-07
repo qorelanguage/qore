@@ -565,7 +565,7 @@ class SchemaBase {
     }
 
     #! converts strings to/from date/time values for supported formats
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference<string> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference value) {
         if (type != "string")
             throwInvalidType(name, "string", type);
 
@@ -2666,7 +2666,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         if (inLoc == "query") {
             switch (type) {
                 case "integer":
-                    if (value !~ /^[0-9]+$/)
+                    if (value !~ /^([+-])?[0-9]+$/)
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"integer\" is invalid; value provided: %y", name, path, method, value);
                     value = value.toInt();
                     break;

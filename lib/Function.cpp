@@ -151,7 +151,6 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    // issue #2145: set the call reference class context only after arguments are evaluted
    OptionalClassObjSubstitutionHelper osh(cctx);
 
-   bool check_args = variant;
    if (!variant) {
       const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
@@ -174,7 +173,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   if (processDefaultArgs(func, variant, check_args, is_copy))
+   if (processDefaultArgs(func, variant, true, is_copy))
       return;
 
    setCallType(variant->getCallType());
@@ -196,7 +195,6 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    // issue #2145: set the call reference class context only after arguments are evaluted
    OptionalClassObjSubstitutionHelper osh(cctx);
 
-   bool check_args = variant;
    if (!variant) {
       const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
@@ -219,7 +217,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   if (processDefaultArgs(func, variant, check_args, is_copy))
+   if (processDefaultArgs(func, variant, true, is_copy))
       return;
 
    setCallType(variant->getCallType());
@@ -1610,19 +1608,10 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
       QoreValue np;
       if (args)
          np = const_cast<QoreValueList*>(args)->retrieveEntry(i);
-      //AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
-      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
-      signature.lv[i]->instantiate(np.refSelf());
 
-      /*
-      // the above if block will only instantiate the local variable if no
-      // exceptions have occured. therefore here we cleanup the rest
-      // of any already instantiated local variables if an exception does occur
-      if (*xsink) {
-         while (i) signature.lv[--i]->uninstantiate(xsink);
-         return -1;
-      }
-      */
+      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
+
+      signature.lv[i]->instantiate(np.refSelf());
    }
 
    // if there are more arguments than parameters

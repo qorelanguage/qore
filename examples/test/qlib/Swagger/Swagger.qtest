@@ -1869,6 +1869,16 @@ public class SwaggerTest inherits QUnit::Test {
 
             assertThrows("SCHEMA-VALIDATION-ERROR", "integer", \so.processRequest(), ("put", "/api/smtg?int=sdf", 2));
 
+            h = so.processRequest("put", "/api/smtg?int=-1", 2);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?int=-1", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            h = so.processRequest("put", "/api/smtg?int=+1", 2);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?int=1", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
             {
                 hash hdr."content-type" = "application/json";
                 hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
