@@ -312,6 +312,7 @@ Content-Length: 36
 
     @subsection rh_1_2_1 RestHandler v1.2.1
     - updated to return a 400 Bad Request error when REST schema validation fails on messages received (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+    - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
 
     @subsection rh_1_2 RestHandler v1.2
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
@@ -990,10 +991,6 @@ public namespace RestHandler {
         hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
-            if (b) {
-                string bstr = maskData(b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
-                logDebug("REST DBG: body: %s", bstr);
-            }
 
             auto body = b;
 
@@ -1004,10 +1001,18 @@ public namespace RestHandler {
 
             hash<RestRequestServerInfo> req;
             try {
+                if (b) {
+                    string bstr = maskData(b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
+                    logDebug("REST DBG: body: %s", bstr);
+                }
+
                 req = validator.parseRequest(hdr.method, path, body, \hdr);
             }
             catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "DESERIALIZATION-ERROR" || ex.err == "SCHEMA-VALIDATION-ERROR")
+                # return a 400 Bad Request response to encoding, serialization, or validation errors
+                if (ex.err == "INVALID-ENCODING"
+                    || ex.err == "DESERIALIZATION-ERROR"
+                    || ex.err == "SCHEMA-VALIDATION-ERROR")
                     return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
                 if (ex.err == "INVALID-METHOD") {
                     string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
