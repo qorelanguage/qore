@@ -161,6 +161,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
     - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
     - fixed handling of non-string query parameters (<a href="https://github.com/qorelanguage/qore/issues/2388">issue 2388</a>)
+    - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -548,17 +549,32 @@ class SchemaBase {
             switch (format) {
                 # NOTE: deserializes to a binary object
                 case "byte":
-                    value = parse_base64_string(v);
+                    try {
+                        value = parse_base64_string(v);
+                    }
+                    catch (hash<ExceptionInfo> ex) {
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
+                    }
                     break;
                 # NOTE: deserializes to a binary object
                 case "binary":
-                    value = parse_hex_string(v);
+                    try {
+                        value = parse_hex_string(v);
+                    }
+                    catch (hash<ExceptionInfo> ex) {
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
+                    }
                     break;
                 # NOTE: deserializes to a date/time value
                 case "date":
                 case "date-time":
-                    # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
-                    value = date(v);
+                    try {
+                        # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
+                        value = date(v);
+                    }
+                    catch (hash<ExceptionInfo> ex) {
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
+                    }
                     break;
             }
         }

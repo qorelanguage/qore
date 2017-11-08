@@ -153,6 +153,7 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("Test external serialization", \serializationTest());
         addTestCase("Test xml", \xmlTest());
         addTestCase("Test swagger", \swaggerTest());
+        addTestCase("issue 2398", \issue2398());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -177,7 +178,7 @@ public class RestHandlerTest inherits QUnit::Test {
 
     directTest() {
         # test direct interface
-        any val = mHandler.handleExternalRequest("GET", "test?action=echo", LargerHashValue);
+        auto val = mHandler.handleExternalRequest("GET", "test?action=echo", LargerHashValue);
         assertEq(LargerHashValue, val);
         val = mHandler.handleExternalRequest("PUT", "test?action=echo", LargerHashValue);
         assertEq(LargerHashValue, val);
@@ -285,6 +286,26 @@ public class RestHandlerTest inherits QUnit::Test {
         assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", "1", \info));
         assertThrows("FORMURLENCODING-ERROR", \mClient.put(), ("test?action=echo", ListValue, \info));
         assertThrows("INVALID-VALUE", \mClient.put(), ("test?action=echo", HashValue, \info));
+
+        auto rv = mClient.put("test?action=echo", ("a": "1"), \info);
+        assertEq(("a": "1"), rv.body);
+    }
+
+    issue2398() {
+        hash info;
+        on_error printf("info: %N\n", info);
+
+        HTTPClient hc(("url": "http://localhost:" + port));
+
+        hash<ExceptionInfo> ex;
+        try {
+            hc.send(<01ff008001020304>, "PUT", "test?action=echo", ("Content-Type": MimeTypeFormUrlEncoded + ";charset=UTF-8"), False, \info);
+        }
+        catch (hash<ExceptionInfo> ex1) {
+            ex = ex1;
+        }
+        assertRegex("invalid.*encoding", ex.arg.body);
+        assertEq(400, ex.arg.status_code);
     }
 
     testSerialization(string data, softlist values) {
