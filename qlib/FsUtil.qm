@@ -90,7 +90,8 @@ public namespace FsUtil {
     #! generic path handler implementing functionality common for both platforms
     class PathHandler {
         public {
-            string Delimiter;
+            #! path delimiters - to be set by platform specific path handlers
+            list Delimiters;
         }
 
         #! returns the segment of given path after the last delimiter
@@ -101,8 +102,12 @@ public namespace FsUtil {
             Delimiter for the current platform is used.
         */
         public string basename(string path) {
-            int index = path.rfind(self.Delimiter) + 1;
-            return path.substr(index);
+            string tail = path;
+            foreach string delim in (self.Delimiters) {
+                int index = tail.rfind(delim) + 1;
+                tail = tail.substr(index);
+            }
+            return tail;
         }
     }
 
@@ -111,7 +116,8 @@ public namespace FsUtil {
 
         #! creates the object and sets the delimiter
         constructor() {
-            Delimiter = '\';
+            # both slashes can be used as path delimiters on Windows
+            Delimiters = ("\\", "/");
         }
     }
 
@@ -120,7 +126,7 @@ public namespace FsUtil {
 
         #! creates the object and sets the delimiter
         constructor() {
-            Delimiter = "/";
+            Delimiters = ("/",);
         }
     }
 
@@ -129,7 +135,7 @@ public namespace FsUtil {
 
         @return the last part of the path - everything after the last delimiter
 
-        Delimiter for the current platform is used ("/" for Unix, "\" for Win).
+        Delimiters for the current platform are used.
     */
     public string sub basename(string path) {
         return local_handler.basename(path);
