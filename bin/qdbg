@@ -82,6 +82,8 @@ class DebugWrapper {
             "define": "D,define=s@",
             "time_zone": "z,time.zone=s",
             #"exec_class": "x,exec-class:s",
+            "history": "y,history=s",
+            "session": "s,session=s",
         );
         DebugCommandLineLocal dcl;
         DebugLogger logger;
@@ -127,7 +129,7 @@ class DebugWrapper {
                 # Seems workaround no more needed
                 #sleep(1);  # to avoid OBJECT-ALREADY-DELETED: attempt to access member 'pgm' of an already-deleted object of class 'DebugWrapper'
             }
-
+            dcl.init(opt);
             dcl.runCmdLine();
 
         } catch (hash e) {
@@ -150,6 +152,9 @@ class DebugWrapper {
             "  -z, --time-zone=arg          sets the time zone from the argument; can be\n"
             "                               either a region name (ex: 'Europe/Prague') or a\n"
             "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -  TODO\n"
+            "  -y, --history=file           load command line history from file, default: %s in home directory\n"
+            "                               When \".\" name is provided then history is not loaded/saved\n"
+            "  -s, --session=file           load session from file\n"
 
             "\n"
             "Example:\n"
@@ -157,7 +162,8 @@ class DebugWrapper {
             "\n"
             ,
             get_script_name(),
-            get_script_name()
+            DebugCommandLine::defaultHistoryFileName,
+            get_script_name(),
 
         );
         exit(exCode);
