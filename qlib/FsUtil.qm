@@ -55,7 +55,12 @@ module FsUtil {
 
     All the public symbols in the module are defined in the FsUtil namespace
 
-    Currently the module provides the following functions:
+    Currently the module provides the following multiplatform functions:
+    @ref FsUtil::basename()
+
+    Also classes for platform specific operations are available:
+    @ref FsUtil::PosixPathHandler
+    @ref FsUtil::WinPathHandler
 
 
     @section fsutil_relnotes Release Notes
@@ -67,6 +72,7 @@ module FsUtil {
 namespace Init {
 
     sub init() {
+        #! handler for the current platform
         our FsUtil::PathHandler local_handler;
         if (Platform.Windows)
             local_handler = new FsUtil::WinPathHandler();
@@ -81,29 +87,50 @@ namespace Init {
 #! the FsUtil namespace contains all the objects in the FsUtil module
 public namespace FsUtil {
 
+    #! generic path handler implementing functionality common for both platforms
     class PathHandler {
         public {
             string Delimiter;
         }
 
+        #! returns the segment of given path after the last delimiter
+        /** @param path the path to be processed
+
+            @return everything after the last delimiter
+
+            Delimiter for the current platform is used.
+        */
         public string basename(string path) {
             int index = path.rfind(self.Delimiter) + 1;
             return path.substr(index);
         }
     }
 
+    #! path handler implementing Windows specific functionality
     public class WinPathHandler inherits PathHandler {
+
+        #! creates the object and sets the delimiter
         constructor() {
             Delimiter = '\';
         }
     }
 
+    #! path handler implementing POSIX specific functionality
     public class PosixPathHandler inherits PathHandler {
+
+        #! creates the object and sets the delimiter
         constructor() {
             Delimiter = "/";
         }
     }
 
+    #! this function returns the segment of given path after the last delimiter
+    /** @param path the path to be processed
+
+        @return the last part of the path - everything after the last delimiter
+
+        Delimiter for the current platform is used ("/" for Unix, "\" for Win).
+    */
     public string sub basename(string path) {
         return local_handler.basename(path);
     }
