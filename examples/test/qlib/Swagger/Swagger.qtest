@@ -1745,7 +1745,7 @@ public class SwaggerTest inherits QUnit::Test {
                 ),
             );
             b.paths."/api/smtg" += (
-                "get": (
+                "post": (
                     "parameters": ((
                         "$ref": "#/parameters/a",
                     ),),
@@ -1794,28 +1794,28 @@ public class SwaggerTest inherits QUnit::Test {
 
             SwaggerSchema so(b);
 
-            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/api/smtg", ("a": "a")));
+            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("post", "/api/smtg", ("a": "a")));
 
             b.definitions.a.properties.a.readOnly = False;
             so = new SwaggerSchema(b);
 
             # issue #2369
-            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("get", "/api/smtg"));
+            assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("post", "/api/smtg"));
 
             b.parameters.a.required = False;
             so = new SwaggerSchema(b);
-            hash<RestRequestClientInfo> h = so.processRequest("get", "/api/smtg");
+            hash<RestRequestClientInfo> h = so.processRequest("post", "/api/smtg");
             assertEq("/api/smtg", h.uri_path);
             assertNothing(h.body);
 
             # by default, parameters are optional
             remove b.parameters.a.required;
             so = new SwaggerSchema(b);
-            h = so.processRequest("get", "/api/smtg");
+            h = so.processRequest("post", "/api/smtg");
             assertEq("/api/smtg", h.uri_path);
             assertNothing(h.body);
 
-            h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
+            h = so.processRequest("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeFormUrlEncoded);
             assertEq("/api/smtg", h.uri_path);
             assertEq("a=a", h.body);
             assertEq(MimeTypeFormUrlEncoded, h.content);
@@ -1823,7 +1823,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             {
                 hash hdr = ("content-type": h.content);
-                hash<RestRequestServerInfo> sh = so.parseRequest("get", h.uri_path, h.body, \hdr);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", h.uri_path, h.body, \hdr);
                 assertEq("/api/smtg", sh.path);
                 assertEq("a", sh.body.a);
                 #printf("sh: %N\n", sh);
@@ -1832,15 +1832,15 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 hash hdr = ("content-type": h.content);
                 h.body = "b=a";
-                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("get", h.uri_path, h.body, \hdr));
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", h.uri_path, h.body, \hdr));
             }
 
             # test for issue #2365
-            assertThrows("SCHEMA-VALIDATION-ERROR", "Parameter \"a\".*invalid type", \so.processRequest(), ("get", "/api/smtg", ("a": 1)));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "Parameter \"a\".*invalid type", \so.processRequest(), ("post", "/api/smtg", ("a": 1)));
 
-            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
+            assertThrows("SERIALIZATION-ERROR", "application/octet-stream", \so.processRequest(), ("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeOctetStream));
 
-            h = so.processRequest("get", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
+            h = so.processRequest("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
             assertEq("/api/smtg", h.uri_path);
             assertEq(True, h.content =~ /^multipart\/form-data;boundary=/);
             assertEq(Type::Binary, h.body.type());
@@ -1848,7 +1848,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             {
                 hash hdr = ("content-type": h.content);
-                hash<RestRequestServerInfo> sh = so.parseRequest("get", h.uri_path, h.body, \hdr);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", h.uri_path, h.body, \hdr);
                 assertEq("/api/smtg", sh.path);
                 assertEq("a", sh.body.a);
             }
@@ -1905,6 +1905,12 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(2, sh.body);
             }
 
+            {
+                # issue #2397 400 Bad Request response to invalid date params
+                hash hdr."content-type" = "application/json";
+                assertThrows("SCHEMA-VALIDATION-ERROR", "date.*invalid", \so.parseRequest(), ("put", "/api/smtg?date=2017-01-x1", h.body, \hdr));
+            }
+
             # issue #2388 bin parameter check
             h = so.processRequest("put", "/api/smtg?bin=abcd", 3);
             #printf("h: %y\n", h);
@@ -1937,6 +1943,54 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("/api/smtg", sh.path);
                 assertEq(<616263>, sh.query.byte);
                 assertEq(3, sh.body);
+            }
+
+            # issue #2397 400 Bad Request response to invalid date params
+            b.definitions.a = (
+                "type": "string",
+                "format": "date",
+            );
+
+            so = new SwaggerSchema(b);
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", "\"2017-01-01\"", \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq(2017-01-01, sh.body);
+
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"2017-01-0x\"", \hdr));
+                #printf("sh: %N\n", sh);
+            }
+
+            # issue #2397 400 Bad Request response to invalid binary params
+            b.definitions.a.format = "binary";
+
+            so = new SwaggerSchema(b);
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", "\"abcd\"", \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq(<abcd>, sh.body);
+
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"abcx\"", \hdr));
+                #printf("sh: %N\n", sh);
+            }
+
+            # issue #2397 400 Bad Request response to invalid byte params
+            b.definitions.a.format = "byte";
+
+            so = new SwaggerSchema(b);
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", "\"YWJjZA==\"", \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq("abcd", sh.body.toString());
+
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"YWJjZZZ\"", \hdr));
+                #printf("sh: %N\n", sh);
             }
         }
 
