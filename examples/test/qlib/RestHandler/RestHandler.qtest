@@ -154,6 +154,7 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("Test xml", \xmlTest());
         addTestCase("Test swagger", \swaggerTest());
         addTestCase("issue 2398", \issue2398());
+        addTestCase("Missing subclass test", \missingSubclassTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -306,6 +307,10 @@ public class RestHandlerTest inherits QUnit::Test {
         }
         assertRegex("invalid.*encoding", ex.arg.body);
         assertEq(400, ex.arg.status_code);
+    }
+
+    missingSubclassTest() {
+        assertThrows("REST-RESPONSE-ERROR", "404.*has no subclass", \mClient.post(), ("test/bla", NOTHING, NOTHING));
     }
 
     testSerialization(string data, softlist values) {
