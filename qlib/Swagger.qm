@@ -1245,7 +1245,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         hash<string, bool> mime_types;
-        op.validateResponse(method, path, pio, code, rv.body, \mime_types);
+        op.validateResponse(method, path, pio, code, \rv.body, \mime_types);
 
         if (!mime_types{content})
             throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
@@ -1501,7 +1501,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         OperationObject op = pio.getOperation(method, path);
 
         hash<string, bool> mime_types;
-        op.validateResponse(method, path, pio, code, response_body, \mime_types);
+        op.validateResponse(method, path, pio, code, \response_body, \mime_types);
 
         hash<HttpResponseInfo> rv((
             "code": code,
@@ -2174,7 +2174,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! validates a response against the response definition, if any
-    validateResponse(string method, string path, PathItemObject pio, int code, auto response_body, reference<hash<string, bool>> mime_types) {
+    validateResponse(string method, string path, PathItemObject pio, int code, reference<auto> response_body, reference<hash<string, bool>> mime_types) {
         *ResponseObject res = getResponse(code);
         if (res.schema)
             res.schema.check(True, False, path, method, "response body", \response_body);
