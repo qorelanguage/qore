@@ -215,20 +215,66 @@ public namespace DebugProgramControl {
                     result = ('class': self.className());
                     break;
                 case 'session':
-                    foreach ProgramControl p in (getAllPrograms()) {
-                        int pgmId = p.getProgramId();
-                        result{pgmId}.scriptName = p.getScriptName();
-                        result{pgmId}.scriptPath = p.getScriptPath();
-                        #result{pgmId}.scriptDir = p.getScriptDir();
-                        {
-                            rwlThread.readLock();
-                            on_exit rwlThread.readUnlock();
-                            foreach softint tid in (keys ctxThread) {
-                                if (ctxThread{tid}.pgmId == pgmId) {
-                                    result{pgmId}.interrupted += (tid,);
+                    switch (shift cmd) {
+                    case 'get':
+                        foreach ProgramControl p in (getAllPrograms()) {
+                            int pgmId = p.getProgramId();
+                            result{pgmId}.scriptName = p.getScriptName();
+                            result{pgmId}.scriptPath = p.getScriptPath();
+                            #result{pgmId}.scriptDir = p.getScriptDir();
+                            {
+                                rwlThread.readLock();
+                                on_exit rwlThread.readUnlock();
+                                foreach softint tid in (keys ctxThread) {
+                                    if (ctxThread{tid}.pgmId == pgmId) {
+                                        result{pgmId}.interrupted += (tid,);
+                                    }
                                 }
                             }
+                            result{pgmId}.breakpoints = ();
+                            foreach Breakpoint b2 in (p.getBreakpoints()) {
+                                push result{pgmId}.breakpoints, getBreakpointInfo(p, b2);
+                            }
+                            if (!result{pgmId}.breakpoints)
+                                remove result{pgmId}.breakpoints;
                         }
+                        break;
+                    case 'set':
+                        logger.log(DUV_DEBUG_1, "set session: %y", receiveData.value);
+                        # go through provided list and match current programs, no sophisticated matching algorithm
+                        result = hash();
+                        foreach string pgmName in (keys receiveData.value) {
+                            hash pgm = receiveData.value{pgmName};
+                            try {
+                                ProgramControl p = ProgramControl::resolveProgramId(int(pgmName));
+                                if (pgm.scriptName != p.getScriptName()) {
+                                    throw 'PROGRAM-ERROR', sprintf('script name does not match: %y vs. %y', pgm.scriptName, p.getScriptName());
+                                }
+                                foreach hash bkpt in (pgm.breakpoints) {
+                                    Breakpoint b = new Breakpoint();
+                                    b.setEnabled(AbstractDebugControl::boolStrings{bkpt.enabled});
+                                    b.setPolicy(AbstractDebugControl::policyStrings{bkpt.policy});
+                                    if (bkpt.threads) {
+                                        b.setThreadIds(bkpt.threads);
+                                    }
+                                    b.assignProgram(p);
+                                    foreach hash stmt in (bkpt.statements) {
+                                        # assing by id is the easiest way
+                                        try {
+                                            b.assignStatement(resolveStatement(p, ('id': stmt.id)));
+                                        } catch (hash ex) {
+                                            result{pgmName} += list(ex.desc);
+                                        }
+                                    }
+                                }
+                            } catch (hash ex) {
+                                if (ex.err == 'PROGRAM-ERROR') {
+                                    result{pgmName} = ex.desc;
+                                } else
+                                    rethrow;
+                            }
+                        }
+                        break;
                     }
                     break;
                 case 'program':
@@ -404,6 +450,7 @@ public namespace DebugProgramControl {
                             break;
                         case 'create':
                             b = new Breakpoint();
+                            b.setEnabled(True);
                             break;
                         default:
                             b = Breakpoint::resolveBreakpointId(int(bkptName));
@@ -415,19 +462,7 @@ public namespace DebugProgramControl {
                             result = ();
                             foreach Breakpoint b2 in (bkpts) {
                                 if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
-                                    hash binfo.id = b2.getBreakpointId();
-                                    binfo.enabled = encodeValue('enabled', b2.getEnabled(), boolStrings);
-                                    binfo.threads = b2.getThreadIds();
-                                    binfo.policy = encodeValue('policy', b2.getPolicy(), policyStrings);
-                                    binfo.statements = ();
-                                    foreach int sid in (b2.getStatementIds()) {
-                                        push binfo.statements, ('id': sid) + pgmb.getStatementIdInfo(sid);
-                                    }
-                                    if (!binfo.threads)
-                                        remove binfo.threads;
-                                    if (!binfo.statements)
-                                        remove binfo.statements;
-                                    push result, binfo;
+                                    push result, getBreakpointInfo(pgmb, b2);
                                 }
                             }
                             break;
@@ -587,6 +622,22 @@ public namespace DebugProgramControl {
                 return pgm.findStatementId(value.file ?? '', value.lineno);
             }
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
+        }
+
+        private hash getBreakpointInfo(ProgramControl pgmb, Breakpoint b) {
+            hash binfo.id = b.getBreakpointId();
+            binfo.enabled = encodeValue('enabled', b.getEnabled(), boolStrings);
+            binfo.threads = b.getThreadIds();
+            binfo.policy = encodeValue('policy', b.getPolicy(), policyStrings);
+            binfo.statements = ();
+            foreach int sid in (b.getStatementIds()) {
+                push binfo.statements, ('id': sid) + pgmb.getStatementIdInfo(sid);
+            }
+            if (!binfo.threads)
+                remove binfo.threads;
+            if (!binfo.statements)
+                remove binfo.statements;
+            return binfo;
         }
 
         # make_json does not support object code etc. so we need somehow process values
