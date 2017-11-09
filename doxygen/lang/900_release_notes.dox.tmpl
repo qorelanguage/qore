@@ -45,6 +45,7 @@
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
         - updated to return a 400 Bad Request error when REST schema validation fails on messages received <a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
         - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
+        - updated to return a 404 Not Found error when REST subclass does not exist (<a href="https://github.com/qorelanguage/qore/issues/2405">issue 2405</a>)
       - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module fixes:
         - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
         - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
