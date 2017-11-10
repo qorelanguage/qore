@@ -1,0 +1,10 @@
+These files are used for Linux integration regarding Freedesktop specs.
+
+Shortly: installing this file into the system allows to get Qore
+         files recognition system-wide. Part of solution for
+         text editors in KDE, GNOME, etc.
+
+Refs:
+https://www.freedesktop.org/wiki/Specifications/shared-mime-info-spec/
+https://en.opensuse.org/openSUSE:Packaging_scriptlet_snippets#MIME_databases
+
