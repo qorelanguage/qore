@@ -152,6 +152,15 @@ public class SwaggerTest inherits QUnit::Test {
                     "type": "string",
                     "format": "byte",
                 ),
+                "string": (
+                    "name": "string",
+                    "in": "query",
+                    "description": "desc",
+                    "required": False,
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 5,
+                ),
             ),
         };
 
@@ -1779,6 +1788,7 @@ public class SwaggerTest inherits QUnit::Test {
                         ("$ref": "#/parameters/date",),
                         ("$ref": "#/parameters/bin",),
                         ("$ref": "#/parameters/byte",),
+                        ("$ref": "#/parameters/string",),
                     ),
                     "responses": (
                         "200": (
@@ -1858,6 +1868,25 @@ public class SwaggerTest inherits QUnit::Test {
                 hash<RestRequestServerInfo> sh = so.parseRequest("post", h.uri_path, h.body, \hdr);
                 assertEq("/api/smtg", sh.path);
                 assertEq("a", sh.body.a);
+            }
+
+            # issue #2396 minLength and maxLength checks
+            h = so.processRequest("put", "/api/smtg?string=abc", 1);
+            #printf("h: %y\n", h);
+            assertEq("/api/smtg?string=abc", h.uri_path);
+            assertEq(Type::String, h.body.type());
+
+            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too short", \so.processRequest(), ("put", "/api/smtg?string=a", 1));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too long", \so.processRequest(), ("put", "/api/smtg?string=abcdefg", 1));
+
+            {
+                hash hdr = ("content-type": h.content);
+                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
+                assertEq("/api/smtg", sh.path);
+                assertEq(1, sh.body);
+
+                assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too short", \so.parseRequest(), ("put", "/api/smtg?string=a", h.body, \hdr));
+                assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too long", \so.parseRequest(), ("put", "/api/smtg?string=abcdefg", h.body, \hdr));
             }
 
             # issue #2364 enum check
