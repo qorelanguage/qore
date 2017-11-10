@@ -1753,6 +1753,13 @@ public class SwaggerTest inherits QUnit::Test {
                         "200": (
                             "description": "successful response",
                         ),
+                        "409": (
+                            "description": "error",
+                            "schema": (
+                                "type": "string",
+                                "format": "date",
+                            ),
+                        ),
                     ),
                     "consumes": (
                         MimeTypeJson,
@@ -1991,6 +1998,16 @@ public class SwaggerTest inherits QUnit::Test {
 
                 assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"YWJjZZZ\"", \hdr));
                 #printf("sh: %N\n", sh);
+            }
+
+            # issue #2409: date values formatted incorrectly in Swagger responses
+            {
+                date now = now_us();
+
+                hash<HttpResponseInfo> res = so.processResponse("post", "/api/smtg", 409, now, NOTHING, MimeTypeJson);
+                assertEq(409, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+                assertEq(now.format("\"YYYY-MM-DD\""), res.body);
             }
         }
 

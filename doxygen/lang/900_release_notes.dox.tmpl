@@ -40,6 +40,7 @@
         - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
         - fixed handling of non-string query parameters (<a href="https://github.com/qorelanguage/qore/issues/2388">issue 2388</a>)
         - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
+        - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
     - added missing comparison methods in the <a href="../../modules/QUnit/html/index.html">QUnit</a> module (<a href="https://github.com/qorelanguage/qore/issues/1588">issue 1588</a>):
       - \c Test::assertRegex()
       - \c Test::assertNRegex()
