@@ -161,6 +161,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
     - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
     - fixed handling of non-string query parameters (<a href="https://github.com/qorelanguage/qore/issues/2388">issue 2388</a>)
+    - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
     - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
     - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
 
@@ -409,18 +410,19 @@ class SchemaBase {
             checkIntern(serialize, request, type, format, path, method, name, value, \value);
     }
 
-    private checkStringIntern(string path, string method, string name, data value) {
-        if (exists maxLength && value.size() > maxLength)
+    private checkStringIntern(string path, string method, string name, string value) {
+        # minLength and maxLength are based on the number of characters in the string, not bytes
+        if (exists maxLength && value.length() > maxLength)
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y is too long (maxLength: %d, actual: %d)",
-                    name, path, method, maxLength, value.size());
-        if (exists minLength && value.size() < minLength)
+                    name, path, method, maxLength, value.length());
+        if (exists minLength && value.length() < minLength)
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y is too short (minLength: %d, actual: %d)",
-                    name, path, method, minLength, value.size());
-        if (exists pattern && value.typeCode() == NT_STRING && !value.regex(pattern))
+                    name, path, method, minLength, value.length());
+        if (exists pattern && !value.regex(pattern))
             throw "SCHEMA-VALIDATION-ERROR",
-                sprintf("Parameter %y for path %y and method %y does not fit the parameter string pattern (pattern:%y, value: %y)",
+                sprintf("Parameter %y for path %y and method %y does not fit the parameter string pattern (pattern: %y, value: %y)",
                     name, path, method, pattern, value);
         if (enum && !enum{value})
             throw "SCHEMA-VALIDATION-ERROR",
@@ -544,7 +546,6 @@ class SchemaBase {
                 case "date-time":
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a string value to a string value with format %y; a date/time value is required", method.upr(), path, name, format);
             }
-            checkStringIntern(path, method, name, value);
         }
         else {
             switch (format) {
@@ -579,6 +580,8 @@ class SchemaBase {
                     break;
             }
         }
+        if (value.typeCode() == NT_STRING)
+            checkStringIntern(path, method, name, value);
     }
 
     #! converts strings to/from date/time values for supported formats
