@@ -50,6 +50,7 @@ const opts = (
     "omit":              "O,omit=s@",
     "list_tables":       "L,list-tables",
     "list_objects":      "list=s@",
+    "limit":             "q,limit=s",
 
     "data_tablespace":   "d,data-tablespace=s",
     "index_tablespace":  "i,index-tablespace=s",
@@ -136,6 +137,8 @@ sub usage() {
                                %y
                               or 'all' for all objects of this type.
                               With name ARG2.
+  -q,--limit=n                If used with dump action, limits the rows dumped
+                              into yaml
   -T,--target-ds=ARG          target datasource
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
      --export=ARG             export table data to standard output in YAML format
@@ -427,9 +430,14 @@ sub main() {
         done = True;
         Table table(source, opt.export_table);
         SQLStatement sql = table.getRowIterator();
-        while (sql.next()) {
+        
+        int limit = -1;
+        if (opt.limit) limit = int(opt.limit);
+
+        while (sql.next() && limit<>0) {
             hash row = sql.fetchRow();
             printf("%s", make_yaml(row));
+            limit--;
         }
 %endif
     }
