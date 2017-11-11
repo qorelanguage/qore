@@ -234,6 +234,7 @@ class OracleTest inherits SqlTestBase {
             addTestCase("issue 2163", \issue2163());
             addTestCase("analytic/window functions", \testAnalyticFunctions());
             addTestCase("custom column operators #2314", \testCustomColumnOperators());
+            addTestCase("chained synonyms #2408", \testChainedSynonyms());
         }
 
         set_return_value(main());
@@ -407,6 +408,27 @@ class OracleTest inherits SqlTestBase {
         hash res = table.selectRow(sh, \sql);
 
         assertEq("20160111", res.date_to_char, "Date format test from to_char");
+    }
+
+    # CREATE SYNONYM system priv is required for this test
+    testChainedSynonyms() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        ds.exec("create table test_oracle_syn (dummy varchar2(1))");
+        ds.exec("insert into test_oracle_syn values ('X')");
+        ds.exec("create or replace synonym oracle_test_syn1 for test_oracle_syn");
+        ds.exec("create or replace synonym oracle_test_syn2 for oracle_test_syn1");
+        ds.exec("create or replace synonym oracle_test_syn3 for oracle_test_syn2");
+
+        Table t(ds, "oracle_test_syn3");
+        assertEq("X", t.selectRow().dummy, "dummy must be resolved, returning X");
+
+        ds.exec("drop synonym oracle_test_syn3");
+        ds.exec("drop synonym oracle_test_syn2");
+        ds.exec("drop synonym oracle_test_syn1");
+        ds.exec("drop table test_oracle_syn");
     }
 
     private string getResultSetSql() {
