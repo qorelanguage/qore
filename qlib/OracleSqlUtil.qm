@@ -257,6 +257,7 @@ my hash $schema = (
 
     @subsection v124 OracleSqlUtil v1.2.4
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - implemented support for chained synonyms (<a href="https://github.com/qorelanguage/qore/issues/2408">issue 2408</a>)
     - allow to use DBA_* views instead of ALL_* if possible (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
 
     @subsection v123 OracleSqlUtil v1.2.3
@@ -2086,6 +2087,7 @@ auto v = c.name;
                     "dba_ind_columns"       : "all_ind_columns",
                     "dba_ind_expressions"   : "all_ind_expressions",
                     "dba_indexes"           : "all_indexes",
+                    "dba_objects"           : "all_objects",
                     "dba_sequences"         : "all_sequences",
                     "dba_synonyms"          : "all_synonyms",
                     "dba_tab_columns"       : "all_tab_columns",
@@ -2211,6 +2213,38 @@ auto v = c.name;
                 schema = schema.lwr();
         }
 
+        # Oracle has supprt for unlimitted synonym loops. There
+        # can be mo relevels of synonyms before the real object
+        # is listed.
+        private *hash resolveSynonym(string s_owner, string s_name) {
+            *hash ret;
+            do {
+                # TODO/FIXME: db link handling
+                ret = ds.selectRow("select s.*, o.object_type
+                                    from " + systemView("dba_synonyms") + " s
+                                        join " + systemView("dba_objects") + " o
+                                        on
+                                        (
+                                                s.table_owner = o.owner
+                                            and s.table_name = o.object_name
+                                        )
+                                    where s.owner = %v
+                                        and s.synonym_name = %v",
+                                s_owner.upr(), s_name.upr());
+
+                # ret can be NOTHING in case:
+                #  - no such synonym exists
+                #  - there is a broken synonym eg. pointing to non-existing object
+                if (!ret) break;
+
+                s_owner = ret.table_owner;
+                s_name = ret.table_name;
+            }
+            while (ret && ret.object_type == 'SYNONYM');
+
+            return ret;
+        }
+
         private hash setTable() {
             # see if the current user has the table
             *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
@@ -2228,10 +2262,10 @@ auto v = c.name;
 
             bool pub = False;
             # see if there is a user synonym with this name
-            row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
+            row = resolveSynonym(schema, name);
             if (!row) {
                 # see if there is a public synonym with this name
-                row = ds.selectRow("select * from " + systemView("dba_synonyms") + " where owner = 'PUBLIC' and synonym_name = %v", name.upr());
+                row = resolveSynonym("PUBLIC", name);
                 if (!row)
                     throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, getDBString());
                 pub = True;
