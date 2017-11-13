@@ -115,6 +115,8 @@ class DebugWrapper {
             'timeout': 't,timeout=i',
             'connect_timeout': 'c,conn-timeout=i',
             'response_timeout': 'w,resp-timeout=i',
+            "history": "y,history=s",
+            "session": "s,session=s",
         );
         DebugCommandLineRemote dcl;
         DebugLogger logger;
@@ -168,6 +170,7 @@ class DebugWrapper {
                     dcl.setContextValue('threadId', sess.result{pgmId}.interrupted[0]);
                 }
             }
+            dcl.init(opt);
             dcl.runCmdLine();
             dcl.wsc.disconnect();
 
@@ -188,6 +191,9 @@ class DebugWrapper {
             "  -t,--timeout=<ms>      the timeout\n"
             "  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
             "  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n"
+            "  -y, --history=file           load command line history from file, default: %s in home directory\n"
+            "                               When \".\" name is provided then history is not loaded/saved\n"
+            "  -s, --session=file           load session from file\n"
 
             "\n"
             "Example:\n"
@@ -195,9 +201,9 @@ class DebugWrapper {
             "\n"
             ,
             get_script_name(),
-            0,
             DebugCommandLineRemote::WSC_TIMEOUT,
-            get_script_name()
+            DebugCommandLine::defaultHistoryFileName,
+            get_script_name(),
 
         );
         exit(exCode);

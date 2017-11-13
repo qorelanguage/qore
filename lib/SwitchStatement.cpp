@@ -199,6 +199,18 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
+void SwitchStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   CaseNode *w = head;
+   while (w) {
+      if (w->code) {
+         w->code->parseCommit(pgm);
+      }
+      w = w->next;
+   }
+}
+
+
 CaseNodeWithOperator::CaseNodeWithOperator(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(loc, v, c), op_func(op) {
 }
 

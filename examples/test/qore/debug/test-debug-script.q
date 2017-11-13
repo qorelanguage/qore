@@ -29,7 +29,7 @@ any sub func(string s, int i) {
     int j = 0;
     while (j < 5) {
         *hash lv;# = get_local_vars(j);
-        printf("get_local_vars(%d)\n%N\n\n", j, lv);
+        printf("get_local_vars(%d)\r\n%N\n\n", j, lv);
         j++;
     }
     return localString;
@@ -41,10 +41,10 @@ nothing sub main() {
     int zero = 0;
     # this commands should raise parsing error as they are DOMAIN_DEBUGGER
     #Program pgm = ProgramBase::getProgram();
-    #printf("Pgm: %N\n%N\n", pgm, get_local_vars(0));
+    #printf("Pgm: %N\r\n%N\n", pgm, get_local_vars(0));
     TestClass tc();
-    tc.log("TestClass::log() %s\n", "ABC");
-    log("log() %s\n", "CDE");
+    tc.log("TestClass::log() %s\r\n", "ABC");
+    log("log() %s\r\n", "CDE");
     while (i < 3) {
         push localList, func("F", i);
         i++;
@@ -52,9 +52,9 @@ nothing sub main() {
     try {
         i = i / zero;
     } catch (hash ex) {
-        print("exception\n");
+        print("exception\r\n");
     }
-    printf("%y\n", localList);
+    printf("%y\r\n", localList);
 }
 
 main();

@@ -78,7 +78,7 @@ public:
 
       if (top_level) {
          save_global_vnode(0);
-         //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+         //printd(5, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
       }
    }
 
@@ -163,16 +163,13 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
-StatementBlock::StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
-   qore_program_private::registerStatement(getProgram(), this);
+StatementBlock::StatementBlock() : AbstractStatement(-1, -1) {
 }
 
-StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
-   qore_program_private::registerStatement(getProgram(), this);
+StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline) {
 }
 
-StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
-   qore_program_private::registerStatement(getProgram(), this);
+StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline) {
    addStatement(s);
 }
 
@@ -195,8 +192,6 @@ void StatementBlock::addStatement(AbstractStatement* s) {
          on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
 
       loc.end_line = s->loc.end_line;
-      qore_program_private::registerStatement(getProgram(), s);
-      qore_program_private::addStatementToIndex(getProgram(), s);
    }
 }
 
@@ -406,7 +401,7 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
 
    int lvids = 0;
 
-   AbstractStatement* ret = 0;
+   AbstractStatement* ret = nullptr;
 
    if (start != statement_list.end())
       ++start;
@@ -423,6 +418,15 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
    }
 
    return lvids;
+}
+
+void StatementBlock::parseCommit(QoreProgram* pgm) {
+   // add block to the list only when no statements inside
+   qore_program_private::registerStatement(pgm, this, statement_list.empty());
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+      // register and add statements
+      (*i)->parseCommit(pgm);
+   }
 }
 
 int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
@@ -450,7 +454,7 @@ void StatementBlock::parseInit(UserVariantBase* uvb) {
    UserParamListLocalVarHelper ph(uvb);
 
    // initialize code block
-   parseInitImpl(0);
+   parseInitImpl(nullptr);
 
    parseCheckReturn();
 }
@@ -568,6 +572,24 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 
    //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
    return;
+}
+
+void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
+   //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+   statement_list_t::iterator start = hwm;
+   if (start != statement_list.end()) {
+      ++start;
+   } else {
+      start = statement_list.begin();
+   }
+
+   while (start != statement_list.end()) {
+      //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
+      // register and add statements
+      (*start)->parseCommit(pgm);
+      start++;
+   }
+   hwm = statement_list.last();
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {

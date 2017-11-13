@@ -8,6 +8,43 @@
     Bugfix release; see details below
 
     @subsection qore_08131_bug_fixes Bug Fixes in Qore
+    - fixes in modules:
+      - \c astparser module fixes:
+        - fixed memory leaks in \c AstParser::parseFile() and \c AstParser::parseString() methods (<a href="https://github.com/qorelanguage/qore/issues/2261">issue 2261</a>)
+        - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
+      - <a href="../../modules/DebugCmdLine/html/index.html">DebugCmdLine</a> module fixes:
+        - fixed value setting to process all remaining arguments on the command line (<a href="https://github.com/qorelanguage/qore/issues/2294">issue 2294</a>)
+      - <a href="../../modules/DebugCmdLine/html/index.html">DebugCmdLine</a> module fixes:
+        - the debugger should report ambiguous partial matches as an error (<a href="https://github.com/qorelanguage/qore/issues/2292">issue 2292</a>)
+      - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module fixes:
+        - fixed \c Message::addBody() with no body present (issue <a href="https://github.com/qorelanguage/qore/issues/2360">issue 2360</a>)
+      - <a href="../../modules/Qdx/html/index.html">Qdx</a> module fixes:
+        - fixed a bug in documentation post-processing for @ref hashdecl "hashdecl" declarations (<a href="https://github.com/qorelanguage/qore/issues/2298">issue 2298</a>)
+      - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module fixes:
+        - updated to return a 400 Bad Request error when REST schema validation fails on messages received <a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+        - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
+        - updated to return a 404 Not Found error when REST subclass does not exist (<a href="https://github.com/qorelanguage/qore/issues/2405">issue 2405</a>)
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module fixes:
+        - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+        - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes
+        - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
+        - implemented support for chained synonyms (<a href="https://github.com/qorelanguage/qore/issues/2408">issue 2408</a>)
+        - allow to use DBA_* views instead of ALL_* if possible (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a> module fixes:
+        - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
+        - fixed example value for binary type (<a href="https://github.com/qorelanguage/qore/issues/2342">issue 2342</a>)
+        - fixed serialization of date/time values (<a href="https://github.com/qorelanguage/qore/issues/2349">issue 2349</a>)
+        - updated to return a 400 Bad Request error when REST schema validation fails on messages received <a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+        - fixed handling of non-string enum types (<a href="https://github.com/qorelanguage/qore/issues/2364">issue 2364</a>)
+        - fixed confusing error messages with invalid parameter types (<a href="https://github.com/qorelanguage/qore/issues/2365">issue 2365</a>)
+        - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
+        - fixed handling of optional parameters (<a href="https://github.com/qorelanguage/qore/issues/2369">issue 2369</a>)
+        - fixed handling of non-string query parameters (<a href="https://github.com/qorelanguage/qore/issues/2388">issue 2388</a>)
+        - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
+        - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
+        - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
     - added missing comparison methods in the <a href="../../modules/QUnit/html/index.html">QUnit</a> module (<a href="https://github.com/qorelanguage/qore/issues/1588">issue 1588</a>):
       - \c Test::assertRegex()
       - \c Test::assertNRegex()
@@ -23,12 +60,17 @@
       - \c Test::assertLeSoft()
       - \c Test::assertNothing()
     - fixed a bug in \c qpp generating hashdecl code in a specific namespace (<a href="https://github.com/qorelanguage/qore/issues/2255">issue 2255</a>)
-    - \c astparser module fixes:
-      - fixed memory leaks in \c AstParser::parseFile() and \c AstParser::parseString() methods (<a href="https://github.com/qorelanguage/qore/issues/2261">issue 2261</a>)
-      - fixed incorrect flex code regarding parse options leading to segfaults (<a href="https://github.com/qorelanguage/qore/issues/2262">issue 2262</a>)
+    - fixed an error in a @ref hashdecl "hashdecl" documentation example (<a href="https://github.com/qorelanguage/qore/issues/2299">issue 2299</a>)
     - made C++ APIs for complex types for modules public (<a href="https://github.com/qorelanguage/qore/issues/2271">issue 2271</a>)
-    - <a href="../../modules/DebugCmdLine/html/index.html">DebugCmdLine</a> module fixes:
-      - fixed value setting to process all remaining arguments on the command line (<a href="https://github.com/qorelanguage/qore/issues/2294">issue 2294</a>)
+    - fixed inconsistencies in the behavior of the @ref range_operator "range operator (..)" and the @ref list_element_operator "square brackets operator []" with lists and ranges between immediate evaluation and lazy functional evaluation and aligned the behavior of the operators among supported data types with the @ref remove "remove" and @ref delete "delete" operators (<a href="https://github.com/qorelanguage/qore/issues/2260">issue 2260</a>)
+    - fixed a bug handling statement indices with parse errors (<a href="https://github.com/qorelanguage/qore/issues/2312">issue 2312</a>)
+    - fixed too-agressive class hierachy checks that disallowed legal hierarchies where the same base class appears more than once in the hierarchy (<a href="https://github.com/qorelanguage/qore/issues/2317">issue 2317</a>)
+    - fixed a crashing bug in the background operator when the object in context goes out of scope with the thread and an exception is thrown (<a href="https://github.com/qorelanguage/qore/issues/2319">issue 2319</a>)
+    - fixed sending duplicate headers when header hash keys differ only in case; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search (<a href="https://github.com/qorelanguage/qore/issues/2340">issue 2340</a>)
+    - fixed \c q_absolute_path_windows to correctly recognize relative Windows paths beginning with a drive letter (<a href="https://github.com/qorelanguage/qore/issues/2377">issue 2377</a>)
+    - fixed a bug in <tt><b>private:internal</b></tt> in method execution within a class hierarchy in some cases (<a href="https://github.com/qorelanguage/qore/issues/2380">issue 2380</a>)
+    - fixed an obscure bug handling runtime errors in code calls with a variant matched at parse time where a runtime exception could occur (<a href="https://github.com/qorelanguage/qore/issues/2392">issue 2392</a>)
+    - improved breakpoints (enabled by default), extended help texts, load/save debug history and session (<a href="https://github.com/qorelanguage/qore/issues/2401">issue 2401</a>)
 
     @section qore_0813 Qore 0.8.13
 
@@ -435,6 +477,8 @@
     - fixed building with openssl 1.1+ (<a href="https://github.com/qorelanguage/qore/issues/2135">issue 2135</a>)
     - fixed binding more than one wilcard port on a specific address in the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module (<a href="https://github.com/qorelanguage/qore/issues/2155">issue 2155</a>)
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
+    - fixed a memory bug in the @ref splice "splice" operator with a binary operand (<a href="https://github.com/qorelanguage/qore/issues/2303">issue 2303</a>)
+    - fixed a bug where calling any @ref Qore::SQL::SQLStatement "SQLStatement" method in another thread with an active connection from a @ref Qore::SQL::DatasourcePool "DatasourcePool" causes a crash (<a href="https://github.com/qorelanguage/qore/issues/2334">issue 2334</a>)
 
     @section qore_081211 Qore 0.8.12.11
 

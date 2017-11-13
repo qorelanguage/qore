@@ -27,6 +27,22 @@ const stResolve = (
   ST_DETACH: "onDetach",
 );
 
+# test top-level statement
+hash sub tstTlsGetStack() {return get_all_thread_call_stacks(){gettid()}[0];}
+nothing sub tstTlsFunction() {
+    int i = tstTlsClosure();  #2
+    while (i > 1) {  #3
+      i--;   #4
+    } #5
+} #6
+
+code tstTlsClosure = int sub() { #8
+   int i = 1; #9
+   return i; #10
+}; #11
+# end test top-level statement
+
+
 class MyDebugProgram inherits DebugProgram {
   public {
     list traceLog;
@@ -153,6 +169,7 @@ class DebugTest inherits QUnit::Test {
     constructor() : Test("Debug Test", "1.0") {
         addTestCase("ProgramTest", \programTest());
         addTestCase("StatementTest", \statementTest());
+        addTestCase("TLSStatementTest", \tlsStatementTest());
         addTestCase("BreakpointTest", \breakpointTest());
         addTestCase("SingleThreadDebugTest", \singleThreadDebugTest());
         addTestCase("SingleThreadBreakpointTest", \singleThreadBreakpointTest());
@@ -170,6 +187,11 @@ class DebugTest inherits QUnit::Test {
         line.tstLoop = line.tstNoRetVal+2;
         line.tstProgram = line.tstLoop+9;
         line.tstBreakProgram = line.tstProgram+14;
+
+        hash tlsStack = tstTlsGetStack();
+        line.tstTlsFunction = tlsStack.line+1;
+        line.tstTlsClosure = tlsStack.line+8;
+
         #printf("line: %N\n", line);
         set_return_value(main());
     }
@@ -477,7 +499,7 @@ class DebugTest inherits QUnit::Test {
         );
         list action3 = list(DebugRun, ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
         b2.setEnabled(False);
-        checkProgram("breakpoint b1(enable), b2(dísable)", action3, traceLog3, "DIVISION-BY-ZERO");
+        checkProgram("breakpoint b1(enable), b2(disable)", action3, traceLog3, "DIVISION-BY-ZERO");
         b2.setEnabled(True);
         b2.setPolicy(BreakpointPolicyReject);
         checkProgram("breakpoint b1(enable), b2(reject)", action3, traceLog3, "DIVISION-BY-ZERO");
@@ -675,6 +697,29 @@ class DebugTest inherits QUnit::Test {
         testAssertionValue(name+'findStatementId("/usr/lib/my-source.q", 102) full file', pp.findStatementId("/usr/lib/my-source.q", 102), sid);
         info = pp.getStatementIdInfo(sid);
         testAssertionValue(name+'getStatementIdInfo("label-sleep", 2)', info, ('file': 'label-sleep', 'source': '/usr/lib/my-source.q', 'offset': 100, 'start_line': 2, 'end_line': 2) );
+    }
+
+    tlsStatementTest() {
+        string name = "Program::";
+        int sid;
+        hash info;
+        # test if top-level-statement has been properly parsed and indexed
+        sid = thisProgram.findStatementId("", line.tstTlsFunction+1);
+        info = thisProgram.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("", tlsFunction:1)', info.('start_line', 'end_line'), ('start_line': line.tstTlsFunction+1, 'end_line': line.tstTlsFunction+1));
+        sid = thisProgram.findStatementId("", line.tstTlsFunction+2);
+        info = thisProgram.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("", tlsFunction:2)', info.('start_line', 'end_line'), ('start_line': line.tstTlsFunction+2, 'end_line': line.tstTlsFunction+4));
+
+        # is closure statement indexed ?
+        sid = thisProgram.findStatementId("", line.tstTlsClosure+1);
+        info = thisProgram.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("", tlsClosure:2)', info.('start_line', 'end_line'), ('start_line': line.tstTlsClosure+1, 'end_line': line.tstTlsClosure+1));
+        sid = thisProgram.findStatementId("", line.tstTlsClosure+2);
+        info = thisProgram.getStatementIdInfo(sid);
+        testAssertionValue(name+'findStatementId("", tlsClosure:3)', info.('start_line', 'end_line'), ('start_line': line.tstTlsClosure+2, 'end_line': line.tstTlsClosure+2));
+
+        assertThrows('PROGRAM-STATEMENT-ERROR', \thisProgram.findStatementId(), list("", line.tstTlsClosure-1), name+'.findStatementId() no tls statement');
     }
 
     programTest() {

@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.4";
+    version = "1.4.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_4_1 SqlUtil v1.4.1
+    - implemented support for user custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
     @subsection sqlutilv1_4 SqlUtil v1.4
     - fixed a bug in update and upsert statement generation when the given data does not have enough columns to use the unique index found, an error message is generated that contains all the columns names instead of just the column names required by the index (<a href="https://github.com/qorelanguage/qore/issues/1013">issue 1013</a>)
@@ -2241,8 +2244,12 @@ public namespace SqlUtil {
         COP_AS: (
             "arg": Type::String,
             "withalias": True,
-            "code": string sub (string cve, string arg, reference<hash> psch) {
-                psch{arg} = cve;
+            "code": string sub (string cve, string arg, reference psch) {
+                # issue #2163: make sure the unquoted alias is inserted in the map
+                if (arg =~ /^".*"$/)
+                    psch{arg.substr(1, -1)} = cve;
+                else
+                    psch{arg} = cve;
                 return sprintf("%s as %s", cve, arg);
             },
         ),
@@ -8757,6 +8764,8 @@ Table table("pgsql:user/pass@db%host", "table");
             bool inDb = False;
             #! manual edits
             bool manual = False;
+
+            hash m_customCopMap = hash();
         }
 
         #! creates the object; private constructor
@@ -12733,16 +12742,16 @@ string sql = table.getSelectSql(sh, \args);
                 throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
             if (cmd.withalias) {
-                # get escaped AS alias only when required (a reserved word)
-                switch (arg.typeCode()) {
-                    case NT_STRING: arg = getColumnSqlName(arg); break;
-                    case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
-                }
-                return cmd.code(cve, arg, \psch_ref);
-            }
-            else {
-                return cmd.code(cve, arg);
-            }
+                 # get escaped AS alias only when required (a reserved word)
+                 switch (arg.typeCode()) {
+                     case NT_STRING: arg = getColumnSqlName(arg); break;
+                     case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
+                 }
+                 return cmd.code(cve, arg, \psch_ref);
+             }
+             else {
+                 return cmd.code(cve, arg);
+             }
         }
 
         private string getColumnNameIntern(string cv, *hash jch, bool join, *hash ch, *hash psch) {
@@ -14612,10 +14621,75 @@ string sql = table.getAlignSqlString(table2);
         }
 
         #! returns the column operator map for this object
-        /** override in subclasses to return driver-specific options
+        /** subclasses should to implement getColumnOperatorMapImpl() to return driver-specific options
         */
         private hash getColumnOperatorMap() {
-            return DefaultCopMap;
+            return DefaultCopMap + getColumnOperatorMapImpl()
+                                 + m_customCopMap;
+        }
+
+        #! Reimplement in subclasses to provide driver specific column operators
+        private *hash getColumnOperatorMapImpl() {
+        }
+
+        #! register custom user column operator for this table object
+        /** This method allows to register custom operators for select
+            statements.
+
+            @param name a string with operator name. It has to be unique in the driver
+            @param operator an operator has as expected by @ref SqlUtil::make_cop() function
+
+            @throw CUSTOM-OPERATOR-ERROR in case when user tries to register
+                   already existing operator with \c name or if the \c operator
+                   hash does not contain \c "code" key/value.
+
+            @code{.py}
+# t is a AbstractTable/Table object
+# custom operator hash
+hash to_char = (
+    "code" : string sub(string arg1, auto arg) {
+                 return sprintf("to_char(%s, '%s')", arg1, arg);
+             },
+);
+# operator registration
+t.addCustomCopOperator("to_char", to_char);
+# example usage
+hash sh = (
+    "columns" : cop_as(SqlUtil::make_cop("to_char", "d", "yyyymmddhh24miss"), "string_fmt_date"),
+    "limit" : 1,
+);
+# output
+string sql;
+on_exit printf("SQL> %s\n", sql);
+any res = t.selectRows(sh, \sql);
+# result (from Oracle)
+# list: (1 element)
+#  [0]=hash: (3 members)
+#    string_fmt_date : "20171020071854"
+# SQL> select to_char(d, 'yyyymmddhh24miss') as string_fmt_date from test_schema.t
+            @endcode
+        */
+        addCustomCopOperator(string name, hash operator) {
+            hash ops = getColumnOperatorMap();
+            if (ops.hasKey(name)) {
+                throw "CUSTOM-OPERATOR-ERROR",
+                      sprintf("Operator '%s' is already registered as: %y", name, ops{name});
+            }
+
+            # input hash validations
+            if (!operator.hasKey("code")) {
+                throw "CUSTOM-OPERATOR-ERROR",
+                      "Operator hash must contain key 'code'";
+            }
+            else if (operator."code".typeCode() != NT_CLOSURE
+                     && operator."code".typeCode() != NT_CALLREF
+                    )
+            {
+                throw "CUSTOM-OPERATOR-ERROR",
+                      sprintf("Operator hash must contain key 'code' wit value of type 'closure' or 'callref', got: %s", operator."code".type());
+            }
+
+            m_customCopMap{name} = operator;
         }
 
         #! returns the insert operator map for this object

@@ -499,7 +499,7 @@ InboundTableMapper mapper(table, DbMapper);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash m, reference<int> v, hash rec) {
+        private mapFieldType(string key, hash m, reference<auto> v, hash rec) {
             if (m.sequence) {
                 if (!has_returning) {
                     try {
@@ -533,7 +533,7 @@ InboundTableMapper mapper(table, DbMapper);
         /** @param k the field name
             @param fh a reference to the field's value in the map
         */
-        private checkMapField(string k, reference<hash> fh) {
+        private checkMapField(string k, reference<auto> fh) {
             if (fh.sequence) {
                 if (fh.sequence.typeCode() != NT_STRING)
                     error("column '%s.%s' has a sequence key assigned to type '%s' (%y)", table.getSqlName(), getFieldName(k), fh.sequence.type(), fh.sequence);

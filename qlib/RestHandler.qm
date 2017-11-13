@@ -52,7 +52,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -309,6 +309,11 @@ Content-Length: 36
     %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_2_1 RestHandler v1.2.1
+    - updated to return a 400 Bad Request error when REST schema validation fails on messages received (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+    - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
+    - updated to return a 404 Not Found error when REST subclass does not exist (<a href="https://github.com/qorelanguage/qore/issues/2405">issue 2405</a>)
 
     @subsection rh_1_2 RestHandler v1.2
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
@@ -639,7 +644,7 @@ public namespace RestHandler {
                 rsh = call_object_method_args(self, sn, (cx, ah));
             }
             catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "METHOD-DOES-NOT-EXIST") {
+                if (ex.err == "METHOD-DOES-NOT-EXIST" && ex.desc.find(sn) != -1) {
                     if (cx.hdr."transfer-encoding" == "chunked")
                         cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
 
@@ -727,7 +732,10 @@ public namespace RestHandler {
 
         #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
         private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string n_name) {
-            throw "REST-CLASS-ERROR", sprintf("class %y has no subclass %y", name(), n_name);
+            return new hash<HttpServer::HttpHandlerResponseInfo>((
+                "code": 404,
+                "body": sprintf("404 Not Found: class %y has no subclass %y", name(), n_name),
+            ));
         }
     }
 
@@ -987,10 +995,6 @@ public namespace RestHandler {
         hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
-            if (b) {
-                string bstr = maskData(b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
-                logDebug("REST DBG: body: %s", bstr);
-            }
 
             auto body = b;
 
@@ -999,7 +1003,27 @@ public namespace RestHandler {
 
             removeRootPath(\path);
 
-            hash<RestRequestServerInfo> req = validator.parseRequest(hdr.method, path, body, \hdr);
+            hash<RestRequestServerInfo> req;
+            try {
+                if (b) {
+                    string bstr = maskData(b.typeCode() == NT_STRING ? trim(b) : sprintf("%y", b));
+                    logDebug("REST DBG: body: %s", bstr);
+                }
+
+                req = validator.parseRequest(hdr.method, path, body, \hdr);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                # return a 400 Bad Request response to encoding, serialization, or validation errors
+                if (ex.err == "INVALID-ENCODING"
+                    || ex.err == "DESERIALIZATION-ERROR"
+                    || ex.err == "SCHEMA-VALIDATION-ERROR")
+                    return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
+                if (ex.err == "INVALID-METHOD") {
+                    string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
+                    return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"), ("Allow": ml));
+                }
+                rethrow;
+            }
 
             # get object and args
             hash ah = path ? (
@@ -1202,7 +1226,7 @@ public namespace RestHandler {
                 "code": code,
                 "body": body,
                 "hdr": hdr,
-                );
+            );
         }
     }
 }

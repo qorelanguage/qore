@@ -231,7 +231,10 @@ class OracleTest inherits SqlTestBase {
             addTestCase("default values", \testDefaultValues());
             addTestCase("named types to align", \testNTYAlignment());
             addTestCase("bug 1684 'driver' column name", \testDriverColumnName());
+            addTestCase("issue 2163", \issue2163());
             addTestCase("analytic/window functions", \testAnalyticFunctions());
+            addTestCase("custom column operators #2314", \testCustomColumnOperators());
+            addTestCase("chained synonyms #2408", \testChainedSynonyms());
         }
 
         set_return_value(main());
@@ -342,6 +345,90 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         *hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "DRIVER");
         assertEq(True, exists c, "column 'driver' must exist in the table");
+    }
+
+    issue2163() {
+        if (!table)
+            testSkip("no DB connection");
+
+        string sql;
+        on_error printf("SQL: %s\n", sql);
+
+        Columns cols = table.describe();
+        list cl = cols.keys();
+
+        string col1 = cl[0];
+        string col2 = cl[1];
+        hash sh = (
+            "columns": (col1, col2, cop_as(cop_over(cop_max(col2), col1), "max_val")),
+            "superquery": (
+                "columns": (cop_distinct(col1), col2),
+                "where": ("max_val": op_ceq(col2)),
+            ),
+            );
+
+        assertEq(Type::List, table.selectRows(sh, \sql).type());
+    }
+
+    testCustomColumnOperators() {
+        if (!table)
+            testSkip("no DB connection");
+
+        # negative test
+        try {
+            table.addCustomCopOperator("as", hash());
+        }
+        catch (hash ex) {
+            assertEq("CUSTOM-OPERATOR-ERROR", ex.err, "Operator 'as' must be already registered");
+        }
+
+        # regular test
+        hash to_char = (
+            "code" : string sub(string arg1, auto arg) {
+                 return sprintf("to_char(%s, '%s')", arg1, arg);
+             },
+        );
+
+        table.addCustomCopOperator("to_char", to_char);
+
+        hash sh = (
+            "columns" : ( cop_as(SqlUtil::make_cop("to_char", "date_f", "yyyymmdd"), "date_to_char"),
+                          # test oracle specific operator because I changed getColumnOperatorMap too
+                          cop_year("date_f"),
+                        ),
+            "limit" : 1,
+        );
+
+        string sql;
+        on_exit {
+            if (m_options.verbose) {
+                printf("custom op sql: %s\n", sql);
+            }
+        }
+        hash res = table.selectRow(sh, \sql);
+
+        assertEq("20160111", res.date_to_char, "Date format test from to_char");
+    }
+
+    # CREATE SYNONYM system priv is required for this test
+    testChainedSynonyms() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractDatasource ds = table.getDatasource();
+        ds.exec("create table test_oracle_syn (dummy varchar2(1))");
+        ds.exec("insert into test_oracle_syn values ('X')");
+        ds.exec("create or replace synonym oracle_test_syn1 for test_oracle_syn");
+        ds.exec("create or replace synonym oracle_test_syn2 for oracle_test_syn1");
+        ds.exec("create or replace synonym oracle_test_syn3 for oracle_test_syn2");
+
+        Table t(ds, "oracle_test_syn3");
+        assertEq("X", t.selectRow().dummy, "dummy must be resolved, returning X");
+
+        ds.exec("drop synonym oracle_test_syn3");
+        ds.exec("drop synonym oracle_test_syn2");
+        ds.exec("drop synonym oracle_test_syn1");
+        ds.exec("drop table test_oracle_syn");
     }
 
     private string getResultSetSql() {
