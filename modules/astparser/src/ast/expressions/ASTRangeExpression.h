@@ -48,7 +48,7 @@ public:
     ASTExpression::Ptr right;
 
 public:
-    ASTRangeExpression(ASTExpression* le, ASTExpression* re) :
+    ASTRangeExpression(ASTExpression* le = nullptr, ASTExpression* re = nullptr) :
         ASTExpression(),
         left(le),
         right(re)
