@@ -1865,6 +1865,7 @@ auto v = c.name;
                         # Split long array to chunks of no more than 32767 elements due to Oracle limitation
                         # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
                         int count;
+%ifndef NO_ORACLE
                         while (arg.size()) {
                             ++count;
                             list chunk = extract arg, 0, 32767;
@@ -1883,6 +1884,7 @@ auto v = c.name;
                                     args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
                             }
                         }
+%endif
 
                         if (count)
                             return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
@@ -2125,6 +2127,7 @@ auto v = c.name;
 
             ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
 
+%ifndef NO_ORACLE
             # validate presence of DBA_* views for this connection/user
             hash dba_in = bindOracleCollection("SYS.ODCIVARCHAR2LIST", map $1.upr(), m_sys_views.keys());
             hash dba_sys = nds.select("select /* OracleSqlUtil::OracleTable::constructor */
@@ -2138,6 +2141,10 @@ auto v = c.name;
                 string n = %object_name.lwr();
                 m_sys_views{n} = n;
             }
+%endif
+%ifdef NO_ORACLE
+            throw "MISSING-ORACLE-DRIVER", "system catalogue/dictionary access requires oracle driver";
+%endif
         }
 
         # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
