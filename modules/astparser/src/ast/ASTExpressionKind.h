@@ -56,13 +56,14 @@ enum ASTExpressionKind {
     AEK_List = 19,          //!< Identifies an instance of \ref ASTListExpression.
     AEK_Literal = 20,       //!< Identifies an instance of \ref ASTLiteralExpression.
     AEK_Name = 21,          //!< Identifies an instance of \ref ASTNameExpression.
-    AEK_Regex = 22,         //!< Identifies an instance of \ref ASTRegexExpression.
-    AEK_RegexSubst = 23,    //!< Identifies an instance of \ref ASTRegexSubstExpression.
-    AEK_RegexTrans = 24,    //!< Identifies an instance of \ref ASTRegexTransExpression.
-    AEK_Returns = 25,       //!< Identifies an instance of \ref ASTReturnsExpression.
-    AEK_SwitchBody = 26,    //!< Identifies an instance of \ref ASTSwitchBodyExpression.
-    AEK_Ternary = 27,       //!< Identifies an instance of \ref ASTTernaryExpression.
-    AEK_Unary = 28,         //!< Identifies an instance of \ref ASTUnaryExpression.
+    AEK_Range = 22,         //!< Identifies an instance of \ref ASTRangeExpression.
+    AEK_Regex = 23,         //!< Identifies an instance of \ref ASTRegexExpression.
+    AEK_RegexSubst = 24,    //!< Identifies an instance of \ref ASTRegexSubstExpression.
+    AEK_RegexTrans = 25,    //!< Identifies an instance of \ref ASTRegexTransExpression.
+    AEK_Returns = 26,       //!< Identifies an instance of \ref ASTReturnsExpression.
+    AEK_SwitchBody = 27,    //!< Identifies an instance of \ref ASTSwitchBodyExpression.
+    AEK_Ternary = 28,       //!< Identifies an instance of \ref ASTTernaryExpression.
+    AEK_Unary = 29,         //!< Identifies an instance of \ref ASTUnaryExpression.
 };
 
 #endif // _QLS_AST_ASTEXPRESSIONKIND_H

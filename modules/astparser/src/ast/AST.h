@@ -83,6 +83,7 @@
 #include "ast/expressions/ASTListExpression.h"
 #include "ast/expressions/ASTLiteralExpression.h"
 #include "ast/expressions/ASTNameExpression.h"
+#include "ast/expressions/ASTRangeExpression.h"
 #include "ast/expressions/ASTRegexExpression.h"
 #include "ast/expressions/ASTRegexSubstExpression.h"
 #include "ast/expressions/ASTRegexTransExpression.h"

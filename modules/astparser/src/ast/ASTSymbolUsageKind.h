@@ -70,6 +70,8 @@ enum ASTSymbolUsageKind {
     ASUK_TernaryTrue = 218,
     ASUK_TernaryFalse = 219,
     ASUK_Unary = 220,
+    ASUK_RangeLeft = 221,
+    ASUK_RangeRight = 222,
 
     // Statements.
     ASUK_ContextStmtName = 300,
