@@ -2125,6 +2125,7 @@ auto v = c.name;
 
             ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
 
+%ifndef NO_ORACLE
             # validate presence of DBA_* views for this connection/user
             hash dba_in = bindOracleCollection("SYS.ODCIVARCHAR2LIST", map $1.upr(), m_sys_views.keys());
             hash dba_sys = nds.select("select /* OracleSqlUtil::OracleTable::constructor */
@@ -2138,6 +2139,10 @@ auto v = c.name;
                 string n = %object_name.lwr();
                 m_sys_views{n} = n;
             }
+%endif
+%ifdef NO_ORACLE
+            throw "MISSING-ORACLE-DRIVER", "system catalogue/dictionaty access requires oracle driver";
+%endif
         }
 
         # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
