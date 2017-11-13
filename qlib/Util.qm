@@ -81,6 +81,7 @@ module Util {
     - @ref Util::same()
     - @ref Util::slice()
     - @ref Util::tmp_location()
+    - @ref Util::uniq()
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
@@ -91,6 +92,7 @@ module Util {
     - added the @ref Util::parse_uri_query() "parse_uri_query()" function
     - added the @ref Util::UriQueryInfo "UriQueryInfo" hashdecl
     - added the @ref Util::flatten() "flatten()" function
+    - added the @ref Util::uniq() "uniq()" function
 
     @subsection util_1_2 Util 1.2
     - the following functions are now actually implemented in the %Qore library and only reexported here for backwards-compatibility:
