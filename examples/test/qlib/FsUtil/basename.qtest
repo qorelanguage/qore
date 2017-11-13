@@ -16,6 +16,7 @@ public class BasenameTest inherits QUnit::Test {
             ('C:\path\to\file.txt', "file.txt"),
             ("D:/path/to/file.txt", "file.txt"),
             ('E:\path/to\file.txt', "file.txt"),
+            ("//path/to/file.txt", "file.txt"),
             ('\path\to\file.txt', "file.txt"),
             ('\\path\to\file.txt', "file.txt"),
             ('\\path/to/file.txt', "file.txt"),
@@ -27,6 +28,9 @@ public class BasenameTest inherits QUnit::Test {
             ("d:/path/to/", ""),
             ('..\', ""),
             ('c:\', ""),
+            ("c:file.txt", "file.txt"),
+            ('c:\file.txt', "file.txt"),
+            ('c:..\file.txt', "file.txt"),
             ("f:/path/to/dir", "dir"),
             ("file.txt", "file.txt"));
         list results_posix = (
