@@ -84,11 +84,11 @@ hashdecl Container2 {
 hash<Container1> c1();
 
 # afterwards c2 will be: {i: 1, check: False}
-hash<Container2> c2 = cast<hash<Container2>>(c1);
+hash<Container2> c2 = cast<hash<Container2>>(cast<hash>(c1 - "str"));
 
 hash h = ("i": 3, "other": "x");
 # afterwards c3 will be: {i: 3, check: False}
-hash<Container2> c3 = cast<hash<Container2>>(h);
+hash<Container2> c3 = cast<hash<Container2>>(cast<hash>(h - "other"));
     @endcode
 
     @see @ref cast "cast<>"

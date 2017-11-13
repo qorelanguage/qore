@@ -18,6 +18,8 @@ class HttpTestServer {
     public {
         int port;
         string body;
+
+        hash hdr;
     }
 
     private {
@@ -46,10 +48,10 @@ class HttpTestServer {
 
     private startListener(Socket s) {
         Socket s1 = s.accept();
-        hash h = s1.readHTTPHeader();
-        if (h."content-length")
-            body = s1.recv(h."content-length");
-        else if (h."transfer-encoding" == "chunked")
+        hdr = s1.readHTTPHeader();
+        if (hdr."content-length")
+            body = s1.recv(hdr."content-length");
+        else if (hdr."transfer-encoding" == "chunked")
             body = s1.readHTTPChunkedBody().body;
         s1.send(resp);
         end.waitForZero();
@@ -59,6 +61,10 @@ class HttpTestServer {
 
     string getBody() {
         return body;
+    }
+
+    hash getHeader() {
+        return hdr;
     }
 }
 
@@ -254,6 +260,14 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             HTTPClient hc(("url": "http://localhost:" + serv.port));
             *string str = hc.get("/something");
             assertEq(TestMessage, str);
+        }
+        {
+            HttpTestServer serv(ChunkedReply1);
+            on_exit serv.done();
+            HTTPClient hc(("url": "http://localhost:" + serv.port));
+            *string str = hc.get("/something", ("Test-Header": "test1", "test-HEADER": "test2", "teST-HeAdEr": ("test3","test4")));
+            assertEq(TestMessage, str);
+            assertEq("test3,test4", serv.getHeader()."test-header");
         }
 
         {

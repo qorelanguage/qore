@@ -65,6 +65,7 @@ module WebSocketHandler {
 
     @subsection websockethandler_v1_4 Version 1.4
     - added support for complex types
+    - added the @ref WebSocketHandler::WebSocketConnection::registered() method
 
     @subsection websockethandler_v1_3 Version 1.3
     - added timeout values to @ref Qore::Socket "Socket" calls (<a href="https://github.com/qorelanguage/qore/issues/1725">issue 1725</a>)
@@ -109,7 +110,7 @@ public namespace WebSocketHandler {
             handler = n_handler;
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollData() {
             try {
                 return queue.get(DefaultQueuePollingInterval);
@@ -120,7 +121,7 @@ public namespace WebSocketHandler {
             }
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollDataImmediate() {
             return queue.empty() ? NOTHING : queue.get();
         }
@@ -135,22 +136,29 @@ public namespace WebSocketHandler {
             queue.push(ws_encode_message(msg));
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
         gotMessage(string msg) {
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
         gotMessage(binary msg) {
         }
 
-        #! this method is called by the @ref @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
+        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
         connectionClosed() {
+        }
+
+        #! called when the connection has been registered in handler and accept sending messages (e.g. to send initial welcome message); the default implementation does nothing
+        /**
+            @since %WebSocketHandler 1.4
+        */
+        registered() {
         }
     }
 
@@ -235,6 +243,15 @@ public namespace WebSocketHandler {
                 );
         }
 
+        #! get list of socket connection ids
+        /**
+        */
+        *list getConnectionIds() {
+            rwl.readLock();
+            on_exit rwl.readUnlock();
+            return keys ch;
+        }
+
         #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
         /** This method should not return until the connection is closed or the stop() method is called
 
@@ -264,8 +281,10 @@ public namespace WebSocketHandler {
                 on_exit rwl.writeUnlock();
                 ch{cid} = wsc;
             }
+            wsc.registered();
 
             on_exit {
+                #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
                 deregisterConnectionImpl(wsc);
                 wsc.connectionClosed();
                 rwl.writeLock();
@@ -366,13 +385,13 @@ public namespace WebSocketHandler {
 
             Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
         */
-        sendOne(string id, data d) {
+        sendOne(softstring id, data d) {
             rwl.readLock();
             on_exit rwl.readUnlock();
 
             if (!ch{id})
                 throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
-
+            #logDebug("sending data to connection: %y", id);
             ch{id}.send(d);
         }
 

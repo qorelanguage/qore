@@ -107,6 +107,8 @@ class QueueTest {
     }
 }
 
+my int thread_tid;
+
 class ThreadTest inherits Mutex {
     private {
         hash data;
@@ -128,6 +130,9 @@ class ThreadTest inherits Mutex {
             background worker();
             threads--;
         }
+        #sleep(1);
+        #printf("num_threads:%y\nthread_list:%y\ngettid:%y\n", num_threads(), thread_list(), gettid());
+        #printf("get_all_thread_data:%N\nget_all_thread_call_stacks:%N\n", get_all_thread_data(), get_all_thread_call_stacks());
         c.waitForZero();
         t.assertTrue(True, "thread object tests");
     }
@@ -164,6 +169,8 @@ class ThreadTest inherits Mutex {
         gdata+= h;
     }
     worker() {
+        thread_tid = gettid();
+        #printf("worker start:%y, var:%y\n", gettid(), thread_tid);
         for (int i = 0; i < iters; i++) {
             #if (!(i % 1000))
             #    printf("TID %3d: %d/%d\n", gettid(), i, iters);
@@ -208,6 +215,14 @@ class ThreadTest inherits Mutex {
                 continue;
             }
         }
+        /*
+        printf("worker sleep:%y\n", gettid());
+        sleep(3);
+        */
         c.dec();
+        /*
+        printf("worker end:%y, var:%y\n", gettid(), thread_tid);
+        printf("get_all_thread_data():%y\n", get_all_thread_data());
+        */
     }
 }

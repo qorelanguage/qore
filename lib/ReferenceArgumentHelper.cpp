@@ -37,8 +37,8 @@ struct lvih_intern {
    ExceptionSink* xsink;
    ReferenceNode* ref;
 
-   DLLLOCAL lvih_intern(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xs) : lv("ref_arg_helper", typeInfo), xsink(xs) {
-      printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %p (val: %p type: '%s') \n", &lv, val, val ? val->getTypeName() : "n/a");
+   DLLLOCAL lvih_intern(QoreValue val, const QoreTypeInfo* typeInfo, ExceptionSink* xs) : lv("ref_arg_helper", typeInfo), xsink(xs) {
+      printd(5, "ReferenceArgumentHelper::ReferenceArgumentHelper() instantiating %p (type: %d, val->node: %p) \n", &lv, val.type, val.type == QV_Node ? val.v.n: 0);
       lv.instantiate(val);
       VarRefNode* vr = new VarRefNode(get_runtime_location(), strdup("ref_arg_helper"), VT_LOCAL);
       vr->ref.id = &lv;
@@ -50,30 +50,38 @@ struct lvih_intern {
       lv.uninstantiate(xsink);
    }
 
-   DLLLOCAL AbstractQoreNode* getOutputValue() {
+   DLLLOCAL QoreValue getOutputValue() {
       // there will be no locking here, because it's our temporary local "variable"
       ExceptionSink xsink2;
-      LValueRemoveHelper vp(ref, &xsink2, true);
+      LValueRemoveHelper vp(lvalue_ref::get(ref)->vexp, &xsink2, false);
 
       // no exception should be possible here
       assert(!xsink2);
       if (!vp)
-         return nullptr;
+         return QoreValue();
 
       // take output value from our temporary "variable" and return it
-      return vp.removeNode();
-   }
+      bool static_assignment = false;
+      QoreValue rv = vp.remove(static_assignment);
+      if (static_assignment)
+         rv.ref();
+      return rv;   }
 
    DLLLOCAL AbstractQoreNode* getArg() {
       return ref->refSelf();
    }
 };
 
+ReferenceArgumentHelper::ReferenceArgumentHelper(QoreValue val, ExceptionSink *xsink) : priv(new lvih_intern(val, nullptr, xsink)) {
+}
+
+/*
 ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, ExceptionSink *xsink) : priv(new lvih_intern(val, nullptr, xsink)) {
 }
 
 ReferenceArgumentHelper::ReferenceArgumentHelper(AbstractQoreNode *val, const QoreTypeInfo* typeInfo, ExceptionSink *xsink) : priv(new lvih_intern(val, typeInfo, xsink)) {
 }
+*/
 
 ReferenceArgumentHelper::~ReferenceArgumentHelper() {
    delete priv;
@@ -84,5 +92,9 @@ AbstractQoreNode* ReferenceArgumentHelper::getArg() const {
 }
 
 AbstractQoreNode* ReferenceArgumentHelper::getOutputValue() {
+   return priv->getOutputValue().takeNode();
+}
+
+QoreValue ReferenceArgumentHelper::getOutputQoreValue() {
    return priv->getOutputValue();
 }

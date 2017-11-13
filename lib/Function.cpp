@@ -34,6 +34,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/QoreParseListNode.h"
+#include "qore/intern/StatementBlock.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -54,7 +55,7 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
    stop = internal_access && (*aqfi).access == Internal;
 
    QoreFunction* rv = (!last_class || ((*aqfi).access == Public) || stop
-                       || (class_ctx && (*aqfi).access == Private)) ? (*aqfi).func : 0;
+                       || (class_ctx && (*aqfi).access == Private)) ? (*aqfi).func : nullptr;
 
    if (rv) {
       const QoreClass* fc = rv->getClass();
@@ -150,11 +151,10 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    // issue #2145: set the call reference class context only after arguments are evaluted
    OptionalClassObjSubstitutionHelper osh(cctx);
 
-   bool check_args = variant;
    if (!variant) {
-      const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
+      const qore_class_private* class_ctx = qc ? runtime_get_class() : nullptr;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
-         class_ctx = 0;
+         class_ctx = nullptr;
 
       variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx);
       if (!variant) {
@@ -173,7 +173,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   if (processDefaultArgs(func, variant, check_args, is_copy))
+   if (processDefaultArgs(func, variant, true, is_copy))
       return;
 
    setCallType(variant->getCallType());
@@ -195,9 +195,8 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    // issue #2145: set the call reference class context only after arguments are evaluted
    OptionalClassObjSubstitutionHelper osh(cctx);
 
-   bool check_args = variant;
    if (!variant) {
-      const qore_class_private* class_ctx = qc ? runtime_get_class() : 0;
+      const qore_class_private* class_ctx = qc ? runtime_get_class() : nullptr;
       if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
          class_ctx = 0;
 
@@ -218,7 +217,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
       }
    }
 
-   if (processDefaultArgs(func, variant, check_args, is_copy))
+   if (processDefaultArgs(func, variant, true, is_copy))
       return;
 
    setCallType(variant->getCallType());
@@ -229,7 +228,7 @@ CodeEvaluationHelper::~CodeEvaluationHelper() {
    if (returnTypeInfo != (const QoreTypeInfo*)-1)
       saveReturnTypeInfo(returnTypeInfo);
    if (ct != CT_UNUSED && xsink->isException())
-      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : 0, name, loc);
+      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, loc);
 }
 
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
@@ -341,8 +340,8 @@ void AbstractFunctionSignature::addDefaultArgument(const AbstractQoreNode* arg) 
 }
 
 UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po) :
-   AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : 0),
-   parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : 0),
+   AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
+   parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
    loc(first_line, last_line),
    lv(0), argvid(0), selfid(0), resolved(false) {
 
@@ -700,6 +699,66 @@ static int check_extra_args(AbstractFunctionSignature* sig, const type_vec_t& ar
    return 0;
 }
 
+QoreValueList* QoreFunction::runtimeGetCallVariants() const {
+   ReferenceHolder<QoreValueList> rv(new QoreValueList, nullptr);
+
+   const char* class_name = className();
+   int64 ppo = runtime_get_parse_options();
+
+   printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, class_name: %s\n", this, class_name);
+   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+      // get code flags for the variant
+      int64 vflags = (*i)->getFlags();
+
+      // get parse options
+      int64 po = (*i)->getParseOptions(ppo);
+      // if we should ignore "noop" variants
+      bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+
+      // ignore "runtime noop" variants if necessary
+      if (strict_args && (vflags & QC_RUNTIME_NOOP)) {
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip runtime noop, vflags: %p\n", this, vflags);
+         continue;
+      }
+
+      // check functionality flags to see if the variant is accessible
+      int64 vfflags = (*i)->getFunctionality();
+      if ((vfflags & po & ~PO_POSITIVE_OPTIONS)
+          || ((vfflags & PO_POSITIVE_OPTIONS)
+              && (((vfflags & PO_POSITIVE_OPTIONS) & po) != (vfflags & PO_POSITIVE_OPTIONS)))) {
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip functionality, vfflags: %p\n", this, vfflags);
+         continue;
+      }
+
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode, nullptr);
+
+      SimpleRefHolder<QoreStringNode> desc(new QoreStringNode);
+
+      AbstractFunctionSignature* sig = (*i)->getSignature();
+      assert(sig);
+
+      // add "desc" key
+      QoreStringNodeMaker* sm = new QoreStringNodeMaker("%s%s%s(%s)",
+            class_name ? class_name : "", class_name ? "::" : "", getName(),
+            sig->getSignatureText());
+      printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, desc: %s, numparams: %d\n", this, sm->c_str(), sig->numParams());
+      h->setKeyValue("desc", sm, nullptr);
+
+      // add "params" key
+      ReferenceHolder<QoreListNode> params(new QoreListNode, nullptr);
+      for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+         QoreStringNode* s = new QoreStringNode(QoreTypeInfo::getName(sig->getParamTypeInfo(pi)));
+         printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, param %d: %s\n", this, pi, s->c_str());
+         params->push(s);
+      }
+      h->setKeyValue("params", params.release(), nullptr);
+
+      rv->push(h.release());
+   }
+
+   return rv->empty() ? nullptr : rv.release();
+}
+
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const {
    // the lowest match length with the highest score wins
@@ -707,7 +766,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
    int match = -1;
    const AbstractQoreFunctionVariant* variant = nullptr;
 
-   //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+   printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    unsigned nargs = args ? args->size() : 0;
 
@@ -729,7 +788,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
       if (!aqf)
          break;
 
-      //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+      printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
          // skip checking variant if we are only looking for user variants and this variant is builtin
@@ -895,6 +954,134 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
    }
 
    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s() returning %p %s(%s) class: %s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
+
+   return variant;
+}
+
+// finds a variant at runtime
+const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const {
+   const AbstractQoreFunctionVariant* variant = 0;
+
+   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+
+   const QoreFunction* aqf = nullptr;
+   AbstractFunctionSignature* sig = nullptr;
+
+   // parent class while iterating
+   const qore_class_private* last_class = nullptr;
+   bool internal_access = false;
+
+   int64 ppo = runtime_get_parse_options();
+
+   // iterate through inheritance list
+   for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+      bool stop;
+      aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
+      if (!aqf)
+         break;
+
+      //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+
+      for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+         // get runtime parse options
+         int64 po = (*i)->getParseOptions(ppo);
+         // if we should ignore "noop" variants
+         bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+
+         int64 vflags = (*i)->getFlags();
+
+         // ignore "runtime noop" variants if necessary
+         if (strict_args && (vflags & QC_RUNTIME_NOOP))
+            continue;
+
+         sig = (*i)->getSignature();
+         assert(sig);
+
+         //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s(%s) args: %d class: %s class_ctx: %p '%s' nparams: %d\n", this, getName(), sig->getSignatureText(), args.size(), aqf->className() ? aqf->className() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", sig->numParams());
+
+         // issue 1507: ensure that calls with no arguments and no params are considered a perfect match
+         if (args.empty() && !sig->numParams()) {
+            variant = *i;
+            break;
+         }
+
+         // skip variants with signatures a different number of arguments than provided
+         if (sig->numParams() != args.size())
+            continue;
+
+         bool ok = true;
+         for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
+            const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
+            const QoreTypeInfo* a = args[pi];
+            if (t == a || (!t && a == anyTypeInfo))
+               continue;
+            ok = false;
+            break;
+         }
+         if (!ok)
+            continue;
+
+         variant = *i;
+      }
+      // issue 1229: stop searching the class hierarchy if a match found
+      if (stop || variant)
+         break;
+   }
+   if (!variant) {
+      QoreStringNode* desc = new QoreStringNode("no variant matching '");
+      const char* class_name = className();
+      if (class_name)
+         desc->sprintf("%s::", class_name);
+      desc->sprintf("%s(", getName());
+      do_call_str(*desc, this, args);
+      desc->concat(") can be found; ");
+      desc->concat("the following variants are defined:");
+
+      last_class = 0;
+      internal_access = false;
+
+      // add variants tested
+      // iterate through inheritance list
+      for (ilist_t::const_iterator aqfi = ilist.begin(), aqfe = ilist.end(); aqfi != aqfe; ++aqfi) {
+         bool stop;
+         aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
+         if (!aqf)
+            break;
+         class_name = aqf->className();
+
+         for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
+            // skip if the variant is not accessible
+            if (last_class && skip_method_variant(*i, class_ctx, internal_access))
+               continue;
+            desc->concat("\n   ");
+            if (class_name)
+               desc->sprintf("%s::", class_name);
+            desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
+         }
+         if (stop)
+            break;
+      }
+      xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
+   }
+   else if (variant) {
+      // get runtime parse options
+      int64 po = variant->getParseOptions(ppo);
+
+      // check parse options
+      int64 vflags = variant->getFunctionality();
+      // check restrictive flags
+      //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s() returning %p %s(%s) vflags: " QLLD " po: " QLLD " neg: " QLLD "\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", (vflags & po & ~PO_POSITIVE_OPTIONS));
+      if ((vflags & po & ~PO_POSITIVE_OPTIONS) || ((vflags & PO_POSITIVE_OPTIONS) && (((vflags & PO_POSITIVE_OPTIONS) & po) != (vflags & PO_POSITIVE_OPTIONS)))) {
+         //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) getProgram(): %p getProgram()->getParseOptions64(): %x variant->getFunctionality(): %x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
+         const char* class_name = className();
+         xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
+         return 0;
+      }
+
+      assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QC_RUNTIME_NOOP));
+   }
+
+   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s() returning %p %s(%s) class: %s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
 
    return variant;
 }
@@ -1388,7 +1575,7 @@ UserVariantExecHelper::~UserVariantExecHelper() {
 }
 
 UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced)
-   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : 0),
+   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : nullptr),
      pgm(getProgram()), recheck(false), init(false) {
    //printd(5, "UserVariantBase::UserVariantBase() this: %p params: %p rv: %p b: %p synced: %d\n", params, rv, b, synced);
 }
@@ -1421,19 +1608,10 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
       QoreValue np;
       if (args)
          np = const_cast<QoreValueList*>(args)->retrieveEntry(i);
-      //AbstractQoreNode* np = args ? const_cast<AbstractQoreNode*>(args->retrieve_entry(i)) : 0;
-      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
-      signature.lv[i]->instantiate(np.refSelf());
 
-      /*
-      // the above if block will only instantiate the local variable if no
-      // exceptions have occured. therefore here we cleanup the rest
-      // of any already instantiated local variables if an exception does occur
-      if (*xsink) {
-         while (i) signature.lv[--i]->uninstantiate(xsink);
-         return -1;
-      }
-      */
+      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
+
+      signature.lv[i]->instantiate(np.refSelf());
    }
 
    // if there are more arguments than parameters
@@ -1461,7 +1639,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
          signature.selfid->instantiateSelf(self);
 
       // instantiate argv and push id on stack
-      signature.argvid->instantiate(argv ? argv->refSelf() : 0);
+      signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
 
       {
          ArgvContextHelper argv_helper(argv.release(), xsink);
@@ -1516,6 +1694,11 @@ QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, Qor
    CodeContextHelper cch(xsink, CT_USER, name, self, ceh ? ceh->getClass() : qc);
 
    return evalIntern(uveh.getArgv(), self, xsink);
+}
+
+void UserVariantBase::parseCommit() {
+   if (statements)
+      statements->parseCommit(getProgram());
 }
 
 int QoreFunction::parseCheckDuplicateSignatureCommitted(UserSignature* sig) {
@@ -1822,6 +2005,8 @@ void QoreFunction::parseCommit() {
       }
       else if (!has_builtin)
          has_builtin = true;
+
+      (*i)->parseCommit();
    }
    pending_vlist.clear();
 

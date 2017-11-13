@@ -354,6 +354,11 @@ void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
    extern_type_info_map[t] = typeInfo;
 }
 
+// public API
+const QoreTypeInfo* qore_get_or_nothing_type(const QoreTypeInfo* typeInfo) {
+   return get_or_nothing_type_check(typeInfo);
+}
+
 const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo) {
    return QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING) ? typeInfo : get_or_nothing_type(typeInfo);
 }
@@ -640,12 +645,18 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
          switch (t.typespec) {
             case QTS_COMPLEXREF: {
                //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
-               if (QoreTypeInfo::equal(u.ti, t.u.ti))
+               // the passed argument's type must be a superset or equal to the reference type's subtype
+               // that is; if the types are different, the reference type's subtype must be more restrictive than the passed type's
+               if (QoreTypeInfo::equal(t.u.ti, u.ti))
                   return QTI_IDENT;
                return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
             }
             case QTS_TYPE:
-               return t.getType() == NT_REFERENCE ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+               if (t.getType() == NT_REFERENCE) {
+                  may_not_match = true;
+                  return QTI_AMBIGUOUS;
+               }
+               return QTI_NOT_EQUAL;
             default:
                return QTI_NOT_EQUAL;
          }
@@ -1157,38 +1168,9 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
 void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
    ReferenceHolder<QoreHashNode> h(n.get<QoreHashNode>(), xsink);
    n.assign(copy_strip_complex_types(*h));
-
-   /*
-   QoreHashNode* h = n.get<QoreHashNode>();
-   qore_hash_private* ph = qore_hash_private::get(*h);
-   //printd(5, "map_get_plain_hash ph: %p hd: %p c: %p refs: %d\n", ph, ph->hashdecl, ph->complexTypeInfo, h->reference_count());
-   if (!ph->hashdecl && !ph->complexTypeInfo)
-      return;
-
-   if (!h->is_unique()) {
-      discard(n.assign(ph->copy(true)), xsink);
-      return;
-   }
-   ph->hashdecl = nullptr;
-   ph->complexTypeInfo = nullptr;
-   */
 }
 
 void map_get_plain_list(QoreValue& n, ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> l(n.get<QoreListNode>(), xsink);
    n.assign(copy_strip_complex_types(*l));
-
-   /*
-   QoreListNode* l = n.get<QoreListNode>();
-   qore_list_private* pl = qore_list_private::get(*l);
-   //printd(5, "map_get_plain_list pl: %p c: %p refs: %d\n", ph, pl->complexTypeInfo, l->reference_count());
-   if (!pl->complexTypeInfo)
-      return;
-
-   if (!l->is_unique()) {
-      discard(n.assign(pl->copy(true)), xsink);
-      return;
-   }
-   pl->complexTypeInfo = nullptr;
-   */
 }

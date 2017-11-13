@@ -66,8 +66,8 @@ public:
         }
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Call;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Call;
     }
 };
 

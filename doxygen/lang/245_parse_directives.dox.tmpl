@@ -15,7 +15,7 @@
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
-    |@ref allow-debugging "%allow-debugging"|Allows debugging actions that could be insecure such as reading the thread local variable stack <br><br>Since %Qore 0.8.13
+    |@ref allow-debugger "%allow-debugger"|Allows debugging actions that could be insecure such as reading the thread local variable stack <br><br>Since %Qore 0.8.13
     |@ref allow-injection "%allow-injection"|Allows code and dependency injections into the given @ref Qore::Program "Program" object
     |@ref allow-weak-references "%allow-weak-references"|Allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"<br><br>Since %Qore 0.8.13
     |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
@@ -52,6 +52,7 @@
     |@ref loose-args "%loose-args"|reverts the effect of the @ref strict-args "%strict-args" parse options
     |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
     |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
+    |@ref no-debugging "%no-debugging"|Forbids debugging of the current @ref Qore::Program "Program" object <br><br>Since %Qore 0.8.13
     |@ref no-class-defs "%no-class-defs"|Disallows @ref qore_classes "class definitions"; equivalent to @ref Qore::PO_NO_CLASS_DEFS and the <tt>-</tt><tt>-no-class-defs</tt> command line option
     |@ref no-child-restrictions "%no-child-restrictions"|Allows child program objects to have parse option restrictions that are not a strict subset of the parents'; equivalent to parse option @ref Qore::PO_NO_CHILD_PO_RESTRICTIONS and the <tt>-</tt><tt>-no-child-restrictions</tt> command line option
     |@ref no-constant-defs "%no-constant-defs"|Disallows @ref constants "constant definitions"; equivalent to parse option @ref Qore::PO_NO_CONSTANT_DEFS and the <tt>-</tt><tt>-no-constant-defs</tt> command line option
@@ -120,22 +121,23 @@
     @see @ref require-dollar "%require-dollar"
 
     <hr>
-    @section allow-debugging %%allow-debugging
+    @section allow-debugger %allow-debugger
 
     @par Parse Directive:
-    <tt>%%allow-debugging</tt>
+    <tt>%%allow-debugger</tt>
 
     @par Command Line:
     n/a
 
     @par Parse Option Constant:
-    @ref Qore::PO_ALLOW_DEBUGGING
+    @ref Qore::PO_ALLOW_DEBUGGER
 
     @par Description:
-    Allows debugging actions that could be insecure such as reading the thread local variable stack.
-    Currently allows the following functions to be used:
-    - @ref Qore::get_local_vars()
-    - @ref Qore::set_local_var_value()
+    Allows access to functionality that can be used to debug other @ref Qore::Program "Program" containers.
+    Mainly related to classes:
+    - @ref Qore::Breakpoint
+    - @ref Qore::DebugProgram
+    - @ref Qore::ProgramControl
 
     @since %Qore 0.8.13
 
@@ -826,6 +828,24 @@ i+ =4;
     @see @ref new-style "%new-style"
 
     @since %Qore 0.8.4
+
+    <hr>
+    @section no-debugging %no-debugging
+
+    @par Parse Directive:
+    <tt>%%no-debugging</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_DEBUGGING
+
+    @par Description:
+    Forbids debugging of the current @ref Qore::Program "Program" object; when this parse option is set,
+    debuggers cannot attach to the @ref Qore::Program "Program" object.
+
+    @since %Qore 0.8.13
 
     <hr>
     @section no-child-restrictions %no-child-restrictions

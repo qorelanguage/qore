@@ -78,7 +78,7 @@ public:
 
       if (top_level) {
          save_global_vnode(0);
-         //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+         //printd(5, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
       }
    }
 
@@ -163,9 +163,22 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
+StatementBlock::StatementBlock() : AbstractStatement(-1, -1) {
+}
+
+StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline) {
+}
+
+StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline) {
+   addStatement(s);
+}
+
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
    QoreValue return_value;
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   tlpd->dbgFunctionEnter(this, xsink);
    execImpl(return_value, xsink);
+   tlpd->dbgFunctionExit(this, return_value, xsink);
    return return_value;
 }
 
@@ -216,11 +229,25 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
    if (obe)
       pushBlock(on_block_exit_list.end());
 
-   // execute block
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
-         break;
-
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   // to execute even when block is empty, e.g. while(true);
+   rc = tlpd->dbgStep(this, 0, xsink);
+   if (!rc && !*xsink) {
+      // execute block
+      for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+         rc = tlpd->dbgStep(this, *i, xsink);
+         if (rc || *xsink)
+            break;
+         rc = (*i)->exec(return_value, xsink);
+         if (xsink->isEvent()) {
+            tlpd->dbgException(*i, xsink);
+            if (xsink->isEvent()) {
+               break;
+            }
+         }
+         if (rc) break;
+      }
+   }
    // execute "on block exit" code if applicable
    if (obe) {
       ExceptionSink obe_xsink;
@@ -374,7 +401,7 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
 
    int lvids = 0;
 
-   AbstractStatement* ret = 0;
+   AbstractStatement* ret = nullptr;
 
    if (start != statement_list.end())
       ++start;
@@ -391,6 +418,15 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
    }
 
    return lvids;
+}
+
+void StatementBlock::parseCommit(QoreProgram* pgm) {
+   // add block to the list only when no statements inside
+   qore_program_private::registerStatement(pgm, this, statement_list.empty());
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+      // register and add statements
+      (*i)->parseCommit(pgm);
+   }
 }
 
 int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
@@ -418,7 +454,7 @@ void StatementBlock::parseInit(UserVariantBase* uvb) {
    UserParamListLocalVarHelper ph(uvb);
 
    // initialize code block
-   parseInitImpl(0);
+   parseInitImpl(nullptr);
 
    parseCheckReturn();
 }
@@ -536,6 +572,24 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 
    //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
    return;
+}
+
+void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
+   //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+   statement_list_t::iterator start = hwm;
+   if (start != statement_list.end()) {
+      ++start;
+   } else {
+      start = statement_list.begin();
+   }
+
+   while (start != statement_list.end()) {
+      //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
+      // register and add statements
+      (*start)->parseCommit(pgm);
+      start++;
+   }
+   hwm = statement_list.last();
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {

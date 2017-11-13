@@ -120,18 +120,24 @@ public:
 
    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
-      if (i == keymap.end() || i->second.second)
+      //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+      if (i == keymap.end() || i->second.second) {
+         //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
          return 0;
-
+      }
+      //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
       return i->second.first;
    }
 
    DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
-      if (i == keymap.end() || i->second.second)
+      //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+      if (i == keymap.end() || i->second.second) {
+         //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
          return 0;
-
+      }
       AbstractPrivateData* rv = i->second.first;
+      //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
       i->second.first = 0;
       return rv;
    }
@@ -139,11 +145,13 @@ public:
    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
       assert(keymap.find(key) == keymap.end());
+      //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
       keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
    }
 
    DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
+      //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
       if (keymap.find(key) == keymap.end())
          keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
    }

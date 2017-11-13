@@ -58,15 +58,15 @@ public:
     static QoreListNode* get(ASTTree* tree);
 
 private:
-    static QoreHashNode* getDeclaration(ASTDeclaration* decl, ExceptionSink* xsink);
-    static QoreHashNode* getExpression(ASTExpression* expr, ExceptionSink* xsink);
+    static QoreHashNode* getDeclaration(ASTTree* tree, ASTDeclaration* decl, ExceptionSink* xsink);
+    static QoreHashNode* getExpression(ASTTree* tree, ASTExpression* expr, ExceptionSink* xsink);
     static QoreHashNode* getLocation(const ASTParseLocation& loc, ExceptionSink* xsink);
     static QoreStringNode* getModifiers(ASTModifiers& mods);
-    static QoreHashNode* getName(ASTName& name, ExceptionSink* xsink);
-    static QoreHashNode* getName(ASTName* name, ExceptionSink* xsink);
+    static QoreHashNode* getName(ASTTree* tree, ASTName& name, ExceptionSink* xsink);
+    static QoreHashNode* getName(ASTTree* tree, ASTName* name, ExceptionSink* xsink);
     static QoreStringNode* getOperator(ASTOperator& op);
-    static QoreHashNode* getParseOption(ASTParseOption* po, ExceptionSink* xsink);
-    static QoreHashNode* getStatement(ASTStatement* stmt, ExceptionSink* xsink);
+    static QoreHashNode* getParseOption(ASTTree* tree, ASTParseOption* po, ExceptionSink* xsink);
+    static QoreHashNode* getStatement(ASTTree* tree, ASTStatement* stmt, ExceptionSink* xsink);
 };
 
 #endif // _QLS_QUERIES_GETNODESINFOQUERY_H

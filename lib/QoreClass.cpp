@@ -1540,10 +1540,14 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
    // recursively add base classes to special method list
    if (sclass) {
       if (!qcp_set.insert(sclass->priv).second) {
-         parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
-         if (sclass->priv->scl)
-            sclass->priv->scl->valid = false;
-         return -1;
+         // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
+         if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
+            parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
+            if (sclass->priv->scl)
+               sclass->priv->scl->valid = false;
+            return -1;
+         }
+         return 0;
       }
 
       rc = sclass->priv->initializeIntern(qcp_set);
@@ -1693,6 +1697,11 @@ const QoreVarInfo* BCNode::parseFindVar(const char* name, const qore_class_priva
    return vi;
 }
 
+const QoreClass* BCNode::findInHierarchy(const qore_class_private& qc) {
+   // sclass can be 0 if the class could not be found during parse initialization
+   return sclass ? sclass->priv->findInHierarchy(qc) : nullptr;
+}
+
 const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
@@ -1803,8 +1812,17 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 }
 
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
+   // issue #2318 must check for duplicate base classes here
    // sclass may be 0 in case of a parse exception
-   return sclass ? sclass->priv->addBaseClassesToSubclass(child, is_virtual) : 0;
+   if (!sclass)
+      return 0;
+
+   if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*child->priv)) {
+       parse_error(loc, "OOPS %s", child->getName());
+       return -1;
+   }
+
+   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
 }
 
 void BCNode::initializeBuiltin() {
@@ -1845,14 +1863,11 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
 
 int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
    printd(5, "BCList::parseInit(%s) this: %p empty: %d\n", cls->getName(), this, empty());
-   for (bclist_t::iterator i = begin(), e = end(); i != e;) {
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
       if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
-         valid = false;
-         delete *i;
-         erase(i++);
-         continue;
+         if (valid)
+            valid = false;
       }
-      ++i;
    }
 
    // compare each class in the list to ensure that there are no duplicates
@@ -1862,8 +1877,11 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          while (++j != e) {
             if (!(*j)->sclass)
                continue;
-            if ((*i)->sclass->getID() == (*j)->sclass->getID())
+            if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
                parse_error(cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+               if (valid)
+                  valid = false;
+            }
          }
       }
    }
@@ -2135,26 +2153,36 @@ void BCList::resolveCopy() {
 
 AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
    if (!valid)
-      return 0;
+      return nullptr;
 
    for (auto& i : *this) {
       AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, class_ctx, allow_internal);
       if (rv)
          return rv;
    }
-   return 0;
+   return nullptr;
 }
 
 QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const {
    if (!valid)
-      return 0;
+      return nullptr;
 
    for (auto& i : *this) {
       QoreVarInfo* vi = (*i).parseFindStaticVar(vname, qc, access, check, toplevel);
       if (vi)
          return vi;
    }
-   return 0;
+   return nullptr;
+}
+
+const QoreClass* BCList::findInHierarchy(const qore_class_private& qc) {
+   for (auto& i : *this) {
+      const QoreClass* rv = (*i).findInHierarchy(qc);
+      if (rv)
+         return rv;
+   }
+
+   return nullptr;
 }
 
 const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
@@ -2164,7 +2192,7 @@ const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, boo
          return qc;
    }
 
-   return 0;
+   return nullptr;
 }
 
 const QoreClass* BCList::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
@@ -2391,7 +2419,6 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
-      //qc->priv->scl->sml.addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
 }
 
@@ -2859,7 +2886,7 @@ void BCSMList::execDestructors(QoreObject* o, ExceptionSink* xsink) const {
 
 void BCSMList::execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const {
    for (class_list_t::const_reverse_iterator i = rbegin(), e = rend(); i != e; ++i) {
-      printd(5, "BCSMList::execSystemDestructors() %s::destructor() o: %p virt: %s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
+      //printd(5, "BCSMList::execSystemDestructors() %s::destructor() o: %p virt: %s (subclass %s)\n", i->first->getName(), o, i->second ? "true" : "false", o->getClass()->getName());
       if (!i->second)
          i->first->priv->execBaseClassSystemDestructor(o, xsink);
    }
@@ -3072,7 +3099,7 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
       return qore_method_private::eval(*w, xsink, self, args);
 
    // first see if there is a pseudo-method for this
-   QoreClass* qc = 0;
+   QoreClass* qc = nullptr;
    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
    if (w)
       return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
@@ -3192,31 +3219,33 @@ void QoreClass::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
 }
 
 void qore_class_private::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p\n", name.c_str(), self, scl, scl ? &scl->sml : 0);
+   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p, self: %p, destructor: %p, isSystemObject: %d\n", name.c_str(), self, scl, scl ? &scl->sml : 0, self, destructor, self->isSystemObject());
 
    // we use a new, blank exception sink to ensure all destructor code gets executed
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
 
    if (self->isSystemObject()) {
-      if (destructor)
+      if (destructor) {
          destructor->priv->evalSystemDestructor(self, &de);
-      else
+      } else {
          self->defaultSystemDestructor(classID, &de);
-
+      }
       // execute superclass destructors
-      if (scl)
+      if (scl) {
          scl->sml.execSystemDestructors(self, &de);
+      }
    }
    else {
-      if (destructor)
+      if (destructor) {
          destructor->priv->evalDestructor(self, &de);
-      else if (sys)
+      } else if (sys) {
          self->defaultSystemDestructor(classID, &de);
-
+      }
       // execute superclass destructors
-      if (scl)
+      if (scl) {
          scl->sml.execDestructors(self, &de);
+      }
    }
 
    xsink->assimilate(de);
@@ -3226,6 +3255,7 @@ void qore_class_private::execBaseClassDestructor(QoreObject* self, ExceptionSink
    // we use a new, blank exception sink to ensure all destructor code gets executed
    // in case there were already exceptions in the current exceptionsink
    ExceptionSink de;
+   //printd(5, "qore_class_private::execBaseClassDestructor() %s::destructor(), destructor: %p, sys: %d\n", name.c_str(), destructor, sys);
    if (destructor)
       destructor->priv->evalDestructor(self, &de);
    else if (sys)
@@ -4666,6 +4696,7 @@ void BuiltinDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreOb
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructorVariant::evalDestructor() o: %p, v: %d, classid: %d, private: %p\n", self, self->isValid(), thisclass.getID(), private_data);
    if (!private_data)
       return;
    destructor(self, private_data, xsink);
@@ -4675,6 +4706,7 @@ void BuiltinDestructor2Variant::evalDestructor(const QoreClass &thisclass, QoreO
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructor2Variant::evalDestructor() o: %p, v: %d, private: %p\n", self, self->isValid(), private_data);
    if (!private_data)
       return;
    destructor(thisclass, self, private_data, xsink);
@@ -4684,6 +4716,7 @@ void BuiltinDestructor3Variant::evalDestructor(const QoreClass &thisclass, QoreO
    CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
    AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
+   //printd(5, "BuiltinDestructor3Variant::evalDestructor() o: %p, v: %d, private: %p\n", self, self->isValid(), private_data);
    if (!private_data)
       return;
    destructor(thisclass, ptr, self, private_data, xsink);
@@ -4804,6 +4837,7 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
    qore_call_t ct = variant->getCallType();
 
    // setup call, save runtime position
+   //printd(5, "DestructorMethodFunction::evalDestructor() %s::%s() o: %p, v: %d, ct: %d\n", getClassName(), getName(), self, self->isValid(),ct);
    CodeEvaluationHelper ceh(xsink, this, variant, "destructor", (QoreValueList*)0, self, qore_class_private::get(thisclass), ct);
    if (*xsink) return;
 

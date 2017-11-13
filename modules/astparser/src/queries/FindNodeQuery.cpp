@@ -37,7 +37,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
 
     ASTNode* result = nullptr;
     switch (decl->getKind()) {
-        case ASTDeclaration::Kind::ADK_Class: {
+        case ASTDeclarationKind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
@@ -51,7 +51,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Closure: {
+        case ASTDeclarationKind::ADK_Closure: {
             ASTClosureDeclaration* d = static_cast<ASTClosureDeclaration*>(decl);
             result = inExpression(d->returnType.get(), line, col);
             if (result) return result;
@@ -61,7 +61,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_Constant: {
+        case ASTDeclarationKind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
@@ -69,7 +69,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_Function: {
+        case ASTDeclarationKind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
@@ -83,7 +83,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_Hash: {
+        case ASTDeclarationKind::ADK_Hash: {
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
@@ -93,7 +93,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_HashMember: {
+        case ASTDeclarationKind::ADK_HashMember: {
             ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
             result = inName(d->typeName, line, col);
             if (result) return result;
@@ -103,7 +103,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_MemberGroup: {
+        case ASTDeclarationKind::ADK_MemberGroup: {
             ASTMemberGroupDeclaration* d = static_cast<ASTMemberGroupDeclaration*>(decl);
             for (size_t i = 0, count = d->members.size(); i < count; i++) {
                 result = inExpression(d->members[i], line, col);
@@ -111,7 +111,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Namespace: {
+        case ASTDeclarationKind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
             for (size_t i = 0, count = d->declarations.size(); i < count; i++) {
                 result = inDeclaration(d->declarations[i], line, col);
@@ -119,13 +119,13 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             }
             break;
         }
-        case ASTDeclaration::Kind::ADK_Superclass: {
+        case ASTDeclarationKind::ADK_Superclass: {
             ASTSuperclassDeclaration* d = static_cast<ASTSuperclassDeclaration*>(decl);
             result = inName(d->name, line, col);
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_Variable: {
+        case ASTDeclarationKind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
             result = inName(d->typeName, line, col);
             if (result) return result;
@@ -133,7 +133,7 @@ ASTNode* FindNodeQuery::inDeclaration(ASTDeclaration* decl, ast_loc_t line, ast_
             if (result) return result;
             break;
         }
-        case ASTDeclaration::Kind::ADK_VarList: {
+        case ASTDeclarationKind::ADK_VarList: {
             ASTVarListDeclaration* d = static_cast<ASTVarListDeclaration*>(decl);
             result = inExpression(d->variables.get(), line, col);
             if (result) return result;
@@ -153,7 +153,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
 
     ASTNode* result = nullptr;
     switch (expr->getKind()) {
-        case ASTExpression::Kind::AEK_Access: {
+        case ASTExpressionKind::AEK_Access: {
             ASTAccessExpression* e = static_cast<ASTAccessExpression*>(expr);
             result = inExpression(e->variable.get(), line, col);
             if (result) return result;
@@ -161,7 +161,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Assignment: {
+        case ASTExpressionKind::AEK_Assignment: {
             ASTAssignmentExpression* e = static_cast<ASTAssignmentExpression*>(expr);
             result = inExpression(e->left.get(), line, col);
             if (result) return result;
@@ -169,9 +169,9 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Backquote:
+        case ASTExpressionKind::AEK_Backquote:
             return expr;
-        case ASTExpression::Kind::AEK_Binary: {
+        case ASTExpressionKind::AEK_Binary: {
             ASTBinaryExpression* e = static_cast<ASTBinaryExpression*>(expr);
             result = inExpression(e->left.get(), line, col);
             if (result) return result;
@@ -179,7 +179,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Call: {
+        case ASTExpressionKind::AEK_Call: {
             ASTCallExpression* e = static_cast<ASTCallExpression*>(expr);
             result = inExpression(e->target.get(), line, col);
             if (result) return result;
@@ -187,7 +187,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Case: {
+        case ASTExpressionKind::AEK_Case: {
             ASTCaseExpression* e = static_cast<ASTCaseExpression*>(expr);
             result = inExpression(e->caseExpr.get(), line, col);
             if (result) return result;
@@ -195,7 +195,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Cast: {
+        case ASTExpressionKind::AEK_Cast: {
             ASTCastExpression* e = static_cast<ASTCastExpression*>(expr);
             result = inName(e->castType, line, col);
             if (result) return result;
@@ -203,13 +203,13 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Closure: {
+        case ASTExpressionKind::AEK_Closure: {
             ASTClosureExpression* e = static_cast<ASTClosureExpression*>(expr);
             result = inDeclaration(e->closure.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_ConstrInit: {
+        case ASTExpressionKind::AEK_ConstrInit: {
             ASTConstrInitExpression* e = static_cast<ASTConstrInitExpression*>(expr);
             for (size_t i = 0, count = e->inits.size(); i < count; i++) {
                 result = inExpression(e->inits[i], line, col);
@@ -217,21 +217,21 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             }
             break;
         }
-        case ASTExpression::Kind::AEK_ContextMod: {
+        case ASTExpressionKind::AEK_ContextMod: {
             ASTContextModExpression* e = static_cast<ASTContextModExpression*>(expr);
             result = inExpression(e->expression.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_ContextRow:
+        case ASTExpressionKind::AEK_ContextRow:
             return expr;
-        case ASTExpression::Kind::AEK_Decl: {
+        case ASTExpressionKind::AEK_Decl: {
             ASTDeclExpression* e = static_cast<ASTDeclExpression*>(expr);
             result = inDeclaration(e->declaration.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Find: {
+        case ASTExpressionKind::AEK_Find: {
             ASTFindExpression* e = static_cast<ASTFindExpression*>(expr);
             result = inExpression(e->result.get(), line, col);
             if (result) return result;
@@ -241,7 +241,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Hash: {
+        case ASTExpressionKind::AEK_Hash: {
             ASTHashExpression* e = static_cast<ASTHashExpression*>(expr);
             for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpression(e->elements[i], line, col);
@@ -249,7 +249,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             }
             break;
         }
-        case ASTExpression::Kind::AEK_HashElement: {
+        case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             result = inExpression(e->key.get(), line, col);
             if (result) return result;
@@ -257,10 +257,10 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_ImplicitArg:
-        case ASTExpression::Kind::AEK_ImplicitElem:
+        case ASTExpressionKind::AEK_ImplicitArg:
+        case ASTExpressionKind::AEK_ImplicitElem:
             return expr;
-        case ASTExpression::Kind::AEK_Index: {
+        case ASTExpressionKind::AEK_Index: {
             ASTIndexExpression* e = static_cast<ASTIndexExpression*>(expr);
             result = inExpression(e->variable.get(), line, col);
             if (result) return result;
@@ -268,7 +268,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_List: {
+        case ASTExpressionKind::AEK_List: {
             ASTListExpression* e = static_cast<ASTListExpression*>(expr);
             for (size_t i = 0, count = e->elements.size(); i < count; i++) {
                 result = inExpression(e->elements[i], line, col);
@@ -276,23 +276,31 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Literal:
+        case ASTExpressionKind::AEK_Literal:
             return expr;
-        case ASTExpression::Kind::AEK_Name: {
+        case ASTExpressionKind::AEK_Name: {
             ASTNameExpression* e = static_cast<ASTNameExpression*>(expr);
             return &e->name;
         }
-        case ASTExpression::Kind::AEK_Regex:
-        case ASTExpression::Kind::AEK_RegexSubst:
-        case ASTExpression::Kind::AEK_RegexTrans:
+        case ASTExpressionKind::AEK_Range: {
+            ASTRangeExpression* e = static_cast<ASTRangeExpression*>(expr);
+            result = inExpression(e->left.get(), line, col);
+            if (result) return result;
+            result = inExpression(e->right.get(), line, col);
+            if (result) return result;
+            break;
+        }
+        case ASTExpressionKind::AEK_Regex:
+        case ASTExpressionKind::AEK_RegexSubst:
+        case ASTExpressionKind::AEK_RegexTrans:
             return expr;
-        case ASTExpression::Kind::AEK_Returns: {
+        case ASTExpressionKind::AEK_Returns: {
             ASTReturnsExpression* e = static_cast<ASTReturnsExpression*>(expr);
             result = inExpression(e->typeName.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_SwitchBody: {
+        case ASTExpressionKind::AEK_SwitchBody: {
             ASTSwitchBodyExpression* e = static_cast<ASTSwitchBodyExpression*>(expr);
             for (size_t i = 0, count = e->cases.size(); i < count; i++) {
                 result = inExpression(e->cases[i], line, col);
@@ -300,7 +308,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             }
             break;
         }
-        case ASTExpression::Kind::AEK_Ternary: {
+        case ASTExpressionKind::AEK_Ternary: {
             ASTTernaryExpression* e = static_cast<ASTTernaryExpression*>(expr);
             result = inExpression(e->condition.get(), line, col);
             if (result) return result;
@@ -310,7 +318,7 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             if (result) return result;
             break;
         }
-        case ASTExpression::Kind::AEK_Unary: {
+        case ASTExpressionKind::AEK_Unary: {
             ASTUnaryExpression* e = static_cast<ASTUnaryExpression*>(expr);
             result = inExpression(e->expression.get(), line, col);
             if (result) return result;
@@ -352,7 +360,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
 
     ASTNode* result = nullptr;
     switch (stmt->getKind()) {
-        case ASTStatement::Kind::ASK_Block: {
+        case ASTStatementKind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
             for (size_t i = 0, count = s->statements.size(); i < count; i++) {
                 result = inStatement(s->statements[i], line, col);
@@ -360,15 +368,15 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             }
             break;
         }
-        case ASTStatement::Kind::ASK_Break:
+        case ASTStatementKind::ASK_Break:
             return stmt;
-        case ASTStatement::Kind::ASK_Call: {
+        case ASTStatementKind::ASK_Call: {
             ASTCallStatement* s = static_cast<ASTCallStatement*>(stmt);
             result = inExpression(s->call.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Context: {
+        case ASTStatementKind::ASK_Context: {
             ASTContextStatement* s = static_cast<ASTContextStatement*>(stmt);
             result = inExpression(s->name.get(), line, col);
             if (result) return result;
@@ -382,9 +390,9 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Continue:
+        case ASTStatementKind::ASK_Continue:
             return stmt;
-        case ASTStatement::Kind::ASK_DoWhile: {
+        case ASTStatementKind::ASK_DoWhile: {
             ASTDoWhileStatement* s = static_cast<ASTDoWhileStatement*>(stmt);
             result = inExpression(s->condition.get(), line, col);
             if (result) return result;
@@ -392,13 +400,13 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Expression: {
+        case ASTStatementKind::ASK_Expression: {
             ASTExpressionStatement* s = static_cast<ASTExpressionStatement*>(stmt);
             result = inExpression(s->expression.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_For: {
+        case ASTStatementKind::ASK_For: {
             ASTForStatement* s = static_cast<ASTForStatement*>(stmt);
             result = inExpression(s->init.get(), line, col);
             if (result) return result;
@@ -410,7 +418,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Foreach: {
+        case ASTStatementKind::ASK_Foreach: {
             ASTForeachStatement* s = static_cast<ASTForeachStatement*>(stmt);
             result = inExpression(s->value.get(), line, col);
             if (result) return result;
@@ -420,7 +428,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_If: {
+        case ASTStatementKind::ASK_If: {
             ASTIfStatement* s = static_cast<ASTIfStatement*>(stmt);
             result = inExpression(s->condition.get(), line, col);
             if (result) return result;
@@ -430,21 +438,21 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_OnBlockExit: {
+        case ASTStatementKind::ASK_OnBlockExit: {
             ASTOnBlockExitStatement* s = static_cast<ASTOnBlockExitStatement*>(stmt);
             result = inStatement(s->statement.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Rethrow:
+        case ASTStatementKind::ASK_Rethrow:
             return stmt;
-        case ASTStatement::Kind::ASK_Return: {
+        case ASTStatementKind::ASK_Return: {
             ASTReturnStatement* s = static_cast<ASTReturnStatement*>(stmt);
             result = inExpression(s->retval.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Summarize: {
+        case ASTStatementKind::ASK_Summarize: {
             ASTSummarizeStatement* s = static_cast<ASTSummarizeStatement*>(stmt);
             result = inExpression(s->name.get(), line, col);
             if (result) return result;
@@ -460,7 +468,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Switch: {
+        case ASTStatementKind::ASK_Switch: {
             ASTSwitchStatement* s = static_cast<ASTSwitchStatement*>(stmt);
             result = inExpression(s->variable.get(), line, col);
             if (result) return result;
@@ -468,15 +476,15 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_ThreadExit:
+        case ASTStatementKind::ASK_ThreadExit:
             return stmt;
-        case ASTStatement::Kind::ASK_Throw: {
+        case ASTStatementKind::ASK_Throw: {
             ASTThrowStatement* s = static_cast<ASTThrowStatement*>(stmt);
             result = inExpression(s->expression.get(), line, col);
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_Try: {
+        case ASTStatementKind::ASK_Try: {
             ASTTryStatement* s = static_cast<ASTTryStatement*>(stmt);
             result = inStatement(s->tryStmt.get(), line, col);
             if (result) return result;
@@ -486,7 +494,7 @@ ASTNode* FindNodeQuery::inStatement(ASTStatement* stmt, ast_loc_t line, ast_loc_
             if (result) return result;
             break;
         }
-        case ASTStatement::Kind::ASK_While: {
+        case ASTStatementKind::ASK_While: {
             ASTWhileStatement* s = static_cast<ASTWhileStatement*>(stmt);
             result = inExpression(s->condition.get(), line, col);
             if (result) return result;

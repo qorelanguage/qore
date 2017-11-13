@@ -46,7 +46,10 @@
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/QC_SSLCertificate.h"
 #include "qore/intern/QC_SSLPrivateKey.h"
+#include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_DebugProgram.h"
+#include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/QC_File.h"
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_GetOpt.h"
@@ -94,6 +97,7 @@
 DLLLOCAL QoreClass* initReadOnlyFileClass(QoreNamespace& ns);
 
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractSQLStatementClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractQuantifiedIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractBidirectionalIteratorClass(QoreNamespace& ns);
@@ -170,7 +174,8 @@ const TypedHashDecl* hashdeclStatInfo,
       * hashdeclDateTimeInfo,
       * hashdeclIsoWeekInfo,
       * hashdeclCallStackInfo,
-      * hashdeclExceptionInfo;
+      * hashdeclExceptionInfo,
+      * hashdeclStatementInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -876,6 +881,8 @@ QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {
    return rpriv->qoreNS;
 }
 
+extern void preinitBreakpointClass();
+
 // sets up the root namespace
 StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root_ns_private(this)) {
    rpriv->qoreNS = new QoreNamespace("Qore");
@@ -890,6 +897,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    hashdeclIsoWeekInfo = init_hashdecl_IsoWeekInfo(qns);
    hashdeclCallStackInfo = init_hashdecl_CallStackInfo(qns);
    hashdeclExceptionInfo = init_hashdecl_ExceptionInfo(qns);
+   hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -921,7 +929,11 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSSLCertificateClass(qns));
    qns.addSystemClass(initSSLPrivateKeyClass(qns));
    qns.addSystemClass(initSocketClass(qns));
+   preinitBreakpointClass();  // to resolve circular dependency Program/Breakpoint class
+   qns.addSystemClass(initProgramControlClass(qns));
    qns.addSystemClass(initProgramClass(qns));
+   qns.addSystemClass(initDebugProgramClass(qns));
+   qns.addSystemClass(initBreakpointClass(qns));
 
    qns.addSystemClass(initTermIOSClass(qns));
    qns.addSystemClass(initReadOnlyFileClass(qns));
@@ -996,6 +1008,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    // create Qore::SQL namespace
    QoreNamespace* sqlns = new QoreNamespace("SQL");
 
+   sqlns->addSystemClass(initAbstractSQLStatementClass(*sqlns));
    sqlns->addSystemClass(initAbstractDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourcePoolClass(*sqlns));
@@ -1633,6 +1646,150 @@ AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern
       parse_error(fr->loc, "reference to function '%s()' cannot be resolved", fname);
 
    return fr_holder.release();
+}
+
+const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+   // set fake program location for runtime type resolution errors
+   QoreProgramLocation loc;
+   loc.file = "<user input>";
+   loc.start_line = loc.end_line = 1;
+
+   // function or method
+   const QoreFunction* qf = nullptr;
+
+   // class context
+   const QoreClass* qc = nullptr;
+
+   // resolve call to function or method
+   if (!strstr(name, "::")) {
+      const qore_ns_private* ns;
+      qf = runtimeFindFunctionIntern(name, ns);
+
+      if (!qf) {
+         xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "function call \"%s()\" cannot be resolved to any accessible function", name);
+         return nullptr;
+      }
+   }
+   else {
+      const QoreMethod* method = nullptr;
+
+      NamedScope scope(name);
+      qc = parseFindScopedClassWithMethod(loc, scope, false);
+      if (qc) {
+         qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
+         method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);
+         if (method)
+            qf = method->getFunction();
+         else
+            qc = nullptr;
+      }
+
+      if (!method) {
+         // see if this is a function call to a function defined in a namespace
+         const qore_ns_private* ns;
+         qf = runtimeFindFunctionIntern(scope, ns);
+         if (!qf) {
+            xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "scoped call \"%s()\" cannot be resolved to any accessible function or class method", name);
+            return nullptr;
+         }
+      }
+   }
+
+   assert(qf);
+
+   // convert params to real param list
+   type_vec_t tvec;
+   if (params && !params->empty()) {
+      // resolve types
+      tvec.reserve(params->size());
+      ConstValueListIterator li(params);
+      while (li.next()) {
+         QoreValue v = li.getValue();
+         if (v.getType() != NT_STRING) {
+            xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d given as type \"%s\"; expecting \"string\"", name, li.index() + 1, v.getTypeName());
+            return nullptr;
+         }
+         const QoreString& tname = *v.get<const QoreStringNode>();
+
+         // resolve string to type
+         bool or_nothing = (tname[0] == '*');
+         bool has_scope = (tname.bindex("::", 0) != -1);
+
+         const char* tstr = tname.c_str() + (or_nothing ? 1 : 0);
+
+         const QoreTypeInfo* ti = nullptr;
+         if (!has_scope) {
+            ti = or_nothing
+               ? getBuiltinUserOrNothingTypeInfo(tstr)
+               : getBuiltinUserTypeInfo(tstr);
+         }
+         if (!ti) {
+            NamedScope scope(tstr);
+            const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, scope);
+            if (!qc) {
+               xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
+               return nullptr;
+            }
+
+            if (or_nothing) {
+               ti = qc->getOrNothingTypeInfo();
+               if (!ti) {
+                  xsink->raiseException(loc, "FIND-CALL-ERROR", nullptr, "call \"%s()\" parameter %d \"%s\"; class \"%s\" cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", name, li.index() + 1, tname.c_str(), qc->getName());
+                  return nullptr;
+               }
+            }
+            else
+               ti = qc->getTypeInfo();
+         }
+         assert(ti);
+         tvec.push_back(ti);
+      }
+   }
+
+   return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
+}
+
+QoreValueList* qore_root_ns_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+   // function or method
+   const QoreFunction* qf = nullptr;
+
+   // class context
+   const QoreClass* qc = nullptr;
+
+   // resolve call to function or method
+   if (!strstr(name, "::")) {
+      const qore_ns_private* ns;
+      qf = runtimeFindFunctionIntern(name, ns);
+
+      if (!qf)
+         return nullptr;
+   }
+   else {
+      const QoreMethod* method = nullptr;
+
+      NamedScope scope(name);
+      QoreProgramLocation loc;
+      qc = parseFindScopedClassWithMethod(loc, scope, false);
+      if (qc) {
+         qore_class_private* pqc = const_cast<qore_class_private*>(qore_class_private::get(*qc));
+         method = pqc->parseFindAnyMethodStaticFirst(scope.getIdentifier(), pqc);
+         if (method)
+            qf = method->getFunction();
+         else
+            qc = nullptr;
+      }
+
+      if (!method) {
+         // see if this is a function call to a function defined in a namespace
+         const qore_ns_private* ns;
+         qf = runtimeFindFunctionIntern(scope, ns);
+         if (!qf)
+            return nullptr;
+      }
+   }
+
+   assert(qf);
+   return qf->runtimeGetCallVariants();
 }
 
 void qore_ns_private::parseInitGlobalVars() {

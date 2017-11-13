@@ -139,7 +139,7 @@ class Test inherits QUnit::Test {
         testAssertionValue("select operator with expression", (select (1, 2, 3), $1 > 1), (2, 3));
 
         # create a sinple closure to subtract the second argument from the first
-        c = any sub(any x, any y) { return x - y; };
+        c = any sub(auto x, auto y) { return x - y; };
 
         # left fold function on list using closure
         testAssertionValue("foldl operator with closure", (foldl c($1, $2), (2, 3, 4)), -5);
@@ -212,7 +212,7 @@ class Test inherits QUnit::Test {
         assertEq(False, stdout instanceof Mutex);
         assertEq(False, 1 instanceof File);
         {
-            any x = stdout;
+            auto x = stdout;
             assertEq(True, x instanceof File);
             assertEq(False, x instanceof Mutex);
             x = 1;
@@ -331,7 +331,7 @@ class Test inherits QUnit::Test {
         assertNumberEq(123.456, --n);
         assertNumberEq(123.456, n);
 
-        any x = 1;
+        auto x = 1;
         assertEq(1, x++);
         assertEq(2, x);
         assertEq(2, x--);
@@ -372,7 +372,7 @@ class Test inherits QUnit::Test {
         softnumber sn;
         softstring ss;
 
-        any x = {};
+        auto x = {};
         assertThrows("RUNTIME-TYPE-ERROR", sub () {b = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {bn = x;});
         assertThrows("RUNTIME-TYPE-ERROR", sub () {c = x;});
@@ -473,6 +473,13 @@ class Test inherits QUnit::Test {
         assertEq(1, b[1]);
         splice b, 2, 1, chr(b[3]);
         assertEq(<00010303>, b);
+        b = <00010203040506070809>;
+        assertEq(<00010203>, extract b, 0, 4, <b1>);
+        assertEq(<b1040506070809>, b);
+        b = <00010203040506070809>;
+        splice b, 1, 3, <ab>;
+        assertEq(<00ab040506070809>, b);
+
     }
 
     binarySpliceTest() {
@@ -681,22 +688,22 @@ class Test inherits QUnit::Test {
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@; int i = x <=> 1.0;", "");
+            p.parse("auto x = @nan@; int i = x <=> 1.0;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@; int i = 1.0 <=> x;", "");
+            p.parse("auto x = @nan@; int i = 1.0 <=> x;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@n; int i = x <=> 1n;", "");
+            p.parse("auto x = @nan@n; int i = x <=> 1n;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
         {
             Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
-            p.parse("any x = @nan@n; int i = 1n <=> x;", "");
+            p.parse("auto x = @nan@n; int i = 1n <=> x;", "");
             assertThrows("NAN-COMPARE-ERROR", \p.run());
         }
     }
@@ -906,16 +913,19 @@ class Test inherits QUnit::Test {
         assertEq((5,1,8,7), l[2..5]);
         assertEq((7,8,1,5), l[5..2]);
         assertEq((8,7,2), l[4..]);
-        assertEq((8,7,2,NOTHING,NOTHING), l[4..8]);
+        assertEq((8,7,2,NOTHING,NOTHING),          l[4..8]);
+        assertEq((8,7,2,NOTHING,NOTHING), map  $1, l[4..8]);  # lazy evaluation
+        assertEq((8,7,2,      0,      0), map +$1, l[4..8]);  # lazy evaluation
         assertEq((NOTHING,NOTHING,2,7,8), l[8..4]);
         assertEq((7,3,5,1), l[0..3]);
         assertEq((7,3,5,1), l[..3]);
+        assertEq((16,2,10,6), map 2*$1, l[4..1]);    # lazy evaluation
         assertEq(23, foldl $1 + 2*$2, l[..2]);       # lazy evaluation
         assertEq(25, foldl $1 + 2*$2, l[2..0]);      # lazy evaluation
         assertEq(23, foldl $1 + 2*$2, l[(0..2)]);    # lazy evaluation
         assertEq(NOTHING, l[8]);
         assertEq((NOTHING,), l[8,]);
-        assertEq((), l[8..11]);
+        assertEq((NOTHING,NOTHING,NOTHING,NOTHING,), l[8..11]);
 
         assertEq(   ((8,3,4), "asdf", 5, {"f":3, "g":2}),
                  (4, (8,3,4), "asdf", 5, {"f":3, "g":2}, 1) [1 .. 4]);
@@ -925,8 +935,9 @@ class Test inherits QUnit::Test {
         assertEq("asdf", "asdfzxcv"[-2..3]);
         assertEq("asdfz", "asdfzxcv"[..4]);
         assertEq("cxzf", "asdfzxcv"[6..3]);
-        assertEq(("c*", "x*", "z*", "f*"), map $1 + "*", "asdfzxcv"[6..3]);     # lazy evaluation
-        assertEq("c|x|z|f", foldl $1 + "|" + $2, "asdfzxcv"[6..3]);             # lazy evaluation
+        assertEq("v", "asdfzxcv"[16..7]);
+        assertEq("cxzf*", map $1 + "*", "asdfzxcv"[6..3]);           # map does not create a list because its second operand is a single element
+        assertEq("cxzf", foldl $1 + "|" + $2, "asdfzxcv"[6..3]);     # foldl does not do anything because its second operand is a single element
         assertEq(NOTHING, "asdfzxcv"[12]);
         assertEq("", "asdfzxcv"[12,]);
 
@@ -943,10 +954,10 @@ class Test inherits QUnit::Test {
         assertEq(binary(), b[14..]);
         assertEq(<96f1bb>, b[2..7][1..3]);
         assertEq(187, b[2..7][1..3][2]);
-        assertEq((<ad>, <96>, <f1>), map $1, b[2..4]);   # lazy evaluation
-        assertEq(<bbd473>, foldl $1 + $2, b[5..]);       # lazy evaluation
-        assertEq(<bbd473>, b[5..]);                      # 'standard' evaluation
-        assertEq(<bbd473>, foldl $1 + $2, b[(5..7)]);    # lazy evaluation
+        assertEq(<ad96f100>, map $1+<00>, b[2..4]);      # map does not create a list because its second operand is a single element
+        assertEq(<bbd473>, foldl $1 + $2, b[5..]);       # foldl does not do anything because its second operand is a single element
+        assertEq(<bbd473>, foldl $1 + $2, b[(5..7)]);    #        -"-
+        assertEq(<bbd473>, b[5..]);
         assertEq("list<int>", (1,2)[0..1].fullType());
         assertEq("list<int>", (1,2)[1..0].fullType());
         assertEq("list<*int>", (NOTHING,2)[0..1].fullType());
@@ -975,6 +986,17 @@ class Test inherits QUnit::Test {
         {
             string str = "abcdef";
             assertEq("adef", str[0,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq("adeaf", str[0,45,3..4,x,5]);
+                string str0 = str;
+                assertEq("bdeaf", remove str0[1,45,3..4,x,5]);
+                assertEq("c", str0);
+                str0 = str;
+                assertEq("ef", str0[4..7]);
+                assertEq("ef", remove str0[4..7]);
+                assertEq("abcd", str0);
+            }
             string str0 = remove str[1,45,3,5,3];
             assertEq("bdfd", str0);
             assertEq("ace", str);
@@ -988,11 +1010,29 @@ class Test inherits QUnit::Test {
             str0 = remove str[2..];
             assertEq("ef", str0);
             assertEq("ad", str);
+            str = "abcdef";
+            assertEq("", str[45,56]);
+            assertEq("", str[45..56]);
+            assertEq("", str[45..56,57]);
+            assertEq("", remove str[45,56]);
+            assertEq("", remove str[45..56]);
+            assertEq("", remove str[45..56,57]);
         }
 
         {
             binary bin = <abcdef0123457890>;
             assertEq(<ab012345>, bin[0,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq(<ab0123ab45>, bin[0,45,3..4,x,5]);
+                binary bin0 = bin;
+                assertEq(<ab0123ab45>, remove bin0[0,45,3..4,x,5]);
+                assertEq(<cdef7890>, bin0);
+                bin0 = bin;
+                assertEq(<7890>, bin0[6..9]);
+                assertEq(<7890>, remove bin0[6..9]);
+                assertEq(<abcdef012345>, bin0);
+            }
             binary bin0 = remove bin[1,45,3,5,3];
             assertEq(<cd014501>, bin0);
             assertEq(<abef237890>, bin);
@@ -1006,13 +1046,50 @@ class Test inherits QUnit::Test {
             bin0 = remove bin[2..];
             assertEq(<23457890>, bin0);
             assertEq(<ab01>, bin);
+            bin = <abcdef0123457890>;
+            assertEq(binary(), bin[45,56]);
+            assertEq(binary(), bin[45..56]);
+            assertEq(binary(), bin[45..56,57]);
+            assertEq(binary(), remove bin[45,56]);
+            assertEq(binary(), remove bin[45..56]);
+            assertEq(binary(), remove bin[45..56,57]);
         }
 
         {
             list l0 = (1,2,3,4,5,6,7);
             assertEq((2,NOTHING,4,5,6), l0[1,45,3..4,5]);
+            {
+                any x = (0,);
+                assertEq((1,NOTHING,4,5,1,6), l0[0,45,3..4,x,5]);
+                list<auto> l1 = l0;
+                assertEq((1,NOTHING,4,5,1,6), remove l1[0,45,3..4,x,5]);
+                assertEq((2,3,7), l1);
+                l1 = l0;
+                assertEq((NOTHING,NOTHING), l1[7..8]);
+                assertEq((NOTHING,NOTHING), remove l1[7..8]);
+                assertEq(l0, l1);
+                l1 = l0;
+                assertEq((7,NOTHING,NOTHING), l1[6..8]);
+                assertEq((7,NOTHING,NOTHING), remove l1[6..8]);
+                assertEq((1,2,3,4,5,6), l1);
+                l1 = l0;
+                assertEq((6,7,NOTHING,NOTHING), l1[5..8]);
+                assertEq((6,7,NOTHING,NOTHING), remove l1[5..8]);
+                assertEq((1,2,3,4,5), l1);
+                l1 = l0;
+                assertEq((NOTHING,NOTHING,7,6), l1[8..5]);
+                assertEq((NOTHING,NOTHING,7,6), remove l1[8..5]);
+                assertEq((1,2,3,4,5), l1);
+                l1 = l0;
+                assertEq((NOTHING,NOTHING,7), l1[8..6]);
+                assertEq((NOTHING,NOTHING,7), remove l1[8..6]);
+                assertEq((1,2,3,4,5,6), l1);
+                l1 = l0;
+                assertEq((NOTHING,NOTHING), l1[8..7]);
+                assertEq((NOTHING,NOTHING), remove l1[8..7]);
+            }
             list l1 = remove l0[1,45,3,5,3];
-            assertEq((2,NOTHING,4,6,NOTHING), l1);
+            assertEq((2,NOTHING,4,6,4), l1);
             assertEq((1,3,5,7), l0);
             l1 = remove l0[1..2];
             assertEq((3,5), l1);
@@ -1024,12 +1101,102 @@ class Test inherits QUnit::Test {
             l1 = remove l0[2..];
             assertEq((5,6,7), l1);
             assertEq((1,4), l0);
+            l0 = (1,2,3,4,5,6,7);
+            assertEq((NOTHING, NOTHING), l0[45,46]);
+            assertEq((NOTHING, NOTHING), l0[45..46]);
+            assertEq((NOTHING, NOTHING, NOTHING), l0[45..46,47]);
+            assertEq((NOTHING, NOTHING), map $1, l0[45,46]);
+            assertEq((NOTHING, NOTHING), map $1, l0[45..46]);
+            assertEq((NOTHING, NOTHING, NOTHING), map $1, l0[45..46,47]);
+            assertEq((NOTHING, NOTHING), remove l0[45,46]);
+            assertEq((NOTHING, NOTHING), remove l0[45..46]);
+            assertEq((NOTHING, NOTHING, NOTHING), remove l0[45..46,47]);
         }
 
         {
             list l0 = ((0, 1),);
             foreach int i in (l0[0])
                 assertEq(Type::Int, i.type());
+        }
+
+        {
+            list<auto> l0 = (1, 2, 3, 4);
+            list<auto> l1 = l0;
+            assertEq((1, 2), remove l1[0..1]);
+            l1 = l0;
+            assertEq("list<int>", (remove l1[0..1]).fullType());
+            assertEq((3, 4), l1);
+            l1 = l0;
+            assertEq((1, 2), remove l1[0,1]);
+            assertEq((3, 4), l1);
+            l1 = l0;
+            assertEq("list<int>", (remove l1[0,1]).fullType());
+            l1 = l0;
+            assertEq((1, 2, 3), remove l1[0,1..2]);
+            assertEq((4,), l1);
+            l1 = l0;
+            assertEq("list<int>", (remove l1[0,1..2]).fullType());
+
+            assertEq((1, 2), l0[0..1]);
+            assertEq((1, 2), l0[0,1]);
+            assertEq((1, 2, 3), l0[0,1..2]);
+            assertEq((1, 2), map $1, l0[0..1]);
+            assertEq((1, 2), map $1, l0[0,1]);
+            assertEq((1, 2, 3), map $1, l0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq((1, 2, 3, 1), l0[0,1..2,x]);
+                assertEq((1, 2, 3, 1), map $1, l0[0,1..2,x]);
+            }
+
+            string s0 = "1234";
+            string s1 = s0;
+            assertEq("12", remove s1[0..1]);
+            assertEq("34", s1);
+            s1 = s0;
+            assertEq("12", remove s1[0,1]);
+            assertEq("34", s1);
+            s1 = s0;
+            assertEq("123", remove s1[0,1..2]);
+            assertEq("4", s1);
+
+            assertEq("12", s0[0..1]);
+            assertEq("12", s0[0,1]);
+            assertEq("123", s0[0,1..2]);
+            assertEq("12", map $1, s0[0..1]);
+            assertEq("12", map $1, s0[0,1]);
+            assertEq("123", map $1, s0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq("1231", s0[0,1..2,x]);
+                assertEq("1231", map $1, s0[0,1..2,x]);
+            }
+
+            binary b0 = <01020304>;
+            binary b1 = b0;
+            assertEq(<0102>, remove b1[0..1]);
+            assertEq(<0304>, b1);
+            b1 = b0;
+            assertEq(<0102>, remove b1[0,1]);
+            assertEq(<0304>, b1);
+            b1 = b0;
+            assertEq(<010203>, remove b1[0,1..2]);
+            assertEq(<04>, b1);
+
+            assertEq(<0102>, b0[0..1]);
+            assertEq(<0102>, b0[0,1]);
+            assertEq(<010203>, b0[0,1..2]);
+            assertEq(<0102>, map $1, b0[0..1]);
+            assertEq(<0102>, map $1, b0[0,1]);
+            assertEq(<010203>, map $1, b0[0,1..2]);
+            {
+                # ensure consistent behavior between functional and non-function complex [] dereferences
+                auto x = (0,1);
+                assertEq(<01020301>, b0[0,1..2,x]);
+                assertEq(<01020301>, map $1, b0[0,1..2,x]);
+            }
         }
 
         # check range operator precedence
@@ -1083,6 +1250,17 @@ class Test inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { list l = (0, 1); l[0..1] = (2,3); }", ""));
+        }
+
+        {
+            # test invalid types in complex [] operations
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { list l = (0, 1); auto v = l[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { list l = (0, 1); auto v = l[0..(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { string str = '01'; auto v = str[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { string str = '01'; auto v = str[0..(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "slice", \p.parse(), ("sub t() { binary bin = <0102>; auto v = bin[0..1,(0,1)]; }", ""));
+            assertThrows("PARSE-TYPE-ERROR", "range", \p.parse(), ("sub t() { binary bin = <0102>; auto v = bin[0..(0,1)]; }", ""));
         }
     }
 }

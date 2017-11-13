@@ -56,13 +56,15 @@ module TextWrap {
     Primary class provided by this module:
     - @ref TextWrap::TextWrapper "TextWrapper"
 
-    Functions:
+    Convenience functions:
     - @ref TextWrap::wrap() "wrap()"
     - @ref TextWrap::fill() "fill()"
     - @ref TextWrap::shorten() "shorten()"
 
+    Loosely related functions:
     - @ref TextWrap::dedent() "dedent()"
     - @ref TextWrap::indent() "indent()"
+    - @ref TextWrap::expandtabs() "expandtabs()"
 
     @section textwraprelnotes TextWrap Module Release Notes
 
@@ -75,7 +77,7 @@ namespace Init {
     }
 }
 
-#! main namespace for all public symbols in the %TextWrap module
+#! Main namespace for all public symbols in the %TextWrap module.
 public namespace TextWrap {
 
 # Hardcode the recognized whitespace characters to the US-ASCII
@@ -84,29 +86,6 @@ public namespace TextWrap {
 const c_whitespace = "\t\n\013\014\r ";
 
 # -- Private helpers ---------------------------------------------------
-
-string sub expandtabs (string text, int tabsize = 8) {
-    list res = ();
-    int col = 0;
-    foreach string chunk in (regex_extract (text, '([\t\r\n]{1}|[^\t\r\n]+)', Qore::RE_Global)) {
-        switch (chunk) {
-            case "\t":
-                string pad = strmul(' ', tabsize - col % tabsize);
-                res += pad;
-                col += pad.length();
-                break;
-            case "\r":
-            case "\n":
-                res += chunk;
-                col = 0;
-                break;
-            default:
-                res += chunk;
-                col += chunk.length();
-        }
-    }
-    return res.join('');
-}
 
 any sub sum (list la, *any start) {
     map start += $1, la;
@@ -150,6 +129,55 @@ string sub xsprintf (string fmt, hash args) {
     return vsprintf (fmtlist.join(''), arglist);
 }
 
+# -- Public helpers ----------------------------------------------------
+
+#! Return a copy of the string where all tab characters are expanded using spaces.
+/**
+    Return a copy of the string where all tab characters are replaced by one or more spaces,
+    depending on the current column and the given tab size.  Tab positions occur every tabsize
+    characters (default is 8, giving tab positions at columns 0, 8, 16 and so on).  To expand
+    the string, the current column is set to zero and the string is examined character by character.
+    If the character is a tab (\\t), one or more space characters are inserted in the result until
+    the current column is equal to the next tab position.  (The tab character itself is not copied.)
+    If the character is a newline (\\n) or return (\\r), it is copied and the current column is reset
+    to zero.  Any other character is copied unchanged and the current column is incremented by one
+    regardless of how the character is represented when printed.
+
+    @param text a string to process
+    @param tabsize number of spaces to use in place of one tabulator; default: 8
+    @return a new string with all tabulators changed to spaces
+
+    @par Example:
+    @code{.py}
+        >>> expandtabs("01\t012\t0123\t01234")
+        "01      012     0123    01234"
+        >>> expandtabs("01\t012\t0123\t01234", 4)
+        "01  012 0123    01234"
+    @endcode
+*/
+public string sub expandtabs (string text, int tabsize = 8) {
+    list res = ();
+    int col = 0;
+    foreach string chunk in (regex_extract (text, '([\t\r\n]{1}|[^\t\r\n]+)', Qore::RE_Global)) {
+        switch (chunk) {
+            case "\t":
+                string pad = strmul(' ', tabsize - col % tabsize);
+                res += pad;
+                col += pad.length();
+                break;
+            case "\r":
+            case "\n":
+                res += chunk;
+                col = 0;
+                break;
+            default:
+                res += chunk;
+                col += chunk.length();
+        }
+    }
+    return res.join('');
+}
+
 # -- Public functionality ----------------------------------------------
 
 /**
@@ -160,43 +188,43 @@ string sub xsprintf (string fmt, hash args) {
     you'll probably have to override _wrap_chunks().
 
     Several instance attributes control various aspects of wrapping:\n
-    - width (default: 70)\n
+    - \c width (default: 70)\n
         the maximum width of wrapped lines (unless break_long_words
         is false)
-    - initial_indent (default: "")\n
+    - \c initial_indent (default: "")\n
         string that will be prepended to the first line of wrapped
         output.  Counts towards the line's width.
-    - subsequent_indent (default: "")\n
+    - \c subsequent_indent (default: "")\n
         string that will be prepended to all lines save the first
         of wrapped output; also counts towards each line's width.
-    - expand_tabs (default: true)\n
+    - \c expand_tabs (default: true)\n
         Expand tabs in input text to spaces before further processing.
         Each tab will become 0 .. 'tabsize' spaces, depending on its position
         in its line.  If false, each tab is treated as a single character.
-    - tabsize (default: 8)\n
+    - \c tabsize (default: 8)\n
         Expand tabs in input text to 0 .. 'tabsize' spaces, unless
         'expand_tabs' is false.
-    - replace_whitespace (default: true)\n
+    - \c replace_whitespace (default: true)\n
         Replace all whitespace characters in the input text by spaces
         after tab expansion.  Note that if expand_tabs is false and
         replace_whitespace is true, every tab will be converted to a
         single space!
-    - fix_sentence_endings (default: false)\n
+    - \c fix_sentence_endings (default: false)\n
         Ensure that sentence-ending punctuation is always followed
         by two spaces.  Off by default because the algorithm is
         (unavoidably) imperfect.
-    - break_long_words (default: true)\n
+    - \c break_long_words (default: true)\n
         Break words longer than 'width'.  If false, those words will not
         be broken, and some lines might be longer than 'width'.
-    - break_on_hyphens (default: true)\n
+    - \c break_on_hyphens (default: true)\n
         Allow breaking hyphenated words.  If true, wrapping will occur
         preferably on whitespaces and right after hyphens part of
         compound words.
-    - drop_whitespace (default: true)\n
+    - \c drop_whitespace (default: true)\n
         Drop leading and trailing whitespace from lines.
-    - max_lines (default: None)\n
+    - \c max_lines (default: None)\n
         Truncate wrapped lines.
-    - placeholder (default: ' [...]')\n
+    - \c placeholder (default: ' [...]')\n
         Append to the last line of truncated text.
 */
 public class TextWrapper {
@@ -296,10 +324,11 @@ public class TextWrapper {
     # -- Private methods -----------------------------------------------
     # (possibly useful for subclasses to override)
 
-    #! _munge_whitespace(text : string) -> string
     /**
+        _munge_whitespace (text : string) -> string
+
         Munge whitespace in text: expand tabs and convert all other
-        whitespace characters to spaces.  Eg. " foo\\tbar\\n\\nbaz"
+        whitespace characters to spaces.  Eg. " foo\tbar\n\nbaz"
         becomes " foo    bar  baz".
     */
     private string _munge_whitespace (string text) {
@@ -310,19 +339,28 @@ public class TextWrapper {
         return text;
     }
 
-    #! _split(text : string) -> [string]
     /**
+        _split (text : string) -> [string]
+
         Split the text to wrap into indivisible chunks.  Chunks are
         not quite the same as words; see _wrap_chunks() for full
-        details.  As an example, the text
+        details.  As an example, the text:
+
           Look, goof-ball -- use the -b option!
+
         breaks into the following chunks:
+
           'Look,', ' ', 'goof-', 'ball', ' ', '--', ' ',
           'use', ' ', 'the', ' ', '-b', ' ', 'option!'
+
         if break_on_hyphens is True, or in:
+
           'Look,', ' ', 'goof-ball', ' ', '--', ' ',
           'use', ' ', 'the', ' ', '-b', ' ', option!'
+
         otherwise.
+
+        @note This is a non-public interface that may change at any point in the future (!)
     */
     list _split (string text) {
         softlist chunks;
@@ -334,10 +372,11 @@ public class TextWrapper {
         return chunks;
     }
 
-    #! _fix_sentence_endings(chunks : [string])
     /**
+        _fix_sentence_endings (chunks : [string])
+
         Correct for sentence endings buried in 'chunks'.  Eg. when the
-        original text contains "... foo.\\nBar ...", munge_whitespace()
+        original text contains "... foo.\nBar ...", munge_whitespace()
         and split() will convert that to [..., "foo.", " ", "Bar", ...]
         which has one too few spaces; this method simply changes the one
         space to two.
@@ -355,9 +394,9 @@ public class TextWrapper {
     }
 
     /**
-        _handle_long_word(chunks : [string],
-                          cur_line : [string],
-                          cur_len : int, width : int)
+        _handle_long_word (chunks : [string],
+                           cur_line : [string],
+                           cur_len : int, width : int)
 
         Handle a chunk of text (most likely a word, not whitespace) that
         is too long to fit in any line.
@@ -387,8 +426,9 @@ public class TextWrapper {
         # devoted to the long word that we can't handle right now.
     }
 
-    #! _wrap_chunks(chunks : [string]) -> [string]
     /**
+        _wrap_chunks (chunks : [string]) -> [string]
+
         Wrap a sequence of text chunks and return a list of lines of
         length 'self.width' or less.  (If 'break_long_words' is false,
         some lines may be longer than this.)  Chunks correspond roughly
@@ -514,13 +554,15 @@ public class TextWrapper {
 
     # -- Public interface ----------------------------------------------
 
-    #! wrap(text : string) -> [string]
+    #! Wrap a single paragraph of text, returning a list of wrapped lines.
     /**
+        wrap (text : string) -> [string]
+
         Reformat the single paragraph in 'text' so it fits in lines of
         no more than 'self.width' columns, and return a list of wrapped
-        lines.  Tabs in 'text' are expanded with string.expandtabs(),
-        and all other whitespace characters (including newline) are
-        converted to space.
+        lines.  Tabs in 'text' are expanded with expandtabs(), and all
+        other whitespace characters (including newline) are converted
+        to space.
     */
     public list wrap (string text) {
         list chunks = self._split_chunks (text);
@@ -529,8 +571,10 @@ public class TextWrapper {
         return self._wrap_chunks (chunks);
     }
 
-    #! fill(text : string) -> string
+    #! Fill a single paragraph of text, returning a new string.
     /**
+        fill (text : string) -> string
+
         Reformat the single paragraph in 'text' to fit in lines of no
         more than 'self.width' columns, and return a new string
         containing the entire wrapped paragraph.
@@ -546,9 +590,9 @@ public class TextWrapper {
 /**
     Reformat the single paragraph in 'text' so it fits in lines of no
     more than 'width' columns, and return a list of wrapped lines.  By
-    default, tabs in 'text' are expanded with string.expandtabs(), and
-    all other whitespace characters (including newline) are converted to
-    space.  See TextWrapper class for available keyword args to customize
+    default, tabs in 'text' are expanded with expandtabs(), and all other
+    whitespace characters (including newline) are converted to space.
+    See TextWrapper class for available keyword args to customize
     wrapping behaviour.
 */
 public list sub wrap (string text, int width=70, *hash opts) {
@@ -575,10 +619,12 @@ public string sub fill (string text, int width=70, *hash opts) {
     the 'width', it is returned as is.  Otherwise, as many words
     as possible are joined and then the placeholder is appended:
 
+    @code
         >>> TextWrap::shorten("Hello  world!", 12)
-        'Hello world!'
+        "Hello world!"
         >>> TextWrap::shorten("Hello  world!", 11)
-        'Hello [...]'
+        "Hello [...]"
+    @endcode
 */
 public string sub shorten (string text, int width, *hash opts) {
     TextWrapper w (opts + ('width': width, 'max_lines': 1));
@@ -592,12 +638,12 @@ const c_leading_whitespace_re = '(^[ \t]*)(?:[^ \t\n])';
 
 #! Remove any common leading whitespace from every line in 'text'.
 /**
-    This can be used to make triple-quoted strings line up with the left
+    This can be used to make multi-line strings line up with the left
     edge of the display, while still presenting them in the source code
     in indented form.
 
     Note that tabs and spaces are both treated as whitespace, but they
-    are not equal: the lines "  hello" and "\\thello" are considered
+    are not equal -- the lines "  hello" and "\thello" are considered
     to have no common leading whitespace.
 */
 public string sub dedent (string text) {
@@ -646,7 +692,7 @@ public string sub dedent (string text) {
 #! Adds 'prefix' to the beginning of selected lines in 'text'.
 /**
     If 'predicate' is provided, 'prefix' will only be added to the lines
-    where 'predicate(line)' is True.  If 'predicate' is not provided,
+    where <tt>predicate(line)</tt> is True.  If 'predicate' is not provided,
     it will default to adding 'prefix' to all non-empty lines that do not
     consist solely of whitespace characters.
 */

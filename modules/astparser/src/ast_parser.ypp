@@ -230,9 +230,10 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token NULL_COALESCING "?? operator"
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
+%token RANGE ".. operator"
 
 // other
-%token PARSE_OPT_STR "parse option string (no data)"
+%token PARSE_OPTION_BEGIN "parse option beginning"
 
 // scanner errors
 %token INTEGER_OVERFLOW_ERROR "'integer overflow error (cannot represent in a 64-bit signed number)'"
@@ -292,7 +293,8 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token <regex> REGEX_EXTRACT "regular expression extraction expression"
 %token <i4> IMPLICIT_ARG_REF "implicit argument reference"
 %token <String> DOT_KW_IDENTIFIER "keyword used as hash key or object member reference"
-%token <parseopt> PARSE_OPTION "parse option"
+%token <parseopt> PARSE_OPTION_END "parse option end"
+%token <parseopt> PARSE_OPTION_FULL "full parse option"
 
 %nonassoc IFX SCOPED_REF SCOPED_VREF
 %nonassoc TOK_ELSE
@@ -302,6 +304,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %left ','
 %right PLUS_EQUALS WS_PLUS_EQUALS MINUS_EQUALS WS_MINUS_EQUALS AND_EQUALS WS_AND_EQUALS OR_EQUALS WS_OR_EQUALS MODULO_EQUALS WS_MODULO_EQUALS MULTIPLY_EQUALS WS_MULTIPLY_EQUALS DIVIDE_EQUALS WS_DIVIDE_EQUALS XOR_EQUALS WS_XOR_EQUALS SHIFT_LEFT_EQUALS WS_SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS WS_SHIFT_RIGHT_EQUALS '=' WEAK_ASSIGNMENT
 %right '?' ':'
+%nonassoc RANGE
 %right NULL_COALESCING VALUE_COALESCING
 %left LOGICAL_OR WS_LOGICAL_OR
 %left LOGICAL_AND WS_LOGICAL_AND BROKEN_LOGICAL_OR WS_BROKEN_LOGICAL_OR
@@ -389,9 +392,9 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } DOT_KW_IDENTIFIER PARSE_OPTION QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
-%destructor { free($$); } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
-%destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
+%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { free($$); $$ = nullptr; } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
+%destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } $$ = nullptr; } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
 
 %%
 top_level_commands:
@@ -446,12 +449,12 @@ top_level_command:
         ;
 
 parse_option:
-        PARSE_OPTION {
+        PARSE_OPTION_FULL {
             $$ = $1;
             $$->loc = @1;
         }
-        | PARSE_OPTION PARSE_OPT_STR {
-            $$ = $1;
+        | PARSE_OPTION_BEGIN PARSE_OPTION_END {
+            $$ = $2;
             $$->loc.set(@1, @2);
         }
         ;
@@ -1847,7 +1850,7 @@ list:
             $$->loc.set(@1, @3);
         }
         | exp ',' {
-            if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
+            if ($1 && $1->getKind() == ASTExpressionKind::AEK_List) {
                 $$ = static_cast<ASTListExpression*>($1);
             }
             else {
@@ -1866,7 +1869,7 @@ list_n:
             $$->loc.set(@1, @3);
         }
         | exp_n ',' {
-            if ($1 && $1->getKind() == ASTExpression::Kind::AEK_List) {
+            if ($1 && $1->getKind() == ASTExpressionKind::AEK_List) {
                 $$ = static_cast<ASTListExpression*>($1);
             }
             else {
@@ -2325,6 +2328,23 @@ exp:
         | exp '%' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Modulo, $3); }
         | exp '/' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp '*' exp                       { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
+        | exp '[' exp RANGE ']'             {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression($3, nullptr));
+            re->loc.setLast(@4);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp '[' RANGE exp ']'             {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, $4));
+            re->loc.setFirst(@3);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp '[' RANGE ']'                 {
+            yynerrs++;
+            yyerror(&@3, yyscanner, errorLog, parseTree, "illegal range without start or end expressions; at least start or end must be given for a range");
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, nullptr));
+            re->loc = @3;
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
         | exp '[' exp ']'                   {
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
@@ -2333,6 +2353,7 @@ exp:
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
+        | exp RANGE exp                     { $$ = new ASTRangeExpression($1, $3); }
         | exp '.' exp                       { $$ = new ASTAccessExpression($1, $3); }
         | exp DOT_KW_IDENTIFIER             {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);
@@ -2428,6 +2449,23 @@ exp_n:
         | exp_n '%' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Modulo, $3); }
         | exp_n '/' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Divide, $3); }
         | exp_n '*' exp                     { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_Multiply, $3); }
+        | exp_n '[' exp RANGE ']'           {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression($3, nullptr));
+            re->loc.setLast(@4);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp_n '[' RANGE exp ']'           {
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, $4));
+            re->loc.setFirst(@3);
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
+        | exp_n '[' RANGE ']'               {
+            yynerrs++;
+            yyerror(&@3, yyscanner, errorLog, parseTree, "illegal range without start or end expressions; at least start or end must be given for a range");
+            ASTRangeExpression::Ptr re(new ASTRangeExpression(nullptr, nullptr));
+            re->loc = @3;
+            $$ = new ASTIndexExpression($1, re.release(), ASTIndexExpression::IndexKind::AIE_SquareBrackets);
+        }
         | exp_n '[' exp ']'                 {
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_SquareBrackets);
@@ -2436,6 +2474,7 @@ exp_n:
             $3->loc.set(@2, @4);
             $$ = new ASTIndexExpression($1, $3, ASTIndexExpression::IndexKind::AIE_CurlyBrackets);
         }
+        | exp_n RANGE exp                   { $$ = new ASTRangeExpression($1, $3); }
         | exp_n '.' exp                     { $$ = new ASTAccessExpression($1, $3); }
         | exp_n DOT_KW_IDENTIFIER           {
             ASTName name($2, ASTNameKind::ANK_KWIdentifier);

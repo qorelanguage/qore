@@ -2625,7 +2625,7 @@ hash h = get_local_vars(0);
 
     @since %Qore 0.8.13
  */
-hash get_local_vars(int frame) [dom=DEBUG_INSECURE;flags=RET_VALUE_ONLY] {
+hash get_local_vars(int frame) [dom=DEBUGGER;flags=RET_VALUE_ONLY] {
     return thread_get_local_vars(frame, xsink);
 }
 
@@ -2647,8 +2647,8 @@ set_local_var_value(0, "var", 1);
 
     @since %Qore 0.8.13
 */
-nothing set_local_var_value(int frame, string var, auto value) [dom=DEBUG_INSECURE] {
-   if (thread_set_local_var_value(frame, var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(frame, var->c_str(), value, xsink) == 1)
+nothing set_local_var_value(int frame, string var, auto value) [dom=DEBUGGER] {
+   if (thread_set_local_var_value(frame, var->c_str(), value, xsink) == 1 && thread_set_closure_var_value(frame, var->c_str(), value, xsink) == 1 && !xsink->isEvent())
       xsink->raiseException("UNKNOWN-VARIABLE", "cannot find local variable '%s' in stack frame %d", var->c_str(), (int)frame);
 }
 

@@ -83,3 +83,11 @@ int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
+
+void WhileStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (code) {
+      code->parseCommit(pgm);
+   }
+}
+

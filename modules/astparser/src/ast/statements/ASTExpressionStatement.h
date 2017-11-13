@@ -49,8 +49,8 @@ public:
 public:
     ASTExpressionStatement(ASTExpression* e) : ASTStatement(e->loc), expression(e) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ASK_Expression;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_Expression;
     }
 };
 

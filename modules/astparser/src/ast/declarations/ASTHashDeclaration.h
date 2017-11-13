@@ -68,8 +68,8 @@ public:
         declarations.clear();
     }
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_Hash;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_Hash;
     }
 };
 

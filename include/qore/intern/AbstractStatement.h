@@ -50,19 +50,31 @@
 #define PF_NO_TOP_LEVEL_LVARS    (1 << 8)
 
 // all definitions in this file are private to the library and subject to change
+class QoreBreakpoint;
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class AbstractStatement {
 private:
+   volatile bool breakpointFlag;  // fast access to check if breakpoints are non-empty
+   QoreBreakpointList_t *breakpoints;
+
    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
+
+   friend class qore_program_private;
+   // executed when qore_program_private::lck_breakpoint lock is acquired
+   DLLLOCAL QoreBreakpoint* getBreakpoint() const;
+
+   friend class QoreBreakpoint;
+   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
+   DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
 
 public:
    QoreProgramLocation loc;
    struct ParseWarnOptions pwo;
 
    DLLLOCAL AbstractStatement(int sline, int eline);
-
-   DLLLOCAL virtual ~AbstractStatement() {}
+   DLLLOCAL virtual ~AbstractStatement();
 
    DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
@@ -86,6 +98,13 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return false;
    }
+
+   DLLLOCAL inline bool getBreakpointFlag() const {
+      return breakpointFlag;
+   }
+
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+
 };
 
 DLLLOCAL void push_cvar(const char* name);

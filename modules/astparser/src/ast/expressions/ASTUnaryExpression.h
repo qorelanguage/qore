@@ -48,8 +48,8 @@ public:
         expression(expr),
         op(o) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Unary;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Unary;
     }
 };
 

@@ -56,8 +56,8 @@ public:
         cases.clear();
     }
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_SwitchBody;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_SwitchBody;
     }
 };
 

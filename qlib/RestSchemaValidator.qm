@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.0";
+    version = "1.0.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +69,11 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_0_1 RestSchemaValidator v1.0.1
+
+    - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+    - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
 
     @subsection restschemavalidator_1_0 RestSchemaValidator v1.0
 
@@ -94,7 +99,7 @@ public namespace RestSchemaValidator {
         #! any query arguments
         *hash query;
         #! the deserialized message body data
-        any body;
+        auto body;
         #! miscellaneous free-form info about the parsed request
         hash info;
     }
@@ -104,7 +109,7 @@ public namespace RestSchemaValidator {
         #! the HTTP status code
         int code;
         #! the deserialized message body
-        any body;
+        auto body;
         #! the HTTP headers received
         hash hdr;
         #! miscellaneous free-form info about the parsed response
@@ -164,19 +169,21 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        hash<RestRequestClientInfo> processRequest(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+        hash<RestRequestClientInfo> processRequest(string method, string path, auto body, *hash headers, *softlist<string> content_types) {
             return processRequestImpl(method, path, body, headers, content_types);
         }
 
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
             return parseRequestImpl(method, path, http_body, \headers);
@@ -198,7 +205,7 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        hash<HttpResponseInfo> processResponse(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+        hash<HttpResponseInfo> processResponse(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
             return processResponseImpl(method, path, code, response_body, headers, content_types);
         }
 
@@ -303,17 +310,19 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types);
+        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash headers, *softlist<string> content_types);
 
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         private abstract hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers);
 
@@ -440,7 +449,7 @@ public namespace RestSchemaValidator {
             const DeserializeXml = (
                 "code": "xml",
                 "arg": True,
-                "in": any sub (string xml, reference<string> type) {
+                "in": auto sub (string xml, reference<string> type) {
                     try {
                         on_success type = "xml";
                         return parse_xmlrpc_value(xml);
@@ -506,7 +515,7 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, any body, *hash headers, *softlist<string> content_types) {
+        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash headers, *softlist<string> content_types) {
             string ct = content_types[0] ?? DataSerializationSupportList[0];
             return cast<hash<RestRequestClientInfo>>((
                 "uri_path": path,
@@ -518,12 +527,14 @@ public namespace RestSchemaValidator {
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
-            @param http_body the unserialized message body hash
+            @param http_body the serialized message body
             @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
 
             @return a @ref RestRequestServerInfo hash of request information
 
-            @throw DESERIALIZATION-ERROR the request body could not be deserialized
+            @throw DESERIALIZATION-ERROR the request body could not be deserialized, results in a <tt>400 Bad Request</tt> response returned to the caller
+            @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
+            @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
         private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
             hash<UriQueryInfo> h = parse_uri_query(path);
@@ -568,7 +579,7 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types) {
+        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
             if (exists response_body) {
                 string ct;
                 if (!content_types)
@@ -610,7 +621,7 @@ public namespace RestSchemaValidator {
                 "hdr": hdr,
             ));
 
-            if (exists response_body) {
+            if (response_body.val()) {
                 *hash dh = DataDeserializationSupport.(hdr."content-type");
                 if (!dh)
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", hdr."content-type", keys DataDeserializationSupport, response_body);

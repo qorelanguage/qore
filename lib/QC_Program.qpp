@@ -31,7 +31,9 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_Program.h"
+#include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
@@ -39,6 +41,7 @@
 
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
+
 
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
@@ -479,12 +482,12 @@ const PO_STRONG_ENCAPSULATION = PO_STRONG_ENCAPSULATION;
 */
 const PO_NO_UNCONTROLLED_APIS = PO_NO_UNCONTROLLED_APIS;
 
-//! allows debugging actions that could be insecure such as reading the thread local variable stack
-/** @see @ref allow-debugging "%allow-debugging"
+//! Forbids debugging of the current @ref Qore::Program "Program" object; when this option is set, debuggers cannot attach to the @ref Qore::Program "Program" object
+/** @see @ref no-debugging "%no-debugging"
 
     @since %Qore 0.8.13
 */
-const PO_ALLOW_DEBUGGING = PO_ALLOW_DEBUGGING;
+const PO_NO_DEBUGGING = PO_NO_DEBUGGING;
 
 //! Prohibits user hashdecls from being imported into the new Program object
 /** @since %Qore 0.8.13
@@ -502,6 +505,12 @@ const PO_NO_INHERIT_SYSTEM_HASHDECLS = PO_NO_INHERIT_SYSTEM_HASHDECLS;
     @since %Qore 0.8.13
  */
 const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
+
+//! Allows the use of functionality required to implement a debugger, mainly via @ref Qore::DebugProgram "DebugProgram"
+/**
+    @since %Qore 0.8.13
+ */
+const PO_ALLOW_DEBUGGER = PO_ALLOW_DEBUGGER;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -666,6 +675,10 @@ qclass Program [arg=QoreProgram* p];
     However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
     will be applied literally to the child object.
 
+    @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.
+
+    Use the @ref Qore::ProgramControl::getProgram() "ProgramControl::getProgram()" method to attach to the currently running program
+
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
     @par Example:
@@ -682,7 +695,11 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
    }
 
    QoreProgram* pgm = new QoreProgram(getProgram(), po);
+   //pgm->registerQoreObject(self, xsink);
+   assert(!xsink->isEvent());
+
    self->setPrivate(CID_PROGRAM, pgm);
+   printd(5, "Program::constructor() pgm: %p, pgmid: %d, self: %p\n", pgm, pgm->getProgramId(), self);
 }
 
 //! Throws an exception to prevent objects of this class from being copied
@@ -697,7 +714,19 @@ Program::copy() {
 /**
  */
 Program::destructor() {
+   printd(5, "Program::destructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+   // inherited system object destructor is not executed
+   //p->unregisterQoreObject(self, xsink);
+
    p->waitForTerminationAndDeref(xsink);
+   /*
+   if (p->is_unique()) {
+      p->waitForTerminationAndDeref(xsink);
+   } else {
+      // if the underlying object is created from C++ then it has reference and cannot be terminated
+      p->deref(xsink);
+   }
+   */
 }
 
 //! Parses the string argument and adds the code to the Program object
@@ -1451,6 +1480,17 @@ auto Program::getDefine(string def) {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
+//! Get program id
+/**
+   @see
+      @ref Qore::Program::getProgramId "Program::getProgramId"
+
+   @since %Qore 0.8.13
+ */
+int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
+   return p->getProgramId();
+}
+
 //! Loads a %Qore module into the Program object at run-time
 /** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
 
@@ -1479,7 +1519,7 @@ Program::loadModule(string name) [dom=MODULES] {
 }
 
 //! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
-/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
     If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
 
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
@@ -1508,7 +1548,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
 }
 
 //! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
-/** This function allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
     @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
@@ -1528,6 +1568,7 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm)
  */
 Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJECTION] {
    // remove the QoreProgram private data from the object
+  printd(5, "Program::loadApplyToUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
    QoreProgram* pgm = (QoreProgram*)
 #endif
@@ -1537,12 +1578,14 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
 #endif
    if (!*xsink) {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0));
+      // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+      //p->unregisterQoreObject(self, xsink);
       self->doDelete(xsink);
    }
 }
 
 //! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
-/** This function allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+/** This method allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
 
@@ -1561,6 +1604,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject) [dom=MODULES,INJ
  */
 Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
    // remove the QoreProgram private data from the object
+  printd(5, "Program::loadApplyToPrivateUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
    QoreProgram* pgm = (QoreProgram*)
 #endif
@@ -1570,6 +1614,8 @@ Program::loadApplyToPrivateUserModule(string name) [dom=MODULES] {
 #endif
    if (!*xsink) {
       QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, p, QMLO_INJECT | QMLO_PRIVATE);
+      // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+      //p->unregisterQoreObject(self, xsink);
       self->doDelete(xsink);
    }
 }
@@ -1666,7 +1712,7 @@ Program::importSystemApi() {
 pgm.setThreadInit(sub () { var = 123; });
     @endcode
 
-    @note the code will be run for all new threads, but is not run by this function for the current thread
+    @note the code will be run for all new threads, but is not run by this method for the current thread
 
     @see @ref Qore::set_thread_init()
 
@@ -1713,6 +1759,24 @@ nothing Program::setGlobalVarValue(string name, auto value) {
    p->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
 
+//! finds all variants of a function or class method and returns a list of the results
+/** @param function the function or class method name; may also be namespace-justified
+
+    @return a list of hashes for each resolved name; when matched, each hash element has the following keys:
+    - \c desc: a string description of the call which includes the name and the full text call signature
+    - \c params: a QoreValueList object that gives the params in a format that can be used by @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
+
+    @throw PROGRAM-ERROR thrown if the function cannot be found
+
+    @since %Qore 0.8.13
+*/
+list Program::findFunctionVariants(string function) {
+   ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
+   if (!vl)
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
+   return vl->getOldList();
+}
+
 //! returns a list of thread IDs active in this Program
 /** @par Example:
     @code
@@ -1725,4 +1789,11 @@ list<int> l = pgm.getThreadList();
 */
 list<int> Program::getThreadList() [flags=CONSTANT] {
     return p->getThreadList();
+}
+
+//! Get @ref Qore::ProgramControl "ProgramControl"
+/**
+ */
+ProgramControl Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   return QoreProgram::getQoreObject(p);
 }

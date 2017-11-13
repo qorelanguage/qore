@@ -53,6 +53,7 @@ class SQLStatementTest inherits QUnit::Test {
             dsp.exec("create table test (string varchar2(20))");
         }
 
+        addTestCase("issue 2334", \issue2334Test());
         addTestCase("Transaction Test", \transTest());
 
         set_return_value(main());
@@ -82,6 +83,26 @@ class SQLStatementTest inherits QUnit::Test {
         return dsp;
     }
 
+    issue2334Test() {
+        if (!dsp)
+            testSkip("no DB connection");
+
+        Queue q();
+
+        SQLStatement stmt(dsp);
+        on_error dsp.rollback();
+        on_success dsp.commit();
+
+        dsp.exec("delete from test");
+        stmt.prepare("insert into test (string) values (%v)");
+        stmt.exec("hi");
+        stmt.close();
+
+        background del(stmt, q);
+        assertEq("SQLSTATEMENT-ERROR", q.get());
+        dsp.exec("delete from test");
+    }
+
     transTest() {
         if (!dsp)
             testSkip("no DB connection");
@@ -89,8 +110,10 @@ class SQLStatementTest inherits QUnit::Test {
         {
             # check parse and runtime type resolution with AbstractDatasource
             AbstractDatasource ds = dsp;
-            SQLStatement stmt(ds);
+            AbstractSQLStatement stmt = ds.getSQLStatement();
             on_error dsp.rollback();
+
+            assertEq(True, stmt instanceof AbstractIterator);
 
             stmt.prepare("insert into test (string) values (%v)");
             stmt.exec("hi");
@@ -120,7 +143,7 @@ class SQLStatementTest inherits QUnit::Test {
             stmt.rollback();
         }
         {
-            SQLStatement stmt(ds);
+            AbstractSQLStatement stmt = ds.getSQLStatement();
             on_error ds.rollback();
             on_success ds.commit();
 
@@ -139,6 +162,17 @@ class SQLStatementTest inherits QUnit::Test {
 
             rc = ds.selectRow("select count(1) cnt from test").cnt;
             assertEq(2, rc);
+        }
+    }
+
+    private del(SQLStatement stmt, Queue  q) {
+        # this will cause a crash without the fix for #2334
+        try {
+            stmt.exec();
+            q.push("NO-ERROR");
+        }
+        catch (hash ex) {
+            q.push(ex.err);
         }
     }
 }

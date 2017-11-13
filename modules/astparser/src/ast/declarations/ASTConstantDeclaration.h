@@ -59,8 +59,8 @@ public:
         name(n),
         value(v) {}
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_Constant;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_Constant;
     }
 };
 

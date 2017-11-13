@@ -43,8 +43,8 @@ public:
     using Ptr = std::unique_ptr<ASTThreadExitStatement>;
 
 public:
-    virtual Kind getKind() const override {
-        return Kind::ASK_ThreadExit;
+    virtual ASTStatementKind getKind() const override {
+        return ASTStatementKind::ASK_ThreadExit;
     }
 };
 

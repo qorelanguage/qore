@@ -43,8 +43,8 @@ public:
 public:
     ASTClosureExpression(ASTClosureDeclaration* cd) : ASTExpression(cd->loc), closure(cd) {}
 
-    virtual Kind getKind() const override {
-        return Kind::AEK_Closure;
+    virtual ASTExpressionKind getKind() const override {
+        return ASTExpressionKind::AEK_Closure;
     }
 };
 

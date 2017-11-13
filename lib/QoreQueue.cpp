@@ -86,18 +86,18 @@ int qore_queue_private::waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
 
       if (rc) {
 #ifdef DEBUG
-	 // if an error has occurred, then it must be due to a timeout
-	 if (!timeout_ms)
-	    printd(0, "qore_queue_private::waitReadIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
+         // if an error has occurred, then it must be due to a timeout
+         if (!timeout_ms)
+            printd(0, "qore_queue_private::waitReadIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
 #endif
-	 assert(timeout_ms);
-	 assert(rc == ETIMEDOUT);
-	 return QW_TIMEOUT;
+         assert(timeout_ms);
+         assert(rc == ETIMEDOUT);
+         return QW_TIMEOUT;
       }
 
       if (len == Queue_Deleted) {
-	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-	 return QW_DEL;
+         xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
+         return QW_DEL;
       }
    }
 
@@ -123,18 +123,18 @@ int qore_queue_private::waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
 
       if (rc) {
 #ifdef DEBUG
-	 // if an error has occurred, then it must be due to a timeout
-	 if (!timeout_ms)
-	    printd(0, "qore_queue_private::waitWriteIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
+         // if an error has occurred, then it must be due to a timeout
+         if (!timeout_ms)
+            printd(0, "qore_queue_private::waitWriteIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
 #endif
-	 assert(timeout_ms);
-	 assert(rc == ETIMEDOUT);
-	 return QW_TIMEOUT;
+         assert(timeout_ms);
+         assert(rc == ETIMEDOUT);
+         return QW_TIMEOUT;
       }
 
       if (len == Queue_Deleted) {
-	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-	 return QW_DEL;
+         xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
+         return QW_DEL;
       }
    }
 
@@ -192,7 +192,7 @@ void qore_queue_private::insertIntern(AbstractQoreNode* v) {
 int qore_queue_private::checkWriteIntern(ExceptionSink* xsink, bool always_error) {
    if (len == Queue_Deleted) {
       if (always_error)
-	 xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
+         xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
       return -1;
    }
    if (!err.empty()) {

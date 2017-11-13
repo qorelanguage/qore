@@ -69,15 +69,6 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
-DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_list_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_softlist_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_softlist_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_reference_type(const QoreTypeInfo* valueTypeInfo);
-DLLLOCAL const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
-
 class QoreTypeSpec {
 public:
    DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
@@ -756,7 +747,11 @@ protected:
          return false;
 
       for (unsigned i = 0; i < t->return_vec.size(); ++i) {
-         if (t->return_vec[i].spec != return_vec[i].spec)
+         bool may_not_match = false;
+         bool may_need_filter = false;
+         if (!return_vec[i].spec.match(t->return_vec[i].spec, may_not_match, may_need_filter))
+            return false;
+         if (may_not_match)
             return false;
       }
 

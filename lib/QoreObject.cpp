@@ -1288,6 +1288,7 @@ AbstractPrivateData* QoreObject::tryGetReferencedPrivateData(qore_classid_t key,
 AbstractPrivateData* QoreObject::getAndClearPrivateData(qore_classid_t key, ExceptionSink* xsink) {
    QoreSafeVarRWWriteLocker sl(priv->rml);
 
+   //printd(5, "QoreObject::getAndClearPrivateData this: %p, privateData: %p, key: %d, getkey: %p\n", this, priv->privateData, key, priv->privateData ? priv->privateData->getAndClearPtr(key): nullptr);
    if (priv->privateData)
       return priv->privateData->getAndClearPtr(key);
 

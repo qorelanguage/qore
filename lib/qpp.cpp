@@ -691,6 +691,9 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                 if (subtype == "auto")
                     qc = on ? "autoHashOrNothingTypeInfo" : "autoHashTypeInfo";
                 else {
+                    size_t i = subtype.rfind(':');
+                    if (i != std::string::npos)
+                        subtype.erase(0, i + 1);
                     // generate type name
                     qc = "hashdecl" + subtype + "->getTypeInfo(" + (on ? "true" : "false") + ")";
                     log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
@@ -2751,11 +2754,11 @@ public:
             size_t i = name.rfind(':');
             if (i != std::string::npos) {
                 ns = name.substr(0, i - 1);
-                name.erase(0, i);
+                name.erase(0, i + 1);
             }
         }
 
-        //printf("hashdecl '%s'\n", name.c_str());
+        printf("hashdecl '%s'\n", name.c_str());
 
         // skip whitespace
         while (whitespace(*p1))
@@ -4419,7 +4422,7 @@ void init() {
     dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
 
     dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
-    dnmap["DEBUG_INSECURE"] = "PO_ALLOW_DEBUGGING";
+    dnmap["DEBUGGER"] = "PO_ALLOW_DEBUGGER";
 
     // initialize code flag set
     fset.insert("NO_FLAGS");

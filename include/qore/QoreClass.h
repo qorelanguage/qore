@@ -52,6 +52,7 @@ DLLEXPORT extern qore_classid_t CID_GETOPT;
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern qore_classid_t CID_MUTEX;
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
+DLLEXPORT extern qore_classid_t CID_PROGRAMDEBUG;
 DLLEXPORT extern qore_classid_t CID_QUEUE;
 DLLEXPORT extern qore_classid_t CID_RWLOCK;
 DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;

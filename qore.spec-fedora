@@ -61,7 +61,6 @@ functionality.
 %files -n libqore
 %{_libdir}/libqore.so.5.14.0
 %{_libdir}/libqore.so.5
-%{module_dir}
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n libqore -p /sbin/ldconfig
@@ -84,6 +83,7 @@ modules.
 
 %files stdlib
 %{user_module_dir}
+%{module_dir}
 %{_libdir}/qore-modules/%{version}/astparser-api-0.20.qmod
 %doc COPYING.MIT README-LICENSE
 
@@ -166,11 +166,17 @@ make check
 %{_bindir}/schema-reverse
 %{_bindir}/sfrest
 %{_bindir}/sqlutil
+%{_bindir}/qdbg
+%{_bindir}/qdbg-server
+%{_bindir}/qdbg-remote
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Sat Sep 23 2017 David Nichols <david@qore.org> 0.9-1
+* Fri Sep 29 2017 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
+
+* Fri Sep 29 2017 David Nichols <david@qore.org> 0.8.13.1-1
+- updated version to 0.8.13.1-1
 
 * Fri Aug 4 2017 David Nichols <david@qore.org> 0.8.13-1
 - updated version to 0.8.13-1

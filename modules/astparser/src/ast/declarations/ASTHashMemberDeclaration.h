@@ -65,8 +65,8 @@ public:
     {
     }
 
-    virtual Kind getKind() const override {
-        return Kind::ADK_HashMember;
+    virtual ASTDeclarationKind getKind() const override {
+        return ASTDeclarationKind::ADK_HashMember;
     }
 };
 

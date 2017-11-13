@@ -21,7 +21,7 @@
     |@ref cast "cast<>()"|\c 3|@ref cast "cast<>() operator"|@code{.py} cast<SubClass>(var)@endcode
     |@ref logical_negation_operator "!"|\c 4|@ref logical_negation_operator "logical negation operator"|@code{.py} if (!(a > 10)) {}@endcode
     |@ref binary_not_operator "~"|\c 5|@ref binary_not_operator "binary not/bit inversion operator"|@code{.py} var = ~var@endcode
-    |@ref unary_plus_operator "+ (unary plus)"|\c 6|@ref unary_plus_operator "unary plus operator"|@code v{.py}ar = +var@endcode
+    |@ref unary_plus_operator "+ (unary plus)"|\c 6|@ref unary_plus_operator "unary plus operator"|@code{.py} var = +var@endcode
     |@ref unary_minus_operator "- (unary minus)"|\c 6|@ref unary_minus_operator "unary minus operator"|@code{.py} var = -var@endcode
     |@ref shift "shift"|\c 7|@ref shift "shift list element operator"|@code{.py} shift list@endcode
     |@ref pop "pop"|\c 7|@ref pop "pop list element operator"|@code{.py} pop list@endcode
@@ -456,7 +456,7 @@ delete l[2,5..7,8];
     The remove operator removes a value from a data structure, or, in the case the operand of the remove operator is a simple value, the value itself is removed from the variable and returned. The remove operator returns the value removed from the \a lvalue.\n\n
     When called on a hash key, the key is removed from the hash entirely, and the value returned is the value of the key removed from the hash; when called on a list element, the element is assigned @ref nothing (i.e. the list size does not change).\n\n
     The remove operator will remove and return a slice from a hash when called on a hash dereferenced by a list of strings, giving the keys to remove (see example below).\n\n
-    The remove operator will also remove characters from strings, bytes from binary objects, and elements from lists as well.\n\n
+    The remove operator will also remove characters from strings, bytes from binary objects, and elements from lists as well; when removing invalid or non-existant indices from strings and binary objects, no data is written to the output value, however in the case of a list lvalue, @ref nothing is written to the output list in these cases.  In case the same index is referenced multiple times, the value is repeated in the output value.\n\n
     The remove operator does not call destructors when operating on objects, but if removing an object from an lvalue or from a data structure within the \a lvalue causes the object to go out of scope, it will be destroyed, and then its destructor could throw an exception.\n\n
     For a similar operator that deletes the value that is removed from the data structure, see the @ref delete "delete operator".
 
