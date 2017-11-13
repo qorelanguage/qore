@@ -274,7 +274,8 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%strict-bool-eval{WS}*$                { yylval->parseopt = new ASTParseOption(APOK_STRICT_BOOLEAN_EVAL); return PARSE_OPTION_FULL; }
 ^%strong-encapsulation{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_STRONG_ENCAPSULATION); return PARSE_OPTION_FULL; }
 ^%no-uncontrolled-apis{WS}*$            { yylval->parseopt = new ASTParseOption(APOK_NO_UNCONTROLLED_APIS); return PARSE_OPTION_FULL; }
-^%allow-debugging{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGING); return PARSE_OPTION_FULL; }
+^%no-debugging{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_NO_DEBUGGING); return PARSE_OPTION_FULL; }
+^%allow-debugger{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_ALLOW_DEBUGGER); return PARSE_OPTION_FULL; }
 ^%allow-weak-references{WS}*$           { yylval->parseopt = new ASTParseOption(APOK_ALLOW_WEAK_REFERENCES); return PARSE_OPTION_FULL; }
 ^%broken-list-parsing{WS}*$             { yylval->parseopt = new ASTParseOption(APOK_BROKEN_LIST_PARSING); return PARSE_OPTION_FULL; }
 ^%broken-logic-precedence{WS}*$         { PO_BROKEN_LOGIC_PRECEDENCE = true; yylval->parseopt = new ASTParseOption(APOK_BROKEN_LOGIC_PRECEDENCE); return PARSE_OPTION_FULL; }
@@ -993,6 +994,7 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
 \^=                                     return XOR_EQUALS;
 \>\>=                                   return SHIFT_RIGHT_EQUALS;
 \<\<=                                   return SHIFT_LEFT_EQUALS;
+\.\.                                    return RANGE;
 
 \<{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_LE : WS_LOGICAL_LE;
 \>{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_GE : WS_LOGICAL_GE;

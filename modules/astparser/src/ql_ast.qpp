@@ -361,10 +361,10 @@ const ASUK_AssignmentLeft = ASUK_AssignmentLeft;
 //! Symbol usage kind for right-values in assignments.
 const ASUK_AssignmentRight = ASUK_AssignmentRight;
 
-//! Symbol usage kind for left values in binary operations.
+//! Symbol usage kind for left values in binary expressions.
 const ASUK_BinaryLeft = ASUK_BinaryLeft;
 
-//! Symbol usage kind for right values in binary operations.
+//! Symbol usage kind for right values in binary expressions.
 const ASUK_BinaryRight = ASUK_BinaryRight;
 
 //! Symbol usage kind for call target expressions.
@@ -411,6 +411,12 @@ const ASUK_TernaryFalse = ASUK_TernaryFalse;
 
 //! Symbol usage kind for operands in unary operator expressions.
 const ASUK_Unary = ASUK_Unary;
+
+//! Symbol usage kind for left values in range expressions.
+const ASUK_RangeLeft = ASUK_RangeLeft;
+
+//! Symbol usage kind for right values in range expressions.
+const ASUK_RangeRight = ASUK_RangeRight;
 
 
 //! Symbol usage kind for names in context statements.
