@@ -1079,7 +1079,7 @@ stderr.redirect(my_file);
     @param file the file that the current object will be redirected to
 
     @throw FILE-REDIRECT-ERROR the underlying call to \c dup2() failed
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called on or with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @note Once this method has been successfully executed, the file descriptor of the current object mirrors all operations of the argument's file descriptor and vice-versa, however the internal state and file path information is not kept synchronized between the linked objects in %Qore, which must be taken into
     consideration when performing operations on objects linked through calls to this method.
@@ -1089,7 +1089,7 @@ stderr.redirect(my_file);
 nothing File::redirect(Qore::File[File] file) {
     ReferenceHolder<File> holder(file, xsink);
 
-    if (check_terminal_io(self, "File::redirect", xsink))
+    if (check_terminal_io(self, "File::redirect", xsink) || check_terminal_io(obj_file, "File::redirect", xsink))
         return QoreValue();
 
     f->redirect(*file, xsink);
