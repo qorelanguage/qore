@@ -2225,6 +2225,41 @@ auto v = c.name;
         # is listed.
         private *hash resolveSynonym(string s_owner, string s_name) {
             *hash ret;
+
+            # dbms_utility.name_resolve handled some Oracle EBS
+            # cryptic aliases and view-hideouts out of the box
+            try {
+                hash plsql = ds.exec("declare
+                                        o_owner varchar2(30);
+                                        o_table varchar2(30);
+                                        o_db_link varchar2(30);
+                                        o_tmp1 varchar2(30);
+                                        o_tmp2 number;
+                                        o_tmp3 number;
+                                    begin
+                                    dbms_utility.name_resolve(%v, 0, o_owner, o_table, o_db_link, o_tmp1, o_tmp2, o_tmp3);
+                                    :owner := o_owner;
+                                    :table := o_table;
+                                    :link := o_db_link;
+                                    end;",
+                                    sprintf("%s.%s", s_owner.upr(), s_name.upr()),
+                                    Type::String, Type::String, Type::String
+                            );
+                # simulate resultset from all_synonyms output
+                return ("owner" : s_owner,
+                        "synonym_name" : s_name,
+                        "table_owner" : plsql.owner,
+                        "table_name" : plsql.table,
+                        "db_link" : plsql.link,
+                    );
+            }
+            catch (hash ex) {
+                # exceptions are silently ignored - session can miss
+                # dbms_utility grants, requested object can be missing etc.
+                #printf("resolveSynonym dbms_utility.name_resolve error: %s\n", get_exception_string(ex));
+            }
+
+            # fallback synonym resolution if there is no dbms_utility available
             do {
                 # TODO/FIXME: db link handling
                 ret = ds.selectRow("select s.*, o.object_type
