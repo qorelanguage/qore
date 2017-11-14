@@ -517,10 +517,10 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
    return 0;
 }
 
-QoreStringNode *QoreSignalManager::reassign_signal(int sig, const char* name) {
+QoreStringNode* QoreSignalManager::reassign_signal(int sig, const char* name) {
    AutoLocker al(&mutex);
    if (!enabled())
-      return 0;
+      return nullptr;
 
    // wait for any blocks to be lifted
    while (block) {
@@ -530,18 +530,21 @@ QoreStringNode *QoreSignalManager::reassign_signal(int sig, const char* name) {
    }
 
    if (handlers[sig].isSet()) {
-      QoreStringNode *err = new QoreStringNode("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+      QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+      //printd(5, "QoreSignalManager::reassign_signal(): %s\n", err->c_str());
       return err;
    }
 
    sig_map_t::iterator i = fmap.find(sig);
    if (i != fmap.end()) {
-      QoreStringNode *err = new QoreStringNode("the Qore library cannot reassign signal ");
-      err->sprintf("%d because it is already managed by module '%s'", sig, i->second.c_str());
+      QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' because it is already managed by module '%s'", sig, name, i->second.c_str());
+      //printd(5, "QoreSignalManager::reassign_signal(): %s\n", err->c_str());
       return err;
    }
 
    fmap[sig] = name;
 
-   return 0;
+   //printd(5, "QoreSignalManager::reassign_signal(): %s: success\n", name);
+
+   return nullptr;
 }
