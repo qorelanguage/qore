@@ -56,8 +56,6 @@ class FileTest inherits QUnit::Test {
         stderr.redirect(f);
         stderr.setPos(0);
         stderr.write("test2");
-        #stderr.sync();
-        #stderr.close();
 
         assertEq("test2", ReadOnlyFile::readTextFile(file));
     }
