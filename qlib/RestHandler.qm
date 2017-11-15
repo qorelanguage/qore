@@ -189,7 +189,8 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 
     To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass" subclass reimplements the @ref RestHandler::AbstractRestClass::subClass() "subClass()" method that returns a child @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object.
 
-    If no such sub object exists, then the method should return @ref nothing, which will cause a \c "REST-CLASS-ERROR" exception to be thrown by default (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of @ref RestHandler::RestHandler "RestHandler".  See @ref restexceptions for more information
+    If no such sub object exists, then the method should return @ref nothing, which will cause a <tt>404 Bad Request</tt> response to be returned by (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of @ref RestHandler::RestHandler "RestHandler".  Otherwise, if an exception occurs handling the
+    request, a <tt>409 Conflict</tt> response is returned; see @ref restexceptions for more information.
 
     The following is an example of a class implementing a @ref RestHandler::AbstractRestClass::subClass() "subClass()" method:
     @code{.py}
@@ -730,7 +731,7 @@ public namespace RestHandler {
             }
         }
 
-        #! throws a \c "REST-CLASS-ERROR" exception when a request tries to access an unknown subclass
+        #! returns a 404 Not Found response when a request tries to access an unknown subclass
         private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string n_name) {
             return new hash<HttpServer::HttpHandlerResponseInfo>((
                 "code": 404,
@@ -949,7 +950,7 @@ public namespace RestHandler {
                 if (!ch{cls}) {
                     *AbstractRestClass c = subClass(cls, cx, args);
                     if (!c)
-                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 409;
+                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 404;
                     rcls = c;
                 }
                 else
@@ -1124,14 +1125,16 @@ public namespace RestHandler {
                     if (!ch{cls}) {
                         *AbstractRestClass c = subClass(cls, cx, args);
                         if (!c)
-                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys()));
-                        rcls = c;
+                            rv = unknownSubClassError(cls);
+                        else
+                            rcls = c;
                     }
                     else
                         rcls = ch{cls};
                 }
 
-                rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
+                if (!rv)
+                    rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
             catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
@@ -1143,7 +1146,7 @@ public namespace RestHandler {
                 rv = new hash<HttpHandlerResponseInfo>((
                     "code": 409,
                     "body": ex,
-                    ));
+                ));
             }
 
             #logDebug("DBG: rv: %y", rv);
