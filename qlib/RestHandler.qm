@@ -1125,14 +1125,16 @@ public namespace RestHandler {
                     if (!ch{cls}) {
                         *AbstractRestClass c = subClass(cls, cx, args);
                         if (!c)
-                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys()));
-                        rcls = c;
+                            rv = unknownSubClassError(cls);
+                        else
+                            rcls = c;
                     }
                     else
                         rcls = ch{cls};
                 }
 
-                rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
+                if (!rv)
+                    rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
             }
             catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
@@ -1141,16 +1143,10 @@ public namespace RestHandler {
 
                 # if there is an exception, return a 409 Conflict error to the client with the exception information
                 logError(desc);
-                if (ex.err == "REST-CLASS-ERROR")
-                    rv = new hash<HttpHandlerResponseInfo>((
-                        "code": 404,
-                        "body": ex.desc,
-                    ));
-                else
-                    rv = new hash<HttpHandlerResponseInfo>((
-                        "code": 409,
-                        "body": ex,
-                    ));
+                rv = new hash<HttpHandlerResponseInfo>((
+                    "code": 409,
+                    "body": ex,
+                ));
             }
 
             #logDebug("DBG: rv: %y", rv);
